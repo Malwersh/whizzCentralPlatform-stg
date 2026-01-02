@@ -71,6 +71,11 @@ window.RBAC = {
             pageName = pageName.split('/').pop();
         }
 
+        // Normalize navigation "data-page" keys (e.g. "dashboard") to actual filenames.
+        if (pageName && !pageName.includes('.') && !pageName.endsWith('.html')) {
+            pageName = pageName + '.html';
+        }
+
         console.log('🔍 Checking access for page:', pageName);
 
         const config = window.RBAC_CONFIG;

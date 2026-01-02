@@ -90,6 +90,12 @@ window.RBAC = {
 
     hasPageAccess(pageName) {
         pageName = pageName.replace(/^\//, '').split('/').pop();
+
+        // Normalize navigation "data-page" keys (e.g. "dashboard") to actual filenames.
+        // Many pages/menus reference routes without the .html suffix.
+        if (pageName && !pageName.includes('.') && !pageName.endsWith('.html')) {
+            pageName = pageName + '.html';
+        }
         
         console.log('🔍 Checking page access for:', pageName);
         
