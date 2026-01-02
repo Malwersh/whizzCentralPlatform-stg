@@ -368,10 +368,6 @@
 </head>
 
 <body data-page="orders">
-    <!-- Aggressive sidebar fix - runs first -->
-    <script src="../aggressive-sidebar-fix.js"></script>
-    <!-- Immediate sidebar state fix -->
-    <script src="../immediate-sidebar-fix.js"></script>
     <!-- Sidebar include placeholder -->
     <div id="sidebar-placeholder"></div>
 
@@ -500,6 +496,13 @@
     <script src="../js/orders-api.js"></script>
     <!-- Sidebar -->
     <script src="../assets/js/navigation.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                window.navigationManager.init();
+            }
+        });
+    </script>
     <script src="../test-toggle-functionality.js"></script>
 <script>
     let allOrders = [];
@@ -950,42 +953,6 @@
             loadOrders();
         }, 100); // Small delay to ensure all scripts are loaded
     });
-</script>
-<!-- Sidebar Loading Script -->
-<script>
-    // Load sidebar content
-    async function loadSidebar() {
-        try {
-            const response = await fetch('../includes/sidebar.html');
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const html = await response.text();
-
-            const placeholder = document.getElementById('sidebar-placeholder');
-            if (placeholder) {
-                // SECURITY: Sidebar HTML is from trusted source (internal file)
-                placeholder.innerHTML = html;
-                console.log('✅ Sidebar loaded successfully');
-
-                // Set active state for orders page
-                const ordersNavItem = document.querySelector('.nav-item[data-page="orders"]');
-                if (ordersNavItem) {
-                    // Remove any existing active states
-                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-                    // Add active to orders
-                    ordersNavItem.classList.add('active');
-                }
-            }
-        } catch (error) {
-            console.error('❌ Failed to load sidebar:', error);
-        }
-    }
-
-    // Load sidebar when page loads
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadSidebar);
-    } else {
-        loadSidebar();
-    }
 </script>
 <script>
     (async function () {

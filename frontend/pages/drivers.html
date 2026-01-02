@@ -1116,9 +1116,19 @@
     <script src="../data-service.js?v=20250906"></script>
 
     <!-- Page-specific scripts -->
-    <script src="../aggressive-sidebar-fix.js"></script>
-    <script src="../immediate-sidebar-fix.js"></script>
     <script src="../assets/js/navigation.js?v=20250906"></script>
+    <script>
+        // Initialize navigation (single source of truth)
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                    window.navigationManager.init();
+                }
+            } catch (e) {
+                console.warn('Navigation init error:', e);
+            }
+        });
+    </script>
     <script src="../drivers.js?v=20250906"></script>
 
     <!-- Authentication check -->
@@ -1166,41 +1176,7 @@
         } catch (e) { console.warn('RBAC init failed', e); }
     })();
 </script>
-<!-- Sidebar Loading Script -->
-<script>
-    // Load sidebar content
-    async function loadSidebar() {
-        try {
-            const response = await fetch('../includes/sidebar.html');
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const html = await response.text();
 
-            const placeholder = document.getElementById('sidebar-placeholder');
-            if (placeholder) {
-                placeholder.innerHTML = html;
-                console.log('✅ Sidebar loaded successfully');
-
-                // Set active state for drivers page
-                const driversNavItem = document.querySelector('.nav-item[data-page="drivers"]');
-                if (driversNavItem) {
-                    // Remove any existing active states
-                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-                    // Add active to drivers
-                    driversNavItem.classList.add('active');
-                }
-            }
-        } catch (error) {
-            console.error('❌ Failed to load sidebar:', error);
-        }
-    }
-
-    // Load sidebar when page loads
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadSidebar);
-    } else {
-        loadSidebar();
-    }
-</script>
 </body>
 
 </html>

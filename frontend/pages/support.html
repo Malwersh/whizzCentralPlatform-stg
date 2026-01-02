@@ -1574,14 +1574,12 @@
                 if (countEl) countEl.textContent = String(items.length);
             }
 </script>
-    <script src="../aggressive-sidebar-fix.js"></script>
-    <script src="../immediate-sidebar-fix.js"></script>
     <script src="../assets/js/navigation.js"></script>
     <script>
-        // Initialize navigation when page loads
-        document.addEventListener('DOMContentLoaded', async function () {
-            const nav = new NavigationManager();
-            await nav.init();
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                window.navigationManager.init();
+            }
         });
     </script>
 </body>

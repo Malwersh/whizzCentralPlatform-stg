@@ -1349,8 +1349,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="../aggressive-sidebar-fix.js"></script>
-    <script src="../immediate-sidebar-fix.js"></script>
     <script src="../assets/js/navigation.js"></script>
     <script src="../config.js"></script>
     <script src="../assets/js/auth-utils.js"></script>
@@ -1453,15 +1451,15 @@
 
     (async function () {
         try {
-            await RBAC.ensure();
-            // Enforce RBAC - New system auto-detects page name
-            window.RBAC.enforcePage();
-            if (!RBAC.can('regions', 'write')) {
-                RBAC.applyReadOnly('body', 'regions');
-                document.querySelectorAll('[data-write-only]').forEach(el => el.style.display = 'none');
-            }
-        } catch (e) { console.warn('RBAC init failed', e); }
-    })();
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    console.log('🗺️ Regions Management page loaded');
+
+                    if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                        window.navigationManager.init();
+                    }
+
+                    if (typeof regionsManager !== 'undefined') {
+                        window.regionsManager = regionsManager;
+                    }
     </script>
-</body>
-</html>

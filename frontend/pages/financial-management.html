@@ -714,85 +714,15 @@
 
     <!-- Navigation and Sidebar Scripts -->
     <script src="../assets/js/rbac.js"></script>
-    <script src="../aggressive-sidebar-fix.js"></script>
-    <script src="../immediate-sidebar-fix.js"></script>
     <script src="../assets/js/navigation.js"></script>
-    <script src="../financial-management.js"></script>
-    
-    <!-- Sidebar Loading Script -->
     <script>
-        // Load sidebar content
-        async function loadSidebar() {
-            try {
-                const response = await fetch('../includes/sidebar.html');
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const html = await response.text();
-
-                const placeholder = document.getElementById('sidebar-placeholder');
-                if (placeholder) {
-                    placeholder.innerHTML = html;
-                    console.log('✅ Sidebar loaded successfully');
-
-                    // Set active state for financial page
-                    const financialNavItem = document.querySelector('.nav-item[data-page="financial"]');
-                    if (financialNavItem) {
-                        // Remove any existing active states
-                        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-                        // Add active to financial
-                        financialNavItem.classList.add('active');
-                    }
-
-                    // Apply role-based visibility to sidebar items
-                    await applySidebarRBAC();
-                }
-            } catch (error) {
-                console.error('❌ Failed to load sidebar:', error);
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                window.navigationManager.init();
             }
-        }
-
-            // Hide sidebar items based on roles from /api/me
-            async function applySidebarRBAC() {
-                try {
-                    const res = await fetch('/api/me');
-                    const json = await res.json();
-                    const roles = (json && json.data && Array.isArray(json.data.roles)) ? json.data.roles : [];
-                    const has = r => roles.includes(r) || roles.includes('admin');
-                    const pageRoles = {
-                        dashboard: ['financial_admin', 'support_admin', 'merchants_admin', 'drivers_admin', 'customers_admin', 'campaigns_admin', 'reporting_view'],
-                        drivers: ['drivers_admin', 'support_admin'],
-                        customers: ['customers_admin', 'support_admin'],
-                        merchants: ['merchants_admin', 'support_admin'],
-                        orders: ['support_admin', 'merchants_admin', 'drivers_admin'],
-                        promotions: ['campaigns_admin'],
-                        regions: ['merchants_admin'],
-                        financial: ['financial_admin', 'reporting_view'],
-                        support: ['support_admin']
-                    };
-                    document.querySelectorAll('.nav-item').forEach(item => {
-                        const page = item.getAttribute('data-page');
-                        if (!page) return;
-                        const allowed = pageRoles[page];
-                        if (Array.isArray(allowed) && !allowed.some(r => has(r))) {
-                            item.style.display = 'none';
-                        }
-                    });
-                    // Update sidebar user info if present
-                    const userNameEl = document.querySelector('.user-info .user-name');
-                    const userRoleEl = document.querySelector('.user-info .user-role');
-                    if (userNameEl) userNameEl.textContent = (json?.data?.email) || 'User';
-                    if (userRoleEl) userRoleEl.textContent = roles.join(', ') || 'guest';
-                } catch (e) {
-                    console.warn('RBAC sidebar gating failed:', e);
-                }
-            }
-
-        // Load sidebar when page loads
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadSidebar);
-        } else {
-            loadSidebar();
-        }
+        });
     </script>
+    <script src="../financial-management.js"></script>
     
     <!-- Add logout function if not available -->
     <script>
@@ -803,8 +733,9 @@
                 sessionStorage.clear();
                 localStorage.clear();
                 
-                // Redirect to login
-                window.location.href = '/frontend/index.html';
+                // Redirect to login (prefer configured auth base path if available)
+                const authBase = (window.CONFIG && window.CONFIG.AUTH_BASE_PATH) ? window.CONFIG.AUTH_BASE_PATH : '';
+                window.location.href = `${authBase}/index.html`;
             }
         }
     </script>

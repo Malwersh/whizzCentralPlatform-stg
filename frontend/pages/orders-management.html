@@ -345,9 +345,14 @@
     <script src="../assets/js/security-utils.js"></script>
     <script src="../js/orders-api.js"></script>
     <script src="../orders.js"></script>
-    <script src="../aggressive-sidebar-fix.js"></script>
-    <script src="../immediate-sidebar-fix.js"></script>
     <script src="../assets/js/navigation.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                window.navigationManager.init();
+            }
+        });
+    </script>
 
     <!-- Update stats function -->
     <script>
@@ -396,33 +401,6 @@
             }
         };
 
-        // Load sidebar
-        async function loadSidebar() {
-            try {
-                const response = await fetch('../includes/sidebar.html');
-                if (!response.ok) throw new Error(`Failed to load sidebar: ${response.status}`);
-                const html = await response.text();
-                const placeholder = document.getElementById('sidebar-placeholder');
-                if (placeholder) {
-                    placeholder.innerHTML = html;
-                    // Set active state for orders page
-                    const ordersNavItem = document.querySelector('.nav-item[data-page="orders"]');
-                    if (ordersNavItem) {
-                        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-                        ordersNavItem.classList.add('active');
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to load sidebar:', error);
-            }
-        }
-
-        // Load sidebar when page loads
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadSidebar);
-        } else {
-            loadSidebar();
-        }
     </script>
 </body>
 

@@ -333,8 +333,6 @@
     </div>
 
     <!-- Include required scripts -->
-    <script src="../aggressive-sidebar-fix.js"></script>
-    <script src="../immediate-sidebar-fix.js"></script>
     <script src="../assets/js/navigation.js"></script>
     <script>
         // Global variables
@@ -346,8 +344,8 @@
             console.log('Orders management page loaded');
             
             // Initialize sidebar navigation
-            if (typeof initializeDashboard === 'function') {
-                initializeDashboard();
+            if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                window.navigationManager.init();
             }
             
             // Load orders data

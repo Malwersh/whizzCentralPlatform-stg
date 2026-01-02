@@ -1154,9 +1154,19 @@
     <script src="../assets/js/aws-utils.js"></script>
 
     <!-- Page-specific scripts -->
-    <script src="../aggressive-sidebar-fix.js"></script>
-    <script src="../immediate-sidebar-fix.js"></script>
     <script src="../assets/js/navigation.js"></script>
+    <script>
+        // Initialize navigation (single source of truth)
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                    window.navigationManager.init();
+                }
+            } catch (e) {
+                console.warn('Navigation init error:', e);
+            }
+        });
+    </script>
     <script src="../customer-points-service.js"></script>
     <script src="../customers.js"></script>
     
@@ -1172,41 +1182,7 @@
         }
     </script>
     
-    <!-- Sidebar Loading Script -->
-    <script>
-        // Load sidebar content
-        async function loadSidebar() {
-            try {
-                const response = await fetch('../includes/sidebar.html');
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const html = await response.text();
 
-                const placeholder = document.getElementById('sidebar-placeholder');
-                if (placeholder) {
-                    placeholder.innerHTML = html;
-                    console.log('✅ Sidebar loaded successfully');
-
-                    // Set active state for customers page
-                    const customersNavItem = document.querySelector('.nav-item[data-page="customers"]');
-                    if (customersNavItem) {
-                        // Remove any existing active states
-                        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-                        // Add active to customers
-                        customersNavItem.classList.add('active');
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Failed to load sidebar:', error);
-            }
-        }
-
-        // Load sidebar when page loads
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadSidebar);
-        } else {
-            loadSidebar();
-        }
-    </script>
 <script>
     (async function () {
         try {
