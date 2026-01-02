@@ -9,6 +9,7 @@ class NavigationManager {
         this.menuToggle = null;
         this.sidebarToggle = null;
         this.isInitialized = false;
+        this._boundToggleHandler = this.toggleSidebar.bind(this);
     }
 
     async init() {
@@ -228,14 +229,20 @@ class NavigationManager {
     setupEventListeners() {
         // Mobile menu toggle
         if (this.menuToggle) {
-            this.menuToggle.addEventListener('click', () => this.toggleSidebar());
-            console.log('🔧 NavigationManager: Mobile menu toggle connected');
+            if (!this.menuToggle.dataset.navToggleBound) {
+                this.menuToggle.addEventListener('click', this._boundToggleHandler);
+                this.menuToggle.dataset.navToggleBound = '1';
+                console.log('🔧 NavigationManager: Mobile menu toggle connected');
+            }
         }
 
         // Sidebar toggle button
         if (this.sidebarToggle) {
-            this.sidebarToggle.addEventListener('click', () => this.toggleSidebar());
-            console.log('🔧 NavigationManager: Sidebar toggle button connected');
+            if (!this.sidebarToggle.dataset.navToggleBound) {
+                this.sidebarToggle.addEventListener('click', this._boundToggleHandler);
+                this.sidebarToggle.dataset.navToggleBound = '1';
+                console.log('🔧 NavigationManager: Sidebar toggle button connected');
+            }
         } else {
             console.warn('⚠️ NavigationManager: Sidebar toggle button not found');
         }
@@ -603,43 +610,43 @@ class NavigationManager {
                 <nav class="sidebar-nav">
                     <ul>
                         <li class="nav-item" data-page="dashboard">
-                            <a href="/frontend/pages/dashboard.html" class="nav-link">
+                            <a href="dashboard.html" class="nav-link">
                                 <i class="fas fa-tachometer-alt"></i>
                                 <span>Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item" data-page="drivers">
-                            <a href="/frontend/pages/drivers.html" class="nav-link">
+                            <a href="drivers.html" class="nav-link">
                                 <i class="fas fa-motorcycle"></i>
                                 <span>Drivers</span>
                             </a>
                         </li>
                         <li class="nav-item" data-page="customers">
-                            <a href="/frontend/pages/customers.html" class="nav-link">
+                            <a href="customers.html" class="nav-link">
                                 <i class="fas fa-users"></i>
                                 <span>Customers</span>
                             </a>
                         </li>
                         <li class="nav-item" data-page="merchants">
-                            <a href="/frontend/pages/merchants.html" class="nav-link">
+                            <a href="merchants.html" class="nav-link">
                                 <i class="fas fa-store"></i>
                                 <span>Merchants</span>
                             </a>
                         </li>
                         <li class="nav-item" data-page="orders">
-                            <a href="/frontend/pages/orders.html" class="nav-link">
+                            <a href="orders.html" class="nav-link">
                                 <i class="fas fa-shopping-bag"></i>
                                 <span>Orders</span>
                             </a>
                         </li>
                         <li class="nav-item" data-page="promotions">
-                            <a href="/frontend/pages/promotions.html" class="nav-link">
+                            <a href="promotions.html" class="nav-link">
                                 <i class="fas fa-tags"></i>
                                 <span>Promotions</span>
                             </a>
                         </li>
                         <li class="nav-item" data-page="support">
-                            <a href="/frontend/pages/support.html" class="nav-link">
+                            <a href="support.html" class="nav-link">
                                 <i class="fas fa-headset"></i>
                                 <span>Support</span>
                             </a>
@@ -673,11 +680,12 @@ class NavigationManager {
         if (!this.sidebarToggle || !this.sidebarToggle.isConnected) {
             this.sidebarToggle = document.getElementById('sidebarToggle');
             if (this.sidebarToggle) {
-                // Remove any existing listeners to prevent duplicates
-                this.sidebarToggle.onclick = null;
-                this.sidebarToggle.addEventListener('click', () => this.toggleSidebar());
-                console.log('🔧 NavigationManager: Connected sidebar toggle button');
-                connected = true;
+                if (!this.sidebarToggle.dataset.navToggleBound) {
+                    this.sidebarToggle.addEventListener('click', this._boundToggleHandler);
+                    this.sidebarToggle.dataset.navToggleBound = '1';
+                    console.log('🔧 NavigationManager: Connected sidebar toggle button');
+                    connected = true;
+                }
             }
         }
         
@@ -685,11 +693,12 @@ class NavigationManager {
         if (!this.menuToggle || !this.menuToggle.isConnected) {
             this.menuToggle = document.getElementById('menuToggle');
             if (this.menuToggle) {
-                // Remove any existing listeners to prevent duplicates
-                this.menuToggle.onclick = null;
-                this.menuToggle.addEventListener('click', () => this.toggleSidebar());
-                console.log('🔧 NavigationManager: Connected menu toggle button (hamburger)');
-                connected = true;
+                if (!this.menuToggle.dataset.navToggleBound) {
+                    this.menuToggle.addEventListener('click', this._boundToggleHandler);
+                    this.menuToggle.dataset.navToggleBound = '1';
+                    console.log('🔧 NavigationManager: Connected menu toggle button (hamburger)');
+                    connected = true;
+                }
             }
         }
         
@@ -699,10 +708,12 @@ class NavigationManager {
             if (menuToggleByClass && menuToggleByClass.id !== 'menuToggle') {
                 menuToggleByClass.id = 'menuToggle';  // Assign ID for consistency
                 this.menuToggle = menuToggleByClass;
-                this.menuToggle.onclick = null;
-                this.menuToggle.addEventListener('click', () => this.toggleSidebar());
-                console.log('🔧 NavigationManager: Connected menu toggle by class (assigned ID)');
-                connected = true;
+                if (!this.menuToggle.dataset.navToggleBound) {
+                    this.menuToggle.addEventListener('click', this._boundToggleHandler);
+                    this.menuToggle.dataset.navToggleBound = '1';
+                    console.log('🔧 NavigationManager: Connected menu toggle by class (assigned ID)');
+                    connected = true;
+                }
             }
         }
         
