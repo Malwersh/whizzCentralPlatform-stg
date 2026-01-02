@@ -1177,7 +1177,7 @@
         // Load sidebar content
         async function loadSidebar() {
             try {
-                const response = await fetch('/includes/sidebar.html');
+                const response = await fetch('../includes/sidebar.html');
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const html = await response.text();
 
