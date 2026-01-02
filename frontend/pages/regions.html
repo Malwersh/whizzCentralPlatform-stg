@@ -1358,80 +1358,41 @@
     <script src="../regions.js?v=20251108-3"></script>
     
     <script>
-        // Initialize page with direct sidebar loading approach
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('🗺️ Regions Management page loaded');
-            
-            // Load sidebar directly first
-            const placeholder = document.getElementById('sidebar-placeholder');
-            if (placeholder) {
-                console.log('✅ Sidebar placeholder found');
 
-                // Try to fetch sidebar directly
-                fetch('../includes/sidebar.html')
-                    .then(response => {
-                        console.log('📋 Sidebar fetch response:', response.status);
-                        return response.text();
-                    })
-                    .then(html => {
-                        console.log('📋 Sidebar HTML length:', html.length);
-                        placeholder.innerHTML = html;
-                        console.log('✅ Sidebar HTML injected');
+            try {
+                if (window.navigationManager && typeof window.navigationManager.init === 'function') {
+                    window.navigationManager.init();
+                }
+            } catch (e) {
+                console.warn('Navigation init failed', e);
+            }
 
-                        // Check if sidebar element exists
-                        const sidebar = document.getElementById('sidebar');
-                        console.log('🎯 Sidebar element found:', !!sidebar);
-                        if (sidebar) {
-                            console.log('🎯 Sidebar classes:', sidebar.className);
-                            
-                            // Set active page
-                            const activeItems = sidebar.querySelectorAll('.nav-item');
-                            activeItems.forEach(item => {
-                                item.classList.remove('active');
-                                const link = item.querySelector('a');
-                                if (link && link.href.includes('regions.html')) {
-                                    item.classList.add('active');
-                                }
-                            });
-                            
-                            // Sidebar functionality is now handled by navigation.js
-                        }
-                        
-                        // Regions management is automatically initialized by regions.js
-                                               if (typeof regionsManager !== 'undefined') {
-                            console.log('✅ Regions Management loaded and ready');
-                            window.regionsManager = regionsManager;
-                        } else {
-                            console.error('❌ RegionsManager not loaded - check if regions.js is included');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('❌ Sidebar loading failed:', error);
-                    });
-            } else {
-                console.error('❌ Sidebar placeholder not found');
+            if (typeof regionsManager !== 'undefined') {
+                window.regionsManager = regionsManager;
             }
         });
-        
+
         // Global functions for HTML onclick handlers
         function refreshRegionsData() {
             if (window.regionsManager) {
                 window.regionsManager.refreshRegions();
             }
         }
-        
+
         function openAddRegionModal() {
             if (window.regionsManager) {
                 window.regionsManager.openRegionModal();
             }
         }
-        
+
         function closeRegionModal() {
             if (window.regionsManager) {
                 window.regionsManager.closeRegionModal();
             }
         }
-        
+
         function saveRegion() {
             if (window.regionsManager) {
                 const form = document.getElementById('regionForm');
@@ -1448,18 +1409,6 @@
             el.textContent = message;
             el.style.display = 'block';
         }
-
-    (async function () {
-        try {
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    console.log('🗺️ Regions Management page loaded');
-
-                    if (window.navigationManager && typeof window.navigationManager.init === 'function') {
-                        window.navigationManager.init();
-                    }
-
-                    if (typeof regionsManager !== 'undefined') {
-                        window.regionsManager = regionsManager;
-                    }
     </script>
+</body>
+</html>
