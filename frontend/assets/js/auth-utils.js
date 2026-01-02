@@ -181,8 +181,12 @@ window.Auth = {
             console.log('💾 Stored return URL:', returnUrl);
         }
 
-        // Build login URL - always use /frontend/index.html for local development
-        const loginUrl = window.location.origin + '/frontend/index.html';
+        // Build login URL based on hosting layout:
+        // - CloudFront legacy layout: /frontend/index.html
+        // - Amplify root hosting: /index.html
+        const p = String(window.location.pathname || '');
+        const base = p.startsWith('/frontend/') ? '/frontend' : '';
+        const loginUrl = window.location.origin + base + '/index.html';
         console.log('🔄 Redirecting to login URL:', loginUrl);
         window.location.href = loginUrl;
     },
