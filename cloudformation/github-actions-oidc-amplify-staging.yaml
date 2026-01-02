@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: GitHub Actions OIDC role to deploy whizzCentralPlatform-stg frontend to Amplify (staging)
+
+Parameters:
+  GitHubOrg:
+    Type: String
+    Default: whizzgo
+  GitHubRepo:
+    Type: String
+    Default: whizzCentralPlatform-stg
+  GitHubBranch:
+    Type: String
+    Default: staging
+  AmplifyAppId:
+    Type: String
+    Default: d2vmebm1e1n95m
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        # Common GitHub Actions OIDC root CA thumbprint (DigiCert).
+        # If AWS rejects this in the future, update it to the current published thumbprint.
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+
+  GitHubActionsAmplifyDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'whizzcentral-${GitHubBranch}-amplify-deploy'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProvider
+            Action:
+              - sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub 'repo:${GitHubOrg}/${GitHubRepo}:ref:refs/heads/${GitHubBranch}'
+      Policies:
+        - PolicyName: whizzcentral-amplify-manual-deploy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AmplifyDeploy
+                Effect: Allow
+                Action:
+                  - amplify:CreateDeployment
+                  - amplify:StartDeployment
+                  - amplify:GetJob
+                  - amplify:GetApp
+                  - amplify:ListBranches
+                  - amplify:GetBranch
+                Resource:
+                  - !Sub 'arn:aws:amplify:${AWS::Region}:${AWS::AccountId}:apps/${AmplifyAppId}/*'
+                  - !Sub 'arn:aws:amplify:${AWS::Region}:${AWS::AccountId}:apps/${AmplifyAppId}'
+              - Sid: CloudFormationRead
+                Effect: Allow
+                Action:
+                  - cloudformation:DescribeStacks
+                  - cloudformation:ListExports
+                Resource: '*'
+              - Sid: WhoAmI
+                Effect: Allow
+                Action:
+                  - sts:GetCallerIdentity
+                Resource: '*'
+
+Outputs:
+  RoleArn:
+    Description: Role ARN to assume from GitHub Actions
+    Value: !GetAtt GitHubActionsAmplifyDeployRole.Arn

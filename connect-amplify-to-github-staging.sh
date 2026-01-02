@@ -42,6 +42,28 @@ ensure_stack_exists() {
     --output text >/dev/null
 }
 
+delete_all_amplify_branches() {
+  echo "🧹 Deleting existing Amplify branches (required to switch from manual deploy → GitHub)"
+  local branches
+  branches="$(aws --profile "$PROFILE" --region "$REGION" amplify list-branches \
+    --app-id "$AMPLIFY_APP_ID" \
+    --query 'branches[].branchName' \
+    --output text)"
+
+  if [[ -z "${branches}" || "${branches}" == "None" ]]; then
+    echo "ℹ️ No Amplify branches to delete"
+    return
+  fi
+
+  local b
+  for b in $branches; do
+    echo "- deleting branch: ${b}"
+    aws --profile "$PROFILE" --region "$REGION" amplify delete-branch \
+      --app-id "$AMPLIFY_APP_ID" \
+      --branch-name "$b" >/dev/null
+  done
+}
+
 connect_app_to_repo() {
   if [[ -z "$GITHUB_TOKEN" ]]; then
     echo "❌ Missing GITHUB_TOKEN env var. Do NOT paste it in chat."
@@ -50,11 +72,32 @@ connect_app_to_repo() {
   fi
 
   echo "🔗 Connecting Amplify app ${AMPLIFY_APP_ID} to GitHub repo: ${REPOSITORY_URL}"
-  aws --profile "$PROFILE" --region "$REGION" amplify update-app \
+
+  local out
+  set +e
+  out="$(aws --profile "$PROFILE" --region "$REGION" amplify update-app \
     --app-id "$AMPLIFY_APP_ID" \
     --repository "$REPOSITORY_URL" \
     --access-token "$GITHUB_TOKEN" \
-    --enable-branch-auto-build >/dev/null
+    --enable-branch-auto-build 2>&1)"
+  local rc=$?
+  set -e
+
+  if [[ $rc -ne 0 ]]; then
+    if echo "$out" | grep -qi "Cannot connect your app to repository while manually deployed branch still exists"; then
+      echo "⚠️ Amplify app still has manual deploy branches; converting..."
+      delete_all_amplify_branches
+      echo "🔁 Retrying Amplify update-app..."
+      aws --profile "$PROFILE" --region "$REGION" amplify update-app \
+        --app-id "$AMPLIFY_APP_ID" \
+        --repository "$REPOSITORY_URL" \
+        --access-token "$GITHUB_TOKEN" \
+        --enable-branch-auto-build >/dev/null
+    else
+      echo "$out"
+      exit $rc
+    fi
+  fi
 }
 
 ensure_branch() {

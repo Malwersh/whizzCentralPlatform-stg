@@ -1,0 +1,120 @@
+name: Deploy CentralPlatform (staging) to Amplify
+
+on:
+  push:
+    branches:
+      - staging
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: whizzcentralplatform-stg-amplify
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::699561669180:role/whizzcentral-staging-amplify-deploy
+          aws-region: us-east-1
+
+      - name: Generate frontend/env.js from CloudFormation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REGION=us-east-1
+          STAGE=staging
+          STACK_NAME=whizz-centralplatform-frontend-staging
+          APP_ID=d2vmebm1e1n95m
+          BRANCH=staging
+
+          get_output() {
+            local key="$1"
+            aws --region "$REGION" cloudformation describe-stacks \
+              --stack-name "$STACK_NAME" \
+              --query "Stacks[0].Outputs[?OutputKey=='${key}'].OutputValue | [0]" \
+              --output text
+          }
+
+          USER_POOL_ID="$(get_output CentralUserPoolId)"
+          CLIENT_ID="$(get_output CentralUserPoolClientId)"
+          IDENTITY_POOL_ID="$(get_output CentralIdentityPoolId)"
+          API_BASE_URL="$(get_output ConfigApiBaseUrl)"
+
+          WIZZUSER_WS_URL="$(aws --region "$REGION" cloudformation list-exports --query "Exports[?Name=='WizzUser-backend-${STAGE}-WebSocketUrl'].Value | [0]" --output text 2>/dev/null || true)"
+          CENTRAL_WS_URL="$(aws --region "$REGION" cloudformation describe-stacks --stack-name wizzcentral-websocket-${STAGE} --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpointWebsocket'].OutputValue | [0]" --output text 2>/dev/null || true)"
+          if [[ "${CENTRAL_WS_URL:-}" == "None" ]]; then CENTRAL_WS_URL=""; fi
+          if [[ "${WIZZUSER_WS_URL:-}" == "None" ]]; then WIZZUSER_WS_URL=""; fi
+
+          LIVE_CHAT_WS_URL="${CENTRAL_WS_URL:-$WIZZUSER_WS_URL}"
+          AI_ENDPOINT="$API_BASE_URL"
+
+          cat > frontend/env.js <<EOF
+          // Auto-generated for staging deploy (GitHub Actions). Do not commit.
+          (function(){
+            "use strict";
+            window.__STAGE__ = "${STAGE}";
+            window.__API_BASE_URL__ = "${API_BASE_URL}";
+            window.__PUSH_NOTIFICATION_API_URL__ = "";
+            window.__AI_API_ENDPOINT__ = "${AI_ENDPOINT}";
+            window.__AMAZON_CONNECT_API_BASE_URL__ = "";
+            window.__AMAZON_CONNECT_WS_URL__ = "";
+            window.__LIVE_CHAT_WEBSOCKET_URL__ = "${LIVE_CHAT_WS_URL}";
+            window.__COGNITO_REGION__ = "${REGION}";
+            window.__COGNITO_USER_POOL_ID__ = "${USER_POOL_ID}";
+            window.__COGNITO_CLIENT_ID__ = "${CLIENT_ID}";
+            window.__COGNITO_IDENTITY_POOL_ID__ = "${IDENTITY_POOL_ID}";
+            window.__CAMPAIGNS_API_BASE_URL__ = "";
+          })();
+          EOF
+
+      - name: Create zip artifact (frontend root)
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f /tmp/frontend.zip
+          (cd frontend && zip -qr /tmp/frontend.zip . -x "*.UNSAFE_BACKUP")
+          ls -lh /tmp/frontend.zip
+
+      - name: Deploy to Amplify (manual deployment API)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          APP_ID=d2vmebm1e1n95m
+          BRANCH=staging
+
+          create_json="$(aws amplify create-deployment --app-id "$APP_ID" --branch-name "$BRANCH")"
+          job_id="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["jobId"])' <<<"$create_json")"
+          zip_url="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["zipUploadUrl"])' <<<"$create_json")"
+
+          curl -sS -H "Content-Type: application/zip" --upload-file /tmp/frontend.zip "$zip_url" >/dev/null
+
+          aws amplify start-deployment --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$job_id" >/dev/null
+
+          for i in $(seq 1 120); do
+            status="$(aws amplify get-job --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$job_id" --query 'job.summary.status' --output text)"
+            echo "status=$status"
+            if [[ "$status" == "SUCCEED" ]]; then
+              exit 0
+            fi
+            if [[ "$status" == "FAILED" || "$status" == "CANCELLED" ]]; then
+              echo "Deployment failed: $status"
+              aws amplify get-job --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$job_id" --output json | cat
+              exit 1
+            fi
+            sleep 5
+          done
+
+          echo "Timed out waiting for Amplify deployment"
+          exit 1
