@@ -10,6 +10,7 @@ class NavigationManager {
         this.sidebarToggle = null;
         this.isInitialized = false;
         this._boundToggleHandler = this.toggleSidebar.bind(this);
+        this._globalListenersBound = false;
     }
 
     async init() {
@@ -228,12 +229,10 @@ class NavigationManager {
 
     setupEventListeners() {
         // Mobile menu toggle
-        if (this.menuToggle) {
-            if (!this.menuToggle.dataset.navToggleBound) {
-                this.menuToggle.addEventListener('click', this._boundToggleHandler);
-                this.menuToggle.dataset.navToggleBound = '1';
-                console.log('🔧 NavigationManager: Mobile menu toggle connected');
-            }
+        if (this.menuToggle && !this.menuToggle.dataset.navToggleBound) {
+            this.menuToggle.addEventListener('click', this._boundToggleHandler);
+            this.menuToggle.dataset.navToggleBound = '1';
+            console.log('🔧 NavigationManager: Mobile menu toggle connected');
         }
 
         // Sidebar toggle button
@@ -247,31 +246,33 @@ class NavigationManager {
             console.warn('⚠️ NavigationManager: Sidebar toggle button not found');
         }
 
-        // Handle window resize
-        window.addEventListener('resize', () => this.handleResize());
+        // Global listeners can be set up multiple times due to sidebar re-injection.
+        // Ensure we only bind them once to avoid duplicate navigation/toggle behavior.
+        if (!this._globalListenersBound) {
+            window.addEventListener('resize', () => this.handleResize());
 
-        // Handle escape key to close mobile sidebar
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isMobileSidebarOpen()) {
-                this.closeMobileSidebar();
-            }
-        });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this.isMobileSidebarOpen()) {
+                    this.closeMobileSidebar();
+                }
+            });
 
-        // Global in-app link normalization (captures clicks anywhere on the page)
-        document.addEventListener('click', (e) => {
-            // Respect modifier keys and middle clicks
-            if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-            const a = e.target.closest && e.target.closest('a');
-            if (!a) return;
-            const href = a.getAttribute('href') || '';
-            // Normalize and navigate if possible (includes links missing .html)
-            const normalized = this.normalizeHref(href);
-            if (normalized) {
-                e.preventDefault();
-                console.log('🧭 NavigationManager: Global normalized navigation', { from: href, to: normalized });
-                window.location.href = normalized;
-            }
-        }, true);
+            document.addEventListener('click', (e) => {
+                if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                const a = e.target.closest && e.target.closest('a');
+                if (!a) return;
+                const href = a.getAttribute('href') || '';
+
+                const normalized = this.normalizeHref(href);
+                if (normalized) {
+                    e.preventDefault();
+                    console.log('🧭 NavigationManager: Global normalized navigation', { from: href, to: normalized });
+                    window.location.href = normalized;
+                }
+            }, true);
+
+            this._globalListenersBound = true;
+        }
     }
 
     handleNavigation(event) {
