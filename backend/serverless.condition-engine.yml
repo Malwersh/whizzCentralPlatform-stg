@@ -1,0 +1,431 @@
+service: wizzcentral-condition-engine
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    CAMPAIGNS_TABLE: ${self:service}-${self:provider.stage}-campaigns
+    CONDITIONS_TABLE: ${self:service}-${self:provider.stage}-conditions
+    ANALYTICS_TABLE: ${self:service}-${self:provider.stage}-analytics
+    EVALUATIONS_TABLE: ${self:service}-${self:provider.stage}-evaluations
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+            - dynamodb:DescribeTable
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${self:provider.stage}-*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${self:provider.stage}-*/index/*"
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - cloudwatch:PutMetricData
+          Resource: "*"
+
+package:
+  individually: true
+  excludeDevDependencies: true
+  patterns:
+    - '!node_modules/**'
+    - '!.git/**'
+    - '!.serverless/**'
+    - '!.vscode/**'
+    - '!tests/**'
+    - '!docs/**'
+    - '!**/*.md'
+    - '!**/*.txt'
+    - '!.env*'
+    - '!**/*.log'
+    - '!frontend/**'
+
+custom:
+  alerts:
+    stages:
+      - prod
+    topics:
+      alarm:
+        topic: ${self:service}-${self:provider.stage}-alerts
+        notifications:
+          - protocol: email
+            endpoint: devops@wizzcentral.com
+    alarms:
+      - functionErrors
+      - functionThrottles
+      - functionDuration
+
+functions:
+  conditionEngineApi:
+    handler: lambda/condition_engine_api.lambda_handler
+    timeout: 30
+    memorySize: 1024
+    events:
+      - http:
+          path: /conditions
+          method: get
+          cors: true
+      - http:
+          path: /conditions
+          method: post
+          cors: true
+      - http:
+          path: /conditions/{conditionId}
+          method: get
+          cors: true
+      - http:
+          path: /conditions/{conditionId}
+          method: put
+          cors: true
+      - http:
+          path: /conditions/{conditionId}
+          method: delete
+          cors: true
+      - http:
+          path: /campaigns
+          method: get
+          cors: true
+      - http:
+          path: /campaigns
+          method: post
+          cors: true
+      - http:
+          path: /campaigns/{campaignId}
+          method: get
+          cors: true
+      - http:
+          path: /campaigns/{campaignId}
+          method: put
+          cors: true
+      - http:
+          path: /campaigns/{campaignId}
+          method: delete
+          cors: true
+      - http:
+          path: /evaluate
+          method: post
+          cors: true
+      - http:
+          path: /evaluate/batch
+          method: post
+          cors: true
+      - http:
+          path: /analytics/{campaignId}
+          method: get
+          cors: true
+      - http:
+          path: /analytics
+          method: get
+          cors: true
+    environment:
+      FUNCTION_NAME: conditionEngineApi
+
+  conditionEvaluator:
+    handler: lambda/condition_evaluator.lambda_handler
+    timeout: 15
+    memorySize: 512
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - EvaluationQueue
+              - Arn
+          batchSize: 10
+    environment:
+      FUNCTION_NAME: conditionEvaluator
+
+  analyticsProcessor:
+    handler: lambda/analytics_processor.lambda_handler
+    timeout: 60
+    memorySize: 2048
+    events:
+      - schedule: rate(5 minutes)
+      - stream:
+          type: dynamodb
+          arn: 
+            Fn::GetAtt:
+              - EvaluationsTable
+              - StreamArn
+          batchSize: 100
+          startingPosition: LATEST
+    environment:
+      FUNCTION_NAME: analyticsProcessor
+
+  cacheWarmer:
+    handler: lambda/cache_warmer.lambda_handler
+    timeout: 300
+    memorySize: 1024
+    events:
+      - schedule: rate(1 hour)
+    environment:
+      FUNCTION_NAME: cacheWarmer
+
+resources:
+  Resources:
+    # DynamoDB Tables
+    CampaignsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-campaigns
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: campaignId
+            AttributeType: S
+          - AttributeName: isActive
+            AttributeType: N
+          - AttributeName: priority
+            AttributeType: N
+        KeySchema:
+          - AttributeName: campaignId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: isActive-priority-index
+            KeySchema:
+              - AttributeName: isActive
+                KeyType: HASH
+              - AttributeName: priority
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+
+    ConditionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-conditions
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: conditionId
+            AttributeType: S
+          - AttributeName: type
+            AttributeType: S
+          - AttributeName: isActive
+            AttributeType: N
+        KeySchema:
+          - AttributeName: conditionId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: type-isActive-index
+            KeySchema:
+              - AttributeName: type
+                KeyType: HASH
+              - AttributeName: isActive
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+
+    AnalyticsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-analytics
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: analyticsId
+            AttributeType: S
+          - AttributeName: campaignId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: analyticsId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: campaignId-timestamp-index
+            KeySchema:
+              - AttributeName: campaignId
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+
+    EvaluationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-evaluations
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: evaluationId
+            AttributeType: S
+          - AttributeName: conditionId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: evaluationId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: conditionId-timestamp-index
+            KeySchema:
+              - AttributeName: conditionId
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+
+    # SQS Queue for async evaluations
+    EvaluationQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-evaluation-queue
+        VisibilityTimeoutSeconds: 60
+        MessageRetentionPeriod: 1209600  # 14 days
+        RedrivePolicy:
+          deadLetterTargetArn:
+            Fn::GetAtt:
+              - EvaluationDeadLetterQueue
+              - Arn
+          maxReceiveCount: 3
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+
+    EvaluationDeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-evaluation-dlq
+        MessageRetentionPeriod: 1209600  # 14 days
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+
+    # CloudWatch Alarms
+    ConditionEngineApiErrorAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:service}-${self:provider.stage}-api-errors
+        AlarmDescription: High error rate for Condition Engine API
+        MetricName: Errors
+        Namespace: AWS/Lambda
+        Statistic: Sum
+        Period: 300
+        EvaluationPeriods: 2
+        Threshold: 10
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value: ${self:service}-${self:provider.stage}-conditionEngineApi
+        AlarmActions:
+          - !Ref AlertsTopic
+
+    ConditionEngineApiLatencyAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:service}-${self:provider.stage}-api-latency
+        AlarmDescription: High latency for Condition Engine API
+        MetricName: Duration
+        Namespace: AWS/Lambda
+        Statistic: Average
+        Period: 300
+        EvaluationPeriods: 2
+        Threshold: 15000  # 15 seconds
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value: ${self:service}-${self:provider.stage}-conditionEngineApi
+        AlarmActions:
+          - !Ref AlertsTopic
+
+    # SNS Topic for alerts
+    AlertsTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:service}-${self:provider.stage}-alerts
+        DisplayName: WizzCentral Condition Engine Alerts
+
+    AlertsSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Protocol: email
+        TopicArn: !Ref AlertsTopic
+        Endpoint: devops@wizzcentral.com
+
+  Outputs:
+    ConditionEngineApiUrl:
+      Description: URL for the Condition Engine API
+      Value:
+        Fn::Join:
+          - ""
+          - - "https://"
+            - Ref: ApiGatewayRestApi
+            - ".execute-api."
+            - ${self:provider.region}
+            - ".amazonaws.com/"
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-api-url
+
+    CampaignsTableName:
+      Description: Name of the Campaigns DynamoDB table
+      Value: !Ref CampaignsTable
+      Export:
+        Name: ${self:service}-${self:provider.stage}-campaigns-table
+
+    ConditionsTableName:
+      Description: Name of the Conditions DynamoDB table
+      Value: !Ref ConditionsTable
+      Export:
+        Name: ${self:service}-${self:provider.stage}-conditions-table
+
+plugins:
+  - serverless-plugin-aws-alerts
+  - serverless-offline

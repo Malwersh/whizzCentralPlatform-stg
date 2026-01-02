@@ -1,0 +1,411 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'نظام إدارة المناطق المتكامل - 5 جداول DynamoDB'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: بيئة التشغيل
+
+Resources:
+  # ===================================================================
+  # Table 1: WizzCentral_Regions (Enhanced)
+  # الجدول الأساسي مع تحسينات - يحافظ على البيانات الحالية
+  # ===================================================================
+  WizzCentralRegionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'WizzCentral_Regions'
+      BillingMode: PAY_PER_REQUEST
+      
+      # Primary Key
+      AttributeDefinitions:
+        - AttributeName: regionId
+          AttributeType: S
+        # للبحث بالاسم
+        - AttributeName: name_lower
+          AttributeType: S
+        - AttributeName: name_ar_lower
+          AttributeType: S
+        # للفهرسة الهرمية
+        - AttributeName: parent_id
+          AttributeType: S
+        - AttributeName: level_n
+          AttributeType: N
+      
+      KeySchema:
+        - AttributeName: regionId
+          KeyType: HASH
+      
+      # Global Secondary Indexes
+      GlobalSecondaryIndexes:
+        # GSI 1: للبحث بالاسم الإنجليزي
+        - IndexName: search-name-index
+          KeySchema:
+            - AttributeName: name_lower
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        
+        # GSI 2: للبحث بالاسم العربي
+        - IndexName: search-name-ar-index
+          KeySchema:
+            - AttributeName: name_ar_lower
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        
+        # GSI 3: للاستعلام الهرمي (parent → children)
+        - IndexName: parent-level-index
+          KeySchema:
+            - AttributeName: parent_id
+              KeyType: HASH
+            - AttributeName: level_n
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      
+      # DynamoDB Stream لتشغيل Lambda Functions
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      
+      # Point-in-time Recovery
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      
+      # التشفير
+      SSESpecification:
+        SSEEnabled: true
+      
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: 'Core Region Data'
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # ===================================================================
+  # Table 2: RegionsDerived (NEW)
+  # البيانات المحسوبة - الحالة الفعلية بعد الوراثة
+  # ===================================================================
+  RegionsDerivedTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'WizzCentral_RegionsDerived_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      
+      AttributeDefinitions:
+        - AttributeName: regionId
+          AttributeType: S
+        - AttributeName: parent_id
+          AttributeType: S
+        - AttributeName: level
+          AttributeType: N
+        - AttributeName: effective_is_active
+          AttributeType: N
+      
+      KeySchema:
+        - AttributeName: regionId
+          KeyType: HASH
+      
+      GlobalSecondaryIndexes:
+        # GSI 1: للاستعلام الهرمي
+        - IndexName: parent-index
+          KeySchema:
+            - AttributeName: parent_id
+              KeyType: HASH
+            - AttributeName: level
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        
+        # GSI 2: للتصفية حسب المستوى
+        - IndexName: level-index
+          KeySchema:
+            - AttributeName: level
+              KeyType: HASH
+            - AttributeName: regionId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        
+        # GSI 3: للتصفية حسب النشاط
+        - IndexName: active-regions-index
+          KeySchema:
+            - AttributeName: effective_is_active
+              KeyType: HASH
+            - AttributeName: level
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      
+      # Stream لتتبع التغييرات
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      
+      SSESpecification:
+        SSEEnabled: true
+      
+      # TTL للـ cache (اختياري)
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: 'Computed Effective States'
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # ===================================================================
+  # Table 3: RegionNeighbors (NEW)
+  # علاقات الجوار - للتوسع الذكي في Wave System
+  # ===================================================================
+  RegionNeighborsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'WizzCentral_RegionNeighbors_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      
+      AttributeDefinitions:
+        # Composite Key: region1_region2
+        - AttributeName: neighbor_pair_id
+          AttributeType: S
+        - AttributeName: source_region_id
+          AttributeType: S
+        - AttributeName: target_region_id
+          AttributeType: S
+      
+      KeySchema:
+        - AttributeName: neighbor_pair_id
+          KeyType: HASH
+      
+      GlobalSecondaryIndexes:
+        # GSI 1: للبحث من المنطقة المصدر
+        - IndexName: source-region-index
+          KeySchema:
+            - AttributeName: source_region_id
+              KeyType: HASH
+            - AttributeName: target_region_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        
+        # GSI 2: للبحث من المنطقة الهدف (العكسي)
+        - IndexName: target-region-index
+          KeySchema:
+            - AttributeName: target_region_id
+              KeyType: HASH
+            - AttributeName: source_region_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      
+      SSESpecification:
+        SSEEnabled: true
+      
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: 'Region Adjacency Relationships'
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # ===================================================================
+  # Table 4: RegionIndex (NEW)
+  # الفهرسة المكانية - H3/Geohash للبحث السريع
+  # ===================================================================
+  RegionIndexTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'WizzCentral_RegionIndex_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      
+      AttributeDefinitions:
+        # Composite Key: h3_cell#regionId
+        - AttributeName: index_cell_id
+          AttributeType: S
+        - AttributeName: h3_cell
+          AttributeType: S
+        - AttributeName: regionId
+          AttributeType: S
+      
+      KeySchema:
+        - AttributeName: index_cell_id
+          KeyType: HASH
+      
+      GlobalSecondaryIndexes:
+        # GSI 1: للبحث بـ H3 cell
+        - IndexName: h3-index
+          KeySchema:
+            - AttributeName: h3_cell
+              KeyType: HASH
+            - AttributeName: regionId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        
+        # GSI 2: للبحث بـ regionId (عكسي)
+        - IndexName: region-id-index
+          KeySchema:
+            - AttributeName: regionId
+              KeyType: HASH
+            - AttributeName: h3_cell
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      
+      SSESpecification:
+        SSEEnabled: true
+      
+      # TTL لتنظيف الفهرسة القديمة
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: 'Spatial H3/Geohash Index'
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # ===================================================================
+  # Table 5: RegionAudit (NEW)
+  # سجل التدقيق - تتبع كل التغييرات
+  # ===================================================================
+  RegionAuditTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'WizzCentral_RegionAudit_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      
+      AttributeDefinitions:
+        # Composite Key: regionId#timestamp
+        - AttributeName: audit_id
+          AttributeType: S
+        - AttributeName: regionId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+        - AttributeName: changed_by
+          AttributeType: S
+      
+      KeySchema:
+        - AttributeName: audit_id
+          KeyType: HASH
+      
+      GlobalSecondaryIndexes:
+        # GSI 1: للاستعلام حسب المنطقة
+        - IndexName: region-index
+          KeySchema:
+            - AttributeName: regionId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        
+        # GSI 2: للاستعلام حسب المستخدم
+        - IndexName: user-index
+          KeySchema:
+            - AttributeName: changed_by
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      
+      SSESpecification:
+        SSEEnabled: true
+      
+      # TTL للأرشفة التلقائية بعد سنة
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: 'Audit Trail'
+        - Key: ManagedBy
+          Value: CloudFormation
+
+# ===================================================================
+# Outputs - معلومات الجداول المُنشأة
+# ===================================================================
+Outputs:
+  WizzCentralRegionsTableName:
+    Description: اسم جدول المناطق الأساسي (محسّن)
+    Value: !Ref WizzCentralRegionsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-RegionsTableName'
+  
+  WizzCentralRegionsTableArn:
+    Description: ARN لجدول المناطق الأساسي
+    Value: !GetAtt WizzCentralRegionsTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-RegionsTableArn'
+  
+  WizzCentralRegionsStreamArn:
+    Description: ARN للـ Stream (لربط Lambda)
+    Value: !GetAtt WizzCentralRegionsTable.StreamArn
+    Export:
+      Name: !Sub '${AWS::StackName}-RegionsStreamArn'
+  
+  RegionsDerivedTableName:
+    Description: اسم جدول البيانات المحسوبة
+    Value: !Ref RegionsDerivedTable
+    Export:
+      Name: !Sub '${AWS::StackName}-DerivedTableName'
+  
+  RegionsDerivedStreamArn:
+    Description: ARN للـ Stream (لربط Lambda)
+    Value: !GetAtt RegionsDerivedTable.StreamArn
+    Export:
+      Name: !Sub '${AWS::StackName}-DerivedStreamArn'
+  
+  RegionNeighborsTableName:
+    Description: اسم جدول علاقات الجوار
+    Value: !Ref RegionNeighborsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-NeighborsTableName'
+  
+  RegionIndexTableName:
+    Description: اسم جدول الفهرسة المكانية
+    Value: !Ref RegionIndexTable
+    Export:
+      Name: !Sub '${AWS::StackName}-IndexTableName'
+  
+  RegionAuditTableName:
+    Description: اسم جدول سجل التدقيق
+    Value: !Ref RegionAuditTable
+    Export:
+      Name: !Sub '${AWS::StackName}-AuditTableName'
+  
+  StackInfo:
+    Description: معلومات عامة عن Stack
+    Value: !Sub |
+      Stack Name: ${AWS::StackName}
+      Environment: ${Environment}
+      Region: ${AWS::Region}
+      Tables Created: 5 (1 Enhanced + 4 New)

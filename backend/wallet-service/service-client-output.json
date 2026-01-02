@@ -1,0 +1,20 @@
+{
+    "UserPoolClient": {
+        "UserPoolId": "us-east-1_8LyVWuZnO",
+        "ClientName": "driver-api-service-client",
+        "ClientId": "6cfhfsp1b7nb5gq7o0kv5ukhd4",
+        "ClientSecret": "418cd6bsq1bb18ra9gmvrc1r9qqncf0g1g0un8mb80g6dgmdhd0",
+        "LastModifiedDate": "2025-12-26T18:28:44.188000-06:00",
+        "CreationDate": "2025-12-26T18:28:44.188000-06:00",
+        "RefreshTokenValidity": 30,
+        "TokenValidityUnits": {},
+        "ExplicitAuthFlows": [
+            "ALLOW_USER_PASSWORD_AUTH",
+            "ALLOW_REFRESH_TOKEN_AUTH"
+        ],
+        "AllowedOAuthFlowsUserPoolClient": false,
+        "EnableTokenRevocation": true,
+        "EnablePropagateAdditionalUserContextData": false,
+        "AuthSessionValidity": 3
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "websocket-handlers",
+  "version": "1.0.0",
+  "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.886.0",
+    "@aws-sdk/client-dynamodb": "^3.883.0",
+    "@aws-sdk/lib-dynamodb": "^3.883.0",
+    "aws-jwt-verify": "^4.0.1"
+  }
+}

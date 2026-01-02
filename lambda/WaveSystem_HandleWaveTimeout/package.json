@@ -1,0 +1,9 @@
+{
+  "name": "wavesystem-handlewav etimeout",
+  "version": "1.0.0",
+  "description": "Handle wave timeout and trigger next wave",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1691.0"
+  }
+}

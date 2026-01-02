@@ -1,0 +1,14 @@
+{
+  "name": "wavesystem-startwave",
+  "version": "1.0.0",
+  "description": "Lambda function to start wave dispatch and send offers to drivers",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "./deploy.sh"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1691.0"
+  },
+  "author": "Whizz Platform Team",
+  "license": "UNLICENSED"
+}

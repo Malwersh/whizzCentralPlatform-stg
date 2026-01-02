@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzCentral Platform - Dashboard</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <!-- Security: DOMPurify for XSS Protection -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/umd/date-fns.min.js"></script>
+    <!-- Security Utilities -->
+    <script src="../assets/js/security-utils.js"></script>
+    <style>
+        /* Material 3 Dashboard Enhancements */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--md-sys-motion-duration-medium1);
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background-color: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 24px;
+            box-shadow: var(--md-sys-elevation-level1);
+            border: none;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card:hover {
+            box-shadow: var(--md-sys-elevation-level2);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--md-sys-color-primary);
+        }
+        
+        .stat-card.customers::before { background: var(--md-sys-color-primary); }
+        .stat-card.merchants::before { background: var(--md-sys-color-secondary); }
+        .stat-card.drivers::before { background: var(--md-sys-color-tertiary); }
+        .stat-card.orders::before { background: var(--md-sys-color-success); }
+        .stat-card.revenue::before { background: var(--md-sys-color-warning); }
+        .stat-card.support::before { background: var(--md-sys-color-info); }
+        .stat-card.promotions::before { background: var(--md-sys-color-error); }
+        
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var (--md-sys-shape-corner-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--md-sys-color-on-primary);
+        }
+        
+        .stat-icon.customers { background-color: var(--md-sys-color-primary); }
+        .stat-icon.merchants { background-color: var(--md-sys-color-secondary); }
+        .stat-icon.drivers { background-color: var(--md-sys-color-tertiary); }
+        .stat-icon.orders { background-color: var(--md-sys-color-success); }
+        .stat-icon.revenue { background-color: var(--md-sys-color-warning); }
+        .stat-icon.support { background-color: var(--md-sys-color-info); }
+        .stat-icon.promotions { background-color: var(--md-sys-color-error); }
+        
+        .stat-value {
+            font-size: var(--md-sys-typescale-headline-medium-font-size);
+            font-weight: var(--md-sys-typescale-headline-medium-font-weight);
+            line-height: var(--md-sys-typescale-headline-medium-line-height);
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+            font-weight: var(--md-sys-typescale-body-medium-font-weight);
+            color: var(--md-sys-color-on-surface-variant);
+            text-transform: none;
+            letter-spacing: 0.25px;
+        }
+        
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: var(--md-sys-typescale-body-small-font-size);
+            font-weight: var(--md-sys-typescale-body-small-font-weight);
+        }
+        
+        .stat-change.positive { color: var(--md-sys-color-success); }
+        .stat-change.negative { color: var(--md-sys-color-error); }
+        .stat-change.neutral { color: var(--md-sys-color-on-surface-variant); }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .dashboard-card {
+            background-color: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level1);
+            border: none;
+            overflow: hidden;
+        }
+        
+        .card-header-modern {
+            padding: 24px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var(--md-sys-color-surface-container);
+        }
+        
+        .card-title {
+            font-size: var(--md-sys-typescale-title-large-font-size);
+            font-weight: var(--md-sys-typescale-title-large-font-weight);
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+        }
+        
+        .recent-activity {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            transition: background-color var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+        }
+        
+        .activity-item:hover {
+            background-color: var(--md-sys-color-surface-container);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--md-sys-shape-corner-small);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 16px;
+        }
+        
+        .activity-icon.order { 
+            background-color: var(--md-sys-color-primary-container); 
+            color: var(--md-sys-color-on-primary-container); 
+        }
+        .activity-icon.customer { 
+            background-color: var(--md-sys-color-success-container); 
+            color: var(--md-sys-color-on-success-container); 
+        }
+        .activity-icon.merchant { 
+            background-color: var(--md-sys-color-warning-container); 
+            color: var(--md-sys-color-on-warning-container); 
+        }
+        .activity-icon.support { 
+            background-color: var(--md-sys-color-secondary-container); 
+            color: var(--md-sys-color-on-secondary-container); 
+        }
+        
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            padding: 16px;
+            text-align: left;
+            background-color: var(--md-sys-color-surface);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-medium);
+            color: var(--md-sys-color-on-surface);
+            text-decoration: none;
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+            margin-bottom: 12px;
+        }
+        
+        .quick-action-btn:hover {
+            background-color: var(--md-sys-color-surface-container);
+            border-color: var(--md-sys-color-primary);
+            transform: translateX(4px);
+            text-decoration: none;
+            color: var(--md-sys-color-primary);
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+        
+        .quick-action-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--md-sys-shape-corner-small);
+            background-color: var(--md-sys-color-surface-container-highest);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+        
+        .system-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        
+        .status-item {
+            background-color: var(--md-sys-color-surface);
+            padding: 16px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            text-align: center;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: var(--md-sys-shape-corner-full);
+            margin: 0 auto 8px;
+        }
+        
+        .status-indicator.online { background-color: var(--md-sys-color-success); }
+        .status-indicator.warning { background-color: var(--md-sys-color-warning); }
+        .status-indicator.offline { background-color: var(--md-sys-color-error); }
+        
+        /* Chart containers */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 16px 0;
+        }
+        
+        .chart-small {
+            height: 200px;
+        }
+        
+        /* Performance metrics */
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+        
+        .performance-metric {
+            background-color: var(--md-sys-color-surface);
+            padding: 16px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: var(--md-sys-typescale-title-large-font-size);
+            font-weight: var(--md-sys-typescale-title-large-font-weight);
+            color: var(--md-sys-color-on-surface);
+        }
+        
+        .metric-label {
+            font-size: var(--md-sys-typescale-body-small-font-size);
+            color: var (--md-sys-color-on-surface-variant);
+            text-transform: none;
+            letter-spacing: 0.25px;
+        }
+        
+        .metric-trend {
+            font-size: var(--md-sys-typescale-body-small-font-size);
+            margin-top: 4px;
+        }
+        
+        .trend-up { color: var(--md-sys-color-success); }
+        .trend-down { color: var(--md-sys-color-error); }
+        .trend-neutral { color: var(--md-sys-color-on-surface-variant); }
+        
+        /* Button overrides for Material 3 */
+        .btn {
+            font-family: inherit;
+            font-size: var(--md-sys-typescale-label-large-font-size);
+            font-weight: var(--md-sys-typescale-label-large-font-weight);
+            border: none;
+            border-radius: var(--md-sys-shape-corner-full);
+            padding: 10px 24px;
+            min-height: 40px;
+            cursor: pointer;
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+        }
+        
+        .btn-primary:hover {
+            box-shadow: var(--md-sys-elevation-level1);
+            background-color: var(--md-sys-color-primary);
+        }
+        
+        .btn-ghost {
+            background-color: transparent;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+        
+        .btn-ghost:hover {
+            background-color: var(--md-sys-color-surface-container);
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            min-height: 32px;
+            font-size: var(--md-sys-typescale-label-medium-font-size);
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 16px;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .performance-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            .chart-small {
+                height: 180px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .performance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Data Source Indicator Styles */
+        .data-source-indicator {
+            background-color: var(--md-sys-color-surface-container);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-medium);
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: var(--md-sys-typescale-body-small-font-size);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+        
+        .data-source-indicator.demo {
+            background-color: var(--md-sys-color-tertiary-container);
+            border-color: var(--md-sys-color-tertiary);
+            color: var(--md-sys-color-on-tertiary-container);
+        }
+        
+        .data-source-indicator.real {
+            background-color: var(--md-sys-color-secondary-container);
+            border-color: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+        
+        .data-source-indicator.failed {
+            background-color: var(--md-sys-color-error-container);
+            border-color: var(--md-sys-color-error);
+            color: var(--md-sys-color-on-error-container);
+        }
+        
+        .data-source-indicator .indicator-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .data-source-indicator .indicator-icon {
+            font-size: 16px;
+        }
+        
+        .data-source-indicator .indicator-text {
+            font-weight: 500;
+        }
+        
+        .data-source-indicator .indicator-details {
+            font-size: var(--md-sys-typescale-body-small-font-size);
+            opacity: 0.8;
+        }
+
+        .clickable { cursor: pointer; }
+        .hidden { display: none !important; }
+    </style>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <script src="../assets/js/rbac.js"></script>
+</head>
+
+<body data-page="dashboard">
+    <!-- Aggressive sidebar fix - runs first -->
+    <script src="../aggressive-sidebar-fix.js"></script>
+    <!-- Immediate sidebar state fix -->
+    <script src="../immediate-sidebar-fix.js"></script>
+    <!-- Sidebar include placeholder -->
+    <div id="sidebar-placeholder"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Dashboard Content -->
+        <div class="container mx-auto px-6">
+            <!-- Data Source Indicator -->
+            <div id="dataSourceIndicator" class="data-source-indicator hidden">
+                <div class="indicator-content">
+                    <i id="dataSourceIcon" class="indicator-icon fas fa-circle-info"></i>
+                    <div>
+                        <div id="dataSourceText" class="indicator-text">Loading data...</div>
+                        <div id="dataSourceDetails" class="indicator-details"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card customers">
+                    <div class="stat-icon customers">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value" id="customersCount">0</div>
+                    <div class="stat-label">Total Customers</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+12% from last month</span>
+                    </div>
+                </div>
+            
+                <div class="stat-card merchants">
+                    <div class="stat-icon merchants">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="stat-value" id="merchantsCount">0</div>
+                    <div class="stat-label">Active Merchants</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+8% from last month</span>
+                    </div>
+                </div>
+            
+                <div class="stat-card drivers">
+                    <div class="stat-icon drivers">
+                        <i class="fas fa-motorcycle"></i>
+                    </div>
+                    <div class="stat-value" id="driversCount">0</div>
+                    <div class="stat-label">Online Drivers</div>
+                    <div class="stat-change neutral">
+                        <i class="fas fa-minus"></i>
+                        <span>No change</span>
+                    </div>
+                </div>
+            
+                <div class="stat-card orders">
+                    <div class="stat-icon orders">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-value" id="ordersCount">0</div>
+                    <div class="stat-label">Orders Today</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+15% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card revenue">
+                    <div class="stat-icon revenue">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-value" id="revenueCount">$0</div>
+                    <div class="stat-label">Revenue Today</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+22% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card support">
+                    <div class="stat-icon support">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="stat-value" id="ticketsCount">0</div>
+                    <div class="stat-label">Support Tickets</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>-5% from last week</span>
+                    </div>
+                </div>
+                <div class="stat-card promotions clickable" data-href="promotions.html">
+                    <div class="stat-icon promotions">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="stat-value" id="promotionsCount">0</div>
+                    <div class="stat-label">Active Promotions</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Marketing campaigns</span>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <!-- AWS SDK -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
+
+    <!-- Configuration -->
+    <script src="../config.js?v=20250906"></script>
+
+    <!-- Centralized utilities -->
+    <script src="../assets/js/auth-utils.js?v=20250906"></script>
+    <script src="../assets/js/aws-utils.js?v=20250906"></script>
+
+    <!-- Data service (depends on aws-utils) -->
+    <script src="../data-service.js?v=20250906"></script>
+
+    <!-- Page-specific scripts -->
+    <script src="../assets/js/navigation.js?v=20250906"></script>
+    <script src="../test-toggle-functionality.js"></script>
+    
+    <!-- Authentication check (moved to external) -->
+    <!-- Initialize navigation manager (moved to external) -->
+    <script src="../dashboard.js?v=20250906"></script>
+    <script src="../assets/js/dashboard-init.js" defer></script>
+    <script src="../assets/js/dashboard-actions.js" defer></script>
+    <script src="../assets/js/dashboard-rbac-init.js" defer></script>
+</body>
+
+</html>

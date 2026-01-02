@@ -1,0 +1,45 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const env = {
+            STAGE: process.env.STAGE || 'staging',
+            API_BASE_URL: process.env.API_BASE_URL || '',
+            PUSH_NOTIFICATION_API_URL: process.env.PUSH_NOTIFICATION_API_URL || '',
+            AI_API_ENDPOINT: process.env.AI_API_ENDPOINT || '',
+            AMAZON_CONNECT_API_BASE_URL: process.env.AMAZON_CONNECT_API_BASE_URL || '',
+            AMAZON_CONNECT_WS_URL: process.env.AMAZON_CONNECT_WS_URL || '',
+            LIVE_CHAT_WEBSOCKET_URL: process.env.LIVE_CHAT_WEBSOCKET_URL || '',
+            COGNITO_REGION: process.env.COGNITO_REGION || 'us-east-1',
+            COGNITO_USER_POOL_ID: process.env.COGNITO_USER_POOL_ID || '',
+            COGNITO_CLIENT_ID: process.env.COGNITO_CLIENT_ID || '',
+            COGNITO_IDENTITY_POOL_ID: process.env.COGNITO_IDENTITY_POOL_ID || '',
+            CAMPAIGNS_API_BASE_URL: process.env.CAMPAIGNS_API_BASE_URL || ''
+          };
+
+          const lines = [
+            '// Auto-generated at build time by Amplify. Do not commit.',
+            '(function(){',
+            '  "use strict";',
+            ...Object.entries(env).map(([k, v]) => `  window.__${k}__ = ${JSON.stringify(v)};`),
+            '})();',
+            ''
+          ];
+
+          const outPath = path.join(process.cwd(), 'frontend', 'env.js');
+          fs.mkdirSync(path.dirname(outPath), { recursive: true });
+          fs.writeFileSync(outPath, lines.join('\n'), 'utf8');
+          console.log(`Wrote ${outPath}`);
+          NODE
+  artifacts:
+    baseDirectory: frontend
+    files:
+      - '**/*'
+  cache:
+    paths: []

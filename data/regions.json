@@ -1,0 +1,202 @@
+[
+  {
+    "region_id": "iraq",
+    "name": "Iraq",
+    "name_ar": "العراق",
+    "type": "country",
+    "level": "country",
+    "parent_id": null,
+    "coordinates": {
+      "lat": 33.2232,
+      "lng": 43.6793
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "baghdad",
+    "name": "Baghdad",
+    "name_ar": "بغداد",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 33.3152,
+      "lng": 44.3661
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "baghdad_central",
+    "name": "Baghdad Central",
+    "name_ar": "بغداد المركز",
+    "type": "district",
+    "level": "district",
+    "parent_id": "baghdad",
+    "governorate_id": "baghdad",
+    "coordinates": {
+      "lat": 33.3152,
+      "lng": 44.3661
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "baghdad_karkh",
+    "name": "Baghdad Karkh",
+    "name_ar": "بغداد الكرخ",
+    "type": "district",
+    "level": "district",
+    "parent_id": "baghdad",
+    "governorate_id": "baghdad",
+    "coordinates": {
+      "lat": 33.3400,
+      "lng": 44.3400
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "basra",
+    "name": "Basra",
+    "name_ar": "البصرة",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 30.5085,
+      "lng": 47.7835
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "basra_downtown",
+    "name": "Basra Downtown",
+    "name_ar": "البصرة وسط المدينة",
+    "type": "district",
+    "level": "district",
+    "parent_id": "basra",
+    "governorate_id": "basra",
+    "coordinates": {
+      "lat": 30.5085,
+      "lng": 47.7835
+    },
+    "is_active": false
+  },
+  {
+    "region_id": "erbil",
+    "name": "Erbil",
+    "name_ar": "أربيل",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 36.1911,
+      "lng": 44.0091
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "erbil_central",
+    "name": "Erbil Central",
+    "name_ar": "أربيل المركز",
+    "type": "district",
+    "level": "district",
+    "parent_id": "erbil",
+    "governorate_id": "erbil",
+    "coordinates": {
+      "lat": 36.1911,
+      "lng": 44.0091
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "najaf",
+    "name": "Najaf",
+    "name_ar": "النجف",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 31.9996,
+      "lng": 44.3148
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "najaf_old_city",
+    "name": "Najaf Old City",
+    "name_ar": "النجف المدينة القديمة",
+    "type": "district",
+    "level": "district",
+    "parent_id": "najaf",
+    "governorate_id": "najaf",
+    "coordinates": {
+      "lat": 31.9996,
+      "lng": 44.3148
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "mosul",
+    "name": "Mosul",
+    "name_ar": "الموصل",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 36.3400,
+      "lng": 43.1189
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "karbala",
+    "name": "Karbala",
+    "name_ar": "كربلاء",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 32.6160,
+      "lng": 44.0251
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "sulaymaniyah",
+    "name": "Sulaymaniyah",
+    "name_ar": "السليمانية",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 35.5556,
+      "lng": 45.4378
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "dohuk",
+    "name": "Dohuk",
+    "name_ar": "دهوك",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 36.8675,
+      "lng": 42.9531
+    },
+    "is_active": true
+  },
+  {
+    "region_id": "anbar",
+    "name": "Anbar",
+    "name_ar": "الأنبار",
+    "type": "governorate",
+    "level": "governorate",
+    "parent_id": "iraq",
+    "coordinates": {
+      "lat": 33.4365,
+      "lng": 43.0106
+    },
+    "is_active": true
+  }
+]

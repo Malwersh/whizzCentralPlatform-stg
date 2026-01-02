@@ -1,0 +1,10 @@
+{
+  "Variables": {
+    "SERVICE_CLIENT_ID": "6cfhfsp1b7nb5gq7o0kv5ukhd4",
+    "SERVICE_CLIENT_SECRET": "418cd6bsq1bb18ra9gmvrc1r9qqncf0g1g0un8mb80g6dgmdhd0",
+    "SERVICE_USERNAME": "f42844f8-f041-7016-9a71-10248fa2d43b",
+    "SERVICE_PASSWORD": "TestPassword123!",
+    "WALLET_SERVICE_URL": "https://er7d8mkxi5.execute-api.us-east-1.amazonaws.com/dev",
+    "ORDER_SERVICE_URL": "https://v3pmynegul.execute-api.us-east-1.amazonaws.com/dev"
+  }
+}

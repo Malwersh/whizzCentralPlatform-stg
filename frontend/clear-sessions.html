@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Sessions and Reload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 2rem;
+            text-align: center;
+        }
+        .btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 1rem;
+        }
+        .btn:hover {
+            background: #c82333;
+        }
+        .status {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clear All Sessions</h1>
+    <p>This will clear all sessionStorage, localStorage, and reload the page.</p>
+    
+    <button class="btn" onclick="clearAllSessions()">
+        🧹 Clear All Sessions & Reload
+    </button>
+    
+    <div id="status"></div>
+    
+    <script>
+        function clearAllSessions() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                // Clear session storage
+                sessionStorage.clear();
+                
+                // Clear local storage
+                localStorage.clear();
+                
+                // Clear cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                statusDiv.innerHTML = '<div class="status success">✅ All sessions cleared! Reloading in 2 seconds...</div>';
+                
+                console.log('✅ Sessions cleared:');
+                console.log('- sessionStorage cleared');
+                console.log('- localStorage cleared');
+                console.log('- cookies cleared');
+                
+                // Reload after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/index.html';
+                }, 2000);
+                
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status error">❌ Error clearing sessions: ' + error.message + '</div>';
+                console.error('Error clearing sessions:', error);
+            }
+        }
+        
+        // Auto-execute when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Session clearing page loaded');
+            console.log('Click the button to clear all sessions and reload');
+        });
+    </script>
+</body>
+</html>

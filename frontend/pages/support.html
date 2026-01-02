@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="version" content="1763060500">
+    <title>منصة ويز المركزية - الدعم المباشر | v1763060500</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <!-- Support Internationalization -->
+    <script src="../assets/js/support-i18n.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../styles/dashboard.css">
+    <!-- Security utilities -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <script>
+        // LOCAL TESTING BYPASS - Set mock auth if not authenticated
+        const __isLocal =
+            window.location.protocol === 'file:' ||
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1';
+
+        if (__isLocal && !localStorage.getItem('isAuthenticated')) {
+            console.log('🧪 LOCAL TESTING MODE - Setting mock authentication');
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('userEmail', 'test@whizz.local');
+            localStorage.setItem('userId', 'test-user-123');
+            localStorage.setItem('userName', 'Test User');
+            localStorage.setItem('userGroups', 'Admin');
+            localStorage.setItem('idToken', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiZW1haWwiOiJ0ZXN0QHdoaXp6LmxvY2FsIiwiZXhwIjo5OTk5OTk5OTk5fQ.test');
+        }
+    </script>
+    <script src="../assets/js/security-utils.js"></script>
+    <script src="../assets/js/auth-utils.js"></script>
+    <script src="../assets/js/rbac.js"></script>
+    <script src="../assets/js/rbac-early-check.js"></script>
+    <style>
+        .support-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .support-title h1 {
+            margin: 0;
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .support-title p {
+            margin: 0.25rem 0 0 0;
+            font-size: 1rem;
+            color: #6b7280;
+        }
+        
+        .support-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .support-container {
+            display: flex;
+            height: calc(100vh - 140px);
+            background: #f8fafc;
+        }
+        
+        .sessions-panel {
+            width: 400px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sessions-header {
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+        
+        .status-indicator.connected {
+            background: #10b981;
+        }
+        
+        .status-indicator.disconnected {
+            background: #ef4444;
+        }
+        
+        .status-indicator.connecting {
+            background: #f59e0b;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .sessions-list {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .session-card {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .session-card:hover {
+            background: #f8fafc;
+            border-color: #d1d5db;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            transform: translateY(-1px);
+        }
+        
+        .session-card.active {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        
+        /* Closed session styles */
+        .session-card.closed-session {
+            opacity: 0.8;
+            background: #f9fafb;
+            border-color: #e5e7eb;
+        }
+        
+        .session-card.closed-session:hover {
+            opacity: 1;
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        
+        .session-card.closed-session.active {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+            opacity: 1;
+        }
+        
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--md-sys-color-on-primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        
+        .session-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .customer-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+        
+        .last-message {
+            font-size: 0.875rem;
+            color: #6b7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
+        
+        .session-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        .unread-badge {
+            background: var(--md-sys-color-error);
+            color: var(--md-sys-color-on-error);
+            font-size: 0.75rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+        
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+        
+        .chat-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .chat-title h2 {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .chat-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+        }
+        
+        .btn-primary:hover {
+            background: var(--wizz-primary-dark);
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: #f9fafb;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .message.agent {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .message.agent .message-avatar {
+            background: #00c2e8;
+        }
+        
+        .message-content {
+            max-width: 70%;
+        }
+        
+        .message-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .message.agent .message-bubble {
+            background: #00c2e8;
+            color: white;
+        }
+        
+        .message-text {
+            margin: 0;
+            line-height: 1.5;
+        }
+        
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .chat-input {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            resize: none;
+            font-family: inherit;
+            min-height: 44px;
+            max-height: 120px;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #00c2e8;
+            box-shadow: 0 0 0 1px #00c2e8;
+        }
+        
+        .send-button {
+            background: #00c2e8;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .send-button:hover {
+            background: #009bb8;
+        }
+        
+        .send-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #6b7280;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #d1d5db;
+        }
+        
+        .empty-state h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        
+        .empty-state p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+        
+        .quick-action-button {
+            padding: 0.5rem 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .quick-action-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .quick-action-button:active {
+            transform: translateY(0);
+        }
+        
+        .quick-action-button i {
+            font-size: 0.875rem;
+        }
+        
+        .quick-action-button:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        .ai-trigger-btn {
+            background: linear-gradient(135deg, #7c3aed, #4c1d95);
+            color: #fff;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.65rem 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .ai-trigger-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(124, 58, 237, 0.35);
+        }
+        
+        .ai-suggestion-panel {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.85rem;
+            padding: 1rem 1.1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.12);
+        }
+        
+        .ai-suggestion-panel.hidden {
+            display: none;
+        }
+        
+        .ai-suggestion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        
+        .ai-suggestion-header .ai-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ede9fe;
+            color: #5b21b6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .ai-suggestion-header .ai-title {
+            font-weight: 600;
+            margin-left: 0.5rem;
+            color: #111827;
+        }
+        
+        .ai-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        
+        .ai-suggestion-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+        
+        .ai-loading,
+        .ai-error,
+        .ai-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .ai-loading.hidden,
+        .ai-error.hidden,
+        .ai-content.hidden {
+            display: none;
+        }
+        
+        .ai-loading .spinner {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 3px solid #e0e7ff;
+            border-top-color: #6366f1;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .ai-suggestion-text {
+            font-size: 0.95rem;
+            color: #111827;
+            line-height: 1.45;
+        }
+        
+        .ai-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .ai-actions button {
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-ai-use {
+            background: #10b981;
+            color: #fff;
+        }
+        
+        .btn-ai-regenerate {
+            background: #f59e0b;
+            color: #1f2937;
+        }
+        
+        .btn-ai-dismiss,
+        .btn-ai-retry {
+            background: #f3f4f6;
+            color: #111827;
+        }
+        
+        .ai-footer {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .support-container {
+                flex-direction: column;
+                height: calc(100vh - 120px);
+            }
+            
+            .sessions-panel {
+                width: 100%;
+                height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            .support-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .support-controls {
+                justify-content: center;
+            }
+        }
+        
+        /* RTL-specific adjustments */
+        [dir="rtl"] .sessions-panel {
+            border-right: none;
+            border-left: 1px solid #e5e7eb;
+        }
+        
+        [dir="rtl"] .message {
+            direction: rtl;
+        }
+        
+        [dir="rtl"] .message.agent {
+            flex-direction: row;
+        }
+        
+        [dir="rtl"] .message:not(.agent) {
+            flex-direction: row-reverse;
+        }
+        
+        @media (max-width: 768px) {
+            .support-header {
+                padding: 1rem;
+            }
+            
+            .support-title h1 {
+                font-size: 1.5rem;
+            }
+            
+            .sessions-panel {
+                height: 250px;
+            }
+            
+            .session-card {
+                padding: 0.75rem;
+            }
+            
+            .customer-avatar {
+                width: 36px;
+                height: 36px;
+            }
+        }
+    </style>
+</head>
+<body data-page="support">
+    <!-- Standard WizzCentral Sidebar -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Support Page Content -->
+    <div class="main-content" id="mainContent">
+        <div class="support-header">
+            <div class="support-title">
+                <h1><i class="fas fa-headset"></i> <span data-i18n="liveSupport">الدعم المباشر</span></h1>
+                <p data-i18n="realTimeAssistance">المساعدة الفورية للعملاء</p>
+            </div>
+            
+            <div class="support-controls">
+                <div class="connection-status">
+                    <div class="status-indicator" id="connectionIndicator"></div>
+                    <span id="connectionStatus" data-i18n="connecting">جاري الاتصال...</span>
+                </div>
+                
+                <!-- Language switcher -->
+                <button class="quick-action-button" id="languageSwitcher" title="Switch Language / تبديل اللغة">
+                    <i class="fas fa-language"></i>
+                    <span id="currentLang">AR</span>
+                </button>
+                <!-- Reconnect button wired via JS to satisfy CSP -->
+                <button class="quick-action-button" id="reconnectBtn">
+                    <i class="fas fa-sync-alt"></i> <span data-i18n="reconnect">إعادة الاتصال</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="support-container">
+            <!-- Sessions Panel -->
+            <div class="sessions-panel">
+                <div class="sessions-header">
+                    <div class="section-title">
+                        <span data-i18n="activeConversations">المحادثات النشطة</span> (<span id="activeSessions">0</span>)
+                    </div>
+                </div>
+                
+                <div class="sessions-list" id="sessionsList">
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <h3 data-i18n="noActiveConversations">لا توجد محادثات نشطة</h3>
+                        <p data-i18n="noActiveConversationsDesc">ستظهر المحادثات الجديدة هنا عندما يبدأ العملاء بالدردشة</p>
+                    </div>
+                </div>
+                <!-- Closed Sessions Section -->
+                <div class="sessions-header" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                    <div class="section-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-archive" style="font-size: 0.875rem;"></i>
+                        <span data-i18n="closedSessions">الجلسات المغلقة (آخر ساعتين)</span>
+                        <span id="closedSessionsCount"
+                            style="background: #6c757d; color: white; padding: 0.125rem 0.5rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 600;">0</span>
+                    </div>
+                </div>
+                
+                <div class="sessions-list" id="closedSessionsList" style="max-height: 300px; overflow-y: auto;">
+                    <div class="empty-state-small" style="padding: 2rem; text-align: center; color: #999;">
+                        <i class="fas fa-archive" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                        <p style="margin: 0; font-size: 0.875rem;" data-i18n="noClosedSessions">لا توجد جلسات مغلقة مؤخراً</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Chat Area -->
+            <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <i class="fas fa-user"></i>
+                    <h2 id="chatTitle" data-i18n="selectConversation">اختر محادثة</h2>
+                </div>
+                <div class="chat-actions">
+                    <button class="btn btn-secondary" id="endSessionBtn" style="display: none;" data-write-only>
+                        <i class="fas fa-times"></i> <span data-i18n="endSession">إنهاء الجلسة</span>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3 data-i18n="welcomeToSupport">مرحباً بك في لوحة الدعم</h3>
+                    <p data-i18n="selectConversationDesc">اختر محادثة نشطة من الشريط الجانبي لبدء مساعدة العملاء</p>
+                </div>
+            </div>
+            <div class="chat-input" id="chatInputArea" style="display: none;" data-write-only>
+                <div class="input-container">
+                    <textarea class="message-input" id="messageInput" data-i18n-placeholder="typeYourMessage" placeholder="اكتب رسالتك..."
+                        rows="1"></textarea>
+                    <button class="send-button" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load required dependencies -->
+    <script>
+        // Prevent global WebSocketManager from auto-initializing on this page to avoid dual connections
+        window.DISABLE_GLOBAL_WS_MANAGER = true;
+    </script>
+    <script src="../assets/js/websocket-manager.js?v=1763059200"></script>
+    <script src="../js/support/ChatSessionService.js?v=1763059200"></script>
+    <script src="../js/support/LiveChatSocket.js?v=1763059200"></script>
+    <script src="../js/auto-session-filter.js?v=1763059200"></script>
+
+    <script>
+                            // ⏰ SCRIPT VERSION: 1763060500 - MERCHANT_WS_FIX_COMPLETE
+                            console.log('📄 Support.html inline script loaded - VERSION: 1763060500 - MERCHANT_WS_FIX_COMPLETE');
+                            console.log('🔍 Endpoint info: merchantChatWS will connect to bx4snzqxpd/ghayth');
+                            window.SUPPORT_PAGE_VERSION = '1763060500_MERCHANT_WS_FIX_COMPLETE';
+                        
+        (function () {
+            try {
+                // New RBAC system - auto-detects page name
+                window.RBAC.enforcePage();
+
+                // Apply read-only if needed (automatic in new system)
+                if (window.RBAC.isReadOnly()) {
+                    document.querySelectorAll('[data-write-only]').forEach(el => el.style.display = 'none');
+                }
+            } catch (e) { console.warn('RBAC init failed', e); }
+        })();
+    </script>
+
+    <script>
+        // Global variables
+        let activeChatSessions = new Map();
+        let currentSessionId = null;
+        let wsManager = null;
+            let merchantChatWS = null;
+            let merchantSessions = new Map();
+            let closedSessions = new Map();  // Store recently closed sessions
+            let merchantStatusWatchId = null; // 🔍 Watchdog for reflecting merchant WS state into UI
+            // 🔄 Reconnect state (exponential backoff)
+            let merchantReconnectAttempts = 0;
+            let merchantReconnectTimer = null;
+            const MERCHANT_RECONNECT_BASE_MS = 1000;  // 1s
+            const MERCHANT_RECONNECT_MAX_MS = 15000;  // 15s cap
+            const AI_API_ENDPOINT = (window.WIZZCENTRAL_CONFIG && window.WIZZCENTRAL_CONFIG.AI_API_ENDPOINT) || (window.__AI_API_ENDPOINT__ || '');
+
+            if (!AI_API_ENDPOINT) {
+                throw new Error('Missing AI_API_ENDPOINT. Provide window.__AI_API_ENDPOINT__ (or WIZZCENTRAL_CONFIG.AI_API_ENDPOINT) for staging.');
+            }
+            if (String(AI_API_ENDPOINT).includes('/dev')) {
+                throw new Error(`Refusing to use dev AI_API_ENDPOINT in staging: ${AI_API_ENDPOINT}`);
+            }
+            // ▶️ Track last joined session to avoid redundant join_channel calls
+            let lastJoinedSessionId = null;
+            // ▶️ De-dupe window to avoid echoing agent messages from server after optimistic append
+            const DUPLICATE_WINDOW_MS = 3000;
+
+                // 🌐 Language switcher initialization
+                document.addEventListener('DOMContentLoaded', function () {
+                    const langSwitcher = document.getElementById('languageSwitcher');
+                    const currentLangSpan = document.getElementById('currentLang');
+
+                    // Update language indicator
+                    function updateLanguageIndicator() {
+                        if (currentLangSpan && window.SupportI18n) {
+                            currentLangSpan.textContent = window.SupportI18n.getLanguage().toUpperCase();
+                        }
+                    }
+
+                    // Language switcher click handler
+                    if (langSwitcher && window.SupportI18n) {
+                        langSwitcher.addEventListener('click', function () {
+                            const currentLang = window.SupportI18n.getLanguage();
+                            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+                            window.SupportI18n.setLanguage(newLang);
+                            updateLanguageIndicator();
+
+                            // Update dynamic content
+                            updateConnectionStatus();
+                            updateSessionsList();
+                            updateClosedSessionsList();
+
+                            console.log(`🌐 Language switched to: ${newLang}`);
+                        });
+                    }
+
+                    updateLanguageIndicator();
+                });
+
+            if (typeof window !== 'undefined') {
+                window.activeChatSessions = activeChatSessions;
+                try {
+                    Object.defineProperty(window, 'currentSessionId', {
+                        configurable: true,
+                        get() {
+                            return currentSessionId;
+                        },
+                        set(value) {
+                            currentSessionId = value;
+                    }
+                });
+            } catch (err) {
+                console.warn('Unable to define currentSessionId on window:', err);
+                window.currentSessionId = currentSessionId;
+            }
+        }
+
+            function scheduleMerchantReconnect(reason = 'unknown') {
+                try { if (merchantReconnectTimer) clearTimeout(merchantReconnectTimer); } catch (_) { }
+                const exp = Math.min(
+                    MERCHANT_RECONNECT_BASE_MS * Math.pow(2, merchantReconnectAttempts),
+                    MERCHANT_RECONNECT_MAX_MS
+                );
+                const jitter = exp * (Math.random() * 0.2); // up to +20%
+                const delay = Math.floor(exp + jitter);
+                merchantReconnectAttempts++;
+                console.log(`🔄 Merchant WS reconnect in ${delay}ms (attempt ${merchantReconnectAttempts}) – reason: ${reason}`);
+                updateConnectionStatus('connecting');
+                merchantReconnectTimer = setTimeout(() => {
+                    initializeMerchantChatSystem();
+                }, delay);
+            }
+
+            function triggerAISuggestion(sessionId) {
+                if (!sessionId || !window.whizzAI || typeof window.whizzAI.requestSuggestion !== 'function') {
+                    return;
+                }
+            const activeSessionId = window.currentSessionId || currentSessionId;
+            if (sessionId !== activeSessionId) return;
+
+            setTimeout(() => {
+                try {
+                    window.whizzAI.requestSuggestion();
+                } catch (err) {
+                    console.warn('whizzAI auto-trigger failed:', err);
+                }
+            }, 800);
+        }
+
+            // Initialize support page when DOM is ready
+            // CACHE BUSTER: v1736100000_FINAL_FIX
+            document.addEventListener('DOMContentLoaded', function () {
+                console.log('🚀 Production Support page initializing...');
+                console.log('🔍 DEBUG: Script version check - FIX APPLIED v3 - TIMESTAMP: 1736100000');
+                // Request notification permission
+                requestNotificationPermission();
+
+            console.log('🎯 Using merchant chat system as primary connection');
+
+            // Add global diagnostic function
+            window.checkConnectionStatus = function () {
+                console.log('=== CONNECTION STATUS DIAGNOSTIC ===');
+                console.log('Page Version:', window.SUPPORT_PAGE_VERSION || 'OLD VERSION');
+                console.log('Active Connection:', window.ACTIVE_WS_CONNECTION || 'Not yet connected');
+                console.log('merchantChatWS readyState:', window.merchantChatWS?.readyState, '(1=OPEN, 3=CLOSED)');
+                console.log('liveChatSocket:', window.liveChatSocket ? 'EXISTS (should be undefined)' : 'undefined (correct)');
+                console.log('UI Status Element:', document.querySelector('.connection-status')?.textContent);
+                console.log('====================================');
+
+                if (window.SUPPORT_PAGE_VERSION === '1763060500_MERCHANT_WS_FIX_COMPLETE') {
+                    console.log('✅ Correct version loaded with all functions!');
+                } else {
+                    console.log('❌ OLD VERSION - Cache issue! Current:', window.SUPPORT_PAGE_VERSION);
+                }
+            };
+
+            initializeMerchantChatSystem();
+
+            // ✅ CSP-safe event listeners (no inline handlers)
+            const reconnectBtn = document.getElementById('reconnectBtn');
+            if (reconnectBtn) {
+                reconnectBtn.addEventListener('click', () => window.reconnectWebSocket());
+            }
+            const sendBtnEl = document.getElementById('sendButton');
+            if (sendBtnEl) {
+                sendBtnEl.addEventListener('click', () => window.sendMessage());
+            }
+            const endBtnEl = document.getElementById('endSessionBtn');
+            if (endBtnEl) {
+                endBtnEl.addEventListener('click', () => window.endChatSession());
+            }
+
+            // 🔄 Mirror actual merchant WS readyState into the UI periodically
+            if (!merchantStatusWatchId) {
+                merchantStatusWatchId = setInterval(() => {
+                    try {
+                        if (!merchantChatWS) return;
+                        const rs = merchantChatWS.readyState;
+                        if (rs === WebSocket.OPEN) {
+                            updateConnectionStatus('connected');
+                        } else if (rs === WebSocket.CONNECTING) {
+                            updateConnectionStatus('connecting');
+                        } else {
+                            updateConnectionStatus('disconnected');
+                        }
+                    } catch (e) {
+                        console.warn('Status watchdog error', e);
+                    }
+                }, 1500);
+            }
+
+            // Initialize AI assistant panel
+            if (typeof initializeWhizzAI === 'function') {
+                initializeWhizzAI(AI_API_ENDPOINT);
+            } else {
+                console.warn('⚠️ whizzAI assistant script not loaded');
+            }
+        });
+
+            // Request notification permission
+            function requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            console.log('✅ Notification permission granted');
+                        }
+                    });
+                }
+        }
+
+            // Reconnect WebSocket function
+            window.reconnectWebSocket = function () {
+                console.log('🔄 Reconnecting WebSocket (merchantChatWS)...');
+                try {
+                    // Reset backoff and any pending timers
+                    try { if (merchantReconnectTimer) clearTimeout(merchantReconnectTimer); } catch (_) { }
+                    merchantReconnectAttempts = 0;
+                    updateConnectionStatus('connecting');
+
+                // Close current socket if present
+                if (merchantChatWS && merchantChatWS.readyState !== WebSocket.CLOSED) {
+                    try { merchantChatWS.onopen = merchantChatWS.onclose = merchantChatWS.onerror = merchantChatWS.onmessage = null; } catch (_) { }
+                    try { merchantChatWS.close(); } catch (_) { }
+                }
+
+                // Attempt immediate reconnect
+                setTimeout(() => {
+                    initializeMerchantChatSystem();
+                }, 200);
+            } catch (e) {
+                console.error('Reconnect error', e);
+                setTimeout(() => initializeMerchantChatSystem(), 500);
+            }
+        };
+
+            function initializeMerchantChatSystem() {
+                console.log('🏪 Initializing merchant chat system...');
+
+            // Prevent parallel sockets
+            if (merchantChatWS && (merchantChatWS.readyState === WebSocket.OPEN || merchantChatWS.readyState === WebSocket.CONNECTING)) {
+                console.log('🔁 Merchant WS already active (state:', merchantChatWS.readyState, ')');
+                return;
+            }
+
+            // Update UI to show connecting state
+            updateConnectionStatus('connecting', 'Connecting to live chat...');
+
+            const MERCHANT_WS_URL = (window.WIZZCENTRAL_CONFIG && window.WIZZCENTRAL_CONFIG.WEBSOCKET && window.WIZZCENTRAL_CONFIG.WEBSOCKET.LIVE_CHAT_URL) || '';
+            if (!MERCHANT_WS_URL) {
+                throw new Error('Missing LIVE_CHAT_URL for merchant chat. Set window.__LIVE_CHAT_WEBSOCKET_URL__.');
+            }
+            if (String(MERCHANT_WS_URL).includes('/dev')) {
+                throw new Error(`Refusing to connect to dev merchant WS in staging: ${MERCHANT_WS_URL}`);
+            }
+            const AGENT_ID = 'agent_' + Date.now();
+            const AGENT_NAME = 'Support Agent';
+
+            // Clean old handlers/socket if present
+            try { if (merchantChatWS) { merchantChatWS.onopen = merchantChatWS.onclose = merchantChatWS.onerror = merchantChatWS.onmessage = null; } } catch (_) { }
+
+            console.log('🔗 Attempting to connect to:', MERCHANT_WS_URL);
+            console.log('⚠️ NOTE: If connection fails, check AWS WebSocket API Gateway configuration');
+            
+            merchantChatWS = new WebSocket(MERCHANT_WS_URL);
+            
+            // Add connection timeout (10 seconds)
+            let connectionTimeout = setTimeout(() => {
+                if (merchantChatWS && merchantChatWS.readyState === WebSocket.CONNECTING) {
+                    console.error('⏱️ WebSocket connection timeout - still connecting after 10s');
+                    console.error('🔍 Possible causes:');
+                    console.error('   1. AWS WebSocket API Gateway returns 403 Forbidden');
+                    console.error('   2. Missing Lambda authorizer or incorrect configuration');
+                    console.error('   3. Network/firewall blocking the connection');
+                    console.error('   4. WebSocket endpoint URL is incorrect');
+                    console.error('📝 Recommended: Check AWS API Gateway console for the WebSocket API');
+                    updateConnectionStatus('disconnected', 'Connection timeout - AWS configuration issue');
+                    try { merchantChatWS.close(); } catch (_) { }
+                    scheduleMerchantReconnect('timeout');
+                }
+            }, 10000);
+            
+            // Expose for diagnostics
+            try { window.merchantChatWS = merchantChatWS; } catch (_) { }
+
+            merchantChatWS.onopen = () => {
+                console.log('✅ Merchant chat WebSocket connected');
+                console.log('📍 Active endpoint:', MERCHANT_WS_URL);
+                console.log('✅ CONNECTION STATE: merchantChatWS is OPEN (readyState: 1)');
+
+                // Clear connection timeout
+                try { clearTimeout(connectionTimeout); } catch (_) { }
+                
+                // Reset reconnect backoff
+                try { if (merchantReconnectTimer) clearTimeout(merchantReconnectTimer); } catch (_) { }
+                merchantReconnectAttempts = 0;
+
+                // Send agent connect message
+                const msg = {
+                    action: 'chat_agent_connect',
+                    type: 'chat_agent_connect',
+                    agentId: AGENT_ID,
+                    agentName: AGENT_NAME
+                };
+                merchantChatWS.send(JSON.stringify(msg));
+                console.log('📤 Sent merchant agent_connect');
+
+                // Expose agent identity for subsequent join_channel actions
+                try { window.MERCHANT_AGENT_ID = AGENT_ID; window.MERCHANT_AGENT_NAME = AGENT_NAME; } catch (_) { }
+            };
+
+            merchantChatWS.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('📥 Merchant chat message:', data.type);
+                    handleMerchantChatMessage(data);
+                } catch (e) {
+                    console.error('❌ Error parsing merchant message:', e);
+                }
+            };
+
+            merchantChatWS.onerror = (error) => {
+                console.error('❌ Merchant chat WebSocket error:', error);
+                console.error('❌ WebSocket endpoint:', MERCHANT_WS_URL);
+                console.error('❌ Error details:', {
+                    type: error.type,
+                    target: error.target,
+                    timestamp: new Date().toISOString(),
+                    readyState: merchantChatWS?.readyState
+                });
+                console.error('💡 TIP: Test endpoint with: curl -I ' + MERCHANT_WS_URL.replace(/^wss:\/\//, 'https://'));
+                
+                // Clear connection timeout
+                try { clearTimeout(connectionTimeout); } catch (_) { }
+                
+                // Briefly reflect error, then keep trying
+                updateConnectionStatus('disconnected', 'Connection error - check AWS configuration');
+                scheduleMerchantReconnect('error');
+            };
+
+            merchantChatWS.onclose = (evt) => {
+                console.log('🔌 Merchant chat WebSocket disconnected – code:', evt?.code, 'reason:', evt?.reason);
+                
+                // Clear connection timeout
+                try { clearTimeout(connectionTimeout); } catch (_) { }
+                
+                // Log specific close codes for debugging
+                if (evt?.code === 1006) {
+                    console.error('❌ Close code 1006: Abnormal closure - likely authentication/authorization failure');
+                    console.error('💡 This usually means AWS API Gateway returned 403 Forbidden');
+                } else if (evt?.code === 1002) {
+                    console.error('❌ Close code 1002: Protocol error');
+                } else if (evt?.code === 1003) {
+                    console.error('❌ Close code 1003: Unsupported data');
+                }
+                
+                // Update UI and schedule reconnect with backoff
+                updateConnectionStatus('disconnected', 'Disconnected - retrying...');
+                scheduleMerchantReconnect('close');
+            };
+        }
+
+            console.log('✅ Production Support page loaded - ready for driver and merchant sessions');
+
+            // Utility: update connection badge UI
+            function updateConnectionStatus(status, message) {
+                const dot = document.getElementById('connectionIndicator');
+                const text = document.getElementById('connectionStatus');
+                if (dot) {
+                    dot.className = `status-indicator ${status}`;
+                }
+                if (text) {
+                    // Use i18n translation if message is a known key, otherwise use the provided message
+                    if (window.SupportI18n && !message) {
+                        // Map status to translation keys
+                        const statusKeyMap = {
+                            'connected': 'connected',
+                            'connecting': 'connecting',
+                            'disconnected': 'disconnected'
+                        };
+                        text.textContent = window.SupportI18n.t(statusKeyMap[status] || 'connecting');
+                    } else if (typeof message === 'string') {
+                        text.textContent = message;
+                    }
+                }
+            }
+
+            // Utility: safe HTML injection
+            function safeText(text) {
+                const div = document.createElement('div');
+                div.textContent = String(text ?? '');
+                return div.innerHTML;
+            }
+
+            // Append a chat message into the transcript
+            function appendMessageToChat(message) {
+                const chatMessages = document.getElementById('chatMessages');
+                if (!chatMessages) return;
+                const el = document.createElement('div');
+                const sender = message.senderType === 'agent' ? 'agent' : 'driver';
+                el.className = `message ${sender === 'agent' ? 'agent' : ''}`;
+                const initials = (message.senderName || (sender === 'agent' ? 'SA' : 'CU'))
+                    .split(' ').map(s => s[0]).join('').toUpperCase().slice(0, 2);
+                el.innerHTML = `
+                <div class="message-avatar">${safeText(initials)}</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="message-text">${safeText(message.messageText || message.text || '')}</div>
+                    </div>
+                    <div class="message-timestamp">${new Date(message.timestamp || Date.now()).toLocaleTimeString()}</div>
+                </div>`;
+            chatMessages.appendChild(el);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+            // Minimal sessions list renderer for incoming sessions
+            function updateSessionsList() {
+                const list = document.getElementById('sessionsList');
+                const activeCount = document.getElementById('activeSessions');
+                if (!list) return;
+                list.innerHTML = '';
+                const items = Array.from(merchantSessions.values());
+                if (items.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-state';
+                    const noActiveText = window.SupportI18n ? window.SupportI18n.t('noActiveConversations') : 'No active conversations';
+                    const noActiveDesc = window.SupportI18n ? window.SupportI18n.t('noActiveConversationsDesc') : 'New conversations will appear here when customers start chatting';
+                    empty.innerHTML = `<i class="fas fa-comments"></i><h3>${safeText(noActiveText)}</h3><p>${safeText(noActiveDesc)}</p>`;
+                    list.appendChild(empty);
+                } else {
+                    items.sort((a, b) => (b.lastActivity || 0) - (a.lastActivity || 0));
+                    items.forEach(sess => {
+                        const card = document.createElement('div');
+                        card.className = `session-card${currentSessionId === sess.id ? ' active' : ''}`;
+                        card.setAttribute('data-session-id', sess.id);
+                        card.addEventListener('click', () => selectSession(sess.id));
+                        const initials = (sess.driverName || 'Driver').split(' ').map(s => s[0]).join('').toUpperCase().slice(0, 2);
+                        card.innerHTML = `
+                        <div class="session-info">
+                            <div class="customer-avatar">${safeText(initials)}</div>
+                            <div class="session-details">
+                                <div class="customer-name">${safeText(sess.driverName || 'Driver')}</div>
+                                <div class="last-message">${safeText(sess.lastMessage || '')}</div>
+                            </div>
+                            <div class="session-meta">
+                                <div class="message-time">${safeText(sess.time || '')}</div>
+                            </div>
+                        </div>`;
+                        list.appendChild(card);
+                    });
+                }
+                if (activeCount) activeCount.textContent = String(merchantSessions.size);
+            }
+        }
+
+            function selectSession(sessionId) {
+                currentSessionId = sessionId;
+                const chatTitle = document.getElementById('chatTitle');
+                const chatInputArea = document.getElementById('chatInputArea');
+                const endSessionBtn = document.getElementById('endSessionBtn');
+                const sess = merchantSessions.get(sessionId);
+
+                // Use i18n for chat title
+                const defaultTitle = window.SupportI18n ? window.SupportI18n.t('selectConversation') : 'Select a conversation';
+                if (chatTitle) chatTitle.textContent = sess ? (sess.customer || sess.driverName || 'Conversation') : defaultTitle;
+                
+                if (chatInputArea) chatInputArea.style.display = sess ? '' : 'none';
+                if (endSessionBtn) endSessionBtn.style.display = sess ? '' : 'none';
+                // Render existing messages if any
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages) chatMessages.innerHTML = '';
+                if (sess && Array.isArray(sess.messages)) {
+                    sess.messages.forEach(m => appendMessageToChat(m));
+                } else if (chatMessages) {
+                    // Use i18n for empty state
+                    const emptyTitle = window.SupportI18n ? window.SupportI18n.t('selectConversation') : 'Select a conversation';
+                    const emptyDesc = window.SupportI18n ? window.SupportI18n.t('selectConversationDesc') : 'Choose a conversation from the left to start helping customers';
+                    chatMessages.innerHTML = `<div class="empty-state"><i class="fas fa-comments"></i><h3>${emptyTitle}</h3><p>${emptyDesc}</p></div>`;
+                }
+
+            // Join the session/channel on backend to receive history and mark assignment
+            try {
+                if (merchantChatWS && merchantChatWS.readyState === WebSocket.OPEN && lastJoinedSessionId !== sessionId) {
+                    const joinMsg = {
+                        action: 'join_channel',
+                        type: 'join_channel',
+                        sessionId: sessionId,
+                        agentId: window.MERCHANT_AGENT_ID || 'support_dashboard',
+                        agentName: window.MERCHANT_AGENT_NAME || 'Support Agent'
+                    };
+                    merchantChatWS.send(JSON.stringify(joinMsg));
+                    lastJoinedSessionId = sessionId;
+                    console.log('📡 Sent join_channel for session', sessionId);
+                }
+            } catch (e) { console.warn('join_channel failed', e); }
+        }
+
+            // Handle incoming merchant messages
+            function handleMerchantChatMessage(data) {
+                const type = data.type || data.action;
+                if (!type) return;
+
+            // Ack, auth, and connection confirmations
+            if (type === 'message_ack') {
+                console.log('✅ Message ACK:', data.messageId, 'session:', data.sessionId);
+                return;
+            }
+            if (type === 'agent_authenticated' || type === 'connection_confirmed') {
+                // Reflect connected status
+                updateConnectionStatus('connected');
+                return;
+            }
+
+            // Echo guard: ignore agent echoes or empty payloads
+            if (data.senderType === 'agent' && !data.messageText && !data.message?.messageText && !data.message && !data.text) {
+                return;
+            }
+
+            // Normalize message payload
+            if (type === 'chat_message' || type === 'driver_message' || type === 'CHAT_MESSAGE' || type === 'new_message') {
+                const payload = typeof data.message === 'object' ? data.message : data;
+                const sessionId = payload.sessionId || payload.session_id || data.sessionId || data.session_id;
+                if (!sessionId) return;
+
+                const msg = {
+                    id: payload.messageId || `msg_${Date.now()}`,
+                    sessionId,
+                    senderType: (payload.senderType === 'driver' || payload.senderType === 'user') ? 'driver' : (payload.senderType || 'agent'),
+                    senderName: payload.senderName || ((payload.senderType === 'driver' || payload.senderType === 'user') ? 'Driver' : 'Support Agent'),
+                    messageText: (payload.messageText || payload.text || data.message || data.messageText || ''),
+                    timestamp: payload.createdAt || payload.timestamp || data.timestamp || new Date().toISOString()
+                };
+
+                // Ensure session exists
+                if (!merchantSessions.has(sessionId)) {
+                    merchantSessions.set(sessionId, {
+                        id: sessionId,
+                        driverName: msg.senderType === 'driver' ? (msg.senderName || 'Driver') : (payload.driverName || data.driverName || 'Driver'),
+                        lastMessage: msg.messageText,
+                        time: new Date(msg.timestamp).toLocaleTimeString(),
+                        messages: []
+                    });
+                }
+                const sess = merchantSessions.get(sessionId);
+
+                // De-duplication: skip if same sender and text appeared very recently
+                const nowTs = Date.parse(msg.timestamp) || Date.now();
+                const recent = (sess.messages || []).slice(-5).some(m => (
+                    (m.senderType === msg.senderType) &&
+                    (String(m.messageText || '') === String(msg.messageText || '')) &&
+                    Math.abs((Date.parse(m.timestamp) || nowTs) - nowTs) < DUPLICATE_WINDOW_MS
+                ));
+                if (recent) {
+                    console.log('🧹 Skipping duplicate message echo');
+                } else {
+                    sess.messages = sess.messages || [];
+                    sess.messages.push(msg);
+                }
+
+                sess.lastMessage = msg.messageText;
+                sess.time = new Date(msg.timestamp).toLocaleTimeString();
+                sess.lastActivity = Date.parse(msg.timestamp);
+
+                // Auto-select the session if none selected to reveal input box
+                if (!currentSessionId) {
+                    currentSessionId = sessionId;
+                    selectSession(currentSessionId);
+                } else {
+                    if (currentSessionId === sessionId && !recent) appendMessageToChat(msg);
+                    updateSessionsList();
+                }
+                if (typeof triggerAISuggestion === 'function' && msg.senderType !== 'agent') {
+                    try { triggerAISuggestion(sessionId); } catch (_) { }
+                }
+                return;
+            }
+
+            if (type === 'session_messages') {
+                const sessionId = data.sessionId;
+                if (!sessionId || !Array.isArray(data.messages)) return;
+                // Ensure session
+                if (!merchantSessions.has(sessionId)) {
+                    merchantSessions.set(sessionId, { id: sessionId, driverName: data.driverName || 'Driver', messages: [] });
+                }
+                const sess = merchantSessions.get(sessionId);
+                const chron = [...data.messages].reverse();
+                chron.forEach(m => {
+                    const norm = {
+                        id: m.messageId,
+                        sessionId,
+                        senderType: m.senderType === 'driver' ? 'driver' : 'agent',
+                        senderName: m.senderType === 'driver' ? (data.driverName || 'Driver') : 'Support Agent',
+                        messageText: m.text || '',
+                        timestamp: m.createdAt || new Date().toISOString()
+                    };
+                    // Deduplicate by id
+                    const exists = (sess.messages || []).some(x => x.id && norm.id && x.id === norm.id);
+                    if (!exists) {
+                        sess.messages = sess.messages || [];
+                        sess.messages.push(norm);
+                    }
+                });
+                // Re-render if active
+                if (currentSessionId === sessionId) {
+                    const chatMessages = document.getElementById('chatMessages');
+                    if (chatMessages) chatMessages.innerHTML = '';
+                    (sess.messages || []).forEach(m => appendMessageToChat(m));
+                }
+                updateSessionsList();
+                return;
+            }
+
+            if (type === 'active_sessions' || type === 'new_chat_session') {
+                const sessions = Array.isArray(data.sessions) ? data.sessions : [data];
+                sessions.forEach(s => {
+                    const sessionId = s.sessionId || s.id;
+                    if (!sessionId) return;
+                    if (!merchantSessions.has(sessionId)) {
+                        merchantSessions.set(sessionId, {
+                            id: sessionId,
+                            driverName: s.driverName || s.customer || 'Driver',
+                            lastMessage: s.lastMessage || '',
+                            time: s.lastActivity ? new Date(s.lastActivity).toLocaleTimeString() : '',
+                            messages: []
+                        });
+                    }
+                });
+                updateSessionsList();
+                // Auto-select first session when list arrives and none selected
+                if (!currentSessionId && sessions.length > 0) {
+                    currentSessionId = sessions[0].sessionId || sessions[0].id;
+                    selectSession(currentSessionId);
+                }
+                return;
+            }
+
+            if (type === 'session_closed' || type === 'chat_session_closed') {
+                const sessionId = data.sessionId;
+                if (!sessionId) return;
+                // Move to closed
+                const sess = merchantSessions.get(sessionId) || { id: sessionId, messages: [] };
+                merchantSessions.delete(sessionId);
+                closedSessions.set(sessionId, { ...sess, closedAt: new Date().toISOString() });
+                updateSessionsList();
+                updateClosedSessionsList();
+                if (currentSessionId === sessionId) {
+                    currentSessionId = null;
+                    const chatMessages = document.getElementById('chatMessages');
+                    if (chatMessages) {
+                        chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-comment-dots"></i><h3>Select a conversation</h3><p>Choose a conversation from the left to start helping customers</p></div>';
+                    }
+                    const chatTitle = document.getElementById('chatTitle');
+                    if (chatTitle) chatTitle.textContent = 'Select a conversation';
+                    const endBtn = document.getElementById('endSessionBtn');
+                    if (endBtn) endBtn.style.display = 'none';
+                }
+                return;
+            }
+        }
+
+            // Expose Send/End for CSP-safe bindings
+            window.sendMessage = function () {
+            const input = document.getElementById('messageInput');
+            if (!input || !currentSessionId) return;
+            const text = input.value.trim();
+            if (!text) return;
+            const outbound = {
+                action: 'chat_message',
+                type: 'chat_message',
+                sessionId: currentSessionId,
+                messageText: text,
+                senderType: 'agent',
+                senderName: 'Support Agent',
+                agentId: 'support_dashboard',
+                timestamp: new Date().toISOString()
+            };
+            try { merchantChatWS?.send(JSON.stringify(outbound)); } catch (e) { console.error('Send failed', e); }
+            // Optimistic UI
+            const optim = { sessionId: currentSessionId, senderType: 'agent', senderName: 'Support Agent', messageText: text, text, timestamp: outbound.timestamp };
+            appendMessageToChat(optim);
+            // Track locally
+            const sess = merchantSessions.get(currentSessionId);
+            if (sess) {
+                sess.messages = sess.messages || [];
+                sess.messages.push(optim);
+                sess.lastMessage = optim.messageText;
+                sess.time = new Date(optim.timestamp).toLocaleTimeString();
+                sess.lastActivity = Date.parse(optim.timestamp);
+                updateSessionsList();
+            }
+            input.value = '';
+            input.style.height = 'auto';
+        };
+
+            window.endChatSession = function () {
+                if (!currentSessionId) return;
+                const outbound = {
+                    action: 'chat_session_close',
+                    type: 'chat_session_close',
+                sessionId: currentSessionId,
+                senderType: 'agent',
+                reason: 'ended_by_agent',
+                timestamp: new Date().toISOString()
+            };
+            try { merchantChatWS?.send(JSON.stringify(outbound)); } catch (e) { console.error('End session send failed', e); }
+            // Archive locally
+            merchantSessions.delete(currentSessionId);
+            currentSessionId = null;
+            updateSessionsList();
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-comment-dots"></i><h3>Select a conversation</h3><p>Choose a conversation from the left to start helping customers</p></div>';
+            }
+            const chatTitle = document.getElementById('chatTitle');
+            if (chatTitle) chatTitle.textContent = 'Select a conversation';
+            const endBtn = document.getElementById('endSessionBtn');
+            if (endBtn) endBtn.style.display = 'none';
+            // Reflect in closed sessions panel
+            updateClosedSessionsList();
+        };
+
+            // Extra UX: Enter to send, Shift+Enter for newline. Disable send if socket not open.
+            document.addEventListener('DOMContentLoaded', function () {
+                const input = document.getElementById('messageInput');
+                const sendBtn = document.getElementById('sendButton');
+                if (input) {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            window.sendMessage();
+                        }
+                });
+            }
+            // Disable send if disconnected
+            setInterval(() => {
+                try {
+                    const disabled = !(merchantChatWS && merchantChatWS.readyState === WebSocket.OPEN && currentSessionId);
+                    if (sendBtn) sendBtn.disabled = disabled;
+                } catch (_) { }
+            }, 800);
+        });
+
+            // Closed sessions renderer
+            function updateClosedSessionsList() {
+                const list = document.getElementById('closedSessionsList');
+                const countEl = document.getElementById('closedSessionsCount');
+                if (!list) return;
+                list.innerHTML = '';
+                const items = Array.from(closedSessions.values())
+                    .sort((a, b) => (Date.parse(b.closedAt || 0)) - (Date.parse(a.closedAt || 0)));
+                if (items.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-state-small';
+                    empty.style.cssText = 'padding:2rem; text-align:center; color:#999;';
+                    const noClosedText = window.SupportI18n ? window.SupportI18n.t('noClosedSessions') : 'No recently closed sessions';
+                    empty.innerHTML = `<i class="fas fa-archive" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i><p style="margin: 0; font-size: 0.875rem;">${safeText(noClosedText)}</p>`;
+                    list.appendChild(empty);
+                } else {
+                    items.slice(0, 20).forEach(sess => {
+                        const card = document.createElement('div');
+                        card.className = 'session-card closed-session';
+                        card.innerHTML = `
+                        <div class="session-info">
+                            <div class="customer-avatar">${safeText((sess.driverName || 'D').split(' ').map(s => s[0]).join('').toUpperCase().slice(0, 2))}</div>
+                            <div class="session-details">
+                                <div class="customer-name">${safeText(sess.driverName || 'Driver')}</div>
+                                <div class="last-message">${safeText(sess.lastMessage || '')}</div>
+                            </div>
+                            <div class="session-meta">
+                                <div class="message-time">${safeText(new Date(sess.closedAt || Date.now()).toLocaleTimeString())}</div>
+                            </div>
+                        </div>`;
+                        list.appendChild(card);
+                    });
+                }
+                if (countEl) countEl.textContent = String(items.length);
+            }
+</script>
+    <script src="../aggressive-sidebar-fix.js"></script>
+    <script src="../immediate-sidebar-fix.js"></script>
+    <script src="../assets/js/navigation.js"></script>
+    <script>
+        // Initialize navigation when page loads
+        document.addEventListener('DOMContentLoaded', async function () {
+            const nav = new NavigationManager();
+            await nav.init();
+        });
+    </script>
+</body>
+</html>

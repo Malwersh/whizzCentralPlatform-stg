@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzCentral Platform - Customers Management</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <!-- Security utilities -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <script src="../assets/js/security-utils.js"></script>
+    <script src="../assets/js/rbac.js"></script>
+    <style>
+        /* Material 3 Customers Page Enhancement */
+        .customers-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+    
+        .customer-stat-card {
+            background-color: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 24px;
+            box-shadow: var(--md-sys-elevation-level1);
+            border: none;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+            position: relative;
+            overflow: hidden;
+        }
+    
+        .customer-stat-card:hover {
+            box-shadow: var(--md-sys-elevation-level2);
+            transform: translateY(-2px);
+        }
+    
+        .customer-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--md-sys-color-primary);
+        }
+    
+        .customer-stat-card.total::before {
+            background: var(--md-sys-color-primary);
+        }
+    
+        .customer-stat-card.active::before {
+            background: var(--md-sys-color-secondary);
+        }
+    
+        .customer-stat-card.vip::before {
+            background: var(--md-sys-color-tertiary);
+        }
+    
+        .customer-stat-card.revenue::before {
+            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-secondary));
+        }
+    
+        .customer-stat-card.points::before {
+            background: var(--md-sys-color-secondary);
+        }
+    
+        .btn-primary {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    
+        .btn-primary:hover {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            box-shadow: var(--md-sys-elevation-level2);
+        }
+    
+        .btn-secondary {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+            border: 1px solid var(--md-sys-color-outline);
+            padding: 12px 20px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    
+        .btn-secondary:hover {
+            background: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+    
+        .points-display {
+            text-align: center;
+        }
+    
+        .points-value {
+            font-weight: 600;
+            color: var(--md-sys-color-secondary);
+            font-size: 0.875rem;
+        }
+    
+        .contact-info {
+            min-width: 140px;
+        }
+    
+        .stat-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+    
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--md-sys-color-on-primary);
+            font-size: 24px;
+        }
+    
+        .customer-stat-card.total .stat-icon {
+            background: var(--md-sys-color-primary);
+        }
+    
+        .customer-stat-card.active .stat-icon {
+            background: var(--md-sys-color-secondary);
+        }
+    
+        .customer-stat-card.vip .stat-icon {
+            background: var(--md-sys-color-tertiary);
+        }
+    
+        .customer-stat-card.revenue .stat-icon {
+            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-secondary));
+        }
+    
+        .stat-info h3 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+            line-height: 1.2;
+        }
+    
+        .stat-info p {
+            margin: 4px 0 0 0;
+            font-size: 0.875rem;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+    
+        .controls-section {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 24px;
+            margin-bottom: 2rem;
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+    
+        .table-controls {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 1rem;
+            align-items: center;
+        }
+    
+        .search-container {
+            position: relative;
+            max-width: 400px;
+        }
+    
+        .search-container i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--md-sys-color-on-surface-variant);
+            z-index: 1;
+        }
+    
+        .search-container input {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+            font-size: 1rem;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+        }
+    
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px var(--md-sys-color-primary-container);
+        }
+    
+        .filter-container {
+            display: flex;
+            gap: 1rem;
+        }
+    
+        .filter-container select {
+            padding: 12px 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+            font-size: 0.875rem;
+            min-width: 140px;
+            cursor: pointer;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+        }
+    
+        .filter-container select:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px var(--md-sys-color-primary-container);
+        }
+    
+        .table-container {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level1);
+            overflow: hidden;
+        }
+    
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+    
+        .data-table thead {
+            background: var(--md-sys-color-surface-container-high);
+        }
+    
+        .data-table th {
+            padding: 20px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+    
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            color: var(--md-sys-color-on-surface);
+            font-size: 0.875rem;
+            vertical-align: middle;
+        }
+    
+        .data-table tbody tr {
+            transition: background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+        }
+    
+        .data-table tbody tr:hover {
+            background-color: var(--md-sys-color-surface-container);
+        }
+    
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--md-sys-color-primary-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--md-sys-color-on-primary-container);
+            font-weight: 600;
+            font-size: 1rem;
+            margin-right: 12px;
+        }
+    
+        .customer-info {
+            display: flex;
+            align-items: center;
+        }
+    
+        .customer-details h4 {
+            margin: 0;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+            font-size: 0.875rem;
+        }
+    
+        .customer-details p {
+            margin: 2px 0 0 0;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 0.75rem;
+        }
+    
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: var(--md-sys-shape-corner-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            display: inline-block;
+        }
+    
+        .status-badge.active {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+    
+        .status-badge.inactive {
+            background: var(--md-sys-color-surface-container-high);
+            color: var(--md-sys-color-on-surface-variant);
+        }
+    
+        .status-badge.blocked {
+            background: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+        }
+    
+        .segment-badge {
+            padding: 4px 8px;
+            border-radius: var(--md-sys-shape-corner-small);
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+    
+        .segment-badge.vip {
+            background: var(--md-sys-color-tertiary-container);
+            color: var(--md-sys-color-on-tertiary-container);
+        }
+    
+        .segment-badge.regular {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+    
+        .segment-badge.new {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+    
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+    
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: var(--md-sys-shape-corner-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+            font-size: 14px;
+        }
+    
+        .action-btn.view {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+    
+        .action-btn.edit {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+    
+        .action-btn.block {
+            background: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+        }
+    
+        .action-btn:hover {
+            box-shadow: var(--md-sys-elevation-level1);
+            transform: translateY(-1px);
+        }
+    
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+    
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
+            background: var(--md-sys-color-surface-container-high);
+            color: var(--md-sys-color-on-surface);
+            cursor: pointer;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+        }
+    
+        .pagination button:hover:not(:disabled) {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+    
+        .pagination button.active {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border-color: var (--md-sys-color-primary);
+        }
+    
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .customers-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+    
+            .table-controls {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+    
+            .filter-container {
+                justify-content: stretch;
+            }
+    
+            .filter-container select {
+                min-width: unset;
+                flex: 1;
+            }
+    
+            .data-table {
+                font-size: 0.75rem;
+            }
+    
+            .data-table th,
+            .data-table td {
+                padding: 12px 8px;
+            }
+    
+            .customer-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 0.875rem;
+            }
+    
+            .action-buttons {
+                flex-direction: column;
+                gap: 4px;
+            }
+    
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+        }
+
+        /* Sidebar Styles */
+        .md-navigation-drawer.active {
+            transform: translateX(0) !important;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: var(--md-sys-color-on-surface);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--md-sys-shape-corner-small);
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+        }
+
+        .menu-toggle:hover {
+            background: var(--md-sys-color-surface-container);
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: var(--md-sys-color-surface-container-low);
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            margin-bottom: 1.5rem;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .main-content {
+            margin-left: 280px; /* Account for sidebar width */
+            padding: 0;
+            min-height: 100vh;
+            background: var(--md-sys-color-surface);
+            transition: margin-left var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized);
+        }
+
+        /* When sidebar is collapsed */
+        .main-content.collapsed-sidebar {
+            margin-left: 80px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        .page-content {
+            padding: 0 1.5rem 2rem;
+        }
+    </style>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <!-- Build: 2025-11-03-22:30 - Sidebar layout fix -->
+</head>
+
+<body data-page="customers">
+    <!-- Sidebar include placeholder -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">Customers Management</h1>
+                <span id="version-badge"
+                    style="font-size: 0.7rem; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); padding: 2px 6px; border-radius: 8px; margin-left: 10px; font-weight: 500;"></span>
+            </div>
+            <div class="top-bar-actions">
+                <button class="btn-primary" data-action="refresh-customer-data">
+                    <i class="fas fa-sync"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Statistics Cards -->
+            <div class="customers-stats-grid">
+                <div class="customer-stat-card total">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 id="totalCustomers">-</h3>
+                            <p>Total Customers</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="customer-stat-card active">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 id="activeCustomers">-</h3>
+                            <p>Active Customers</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<!-- Data Source Information Banner -->
+<div id="dataSourceBanner"
+    style="display: none; background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border: 1px solid #2196f3; border-radius: 8px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <i class="fas fa-info-circle" style="color: #1976d2; font-size: 1.2rem;"></i>
+        <div>
+            <h4 style="margin: 0; color: #1976d2; font-size: 1rem;">Data Source Information</h4>
+            <p id="dataSourceMessage" style="margin: 4px 0 0 0; color: #424242; font-size: 0.9rem;">
+                This system fetches customer data exclusively from AWS DynamoDB. Real-time data only.
+            </p>
+        </div>
+    </div>
+</div>
+
+            <!-- Filters and Search -->
+            <div class="controls-section">
+                <div class="table-controls">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search customers by name, email, or phone..." id="searchInput">
+                        </div>
+                        <div class="filter-container">
+                            <select id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="blocked">Blocked</option>
+                            </select>
+                            <select id="segmentFilter">
+                                <option value="">All Segments</option>
+                                <option value="vip">VIP</option>
+                                <option value="regular">Regular</option>
+                                <option value="new">New</option>
+                            </select>
+                    </div>
+                    <button class="btn-secondary" data-action="refresh-customer-points"
+                        title="Refresh customer points from latest order data">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Points
+                    </button>
+                    <button class="btn-primary" data-action="export-customers">
+                        <i class="fas fa-download"></i>
+                        Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Customers Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Total Orders</th>
+                            <th>Total Spent</th>
+                            <th>Points</th>
+                            <th>Last Order</th>
+                            <th>Segment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <!-- Rows will be populated dynamically by customers.js -->
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: var(--md-sys-color-on-surface-variant);">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
+                                <div>Loading customers...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Customer Modal -->
+    <div class="modal" id="editCustomerModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit" style="color: var(--md-sys-color-primary);"></i> Edit Customer</h2>
+                <button class="modal-close" data-action="close-edit-customer-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Read-Only Information Section -->
+                <div class="driver-info-section" style="background: rgba(3, 169, 244, 0.08); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); padding: 16px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <i class="fas fa-info-circle" style="color: var(--md-sys-color-primary);"></i>
+                        <strong style="color: var(--md-sys-color-on-surface);">Read-Only Information</strong>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.875rem;">
+                        <div>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">Customer ID:</strong>
+                            <div id="viewCustomerId" style="font-family: monospace; font-size: 11px; word-break: break-all; color: var(--md-sys-color-on-surface);"></div>
+                        </div>
+                        <div>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">Joined:</strong>
+                            <span id="viewJoinDate" style="color: var(--md-sys-color-on-surface);"></span>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">Last Updated:</strong>
+                            <span id="viewLastUpdated" style="color: var(--md-sys-color-on-surface);"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="editCustomerForm">
+                    <input type="hidden" id="editCustomerId" name="userId">
+                    
+                    <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 0 0 16px 0;">Basic Information</h3>
+                    
+                    <!-- Row 1: Name & Email -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCustomerName">Full Name *</label>
+                            <input type="text" id="editCustomerName" name="name" required placeholder="Enter full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="editCustomerEmail">Email *</label>
+                            <input type="email" id="editCustomerEmail" name="email" required placeholder="customer@example.com">
+                        </div>
+                    </div>
+                    
+                    <!-- Row 2: Phone & Gender -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCustomerPhone">Phone</label>
+                            <input type="tel" id="editCustomerPhone" name="countryCode" placeholder="+964 770 123 4567">
+                        </div>
+                        <div class="form-group">
+                            <label for="editCustomerGender">Gender</label>
+                            <select id="editCustomerGender" name="gender">
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                                <option value="prefer-not-to-say">Prefer not to say</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 3: Birth Date & Language -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCustomerBirthDate">Birth Date</label>
+                            <input type="date" id="editCustomerBirthDate" name="birth_date">
+                        </div>
+                        <div class="form-group">
+                            <label for="editCustomerLanguage">Preferred Language</label>
+                            <select id="editCustomerLanguage" name="preferredLanguage">
+                                <option value="en">English</option>
+                                <option value="ar">Arabic (العربية)</option>
+                                <option value="ku">Kurdish (کوردی)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 24px 0 16px 0;">Account Status</h3>
+                    
+                    <!-- Row 4: Status & Marketing -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editCustomerStatus">Account Status *</label>
+                            <select id="editCustomerStatus" name="isActive" required>
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 8px; padding-top: 28px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="editMarketingConsent" name="marketingConsent" style="cursor: pointer;">
+                                <span>Marketing Consent</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="editNewsletterSubscription" name="newsletter_subscription" style="cursor: pointer;">
+                                <span>Newsletter Subscription</span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" data-action="close-edit-customer-modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn-primary" form="editCustomerForm">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Customer Modal -->
+    <div class="modal" id="viewCustomerModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header" style="flex-direction: column; align-items: stretch; gap: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h2><i class="fas fa-user" style="color: var(--md-sys-color-primary);"></i> Customer Profile</h2>
+                    <button class="modal-close" data-action="close-view-customer-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font: var(--md-sys-typescale-headline-medium-font); color: var(--md-sys-color-on-surface); margin-bottom: 4px;" id="viewCustomerFullName"></div>
+                        <div style="font: var(--md-sys-typescale-body-small-font); color: var(--md-sys-color-on-surface-variant);" id="viewCustomerEmail"></div>
+                    </div>
+                    <div id="viewCustomerStatusBadge"></div>
+                </div>
+            </div>
+            <div class="modal-body" style="padding: 16px 24px 24px;">
+                <!-- Quick Action Buttons -->
+                <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                    <button class="btn-primary" data-action="edit-customer-from-view" style="flex: 1;">
+                        <i class="fas fa-edit"></i> Edit Customer
+                    </button>
+                    <button class="btn-secondary" data-action="print-view" style="flex: 1;">
+                        <i class="fas fa-print"></i> Print Profile
+                    </button>
+                </div>
+
+                <!-- Personal Information Card -->
+                <div class="view-info-card">
+                    <div class="view-info-card-header">
+                        <i class="fas fa-user-circle"></i> Personal Information
+                    </div>
+                    <div class="view-info-grid">
+                        <div class="view-info-item">
+                            <div class="view-info-label">Full Name</div>
+                            <div class="view-info-value" id="viewFullName"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Email Address</div>
+                            <div class="view-info-value" id="viewEmail"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Phone Number</div>
+                            <div class="view-info-value" id="viewPhone"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Gender</div>
+                            <div class="view-info-value" id="viewGender"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Details Card -->
+                <div class="view-info-card">
+                    <div class="view-info-card-header">
+                        <i class="fas fa-id-card"></i> Account Details
+                    </div>
+                    <div class="view-info-grid">
+                        <div class="view-info-item">
+                            <div class="view-info-label">Customer Segment</div>
+                            <div class="view-info-value" id="viewSegment"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Tier Level</div>
+                            <div class="view-info-value" id="viewTier"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Preferred Language</div>
+                            <div class="view-info-value" id="viewLanguage"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Marketing Consent</div>
+                            <div class="view-info-value" id="viewMarketing"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order & Points Statistics Card -->
+                <div class="view-info-card">
+                    <div class="view-info-card-header">
+                        <i class="fas fa-chart-line"></i> Order & Points Statistics
+                    </div>
+                    <div class="view-info-grid">
+                        <div class="view-info-item">
+                            <div class="view-info-label">Total Orders</div>
+                            <div class="view-info-value" id="viewTotalOrders"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Total Spent</div>
+                            <div class="view-info-value" id="viewTotalSpent"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Loyalty Points</div>
+                            <div class="view-info-value" id="viewLoyaltyPoints"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Last Order Date</div>
+                            <div class="view-info-value" id="viewLastOrderDate"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Information Card -->
+                <div class="view-info-card">
+                    <div class="view-info-card-header">
+                        <i class="fas fa-database"></i> System Information
+                    </div>
+                    <div class="view-info-grid">
+                        <div class="view-info-item" style="grid-column: 1 / -1;">
+                            <div class="view-info-label">Customer ID</div>
+                            <div class="view-info-value" id="viewSysCustomerId" style="font-family: monospace; font-size: 11px; word-break: break-all;"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Join Date</div>
+                            <div class="view-info-value" id="viewJoinedDate"></div>
+                        </div>
+                        <div class="view-info-item">
+                            <div class="view-info-label">Last Updated</div>
+                            <div class="view-info-value" id="viewUpdatedDate"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Styles -->
+    <style>
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--md-sys-elevation-level3);
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .modal-header h2 {
+            font: var(--md-sys-typescale-headline-small-font);
+            font-weight: var(--md-sys-typescale-headline-small-weight);
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--md-sys-shape-corner-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .modal-close:hover {
+            background: var(--md-sys-color-surface-container-highest);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font: var(--md-sys-typescale-body-small-font);
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            height: 56px;
+            padding: 0 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+            font: var(--md-sys-typescale-body-large-font);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .form-group input[type="date"] {
+            padding: 0 12px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px rgba(253, 197, 0, 0.2);
+        }
+
+        .modal-footer {
+            padding: 16px 24px 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* View Modal Specific Styles */
+        .view-info-card {
+            background: var(--md-sys-color-surface-container-highest);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .view-info-card:hover {
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        .view-info-card-header {
+            font: var(--md-sys-typescale-title-medium-font);
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--md-sys-color-primary);
+        }
+
+        .view-info-card-header i {
+            color: var(--md-sys-color-primary);
+        }
+
+        .view-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .view-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .view-info-label {
+            font: var(--md-sys-typescale-body-small-font);
+            color: var(--md-sys-color-on-surface-variant);
+            font-weight: 500;
+        }
+
+        .view-info-value {
+            font: var(--md-sys-typescale-body-large-font);
+            color: var(--md-sys-color-on-surface);
+            word-break: break-word;
+        }
+
+        #viewCustomerStatusBadge {
+            padding: 8px 16px;
+            border-radius: var(--md-sys-shape-corner-full);
+            font: var(--md-sys-typescale-label-large-font);
+            font-weight: 600;
+        }
+
+        #viewCustomerStatusBadge.active {
+            background: rgba(76, 175, 80, 0.12);
+            color: #2e7d32;
+        }
+
+        #viewCustomerStatusBadge.inactive {
+            background: rgba(244, 67, 54, 0.12);
+            color: #c62828;
+        }
+
+        @media (max-width: 768px) {
+            .view-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <!-- AWS SDK -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
+
+    <!-- Configuration -->
+    <script src="../config.js"></script>
+
+    <!-- Centralized utilities -->
+    <script src="../assets/js/auth-utils.js"></script>
+    <script src="../assets/js/aws-utils.js"></script>
+
+    <!-- Page-specific scripts -->
+    <script src="../aggressive-sidebar-fix.js"></script>
+    <script src="../immediate-sidebar-fix.js"></script>
+    <script src="../assets/js/navigation.js"></script>
+    <script src="../customer-points-service.js"></script>
+    <script src="../customers.js"></script>
+    
+    <!-- Authentication check -->
+    <script>
+        // Check authentication silently in background
+        if (window.Auth && typeof window.Auth.requireAuthentication === 'function') {
+            try {
+                window.Auth.requireAuthentication();
+            } catch (e) {
+                console.warn('Auth check error:', e);
+            }
+        }
+    </script>
+    
+    <!-- Sidebar Loading Script -->
+    <script>
+        // Load sidebar content
+        async function loadSidebar() {
+            try {
+                const response = await fetch('/includes/sidebar.html');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const html = await response.text();
+
+                const placeholder = document.getElementById('sidebar-placeholder');
+                if (placeholder) {
+                    placeholder.innerHTML = html;
+                    console.log('✅ Sidebar loaded successfully');
+
+                    // Set active state for customers page
+                    const customersNavItem = document.querySelector('.nav-item[data-page="customers"]');
+                    if (customersNavItem) {
+                        // Remove any existing active states
+                        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                        // Add active to customers
+                        customersNavItem.classList.add('active');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Failed to load sidebar:', error);
+            }
+        }
+
+        // Load sidebar when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadSidebar);
+        } else {
+            loadSidebar();
+        }
+    </script>
+<script>
+    (async function () {
+        try {
+            await RBAC.ensure();
+            // Enforce RBAC - New system auto-detects page name
+            window.RBAC.enforcePage();
+            if (!RBAC.can('customers', 'write')) {
+                RBAC.applyReadOnly('body', 'customers');
+                document.querySelectorAll('[data-write-only]').forEach(el => el.style.display = 'none');
+            }
+        } catch (e) { console.warn('RBAC init failed', e); }
+    })();
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const root = document.body;
+        root.addEventListener('click', function (e) {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const action = btn.getAttribute('data-action');
+            try {
+                switch (action) {
+                    case 'refresh-customer-data': if (typeof refreshCustomerData === 'function') refreshCustomerData(); break;
+                    case 'refresh-customer-points': if (typeof refreshCustomerPoints === 'function') refreshCustomerPoints(); break;
+                    case 'export-customers': if (typeof exportCustomers === 'function') exportCustomers(); break;
+                    case 'close-edit-customer-modal': if (typeof closeEditCustomerModal === 'function') closeEditCustomerModal(); break;
+                    case 'close-view-customer-modal': if (typeof closeViewCustomerModal === 'function') closeViewCustomerModal(); break;
+                    case 'edit-customer-from-view': if (typeof editCustomerFromView === 'function') editCustomerFromView(); break;
+                    case 'print-view': window.print(); break;
+                }
+            } catch (err) { console.warn('Customer action failed', action, err); }
+        });
+    });
+</script>
+</body>
+
+</html>

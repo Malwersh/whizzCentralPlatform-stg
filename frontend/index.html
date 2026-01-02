@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzCentral - Login</title>
+    <script src="./env.js"></script>
+    <script src="./config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #FDC500;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #FDC500;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #FDC500;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 5px;
+            display: none;
+            font-size: 14px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status.is-visible { display: block; }
+        .btn-secondary { 
+            width: 100%; 
+            padding: 12px; 
+            background: #6c757d; 
+            color: #fff; 
+            border: none; 
+            border-radius: 5px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: transform .2s; 
+        }
+        .btn-secondary:hover { 
+            transform: translateY(-2px); 
+        }
+        .mt-10 { 
+            margin-top: 10px; 
+        }
+        .help-text { 
+            color: #666; 
+            font-size: 12px; 
+            margin-top: 5px; 
+            display: block; 
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>🚀 WizzCentral</h1>
+        <p class="subtitle">Sign in to your account</p>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required autocomplete="username" autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit" id="loginBtn">Sign In</button>
+        </form>
+        
+        <!-- New Password Form (hidden by default) -->
+        <form id="newPasswordForm" class="hidden">
+            <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" required placeholder="Minimum 8 characters" autocomplete="new-password">
+                <small class="help-text">
+                    Must contain uppercase, lowercase, number, and special character
+                </small>
+            </div>
+        
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" required placeholder="Re-enter new password"
+                    autocomplete="new-password">
+            </div>
+        
+            <button type="submit" id="changePasswordBtn">Change Password</button>
+            <button type="button" id="cancelBtn" class="btn-secondary mt-10">Cancel</button>
+        </form>
+        <div id="status" class="status"></div>
+    </div>
+
+    <!-- AWS SDK and Cognito -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1471.0.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+    <script src="./assets/js/login.js" defer></script>
+</body>
+</html>

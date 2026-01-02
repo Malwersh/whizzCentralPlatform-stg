@@ -1,0 +1,172 @@
+# Support Center Service Configuration
+service: wizzcentral-support
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'staging'}
+  memorySize: 256
+  timeout: 30
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    TICKETS_TABLE: "wizzcentral-support-tickets-${self:provider.stage}"
+    FAQS_TABLE: "wizzcentral-support-faqs-${self:provider.stage}"
+    KNOWLEDGE_BASE_TABLE: "wizzcentral-support-knowledge-base-${self:provider.stage}"
+    CHAT_SESSIONS_TABLE: "chat-sessions-${self:provider.stage}"
+    WEBSOCKET_CONNECTIONS_TABLE: "websocket-connections-${self:provider.stage}"
+    WEBSOCKET_API_ENDPOINT: ${env:WEBSOCKET_API_ENDPOINT}
+    JWT_SECRET: ${env:JWT_SECRET}
+    
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 
+            - "arn:aws:dynamodb:*:*:table/wizzcentral-support-*"
+            - "arn:aws:dynamodb:*:*:table/chat-sessions-*"
+            - "arn:aws:dynamodb:*:*:table/websocket-connections-*"
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource: 
+            - "arn:aws:execute-api:*:*:*/${self:provider.stage}/POST/@connections/*"
+
+functions:
+  # Support Ticket Management
+  getTickets:
+    handler: src/handlers/support.getTickets
+    events:
+      - http:
+          path: api/support/tickets
+          method: get
+          cors: true
+          
+  createTicket:
+    handler: src/handlers/support.createTicket
+    events:
+      - http:
+          path: api/support/tickets
+          method: post
+          cors: true
+          
+  updateTicket:
+    handler: src/handlers/support.updateTicket
+    events:
+      - http:
+          path: api/support/tickets/{ticketId}
+          method: put
+          cors: true
+
+  # FAQ Management
+  getFAQs:
+    handler: src/handlers/support.getFAQs
+    events:
+      - http:
+          path: api/support/faqs
+          method: get
+          cors: true
+
+  # Knowledge Base Management
+  getKnowledgeBase:
+    handler: src/handlers/support.getKnowledgeBase
+    events:
+      - http:
+          path: api/support/knowledge-base
+          method: get
+          cors: true
+
+  # Chat Bridge Functions
+  sendChatMessage:
+    handler: src/handlers/chat-bridge.sendChatMessage
+    events:
+      - http:
+          path: chat/send
+          method: post
+          cors: true
+      - http:
+          path: chat/send
+          method: options
+          cors: true
+          
+  getChatHistory:
+    handler: src/handlers/chat-bridge.getChatHistory
+    events:
+      - http:
+          path: chat/history
+          method: get
+          cors: true
+      - http:
+          path: chat/history/{sessionId}
+          method: get
+          cors: true
+
+  # Public Chat Bridge for Cross-Platform Authentication
+  publicChatBridge:
+    handler: src/handlers/public-chat-bridge.handler
+    events:
+      - http:
+          path: public/chat/send
+          method: post
+          cors: true
+      - http:
+          path: public/chat/send
+          method: options
+          cors: true
+    environment:
+      SUPPORT_MESSAGES_TABLE: ${env:SUPPORT_MESSAGES_TABLE}
+      WEBSOCKET_CONNECTIONS_TABLE: ${env:WEBSOCKET_CONNECTIONS_TABLE}
+      WEBSOCKET_API_ENDPOINT: ${env:WEBSOCKET_API_ENDPOINT}
+
+resources:
+  Resources:
+    # Support Tickets Table
+    TicketsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: wizzcentral-support-tickets-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: ticketId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ticketId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        
+    # FAQs Table
+    FAQsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: wizzcentral-support-faqs-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: faqId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: faqId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        
+    # Knowledge Base Table
+    KnowledgeBaseTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: wizzcentral-support-knowledge-base-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: articleId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: articleId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+plugins:
+  - serverless-offline

@@ -1,0 +1,21 @@
+{
+  "name": "spatial-index-builder",
+  "version": "1.0.0",
+  "description": "Lambda لبناء مؤشر H3 spatial للمناطق",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.645.0",
+    "@aws-sdk/lib-dynamodb": "^3.645.0",
+    "@aws-sdk/util-dynamodb": "^3.645.0",
+    "@turf/turf": "^7.3.1",
+    "h3-js": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=20.x"
+  },
+  "author": "WizzCentral Team",
+  "license": "MIT"
+}

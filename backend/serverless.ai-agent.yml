@@ -1,0 +1,91 @@
+# ============================================================================
+# ⚠️  DEPRECATED - DO NOT USE
+# ============================================================================
+# This Serverless Framework configuration is NO LONGER MAINTAINED.
+#
+# Use the SAM-based deployment instead:
+#   ./deploy-ai-agent.sh [dev|staging|prod]
+#
+# The SAM template (template-ai-agent.yaml) is now the SINGLE SOURCE OF TRUTH
+# for all WhizzMe Agent infrastructure.
+#
+# This file is kept for reference only and will be removed in a future version.
+# ============================================================================
+
+service: whizzme-agent
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  
+  environment:
+    BEDROCK_AGENT_ID: TNJAPTVUDC
+    BEDROCK_AGENT_ALIAS_ID: ${env:BEDROCK_AGENT_ALIAS_ID}
+  
+  iam:
+    role:
+      statements:
+        # Bedrock Agent permissions
+        - Effect: Allow
+          Action:
+            - bedrock:InvokeAgent
+            - bedrock:InvokeModel
+          Resource:
+            - arn:aws:bedrock:us-east-1:*:agent/*
+            - arn:aws:bedrock:us-east-1:*:agent-alias/*/*
+        
+        # CloudWatch Logs
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: '*'
+
+functions:
+  agentSuggestion:
+    handler: src/handlers/agent-suggestion-handler.handler
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: /agent-suggestion
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+  
+  healthCheck:
+    handler: src/handlers/agent-suggestion-handler.healthCheck
+    events:
+      - http:
+          path: /agent-suggestion/health
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    # Cognito Authorizer
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: CognitoAuthorizer
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ProviderARNs:
+          - arn:aws:cognito-idp:us-east-1:941377143704:userpool/us-east-1_Cp9YnOQWi
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3002

@@ -1,0 +1,279 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: WhizzCentralPlatform staging web frontend hosting (S3 + CloudFront) + Cognito auth + minimal config API
+
+Parameters:
+  Stage:
+    Type: String
+    Default: staging
+  ProjectName:
+    Type: String
+    Default: whizz-centralplatform
+
+Resources:
+  HostingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  HostingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref HostingBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontRead
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action:
+              - s3:GetObject
+            Resource: !Sub '${HostingBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}'
+
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${ProjectName}-${Stage}-oac'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub '${ProjectName}-${Stage}'
+        DefaultRootObject: index.html
+        Origins:
+          - Id: s3-origin
+            DomainName: !GetAtt HostingBucket.RegionalDomainName
+            S3OriginConfig: {}
+            OriginAccessControlId: !Ref CloudFrontOAC
+        DefaultCacheBehavior:
+          TargetOriginId: s3-origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD, OPTIONS]
+          Compress: true
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 403
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponseCode: 404
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+
+  # Cognito User Pool for CentralPlatform admin UI
+  CentralUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${ProjectName}-${Stage}-userpool'
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+
+  CentralUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${ProjectName}-${Stage}-web'
+      UserPoolId: !Ref CentralUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      PreventUserExistenceErrors: ENABLED
+
+  CentralIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub '${ProjectName}-${Stage}-identity'
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders:
+        - ClientId: !Ref CentralUserPoolClient
+          ProviderName: !GetAtt CentralUserPool.ProviderName
+
+  CentralUnauthRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-${Stage}-unauth'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref CentralIdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: unauthenticated
+      Policies:
+        - PolicyName: BasicUnauth
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - mobileanalytics:PutEvents
+                  - cognito-sync:*
+                Resource: '*'
+
+  CentralAuthRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-${Stage}-auth'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref CentralIdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: authenticated
+      Policies:
+        - PolicyName: BasicAuth
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - mobileanalytics:PutEvents
+                  - cognito-sync:*
+                  - cognito-identity:*
+                Resource: '*'
+
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref CentralIdentityPool
+      Roles:
+        authenticated: !GetAtt CentralAuthRole.Arn
+        unauthenticated: !GetAtt CentralUnauthRole.Arn
+
+  # Minimal config API just to provide a stable API_BASE_URL for the UI
+  ConfigApiLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-${Stage}-config-api-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  ConfigApiLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Stage}-config-api'
+      Runtime: nodejs20.x
+      Handler: index.handler
+      Role: !GetAtt ConfigApiLambdaRole.Arn
+      Timeout: 10
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            const path = (event && (event.rawPath || event.path)) || '/';
+            if (path === '/health' || path === '/staging/health') {
+              return { statusCode: 200, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ok: true, stage: 'staging' }) };
+            }
+            return { statusCode: 501, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ok: false, message: 'CentralPlatform API not configured yet' }) };
+          };
+
+  ConfigApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub '${ProjectName}-${Stage}-config-api'
+
+  ConfigApiResourceHealth:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ConfigApi
+      ParentId: !GetAtt ConfigApi.RootResourceId
+      PathPart: health
+
+  ConfigApiMethodHealth:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ConfigApi
+      ResourceId: !Ref ConfigApiResourceHealth
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ConfigApiLambda.Arn}/invocations'
+
+  ConfigApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ConfigApiMethodHealth
+    Properties:
+      RestApiId: !Ref ConfigApi
+
+  ConfigApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref ConfigApi
+      DeploymentId: !Ref ConfigApiDeployment
+      StageName: !Ref Stage
+
+  ConfigApiLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ConfigApiLambda
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ConfigApi}/*/*/*'
+
+Outputs:
+  HostingBucketName:
+    Value: !Ref HostingBucket
+  CloudFrontDomainName:
+    Value: !GetAtt CloudFrontDistribution.DomainName
+  CloudFrontDistributionId:
+    Value: !Ref CloudFrontDistribution
+  CentralUserPoolId:
+    Value: !Ref CentralUserPool
+  CentralUserPoolClientId:
+    Value: !Ref CentralUserPoolClient
+  CentralIdentityPoolId:
+    Value: !Ref CentralIdentityPool
+  ConfigApiBaseUrl:
+    Value: !Sub 'https://${ConfigApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}'

@@ -1,0 +1,10 @@
+{
+  "Variables": {
+    "DRIVER_USER_POOL_ID": "us-east-1_Mnrmklxro",
+    "ADMIN_USER_POOL_ID": "us-east-1_Cp9YnOQWi",
+    "SERVICE_USER_POOL_ID": "us-east-1_8LyVWuZnO",
+    "REGION": "us-east-1",
+    "NODE_ENV": "production",
+    "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1"
+  }
+}

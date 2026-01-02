@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Debug</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .section {
+            background: #2d2d30;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid #007acc;
+        }
+        h2 {
+            color: #4ec9b0;
+            margin-top: 0;
+        }
+        pre {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .warning { color: #dcdcaa; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Authentication Debug Information</h1>
+    
+    <div class="section">
+        <h2>LocalStorage Data</h2>
+        <pre id="localStorage"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>SessionStorage Data</h2>
+        <pre id="sessionStorage"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>ID Token Payload</h2>
+        <pre id="tokenPayload"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>User Groups</h2>
+        <pre id="userGroups"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>Authentication Status</h2>
+        <pre id="authStatus"></pre>
+    </div>
+
+    <script>
+        function displayData() {
+            // LocalStorage
+            const localData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                localData[key] = localStorage.getItem(key);
+            }
+            document.getElementById('localStorage').textContent = JSON.stringify(localData, null, 2);
+            
+            // SessionStorage
+            const sessionData = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                sessionData[key] = sessionStorage.getItem(key);
+            }
+            document.getElementById('sessionStorage').textContent = JSON.stringify(sessionData, null, 2);
+            
+            // Token Payload
+            try {
+                const idToken = localStorage.getItem('idToken');
+                if (idToken) {
+                    const payload = JSON.parse(atob(idToken.split('.')[1]));
+                    document.getElementById('tokenPayload').innerHTML = '<span class="success">✓ Token found</span>\n' + JSON.stringify(payload, null, 2);
+                } else {
+                    document.getElementById('tokenPayload').innerHTML = '<span class="error">✗ No ID token found</span>';
+                }
+            } catch (error) {
+                document.getElementById('tokenPayload').innerHTML = '<span class="error">✗ Error parsing token: ' + error.message + '</span>';
+            }
+            
+            // User Groups
+            try {
+                const idToken = localStorage.getItem('idToken');
+                if (idToken) {
+                    const payload = JSON.parse(atob(idToken.split('.')[1]));
+                    const groups = payload['cognito:groups'] || [];
+                    document.getElementById('userGroups').innerHTML = '<span class="success">Groups: ' + (groups.length > 0 ? groups.join(', ') : 'None') + '</span>';
+                } else {
+                    document.getElementById('userGroups').innerHTML = '<span class="error">✗ No token to extract groups from</span>';
+                }
+            } catch (error) {
+                document.getElementById('userGroups').innerHTML = '<span class="error">✗ Error: ' + error.message + '</span>';
+            }
+            
+            // Auth Status
+            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+            const hasToken = !!localStorage.getItem('idToken');
+            
+            let statusHTML = '';
+            statusHTML += '<span class="' + (isAuthenticated ? 'success' : 'error') + '">isAuthenticated: ' + isAuthenticated + '</span>\n';
+            statusHTML += '<span class="' + (hasToken ? 'success' : 'error') + '">Has ID Token: ' + hasToken + '</span>\n';
+            
+            document.getElementById('authStatus').innerHTML = statusHTML;
+        }
+        
+        displayData();
+        
+        // Auto-refresh every 2 seconds
+        setInterval(displayData, 2000);
+    </script>
+</body>
+</html>

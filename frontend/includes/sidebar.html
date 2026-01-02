@@ -1,0 +1,93 @@
+<!-- Material 3 Sidebar Navigation -->
+<div class="md-navigation-drawer" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: var(--md-sys-shape-corner-medium); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-rocket" style="color: var(--md-sys-color-on-primary);"></i>
+            </div>
+            <span>WizzCentral</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    <nav class="sidebar-nav" style="flex: 1; padding: 16px 0;">
+        <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px;">
+            <li class="nav-item" data-page="home">
+                <a href="/frontend/index.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-home md-navigation-item__icon"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="dashboard">
+                <a href="/frontend/pages/dashboard.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-tachometer-alt md-navigation-item__icon"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="drivers">
+                <a href="/frontend/pages/drivers.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-motorcycle md-navigation-item__icon"></i>
+                    <span>Drivers</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="customers">
+                <a href="/frontend/pages/customers.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-users md-navigation-item__icon"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="merchants">
+                <a href="/frontend/pages/merchants.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-store md-navigation-item__icon"></i>
+                    <span>Merchants</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="orders">
+                <a href="/frontend/pages/orders.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-shopping-bag md-navigation-item__icon"></i>
+                    <span>Orders</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="promotions">
+                <a href="/frontend/pages/promotions.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-tags md-navigation-item__icon"></i>
+                    <span>Promotions</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="regions">
+                <a href="/frontend/pages/regions.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-map-marked-alt md-navigation-item__icon"></i>
+                    <span>Regions</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="financial">
+                <a href="/frontend/pages/financial-management.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-coins md-navigation-item__icon"></i>
+                    <span>Financial</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="support">
+                <a href="/frontend/pages/support.html" class="md-navigation-item" data-nav="page" rel="noopener">
+                    <i class="fas fa-headset md-navigation-item__icon"></i>
+                    <span>Support</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name">Admin User</span>
+                <span class="user-role">Administrator</span>
+            </div>
+        </div>
+        <button class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+</div>

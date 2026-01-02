@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Push Notification</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .info-box strong {
+            color: #007bff;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Test Push Notification System</h1>
+        <p class="subtitle">Send a test promotion notification to all merchants</p>
+
+        <div class="info-box">
+            <strong>📱 Status:</strong> 
+            <span id="deviceCount">Checking device tokens...</span>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Notification Title</label>
+            <input type="text" id="title" placeholder="e.g., 🎉 New Promotion: 25% Off!" value="🎉 Test Promotion">
+        </div>
+
+        <div class="form-group">
+            <label for="message">Notification Message</label>
+            <textarea id="message" placeholder="Enter your notification message...">This is a test push notification from WhizzCentralPlatform. Check out this amazing promotion!</textarea>
+        </div>
+
+        <button id="sendBtn" onclick="sendTestNotification()">
+            Send Test Notification to All Merchants
+        </button>
+
+        <div id="status" class="status"></div>
+
+        <div style="margin-top: 30px;">
+            <h3>Debug Console</h3>
+            <pre id="console" style="max-height: 300px; overflow-y: auto;"></pre>
+        </div>
+    </div>
+
+    <script src="../config.js"></script>
+    <script src="../assets/js/auth-utils.js"></script>
+    <script src="../assets/js/aws-utils.js"></script>
+    <script>
+        const consoleEl = document.getElementById('console');
+        const originalLog = console.log;
+        const originalError = console.error;
+
+        function logToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleEl.textContent += `[${timestamp}] ${type}: ${message}\n`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            logToConsole('LOG', ...args);
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            logToConsole('ERROR', ...args);
+        };
+
+        async function checkDeviceTokens() {
+            try {
+                console.log('🔍 Checking device tokens...');
+                const credentials = await window.AWSUtils.getCredentials();
+                const apiEndpoint = window.WIZZCENTRAL_CONFIG?.PUSH_NOTIFICATION_API_URL || '';
+
+                if (!apiEndpoint) {
+                    throw new Error('Missing PUSH_NOTIFICATION_API_URL. Set window.__PUSH_NOTIFICATION_API_URL__.');
+                }
+                const stage = String(window.WIZZCENTRAL_CONFIG?.STAGE || 'staging');
+                if (String(apiEndpoint).includes('/dev')) {
+                    throw new Error(`Refusing to use dev push API endpoint in ${stage}: ${apiEndpoint}`);
+                }
+                if (stage === 'staging' && /\/prod\b/i.test(String(apiEndpoint))) {
+                    throw new Error(`Refusing to use prod push API endpoint in staging: ${apiEndpoint}`);
+                }
+                
+                // For now, just show we're ready
+                document.getElementById('deviceCount').textContent = 'Ready to send notifications to merchants';
+                console.log('✅ System ready');
+            } catch (error) {
+                console.error('❌ Error checking status:', error);
+                document.getElementById('deviceCount').textContent = 'Error checking status: ' + error.message;
+            }
+        }
+
+        async function sendTestNotification() {
+            const btn = document.getElementById('sendBtn');
+            const status = document.getElementById('status');
+            const title = document.getElementById('title').value;
+            const message = document.getElementById('message').value;
+
+            if (!title || !message) {
+                showStatus('error', 'Please fill in both title and message');
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="loading"></span> Sending...';
+                status.style.display = 'none';
+
+                console.log('📱 Preparing to send push notification...');
+                console.log('Title:', title);
+                console.log('Message:', message);
+
+                // Get AWS credentials
+                const credentials = await window.AWSUtils.getCredentials();
+                console.log('✅ Got credentials');
+
+                const apiEndpoint = window.WIZZCENTRAL_CONFIG?.PUSH_NOTIFICATION_API_URL || '';
+                if (!apiEndpoint) {
+                    throw new Error('Missing PUSH_NOTIFICATION_API_URL. Set window.__PUSH_NOTIFICATION_API_URL__.');
+                }
+                const stage = String(window.WIZZCENTRAL_CONFIG?.STAGE || 'staging');
+                if (String(apiEndpoint).includes('/dev')) {
+                    throw new Error(`Refusing to use dev push API endpoint in ${stage}: ${apiEndpoint}`);
+                }
+                if (stage === 'staging' && /\/prod\b/i.test(String(apiEndpoint))) {
+                    throw new Error(`Refusing to use prod push API endpoint in staging: ${apiEndpoint}`);
+                }
+                console.log('🔗 API Endpoint:', apiEndpoint);
+
+                // Prepare payload
+                const payload = {
+                    title: title,
+                    message: message,
+                    campaignId: 'test_' + Date.now(),
+                    type: 'promotion',
+                    targetAudience: 'merchants',
+                    data: {
+                        discountValue: 25,
+                        discountType: 'percentage',
+                        testNotification: true
+                    }
+                };
+
+                console.log('📤 Sending payload:', payload);
+
+                // Send request
+                const response = await fetch(`${apiEndpoint}/send-promotion-notification`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': credentials.idToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log('📡 Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Error response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Response:', result);
+
+                showStatus('success', `🎉 Success! Sent to ${result.successCount || 0} devices`);
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showStatus('error', `Failed to send notification: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Send Test Notification to All Merchants';
+            }
+        }
+
+        function showStatus(type, message) {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            status.style.display = 'block';
+        }
+
+        // Initialize
+        checkDeviceTokens();
+        console.log('🚀 Test page loaded');
+        console.log('Config:', window.WIZZCENTRAL_CONFIG);
+    </script>
+</body>
+</html>

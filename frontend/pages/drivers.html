@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzCentral Platform - Drivers Management</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <!-- Security: DOMPurify for XSS Protection -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    
+    <!-- Security Utilities -->
+    <script src="../assets/js/security-utils.js"></script>
+    <script src="../assets/js/rbac.js"></script>
+
+    <!-- Material 3 Enhanced Driver Management Styles -->
+    <style>
+        /* Enhanced Material 3 Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 24px;
+            box-shadow: var(--md-sys-elevation-level1);
+            border: none;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .stat-card:hover {
+            box-shadow: var(--md-sys-elevation-level2);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--md-sys-color-primary);
+        }
+        
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .stat-icon.online { background: var(--md-sys-color-primary); }
+        .stat-icon.delivering { background: var(--md-sys-color-tertiary); }
+        .stat-icon.total { background: var(--md-sys-color-secondary); }
+        .stat-icon.rating { background: var(--md-sys-color-tertiary); }
+        
+        .stat-info h3 {
+            font: var(--md-sys-typescale-display-small-font);
+            font-size: var(--md-sys-typescale-display-small-size);
+            font-weight: var(--md-sys-typescale-display-small-weight);
+            color: var(--md-sys-color-on-surface);
+            margin: 0 0 4px 0;
+        }
+        
+        .stat-info p {
+            font: var(--md-sys-typescale-body-medium-font);
+            color: var(--md-sys-color-on-surface-variant);
+            margin: 0 0 8px 0;
+        }
+        
+        .stat-change {
+            font: var(--md-sys-typescale-label-small-font);
+            padding: 4px 8px;
+            border-radius: var(--md-sys-shape-corner-full);
+            background: var(--md-sys-color-surface-container-high);
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* Enhanced Table Controls */
+        .table-controls {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+        
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        .search-container i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--md-sys-color-on-surface-variant);
+        }
+        
+        .search-container input {
+            width: 100%;
+            height: 56px;
+            padding: 0 16px 0 48px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+            font: var(--md-sys-typescale-body-large-font);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+        
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.2);
+        }
+        
+        .filter-container {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .filter-container select {
+            height: 56px;
+            padding: 0 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+            font: var (--md-sys-typescale-body-large-font);
+            min-width: 140px;
+            cursor: pointer;
+        }
+
+        /* Enhanced Data Table */
+        .table-container {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            overflow: hidden;
+            box-shadow: var(--md-sys-elevation-level1);
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: transparent;
+            table-layout: fixed;
+            min-width: 1100px;
+            table-layout: auto;
+        }
+        
+        .data-table thead {
+            background: var(--md-sys-color-surface-container-high);
+        }
+        
+        .data-table th {
+            padding: 16px;
+            text-align: left;
+            font: var(--md-sys-typescale-title-medium-font);
+            font-weight: var(--md-sys-typescale-title-medium-weight);
+            color: var(--md-sys-color-on-surface);
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            white-space: nowrap;
+        }
+
+        .data-table th:nth-child(1) { width: 220px; white-space: normal; }
+        .data-table th:nth-child(2) { width: 120px; }
+        .data-table th:nth-child(3) { width: 120px; }
+        .data-table th:nth-child(4) { width: 160px; }
+        .data-table th:nth-child(5) { width: 140px; }
+        .data-table th:nth-child(6) { width: 120px; }
+        .data-table th:nth-child(7) { width: 140px; }
+        .data-table th:nth-child(8) { width: 140px; }
+
+        .data-table td {
+            vertical-align: middle;
+            padding: 12px 16px;
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background: var(--md-sys-color-surface-container);
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--md-sys-color-surface-container-highest);
+        }
+
+        /* Drivers table row visuals */
+        .driver-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .driver-info > div:last-child {
+            flex: 1 1 130px;
+            min-width: 130px;
+        }
+
+        .driver-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--md-sys-color-surface-container-highest);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .driver-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .driver-name {
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+            font-size: 14px;
+            line-height: 18px;
+            margin-bottom: 2px;
+        }
+
+        .driver-id {
+            font-size: 12px;
+            color: var(--md-sys-color-on-surface-variant);
+            display: block;
+            word-break: break-all;
+            line-height: 14px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: var(--md-sys-shape-corner-full);
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 84px;
+            text-align: center;
+        }
+
+        .status-badge.online, .status-badge.approved {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .status-badge.delivering, .status-badge.busy {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .status-badge.pending, .status-badge.unavailable {
+            background: var(--md-sys-color-tertiary-container);
+            color: var(--md-sys-color-on-tertiary-container);
+        }
+
+        .status-badge.offline {
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface-variant);
+            border: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rating-stars i.fas.fa-star, .rating-stars i.fas.fa-star-half-alt {
+            color: var(--md-sys-color-warning);
+            font-size: 14px;
+            margin-right: 2px;
+        }
+
+        .rating-stars i.far.fa-star {
+            color: var(--md-sys-color-outline-variant);
+        }
+
+        .rating-value {
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+            font-size: 13px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            border: none;
+            background: transparent;
+            color: var(--md-sys-color-on-surface-variant);
+            width: 34px;
+            height: 34px;
+            border-radius: var(--md-sys-shape-corner-small);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .2s ease;
+        }
+
+        .btn-action:hover {
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        /* Driver Status Buttons */
+        .btn-toggle-status {
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--md-sys-shape-corner-full);
+            cursor: pointer;
+            font: var(--md-sys-typescale-label-medium-font);
+            font-weight: var(--md-sys-typescale-label-medium-weight);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            height: 40px;
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .btn-toggle-status.approved {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .btn-toggle-status.approved:hover {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        .btn-toggle-status.pending {
+            background: var(--md-sys-color-tertiary-container);
+            color: var(--md-sys-color-on-tertiary-container);
+        }
+
+        .btn-toggle-status.pending:hover {
+            background: var(--md-sys-color-tertiary);
+            color: var(--md-sys-color-on-tertiary);
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        .btn-toggle-status:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+
+        /* Enhanced Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-extra-large);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--md-sys-elevation-level3);
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .modal-header h2 {
+            font: var(--md-sys-typescale-headline-small-font);
+            font-weight: var(--md-sys-typescale-headline-small-weight);
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--md-sys-shape-corner-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .modal-close:hover {
+            background: var(--md-sys-color-surface-container-highest);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font: var(--md-sys-typescale-body-small-font);
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            height: 56px;
+            padding: 0 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+            font: var(--md-sys-typescale-body-large-font);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px rgba(103, 80, 164, 0.2);
+        }
+
+        .modal-footer {
+            padding: 16px 24px 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Enhanced Action Buttons */
+        .btn-primary {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            height: 40px;
+            padding: 0 24px;
+            border-radius: var(--md-sys-shape-corner-full);
+            font: var(--md-sys-typescale-label-large-font);
+            font-weight: var(--md-sys-typescale-label-large-weight);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .btn-primary:hover {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            box-shadow: var (--md-sys-elevation-level1);
+        }
+
+        .btn-secondary {
+            background: var(--md-sys-color-surface-container-high);
+            color: var(--md-sys-color-on-surface);
+            border: 1px solid var(--md-sys-color-outline);
+            height: 40px;
+            padding: 0 24px;
+            border-radius: var(--md-sys-shape-corner-full);
+            font: var(--md-sys-typescale-label-large-font);
+            font-weight: var(--md-sys-typescale-label-large-weight);
+            cursor: pointer;
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .btn-secondary:hover {
+            background: var(--md-sys-color-surface-container-highest);
+        }
+
+        /* Debug panel */
+        #drivers-debug-panel {
+            display: none;
+            background: var(--md-sys-color-error-container);
+            border: 1px solid var(--md-sys-color-error);
+            color: var(--md-sys-color-on-error-container);
+            padding: 12px 16px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            margin: 16px 0;
+            font: var(--md-sys-typescale-body-small-font);
+        }
+
+        #drivers-debug-panel code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: var(--md-sys-shape-corner-small);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-container {
+                justify-content: stretch;
+            }
+
+            .filter-container select {
+                flex: 1;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .data-table th, .data-table td { display: table-cell !important; }
+        }
+    </style>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+
+<body data-page="drivers">
+    <!-- Sidebar include placeholder -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Driver Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon online">
+                        <i class="fas fa-motorcycle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>0</h3>
+                        <p>Approved Drivers</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon delivering">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>0</h3>
+                        <p>Pending Review</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon total">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>0</h3>
+                        <p>Total Drivers</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon rating">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>0.0</h3>
+                        <p>Average Rating</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="table-controls">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search drivers..." id="searchInput">
+                </div>
+                <div class="filter-container">
+                    <select id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="online">Online</option>
+                        <option value="offline">Offline</option>
+                        <option value="delivering">Delivering</option>
+                        <option value="unavailable">Unavailable</option>
+                    </select>
+                    <select id="ratingFilter">
+                        <option value="">All Ratings</option>
+                        <option value="5">5 Stars</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="3">3+ Stars</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Drivers Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Driver</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Current Location</th>
+                            <th>Orders Completed</th>
+                            <th>Rating</th>
+                            <th>Earnings Today</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="driversTableBody">
+                        <!-- Driver data will be loaded dynamically from WhizzDrivers_dev table -->
+                        <tr>
+                            <td colspan="8" class="text-center" style="padding: 2rem;">
+                                <i class="fas fa-spinner fa-spin"></i> Loading drivers from database...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Driver Modal -->
+    <div class="modal" id="addDriverModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Driver</h2>
+                <button class="modal-close" onclick="closeAddDriverModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addDriverForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="driverName">Full Name</label>
+                            <input type="text" id="driverName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="driverEmail">Email</label>
+                            <input type="email" id="driverEmail" name="email" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="driverPhone">Phone Number</label>
+                            <input type="tel" id="driverPhone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="driverLicense">License Number</label>
+                            <input type="text" id="driverLicense" name="license" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vehicleType">Vehicle Type</label>
+                            <select id="vehicleType" name="vehicleType" required>
+                                <option value="">Select vehicle type</option>
+                                <option value="motorcycle">Motorcycle</option>
+                                <option value="bicycle">Bicycle</option>
+                                <option value="car">Car</option>
+                                <option value="scooter">Scooter</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="emergencyContact">Emergency Contact</label>
+                            <input type="tel" id="emergencyContact" name="emergencyContact" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeAddDriverModal()">Cancel</button>
+                <button type="submit" form="addDriverForm" class="btn-primary" data-write-only>Add Driver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Driver Modal -->
+    <div class="modal" id="editDriverModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Edit Driver</h2>
+                <button class="modal-close" onclick="closeEditDriverModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Read-Only Driver Information Section -->
+                <div class="driver-info-section" style="background: var(--md-sys-color-surface-container-highest); padding: 16px; border-radius: var(--md-sys-shape-corner-medium); margin-bottom: 24px;">
+                    <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 0 0 12px 0;">
+                        <i class="fas fa-info-circle"></i> Driver Information
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font: var(--md-sys-typescale-body-small-font);">
+                        <div>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">Driver ID:</strong>
+                            <span id="viewDriverId" style="color: var(--md-sys-color-on-surface); font-family: monospace; font-size: 11px;"></span>
+                        </div>
+                        <div>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">Profile Completed:</strong>
+                            <span id="viewProfileCompleted" style="color: var(--md-sys-color-on-surface);"></span>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">Last Updated:</strong>
+                            <span id="viewLastUpdated" style="color: var (--md-sys-color-on-surface);"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editable Form -->
+                <form id="editDriverForm">
+                    <input type="hidden" id="editDriverId" name="driverId">
+                    
+                    <!-- Basic Information -->
+                    <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 0 0 16px 0;">
+                        <i class="fas fa-user"></i> Basic Information
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editDriverName">Full Name</label>
+                            <input type="text" id="editDriverName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDriverCity">City / Region</label>
+                            <select id="editDriverCity" name="city" required>
+                                <option value="">Loading cities...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editDriverLicense">License Number</label>
+                            <input type="text" id="editDriverLicense" name="licenseNumber" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDriverNationalId">National ID</label>
+                            <input type="text" id="editDriverNationalId" name="nationalId" required>
+                        </div>
+                    </div>
+
+                    <!-- Vehicle & Status -->
+                    <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 24px 0 16px 0;">
+                        <i class="fas fa-car"></i> Vehicle & Status
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editVehicleType">Vehicle Type</label>
+                            <select id="editVehicleType" name="vehicleType" required>
+                                <option value="">Select vehicle type</option>
+                                <option value="motorcycle">Motorcycle (دراجة نارية)</option>
+                                <option value="car">Car (سيارة)</option>
+                                <option value="bicycle">Bicycle (دراجة هوائية)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDriverStatus">Status</label>
+                            <select id="editDriverStatus" name="status" required>
+                                <option value="PENDING_REVIEW">Pending Review</option>
+                                <option value="ACTIVE">Active/Approved</option>
+                                <option value="SUSPENDED">Suspended</option>
+                                <option value="REJECTED">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Documents Section -->
+                    <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 24px 0 16px 0;">
+                        <i class="fas fa-file-alt"></i> Documents
+                    </h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Driving License</label>
+                            <div id="drivingLicensePreview" style="margin-top: 8px;">
+                                <a id="drivingLicenseLink" href="#" target="_blank" style="display: none; color: var(--md-sys-color-primary); text-decoration: none;">
+                                    <i class="fas fa-external-link-alt"></i> View Document
+                                </a>
+                                <div id="drivingLicenseImage" style="display: none; margin-top: 8px; max-width: 100%; border-radius: var(--md-sys-shape-corner-medium); overflow: hidden;">
+                                    <img src="" alt="Driving License" style="max-width: 100%; height: auto; display: block;">
+                                </div>
+                                <span id="drivingLicenseNone" style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">No document uploaded</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Registration Paper</label>
+                            <div id="registrationPaperPreview" style="margin-top: 8px;">
+                                <a id="registrationPaperLink" href="#" target="_blank" style="display: none; color: var(--md-sys-color-primary); text-decoration: none;">
+                                    <i class="fas fa-external-link-alt"></i> View Document
+                                </a>
+                                <div id="registrationPaperImage" style="display: none; margin-top: 8px; max-width: 100%; border-radius: var(--md-sys-shape-corner-medium); overflow: hidden;">
+                                    <img src="" alt="Registration Paper" style="max-width: 100%; height: auto; display: block;">
+                                </div>
+                                <span id="registrationPaperNone" style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">No document uploaded</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeEditDriverModal()">Cancel</button>
+                <button type="submit" form="editDriverForm" class="btn-primary" data-write-only>
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Driver Modal (Read-Only) -->
+    <div class="modal" id="viewDriverModal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-circle" style="color: var(--md-sys-color-primary);"></i> Driver Profile</h2>
+                <button class="modal-close" onclick="closeViewDriverModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                
+                <!-- Driver Header Section -->
+                <div style="background: linear-gradient(135deg, var(--md-sys-color-primary-container) 0%, var(--md-sys-color-secondary-container) 100%); padding: 24px; border-radius: var(--md-sys-shape-corner-large); margin-bottom: 24px; text-align: center;">
+                    <div style="width: 100px; height: 100px; margin: 0 auto 16px; border-radius: 50%; background: var(--md-sys-color-surface); display: flex; align-items: center; justify-content: center; font-size: 48px; color: var(--md-sys-color-primary);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h2 id="viewDriverNameHeader" style="font: var(--md-sys-typescale-headline-medium-font); color: var(--md-sys-color-on-primary-container); margin: 0 0 8px 0;"></h2>
+                    <div id="viewDriverStatusBadge" style="display: inline-block; padding: 6px 16px; border-radius: var(--md-sys-shape-corner-full); font: var(--md-sys-typescale-label-medium-font); font-weight: 600;"></div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: center;">
+                    <button class="btn-primary" onclick="editDriverFromView()" style="display: inline-flex; align-items: center; gap: 8px;"
+                        data-write-only>
+                        <i class="fas fa-edit"></i> Edit Driver
+                    </button>
+                    <button class="btn-secondary" onclick="window.print()" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+
+                <!-- Information Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                    
+                    <!-- Personal Information Card -->
+                    <div class="info-card">
+                        <h3 class="info-card-title">
+                            <i class="fas fa-id-card"></i> Personal Information
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Full Name:</label>
+                                <span id="viewDriverNameFull"></span>
+                            </div>
+                            <div class="info-item">
+                                <label>National ID:</label>
+                                <span id="viewDriverNationalId"></span>
+                            </div>
+                            <div class="info-item">
+                                <label>City / Region:</label>
+                                <span id="viewDriverCityFull"></span>
+                            </div>
+                            <div class="info-item">
+                                <label>License Number:</label>
+                                <span id="viewDriverLicenseFull"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vehicle Information Card -->
+                    <div class="info-card">
+                        <h3 class="info-card-title">
+                            <i class="fas fa-motorcycle"></i> Vehicle Information
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Vehicle Type:</label>
+                                <span id="viewDriverVehicleType"></span>
+                            </div>
+                            <div class="info-item">
+                                <label>Registration Status:</label>
+                                <span id="viewDriverRegStatus"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Information Card -->
+                    <div class="info-card">
+                        <h3 class="info-card-title">
+                            <i class="fas fa-cog"></i> System Information
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Driver ID:</label>
+                                <span id="viewDriverIdFull" style="font-family: monospace; font-size: 11px; word-break: break-all;"></span>
+                            </div>
+                            <div class="info-item">
+                                <label>Profile Completed:</label>
+                                <span id="viewProfileCompletedFull"></span>
+                            </div>
+                            <div class="info-item">
+                                <label>Last Updated:</label>
+                                <span id="viewLastUpdatedFull"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Section -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-file-image" style="color: var(--md-sys-color-primary);"></i> Documents
+                    </h3>
+                    <div id="viewDocumentsSection" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;"></div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeViewDriverModal()">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button type="button" class="btn-primary" onclick="editDriverFromView()" data-write-only>
+                    <i class="fas fa-edit"></i> Edit Driver
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add styles for info cards -->
+    <style>
+        .info-card {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 20px;
+            box-shadow: var(--md-sys-elevation-level1);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        .info-card:hover {
+            box-shadow: var(--md-sys-elevation-level2);
+            transform: translateY(-2px);
+        }
+
+        .info-card-title {
+            font: var(--md-sys-typescale-title-small-font);
+            font-weight: var(--md-sys-typescale-title-small-weight);
+            color: var(--md-sys-color-on-surface);
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .info-card-title i {
+            color: var(--md-sys-color-primary);
+        }
+
+        .info-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-item label {
+            font: var(--md-sys-typescale-body-small-font);
+            color: var(--md-sys-color-on-surface-variant);
+            font-weight: 500;
+        }
+
+        .info-item span {
+            font: var(--md-sys-typescale-body-large-font);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .document-card {
+            background: var(--md-sys-color-surface-container-highest);
+            border-radius: var(--md-sys-shape-corner-medium);
+            padding: 16px;
+            border: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .document-card h4 {
+            font: var(--md-sys-typescale-title-small-font);
+            color: var(--md-sys-color-on-surface);
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .document-card a {
+            color: var(--md-sys-color-primary);
+            text-decoration: none;
+            font: var(--md-sys-typescale-label-large-font);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .document-card a:hover {
+            text-decoration: underline;
+        }
+
+        .document-card img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: var(--md-sys-shape-corner-small);
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        @media print {
+            .modal-header button,
+            .modal-footer,
+            .btn-primary,
+            .btn-secondary {
+                display: none !important;
+            }
+        }
+    </style>
+
+    <!-- AWS SDK and Cognito SDK -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1471.0.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+    <script>
+        if (!window.AmazonCognitoIdentity) {
+            console.error('Cognito SDK failed to load on drivers page');
+            const tbl = document.getElementById('drivers-table-body') || document.querySelector('#driversTable tbody');
+            if (tbl) {
+                tbl.innerHTML = '<tr><td colspan="9" style="color:#b00020; padding:16px;">Auth SDK failed to load. Refresh the page.</td></tr>';
+            }
+        }
+    </script>
+    
+    <!-- Configuration -->
+    <script src="../config.js?v=20250906"></script>
+
+    <!-- Authentication service (direct Cognito) -->
+    <script src="../auth-service.js?v=20250906"></script>
+
+    <!-- Centralized utilities -->
+    <script src="../assets/js/auth-utils.js?v=20250906"></script>
+    <script src="../assets/js/aws-utils.js?v=20250906"></script>
+
+    <!-- Data service (depends on aws-utils) -->
+    <script src="../data-service.js?v=20250906"></script>
+
+    <!-- Page-specific scripts -->
+    <script src="../aggressive-sidebar-fix.js"></script>
+    <script src="../immediate-sidebar-fix.js"></script>
+    <script src="../assets/js/navigation.js?v=20250906"></script>
+    <script src="../drivers.js?v=20250906"></script>
+
+    <!-- Authentication check -->
+    <script>
+        // Check authentication silently in background
+        if (window.Auth && typeof window.Auth.requireAuthentication === 'function') {
+            try {
+                window.Auth.requireAuthentication();
+            } catch (e) {
+                console.warn('Auth check error:', e);
+            }
+        }
+    </script>
+    
+    <!-- Inline build stamp for debugging -->
+    <script>
+        (function(){
+            const build = 'drivers.html#2025-09-06T'+new Date().toISOString().slice(11,19);
+            document.documentElement.setAttribute('data-build', build);
+            console.log('Drivers page build:', build);
+            const p = new URLSearchParams(location.search);
+            if (p.get('debug') === '1') {
+                const el = document.getElementById('drivers-debug-panel');
+                if (el) el.style.display = 'inline-block';
+                const s = Array.from(document.scripts).find(x => (x.src||'').includes('/frontend/drivers.js'));
+                document.getElementById('dbg-build').textContent = build;
+                document.getElementById('dbg-path').textContent = location.pathname;
+                document.getElementById('dbg-drivers-src').textContent = s ? s.src : 'inline/unknown';
+                document.getElementById('dbg-auth').textContent = (localStorage.getItem('idToken') ? 'idToken=yes' : 'idToken=no') + ', user=' + (localStorage.getItem('userEmail') || '');
+                document.getElementById('dbg-aws').textContent = (window.AWSUtils && AWSUtils.isInitialized) ? 'initialized' : 'not-initialized';
+                document.getElementById('dbg-table').textContent = 'WhizzDrivers_dev';
+                // count filled by drivers.js when available
+            }
+        })();
+    </script>
+<script>
+        unctio   try {
+            await RBAC.ensure();
+            // Enforce RBAC - New system auto-detects page name
+            window.RBAC.enforcePage();
+            if (!RBAC.can('drivers', 'write')) {
+                RBAC.applyReadOnly('body', 'drivers');
+                document.querySelectorAll('[data-write-only]').forEach(el => { el.style.display = 'none'; });
+            }
+        } catch (e) { console.warn('RBAC init failed', e); }
+    })();
+</script>
+<!-- Sidebar Loading Script -->
+<script>
+    // Load sidebar content
+    async function loadSidebar() {
+        try {
+            const response = await fetch('/includes/sidebar.html');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const html = await response.text();
+
+            const placeholder = document.getElementById('sidebar-placeholder');
+            if (placeholder) {
+                placeholder.innerHTML = html;
+                console.log('✅ Sidebar loaded successfully');
+
+                // Set active state for drivers page
+                const driversNavItem = document.querySelector('.nav-item[data-page="drivers"]');
+                if (driversNavItem) {
+                    // Remove any existing active states
+                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    // Add active to drivers
+                    driversNavItem.classList.add('active');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Failed to load sidebar:', error);
+        }
+    }
+
+    // Load sidebar when page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadSidebar);
+    } else {
+        loadSidebar();
+    }
+</script>
+</body>
+
+</html>

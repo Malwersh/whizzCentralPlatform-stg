@@ -1,0 +1,191 @@
+:root {
+  --color-primary: #FDC500;
+    --color-primaryHover: #E6B100;
+    --color-primaryMuted: #FFF8E6;
+    --color-secondary: #00296B;
+    --color-secondaryHover: #001f52;
+    --color-secondaryMuted: #f0f7ff;
+  --color-danger: #dc2626;
+  --color-dangerHover: #b91c1c;
+  --color-warning: #f59e0b;
+  --color-success: #10b981;
+  --color-info: #0284c7;
+  --color-surface: #ffffff;
+  --color-surfaceAlt: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-borderStrong: #cbd5e1;
+  --color-text: #334155;
+  --color-textSoft: #64748b;
+  --color-textFaint: #94a3b8;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 6px 18px rgba(0, 0, 0, 0.12);
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-sizeBase: 14px;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+.btn-primary:hover {
+  background: var(--color-primaryHover);
+}
+
+.btn-secondary {
+  background: var(--color-secondary);
+    color: #fff;
+    border: 1px solid var(--color-secondary);
+  border-radius: var(--radius-md);
+}
+
+.btn-secondary:hover {
+  background: var(--color-secondaryHover);
+}
+
+.lc-session-chip {
+  transition: background .2s, color .2s;
+}
+
+.lc-session-chip.active {
+  background: var(--color-primary) !important;
+  color: #fff !important;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+/* Phase D: Utility classes to replace inline styles */
+.agent-banner {
+  padding: var(--space-md) var(--space-lg);
+  margin: 0 0 var(--space-md) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surfaceAlt);
+  font-size: var(--font-sizeBase);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-text);
+}
+
+.agent-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-border);
+  color: var(--color-textSoft);
+  font-size: 12px;
+}
+
+.ccp-open-btn {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.ccp-open-btn:hover {
+  background: var(--color-primaryHover);
+}
+
+.chat-transcript {
+  margin-top: var(--space-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  max-height: 320px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.4;
+  font-family: var(--font-family);
+}
+
+.chat-empty-state {
+  color: var(--color-textSoft);
+  text-align: center;
+  padding: var(--space-md);
+}
+
+.chat-message {
+  margin-bottom: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+  background: var(--color-surfaceAlt);
+}
+
+.chat-message-header {
+  font-size: 11px;
+  color: var(--color-slate600);
+  margin-bottom: 2px;
+}
+
+.chat-message-sender {
+  color: var(--color-textFaint);
+}
+
+.chat-message-timestamp {
+  float: right;
+}
+
+.chat-message-content {
+  color: var(--color-text);
+}
+
+.chat-system-message {
+  margin: var(--space-xs) 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-textSoft);
+  font-style: italic;
+}
+
+.chat-typing-indicator {
+  font-size: 11px;
+  color: var(--color-textSoft);
+  padding: 0 2px;
+  display: none;
+}
+
+.chat-input {
+  flex: 1;
+  padding: var(--space-sm) 10px;
+  border: 1px solid var(--color-borderStrong);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sizeBase);
+}
+
+.tickets-empty-state {
+  padding: 60px 20px;
+  color: var(--color-textSoft);
+  text-align: center;
+}
+
+.tickets-empty-icon {
+  color: var(--color-textFaint);
+}
+
+.flex-spacer {
+  flex: 1;
+}

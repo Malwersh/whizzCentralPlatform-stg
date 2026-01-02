@@ -1,0 +1,338 @@
+<!-- Simplified Campaign Modal for WizzCentral Platform -->
+<!-- Replaces complex targeting sections with streamlined JSON-based approach -->
+
+<div id="simplifiedCampaignModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 700px;">
+        <button id="closeCampaignModal" class="modal-close">&times;</button>
+        <h2 style="margin-top: 0;">
+            <i class="fas fa-rocket"></i> Create Campaign
+        </h2>
+        
+        <div id="campaignLoader" style="display: none; text-align: center; padding: 1rem; color: #666;">
+            <i class="fas fa-spinner fa-spin"></i> <span>Processing...</span>
+        </div>
+
+        <form id="simplifiedCampaignForm">
+            <!-- Basic Campaign Information -->
+            <div class="form-section">
+                <h3><i class="fas fa-info-circle"></i> Basic Information</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="title">Campaign Title *</label>
+                        <input type="text" name="title" id="title" required 
+                               placeholder="e.g., First Order Welcome">
+                    </div>
+                    <div class="form-group">
+                        <label for="code">Campaign Code *</label>
+                        <input type="text" name="code" id="code" required 
+                               placeholder="e.g., FIRST25" style="text-transform: uppercase;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">Campaign Type *</label>
+                        <select name="type" id="type" required>
+                            <option value="">Select Type</option>
+                            <option value="first-order">First Order Discount</option>
+                            <option value="new-customer">New Customer Welcome</option>
+                            <option value="loyalty">Loyalty Reward</option>
+                            <option value="promotional">Promotional Campaign</option>
+                            <option value="seasonal">Seasonal Offer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea name="description" id="description" 
+                                  placeholder="Brief description of the campaign"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discount Configuration -->
+            <div class="form-section">
+                <h3><i class="fas fa-percent"></i> Discount Details</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="discountType">Discount Type *</label>
+                        <select name="discountType" id="discountType" required>
+                            <option value="">Select Type</option>
+                            <option value="percentage">Percentage Off</option>
+                            <option value="fixed">Fixed Amount Off</option>
+                            <option value="free-delivery">Free Delivery</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="discountValue">Discount Value *</label>
+                        <input type="number" name="discountValue" id="discountValue" required 
+                               min="0" step="0.01" placeholder="e.g., 25 or 10.50">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="minOrderValue">Minimum Order Value</label>
+                        <input type="number" name="minOrderValue" id="minOrderValue" 
+                               min="0" step="0.01" placeholder="e.g., 50.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="usageLimit">Usage Limit</label>
+                        <input type="number" name="usageLimit" id="usageLimit" 
+                               min="1" placeholder="e.g., 1000 (leave empty for unlimited)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simplified Targeting -->
+            <div class="form-section">
+                <h3><i class="fas fa-bullseye"></i> Targeting</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customerSegment">Customer Segment</label>
+                        <select name="customerSegment" id="customerSegment">
+                            <option value="all">All Customers</option>
+                            <option value="new">New Customers (First 7 days)</option>
+                            <option value="returning">Returning Customers</option>
+                            <option value="vip">VIP Customers</option>
+                            <option value="inactive">Inactive Customers (30+ days)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="targetLocation">Target Location</label>
+                        <input type="text" name="targetLocation" id="targetLocation" 
+                               placeholder="e.g., Dubai, Abu Dhabi (leave empty for all)">
+                    </div>
+                </div>
+
+                <!-- Restaurant Selection (simplified) -->
+                <div class="form-group">
+                    <label for="targetRestaurants">Target Restaurants (Optional)</label>
+                    <select name="targetRestaurants" id="targetRestaurants" multiple 
+                            style="height: 100px;">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <small class="form-text">Hold Ctrl/Cmd to select multiple. Leave empty for all restaurants.</small>
+                </div>
+
+                <!-- Advanced Targeting Rules (JSON-based) -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="useAdvancedRules"> 
+                        Use Advanced Targeting Rules
+                    </label>
+                    <div id="advancedRulesSection" style="display: none; margin-top: 1rem;">
+                        <label for="targetingRulesJson">Advanced Rules (JSON)</label>
+                        <textarea name="targetingRulesJson" id="targetingRulesJson" 
+                                  style="height: 120px; font-family: monospace;"
+                                  placeholder='{"orderHistory": {"minOrders": 0, "maxOrders": 0}, "location": {"cities": ["Dubai"]}, "timeWindow": {"days": 7}}'></textarea>
+                        <small class="form-text">
+                            JSON format for complex targeting rules. 
+                            <a href="#" onclick="showRulesHelp()">View examples</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campaign Schedule -->
+            <div class="form-section">
+                <h3><i class="fas fa-calendar"></i> Schedule</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDate">Start Date *</label>
+                        <input type="date" name="startDate" id="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date *</label>
+                        <input type="date" name="endDate" id="endDate" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campaign Settings -->
+            <div class="form-section">
+                <h3><i class="fas fa-cog"></i> Settings</h3>
+                
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="isActive" checked> 
+                            Activate immediately
+                        </label>
+                        <label>
+                            <input type="checkbox" name="singleUse"> 
+                            Single use per customer
+                        </label>
+                        <label>
+                            <input type="checkbox" name="stackable"> 
+                            Stackable with other offers
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="campaignManager.resetForm()">
+                    Reset
+                </button>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-rocket"></i> Create Campaign
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Targeting Rules Help Modal -->
+<div id="rulesHelpModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <button onclick="closeRulesHelp()" class="modal-close">&times;</button>
+        <h3>Advanced Targeting Rules Examples</h3>
+        
+        <div class="help-section">
+            <h4>New Customers Only:</h4>
+            <pre><code>{
+  "customerAge": {"maxDays": 7},
+  "orderHistory": {"maxOrders": 0}
+}</code></pre>
+        </div>
+
+        <div class="help-section">
+            <h4>High-Value Returning Customers:</h4>
+            <pre><code>{
+  "orderHistory": {"minOrders": 5},
+  "totalSpent": {"minAmount": 500},
+  "lastOrder": {"maxDaysAgo": 30}
+}</code></pre>
+        </div>
+
+        <div class="help-section">
+            <h4>Location-Based Targeting:</h4>
+            <pre><code>{
+  "location": {
+    "cities": ["Dubai", "Abu Dhabi"],
+    "radius": {"center": "25.2048,55.2708", "km": 10}
+  }
+}</code></pre>
+        </div>
+
+        <div class="help-section">
+            <h4>Time-Specific Campaign:</h4>
+            <pre><code>{
+  "timeWindow": {
+    "hours": [18, 19, 20, 21],
+    "weekdays": ["friday", "saturday"]
+  }
+}</code></pre>
+        </div>
+
+        <button onclick="closeRulesHelp()" class="btn-primary">Got it!</button>
+    </div>
+</div>
+
+<style>
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.form-section h3 i {
+    color: #3498db;
+    margin-right: 0.5rem;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: normal;
+}
+
+.help-section {
+    margin-bottom: 1.5rem;
+}
+
+.help-section h4 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+}
+
+.help-section pre {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    border-left: 3px solid #3498db;
+    overflow-x: auto;
+}
+
+.help-section code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+#advancedRulesSection {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    border-left: 3px solid #3498db;
+}
+</style>
+
+<script>
+// Advanced rules toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const useAdvancedRules = document.getElementById('useAdvancedRules');
+    const advancedRulesSection = document.getElementById('advancedRulesSection');
+    
+    if (useAdvancedRules && advancedRulesSection) {
+        useAdvancedRules.addEventListener('change', function() {
+            advancedRulesSection.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+
+    // Set default dates
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    
+    if (startDate && !startDate.value) {
+        startDate.value = new Date().toISOString().split('T')[0];
+    }
+    
+    if (endDate && !endDate.value) {
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 30);
+        endDate.value = futureDate.toISOString().split('T')[0];
+    }
+});
+
+// Help functions
+function showRulesHelp() {
+    document.getElementById('rulesHelpModal').style.display = 'flex';
+}
+
+function closeRulesHelp() {
+    document.getElementById('rulesHelpModal').style.display = 'none';
+}
+</script>

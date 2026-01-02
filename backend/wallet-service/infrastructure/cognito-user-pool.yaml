@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cognito User Pool for Wizz Wallet Service
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - production
+    Description: Environment name
+
+Resources:
+  # Cognito User Pool
+  WalletUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${Environment}-wizz-wallet-users
+      AutoVerifiedAttributes:
+        - phone_number
+      UsernameAttributes:
+        - phone_number
+      Schema:
+        - Name: phone_number
+          AttributeDataType: String
+          Required: true
+          Mutable: false
+        - Name: driverId
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+        - Name: userType
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: false
+          RequireLowercase: false
+          RequireNumbers: true
+          RequireSymbols: false
+      MfaConfiguration: OPTIONAL
+      SmsConfiguration:
+        SnsCallerArn: !GetAtt CognitoSMSRole.Arn
+        ExternalId: !Sub ${Environment}-wizz-wallet-external
+      UserPoolTags:
+        Environment: !Ref Environment
+        Service: wizz-wallet
+
+  # IAM Role for SMS (MFA)
+  CognitoSMSRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Environment}-wizz-cognito-sms-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cognito-idp.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Sub ${Environment}-wizz-wallet-external
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSNSFullAccess
+
+  # User Pool Client for Drivers
+  DriverAppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${Environment}-wizz-driver-app
+      UserPoolId: !Ref WalletUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_USER_SRP_AUTH
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+
+  # User Pool Client for Admin Panel
+  AdminAppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${Environment}-wizz-admin-panel
+      UserPoolId: !Ref WalletUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 120
+      IdTokenValidity: 120
+      RefreshTokenValidity: 7
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+
+  # User Pool Domain
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub ${Environment}-wizz-wallet-${AWS::AccountId}
+      UserPoolId: !Ref WalletUserPool
+
+Outputs:
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref WalletUserPool
+    Export:
+      Name: !Sub ${Environment}-WalletUserPoolId
+
+  UserPoolArn:
+    Description: Cognito User Pool ARN
+    Value: !GetAtt WalletUserPool.Arn
+    Export:
+      Name: !Sub ${Environment}-WalletUserPoolArn
+
+  DriverAppClientId:
+    Description: Driver App Client ID
+    Value: !Ref DriverAppClient
+    Export:
+      Name: !Sub ${Environment}-DriverAppClientId
+
+  AdminAppClientId:
+    Description: Admin Panel Client ID
+    Value: !Ref AdminAppClient
+    Export:
+      Name: !Sub ${Environment}-AdminAppClientId
+
+  UserPoolDomain:
+    Description: Cognito User Pool Domain
+    Value: !Ref UserPoolDomain
+    Export:
+      Name: !Sub ${Environment}-UserPoolDomain
+
+  HostedUIURL:
+    Description: Cognito Hosted UI URL
+    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com

@@ -1,0 +1,317 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Wizz Driver Wallet System - DynamoDB Tables
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+
+Resources:
+  # ==========================================
+  # 1) Wallets Table
+  # ==========================================
+  WalletsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-Wallets'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: walletId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: walletId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: WizzDriverWallet
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ==========================================
+  # 2) LedgerEntries Table (Append-only)
+  # ==========================================
+  LedgerEntriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-LedgerEntries'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: walletId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: txnId
+          AttributeType: S
+        - AttributeName: sequence
+          AttributeType: N
+        - AttributeName: relatedOrderId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: walletId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: byTxnId
+          KeySchema:
+            - AttributeName: txnId
+              KeyType: HASH
+            - AttributeName: sequence
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: byOrderId
+          KeySchema:
+            - AttributeName: relatedOrderId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      Tags:
+        - Key: Project
+          Value: WizzDriverWallet
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: DataType
+          Value: Append-Only
+
+  # ==========================================
+  # 3) Holds Table
+  # ==========================================
+  HoldsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-Holds'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: walletId
+          AttributeType: S
+        - AttributeName: statusCreatedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: byWalletIdActive
+          KeySchema:
+            - AttributeName: walletId
+              KeyType: HASH
+            - AttributeName: statusCreatedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: WizzDriverWallet
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ==========================================
+  # 4) TopupRequests Table
+  # ==========================================
+  TopupRequestsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-TopupRequests'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: topupId
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: driverId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: topupId
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: byStatus
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: byDriver
+          KeySchema:
+            - AttributeName: driverId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: WizzDriverWallet
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ==========================================
+  # 5) AuditLog Table
+  # ==========================================
+  AuditLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-AuditLog'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: datePartition
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: targetId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: actorId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: datePartition
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: byTargetId
+          KeySchema:
+            - AttributeName: targetId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: byActorId
+          KeySchema:
+            - AttributeName: actorId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: WizzDriverWallet
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: DataType
+          Value: Audit
+
+  # ==========================================
+  # 6) IdempotencyKeys Table
+  # ==========================================
+  IdempotencyKeysTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-IdempotencyKeys'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: idempotencyKey
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: idempotencyKey
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: WizzDriverWallet
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  WalletsTableName:
+    Description: Wallets table name
+    Value: !Ref WalletsTable
+    Export:
+      Name: !Sub '${Environment}-WalletsTableName'
+
+  LedgerEntriesTableName:
+    Description: Ledger entries table name
+    Value: !Ref LedgerEntriesTable
+    Export:
+      Name: !Sub '${Environment}-LedgerEntriesTableName'
+
+  HoldsTableName:
+    Description: Holds table name
+    Value: !Ref HoldsTable
+    Export:
+      Name: !Sub '${Environment}-HoldsTableName'
+
+  TopupRequestsTableName:
+    Description: Topup requests table name
+    Value: !Ref TopupRequestsTable
+    Export:
+      Name: !Sub '${Environment}-TopupRequestsTableName'
+
+  AuditLogTableName:
+    Description: Audit log table name
+    Value: !Ref AuditLogTable
+    Export:
+      Name: !Sub '${Environment}-AuditLogTableName'
+
+  IdempotencyKeysTableName:
+    Description: Idempotency keys table name
+    Value: !Ref IdempotencyKeysTable
+    Export:
+      Name: !Sub '${Environment}-IdempotencyKeysTableName'

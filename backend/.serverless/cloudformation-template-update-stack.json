@@ -1,0 +1,1506 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ServerlessDeploymentBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "ServerlessDeploymentBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      },
+                      "/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "WebsocketConnectLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizzcentral-websocket-staging-websocketConnect"
+      }
+    },
+    "WebsocketDisconnectLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizzcentral-websocket-staging-websocketDisconnect"
+      }
+    },
+    "WebsocketDefaultLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizzcentral-websocket-staging-websocketDefault"
+      }
+    },
+    "LiveChatConnectLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizzcentral-websocket-staging-liveChatConnect"
+      }
+    },
+    "LiveChatMessageLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizzcentral-websocket-staging-liveChatMessage"
+      }
+    },
+    "ChatBridgeLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizzcentral-websocket-staging-chatBridge"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "wizzcentral-websocket",
+                  "staging",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup",
+                    "logs:TagResource"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizzcentral-websocket-staging*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizzcentral-websocket-staging*:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem",
+                    "dynamodb:Query",
+                    "dynamodb:Scan"
+                  ],
+                  "Resource": [
+                    "arn:aws:dynamodb:us-east-1:*:table/websocket-connections-staging",
+                    "arn:aws:dynamodb:us-east-1:*:table/websocket-connections-staging/index/*",
+                    "arn:aws:dynamodb:us-east-1:*:table/websocket-subscriptions-staging",
+                    "arn:aws:dynamodb:us-east-1:*:table/websocket-subscriptions-staging/index/*",
+                    "arn:aws:dynamodb:us-east-1:*:table/chat-sessions-staging",
+                    "arn:aws:dynamodb:us-east-1:*:table/chat-sessions-staging/index/*",
+                    "arn:aws:dynamodb:us-east-1:*:table/chat-messages-staging",
+                    "arn:aws:dynamodb:us-east-1:*:table/chat-messages-staging/index/*"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "execute-api:ManageConnections"
+                  ],
+                  "Resource": "arn:aws:execute-api:us-east-1:*:*/*/@connections/*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "execute-api:ManageConnections"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:execute-api:*:*:*/@connections/*"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "wizzcentral-websocket",
+              "staging",
+              {
+                "Ref": "AWS::Region"
+              },
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "WebsocketConnectLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/wizzcentral-websocket/staging/1767373731504-2026-01-02T17:08:51.504Z/wizzcentral-websocket.zip"
+        },
+        "Handler": "src/handlers/websocket-connections.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "wizzcentral-websocket-staging-websocketConnect",
+        "MemorySize": 512,
+        "Timeout": 10,
+        "Environment": {
+          "Variables": {
+            "WEBSOCKET_CONNECTIONS_TABLE": "websocket-connections-staging",
+            "WEBSOCKET_SUBSCRIPTIONS_TABLE": "websocket-subscriptions-staging",
+            "CHAT_SESSIONS_TABLE": "chat-sessions-staging",
+            "CHAT_MESSAGES_TABLE": "chat-messages-staging",
+            "STAGE": "staging",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "CENTRAL_PLATFORM_USER_POOL_ID": "us-east-1_wz7vwZZxz",
+            "CENTRAL_PLATFORM_CLIENT_ID": "17mu2qlqis0qcs1n1n980q7e3j",
+            "MERCHANTS_USER_POOL_ID": "us-east-1_TpyyrVkEE",
+            "MERCHANTS_CLIENT_ID": "4a9e8o3em311eq2rgckp0pd2s9",
+            "DRIVERS_USER_POOL_ID": "",
+            "DRIVERS_CLIENT_ID": "",
+            "COGNITO_REGION": "us-east-1",
+            "ORDERS_TABLE": "WizzOrders",
+            "DRIVERS_TABLE": "WhizzDrivers_staging"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "WebsocketConnectLogGroup"
+      ]
+    },
+    "WebsocketDisconnectLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/wizzcentral-websocket/staging/1767373731504-2026-01-02T17:08:51.504Z/wizzcentral-websocket.zip"
+        },
+        "Handler": "src/handlers/websocket-connections.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "wizzcentral-websocket-staging-websocketDisconnect",
+        "MemorySize": 512,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "WEBSOCKET_CONNECTIONS_TABLE": "websocket-connections-staging",
+            "WEBSOCKET_SUBSCRIPTIONS_TABLE": "websocket-subscriptions-staging",
+            "CHAT_SESSIONS_TABLE": "chat-sessions-staging",
+            "CHAT_MESSAGES_TABLE": "chat-messages-staging",
+            "STAGE": "staging",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "CENTRAL_PLATFORM_USER_POOL_ID": "us-east-1_wz7vwZZxz",
+            "CENTRAL_PLATFORM_CLIENT_ID": "17mu2qlqis0qcs1n1n980q7e3j",
+            "MERCHANTS_USER_POOL_ID": "us-east-1_TpyyrVkEE",
+            "MERCHANTS_CLIENT_ID": "4a9e8o3em311eq2rgckp0pd2s9",
+            "DRIVERS_USER_POOL_ID": "",
+            "DRIVERS_CLIENT_ID": "",
+            "COGNITO_REGION": "us-east-1",
+            "ORDERS_TABLE": "WizzOrders",
+            "DRIVERS_TABLE": "WhizzDrivers_staging"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "WebsocketDisconnectLogGroup"
+      ]
+    },
+    "WebsocketDefaultLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/wizzcentral-websocket/staging/1767373731504-2026-01-02T17:08:51.504Z/wizzcentral-websocket.zip"
+        },
+        "Handler": "src/handlers/websocket-connections.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "wizzcentral-websocket-staging-websocketDefault",
+        "MemorySize": 512,
+        "Timeout": 10,
+        "Environment": {
+          "Variables": {
+            "WEBSOCKET_CONNECTIONS_TABLE": "websocket-connections-staging",
+            "WEBSOCKET_SUBSCRIPTIONS_TABLE": "websocket-subscriptions-staging",
+            "CHAT_SESSIONS_TABLE": "chat-sessions-staging",
+            "CHAT_MESSAGES_TABLE": "chat-messages-staging",
+            "STAGE": "staging",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "CENTRAL_PLATFORM_USER_POOL_ID": "us-east-1_wz7vwZZxz",
+            "CENTRAL_PLATFORM_CLIENT_ID": "17mu2qlqis0qcs1n1n980q7e3j",
+            "MERCHANTS_USER_POOL_ID": "us-east-1_TpyyrVkEE",
+            "MERCHANTS_CLIENT_ID": "4a9e8o3em311eq2rgckp0pd2s9",
+            "DRIVERS_USER_POOL_ID": "",
+            "DRIVERS_CLIENT_ID": "",
+            "COGNITO_REGION": "us-east-1",
+            "ORDERS_TABLE": "WizzOrders",
+            "DRIVERS_TABLE": "WhizzDrivers_staging"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "WebsocketDefaultLogGroup"
+      ]
+    },
+    "LiveChatConnectLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/wizzcentral-websocket/staging/1767373731504-2026-01-02T17:08:51.504Z/wizzcentral-websocket.zip"
+        },
+        "Handler": "src/handlers/websocket-connections.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "wizzcentral-websocket-staging-liveChatConnect",
+        "MemorySize": 512,
+        "Timeout": 12,
+        "Environment": {
+          "Variables": {
+            "WEBSOCKET_CONNECTIONS_TABLE": "websocket-connections-staging",
+            "WEBSOCKET_SUBSCRIPTIONS_TABLE": "websocket-subscriptions-staging",
+            "CHAT_SESSIONS_TABLE": "chat-sessions-staging",
+            "CHAT_MESSAGES_TABLE": "chat-messages-staging",
+            "STAGE": "staging",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "CENTRAL_PLATFORM_USER_POOL_ID": "us-east-1_wz7vwZZxz",
+            "CENTRAL_PLATFORM_CLIENT_ID": "17mu2qlqis0qcs1n1n980q7e3j",
+            "MERCHANTS_USER_POOL_ID": "us-east-1_TpyyrVkEE",
+            "MERCHANTS_CLIENT_ID": "4a9e8o3em311eq2rgckp0pd2s9",
+            "DRIVERS_USER_POOL_ID": "",
+            "DRIVERS_CLIENT_ID": "",
+            "COGNITO_REGION": "us-east-1",
+            "ORDERS_TABLE": "WizzOrders",
+            "DRIVERS_TABLE": "WhizzDrivers_staging"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LiveChatConnectLogGroup"
+      ]
+    },
+    "LiveChatMessageLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/wizzcentral-websocket/staging/1767373731504-2026-01-02T17:08:51.504Z/wizzcentral-websocket.zip"
+        },
+        "Handler": "src/handlers/websocket-connections.handler",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "wizzcentral-websocket-staging-liveChatMessage",
+        "MemorySize": 512,
+        "Timeout": 12,
+        "Environment": {
+          "Variables": {
+            "WEBSOCKET_CONNECTIONS_TABLE": "websocket-connections-staging",
+            "WEBSOCKET_SUBSCRIPTIONS_TABLE": "websocket-subscriptions-staging",
+            "CHAT_SESSIONS_TABLE": "chat-sessions-staging",
+            "CHAT_MESSAGES_TABLE": "chat-messages-staging",
+            "STAGE": "staging",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "CENTRAL_PLATFORM_USER_POOL_ID": "us-east-1_wz7vwZZxz",
+            "CENTRAL_PLATFORM_CLIENT_ID": "17mu2qlqis0qcs1n1n980q7e3j",
+            "MERCHANTS_USER_POOL_ID": "us-east-1_TpyyrVkEE",
+            "MERCHANTS_CLIENT_ID": "4a9e8o3em311eq2rgckp0pd2s9",
+            "DRIVERS_USER_POOL_ID": "",
+            "DRIVERS_CLIENT_ID": "",
+            "COGNITO_REGION": "us-east-1",
+            "ORDERS_TABLE": "WizzOrders",
+            "DRIVERS_TABLE": "WhizzDrivers_staging"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "LiveChatMessageLogGroup"
+      ]
+    },
+    "ChatBridgeLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/wizzcentral-websocket/staging/1767373731504-2026-01-02T17:08:51.504Z/wizzcentral-websocket.zip"
+        },
+        "Handler": "src/handlers/chat-bridge.sendChatMessage",
+        "Runtime": "nodejs18.x",
+        "FunctionName": "wizzcentral-websocket-staging-chatBridge",
+        "MemorySize": 512,
+        "Timeout": 29,
+        "Environment": {
+          "Variables": {
+            "WEBSOCKET_CONNECTIONS_TABLE": "websocket-connections-staging",
+            "WEBSOCKET_SUBSCRIPTIONS_TABLE": "websocket-subscriptions-staging",
+            "CHAT_SESSIONS_TABLE": "chat-sessions-staging",
+            "CHAT_MESSAGES_TABLE": "chat-messages-staging",
+            "STAGE": "staging",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "CENTRAL_PLATFORM_USER_POOL_ID": "us-east-1_wz7vwZZxz",
+            "CENTRAL_PLATFORM_CLIENT_ID": "17mu2qlqis0qcs1n1n980q7e3j",
+            "MERCHANTS_USER_POOL_ID": "us-east-1_TpyyrVkEE",
+            "MERCHANTS_CLIENT_ID": "4a9e8o3em311eq2rgckp0pd2s9",
+            "DRIVERS_USER_POOL_ID": "",
+            "DRIVERS_CLIENT_ID": "",
+            "COGNITO_REGION": "us-east-1",
+            "ORDERS_TABLE": "WizzOrders",
+            "DRIVERS_TABLE": "WhizzDrivers_staging"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "ChatBridgeLogGroup"
+      ]
+    },
+    "WebsocketConnectLambdaVersionr9KZmGV4hHTxo0OFPKRaq0Web0qOwkro3eH1724EAA": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "WebsocketConnectLambdaFunction"
+        },
+        "CodeSha256": "i91pmuV/t8xfqIDcFx7my+piLLF8OpxSMNlifgq+1Vo="
+      }
+    },
+    "WebsocketDisconnectLambdaVersionhK8C0DxtVOGu4lpu3CvugfPjJkqRwOJlfksbPryTQ": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "WebsocketDisconnectLambdaFunction"
+        },
+        "CodeSha256": "i91pmuV/t8xfqIDcFx7my+piLLF8OpxSMNlifgq+1Vo="
+      }
+    },
+    "WebsocketDefaultLambdaVersionf7IokeOTfCMFOttHv6VyYYv7pNvO0pcQVoffJqrwcY": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "WebsocketDefaultLambdaFunction"
+        },
+        "CodeSha256": "i91pmuV/t8xfqIDcFx7my+piLLF8OpxSMNlifgq+1Vo="
+      }
+    },
+    "LiveChatConnectLambdaVersion79NItaWuopqkMHWBWP6HGYmWzg7UcsnCqhdRc4dRLjU": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "LiveChatConnectLambdaFunction"
+        },
+        "CodeSha256": "i91pmuV/t8xfqIDcFx7my+piLLF8OpxSMNlifgq+1Vo="
+      }
+    },
+    "LiveChatMessageLambdaVersionJlezW9VygWP8A4xGNwXaujSoz7SU6gARxdMACf1ps": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "LiveChatMessageLambdaFunction"
+        },
+        "CodeSha256": "i91pmuV/t8xfqIDcFx7my+piLLF8OpxSMNlifgq+1Vo="
+      }
+    },
+    "ChatBridgeLambdaVersionGdCXAEMtFdTlMJzTwpvqRKOVENN7YJfOMueJYgi4rA": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ChatBridgeLambdaFunction"
+        },
+        "CodeSha256": "i91pmuV/t8xfqIDcFx7my+piLLF8OpxSMNlifgq+1Vo="
+      }
+    },
+    "ApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "staging-wizzcentral-websocket",
+        "EndpointConfiguration": {
+          "Types": [
+            "EDGE"
+          ]
+        },
+        "Policy": ""
+      }
+    },
+    "ApiGatewayResourceChat": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "chat",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceChatSend": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceChat"
+        },
+        "PathPart": "send",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodChatSendOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceChatSend"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodChatSendPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceChatSend"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "ChatBridgeLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "ChatBridgeLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayDeployment1767373727786": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "StageName": "staging"
+      },
+      "DependsOn": [
+        "ApiGatewayMethodChatSendOptions",
+        "ApiGatewayMethodChatSendPost"
+      ]
+    },
+    "ChatBridgeLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ChatBridgeLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "WebsocketsApi": {
+      "Type": "AWS::ApiGatewayV2::Api",
+      "Properties": {
+        "Name": "WizzCentral-Chat-WebSocket-staging",
+        "RouteSelectionExpression": "$request.body.action",
+        "Description": "Serverless Websockets",
+        "ProtocolType": "WEBSOCKET"
+      }
+    },
+    "WebsocketConnectWebsocketsIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": [
+                  "WebsocketConnectLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "/invocations"
+            ]
+          ]
+        }
+      }
+    },
+    "WebsocketDisconnectWebsocketsIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": [
+                  "WebsocketDisconnectLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "/invocations"
+            ]
+          ]
+        }
+      }
+    },
+    "WebsocketDefaultWebsocketsIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": [
+                  "WebsocketDefaultLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "/invocations"
+            ]
+          ]
+        }
+      }
+    },
+    "LiveChatConnectWebsocketsIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": [
+                  "LiveChatConnectLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "/invocations"
+            ]
+          ]
+        }
+      }
+    },
+    "LiveChatMessageWebsocketsIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": [
+                  "LiveChatMessageLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "/invocations"
+            ]
+          ]
+        }
+      }
+    },
+    "WebsocketConnectLambdaPermissionWebsockets": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": [
+        "WebsocketsApi",
+        "WebsocketConnectLambdaFunction"
+      ],
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WebsocketConnectLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    },
+    "WebsocketDisconnectLambdaPermissionWebsockets": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": [
+        "WebsocketsApi",
+        "WebsocketDisconnectLambdaFunction"
+      ],
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WebsocketDisconnectLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    },
+    "WebsocketDefaultLambdaPermissionWebsockets": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": [
+        "WebsocketsApi",
+        "WebsocketDefaultLambdaFunction"
+      ],
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WebsocketDefaultLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    },
+    "LiveChatConnectLambdaPermissionWebsockets": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": [
+        "WebsocketsApi",
+        "LiveChatConnectLambdaFunction"
+      ],
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "LiveChatConnectLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    },
+    "LiveChatMessageLambdaPermissionWebsockets": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": [
+        "WebsocketsApi",
+        "LiveChatMessageLambdaFunction"
+      ],
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "LiveChatMessageLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    },
+    "SconnectWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "$connect",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "WebsocketConnectWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "SdisconnectWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "$disconnect",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "WebsocketDisconnectWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "SdefaultWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "$default",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "WebsocketDefaultWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "chatUnderscoredriverUnderscoreconnectWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "chat_driver_connect",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "LiveChatConnectWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "chatUnderscoreagentUnderscoreconnectWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "chat_agent_connect",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "LiveChatConnectWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "chatUnderscoremerchantUnderscoreconnectWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "chat_merchant_connect",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "LiveChatConnectWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "chatUnderscoremessageWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "chat_message",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "LiveChatMessageWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "chatUnderscoretypingWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "chat_typing",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "LiveChatMessageWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "chatUnderscoresessionUnderscorecloseWebsocketsRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "RouteKey": "chat_session_close",
+        "AuthorizationType": "NONE",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "LiveChatMessageWebsocketsIntegration"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "WebsocketsDeploymentStage": {
+      "Type": "AWS::ApiGatewayV2::Stage",
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "StageName": "staging",
+        "Description": "Serverless Websockets",
+        "DeploymentId": {
+          "Ref": "WebsocketsDeployment8WtxUET0Xl4cX4wAbKF7qr2xJiABfpncsJeP1WQVSDk"
+        }
+      }
+    },
+    "WebsocketsDeployment8WtxUET0Xl4cX4wAbKF7qr2xJiABfpncsJeP1WQVSDk": {
+      "Type": "AWS::ApiGatewayV2::Deployment",
+      "DependsOn": [
+        "SconnectWebsocketsRoute",
+        "SdisconnectWebsocketsRoute",
+        "SdefaultWebsocketsRoute",
+        "chatUnderscoredriverUnderscoreconnectWebsocketsRoute",
+        "chatUnderscoreagentUnderscoreconnectWebsocketsRoute",
+        "chatUnderscoremerchantUnderscoreconnectWebsocketsRoute",
+        "chatUnderscoremessageWebsocketsRoute",
+        "chatUnderscoretypingWebsocketsRoute",
+        "chatUnderscoresessionUnderscorecloseWebsocketsRoute"
+      ],
+      "Properties": {
+        "ApiId": {
+          "Ref": "WebsocketsApi"
+        },
+        "Description": "Serverless Websockets"
+      }
+    },
+    "WebSocketConnectionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "websocket-connections-staging",
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "connectionId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "userType",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "businessId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "connectionId",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "UserTypeIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "userType",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "userId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "BusinessIdIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "businessId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        }
+      }
+    },
+    "WebSocketSubscriptionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "websocket-subscriptions-staging",
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "subscriptionId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "subscriptionId",
+            "KeyType": "HASH"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        }
+      }
+    },
+    "ChatSessionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "chat-sessions-staging",
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "sessionId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "driverId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "sessionId",
+            "KeyType": "HASH"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "DriverIdIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "driverId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "ChatMessagesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "chat-messages-staging",
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "sessionId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "messageKey",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "senderType",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "createdAt",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "sessionId",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "messageKey",
+            "KeyType": "RANGE"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "SenderIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "senderType",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-ServerlessDeploymentBucketName"
+      }
+    },
+    "WebsocketConnectLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "WebsocketConnectLambdaVersionr9KZmGV4hHTxo0OFPKRaq0Web0qOwkro3eH1724EAA"
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-WebsocketConnectLambdaFunctionQualifiedArn"
+      }
+    },
+    "WebsocketDisconnectLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "WebsocketDisconnectLambdaVersionhK8C0DxtVOGu4lpu3CvugfPjJkqRwOJlfksbPryTQ"
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-WebsocketDisconnectLambdaFunctionQualifiedArn"
+      }
+    },
+    "WebsocketDefaultLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "WebsocketDefaultLambdaVersionf7IokeOTfCMFOttHv6VyYYv7pNvO0pcQVoffJqrwcY"
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-WebsocketDefaultLambdaFunctionQualifiedArn"
+      }
+    },
+    "LiveChatConnectLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "LiveChatConnectLambdaVersion79NItaWuopqkMHWBWP6HGYmWzg7UcsnCqhdRc4dRLjU"
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-LiveChatConnectLambdaFunctionQualifiedArn"
+      }
+    },
+    "LiveChatMessageLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "LiveChatMessageLambdaVersionJlezW9VygWP8A4xGNwXaujSoz7SU6gARxdMACf1ps"
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-LiveChatMessageLambdaFunctionQualifiedArn"
+      }
+    },
+    "ChatBridgeLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "ChatBridgeLambdaVersionGdCXAEMtFdTlMJzTwpvqRKOVENN7YJfOMueJYgi4rA"
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-ChatBridgeLambdaFunctionQualifiedArn"
+      }
+    },
+    "ServiceEndpoint": {
+      "Description": "URL of the service endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/staging"
+          ]
+        ]
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-ServiceEndpoint"
+      }
+    },
+    "ServiceEndpointWebsocket": {
+      "Description": "URL of the service endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "wss://",
+            {
+              "Ref": "WebsocketsApi"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/staging"
+          ]
+        ]
+      },
+      "Export": {
+        "Name": "sls-wizzcentral-websocket-staging-ServiceEndpointWebsocket"
+      }
+    }
+  }
+}

@@ -1,0 +1,149 @@
+service: wizzcentral-chat-bridge
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'staging'}
+  memorySize: 256
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    WEBSOCKET_CONNECTIONS_TABLE: websocket-connections-${self:provider.stage}
+    CHAT_SESSIONS_TABLE: chat-sessions-${self:provider.stage}
+    CHAT_MESSAGES_TABLE: chat-messages-${self:provider.stage}
+    WEBSOCKET_API_ENDPOINT: ${env:WEBSOCKET_API_ENDPOINT}
+  
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-connections-${self:provider.stage}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-connections-${self:provider.stage}/index/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/chat-sessions-${self:provider.stage}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/chat-sessions-${self:provider.stage}/index/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/chat-messages-${self:provider.stage}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/chat-messages-${self:provider.stage}/index/*
+    - Effect: Allow
+      Action:
+        - execute-api:ManageConnections
+      Resource:
+        - arn:aws:execute-api:${self:provider.region}:*:*/${self:provider.stage}/POST/@connections/*
+        - arn:aws:execute-api:${self:provider.region}:*:*/${self:provider.stage}/DELETE/@connections/*
+
+package:
+  patterns:
+    - '!**/*'
+    - 'src/handlers/**'
+    - 'package.json'
+    - 'package-lock.json'
+    - 'node_modules/@aws-sdk/**'
+    - 'node_modules/@smithy/**'
+    - 'node_modules/@aws/**'
+    - 'node_modules/tslib/**'
+
+functions:
+  sendChatMessage:
+    handler: src/handlers/chat-bridge.sendChatMessage
+    description: "Bridge HTTP chat messages to WebSocket"
+    timeout: 12
+    events:
+      - http:
+          path: api/chat/send
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+              - X-API-Key
+            allowCredentials: true
+      - http:
+          path: api/chat/send
+          method: options
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+              - X-API-Key
+            allowCredentials: true
+
+  postAgentReply:
+    handler: src/handlers/chat-bridge.postAgentReply
+    description: "Agent reply -> store + broadcast"
+    timeout: 12
+    events:
+      - http:
+          path: api/chat/reply
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+              - X-API-Key
+            allowCredentials: true
+      - http:
+          path: api/chat/reply
+          method: options
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+              - X-API-Key
+            allowCredentials: true
+
+  getChatHistory:
+    handler: src/handlers/chat-bridge.getChatHistory
+    description: "Get chat history for debugging"
+    timeout: 12
+    events:
+      - http:
+          path: api/chat/history
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+              - X-API-Key
+            allowCredentials: true
+      - http:
+          path: api/chat/history/{sessionId}
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+              - X-API-Key
+            allowCredentials: true
+
+resources:
+  Outputs:
+    ChatSessionsTableName:
+      Description: "Existing chat sessions DynamoDB table name"
+      Value: chat-sessions-${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-chat-sessions-table
+    WebSocketConnectionsTableName:
+      Description: "Existing WebSocket connections DynamoDB table name"
+      Value: websocket-connections-${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-websocket-connections-table
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3001
+    host: 0.0.0.0

@@ -1,0 +1,163 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon Connect Infrastructure for WizzCentral Customer Support'
+
+Parameters:
+  InstanceAlias:
+    Type: String
+    Default: 'wizzcentral-support'
+    Description: 'Unique alias for the Amazon Connect instance'
+  
+  AdminEmail:
+    Type: String
+    Description: 'Email address for the admin user'
+    Default: 'admin@wizzcentral.com'
+
+Resources:
+  # Amazon Connect Instance
+  ConnectInstance:
+    Type: AWS::Connect::Instance
+    Properties:
+      IdentityManagementType: CONNECT_MANAGED
+      InstanceAlias: !Ref InstanceAlias
+      Attributes:
+        InboundCalls: true
+        OutboundCalls: true
+        ContactflowLogs: true
+        ContactLens: true
+        AutoResolveBestVoices: true
+        UseCustomTTSVoices: false
+        EarlyMedia: true
+
+  # IAM Role for Lambda Functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${InstanceAlias}-lambda-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ConnectAndDynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - connect:*
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource: '*'
+
+  # Lambda Function for User Context Lookup
+  UserContextLookupFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${InstanceAlias}-user-context-lookup'
+      Runtime: python3.9
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          from decimal import Decimal
+          
+          dynamodb = boto3.resource('dynamodb')
+          
+          def lambda_handler(event, context):
+              try:
+                  contact_id = event.get('Details', {}).get('ContactData', {}).get('ContactId')
+                  user_id = event.get('Details', {}).get('ContactData', {}).get('Attributes', {}).get('userId')
+                  user_type = event.get('Details', {}).get('ContactData', {}).get('Attributes', {}).get('userType', 'customer')
+                  
+                  if not user_id:
+                      return {'statusCode': 400, 'body': json.dumps({'error': 'User ID not provided'})}
+                  
+                  user_data = get_user_by_id('WizzUser_users_dev', user_id)
+                  recent_orders = get_recent_orders(user_id)
+                  support_history = get_support_history(user_id)
+                  
+                  response_data = {
+                      'contactId': contact_id,
+                      'userContext': {
+                          'userId': user_id,
+                          'userType': user_type,
+                          'userData': user_data,
+                          'recentOrders': recent_orders,
+                          'supportHistory': support_history
+                      }
+                  }
+                  
+                  return {'statusCode': 200, 'body': json.dumps(response_data, default=decimal_default)}
+                  
+              except Exception as e:
+                  print(f"Error: {str(e)}")
+                  return {'statusCode': 500, 'body': json.dumps({'error': str(e)})}
+          
+          def get_user_by_id(table_name, user_id):
+              try:
+                  table = dynamodb.Table(table_name)
+                  response = table.get_item(Key={'id': user_id})
+                  return response.get('Item', {})
+              except Exception as e:
+                  print(f"Error getting user: {str(e)}")
+                  return {}
+          
+          def get_recent_orders(user_id):
+              try:
+                  table = dynamodb.Table('order-receiver-orders-dev')
+                  response = table.scan(
+                      FilterExpression='userId = :userId',
+                      ExpressionAttributeValues={':userId': user_id},
+                      Limit=5
+                  )
+                  return response.get('Items', [])
+              except Exception as e:
+                  print(f"Error getting orders: {str(e)}")
+                  return []
+          
+          def get_support_history(user_id):
+              try:
+                  table = dynamodb.Table('wizzcentral-backend-support-tickets-dev')
+                  response = table.scan(
+                      FilterExpression='userId = :userId',
+                      ExpressionAttributeValues={':userId': user_id},
+                      Limit=10
+                  )
+                  return response.get('Items', [])
+              except Exception as e:
+                  print(f"Error getting support history: {str(e)}")
+                  return []
+          
+          def decimal_default(obj):
+              if isinstance(obj, Decimal):
+                  return float(obj)
+              raise TypeError
+
+Outputs:
+  ConnectInstanceId:
+    Description: 'Amazon Connect Instance ID'
+    Value: !Ref ConnectInstance
+    Export:
+      Name: !Sub '${AWS::StackName}-ConnectInstanceId'
+  
+  ConnectInstanceArn:
+    Description: 'Amazon Connect Instance ARN'
+    Value: !GetAtt ConnectInstance.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ConnectInstanceArn'
+  
+  UserContextLookupFunctionArn:
+    Description: 'User Context Lookup Lambda Function ARN'
+    Value: !GetAtt UserContextLookupFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UserContextLookupFunctionArn'

@@ -1,0 +1,157 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Cognito User Pool for Backend Service Accounts (Machine-to-Machine Authentication)'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - production
+    Description: Environment name
+
+Resources:
+  # Service Accounts User Pool
+  ServiceUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${Environment}-wizz-service-accounts
+      
+      # Schema for service metadata
+      Schema:
+        - Name: service_name
+          AttributeDataType: String
+          Mutable: false
+          Required: false
+        - Name: service_role
+          AttributeDataType: String
+          Mutable: false
+          Required: false
+      
+      # Username only (no email/phone for services)
+      UsernameAttributes: []
+      UsernameConfiguration:
+        CaseSensitive: false
+      
+      # Password policy for service accounts
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 32
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 1
+      
+      # Admin creates service accounts only
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+        InviteMessageTemplate:
+          EmailSubject: !Sub 'Service Account Created for ${Environment}'
+          EmailMessage: |
+            Your service account has been created.
+            Username: {username}
+            Temporary Password: {####}
+            
+            This is a machine-to-machine account. Store credentials securely.
+      
+      # No MFA for service accounts (they use long strong passwords + token rotation)
+      MfaConfiguration: "OFF"
+      
+      # Account recovery not needed for services
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: admin_only
+            Priority: 1
+      
+      # User pool tags
+      UserPoolTags:
+        Environment: !Ref Environment
+        Purpose: ServiceAccounts
+        Service: WalletService
+
+  # App Client for Machine-to-Machine authentication
+  ServiceAppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${Environment}-service-m2m-client
+      UserPoolId: !Ref ServiceUserPool
+      
+      # Generate client secret for secure authentication
+      GenerateSecret: true
+      
+      # Auth flows for service accounts
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      
+      # Prevent user existence errors (security)
+      PreventUserExistenceErrors: ENABLED
+      
+      # Token validity
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+      
+      AccessTokenValidity: 60      # 1 hour - services must refresh frequently
+      IdTokenValidity: 60          # 1 hour
+      RefreshTokenValidity: 30     # 30 days
+      
+      # Read/write attributes (service metadata)
+      ReadAttributes:
+        - email
+        - custom:service_name
+        - custom:service_role
+      
+      WriteAttributes:
+        - custom:service_name
+        - custom:service_role
+
+  # IAM Role for advanced features (if needed later)
+  ServicePoolRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Environment}-cognito-service-pool-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cognito-idp.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+
+Outputs:
+  ServiceUserPoolId:
+    Description: Service Accounts User Pool ID
+    Value: !Ref ServiceUserPool
+    Export:
+      Name: !Sub ${Environment}-ServiceUserPoolId
+  
+  ServiceUserPoolArn:
+    Description: Service Accounts User Pool ARN
+    Value: !GetAtt ServiceUserPool.Arn
+    Export:
+      Name: !Sub ${Environment}-ServiceUserPoolArn
+  
+  ServiceAppClientId:
+    Description: Service M2M App Client ID
+    Value: !Ref ServiceAppClient
+    Export:
+      Name: !Sub ${Environment}-ServiceAppClientId
+  
+  ServiceUserPoolProviderName:
+    Description: Service User Pool Provider Name
+    Value: !GetAtt ServiceUserPool.ProviderName
+    Export:
+      Name: !Sub ${Environment}-ServiceUserPoolProviderName
+  
+  ServiceUserPoolProviderURL:
+    Description: Service User Pool Provider URL
+    Value: !GetAtt ServiceUserPool.ProviderURL
+    Export:
+      Name: !Sub ${Environment}-ServiceUserPoolProviderURL

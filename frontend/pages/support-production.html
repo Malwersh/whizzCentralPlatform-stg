@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzCentral Platform - Live Support</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+        }
+        
+        .support-container {
+            display: flex;
+            height: 100vh;
+            background: #fff;
+        }
+        
+        .support-sidebar {
+            width: 280px;
+            background: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--md-sys-color-outline);
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #374151;
+        }
+        
+        .sidebar-header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f9fafb;
+        }
+        
+        .sidebar-header p {
+            margin: 0.5rem 0 0 0;
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            background: #374151;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+        
+        .status-indicator.disconnected {
+            background: #ef4444;
+        }
+        
+        .status-indicator.connecting {
+            background: #f59e0b;
+        }
+        
+        .sessions-section {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .sessions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .session-card {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .session-card:hover {
+            background: #4b5563;
+        }
+        
+        .session-card.active {
+            background: #009bb8;
+            border-color: #00c2e8;
+        }
+        
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .customer-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .session-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .customer-name {
+            font-weight: 500;
+            color: #f9fafb;
+            margin-bottom: 0.25rem;
+        }
+        
+        .last-message {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .session-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        .unread-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+        
+        .chat-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .chat-title h2 {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .chat-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #00c2e8;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #009bb8;
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: #f9fafb;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .message.agent {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .message.agent .message-avatar {
+            background: #00c2e8;
+        }
+        
+        .message-content {
+            max-width: 70%;
+        }
+        
+        .message-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .message.agent .message-bubble {
+            background: #00c2e8;
+            color: white;
+        }
+        
+        .message-text {
+            margin: 0;
+            line-height: 1.5;
+        }
+        
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .chat-input {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            resize: none;
+            font-family: inherit;
+            min-height: 44px;
+            max-height: 120px;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #00c2e8;
+            box-shadow: 0 0 0 1px #00c2e8;
+        }
+        
+        .send-button {
+            background: #00c2e8;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .send-button:hover {
+            background: #009bb8;
+        }
+        
+        .send-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #6b7280;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #d1d5db;
+        }
+        
+        .empty-state h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        
+        .empty-state p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+        
+        .quick-actions {
+            padding: 1rem;
+            border-top: 1px solid #374151;
+        }
+        
+        .quick-action-button {
+            width: 100%;
+            background: #374151;
+            color: #d1d5db;
+            border: 1px solid #4b5563;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .quick-action-button:hover {
+            background: #4b5563;
+            color: white;
+        }
+        
+        .quick-action-button:last-child {
+            margin-bottom: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .support-sidebar {
+                width: 100%;
+                position: absolute;
+                z-index: 10;
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .support-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="support-container">
+        <!-- Sidebar -->
+        <div class="support-sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-headset"></i> Live Support</h1>
+                <p>Real-time customer assistance</p>
+
+                <div class="connection-status">
+                    <div class="status-indicator" id="connectionIndicator"></div>
+                    <span id="connectionStatus">Connecting...</span>
+                </div>
+            </div>
+
+            <div class="sessions-section">
+                <div class="section-title">
+                    Active Conversations (<span id="activeSessions">0</span>)
+                </div>
+                
+                <div class="sessions-list" id="sessionsList">
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <h3>No active conversations</h3>
+                        <p>New conversations will appear here when customers start chatting</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <button class="quick-action-button" onclick="reconnectWebSocket()">
+                    <i class="fas fa-sync-alt"></i> Reconnect
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Chat Area -->
+        <div class="main-content">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <i class="fas fa-user"></i>
+                    <h2 id="chatTitle">Select a conversation</h2>
+                </div>
+                <div class="chat-actions">
+                    <button class="btn btn-secondary" onclick="endCurrentSession()" id="endSessionBtn" style="display: none;">
+                        <i class="fas fa-times"></i> End Session
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>Welcome to Support Dashboard</h3>
+                    <p>Select an active conversation from the sidebar to start helping customers</p>
+                </div>
+            </div>
+            <div class="chat-input" id="chatInputArea" style="display: none;">
+                <div class="input-container">
+                    <textarea class="message-input" id="messageInput" placeholder="Type your message..." rows="1"></textarea>
+                    <button class="send-button" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load required dependencies -->
+    <script src="../assets/js/security-utils.js"></script>
+    <script src="../js/websocket-manager.js"></script>
+    <script src="../js/support/ChatSessionService.js"></script>
+    <script src="../js/support/LiveChatSocket.js"></script>
+    <script src="../js/auto-session-filter.js"></script>
+
+    <script>
+        // Global variables
+        let activeChatSessions = new Map();
+        let currentSessionId = null;
+        let wsManager = null;
+
+        // Initialize support page when DOM is ready
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🚀 Production Support page initializing...');
+            
+            // Request notification permission
+            requestNotificationPermission();
+            
+            // Initialize real live chat system only - no mock fallback
+            initializeRealLiveChatSystem();
+        });
+
+        // Request notification permission
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        console.log('✅ Notification permission granted');
+                    }
+                });
+            }
+        }
+
+        // Initialize real WebSocket live chat system (production-ready)
+        async function initializeRealLiveChatSystem() {
+            console.log('🚀 Initializing production live chat system...');
+
+            try {
+                updateConnectionStatus('connecting', 'Connecting to live chat...');
+                        
+                // Initialize WebSocket Manager
+                if (window.WebSocketManager) {
+                    wsManager = new window.WebSocketManager();
+
+                    // Setup event handlers
+                    wsManager.on('connected', onWebSocketConnected);
+                    wsManager.on('disconnected', onWebSocketDisconnected);
+                    wsManager.on('error', onWebSocketError);
+                    wsManager.on('message', onWebSocketMessage);
+
+                    // Connect with business ID
+                    const businessId = '7ccf646c-9594-48d4-8f63-c366d89257e5';
+                    const connected = await wsManager.connect(businessId);
+
+                    if (connected) {
+                        console.log('✅ WebSocket connected successfully');
+                    } else {
+                        throw new Error('Failed to connect to WebSocket');
+                    }
+
+                } else {
+                    throw new Error('WebSocketManager not available - check if websocket-manager.js is loaded');
+                }
+                        
+            } catch (error) {
+                console.error('❌ Failed to initialize live chat system:', error);
+                updateConnectionStatus('disconnected', 'Connection failed: ' + error.message);
+                
+                // Log production error but don't fall back to mock system
+                console.error('⚠️ Production support page requires WebSocket connection');
+            }
+        }
+
+        // WebSocket event handlers
+        function onWebSocketConnected() {
+            console.log('✅ WebSocket connected for live support');
+            updateConnectionStatus('connected', 'Connected to live chat');
+
+            // Register as support agent
+            if (wsManager) {
+                const agentMessage = {
+                    action: 'join_channel',
+                    userType: 'agent',
+                    userId: 'support_agent_' + Date.now(),
+                    userName: 'Support Agent',
+                    userPhone: '+964-support-agent',
+                    channel: 'live_chat_support',
+                    businessId: '7ccf646c-9594-48d4-8f63-c366d89257e5',
+                    timestamp: new Date().toISOString()
+                };
+            
+                wsManager.send(agentMessage);
+                console.log('📤 Sent agent channel join message');
+                loadActiveChatSessions();
+            }
+        }
+                
+        function onWebSocketDisconnected() {
+            console.log('⚠️ WebSocket disconnected');
+            updateConnectionStatus('disconnected', 'Disconnected from live chat');
+        }
+        
+        function onWebSocketError(error) {
+            console.error('❌ WebSocket error:', error);
+            updateConnectionStatus('disconnected', 'Connection error');
+        }
+        
+        function onWebSocketMessage(message) {
+            console.log('📨 Received WebSocket message:', message);
+            handleMessage(message);
+        }
+        
+        // Handle incoming chat messages
+        function handleIncomingChatMessage(message) {
+            try {
+                const data = typeof message === 'string' ? JSON.parse(message) : message;
+
+                switch (data.type || data.action) {
+                    case 'channel_joined':
+                        console.log('✅ Successfully joined live chat channel');
+                        updateConnectionStatus('connected', 'Connected to live chat');
+                        break;
+                    case 'connection_confirmed':
+                        console.log('✅ Agent connection confirmed by server');
+                        updateConnectionStatus('connected', 'Connected to live chat');
+                        break;
+                    case 'active_sessions':
+                        console.log('📋 Received active sessions');
+                        handleAgentSessions(data);
+                        break;
+                    case 'chat_message':
+                    case 'message_received':
+                    case 'CHAT_MESSAGE':
+                        console.log('💬 Processing incoming chat message');
+                        handleChatMessage(data);
+                        break;
+                    case 'new_chat_session':
+                    case 'chat_session_created':
+                    case 'CHAT_INIT':
+                        console.log('🆕 New chat session created');
+                        handleNewChatSession(data);
+                        break;
+                    case 'chat_session_closed':
+                    case 'session_closed':
+                    case 'CHAT_END':
+                        console.log('❌ Chat session closed');
+                        handleChatSessionEnd(data);
+                        break;
+                    case 'TYPING_INDICATOR':
+                        handleTypingIndicator(data);
+                        break;
+                    case 'HEARTBEAT':
+                    case 'PONG':
+                        // Handle heartbeat responses silently
+                        break;
+                    case 'error':
+                        console.error('❌ Server error:', data.message);
+                        break;
+                    default:
+                        console.log('📨 Unhandled message type:', data.type || data.action, data);
+                }
+            } catch (error) {
+                console.error('❌ Error handling chat message:', error);
+            }
+        }
+
+        // Handle new chat session (only real sessions from WizzDriver app)
+        function handleNewChatSession(data) {
+            // Apply session filtering - only allow genuine WizzDriver sessions
+            if (isTestSession(data) || !isAllowedDriverSession(data)) {
+                console.log('🚫 Filtered out test/mock session:', data.sessionId || data.id);
+                return;
+            }
+
+            const sessionId = data.sessionId || data.id || 'session_' + Date.now();
+            const session = {
+                id: sessionId,
+                customer: data.payload?.userDisplayName || data.payload?.userId || data.driverName || 'WizzDriver User',
+                lastMessage: 'New chat session started',
+                time: 'Just now',
+                unread: true,
+                messages: []
+            };
+
+            activeChatSessions.set(sessionId, session);
+            updateSessionsList();
+
+            console.log('📱 New genuine WizzDriver session:', session);
+        }
+
+        // Handle chat message (only from real sessions)
+        function handleChatMessage(data) {
+            const sessionId = data.sessionId || data.payload?.sessionId;
+            let session = activeChatSessions.get(sessionId);
+
+            // Only process messages from verified sessions
+            if (!session) {
+                // Apply filtering before creating new session
+                if (isTestSession(data) || !isAllowedDriverSession(data)) {
+                    console.log('🚫 Ignored message from filtered session:', sessionId);
+                    return;
+                }
+
+                session = {
+                    id: sessionId,
+                    customer: data.payload?.userDisplayName || data.payload?.userId || data.driverName || 'WizzDriver User',
+                    lastMessage: '',
+                    time: 'Just now',
+                    unread: true,
+                    messages: []
+                };
+                activeChatSessions.set(sessionId, session);
+                console.log('📱 Created new verified session for incoming message:', sessionId);
+            }
+
+            const message = {
+                id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                text: data.payload?.text || data.text || 'Empty message',
+                sender: data.payload?.userType || data.payload?.senderType || 'customer',
+                timestamp: new Date(),
+                senderName: data.payload?.userDisplayName || data.payload?.senderName || session.customer
+            };
+
+            session.messages.push(message);
+            session.lastMessage = message.text;
+            session.time = formatTimestamp(new Date());
+            session.unread = (message.sender !== 'agent');
+
+            // Update UI immediately
+            updateSessionsList();
+
+            // If this session is currently active, add message directly
+            if (currentSessionId === sessionId) {
+                appendMessageToChat(message);
+                // Mark as read since it's the active session
+                session.unread = false;
+                updateSessionsList();
+            }
+
+            // Show notification for new messages
+            if (message.sender !== 'agent') {
+                showNewMessageNotification(session, message);
+            }
+                
+            console.log('💬 New message in verified session:', sessionId, message);
+        }
+
+        // Session filtering functions (production-ready)
+        function isTestSession(sessionData = {}) {
+            try {
+                const meta = sessionData.metadata || {};
+                const id = (sessionData.sessionId || sessionData.id || '').toString().toLowerCase();
+                const name = (
+                    sessionData.driverName ||
+                    sessionData.driverInfo?.driverName ||
+                    sessionData.payload?.userDisplayName ||
+                    meta.driverName ||
+                    ''
+                ).toString().toLowerCase();
+                
+                // Enhanced test detection patterns
+                const testFlags = [
+                    sessionData.isTest, 
+                    meta.isTest, 
+                    meta.source === 'test', 
+                    meta.source === 'mock',
+                    meta.source === 'demo'
+                ];
+                
+                // Comprehensive test patterns
+                const testPatterns = [
+                    id.startsWith('test_'),
+                    id.startsWith('mock_'),
+                    id.startsWith('demo_'),
+                    id.includes('test'),
+                    id.includes('mock'),
+                    id.includes('demo'),
+                    name.includes('test'),
+                    name.includes('mock'),
+                    name.includes('demo'),
+                    name === 'driver 123',
+                    name === 'test driver',
+                    name === 'mock driver',
+                    id.startsWith('support_session_') && name.toLowerCase().includes('test')
+                ];
+                
+                return Boolean(testFlags.some(Boolean) || testPatterns.some(Boolean));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function isAllowedDriverSession(sessionData = {}) {
+            try {
+                const meta = sessionData.metadata || {};
+                const source = meta.source || sessionData.source || 'unknown';
+                const userType = sessionData.userType || sessionData.payload?.userType || 'unknown';
+                
+                // Only allow WizzDriver Flutter app sessions
+                const allowedSources = ['wizzdriver_app', 'flutter_app', 'mobile_app'];
+                const allowedUserTypes = ['driver', 'customer', 'user'];
+                
+                const hasValidSource = allowedSources.includes(source);
+                const hasValidUserType = allowedUserTypes.includes(userType);
+                
+                // Must have at least one valid identifier
+                return hasValidSource || hasValidUserType;
+            } catch (e) {
+                // If we can't determine, allow it (err on side of inclusion)
+                return true;
+            }
+        }
+        
+        // Handle agent sessions (with filtering)
+        function handleAgentSessions(data) {
+            if (data.payload && data.payload.sessions) {
+                let addedCount = 0;
+                
+                data.payload.sessions.forEach(sessionData => {
+                    // Apply filtering to only show genuine WizzDriver sessions
+                    if (isTestSession(sessionData) || !isAllowedDriverSession(sessionData)) {
+                        console.log('🚫 Filtered out session:', sessionData.sessionId, sessionData.driverName || 'Unknown');
+                        return;
+                    }
+                    
+                    const session = {
+                        id: sessionData.sessionId,
+                        customer: sessionData.customerName || sessionData.driverName || sessionData.userId,
+                        lastMessage: sessionData.lastMessage || 'Active session',
+                        time: sessionData.lastMessageTime || 'Active',
+                        unread: sessionData.unread || false,
+                        messages: sessionData.messages || []
+                    };
+            
+                    activeChatSessions.set(session.id, session);
+                    addedCount++;
+                });
+
+                console.log(`📋 Loaded ${addedCount} verified WizzDriver sessions (filtered ${data.payload.sessions.length - addedCount} test/mock sessions)`);
+            }
+            
+            updateSessionsList();
+        }
+                            
+        // Load active chat sessions
+        function loadActiveChatSessions() {
+            if (wsManager) {
+                const requestMessage = {
+                    action: 'get_active_sessions',
+                    type: 'GET_SESSIONS',
+                    payload: {
+                        agentId: 'support_agent_' + Date.now()
+                    }
+                };
+                        
+                wsManager.send(requestMessage);
+                console.log('📤 Requested active sessions');
+            }
+        }
+
+        // Update sessions list UI
+        function updateSessionsList() {
+            const sessionsList = document.getElementById('sessionsList');
+            const activeSessionsCount = document.getElementById('activeSessions');
+
+            if (!sessionsList) return;
+
+            const sessionCount = activeChatSessions.size;
+        
+            // Update active sessions counter
+            if (activeSessionsCount) {
+                activeSessionsCount.textContent = sessionCount.toString();
+            }
+
+            if (sessionCount === 0) {
+                // SECURITY: Safe static content
+                sessionsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <h3>No active conversations</h3>
+                        <p>New conversations will appear here when genuine WizzDriver users start chatting</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // SECURITY: Clear with empty string (safe)
+            sessionsList.innerHTML = '';
+
+            // Sort sessions by last message time (most recent first)
+            const sortedSessions = Array.from(activeChatSessions.values()).sort((a, b) => {
+                const aTime = a.messages.length > 0 ? new Date(a.messages[a.messages.length - 1].timestamp) : new Date(0);
+                const bTime = b.messages.length > 0 ? new Date(b.messages[b.messages.length - 1].timestamp) : new Date(0);
+                return bTime - aTime;
+            });
+            
+            sortedSessions.forEach((session, index) => {
+                const sessionElement = document.createElement('div');
+                sessionElement.className = `session-card ${session.id === currentSessionId ? 'active' : ''} ${session.unread ? 'unread' : ''}`;
+                sessionElement.dataset.sessionId = session.id;
+                sessionElement.onclick = () => selectChatSession(session);
+
+                // SECURITY: Sanitize user-generated content
+                const safeLastMessage = SecurityUtils.escapeHTML(session.lastMessage || '');
+                const messagePreview = safeLastMessage.length > 50 ?
+                    safeLastMessage.substring(0, 50) + '...' :
+                    safeLastMessage;
+
+                const safeCustomer = SecurityUtils.escapeHTML(session.customer || 'Unknown');
+                const customerInitials = SecurityUtils.escapeHTML(
+                    safeCustomer.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+                );
+                const safeTime = SecurityUtils.escapeHTML(session.time || '');
+                
+                sessionElement.innerHTML = SecurityUtils.sanitizeHTML(`
+                    <div class="session-info">
+                        <div class="customer-avatar">${customerInitials}</div>
+                        <div class="session-details">
+                            <div class="customer-name">${safeCustomer}</div>
+                            <div class="last-message">${messagePreview}</div>
+                        </div>
+                        <div class="session-meta">
+                            <div class="message-time">${safeTime}</div>
+                            ${session.unread ? '<div class="unread-badge">•</div>' : ''}
+                        </div>
+                    </div>
+                `);
+
+                sessionsList.appendChild(sessionElement);
+            });
+            
+            // Auto-select first session if none selected and we have sessions
+            if (activeChatSessions.size > 0 && !currentSessionId) {
+                const firstSession = sortedSessions[0];
+                selectChatSession(firstSession);
+            }
+        }
+
+        // Select a chat session
+        function selectChatSession(session) {
+            console.log('📱 Selecting chat session:', session.customer);
+
+            // Update current session
+            const previousSessionId = currentSessionId;
+            currentSessionId = session.id;
+            
+            // Update active session UI
+            document.querySelectorAll('.session-card').forEach(item => {
+                item.classList.remove('active');
+            });
+        
+            const sessionElement = document.querySelector(`[data-session-id="${session.id}"]`);
+            if (sessionElement) {
+                sessionElement.classList.add('active');
+            }
+
+            // Mark as read
+            session.unread = false;
+            
+            // Update chat view
+            updateChatView(session);
+
+            // Update sessions list to reflect changes
+            updateSessionsList();
+
+            // Send notification via WebSocket
+            if (wsManager && previousSessionId !== session.id) {
+                const switchMessage = {
+                    action: 'agent_session_switch',
+                    type: 'AGENT_SESSION_SWITCH',
+                    payload: {
+                        agentId: 'support_agent_' + Date.now(),
+                        fromSessionId: previousSessionId,
+                        toSessionId: session.id
+                    }
+                };
+
+                wsManager.send(switchMessage);
+                console.log('📤 Sent session switch message:', switchMessage);
+            }
+        }
+
+        // Update chat view
+        function updateChatView(session) {
+            const chatTitle = document.getElementById('chatTitle');
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInputArea = document.getElementById('chatInputArea');
+            const endSessionBtn = document.getElementById('endSessionBtn');
+
+            if (chatTitle) {
+                chatTitle.textContent = session.customer;
+            }
+
+            if (chatMessages) {
+                chatMessages.innerHTML = renderMessages(session.messages);
+                scrollToBottom();
+            }
+
+            if (chatInputArea) {
+                chatInputArea.style.display = 'block';
+                setupMessageInput();
+            }
+
+            if (endSessionBtn) {
+                endSessionBtn.style.display = 'block';
+            }
+        }
+
+        // Render messages HTML
+        function renderMessages(messages) {
+            if (!messages || messages.length === 0) {
+                return `
+                    <div class="empty-state">
+                        <i class="fas fa-comment-dots"></i>
+                        <h3>Start the conversation</h3>
+                        <p>Send a message to help this customer</p>
+                    </div>
+                `;
+            }
+
+            return messages.map(msg => {
+                if (msg.sender === 'system') {
+                    return `
+                        <div class="message system" data-message-id="${msg.id}">
+                            <div class="message-bubble">
+                                ${escapeHtml(msg.text)}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const initials = msg.senderName ?
+                    msg.senderName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) :
+                    (msg.sender === 'agent' ? 'SA' : 'CU');
+
+                return `
+                    <div class="message ${msg.sender}" data-message-id="${msg.id}">
+                        <div class="message-avatar">${initials}</div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                <div class="message-text">${escapeHtml(msg.text)}</div>
+                            </div>
+                            <div class="message-timestamp">${formatTimestamp(msg.timestamp)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Append single message to chat (for real-time updates)
+        function appendMessageToChat(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+
+            // Remove empty state if it exists
+            const emptyState = chatMessages.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${message.sender}`;
+            messageElement.dataset.messageId = message.id;
+
+            if (message.sender === 'system') {
+                messageElement.innerHTML = `
+                    <div class="message-bubble">
+                        ${escapeHtml(message.text)}
+                    </div>
+                `;
+            } else {
+                const initials = message.senderName ?
+                    message.senderName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) :
+                    (message.sender === 'agent' ? 'SA' : 'CU');
+
+                messageElement.innerHTML = `
+                    <div class="message-avatar">${initials}</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <div class="message-text">${escapeHtml(message.text)}</div>
+                        </div>
+                        <div class="message-timestamp">${formatTimestamp(message.timestamp)}</div>
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(messageElement);
+            scrollToBottom();
+
+            // Add smooth animation
+            messageElement.style.opacity = '0';
+            messageElement.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                messageElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                messageElement.style.opacity = '1';
+                messageElement.style.transform = 'translateY(0)';
+            }, 10);
+        }
+
+        // Setup message input handlers
+        function setupMessageInput() {
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            if (!messageInput) return;
+
+            messageInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        
+            messageInput.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+
+                // Send typing indicator
+                sendTypingIndicator();
+                
+                // Enable/disable send button
+                if (sendButton) {
+                    sendButton.disabled = !this.value.trim();
+                }
+            });
+
+            // Focus input
+            messageInput.focus();
+        }
+
+        // Send message function
+        window.sendMessage = function() {
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+             
+            if (!messageInput || !currentSessionId) return;
+            
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            const session = activeChatSessions.get(currentSessionId);
+            if (!session) return;
+            
+            // Disable send button temporarily
+            if (sendButton) {
+                sendButton.disabled = true;
+                // SECURITY: Safe static content
+                sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+            
+            // Create message object
+            const messageObj = {
+                id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                text: message,
+                sender: 'agent',
+                timestamp: new Date(),
+                senderName: 'Support Agent'
+            };
+            
+            // Add message to local session immediately for instant feedback
+            session.messages.push(messageObj);
+            session.lastMessage = message;
+            session.time = formatTimestamp(new Date());
+            
+            // Append message to chat view immediately
+            appendMessageToChat(messageObj);
+            
+            // Clear input immediately
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Send via WebSocket
+            if (wsManager) {
+                const chatMessage = {
+                    action: 'chat_message',
+                    type: 'chat_message',
+                    sessionId: currentSessionId,
+                    messageText: message,
+                    text: message,
+                    senderType: 'agent',
+                    senderName: 'Support Agent',
+                    agentId: 'support_agent_' + Date.now(),
+                    timestamp: new Date().toISOString()
+                };
+            
+                wsManager.send(chatMessage);
+                console.log('📤 Sent chat message:', chatMessage);
+            }
+            
+            // Update sessions list
+            updateSessionsList();
+            
+            // Re-enable send button
+            setTimeout(() => {
+                if (sendButton) {
+                    sendButton.disabled = false;
+                    // SECURITY: Safe static content
+                    sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                }
+                messageInput.focus();
+            }, 500);
+        };
+
+        // End chat session function
+        window.endChatSession = function(sessionId) {
+            if (!sessionId) sessionId = currentSessionId;
+            if (!sessionId) return;
+
+            const session = activeChatSessions.get(sessionId);
+            if (!session) return;
+
+            if (confirm(`Are you sure you want to end the chat session with ${session.customer}?`)) {
+                // Send session end message via WebSocket
+                if (wsManager) {
+                    const endMessage = {
+                        action: 'chat_session_close',
+                        type: 'chat_session_close',
+                        sessionId: sessionId,
+                        senderType: 'agent',
+                        agentId: 'support_agent',
+                        reason: 'ended_by_agent',
+                        timestamp: new Date().toISOString()
+                    };
+
+                    wsManager.send(endMessage);
+                    console.log('📤 Sent session end message:', endMessage);
+                }
+        
+                // Remove from local sessions
+                activeChatSessions.delete(sessionId);
+        
+                // Clear chat view if this was the active session
+                if (currentSessionId === sessionId) {
+                    currentSessionId = null;
+                    const chatMessages = document.getElementById('chatMessages');
+                    const chatInputArea = document.getElementById('chatInputArea');
+                    const chatTitle = document.getElementById('chatTitle');
+                    const endSessionBtn = document.getElementById('endSessionBtn');
+                    
+                    if (chatMessages) {
+                        // SECURITY: Safe static content
+                        chatMessages.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-comment-dots"></i>
+                                <h3>Select a conversation</h3>
+                                <p>Choose a conversation from the left to start helping customers</p>
+                            </div>
+                        `;
+                    }
+                    
+                    if (chatInputArea) {
+                        chatInputArea.style.display = 'none';
+                    }
+                    
+                    if (chatTitle) {
+                        chatTitle.textContent = 'Select a conversation';
+                    }
+                    
+                    if (endSessionBtn) {
+                        endSessionBtn.style.display = 'none';
+                    }
+                }
+    
+                // Update sessions list
+                updateSessionsList();
+
+                console.log('✅ Session ended:', sessionId);
+            }
+        };
+
+        // Reconnect WebSocket function
+        window.reconnectWebSocket = function() {
+            console.log('🔄 Reconnecting WebSocket...');
+            if (wsManager) {
+                wsManager.disconnect();
+                setTimeout(() => {
+                    initializeRealLiveChatSystem();
+                }, 1000);
+            } else {
+                window.location.reload();
+            }
+        };
+
+        // Update connection status
+        function updateConnectionStatus(status, message) {
+            const connectionDot = document.getElementById('connectionIndicator');
+            const connectionText = document.getElementById('connectionStatus');
+
+            if (connectionDot) {
+                connectionDot.className = `status-indicator ${status}`;
+            }
+
+            if (connectionText) {
+                connectionText.textContent = message;
+            }
+        }
+
+        // Utility functions
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMinutes = Math.floor((now - date) / (1000 * 60));
+
+            if (diffMinutes < 1) return 'Just now';
+            if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+            const diffHours = Math.floor(diffMinutes / 60);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showNewMessageNotification(session, message) {
+            if (currentSessionId === session.id) return; // Don't notify for active session
+
+            // Visual notification in the session list
+            const sessionElement = document.querySelector(`[data-session-id="${session.id}"]`);
+            if (sessionElement) {
+                sessionElement.style.backgroundColor = '#dbeafe';
+                setTimeout(() => {
+                    sessionElement.style.backgroundColor = '';
+                }, 2000);
+            }
+        
+            // Browser notification (if permitted)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(`New message from ${session.customer}`, {
+                    body: message.text.substring(0, 100) + (message.text.length > 100 ? '...' : ''),
+                    icon: '/favicon.ico'
+                });
+            }
+        }
+
+        // Send typing indicator
+        let typingTimer = null;
+        function sendTypingIndicator() {
+            if (!currentSessionId || !wsManager) return;
+            
+            clearTimeout(typingTimer);
+            
+            const typingMessage = {
+                action: 'chat_typing',
+                type: 'TYPING_INDICATOR',
+                sessionId: currentSessionId,
+                payload: {
+                    userType: 'agent',
+                    typing: true
+                }
+            };
+            
+            wsManager.send(typingMessage);
+            
+            // Stop typing after 3 seconds
+            typingTimer = setTimeout(() => {
+                const stopTypingMessage = {
+                    ...typingMessage,
+                    payload: { ...typingMessage.payload, typing: false }
+                };
+                wsManager.send(stopTypingMessage);
+            }, 3000);
+        }
+
+        // Handle typing indicator
+        function handleTypingIndicator(data) {
+            const sessionId = data.sessionId || data.payload?.sessionId;
+            const isTyping = data.payload?.typing || false;
+            const userType = data.payload?.userType || 'customer';
+
+            if (currentSessionId === sessionId && userType !== 'agent') {
+                const chatMessages = document.getElementById('chatMessages');
+                if (!chatMessages) return;
+
+                // Remove existing typing indicator
+                const existingIndicator = chatMessages.querySelector('.typing-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+
+                // Add typing indicator if user is typing
+                if (isTyping) {
+                    const typingElement = document.createElement('div');
+                    typingElement.className = 'message customer typing-indicator';
+                    // SECURITY: Safe static content
+                    typingElement.innerHTML = `
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                <div class="typing-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    chatMessages.appendChild(typingElement);
+                    scrollToBottom();
+                }
+            }
+        }
+
+        // Handle chat session end
+        function handleChatSessionEnd(data) {
+            const sessionId = data.sessionId || data.payload?.sessionId;
+            if (!sessionId) return;
+
+            const session = activeChatSessions.get(sessionId);
+            if (!session) return;
+
+            console.log('❌ Chat session ended:', sessionId);
+
+            // Add system message about session end
+            const endMessage = {
+                id: `end_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                text: 'Chat session ended',
+                sender: 'system',
+                timestamp: new Date(),
+                senderName: 'System'
+            };
+
+            session.messages.push(endMessage);
+            session.lastMessage = 'Chat session ended';
+            session.time = formatTimestamp(new Date());
+
+            // If this session is currently active, show the end message
+            if (currentSessionId === sessionId) {
+                appendMessageToChat(endMessage);
+            }
+
+            // Remove session after a delay
+            setTimeout(() => {
+                activeChatSessions.delete(sessionId);
+
+                // Clear chat view if this was the active session
+                if (currentSessionId === sessionId) {
+                    currentSessionId = null;
+                    const chatMessages = document.getElementById('chatMessages');
+                    const chatInputArea = document.getElementById('chatInputArea');
+                    const chatTitle = document.getElementById('chatTitle');
+                    const endSessionBtn = document.getElementById('endSessionBtn');
+                    
+                    if (chatMessages) {
+                        // SECURITY: Safe static content
+                        chatMessages.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-comment-dots"></i>
+                                <h3>Select a conversation</h3>
+                                <p>Choose a conversation from the left to start helping customers</p>
+                            </div>
+                        `;
+                    }
+                    
+                    if (chatInputArea) {
+                        chatInputArea.style.display = 'none';
+                    }
+                    
+                    if (chatTitle) {
+                        chatTitle.textContent = 'Select a conversation';
+                    }
+                    
+                    if (endSessionBtn) {
+                        endSessionBtn.style.display = 'none';
+                    }
+                }
+
+                updateSessionsList();
+            }, 3000);
+        }
+
+        // Handle message function
+        function handleMessage(message) {
+            handleIncomingChatMessage(message);
+        }
+
+        console.log('✅ Production Support page loaded - ready for genuine WizzDriver sessions only');
+    </script>
+</body>
+</html>

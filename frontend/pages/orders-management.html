@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzCentral - Orders Management</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .orders-container {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .orders-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .orders-header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+        }
+
+        .refresh-btn {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            border-radius: 20px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn:hover {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .orders-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--md-sys-color-surface-container);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .orders-table-container {
+            background: var(--md-sys-color-surface);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+
+        .table-header {
+            padding: 24px;
+            background: var(--md-sys-color-surface-container);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+        }
+
+        .table-status {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .orders-table th {
+            background: var(--md-sys-color-surface-container-high);
+            color: var(--md-sys-color-on-surface);
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .orders-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .orders-table tbody tr:hover {
+            background: var(--md-sys-color-surface-container-low);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-badge.confirmed {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .status-badge.pending {
+            background: var(--md-sys-color-tertiary-container);
+            color: var(--md-sys-color-on-tertiary-container);
+        }
+
+        .status-badge.ready_for_pickup {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .status-badge.cancelled {
+            background: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+        }
+
+        .status-badge.delivered {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .btn-action {
+            background: none;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-right: 4px;
+        }
+
+        .btn-action:hover {
+            background: var(--md-sys-color-surface-container-highest);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .loading-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--md-sys-color-primary);
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--md-sys-color-error);
+        }
+
+        .error-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .success-message,
+        .error-message,
+        .info-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+            border: 1px solid var(--md-sys-color-secondary);
+        }
+
+        .error-message {
+            background: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+            border: 1px solid var(--md-sys-color-error);
+        }
+
+        .info-message {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border: 1px solid var(--md-sys-color-primary);
+        }
+    </style>
+</head>
+
+<body data-page="orders">
+    <!-- Sidebar include placeholder -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="orders-container">
+            <!-- Orders Header -->
+            <div class="orders-header">
+                <h1><i class="fas fa-shopping-bag"></i> Orders Management</h1>
+                <button class="refresh-btn" onclick="refreshOrdersData()">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Orders Statistics -->
+            <div class="orders-stats">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(45deg, #00c2e8, #009bb8);">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-value" id="total-orders">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(45deg, #10b981, #047857);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Confirmed</div>
+                        <div class="stat-value" id="confirmed-orders">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(45deg, #f59e0b, #d97706);">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="pending-orders">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(45deg, #ef4444, #dc2626);">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Cancelled</div>
+                        <div class="stat-value" id="cancelled-orders">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Area -->
+            <div id="orders-message" style="display: none;"></div>
+
+            <!-- Orders Table -->
+            <div class="orders-table-container">
+                <div class="table-header">
+                    <h2>Recent Orders</h2>
+                    <div class="table-status" id="table-status">Loading orders...</div>
+                </div>
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Store</th>
+                            <th>Driver</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr>
+                            <td colspan="8" class="loading-state">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <div>Loading orders from WizzOrders table...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- AWS SDK and required scripts -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
+    <script src="../config.js"></script>
+    <script src="../assets/js/auth-utils.js"></script>
+    <script src="../assets/js/aws-utils.js"></script>
+    <!-- XSS Protection -->
+    <script src="../assets/js/security-utils.js"></script>
+    <script src="../js/orders-api.js"></script>
+    <script src="../orders.js"></script>
+    <script src="../aggressive-sidebar-fix.js"></script>
+    <script src="../immediate-sidebar-fix.js"></script>
+    <script src="../assets/js/navigation.js"></script>
+
+    <!-- Update stats function -->
+    <script>
+        // Function to update order statistics
+        function updateOrderStats() {
+            if (!ordersData) return;
+
+            const totalOrders = ordersData.length;
+            const confirmedOrders = ordersData.filter(order => order.status === 'confirmed').length;
+            const pendingOrders = ordersData.filter(order => order.status === 'pending').length;
+            const cancelledOrders = ordersData.filter(order => order.status === 'cancelled').length;
+
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('confirmed-orders').textContent = confirmedOrders;
+            document.getElementById('pending-orders').textContent = pendingOrders;
+            document.getElementById('cancelled-orders').textContent = cancelledOrders;
+
+            // Update table status
+            const tableStatus = document.getElementById('table-status');
+            if (tableStatus) {
+                tableStatus.textContent = `${totalOrders} orders loaded from WizzOrders table`;
+            }
+        }
+
+        // Override the renderOrdersTable function to also update stats
+        const originalRenderOrdersTable = window.renderOrdersTable;
+        window.renderOrdersTable = function () {
+            if (originalRenderOrdersTable) {
+                originalRenderOrdersTable.call(this);
+            }
+            updateOrderStats();
+        };
+
+        // Override showMessage to use our message area
+        window.showMessage = function (message, type = 'info') {
+            const messageEl = document.getElementById('orders-message');
+            if (messageEl) {
+                messageEl.className = `${type}-message`;
+                messageEl.textContent = message;
+                messageEl.style.display = 'block';
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    messageEl.style.display = 'none';
+                }, 5000);
+            }
+        };
+
+        // Load sidebar
+        async function loadSidebar() {
+            try {
+                const response = await fetch('../includes/sidebar.html');
+                if (!response.ok) throw new Error(`Failed to load sidebar: ${response.status}`);
+                const html = await response.text();
+                const placeholder = document.getElementById('sidebar-placeholder');
+                if (placeholder) {
+                    placeholder.innerHTML = html;
+                    // Set active state for orders page
+                    const ordersNavItem = document.querySelector('.nav-item[data-page="orders"]');
+                    if (ordersNavItem) {
+                        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                        ordersNavItem.classList.add('active');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load sidebar:', error);
+            }
+        }
+
+        // Load sidebar when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadSidebar);
+        } else {
+            loadSidebar();
+        }
+    </script>
+</body>
+
+</html>

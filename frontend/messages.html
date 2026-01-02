@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Messages Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .box { background: white; padding: 20px; margin: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        #result { margin-top: 20px; padding: 10px; background: #e9ecef; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🎯 MESSAGES DASHBOARD</h1>
+        <p>Dashboard is working! Click buttons below to see your messages.</p>
+        
+        <button onclick="testConnection()">Check Connection</button>
+        <button onclick="loadMessages()">Load Messages</button>
+        
+        <div id="result">Ready to load your messages...</div>
+    </div>
+
+    <script>
+        async function testConnection() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:8087/health');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <h3>✅ CONNECTED!</h3>
+                    <p>Messages: ${data.messageCount}</p>
+                    <p>Status: ${data.status}</p>
+                `;
+            } catch (error) {
+                result.innerHTML = `<h3>❌ FAILED</h3><p>${error.message}</p>`;
+            }
+        }
+        
+        async function loadMessages() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Loading...';
+            
+            try {
+                const response = await fetch('http://localhost:8087/debug/messages');
+                const data = await response.json();
+                
+                if (data.messages && data.messages.length > 0) {
+                    let html = `<h3>📨 FOUND ${data.messages.length} MESSAGES:</h3>`;
+                    data.messages.forEach((msg, i) => {
+                        html += `<div style="border: 1px solid #ddd; padding: 10px; margin: 5px 0;">
+                            <strong>${i + 1}.</strong> ${msg.message}<br>
+                            <small>From: ${msg.metadata?.senderName || msg.driverId}</small>
+                        </div>`;
+                    });
+                    result.innerHTML = html;
+                } else {
+                    result.innerHTML = '<h3>📭 No messages found</h3>';
+                }
+            } catch (error) {
+                result.innerHTML = `<h3>❌ ERROR</h3><p>${error.message}</p>`;
+            }
+        }
+        
+        // Auto-load messages when page loads
+        window.onload = function() {
+            loadMessages();
+        };
+    </script>
+</body>
+</html>

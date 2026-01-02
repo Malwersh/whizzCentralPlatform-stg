@@ -1,0 +1,86 @@
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "dev-wizz-wallet-service"
+region = "us-east-1"
+profile = "Wizz_dev_UserApp"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+confirm_changeset = true
+resolve_s3 = true
+s3_prefix = "wizz-wallet-service"
+parameter_overrides = "Environment=\"dev\" WalletsTableName=\"dev-Wallets\" LedgerTableName=\"dev-LedgerEntries\" HoldsTableName=\"dev-Holds\" TopupRequestsTableName=\"dev-TopupRequests\" AuditLogTableName=\"dev-AuditLog\" IdempotencyKeysTableName=\"dev-IdempotencyKeys\" DriverCognitoUserPoolId=\"us-east-1_Mnrmklxro\" AdminCognitoUserPoolId=\"us-east-1_Cp9YnOQWi\" ServiceCognitoUserPoolId=\"us-east-1_VTZMjCvuP\""
+disable_rollback = true
+image_repositories = []
+
+[default.sync.parameters]
+watch = true
+
+[dev]
+[dev.global.parameters]
+stack_name = "dev-wizz-wallet-service"
+region = "us-east-1"
+profile = "Wizz_dev_UserApp"
+
+[dev.deploy.parameters]
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+confirm_changeset = true
+resolve_s3 = true
+parameter_overrides = [
+    "Environment=dev",
+    "WalletsTableName=dev-Wallets",
+    "LedgerTableName=dev-LedgerEntries",
+    "HoldsTableName=dev-Holds",
+    "TopupRequestsTableName=dev-TopupRequests",
+    "AuditLogTableName=dev-AuditLog",
+    "IdempotencyKeysTableName=dev-IdempotencyKeys",
+    "DriverCognitoUserPoolId=us-east-1_Mnrmklxro",
+    "AdminCognitoUserPoolId=us-east-1_Cp9YnOQWi",
+    "ServiceCognitoUserPoolId=us-east-1_VTZMjCvuP"
+]
+
+[staging]
+[staging.global.parameters]
+stack_name = "staging-wizz-wallet-service"
+region = "us-east-1"
+profile = "Wizz_stg_UserApp"
+
+[staging.deploy.parameters]
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+confirm_changeset = true
+resolve_s3 = true
+parameter_overrides = [
+    "Environment=staging",
+    "WalletsTableName=staging-Wallets",
+    "LedgerTableName=staging-LedgerEntries",
+    "HoldsTableName=staging-Holds",
+    "TopupRequestsTableName=staging-TopupRequests",
+    "AuditLogTableName=staging-AuditLog",
+    "IdempotencyKeysTableName=staging-IdempotencyKeys"
+]
+
+[production]
+[production.global.parameters]
+stack_name = "prod-wizz-wallet-service"
+region = "us-east-1"
+profile = "Wizz_prod_UserApp"
+
+[production.deploy.parameters]
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+confirm_changeset = false
+resolve_s3 = true
+parameter_overrides = [
+    "Environment=production",
+    "WalletsTableName=prod-Wallets",
+    "LedgerTableName=prod-LedgerEntries",
+    "HoldsTableName=prod-Holds",
+    "TopupRequestsTableName=prod-TopupRequests",
+    "AuditLogTableName=prod-AuditLog",
+    "IdempotencyKeysTableName=prod-IdempotencyKeys"
+]

@@ -1,0 +1,21 @@
+{
+  "name": "wavesystem-createdispatchjob",
+  "version": "1.0.0",
+  "description": "Lambda function to create DispatchJob when order becomes ready_for_pickup",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "sh deploy.sh"
+  },
+  "keywords": [
+    "wave",
+    "dispatch",
+    "orders",
+    "dynamodb"
+  ],
+  "author": "Whizz Platform Team",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1691.0"
+  }
+}

@@ -1,0 +1,46 @@
+service: wizzcentral-campaign-api-simple
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: dev
+  region: us-east-1
+  environment:
+    CAMPAIGNS_TABLE: WizzCentral_Campaigns
+    CONDITIONS_TABLE: WizzCentral_Campaign_Conditions
+    USAGE_TABLE: WizzCentral_Campaign_Usage
+    ANALYTICS_TABLE: WizzCentral_Campaign_Analytics
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaigns"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Conditions"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Usage"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Analytics"
+
+functions:
+  campaignApi:
+    handler: lambda/campaign-api.handler
+    timeout: 30
+    events:
+      - http:
+          path: campaigns/{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: campaigns
+          method: ANY
+          cors: true
+
+plugins:
+  - serverless-offline

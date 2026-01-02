@@ -1,0 +1,289 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'WizzCentral - Lambda Functions لنظام المناطق'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: البيئة (dev/staging/prod)
+  
+  RegionsTableStreamArn:
+    Type: String
+    Description: ARN لـ Stream من WizzCentral_Regions
+    Default: 'arn:aws:dynamodb:us-east-1:031857856164:table/WizzCentral_Regions/stream/2025-11-09T05:11:17.785'
+
+Resources:
+  
+  # ========================================
+  # IAM Role لجميع Lambda Functions
+  # ========================================
+  
+  RegionLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'WizzCentral-RegionLambda-Role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole'
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # قراءة/كتابة في جميع جداول المناطق
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:GetItem'
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:UpdateItem'
+                  - 'dynamodb:DeleteItem'
+                  - 'dynamodb:Query'
+                  - 'dynamodb:Scan'
+                  - 'dynamodb:BatchWriteItem'
+                  - 'dynamodb:BatchGetItem'
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Regions'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Regions/index/*'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionsDerived_${Environment}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionsDerived_${Environment}/index/*'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionNeighbors_${Environment}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionNeighbors_${Environment}/index/*'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionIndex_${Environment}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionIndex_${Environment}/index/*'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionAudit_${Environment}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionAudit_${Environment}/index/*'
+              
+              # قراءة Streams
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:DescribeStream'
+                  - 'dynamodb:GetRecords'
+                  - 'dynamodb:GetShardIterator'
+                  - 'dynamodb:ListStreams'
+                Resource:
+                  - !Ref RegionsTableStreamArn
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionsDerived_${Environment}/stream/*'
+
+  # ========================================
+  # Lambda Function #1: RegionPropagationEngine
+  # ========================================
+  
+  RegionPropagationEngineFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'WizzCentral-RegionPropagationEngine-${Environment}'
+      Runtime: nodejs20.x
+      Handler: index.handler
+      Role: !GetAtt RegionLambdaExecutionRole.Arn
+      Timeout: 60
+      MemorySize: 512
+      Environment:
+        Variables:
+          REGIONS_TABLE: 'WizzCentral_Regions'
+          DERIVED_TABLE: !Sub 'WizzCentral_RegionsDerived_${Environment}'
+          AUDIT_TABLE: !Sub 'WizzCentral_RegionAudit_${Environment}'
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          // Placeholder - سيتم رفع الكود الفعلي
+          exports.handler = async (event) => {
+            console.log('RegionPropagationEngine - Placeholder');
+            return { statusCode: 200 };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: WizzCentral
+        - Key: Component
+          Value: RegionSystem
+  
+  # Event Source Mapping: WizzCentral_Regions Stream → RegionPropagationEngine
+  RegionPropagationEngineEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !Ref RegionsTableStreamArn
+      FunctionName: !Ref RegionPropagationEngineFunction
+      StartingPosition: LATEST
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 5
+      MaximumRetryAttempts: 3
+      BisectBatchOnFunctionError: true
+      FilterCriteria:
+        Filters:
+          - Pattern: '{"eventName": ["INSERT", "MODIFY"]}'
+  
+  # ========================================
+  # Lambda Function #2: SpatialIndexBuilder
+  # ========================================
+  
+  SpatialIndexBuilderFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'WizzCentral-SpatialIndexBuilder-${Environment}'
+      Runtime: nodejs20.x
+      Handler: index.handler
+      Role: !GetAtt RegionLambdaExecutionRole.Arn
+      Timeout: 120
+      MemorySize: 1024
+      Environment:
+        Variables:
+          REGIONS_TABLE: 'WizzCentral_Regions'
+          INDEX_TABLE: !Sub 'WizzCentral_RegionIndex_${Environment}'
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          // Placeholder - سيتم رفع الكود الفعلي
+          exports.handler = async (event) => {
+            console.log('SpatialIndexBuilder - Placeholder');
+            return { statusCode: 200 };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: WizzCentral
+        - Key: Component
+          Value: RegionSystem
+  
+  # Event Source Mapping: WizzCentral_Regions Stream → SpatialIndexBuilder
+  SpatialIndexBuilderEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !Ref RegionsTableStreamArn
+      FunctionName: !Ref SpatialIndexBuilderFunction
+      StartingPosition: LATEST
+      BatchSize: 5
+      MaximumBatchingWindowInSeconds: 10
+      MaximumRetryAttempts: 2
+      BisectBatchOnFunctionError: true
+      FilterCriteria:
+        Filters:
+          - Pattern: '{"eventName": ["INSERT", "MODIFY"], "dynamodb": {"NewImage": {"geometry": {"NULL": [false]}}}}'
+  
+  # ========================================
+  # Lambda Function #3: NeighborDiscoveryEngine
+  # ========================================
+  
+  NeighborDiscoveryEngineFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'WizzCentral-NeighborDiscoveryEngine-${Environment}'
+      Runtime: nodejs20.x
+      Handler: index.handler
+      Role: !GetAtt RegionLambdaExecutionRole.Arn
+      Timeout: 180
+      MemorySize: 1024
+      Environment:
+        Variables:
+          REGIONS_TABLE: 'WizzCentral_Regions'
+          NEIGHBORS_TABLE: !Sub 'WizzCentral_RegionNeighbors_${Environment}'
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          // Placeholder - سيتم رفع الكود الفعلي
+          exports.handler = async (event) => {
+            console.log('NeighborDiscoveryEngine - Placeholder');
+            return { statusCode: 200 };
+          };
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: WizzCentral
+        - Key: Component
+          Value: RegionSystem
+  
+  # Event Source Mapping: WizzCentral_Regions Stream → NeighborDiscoveryEngine
+  NeighborDiscoveryEngineEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !Ref RegionsTableStreamArn
+      FunctionName: !Ref NeighborDiscoveryEngineFunction
+      StartingPosition: LATEST
+      BatchSize: 3
+      MaximumBatchingWindowInSeconds: 15
+      MaximumRetryAttempts: 2
+      BisectBatchOnFunctionError: true
+      FilterCriteria:
+        Filters:
+          - Pattern: '{"eventName": ["INSERT", "MODIFY"], "dynamodb": {"NewImage": {"geometry": {"NULL": [false]}}}}'
+  
+  # ========================================
+  # CloudWatch Log Groups
+  # ========================================
+  
+  PropagationEngineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/WizzCentral-RegionPropagationEngine-${Environment}'
+      RetentionInDays: 7
+  
+  SpatialIndexBuilderLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/WizzCentral-SpatialIndexBuilder-${Environment}'
+      RetentionInDays: 7
+  
+  NeighborDiscoveryEngineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/WizzCentral-NeighborDiscoveryEngine-${Environment}'
+      RetentionInDays: 7
+  
+  # ========================================
+  # CloudWatch Alarms (اختياري)
+  # ========================================
+  
+  PropagationEngineErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'WizzCentral-PropagationEngine-Errors-${Environment}'
+      AlarmDescription: 'تنبيه عند وجود أخطاء في RegionPropagationEngine'
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref RegionPropagationEngineFunction
+
+Outputs:
+  
+  RegionPropagationEngineFunctionArn:
+    Description: 'ARN لـ RegionPropagationEngine Lambda'
+    Value: !GetAtt RegionPropagationEngineFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-PropagationEngine-Arn'
+  
+  SpatialIndexBuilderFunctionArn:
+    Description: 'ARN لـ SpatialIndexBuilder Lambda'
+    Value: !GetAtt SpatialIndexBuilderFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-SpatialIndexBuilder-Arn'
+  
+  NeighborDiscoveryEngineFunctionArn:
+    Description: 'ARN لـ NeighborDiscoveryEngine Lambda'
+    Value: !GetAtt NeighborDiscoveryEngineFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-NeighborDiscoveryEngine-Arn'
+  
+  LambdaExecutionRoleArn:
+    Description: 'ARN لـ Lambda Execution Role'
+    Value: !GetAtt RegionLambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaRole-Arn'

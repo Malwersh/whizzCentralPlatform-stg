@@ -1,0 +1,331 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: WaveSystem (staging) - tables + lambdas
+
+Parameters:
+  Environment:
+    Type: String
+    Default: staging
+    AllowedValues:
+      - staging
+      - dev
+      - production
+
+  GoogleMapsApiKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 512
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        STAGE: !Ref Environment
+
+Resources:
+  DispatchJobsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub WizzDispatchJobs_${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: orderId-index
+          KeySchema:
+            - AttributeName: orderId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  WaveOffersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub WaveOffers_${Environment}
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: driverId
+          AttributeType: S
+        - AttributeName: sentAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      GlobalSecondaryIndexes:
+        - IndexName: driverId-sentAt-index
+          KeySchema:
+            - AttributeName: driverId
+              KeyType: HASH
+            - AttributeName: sentAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  WaveSystemStartWaveFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WaveSystem_StartWave
+      CodeUri: ../WaveSystem_StartWave/
+      Handler: index.handler
+      Environment:
+        Variables:
+          DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
+          DRIVER_LIVE_STATE_TABLE:
+            Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+          WAVE_OFFERS_TABLE: !Ref WaveOffersTable
+          WEBSOCKET_API_ENDPOINT:
+            Fn::ImportValue: !Sub WizzUser-backend-${Environment}-WebSocketUrl
+          GOOGLE_MAPS_API_KEY: !Ref GoogleMapsApiKey
+          ORDERS_TABLE:
+            Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DispatchJobsTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref DispatchJobsTable
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+        - DynamoDBWritePolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+        - DynamoDBReadPolicy:
+            TableName: !Ref WaveOffersTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref WaveOffersTable
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+        - Statement:
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource:
+              - !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/@connections/*
+
+  WaveSystemCreateDispatchJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WaveSystem_CreateDispatchJob
+      CodeUri: ../WaveSystem_CreateDispatchJob/
+      Handler: index.handler
+      Environment:
+        Variables:
+          DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
+          ORDERS_TABLE:
+            Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+          BUSINESSES_TABLE:
+            Fn::ImportValue: !Sub WhizzMerchants-Tables-${Environment}-BusinessesTableName
+          START_WAVE_LAMBDA: !Ref WaveSystemStartWaveFunction
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DispatchJobsTable
+        - DynamoDBCrudPolicy:
+            TableName:
+              Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub WhizzMerchants-Tables-${Environment}-BusinessesTableName
+        - LambdaInvokePolicy:
+            FunctionName: !Ref WaveSystemStartWaveFunction
+      Events:
+        OrdersStream:
+          Type: DynamoDB
+          Properties:
+            Stream:
+              Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-StreamArn
+            StartingPosition: LATEST
+            BatchSize: 10
+            MaximumRetryAttempts: 2
+
+  WaveSystemHandleWaveTimeoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WaveSystem_HandleWaveTimeout
+      CodeUri: ../WaveSystem_HandleWaveTimeout/
+      Handler: index.handler
+      Environment:
+        Variables:
+          DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
+          WAVE_OFFERS_TABLE: !Ref WaveOffersTable
+          START_WAVE_LAMBDA: !Ref WaveSystemStartWaveFunction
+          WEBSOCKET_API_ENDPOINT:
+            Fn::ImportValue: !Sub WizzUser-backend-${Environment}-WebSocketUrl
+          MAX_WAVES: '5'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DispatchJobsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WaveOffersTable
+        - LambdaInvokePolicy:
+            FunctionName: !Ref WaveSystemStartWaveFunction
+        - Statement:
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource:
+              - !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/@connections/*
+      Events:
+        ScheduleEveryMinute:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
+  WaveSystemHandleDriverAcceptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WaveSystem_HandleDriverAccept
+      CodeUri: ../WaveSystem_HandleDriverAccept/
+      Handler: index.handler
+      Environment:
+        Variables:
+          DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
+          WAVE_OFFERS_TABLE: !Ref WaveOffersTable
+          DRIVER_LIVE_STATE_TABLE:
+            Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+          ORDERS_TABLE:
+            Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+          WEBSOCKET_API_ENDPOINT:
+            Fn::ImportValue: !Sub WizzUser-backend-${Environment}-WebSocketUrl
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DispatchJobsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WaveOffersTable
+        - DynamoDBCrudPolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+        - DynamoDBCrudPolicy:
+            TableName:
+              Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+        - Statement:
+            Effect: Allow
+            Action:
+              - execute-api:ManageConnections
+            Resource:
+              - !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/@connections/*
+
+  WaveSystemHandleDriverRejectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WaveSystem_HandleDriverReject
+      CodeUri: ../WaveSystem_HandleDriverReject/
+      Handler: index.handler
+      Environment:
+        Variables:
+          DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
+          WAVE_OFFERS_TABLE: !Ref WaveOffersTable
+          DRIVER_LIVE_STATE_TABLE:
+            Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+          DRIVER_PERFORMANCE_METRICS_TABLE:
+            Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverPerformanceMetricsTableName
+          START_WAVE_FUNCTION: !Ref WaveSystemStartWaveFunction
+          ORDERS_TABLE:
+            Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DispatchJobsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WaveOffersTable
+        - DynamoDBCrudPolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+        - DynamoDBCrudPolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverPerformanceMetricsTableName
+        - DynamoDBCrudPolicy:
+            TableName:
+              Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+        - LambdaInvokePolicy:
+            FunctionName: !Ref WaveSystemStartWaveFunction
+
+  WaveSystemUpdateDriverMetricsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: WaveSystem_UpdateDriverMetrics
+      CodeUri: ../WaveSystem_UpdateDriverMetrics/
+      Handler: index.handler
+      Environment:
+        Variables:
+          PERFORMANCE_METRICS_TABLE:
+            Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverPerformanceMetricsTableName
+          WAVE_OFFERS_TABLE: !Ref WaveOffersTable
+          DRIVER_LIVE_STATE_TABLE:
+            Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+          ORDERS_TABLE:
+            Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+          WINDOW_SIZE: '100'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverPerformanceMetricsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WaveOffersTable
+        - DynamoDBCrudPolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+      Events:
+        WaveOffersStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt WaveOffersTable.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 50
+            MaximumRetryAttempts: 2
+        OrdersStream:
+          Type: DynamoDB
+          Properties:
+            Stream:
+              Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-StreamArn
+            StartingPosition: LATEST
+            BatchSize: 50
+            MaximumRetryAttempts: 2
+
+Outputs:
+  DispatchJobsTableName:
+    Value: !Ref DispatchJobsTable
+    Export:
+      Name: !Sub WaveSystem-Tables-${Environment}-DispatchJobsTableName
+
+  WaveOffersTableName:
+    Value: !Ref WaveOffersTable
+    Export:
+      Name: !Sub WaveSystem-Tables-${Environment}-WaveOffersTableName
+
+  WaveSystemHandleDriverAcceptFunctionName:
+    Value: !Ref WaveSystemHandleDriverAcceptFunction
+    Export:
+      Name: !Sub WaveSystem-Functions-${Environment}-HandleDriverAcceptFunctionName
+
+  WaveSystemHandleDriverRejectFunctionName:
+    Value: !Ref WaveSystemHandleDriverRejectFunction
+    Export:
+      Name: !Sub WaveSystem-Functions-${Environment}-HandleDriverRejectFunctionName

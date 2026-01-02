@@ -1,0 +1,16 @@
+version = 0.1
+
+[staging]
+[staging.deploy]
+[staging.deploy.parameters]
+stack_name = "wavesystem-staging"
+resolve_s3 = true
+s3_prefix = "wavesystem-staging"
+region = "us-east-1"
+profile = "Wizz_stg_UserApp"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+fail_on_empty_changeset = false
+
+# GoogleMapsApiKey is injected by deploy script
+parameter_overrides = "Environment=staging"

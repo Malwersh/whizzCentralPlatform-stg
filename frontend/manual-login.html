@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; background: #f5f5f5; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin-bottom: 20px; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        button { background: #FDC500; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #e0b000; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .status { padding: 12px; margin: 10px 0; border-radius: 4px; display: none; }
+        .status.show { display: block; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        pre { background: #f8f8f8; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 11px; }
+        .debug { margin-top: 20px; padding-top: 20px; border-top: 2px solid #ddd; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.0.1/dist/amazon-cognito-identity.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Manual Login Test</h1>
+        
+        <input type="email" id="email" placeholder="Email" value="g87_a@yahoo.com">
+        <input type="password" id="password" placeholder="Password">
+        <button id="loginBtn" onclick="doLogin()">Login</button>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="debug">
+            <h3>Debug Info:</h3>
+            <div id="debugInfo"></div>
+        </div>
+    </div>
+    
+    <script>
+        const COGNITO_CONFIG = {
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_Cp9YnOQWi',
+            clientId: '5hun8p61grnakisu5gammcjelv'
+        };
+        
+        function showStatus(msg, type) {
+            const el = document.getElementById('status');
+            el.textContent = msg;
+            el.className = 'status ' + type + ' show';
+        }
+        
+        function showDebug(data) {
+            document.getElementById('debugInfo').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+        
+        async function doLogin() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const btn = document.getElementById('loginBtn');
+            
+            if (!email || !password) {
+                showStatus('Please enter email and password', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+            showStatus('Authenticating...', 'info');
+            
+            try {
+                const poolData = {
+                    UserPoolId: COGNITO_CONFIG.userPoolId,
+                    ClientId: COGNITO_CONFIG.clientId
+                };
+                const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+                
+                const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+                    Username: email,
+                    Password: password
+                });
+                
+                const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+                    Username: email,
+                    Pool: userPool
+                });
+                
+                cognitoUser.authenticateUser(authenticationDetails, {
+                    onSuccess: function(result) {
+                        const accessToken = result.getAccessToken().getJwtToken();
+                        const idToken = result.getIdToken().getJwtToken();
+                        const refreshToken = result.getRefreshToken().getToken();
+                        
+                        // Parse ID token to show groups
+                        const payload = JSON.parse(atob(idToken.split('.')[1]));
+                        const groups = payload['cognito:groups'] || [];
+                        
+                        showStatus('✅ Login successful! Groups: ' + groups.join(', '), 'success');
+                        
+                        // Store tokens
+                        localStorage.setItem('accessToken', accessToken);
+                        localStorage.setItem('idToken', idToken);
+                        localStorage.setItem('refreshToken', refreshToken);
+                        localStorage.setItem('userEmail', email);
+                        localStorage.setItem('isAuthenticated', 'true');
+                        localStorage.setItem('lastLoginTime', Date.now().toString());
+                        
+                        showDebug({
+                            success: true,
+                            email: email,
+                            groups: groups,
+                            tokenPayload: payload,
+                            tokensStored: {
+                                accessToken: accessToken.substring(0, 50) + '...',
+                                idToken: idToken.substring(0, 50) + '...',
+                                refreshToken: refreshToken.substring(0, 50) + '...'
+                            }
+                        });
+                        
+                        // Redirect after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = '/frontend/pages/dashboard.html';
+                        }, 2000);
+                    },
+                    onFailure: function(err) {
+                        showStatus('❌ Login failed: ' + err.message, 'error');
+                        showDebug({
+                            error: true,
+                            code: err.code,
+                            message: err.message,
+                            details: err
+                        });
+                        btn.disabled = false;
+                        btn.textContent = 'Login';
+                    }
+                });
+                
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                showDebug({
+                    exception: true,
+                    message: error.message,
+                    stack: error.stack
+                });
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
+        }
+        
+        // Check current auth status on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const idToken = localStorage.getItem('idToken');
+            const isAuth = localStorage.getItem('isAuthenticated');
+            
+            if (idToken && isAuth === 'true') {
+                showStatus('✅ Already logged in!', 'success');
+                try {
+                    const payload = JSON.parse(atob(idToken.split('.')[1]));
+                    const groups = payload['cognito:groups'] || [];
+                    showDebug({
+                        alreadyLoggedIn: true,
+                        email: payload.email,
+                        groups: groups,
+                        exp: new Date(payload.exp * 1000).toLocaleString()
+                    });
+                } catch (e) {
+                    showDebug({ error: 'Could not parse existing token' });
+                }
+            } else {
+                showDebug({ notLoggedIn: true, message: 'No tokens found' });
+            }
+        });
+    </script>
+</body>
+</html>

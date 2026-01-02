@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Token Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #000; color: #0f0; }
+        pre { background: #111; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .section { margin: 20px 0; border: 1px solid #333; padding: 15px; border-radius: 5px; }
+        h2 { color: #fdc500; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ffc107; }
+        button { padding: 10px 20px; margin: 10px 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Token Debug Tool</h1>
+    
+    <div class="section">
+        <h2>Raw ID Token</h2>
+        <pre id="rawToken"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>Decoded ID Token Payload</h2>
+        <pre id="decodedToken"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>Groups in Token</h2>
+        <pre id="groups"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>RBAC Function Test</h2>
+        <pre id="rbacTest"></pre>
+    </div>
+    
+    <div>
+        <button onclick="location.reload()">Refresh</button>
+        <button onclick="location.href='/frontend/index.html'">Go to Login</button>
+        <button onclick="location.href='/frontend/pages/dashboard.html'">Go to Dashboard</button>
+        <button onclick="clearAndReload()">Clear Storage & Reload</button>
+    </div>
+    
+    <script src="../assets/js/rbac.js"></script>
+    <script>
+        function clearAndReload() {
+            localStorage.clear();
+            sessionStorage.clear();
+            location.reload();
+        }
+        
+        function displayInfo() {
+            const idToken = localStorage.getItem('idToken');
+            const rawEl = document.getElementById('rawToken');
+            const decodedEl = document.getElementById('decodedToken');
+            const groupsEl = document.getElementById('groups');
+            const rbacEl = document.getElementById('rbacTest');
+            
+            if (!idToken) {
+                rawEl.innerHTML = '<span class="error">❌ NO ID TOKEN FOUND</span>';
+                decodedEl.innerHTML = '<span class="error">❌ Cannot decode - no token</span>';
+                groupsEl.innerHTML = '<span class="error">❌ No token to extract groups from</span>';
+                rbacEl.innerHTML = '<span class="error">❌ Cannot test RBAC - no token</span>';
+                return;
+            }
+            
+            // Raw token (truncated for display)
+            rawEl.textContent = idToken.substring(0, 100) + '...' + idToken.substring(idToken.length - 50);
+            
+            // Decode token
+            try {
+                const parts = idToken.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('Invalid token format');
+                }
+                
+                const payload = JSON.parse(atob(parts[1]));
+                decodedEl.innerHTML = '<span class="success">✅ Token decoded successfully</span>\n' + JSON.stringify(payload, null, 2);
+                
+                // Extract groups
+                const groups = payload['cognito:groups'] || [];
+                if (groups.length > 0) {
+                    groupsEl.innerHTML = '<span class="success">✅ Groups found: ' + groups.join(', ') + '</span>';
+                } else {
+                    groupsEl.innerHTML = '<span class="warning">⚠️  NO GROUPS IN TOKEN!</span>\n\n' +
+                        'This is the problem! The token should contain cognito:groups but it doesn\'t.\n' +
+                        'Possible reasons:\n' +
+                        '1. User is not assigned to any Cognito groups\n' +
+                        '2. Cognito User Pool is not configured to include groups in tokens\n' +
+                        '3. App client is not configured to read groups';
+                }
+                
+                // Test RBAC
+                if (window.RBAC) {
+                    const rbacGroups = window.RBAC.getUserGroups();
+                    const primaryGroup = window.RBAC.getPrimaryGroup();
+                    const roleDisplay = window.RBAC.getRoleDisplayName();
+                    const hasPageAccess = window.RBAC.hasPageAccess('dashboard.html');
+                    const hasPromotionsAccess = window.RBAC.hasPageAccess('promotions.html');
+                    
+                    rbacEl.innerHTML = '<span class="success">✅ RBAC Loaded</span>\n' +
+                        'RBAC getUserGroups(): ' + JSON.stringify(rbacGroups) + '\n' +
+                        'RBAC getPrimaryGroup(): ' + primaryGroup + '\n' +
+                        'RBAC getRoleDisplayName(): ' + roleDisplay + '\n' +
+                        'RBAC hasPageAccess("dashboard.html"): ' + hasPageAccess + '\n' +
+                        'RBAC hasPageAccess("promotions.html"): ' + hasPromotionsAccess;
+                } else {
+                    rbacEl.innerHTML = '<span class="error">❌ RBAC not loaded</span>';
+                }
+                
+            } catch (error) {
+                decodedEl.innerHTML = '<span class="error">❌ Error decoding token: ' + error.message + '</span>';
+                groupsEl.innerHTML = '<span class="error">❌ Error: ' + error.message + '</span>';
+            }
+        }
+        
+        displayInfo();
+    </script>
+</body>
+</html>

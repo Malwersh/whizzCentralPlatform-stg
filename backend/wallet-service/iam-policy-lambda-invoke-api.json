@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowInvokeWalletServiceAPI",
+      "Effect": "Allow",
+      "Action": "execute-api:Invoke",
+      "Resource": "arn:aws:execute-api:us-east-1:031857856164:er7d8mkxi5/dev/POST/wallet/create"
+    }
+  ]
+}

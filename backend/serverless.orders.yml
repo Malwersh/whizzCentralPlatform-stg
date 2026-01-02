@@ -1,0 +1,189 @@
+# Order management and merchant integration
+service: wizzcentral-orders
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 30
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    ORDERS_TABLE: "order-receiver-orders-${self:provider.stage}"
+    MERCHANTS_TABLE: "order-receiver-businesses-${self:provider.stage}"
+    CUSTOMERS_TABLE: "WizzUser_users_${self:provider.stage}"
+    DRIVERS_TABLE: "wizzcentral-backend-drivers-${self:provider.stage}"
+    JWT_SECRET: ${env:JWT_SECRET, 'wizzcentral-super-secret-key-2024'}
+    
+    # Cognito User Pool configuration for new AWS account
+    USER_POOL_ID: "us-east-1_Cp9YnOQWi"
+    USER_POOL_NAME: "wizzcentral"
+    USER_POOL_CLIENT_ID: "97sgkf07b6n8qeugfcsntbd8c"
+    
+    # SNS Topic ARN for order events
+    ORDER_EVENTS_TOPIC_ARN: !Ref OrderEventsTopic
+    
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 
+            - "arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/*"
+        - Effect: "Allow"
+          Action:
+            - "sns:Publish"
+          Resource:
+            - "arn:aws:sns:${self:provider.region}:${aws:accountId}:*"
+        - Effect: "Allow"
+          Action:
+            - "cognito-idp:AdminGetUser"
+            - "cognito-idp:AdminListGroupsForUser"
+            - "cognito-idp:GetUser"
+          Resource:
+            - "arn:aws:cognito-idp:${self:provider.region}:${aws:accountId}:userpool/us-east-1_Cp9YnOQWi"
+
+functions:
+  # Order Management
+  listOrders:
+    handler: src/handlers/orders.listOrders
+    events:
+      - http:
+          path: orders
+          method: get
+          cors: true
+          # authorizer: authorize  # Temporarily disabled for frontend access
+          
+  createOrder:
+    handler: src/handlers/orders.createOrder
+    events:
+      - http:
+          path: orders
+          method: post
+          cors: true
+          authorizer: authorize
+          
+  getOrder:
+    handler: src/handlers/orders.getOrder
+    events:
+      - http:
+          path: orders/{orderId}
+          method: get
+          cors: true
+          # authorizer: authorize  # Temporarily disabled for frontend access
+          
+  updateOrder:
+    handler: src/handlers/orders.updateOrder
+    events:
+      - http:
+          path: orders/{orderId}
+          method: put
+          cors: true
+          authorizer: authorize
+          
+  cancelOrder:
+    handler: src/handlers/orders.cancelOrder
+    events:
+      - http:
+          path: orders/{orderId}/cancel
+          method: post
+          cors: true
+          authorizer: authorize
+          
+  getCustomerOrders:
+    handler: src/handlers/orders.getCustomerOrders
+    events:
+      - http:
+          path: customers/{customerId}/orders
+          method: get
+          cors: true
+          authorizer: authorize
+          
+  getMerchantOrders:
+    handler: src/handlers/orders.getMerchantOrders
+    events:
+      - http:
+          path: merchants/{merchantId}/orders
+          method: get
+          cors: true
+          authorizer: authorize
+          
+  getDriverOrders:
+    handler: src/handlers/orders.getDriverOrders
+    events:
+      - http:
+          path: drivers/{driverId}/orders
+          method: get
+          cors: true
+          authorizer: authorize
+
+  # Merchant Integration Endpoints
+  receiveStatusUpdate:
+    handler: src/handlers/merchant-integration.receiveStatusUpdate
+    events:
+      - http:
+          path: api/merchant-status-updates
+          method: post
+          cors: true
+          
+  sendOrderToMerchant:
+    handler: src/handlers/merchant-integration.sendOrderToMerchant
+    events:
+      - http:
+          path: api/send-order-to-merchant
+          method: post
+          cors: true
+          authorizer: authorize
+          
+  getOrderStatus:
+    handler: src/handlers/merchant-integration.getOrderStatus
+    events:
+      - http:
+          path: api/orders/{orderId}/status
+          method: get
+          cors: true
+          authorizer: authorize
+          
+  getCustomerOrderHistory:
+    handler: src/handlers/merchant-integration.getCustomerOrderHistory
+    events:
+      - http:
+          path: api/customers/{customerId}/order-history
+          method: get
+          cors: true
+          authorizer: authorize
+
+  # NEW: Merchant Order Management Function
+  merchantOrderManagement:
+    handler: src/handlers/merchant-integration.merchantOrderManagement
+    events:
+      - http:
+          path: merchant/order/{orderId}/{action}
+          method: put
+          cors: true
+          authorizer: authorize
+
+  # Authorization Function
+  authorize:
+    handler: src/handlers/auth.authorize
+
+resources:
+  Resources:
+    # SNS Topic for Order Events
+    OrderEventsTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: OrderEventsTopic
+        DisplayName: "Order Events Topic for WizzCentral Platform"
+
+plugins:
+  - serverless-offline

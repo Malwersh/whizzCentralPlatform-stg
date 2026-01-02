@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Core WhizzMerchants DynamoDB tables required by multiple services
+
+Parameters:
+  BusinessesTableName:
+    Type: String
+    Default: WhizzMerchants_Businesses
+  BusinessWorkingHoursTableName:
+    Type: String
+    Default: WhizzMerchants_BusinessWorkingHours
+
+Resources:
+  WhizzMerchantsBusinessesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref BusinessesTableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+      AttributeDefinitions:
+        - AttributeName: businessId
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+
+      KeySchema:
+        - AttributeName: businessId
+          KeyType: HASH
+
+      GlobalSecondaryIndexes:
+        - IndexName: email-index
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  WhizzMerchantsBusinessWorkingHoursTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref BusinessWorkingHoursTableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+      AttributeDefinitions:
+        - AttributeName: businessId
+          AttributeType: S
+        - AttributeName: weekday
+          AttributeType: S
+
+      KeySchema:
+        - AttributeName: businessId
+          KeyType: HASH
+        - AttributeName: weekday
+          KeyType: RANGE
+
+Outputs:
+  BusinessesTableName:
+    Value: !Ref WhizzMerchantsBusinessesTable
+    Export:
+      Name: !Sub "${AWS::StackName}-BusinessesTableName"
+  BusinessesTableArn:
+    Value: !GetAtt WhizzMerchantsBusinessesTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-BusinessesTableArn"
+  BusinessesStreamArn:
+    Value: !GetAtt WhizzMerchantsBusinessesTable.StreamArn
+    Export:
+      Name: !Sub "${AWS::StackName}-BusinessesStreamArn"
+
+  BusinessWorkingHoursTableName:
+    Value: !Ref WhizzMerchantsBusinessWorkingHoursTable
+    Export:
+      Name: !Sub "${AWS::StackName}-BusinessWorkingHoursTableName"
+  BusinessWorkingHoursTableArn:
+    Value: !GetAtt WhizzMerchantsBusinessWorkingHoursTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-BusinessWorkingHoursTableArn"
+  BusinessWorkingHoursStreamArn:
+    Value: !GetAtt WhizzMerchantsBusinessWorkingHoursTable.StreamArn
+    Export:
+      Name: !Sub "${AWS::StackName}-BusinessWorkingHoursStreamArn"

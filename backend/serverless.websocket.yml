@@ -1,0 +1,215 @@
+service: wizzcentral-websocket
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'staging'}
+  websocketsApiName: WizzCentral-Chat-WebSocket-${self:provider.stage}
+  websocketsApiRouteSelectionExpression: $request.body.action
+  memorySize: 512
+  timeout: 30
+  environment:
+    WEBSOCKET_CONNECTIONS_TABLE: websocket-connections-${self:provider.stage}
+    WEBSOCKET_SUBSCRIPTIONS_TABLE: websocket-subscriptions-${self:provider.stage}
+    CHAT_SESSIONS_TABLE: chat-sessions-${self:provider.stage}
+    CHAT_MESSAGES_TABLE: chat-messages-${self:provider.stage}
+    STAGE: ${self:provider.stage}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+    # Optional auth config (pass via env at deploy time)
+    CENTRAL_PLATFORM_USER_POOL_ID: ${env:CENTRAL_PLATFORM_USER_POOL_ID, 'us-east-1_Cp9YnOQWi'}
+    CENTRAL_PLATFORM_CLIENT_ID: ${env:CENTRAL_PLATFORM_CLIENT_ID, '22rf529lhbqtlvpdk2578h73l1'}
+    MERCHANTS_USER_POOL_ID: ${env:MERCHANTS_USER_POOL_ID, ''}
+    MERCHANTS_CLIENT_ID: ${env:MERCHANTS_CLIENT_ID, ''}
+    DRIVERS_USER_POOL_ID: ${env:DRIVERS_USER_POOL_ID, ''}
+    DRIVERS_CLIENT_ID: ${env:DRIVERS_CLIENT_ID, ''}
+    COGNITO_REGION: ${env:COGNITO_REGION, 'us-east-1'}
+    ORDERS_TABLE: ${env:ORDERS_TABLE, 'WizzOrders'}
+    DRIVERS_TABLE: ${env:DRIVERS_TABLE, 'WhizzDrivers_staging'}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-connections-${self:provider.stage}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-connections-${self:provider.stage}/index/*
+            - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-subscriptions-${self:provider.stage}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-subscriptions-${self:provider.stage}/index/*
+            - arn:aws:dynamodb:${self:provider.region}:*:table/chat-sessions-${self:provider.stage}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/chat-sessions-${self:provider.stage}/index/*
+            - arn:aws:dynamodb:${self:provider.region}:*:table/chat-messages-${self:provider.stage}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/chat-messages-${self:provider.stage}/index/*
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource: arn:aws:execute-api:${self:provider.region}:*:*/*/@connections/*
+
+package:
+  patterns:
+    - '!**/*'
+    - 'src/**'
+    - 'node_modules/**'
+    - '!wallet-service/**'
+    - '!order-service/**'
+    - '!**/.aws-sam/**'
+
+functions:
+  websocketConnect:
+    handler: src/handlers/websocket-connections.handler
+    timeout: 10
+    events:
+      - websocket:
+          route: $connect
+  websocketDisconnect:
+    handler: src/handlers/websocket-connections.handler
+    timeout: 6
+    events:
+      - websocket:
+          route: $disconnect
+  websocketDefault:
+    handler: src/handlers/websocket-connections.handler
+    timeout: 10
+    events:
+      - websocket:
+          route: $default
+  liveChatConnect:
+    handler: src/handlers/websocket-connections.handler
+    timeout: 12
+    events:
+      - websocket:
+          route: chat_driver_connect
+      - websocket:
+          route: chat_agent_connect
+      - websocket:
+          route: chat_merchant_connect
+  liveChatMessage:
+    handler: src/handlers/websocket-connections.handler
+    timeout: 12
+    events:
+      - websocket:
+          route: chat_message
+      - websocket:
+          route: chat_typing
+      - websocket:
+          route: chat_session_close
+  chatBridge:
+    handler: src/handlers/chat-bridge.sendChatMessage
+    timeout: 29
+    events:
+      - http:
+          path: /chat/send
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    WebSocketConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: websocket-connections-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: userType
+            AttributeType: S
+          - AttributeName: businessId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserTypeIndex
+            KeySchema:
+              - AttributeName: userType
+                KeyType: HASH
+              - AttributeName: userId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: BusinessIdIndex
+            KeySchema:
+              - AttributeName: businessId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
+    WebSocketSubscriptionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: websocket-subscriptions-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: subscriptionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: subscriptionId
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+    ChatSessionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: chat-sessions-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: driverId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: sessionId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: DriverIdIndex
+            KeySchema:
+              - AttributeName: driverId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+    ChatMessagesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: chat-messages-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: messageKey
+            AttributeType: S
+          - AttributeName: senderType
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: sessionId
+            KeyType: HASH
+          - AttributeName: messageKey
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: SenderIndex
+            KeySchema:
+              - AttributeName: senderType
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
+plugins: []

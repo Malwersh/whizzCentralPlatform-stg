@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Check</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #000; color: #0f0; }
+        .good { color: #0f0; }
+        .bad { color: #f00; }
+        button { padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Authentication Status</h1>
+    <div id="output"></div>
+    <button onclick="clearAuth()">Clear Auth & Reload</button>
+    <button onclick="location.href='/frontend/index.html'">Go to Login</button>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg, isGood = true) {
+            output.innerHTML += `<div class="${isGood ? 'good' : 'bad'}">${msg}</div>`;
+        }
+        
+        // Check localStorage
+        const idToken = localStorage.getItem('idToken');
+        const isAuth = localStorage.getItem('isAuthenticated');
+        
+        log(`isAuthenticated: ${isAuth}`, isAuth === 'true');
+        log(`Has idToken: ${!!idToken}`, !!idToken);
+        
+        if (idToken) {
+            try {
+                const payload = JSON.parse(atob(idToken.split('.')[1]));
+                const groups = payload['cognito:groups'] || [];
+                const email = payload.email || payload['cognito:username'];
+                
+                log(`\n📧 Email: ${email}`, true);
+                log(`👥 Groups: ${groups.join(', ') || 'NONE'}`, groups.length > 0);
+                log(`\n📋 Is Admin: ${groups.includes('admins')}`, groups.includes('admins'));
+                
+                if (groups.length === 0) {
+                    log('\n❌ NO GROUPS ASSIGNED! This is why you only see Dashboard.', false);
+                    log('You need to be added to the "admins" group in Cognito.', false);
+                }
+                
+                log(`\n🔍 Full Token Payload:`);
+                log(JSON.stringify(payload, null, 2));
+            } catch (e) {
+                log(`❌ Error parsing token: ${e.message}`, false);
+            }
+        } else {
+            log('\n❌ NO TOKEN FOUND - You are NOT logged in!', false);
+        }
+        
+        function clearAuth() {
+            localStorage.clear();
+            sessionStorage.clear();
+            location.reload();
+        }
+    </script>
+</body>
+</html>

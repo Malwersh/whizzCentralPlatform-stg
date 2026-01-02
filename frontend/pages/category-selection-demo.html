@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كيف يمكننا مساعدتك؟ - How Can We Help?</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    
+    <!-- Support i18n System -->
+    <script src="../assets/js/support-i18n.js"></script>
+    
+    <!-- Category Selection CSS -->
+    <link rel="stylesheet" href="../assets/css/category-selection.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1rem;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .demo-title {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .language-toggle {
+            display: inline-flex;
+            background: white;
+            border-radius: 2rem;
+            padding: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 1rem;
+        }
+
+        .language-toggle button {
+            padding: 0.75rem 2rem;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .language-toggle button.active {
+            background: linear-gradient(135deg, #00c2e8 0%, #0099cc 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 194, 232, 0.4);
+        }
+
+        .language-toggle button:hover:not(.active) {
+            background: #f3f4f6;
+        }
+
+        .demo-container {
+            background: #f8fafc;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .demo-info {
+            background: white;
+            padding: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .demo-info p {
+            color: #6b7280;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .demo-info .status {
+            display: inline-block;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        #category-selection-container {
+            background: white;
+            padding: 2rem 0;
+            min-height: 500px;
+        }
+
+        .result-panel {
+            background: white;
+            padding: 2rem;
+            border-top: 2px solid #e5e7eb;
+            display: none;
+        }
+
+        .result-panel.show {
+            display: block;
+        }
+
+        .result-content {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-desc {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: #00c2e8;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #009bb8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 194, 232, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .demo-footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .demo-footer a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .demo-title {
+                font-size: 1.75rem;
+            }
+
+            .language-toggle button {
+                padding: 0.5rem 1.25rem;
+                font-size: 0.875rem;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1 class="demo-title">🎯 Category Selection Demo</h1>
+        
+        <div class="language-toggle">
+            <button id="btn-arabic" class="active">
+                <span>🇮🇶 العربية</span>
+            </button>
+            <button id="btn-english">
+                <span>🇬🇧 English</span>
+            </button>
+        </div>
+
+        <div class="demo-info">
+            <p>
+                <strong>WhizzMe Support System</strong> • 
+                <span id="current-lang-display">Arabic (ar)</span>
+            </p>
+            <div class="status">✅ i18n System Active</div>
+        </div>
+    </div>
+
+    <div class="demo-container">
+        <div id="category-selection-container"></div>
+
+        <div id="result-panel" class="result-panel">
+            <div class="result-content">
+                <div class="result-icon">✅</div>
+                <h2 class="result-title" id="result-title">Category Selected!</h2>
+                <p class="result-desc" id="result-desc">You selected: <strong id="selected-category"></strong></p>
+                <div class="result-actions">
+                    <button class="btn btn-primary" id="btn-start-chat">
+                        💬 <span data-i18n="startConversation">Start Conversation</span>
+                    </button>
+                    <button class="btn btn-secondary" id="btn-back">
+                        ← <span>Back</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-footer">
+        <p>
+            WhizzCentral Platform • Arabic Localization Demo<br>
+            <a href="support.html">Go to Support Dashboard</a> | 
+            <a href="../index.html">Back to Home</a>
+        </p>
+    </div>
+
+    <!-- Category Selection Script -->
+    <script src="../assets/js/category-selection.js"></script>
+
+    <script>
+        // Initialize category selection screen
+        let categoryScreen;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Category Selection Demo initializing...');
+            
+            // Initialize the category selection screen
+            categoryScreen = new CategorySelectionScreen({
+                containerId: 'category-selection-container',
+                onCategorySelect: handleCategorySelection
+            });
+
+            categoryScreen.render();
+
+            // Language toggle buttons
+            const btnArabic = document.getElementById('btn-arabic');
+            const btnEnglish = document.getElementById('btn-english');
+            const langDisplay = document.getElementById('current-lang-display');
+
+            btnArabic.addEventListener('click', function() {
+                SupportI18n.setLanguage('ar');
+                updateLanguageUI('ar');
+            });
+
+            btnEnglish.addEventListener('click', function() {
+                SupportI18n.setLanguage('en');
+                updateLanguageUI('en');
+            });
+
+            // Result panel buttons
+            document.getElementById('btn-back').addEventListener('click', function() {
+                hideResult();
+            });
+
+            document.getElementById('btn-start-chat').addEventListener('click', function() {
+                alert(SupportI18n.t('startConversation', 'Starting chat...'));
+                // In a real app, this would navigate to the chat interface
+            });
+
+            // Update initial language display
+            updateLanguageUI(SupportI18n.getLanguage());
+        });
+
+        function updateLanguageUI(lang) {
+            const btnArabic = document.getElementById('btn-arabic');
+            const btnEnglish = document.getElementById('btn-english');
+            const langDisplay = document.getElementById('current-lang-display');
+
+            if (lang === 'ar') {
+                btnArabic.classList.add('active');
+                btnEnglish.classList.remove('active');
+                langDisplay.textContent = 'العربية (ar)';
+            } else {
+                btnEnglish.classList.add('active');
+                btnArabic.classList.remove('active');
+                langDisplay.textContent = 'English (en)';
+            }
+
+            // Update category screen
+            if (categoryScreen) {
+                categoryScreen.updateLanguage();
+            }
+
+            // Update result panel if visible
+            if (document.getElementById('result-panel').classList.contains('show')) {
+                updateResultText();
+            }
+
+            console.log('🌐 Language updated to:', lang);
+        }
+
+        function handleCategorySelection(categoryId) {
+            console.log('✅ Category selected:', categoryId);
+            
+            // Hide category selection
+            document.getElementById('category-selection-container').style.display = 'none';
+            
+            // Show result panel
+            const resultPanel = document.getElementById('result-panel');
+            resultPanel.classList.add('show');
+
+            // Update result text
+            document.getElementById('selected-category').textContent = categoryId;
+            updateResultText();
+
+            // Scroll to result
+            resultPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateResultText() {
+            const selectedCategory = document.getElementById('selected-category').textContent;
+            const resultTitle = document.getElementById('result-title');
+            const resultDesc = document.getElementById('result-desc');
+
+            if (SupportI18n.getLanguage() === 'ar') {
+                resultTitle.textContent = 'تم اختيار الفئة!';
+                resultDesc.innerHTML = `لقد اخترت: <strong>${getCategoryNameArabic(selectedCategory)}</strong>`;
+            } else {
+                resultTitle.textContent = 'Category Selected!';
+                resultDesc.innerHTML = `You selected: <strong>${getCategoryNameEnglish(selectedCategory)}</strong>`;
+            }
+        }
+
+        function getCategoryNameArabic(categoryId) {
+            const names = {
+                'order_management': 'إدارة الطلبات',
+                'payment_issues': 'مشاكل الدفع والتحويلات',
+                'account_issues': 'مشاكل الحساب وتسجيل الدخول',
+                'business_setup': 'إعدادات المتجر والقائمة',
+                'technical_support': 'الدعم الفني',
+                'human_agent': 'التحدث مع موظف الدعم'
+            };
+            return names[categoryId] || categoryId;
+        }
+
+        function getCategoryNameEnglish(categoryId) {
+            const names = {
+                'order_management': 'Order Management',
+                'payment_issues': 'Payment & Transfers',
+                'account_issues': 'Account & Login Issues',
+                'business_setup': 'Business Setup & Menu',
+                'technical_support': 'Technical Support',
+                'human_agent': 'Talk to Support Agent'
+            };
+            return names[categoryId] || categoryId;
+        }
+
+        function hideResult() {
+            document.getElementById('result-panel').classList.remove('show');
+            document.getElementById('category-selection-container').style.display = 'block';
+            
+            // Scroll back to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'DynamoDB Tables for Internal Wallet System - Driver & Platform Wallets'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+Resources:
+  # ===========================
+  # 1. Wallets Table
+  # ===========================
+  WalletsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'Wallets_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: walletId
+          AttributeType: S
+        - AttributeName: ownerId
+          AttributeType: S
+        - AttributeName: ownerType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: walletId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: OwnerIndex
+          KeySchema:
+            - AttributeName: ownerId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: OwnerTypeIndex
+          KeySchema:
+            - AttributeName: ownerType
+              KeyType: HASH
+            - AttributeName: ownerId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: System
+          Value: WalletSystem
+        - Key: Purpose
+          Value: StoreDriverAndPlatformWallets
+
+  # ===========================
+  # 2. LedgerEntries Table (Append-Only)
+  # ===========================
+  LedgerEntriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'LedgerEntries_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: entryId
+          AttributeType: S
+        - AttributeName: txnId
+          AttributeType: S
+        - AttributeName: walletId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: idempotencyKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: entryId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: TransactionIndex
+          KeySchema:
+            - AttributeName: txnId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: WalletTimeIndex
+          KeySchema:
+            - AttributeName: walletId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: IdempotencyIndex
+          KeySchema:
+            - AttributeName: idempotencyKey
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: System
+          Value: WalletSystem
+        - Key: Purpose
+          Value: ImmutableFinancialLedger
+        - Key: DataRetention
+          Value: Permanent
+
+  # ===========================
+  # 3. Holds Table
+  # ===========================
+  HoldsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'Holds_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: holdId
+          AttributeType: S
+        - AttributeName: walletId
+          AttributeType: S
+        - AttributeName: orderId
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: holdId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: OrderIndex
+          KeySchema:
+            - AttributeName: orderId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: WalletStatusIndex
+          KeySchema:
+            - AttributeName: walletId
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: WalletTimeIndex
+          KeySchema:
+            - AttributeName: walletId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: System
+          Value: WalletSystem
+        - Key: Purpose
+          Value: TrackReservedFunds
+
+  # ===========================
+  # 4. TopupRequests Table
+  # ===========================
+  TopupRequestsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'TopupRequests_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: topupId
+          AttributeType: S
+        - AttributeName: driverId
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: idempotencyKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: topupId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: DriverStatusIndex
+          KeySchema:
+            - AttributeName: driverId
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: StatusTimeIndex
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: IdempotencyIndex
+          KeySchema:
+            - AttributeName: idempotencyKey
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: System
+          Value: WalletSystem
+        - Key: Purpose
+          Value: ManualTopupWorkflow
+
+  # ===========================
+  # 5. AuditLog Table
+  # ===========================
+  AuditLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'WalletAuditLog_${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      AttributeDefinitions:
+        - AttributeName: auditId
+          AttributeType: S
+        - AttributeName: actorType
+          AttributeType: S
+        - AttributeName: actorId
+          AttributeType: S
+        - AttributeName: action
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: auditId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: ActorIndex
+          KeySchema:
+            - AttributeName: actorId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ActionIndex
+          KeySchema:
+            - AttributeName: action
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ActorTypeIndex
+          KeySchema:
+            - AttributeName: actorType
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: System
+          Value: WalletSystem
+        - Key: Purpose
+          Value: SecurityAndCompliance
+        - Key: DataRetention
+          Value: 90Days
+
+Outputs:
+  WalletsTableName:
+    Description: Wallets table name
+    Value: !Ref WalletsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-WalletsTable'
+
+  LedgerEntriesTableName:
+    Description: LedgerEntries table name
+    Value: !Ref LedgerEntriesTable
+    Export:
+      Name: !Sub '${AWS::StackName}-LedgerEntriesTable'
+
+  HoldsTableName:
+    Description: Holds table name
+    Value: !Ref HoldsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-HoldsTable'
+
+  TopupRequestsTableName:
+    Description: TopupRequests table name
+    Value: !Ref TopupRequestsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-TopupRequestsTable'
+
+  AuditLogTableName:
+    Description: AuditLog table name
+    Value: !Ref AuditLogTable
+    Export:
+      Name: !Sub '${AWS::StackName}-AuditLogTable'
+
+  WalletsTableArn:
+    Description: Wallets table ARN
+    Value: !GetAtt WalletsTable.Arn
+
+  LedgerEntriesTableArn:
+    Description: LedgerEntries table ARN
+    Value: !GetAtt LedgerEntriesTable.Arn
+
+  HoldsTableArn:
+    Description: Holds table ARN
+    Value: !GetAtt HoldsTable.Arn
+
+  TopupRequestsTableArn:
+    Description: TopupRequests table ARN
+    Value: !GetAtt TopupRequestsTable.Arn
+
+  AuditLogTableArn:
+    Description: AuditLog table ARN
+    Value: !GetAtt AuditLogTable.Arn

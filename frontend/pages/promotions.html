@@ -1,0 +1,3290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzCentral Platform - Promotions Management</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <!-- Security utilities -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <script src="../assets/js/security-utils.js"></script>
+    <script src="../assets/js/rbac.js"></script>
+    <style>
+        /* Modal dialog styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--md-sys-color-surface);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Enhanced datetime input styling to ensure calendar and time icons visibility */
+        input[type="datetime-local"] {
+            position: relative;
+            padding-right: 50px !important;
+            background: var(--md-sys-color-surface);
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        /* Enhanced datetime input container */
+        .datetime-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Material 3 Design System Styles for Campaign Form */
+        .material-3-modal {
+            max-width: 800px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--md-sys-color-surface);
+            border-radius: 16px;
+            padding: 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .material-3-header {
+            padding: 24px 24px 16px 24px;
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border-radius: 16px 16px 0 0;
+            margin: 0;
+        }
+
+        .material-3-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .material-3-icon {
+            font-size: 1.25rem;
+        }
+
+        .material-3-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--md-sys-color-surface-variant);
+            border: none;
+            color: var(--md-sys-color-on-surface-variant);
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .material-3-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .material-3-form {
+            padding: 24px;
+        }
+
+        .material-3-section {
+            margin-bottom: 24px;
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--md-sys-color-primary);
+        }
+
+        .section-title {
+            margin: 0 0 20px 0;
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--md-sys-color-primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .material-3-field {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .material-3-input,
+        .material-3-select,
+        .material-3-textarea {
+            width: 100%;
+            padding: 16px 12px 8px 12px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 8px;
+            background: var (--md-sys-color-surface);
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .material-3-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .material-3-input:focus,
+        .material-3-select:focus,
+        .material-3-textarea:focus {
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px rgba(253, 197, 0, 0.1);
+        }
+
+        .material-3-input:not(:placeholder-shown),
+        .material-3-select:not([value=""]),
+        .material-3-textarea:not(:placeholder-shown) {
+            padding-top: 20px;
+            padding-bottom: 4px;
+        }
+
+        .material-3-label {
+            position: absolute;
+            left: 12px;
+            top: 16px;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 16px;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            background: var(--md-sys-color-surface);
+            padding: 0 4px;
+        }
+
+        .material-3-input:focus + .material-3-label,
+        .material-3-input:not(:placeholder-shown) + .material-3-label,
+        .material-3-select:focus + .material-3-label,
+        .material-3-select:not([value=""]) + .material-3-label,
+        .material-3-textarea:focus + .material-3-label,
+        .material-3-textarea:not(:placeholder-shown) + .material-3-label {
+            top: -8px;
+            font-size: 12px;
+            color: var(--md-sys-color-primary);
+            font-weight: 500;
+        }
+
+        .material-3-underline {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--md-sys-color-primary);
+            transform: scaleX(0);
+            transition: transform 0.2s ease;
+        }
+
+        .material-3-input:focus ~ .material-3-underline,
+        .material-3-select:focus ~ .material-3-underline,
+        .material-3-textarea:focus ~ .material-3-underline {
+            transform: scaleX(1);
+        }
+
+        .material-3-helper {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .material-3-checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .material-3-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .material-3-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+        .material-3-checkmark {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--md-sys-color-outline);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.2s ease;
+            background: var(--md-sys-color-surface);
+        }
+
+        .material-3-checkbox input[type="checkbox"]:checked + .material-3-checkmark {
+            background: var(--md-sys-color-primary);
+            border-color: var(--md-sys-color-primary);
+        }
+
+        .material-3-checkbox input[type="checkbox"]:checked + .material-3-checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--md-sys-color-on-primary);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkbox-text {
+            font-weight: 400;
+        }
+
+        .material-3-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .material-3-btn-primary,
+        .material-3-btn-secondary {
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: none;
+        }
+
+        .material-3-btn-primary {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            box-shadow: 0 2px 8px rgba(253, 197, 0, 0.3);
+        }
+
+        .material-3-btn-primary:hover {
+            background: var(--wizz-primary-dark);
+            box-shadow: 0 4px 12px rgba(253, 197, 0, 0.4);
+        }
+
+        .material-3-btn-secondary {
+            background: transparent;
+            color: var(--md-sys-color-secondary);
+            border: 1px solid var(--md-sys-color-secondary);
+        }
+
+        .material-3-btn-secondary:hover {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .material-3-loader {
+            display: none;
+            text-align: center;
+            padding: 32px;
+            background: var(--md-sys-color-surface-container-low);
+            margin: 24px;
+            border-radius: 12px;
+        }
+
+        .material-3-loader .loader-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--md-sys-color-primary);
+            font-weight: 500;
+        }
+
+        .material-3-loader .fa-spinner {
+            font-size: 1.25rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .material-3-modal {
+                width: 98%;
+                margin: 1%;
+                max-height: 95vh;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .material-3-actions {
+                flex-direction: column;
+            }
+
+            .material-3-btn-primary,
+            .material-3-btn-secondary {
+                justify-content: center;
+            }
+        }
+
+        /* Enhanced campaign type cards */
+        .campaign-type-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Animation for smooth transitions */
+        .material-3-input,
+        .material-3-select,
+        .material-3-textarea,
+        .material-3-checkmark,
+        .material-3-btn-primary,
+        .material-3-btn-secondary {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== ENHANCED CAMPAIGNS TABLE STYLES ===== */
+        
+        /* Table Container */
+        .table-container {
+            background: var(--md-sys-color-surface);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-top: 24px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table thead {
+            background: var(--md-sys-color-surface-variant);
+        }
+
+        .data-table th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--md-sys-color-on-surface-variant);
+            border-bottom: 2px solid var(--md-sys-color-outline-variant);
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--md-sys-color-surface-container-low);
+        }
+
+        .data-table tbody tr:not(:last-child) {
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            vertical-align: middle;
+        }
+
+        /* Campaign Name Cell */
+        .campaign-name-cell {
+            min-width: 220px;
+        }
+
+        .campaign-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .campaign-description {
+            font-size: 13px;
+            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.4;
+            opacity: 0.8;
+        }
+
+        /* Type Badge */
+        .campaign-type-cell {
+            min-width: 140px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: capitalize;
+            white-space: nowrap;
+        }
+
+        .type-first-order {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .type-special-occasion, .type-special-event {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .type-restaurant-first, .type-restaurant-launch {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .type-seasonal {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .type-loyalty {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .type-general {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        /* Target Audience */
+        .campaign-target-cell {
+            min-width: 140px;
+        }
+
+        .target-text {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+            font-weight: 500;
+        }
+
+        /* Discount Cell */
+        .campaign-discount-cell {
+            min-width: 120px;
+        }
+
+        .discount-value {
+            margin-bottom: 4px;
+        }
+
+        .discount-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--md-sys-color-primary);
+            background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-tertiary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .min-order {
+            font-size: 11px;
+            color: var(--md-sys-color-on-surface-variant);
+            opacity: 0.7;
+        }
+
+        /* Status Badge */
+        .campaign-status-cell {
+            min-width: 120px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .status-badge i {
+            font-size: 8px;
+        }
+
+        .status-active {
+            background: rgba(76, 175, 80, 0.15);
+            color: #2e7d32;
+            border: 1.5px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status-active i {
+            color: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-inactive {
+            background: rgba(158, 158, 158, 0.15);
+            color: #616161;
+            border: 1.5px solid rgba(158, 158, 158, 0.3);
+        }
+
+        .status-scheduled {
+            background: rgba(33, 150, 243, 0.15);
+            color: #1565c0;
+            border: 1.5px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .status-expired {
+            background: rgba(244, 67, 54, 0.15);
+            color: #c62828;
+            border: 1.5px solid rgba(244, 67, 54, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Usage Cell */
+        .campaign-usage-cell {
+            min-width: 120px;
+        }
+
+        .usage-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .usage-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .usage-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--md-sys-color-surface-variant);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-tertiary) 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Period Cell */
+        .campaign-period-cell {
+            min-width: 160px;
+        }
+
+        .period-dates {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .date-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .date-line i {
+            font-size: 11px;
+            color: var(--md-sys-color-on-surface-variant);
+            width: 12px;
+        }
+
+        .date-line:first-child {
+            color: #4caf50;
+        }
+
+        .date-line:last-child {
+            color: #f44336;
+        }
+
+        /* Actions Cell */
+        .campaign-actions-cell {
+            min-width: 100px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .edit-btn {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+        }
+
+        .edit-btn:hover {
+            background: rgba(33, 150, 243, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        .delete-btn {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+        }
+
+        .delete-btn:hover {
+            background: rgba(244, 67, 54, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .data-table {
+                font-size: 13px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 12px 16px;
+            }
+
+            .campaign-name {
+                font-size: 14px;
+            }
+
+            .campaign-description {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .data-table {
+                min-width: 1000px;
+            }
+        }
+
+        /* Empty State */
+        .data-table tbody tr td[colspan] {
+            padding: 3rem 2rem;
+        }
+
+        /* Loading State */
+        .loading-row td {
+            text-align: center;
+            padding: 2rem;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* ===== END ENHANCED TABLE STYLES ===== */
+
+        /* ===== MERCHANT DISCOUNTS TABLE STYLES ===== */
+        
+        .discount-row {
+            transition: background-color 0.2s ease;
+        }
+
+        .discount-row:hover {
+            background: var(--md-sys-color-surface-container-low);
+        }
+
+        /* Discount Name/Code Cell */
+        .discount-name-cell {
+            min-width: 180px;
+        }
+
+        .discount-code {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--md-sys-color-primary);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .discount-description {
+            font-size: 13px;
+            color: var (--md-sys-color-on-surface-variant);
+            line-height: 1.4;
+            opacity: 0.8;
+        }
+
+        /* Merchant Name Cell */
+        .merchant-name-cell {
+            min-width: 200px;
+        }
+
+        .merchant-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 4px;
+        }
+
+        .merchant-id {
+            font-size: 11px;
+            color: var (--md-sys-color-on-surface-variant);
+            font-family: 'Courier New', monospace;
+            opacity: 0.6;
+        }
+
+        /* Discount Type Badge */
+        .discount-type-cell {
+            min-width: 130px;
+        }
+
+        .type-percentage {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .type-fixed {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        /* Discount Value Cell */
+        .discount-value-cell {
+            min-width: 120px;
+        }
+
+        /* Discount Validity Cell */
+        .discount-validity-cell {
+            min-width: 140px;
+        }
+
+        .validity-date {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--md-sys-color-error);
+        }
+
+        .validity-date i {
+            font-size: 11px;
+            color: var (--md-sys-color-error);
+        }
+
+        /* ===== END MERCHANT DISCOUNTS TABLE STYLES ===== */
+
+        /* Modal dialog styles */
+    </style>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+
+<body data-page="promotions">
+    <!-- Sidebar include placeholder -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Create Promotion Modal Dialog -->
+            <div id="addPromotionModal" class="modal">
+                <div class="modal-content">
+                    <button id="closeAddPromotionModalBtn" class="modal-close">&times;</button>
+                    <h2 style="margin-top: 0;"><i class="fas fa-tags"></i> New Promotion</h2>
+                    <form id="addPromotionForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="title">Promotion Title *</label>
+                                <input type="text" id="title" name="title" required
+                                    placeholder="e.g., Summer Sale 2025">
+                            </div>
+                            <div class="form-group">
+                                <label for="code">Promotion Code *</label>
+                                <input type="text" id="code" name="code" required placeholder="e.g., SUMMER25"
+                                    style="text-transform: uppercase;">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="type">Discount Type *</label>
+                                <select id="type" name="type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="percentage">Percentage Off</option>
+                                    <option value="fixed_amount">Fixed Amount Off</option>
+                                    <option value="free_delivery">Free Delivery</option>
+                                    <option value="bogo">Buy One Get One</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="value">Discount Value *</label>
+                                <input type="number" id="value" name="value" required min="0" step="0.01"
+                                    placeholder="e.g., 25 or 10.50">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description *</label>
+                            <textarea id="description" name="description" required
+                                placeholder="Brief description of the promotion"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="startDate">Start Date & Time *</label>
+                                <div class="datetime-input-wrapper">
+                                    <input type="datetime-local" id="startDate" name="startDate" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="endDate">End Date & Time *</label>
+                                <div class="datetime-input-wrapper">
+                                    <input type="datetime-local" id="endDate" name="endDate" required>
+                                </div>
+                                </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="limit">Usage Limit (optional)</label>
+                                <input type="number" id="limit" name="limit" min="1" placeholder="e.g., 100">
+                            </div>
+                            <div class="form-group">
+                                <label for="minOrder">Min Order Value (optional)</label>
+                                <input type="number" id="minOrder" name="minOrder" min="0" step="0.01"
+                                    placeholder="e.g., 50.00">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="btn-secondary">Clear Form</button>
+                            <button type="submit" class="btn-primary">Create Promotion</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Enhanced Campaign Modal Dialog with Material 3 Design -->
+            <div id="simplifiedCampaignModal" class="modal" style="display: none;">
+                <div class="modal-content material-3-modal">
+                    <button id="closeCampaignModal" class="modal-close material-3-close">&times;</button>
+                    <div class="modal-header material-3-header">
+                        <h2>
+                            <i class="fas fa-rocket material-3-icon"></i> Create Campaign
+                        </h2>
+                    </div>
+            
+                    <div id="campaignLoader" class="material-3-loader" style="display: none;">
+                        <div class="loader-content">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Processing campaign...</span>
+                        </div>
+                    </div>
+                    <form id="simplifiedCampaignForm" class="material-3-form">
+                        <!-- Basic Campaign Information -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-info-circle"></i> Basic Information
+                            </h3>
+<div class="form-row">
+            <div class="material-3-field">
+                <input type="text" name="title" id="campaign_title" required placeholder=" " class="material-3-input">
+                <label for="campaign_title" class="material-3-label">Campaign Title *</label>
+                <div class="material-3-underline"></div>
+            </div>
+                                <div class="material-3-field">
+                                    <input type="text" name="code" id="campaign_code" required placeholder=" " class="material-3-input"
+                                        style="text-transform: uppercase;">
+                                    <label for="campaign_code" class="material-3-label">Campaign Code *</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">Must be unique (e.g., FIRST25)</small>
+                                </div>
+                                </div>
+
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <select name="type" id="campaign_type" required class="material-3-select">
+                                        <option value="">Select Type</option>
+                                        <option value="first-order">First Order Discount</option>
+                                        <option value="new-customer">New Customer Welcome</option>
+                                        <option value="loyalty">Loyalty Reward</option>
+                                        <option value="promotional">Promotional Campaign</option>
+                                        <option value="seasonal">Seasonal Offer</option>
+                                    </select>
+                                    <label for="campaign_type" class="material-3-label">Campaign Type *</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                                <div class="material-3-field">
+                                    <textarea name="description" id="campaign_description" placeholder=" " class="material-3-textarea"></textarea>
+                                    <label for="campaign_description" class="material-3-label">Description</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discount Configuration -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-percent"></i> Discount Details
+                            </h3>
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <select name="discountType" id="campaign_discountType" required class="material-3-select">
+                                        <option value="">Select Type</option>
+                                        <option value="percentage">Percentage Off</option>
+                                        <option value="fixed">Fixed Amount Off</option>
+                                        <option value="free-delivery">Free Delivery</option>
+                                        </select>
+                                    <label for="campaign_discountType" class="material-3-label">Discount Type *</label>
+                                    <div class="material-3-underline"></div>
+                                    </div>
+                                <div class="material-3-field">
+                                    <input type="number" name="discountValue" id="campaign_discountValue" required min="0" step="0.01" placeholder=" "
+                                        class="material-3-input">
+                                    <label for="campaign_discountValue" class="material-3-label">Discount Value *</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">Amount or percentage (e.g., 25 or 10.50)</small>
+                                </div>
+                                </div>
+
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <input type="number" name="minOrderValue" id="campaign_minOrderValue" min="0" step="0.01" placeholder=" "
+                                        class="material-3-input">
+                                    <label for="campaign_minOrderValue" class="material-3-label">Minimum Order Value</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">Optional minimum order amount</small>
+                                </div>
+                                <div class="material-3-field">
+                                    <input type="number" name="usageLimit" id="campaign_usageLimit" min="1" placeholder=" " class="material-3-input">
+                                    <label for="campaign_usageLimit" class="material-3-label">Usage Limit</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">Leave empty for unlimited</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campaign Schedule -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-calendar"></i> Schedule
+                            </h3>
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <input type="date" name="startDate" id="campaign_startDate" required placeholder=" " class="material-3-input">
+                                    <label for="campaign_startDate" class="material-3-label">Start Date *</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                                <div class="material-3-field">
+                                    <input type="date" name="endDate" id="campaign_endDate" required placeholder=" " class="material-3-input">
+                                    <label for="campaign_endDate" class="material-3-label">End Date *</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Simplified Targeting -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-bullseye"></i> Targeting
+                            </h3>
+                        
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <select name="customerSegment" id="campaign_customerSegment" class="material-3-select">
+                                        <option value="all">All Customers</option>
+                                        <option value="new">New Customers (First 7 days)</option>
+                                        <option value="returning">Returning Customers</option>
+                                        <option value="vip">VIP Customers</option>
+                                        <option value="inactive">Inactive Customers (30+ days)</option>
+                                    </select>
+                                    <label for="campaign_customerSegment" class="material-3-label">Customer Segment</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                                <div class="material-3-field">
+                                    <input type="text" name="targetLocation" id="campaign_targetLocation" placeholder=" " class="material-3-input">
+                                    <label for="campaign_targetLocation" class="material-3-label">Target Location</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">e.g., Dubai, Abu Dhabi (optional)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campaign Settings -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-cog"></i> Settings
+                            </h3>
+                        
+                            <div class="material-3-checkboxes">
+                                <label class="material-3-checkbox">
+                                    <input type="checkbox" name="isActive" checked>
+                                    <span class="material-3-checkmark"></span>
+                                    <span class="checkbox-text">Activate immediately</span>
+                                </label>
+                                <label class="material-3-checkbox">
+                                    <input type="checkbox" name="singleUse">
+                                    <span class="material-3-checkmark"></span>
+                                    <span class="checkbox-text">Single use per customer</span>
+                                </label>
+                                <label class="material-3-checkbox">
+                                    <input type="checkbox" name="stackable">
+                                    <span class="material-3-checkmark"></span>
+                                    <span class="checkbox-text">Stackable with other offers</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Push Notification Settings -->
+                        <div class="form-section material-3-section"
+                            style="background: var(--md-sys-color-tertiary-container); border-left-color: var(--md-sys-color-tertiary);">
+                            <h3 class="section-title">
+                                <i class="fas fa-bell"></i> Push Notifications
+                            </h3>
+                        
+                            <div class="material-3-checkboxes">
+                                <label class="material-3-checkbox">
+                                    <input type="checkbox" name="sendPushNotification" id="sendPushNotification" checked>
+                                    <span class="material-3-checkmark"></span>
+                                    <span class="checkbox-text" style="font-weight: 500;">Send push notification to merchants</span>
+                                </label>
+                                <small class="material-3-helper"
+                                    style="margin-left: 32px; display: block; margin-top: 8px; color: var(--md-sys-color-on-surface-variant);">
+                                    <i class="fas fa-info-circle"></i> Merchants will receive a notification about this promotion on their
+                                    WhizzMerchants app
+                                </small>
+                            </div>
+                        
+                            <div id="pushNotificationOptions" class="push-notification-options"
+                                style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--md-sys-color-outline-variant);">
+                                <div class="material-3-field">
+                                    <input type="text" name="notificationTitle" id="notificationTitle" placeholder=" " class="material-3-input"
+                                        maxlength="50">
+                                    <label for="notificationTitle" class="material-3-label">Notification Title</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">Leave empty to use campaign name</small>
+                                </div>
+                                <div class="material-3-field" style="margin-top: 16px;">
+                                    <textarea name="notificationMessage" id="notificationMessage" placeholder=" " class="material-3-textarea"
+                                        rows="3" maxlength="150"></textarea>
+                                    <label for="notificationMessage" class="material-3-label">Notification Message</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">Custom message (max 150 characters)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions material-3-actions">
+                            <button type="button" class="btn-secondary material-3-btn-secondary"
+                                onclick="window.campaignManager && window.campaignManager.resetForm()">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                            <button type="submit" class="btn-primary material-3-btn-primary">
+                                <i class="fas fa-rocket"></i> Create Campaign
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Push Notification Modal -->
+            <div id="pushNotificationModal" class="modal" style="display: none;">
+                <div class="modal-content material-3-modal" style="max-width: 600px;">
+                    <button class="modal-close" onclick="closePushModal()">×</button>
+                    <div class="material-3-header">
+                        <h2><i class="fas fa-bell"></i> Send Push Notification</h2>
+                    </div>
+                    <div style="padding: 24px;">
+                        <div
+                            style="background: var(--md-sys-color-surface-variant); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 8px 0; color: var(--md-sys-color-on-surface-variant);">Discount Preview</h3>
+                            <div id="discountPreview" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+                    
+                        <form id="pushNotificationForm" onsubmit="return sendPushNotification(event)">
+                            <input type="hidden" id="push_discountId" name="discountId">
+                    
+                            <!-- Target Audience -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Target Audience <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <select id="push_targetAudience" name="targetAudience" required class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="all">All Customers</option>
+                                    <option value="nearby">Nearby Customers (5km)</option>
+                                    <option value="loyal">Loyal Customers (5+ orders)</option>
+                                    <option value="new">New Customers (last 30 days)</option>
+                                </select>
+                            </div>
+                    
+                            <!-- Notification Title (Optional Override) -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <input type="text" id="push_notificationTitle" name="notificationTitle" placeholder=" "
+                                    class="material-3-input">
+                                <label for="push_notificationTitle" class="material-3-label">Custom Notification Title (Optional)</label>
+                                <div class="material-3-underline"></div>
+                                <small class="material-3-helper">Leave empty to use auto-generated title</small>
+                            </div>
+                    
+                            <!-- Notification Body (Optional Override) -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <textarea id="push_notificationBody" name="notificationBody" placeholder=" " class="material-3-textarea"
+                                    rows="3"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;"></textarea>
+                                <label for="push_notificationBody" class="material-3-label">Custom Notification Message (Optional)</label>
+                                <small class="material-3-helper">Leave empty to use auto-generated message</small>
+                            </div>
+                    
+                            <!-- Schedule Options -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Send Time</label>
+                                <select id="push_sendTime" name="sendTime" class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="now">Send Immediately</option>
+                                    <option value="scheduled">Schedule for Later</option>
+                                </select>
+                            </div>
+                    
+                            <div id="scheduledTimeSection" style="display: none; margin-bottom: 20px;">
+                                <div class="material-3-field">
+                                    <input type="datetime-local" id="push_scheduledTime" name="scheduledTime" class="material-3-input">
+                                    <label for="push_scheduledTime" class="material-3-label">Scheduled Time</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                            </div>
+                    
+                            <!-- Estimated Reach -->
+                            <div
+                                style="background: var(--md-sys-color-tertiary-container); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-users" style="font-size: 24px; color: var(--md-sys-color-on-tertiary-container);"></i>
+                                    <div>
+                                        <div style="font-weight: 500; color: var(--md-sys-color-on-tertiary-container);">Estimated Reach
+                                        </div>
+                                        <div id="estimatedReach"
+                                            style="font-size: 0.9rem; color: var(--md-sys-color-on-tertiary-container); opacity: 0.8;">
+                                            Calculating...</div>
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <!-- Form Actions -->
+                            <div class="form-actions material-3-actions">
+                                <button type="button" class="btn-secondary material-3-btn-secondary" onclick="closePushModal()">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn-primary material-3-btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Send Notification
+                                </button>
+                                </div>
+                                </form>
+                                </div>
+                </div>
+                </div>
+
+            <!-- Merchant Information Notification Modal -->
+            <div id="merchantInfoNotificationModal" class="modal" style="display: none;">
+                <div class="modal-content material-3-modal" style="max-width: 700px;">
+                    <button class="modal-close" onclick="closeMerchantInfoModal()">×</button>
+                    <div class="material-3-header" style="background: var(--md-sys-color-tertiary);">
+                        <h2><i class="fas fa-megaphone"></i> Send Information to Merchants</h2>
+                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 0.9rem;">Broadcast important updates, policies, and
+                            announcements</p>
+                    </div>
+                    <div style="padding: 24px;">
+                        <form id="merchantInfoNotificationForm">
+            
+                            <!-- Notification Type -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Notification Type <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <select id="merchant_notificationType" name="notificationType" required class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="info">ℹ️ Information</option>
+                                    <option value="warning">⚠️ Warning</option>
+                                    <option value="urgent">🚨 Urgent Alert</option>
+                                    <option value="feature">✨ New Feature</option>
+                                    <option value="policy">📋 Policy Update</option>
+                                </select>
+                            </div>
+            
+                            <!-- Notification Title -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <input type="text" id="merchant_notificationTitle" name="notificationTitle" placeholder=" " required
+                                    class="material-3-input">
+                                <label for="merchant_notificationTitle" class="material-3-label">Notification Title <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <div class="material-3-underline"></div>
+                                <small class="material-3-helper">e.g., "New Commission Policy Effective December 1st"</small>
+                            </div>
+            
+                            <!-- Notification Body -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <textarea id="merchant_notificationBody" name="notificationBody" placeholder=" " required
+                                    class="material-3-textarea" rows="4"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;"></textarea>
+                                <label for="merchant_notificationBody" class="material-3-label">Notification Message <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <small class="material-3-helper">Clear, concise message explaining the information</small>
+                            </div>
+            
+                            <!-- Target Audience -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Target Merchants <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <select id="merchant_targetAudience" name="targetAudience" required class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="all">All Merchants</option>
+                                    <option value="active">Active Merchants (orders in last 30 days)</option>
+                                    <option value="inactive">Inactive Merchants (no recent orders)</option>
+                                    <option value="new">New Merchants (joined in last 14 days)</option>
+                                    <option value="by_city">By City</option>
+                                    <option value="by_category">By Category</option>
+                                </select>
+                            </div>
+            
+                            <!-- City Filter (shown when by_city selected) -->
+                            <div id="cityFilterSection" style="display: none; margin-bottom: 20px;">
+                                <div class="material-3-field">
+                                    <input type="text" id="merchant_city" name="city" placeholder=" " class="material-3-input">
+                                    <label for="merchant_city" class="material-3-label">City</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">e.g., Baghdad, Najaf, Basra</small>
+                                </div>
+                            </div>
+            
+                            <!-- Category Filter (shown when by_category selected) -->
+                            <div id="categoryFilterSection" style="display: none; margin-bottom: 20px;">
+                                <div class="material-3-field">
+                                    <select id="merchant_businessCategory" name="businessCategory" class="material-3-select"
+                                        style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                        <option value="">Select Category</option>
+                                        <option value="restaurant">Restaurant</option>
+                                        <option value="grocery">Grocery</option>
+                                        <option value="pharmacy">Pharmacy</option>
+                                        <option value="retail">Retail</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+            
+                            <!-- Priority -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Priority</label>
+                                <select id="merchant_priority" name="priority" class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="normal">Normal</option>
+                                    <option value="high">High Priority</option>
+                                </select>
+                            </div>
+            
+                            <!-- Optional Fields -->
+                            <details
+                                style="margin-bottom: 20px; padding: 16px; background: var(--md-sys-color-surface-variant); border-radius: 8px;">
+                                <summary style="cursor: pointer; font-weight: 500; padding: 8px;">Advanced Options</summary>
+                                <div style="margin-top: 16px;">
+                                    <!-- Action URL -->
+                                    <div class="material-3-field" style="margin-bottom: 16px;">
+                                        <input type="url" id="merchant_actionUrl" name="actionUrl" placeholder=" "
+                                            class="material-3-input">
+                                        <label for="merchant_actionUrl" class="material-3-label">Action URL (Optional)</label>
+                                        <div class="material-3-underline"></div>
+                                        <small class="material-3-helper">Deep link or web URL for "Learn More"</small>
+                                    </div>
+            
+                                    <!-- Image URL -->
+                                    <div class="material-3-field" style="margin-bottom: 16px;">
+                                        <input type="url" id="merchant_imageUrl" name="imageUrl" placeholder=" "
+                                            class="material-3-input">
+                                        <label for="merchant_imageUrl" class="material-3-label">Image URL (Optional)</label>
+                                        <div class="material-3-underline"></div>
+                                        <small class="material-3-helper">Banner or illustration image</small>
+                                    </div>
+            
+                                    <!-- Schedule -->
+                                    <div class="material-3-field">
+                                        <label style="display: block; margin-bottom: 8px;">Send Time</label>
+                                        <select id="merchant_sendTime" name="sendTime" class="material-3-select"
+                                            style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                            <option value="now">Send Immediately</option>
+                                            <option value="scheduled">Schedule for Later</option>
+                                        </select>
+                                    </div>
+            
+                                    <div id="merchantScheduledTimeSection" style="display: none; margin-top: 16px;">
+                                        <div class="material-3-field">
+                                            <input type="datetime-local" id="merchant_scheduledTime" name="scheduledTime"
+                                                class="material-3-input">
+                                            <label for="merchant_scheduledTime" class="material-3-label">Scheduled Time</label>
+                                            <div class="material-3-underline"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+            
+                            <!-- Estimated Reach -->
+                            <div
+                                style="background: var(--md-sys-color-tertiary-container); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-store"
+                                        style="font-size: 24px; color: var(--md-sys-color-on-tertiary-container);"></i>
+                                    <div>
+                                        <div style="font-weight: 500; color: var(--md-sys-color-on-tertiary-container);">Estimated
+                                            Reach</div>
+                                        <div id="merchantEstimatedReach"
+                                            style="font-size: 0.9rem; color: var(--md-sys-color-on-tertiary-container); opacity: 0.8;">
+                                            Calculating...</div>
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <!-- Preview Box -->
+                            <div
+                                style="background: var(--md-sys-color-surface-variant); padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid var(--md-sys-color-tertiary);">
+                                <div style="font-weight: 500; margin-bottom: 12px; color: var(--md-sys-color-on-surface-variant);">
+                                    📱 Notification Preview</div>
+                                <div id="merchantNotificationPreview"
+                                    style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="font-weight: 600; font-size: 1rem; margin-bottom: 4px;">Title will appear here</div>
+                                    <div style="font-size: 0.9rem; color: #666;">Message will appear here</div>
+                                </div>
+                            </div>
+            
+                            <!-- Form Actions -->
+                            <div class="form-actions material-3-actions">
+                                <button type="button" class="btn-secondary material-3-btn-secondary"
+                                    onclick="closeMerchantInfoModal()">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn-primary material-3-btn-primary"
+                                    style="background: var(--md-sys-color-tertiary);">
+                                    <i class="fas fa-paper-plane"></i> Send to Merchants
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Header -->
+            <div class="page-header">
+                <div style="flex: 1;">
+                    <h1><i class="fas fa-bullhorn"></i> Promotions & Campaigns</h1>
+                    <p>Manage discounts, special offers, and marketing campaigns.</p>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <button class="btn-primary" onclick="openMerchantInfoModal()" data-permission="campaigns_admin:write"
+                        style="background: var(--md-sys-color-tertiary); white-space: nowrap;">
+                        <i class="fas fa-megaphone"></i> Send to Merchants
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Merchant Discounts Section -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-tags"></i> Merchant Discounts</h2>
+                    <div class="header-actions">
+                        <div class="stats">
+                            <span class="stat-item">Total: <strong id="discounts-total">0</strong></span>
+                            <span class="stat-item">Active: <strong id="discounts-active">0</strong></span>
+                        </div>
+                        <button class="btn-secondary" id="refreshDiscountsBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <button class="btn-primary" id="addPromotionBtn" data-permission="campaigns_admin:write"><i
+                                class="fas fa-plus"></i>
+                            Create Discount</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Discount</th>
+                                <th>Merchant</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Usage</th>
+                                <th>Valid Until</th>
+                                <th data-permission="campaigns_admin:write">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="merchant-discounts-tbody">
+                            <!-- Real data will be populated here by JavaScript -->
+                            <tr id="discounts-loading-row">
+                                <td colspan="8" class="loading-row">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading merchant discounts...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Special Campaigns Section -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-rocket"></i> Special Campaigns</h2>
+                    <div class="header-actions">
+                        <div class="stats">
+                            <span class="stat-item">Total: <strong id="campaigns-total">0</strong></span>
+                            <span class="stat-item">Active: <strong id="campaigns-active">0</strong></span>
+                        </div>
+                        <button class="btn-primary" id="createCampaignBtn" data-permission="campaigns_admin:write"><i class="fas fa-plus"></i>
+                            Create Campaign</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Campaign</th>
+                                <th>Type</th>
+                                <th>Target</th>
+                                <th>Discount</th>
+                                <th>Status</th>
+                                <th>Usage</th>
+                                <th>Valid Period</th>
+                                <th data-permission="campaigns_admin:write">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="special-campaigns-tbody">
+                            <!-- Real data will be populated here by JavaScript -->
+                            <tr id="campaigns-loading-row">
+                                <td colspan="8" class="loading-row">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading special campaigns...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AWS SDK -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
+
+    <!-- Configuration -->
+    <script src="../config.js"></script>
+
+    <!-- Centralized utilities -->
+    <script src="../assets/js/auth-utils.js"></script>
+    <script src="../assets/js/aws-utils.js?v=10"></script>
+
+    <!-- Campaigns API -->
+    <script src="../js/campaigns-api.js"></script>
+    
+    <!-- Merchant Discounts API -->
+    <script src="../js/merchant-discounts-api.js"></script>
+
+    <!-- Data service (depends on aws-utils) -->
+    <script src="../data-service.js?v=10"></script>
+
+    <!-- Page-specific scripts -->
+    <script src="../aggressive-sidebar-fix.js"></script>
+    <script src="../immediate-sidebar-fix.js"></script>
+    <script src="../assets/js/navigation.js"></script>
+    <!-- Initialize Navigation Manager -->
+    <script>
+        // Initialize navigation manager when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('🧭 Promotions: Initializing navigation manager...');
+                if (window.navigationManager) {
+                    window.navigationManager.init().catch(err => {
+                        console.error('❌ Navigation init failed:', err);
+                    });
+                }
+            });
+        } else {
+            console.log('🧭 Promotions: Initializing navigation manager (DOM already loaded)...');
+            if (window.navigationManager) {
+                window.navigationManager.init().catch(err => {
+                    console.error('❌ Navigation init failed:', err);
+                });
+            }
+        }
+
+        // Listen for navigation ready event
+        document.addEventListener('navigation:ready', () => {
+            console.log('✅ Promotions: Navigation is ready');
+        });
+    </script>
+    <!-- Include centralized ModalManager for modals/toasts -->
+    <script src="../js/core/ModalManager.js"></script>
+    <!-- Simplified Campaign Management -->
+    <script src="../aligned-data-service.js"></script>
+    <script src="../simplified-campaign-manager.js"></script>
+    <script src="../promotions-clean.js?v=10"></script>
+    <script src="../campaign-save-debug.js"></script>
+    <script src="../campaign-button-debug.js"></script>
+    
+    <!-- Emergency Fix Auto-Loader -->
+    <script src="../auto-emergency-fix.js"></script>
+    <!-- Fallback Campaign Manager - Fix for "Campaign manager not available" -->
+    <script>
+        // Define SimplifiedCampaignManager inline as fallback
+        if (typeof SimplifiedCampaignManager === 'undefined') {
+            console.log('🔧 Loading fallback campaign manager...');
+            
+            class SimplifiedCampaignManager {
+                constructor() {
+                    this.campaigns = [];
+                    this.isLoading = false;
+                }
+                
+                showLoading(message = 'Loading...') {
+                    console.log(`⏳ ${message}`);
+                    const tbody = document.getElementById('campaignsTableBody');
+                    if (tbody) {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem;">${message}</td></tr>`;
+                    }
+                }
+                
+                hideLoading() {
+                    console.log('✅ Loading completed');
+                }
+                
+                showSuccess(message) {
+                    console.log(`✅ SUCCESS: ${message}`);
+                    alert(`Success: ${message}`);
+                }
+                
+                showError(message) {
+                    console.error(`❌ ERROR: ${message}`);
+                    alert(`Error: ${message}`);
+                }
+                
+                async initialize() {
+                    console.log('🚀 Initializing Fallback Campaign Manager...');
+                    try {
+                        await this.loadCampaigns();
+                        console.log('✅ Fallback Campaign Manager initialized');
+                    } catch (error) {
+                        console.error('❌ Failed to initialize:', error);
+                    }
+                }
+                
+                async loadCampaigns() {
+                    try {
+                        // Wait for WizzCampaignsAPI to be available (with retry)
+                        let retries = 0;
+                        const maxRetries = 10;
+                        while (!window.WizzCampaignsAPI && retries < maxRetries) {
+                            console.log(`⏳ Waiting for WizzCampaignsAPI... (attempt ${retries + 1}/${maxRetries})`);
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            retries++;
+                        }
+
+                        if (!window.WizzCampaignsAPI) {
+                            throw new Error('WizzCampaignsAPI not available after waiting');
+                        }
+
+                        console.log('🔄 Loading campaigns from WizzCampaignsAPI...');
+                        const result = await window.WizzCampaignsAPI.getCampaigns(50);
+                        
+                        if (result.success && result.campaigns) {
+                            this.campaigns = result.campaigns;
+                            console.log(`📊 Loaded ${this.campaigns.length} campaigns from ${result.source}`);
+                            this.updateCampaignStats();
+                            this.renderCampaigns();
+                        }
+                    } catch (error) {
+                        console.error('❌ Error loading campaigns:', error);
+                        this.campaigns = [];
+                        this.showError('Failed to load campaigns: ' + error.message);
+                    }
+                }
+                
+                async createCampaign(formData) {
+                    try {
+                        this.showLoading('Creating campaign...');
+                        
+                        // Extract data from FormData
+                        const campaignData = {
+                            name: formData.get('name') || formData.get('title') || 'Test Campaign',
+                            description: formData.get('description') || 'Test campaign description',
+                            discountType: formData.get('discountType') || 'percentage',
+                            discountValue: parseFloat(formData.get('discountValue')) || 10,
+                            startDate: formData.get('startDate') || '2025-09-18',
+                            endDate: formData.get('endDate') || '2025-12-31',
+                            targetAudience: formData.get('customerSegment') || 'all_customers',
+                            minimumOrderValue: parseFloat(formData.get('minOrderValue')) || 0,
+                            businessId: 'test-business',
+                            status: 'active'
+                        };
+                        
+                        // Extract push notification settings
+                        const sendPushNotification = formData.get('sendPushNotification') === 'on';
+                        const notificationTitle = formData.get('notificationTitle') || campaignData.name;
+                        const notificationMessage = formData.get('notificationMessage') ||
+                            `🎉 New promotion: ${campaignData.discountValue}${campaignData.discountType === 'percentage' ? '%' : ' IQD'} off!`;
+                        
+                        console.log('📝 Creating campaign with data:', campaignData);
+                        console.log('📱 Push notification settings:', { sendPushNotification, notificationTitle, notificationMessage });
+                        
+                        // Validate required fields
+                        if (!campaignData.name || !campaignData.discountType || 
+                            campaignData.discountValue === null || campaignData.discountValue === undefined) {
+                            throw new Error('Please fill in all required fields');
+                        }
+                        
+                        // Use WizzCampaignsAPI instead of backend
+                        if (!window.WizzCampaignsAPI) {
+                            throw new Error('WizzCampaignsAPI not available');
+                        }
+                        
+                        const result = await window.WizzCampaignsAPI.createCampaign(campaignData);
+                        
+                        if (!result.success) {
+                            throw new Error(result.message || 'Failed to create campaign');
+                        }
+                        
+                        // Send push notification if enabled
+                        if (sendPushNotification && result.campaign) {
+                            console.log('📱 Sending push notifications to merchants...');
+                            try {
+                                await this.sendPromotionPushNotification({
+                                    campaignId: result.campaign.id || result.campaign.campaignId,
+                                    title: notificationTitle,
+                                    message: notificationMessage,
+                                    campaignData: campaignData
+                                });
+                                console.log('✅ Push notifications sent successfully');
+                            } catch (pushError) {
+                                console.error('⚠️ Push notification failed (non-blocking):', pushError);
+                                // Don't fail the campaign creation if push fails
+                            }
+                        }
+                        
+                        this.hideLoading();
+                        this.showSuccess('Campaign created successfully!' + (sendPushNotification ? ' Push notifications sent to merchants.' : ''));
+                        this.closeCampaignModal();
+                        await this.loadCampaigns();
+                        
+                        return result;
+                        
+                    } catch (error) {
+                        this.hideLoading();
+                        console.error('❌ Error creating campaign:', error);
+                        this.showError('Failed to create campaign: ' + error.message);
+                        throw error;
+                    }
+                }
+                
+                async sendPromotionPushNotification(data) {
+                    console.log('📱 Sending promotion push notification:', data);
+
+                    try {
+                        // Get AWS credentials and configuration
+                        const credentials = await window.AWSUtils.getCredentials();
+                        const apiEndpoint = window.WIZZCENTRAL_CONFIG?.PUSH_NOTIFICATION_API_URL || '';
+
+                        if (!apiEndpoint) {
+                            throw new Error('Missing PUSH_NOTIFICATION_API_URL. Set window.__PUSH_NOTIFICATION_API_URL__.');
+                        }
+                        const stage = String(window.WIZZCENTRAL_CONFIG?.STAGE || 'staging');
+                        if (String(apiEndpoint).includes('/dev')) {
+                            throw new Error(`Refusing to use dev push API endpoint in ${stage}: ${apiEndpoint}`);
+                        }
+                        if (stage === 'staging' && /\/prod\b/i.test(String(apiEndpoint))) {
+                            throw new Error(`Refusing to use prod push API endpoint in staging: ${apiEndpoint}`);
+                        }
+
+                        console.log('🔗 Using API endpoint:', apiEndpoint);
+
+                        // Prepare notification payload
+                        const payload = {
+                            campaignId: data.campaignId,
+                            title: data.title,
+                            message: data.message,
+                            type: 'promotion',
+                            targetAudience: 'merchants',
+                            data: {
+                                campaignId: data.campaignId,
+                                discountType: data.campaignData.discountType,
+                                discountValue: data.campaignData.discountValue,
+                                minimumOrderValue: data.campaignData.minimumOrderValue,
+                                validUntil: data.campaignData.endDate
+                            }
+                        };
+
+                        console.log('📤 Sending to backend:', payload);
+
+                        // Call Lambda function to send push notifications
+                        const response = await fetch(`${apiEndpoint}/send-promotion-notification`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': credentials.idToken
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        console.log('📡 Response status:', response.status);
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                            throw new Error(`Failed to send push notification: ${errorData.message || response.statusText}`);
+                        }
+
+                        const result = await response.json();
+                        console.log('📱 Push notification response:', result);
+
+                        return result;
+                    } catch (error) {
+                        console.error('❌ Push notification error:', error);
+                        throw error;
+                    }
+                }
+                
+                updateCampaignStats() {
+                    const totalElement = document.getElementById('totalCampaigns');
+                    const activeElement = document.getElementById('activeCampaigns');
+                    
+                    if (totalElement) {
+                        totalElement.textContent = this.campaigns.length;
+                    }
+                    
+                    if (activeElement) {
+                        const activeCampaigns = this.campaigns.filter(c => c.status === 'active').length;
+                        activeElement.textContent = activeCampaigns;
+                    }
+                }
+                
+                renderCampaigns() {
+                    const tbody = document.getElementById('campaignsTableBody');
+                    if (!tbody) return;
+
+                    if (this.campaigns.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 2rem; color: var(--md-sys-color-on-surface-variant);">
+                                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; color: var(--md-sys-color-outline);"></i>
+                                    <div>No campaigns found</div>
+                                    <div style="margin-top: 0.5rem; font-size: 0.9rem;">Create your first campaign to get started</div>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    // Helper function to format target audience
+                    const formatTarget = (target) => {
+                        const targetMap = {
+                            'all_customers': 'All Customers',
+                            'new_customers': 'New Customers',
+                            'returning_customers': 'Returning Customers',
+                            'vip_customers': 'VIP Customers'
+                        };
+                        return targetMap[target] || target || 'All Customers';
+                    };
+
+                    // Helper function to format campaign type
+                    const formatType = (type) => {
+                        const typeMap = {
+                            'first-order': 'First Order',
+                            'special-occasion': 'Special Event',
+                            'restaurant-first': 'Restaurant Launch',
+                            'seasonal': 'Seasonal',
+                            'loyalty': 'Loyalty'
+                        };
+                        return typeMap[type] || type || 'General';
+                    };
+
+                    tbody.innerHTML = SecurityUtils.sanitizeHTML(
+                        this.campaigns.map(campaign => {
+                            // Sanitize user-generated content to prevent XSS
+                            const safeName = SecurityUtils.escapeHTML(campaign.name || 'Untitled Campaign');
+                            const safeDescription = campaign.description ? SecurityUtils.escapeHTML(campaign.description) : '';
+
+                            return `
+                            <tr class="campaign-row">
+                                <td class="campaign-name-cell">
+                                    <div class="campaign-name">${safeName}</div>
+                                    ${safeDescription ? `<div class="campaign-description">${safeDescription}</div>` : ''}
+                                </td>
+                                <td class="campaign-type-cell">
+                                    <span class="type-badge type-${(campaign.type || 'general').replace(/[^a-z0-9]/gi, '-')}">${formatType(campaign.type)}</span>
+                                </td>
+                                <td class="campaign-target-cell">
+                                    <span class="target-text">${formatTarget(campaign.targetAudience)}</span>
+                                </td>
+                                <td class="campaign-discount-cell">
+                                    <div class="discount-value">
+                                        ${campaign.discountType === 'percentage' ?
+                                    `<span class="discount-number">${campaign.discountValue}%</span>` :
+                                    `<span class="discount-number">${window.WizzCampaignsAPI ? window.WizzCampaignsAPI.formatCurrency(campaign.discountValue) : campaign.discountValue}</span>`}
+                                    </div>
+                                    ${campaign.minimumOrderValue ? `<div class="min-order">Min: ${window.WizzCampaignsAPI ? window.WizzCampaignsAPI.formatCurrency(campaign.minimumOrderValue) : campaign.minimumOrderValue}</div>` : ''}
+                                </td>
+                                <td class="campaign-status-cell">
+                                    <span class="status-badge status-${campaign.status || 'inactive'}">
+                                        <i class="fas fa-circle"></i> ${(campaign.status || 'inactive').toUpperCase()}
+                                    </span>
+                                </td>
+                                <td class="campaign-usage-cell">
+                                    <div class="usage-container">
+                                        <div class="usage-text">${campaign.usage || 0} / ${campaign.maxUsage || '∞'}</div>
+                                        ${campaign.maxUsage ? `
+                                            <div class="usage-bar">
+                                                <div class="usage-fill" style="width: ${Math.min(((campaign.usage || 0) / campaign.maxUsage) * 100, 100)}%"></div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </td>
+                                <td class="campaign-period-cell">
+                                    <div class="period-dates">
+                                        <div class="date-line">
+                                            <i class="fas fa-calendar-check"></i>
+                                            <span>${window.WizzCampaignsAPI ? window.WizzCampaignsAPI.formatDate(campaign.startDate) : campaign.startDate}</span>
+                                        </div>
+                                        <div class="date-line">
+                                            <i class="fas fa-calendar-times"></i>
+                                            <span>${window.WizzCampaignsAPI ? window.WizzCampaignsAPI.formatDate(campaign.endDate) : campaign.endDate}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="campaign-actions-cell">
+                                    <div class="action-buttons">
+                                        <button class="action-btn edit-btn" onclick="alert('Edit campaign: ${campaign.id}')" title="Edit Campaign" data-write-only>
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete-btn" onclick="alert('Delete campaign: ${campaign.id}')" title="Delete Campaign" data-write-only>
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        }).join('')
+                    );
+                }
+                
+                openCampaignModal() {
+                    const modal = document.getElementById('simplifiedCampaignModal');
+                    if (modal) {
+                        modal.style.display = 'flex';
+                        console.log('📝 Campaign modal opened');
+                    }
+                }
+                
+                closeCampaignModal() {
+                    const modal = document.getElementById('simplifiedCampaignModal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                        console.log('📝 Campaign modal closed');
+                    }
+                }
+            }
+            
+            // Make it globally available
+            window.SimplifiedCampaignManager = SimplifiedCampaignManager;
+            console.log('✅ Fallback SimplifiedCampaignManager defined');
+        }
+    </script>
+    
+    <!-- Immediate Campaign Button Fix -->
+    <script>
+        // Immediate button fix - runs as soon as this script is encountered
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🔧 Immediate campaign button fix loading...');
+
+            // Try multiple times to ensure elements are ready
+            let attempts = 0;
+            const maxAttempts = 10;
+
+            function attachButtonListener() {
+                attempts++;
+                console.log(`🔄 Attempt ${attempts} to attach button listener...`);
+
+                const button = document.getElementById('createCampaignBtn');
+                const modal = document.getElementById('simplifiedCampaignModal');
+
+                if (button && modal) {
+                    // Remove any existing listeners first
+                    const newButton = button.cloneNode(true);
+                    button.parentNode.replaceChild(newButton, button);
+
+                    // Add fresh listener
+                    newButton.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🎯 Campaign button clicked! Opening modal...');
+                        modal.style.display = 'flex';
+                        modal.style.visibility = 'visible';
+                        modal.style.opacity = '1';
+                        console.log('✅ Modal should now be visible');
+                    });
+
+                    console.log('✅ Campaign button listener attached successfully!');
+                    return true;
+                } else {
+                    console.log(`❌ Elements not ready yet (button: ${!!button}, modal: ${!!modal})`);
+                    if (attempts < maxAttempts) {
+                        setTimeout(attachButtonListener, 100);
+                    } else {
+                        console.error('❌ Failed to attach button listener after maximum attempts');
+                    }
+                    return false;
+                }
+            }
+
+            // Start attempting to attach the listener
+            attachButtonListener();
+        });
+    </script>
+
+    <!-- Modal script -->
+    <script>
+        (function () {
+            function pad(n) { return String(n).padStart(2, '0'); }
+            function formatDateTimeLocal(date) {
+                const d = new Date(date);
+                const y = d.getFullYear();
+                const m = pad(d.getMonth() + 1);
+                const da = pad(d.getDate());
+                const hh = pad(d.getHours());
+                const mm = pad(d.getMinutes());
+                return `${y}-${m}-${da}T${hh}:${mm}`;
+            }
+
+            function initDateTimeInputs() {
+                const startEl = document.getElementById('startDate');
+                const endEl = document.getElementById('endDate');
+                if (!startEl || !endEl) return;
+
+                // Ensure minute precision
+                startEl.setAttribute('step', '60');
+                endEl.setAttribute('step', '60');
+
+                // Defaults: now and +7 days
+                const now = new Date();
+                const in7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                if (!startEl.value) startEl.value = formatDateTimeLocal(now);
+                if (!endEl.value) endEl.value = formatDateTimeLocal(in7days);
+
+                // Keep end >= start
+                const ensureEndAfterStart = () => {
+                    if (startEl.value && endEl.value && endEl.value < startEl.value) {
+                        endEl.value = startEl.value;
+                    }
+                };
+
+                // Bind once
+                if (!startEl.dataset.boundEnsure) {
+                    startEl.addEventListener('change', ensureEndAfterStart);
+                    startEl.dataset.boundEnsure = '1';
+                }
+
+                ensureEndAfterStart();
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const modal = document.getElementById('addPromotionModal');
+                const openBtn = document.getElementById('openAddPromotionModalBtn');
+                const closeBtn = document.getElementById('closeAddPromotionModalBtn');
+
+                if (openBtn && modal) {
+                    openBtn.addEventListener('click', () => {
+                        initDateTimeInputs();
+                        modal.style.display = 'flex';
+                    });
+                }
+
+                if (closeBtn && modal) {
+                    closeBtn.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+                }
+
+                window.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                });
+
+                // Initialize defaults on first load as well
+                initDateTimeInputs();
+
+                // Setup Material 3 form interactions
+                setupMaterial3Form();
+
+                console.log('✅ Campaign form initialized');
+            });
+
+            function setupMaterial3Form() {
+                // Handle Material 3 label animations
+                const inputs = document.querySelectorAll('.material-3-input, .material-3-select, .material-3-textarea');
+
+                inputs.forEach(input => {
+                    // Handle focus/blur for label positioning
+                    input.addEventListener('input', () => {
+                        updateLabelPosition(input);
+                    });
+
+                    input.addEventListener('change', () => {
+                        updateLabelPosition(input);
+                    });
+
+                    // Initialize label position
+                    updateLabelPosition(input);
+                });
+
+                // Setup push notification toggle
+                setupPushNotificationToggle();
+            }
+
+            function setupPushNotificationToggle() {
+                const pushCheckbox = document.getElementById('sendPushNotification');
+                const pushOptions = document.getElementById('pushNotificationOptions');
+
+                if (pushCheckbox && pushOptions) {
+                    // Initial state
+                    pushOptions.style.display = pushCheckbox.checked ? 'block' : 'none';
+
+                    // Toggle visibility when checkbox changes
+                    pushCheckbox.addEventListener('change', () => {
+                        pushOptions.style.display = pushCheckbox.checked ? 'block' : 'none';
+                        console.log('📱 Push notification:', pushCheckbox.checked ? 'enabled' : 'disabled');
+                    });
+
+                    console.log('✅ Push notification toggle initialized');
+                }
+            }
+
+            function updateLabelPosition(input) {
+                const label = input.nextElementSibling;
+                if (label && label.classList.contains('material-3-label')) {
+                    if (input.value || input.type === 'date') {
+                        label.style.top = '-8px';
+                        label.style.fontSize = '12px';
+                        label.style.color = 'var(--md-sys-color-primary)';
+                        label.style.fontWeight = '500';
+                    } else {
+                        label.style.top = '16px';
+                        label.style.fontSize = '16px';
+                        label.style.color = 'var(--md-sys-color-on-surface-variant)';
+                        label.style.fontWeight = '400';
+                    }
+                }
+            }
+
+            // Setup form submission for simplified campaign form
+            function setupCampaignFormSubmission() {
+                const campaignForm = document.getElementById('simplifiedCampaignForm');
+                if (campaignForm) {
+                    campaignForm.addEventListener('submit', async (event) => {
+                        event.preventDefault();
+                        console.log('📝 Campaign form submitted');
+
+                        if (window.campaignManager) {
+                            try {
+                                const formData = new FormData(campaignForm);
+                                await window.campaignManager.createCampaign(formData);
+                            } catch (error) {
+                                console.error('Campaign creation failed:', error);
+                                alert('Campaign creation failed: ' + error.message);
+                            }
+                        } else {
+                            console.error('Campaign manager not available');
+                            alert('Campaign manager not available. Please refresh the page.');
+                        }
+                    });
+                    console.log('✅ Campaign form submission handler attached');
+                } else {
+                    console.warn('⚠️ Campaign form not found');
+                }
+            }
+
+            // Initialize campaign manager
+            function initializeCampaignManager() {
+                console.log('🔧 Initializing campaign manager...');
+                console.log('SimplifiedCampaignManager available:', typeof SimplifiedCampaignManager !== 'undefined');
+                
+                if (typeof SimplifiedCampaignManager !== 'undefined') {
+                    try {
+                        window.campaignManager = new SimplifiedCampaignManager();
+                        console.log('✅ Campaign manager instance created');
+
+                        // Initialize the manager
+                        window.campaignManager.initialize().then(() => {
+                            console.log('✅ Campaign manager fully initialized');
+                        }).catch(error => {
+                            console.error('❌ Campaign manager initialization failed:', error);
+                        });
+                    } catch (error) {
+                        console.error('❌ Error creating campaign manager:', error);
+                    }
+                } else {
+                    console.error('❌ SimplifiedCampaignManager not available');
+                    
+                    // Create a minimal fallback
+                    window.campaignManager = {
+                        createCampaign: async (formData) => {
+                            alert('Campaign manager not properly loaded. Please refresh the page.');
+                            throw new Error('Campaign manager not available');
+                        }
+                    };
+                }
+            }
+
+            // Setup campaign button click handler
+            function setupCampaignButton() {
+                const createCampaignBtn = document.getElementById('createCampaignBtn');
+                if (createCampaignBtn) {
+                    createCampaignBtn.addEventListener('click', () => {
+                        const modal = document.getElementById('simplifiedCampaignModal');
+                        if (modal) {
+                            modal.style.display = 'flex';
+                            console.log('📝 Campaign modal opened');
+                        } else {
+                            console.error('Campaign modal not found');
+                        }
+                    });
+                    console.log('✅ Campaign button click handler attached');
+                } else {
+                    console.warn('⚠️ Create campaign button not found');
+                }
+            }
+
+            // Setup modal close functionality
+            function setupModalClose() {
+                const closeBtn = document.getElementById('closeCampaignModal');
+                const modal = document.getElementById('simplifiedCampaignModal');
+
+                if (closeBtn && modal) {
+                    closeBtn.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                        console.log('📝 Campaign modal closed');
+                    });
+
+                    // Close on backdrop click
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.style.display = 'none';
+                            console.log('📝 Campaign modal closed (backdrop)');
+                        }
+                    });
+
+                    console.log('✅ Modal close handlers attached');
+                }
+            }
+
+            // Initialize everything after a short delay to ensure all scripts are loaded
+            setTimeout(() => {
+                initializeCampaignManager();
+                setupCampaignFormSubmission();
+                setupCampaignButton();
+                setupModalClose();
+            }, 1000);
+        })();
+</script>
+
+<!-- Merchant Discounts Management Script -->
+<script>
+    // Merchant Discounts Management
+    let merchantDiscounts = [];
+
+    // Load merchant discounts
+    async function refreshMerchantDiscounts() {
+        try {
+            console.log('🔄 Loading merchant discounts...');
+            
+            // Wait for API to be available
+            let retries = 0;
+            const maxRetries = 10;
+            while (!window.WizzMerchantDiscountsAPI && retries < maxRetries) {
+                console.log(`⏳ Waiting for WizzMerchantDiscountsAPI... (attempt ${retries + 1}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+
+            if (!window.WizzMerchantDiscountsAPI) {
+                throw new Error('WizzMerchantDiscountsAPI not available after waiting');
+            }
+
+            const result = await window.WizzMerchantDiscountsAPI.getMerchantDiscounts(50);
+
+            if (result.success && result.discounts) {
+                merchantDiscounts = result.discounts;
+                console.log(`📊 Loaded ${merchantDiscounts.length} merchant discounts from ${result.source}`);
+                renderMerchantDiscounts();
+                updateMerchantDiscountStats();
+            } else {
+                throw new Error(result.message || 'Failed to load merchant discounts');
+            }
+        } catch (error) {
+            console.error('❌ Error loading merchant discounts:', error);
+            showMerchantDiscountsError(error.message);
+        }
+    }
+
+    // Render merchant discounts table
+    function renderMerchantDiscounts() {
+        const tbody = document.getElementById('merchantDiscountsTableBody');
+        if (!tbody) return;
+
+        if (merchantDiscounts.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 2rem; color: var(--md-sys-color-on-surface-variant);">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; color: var(--md-sys-color-outline);"></i>
+                        <div>No merchant discounts found</div>
+                        <div style="margin-top: 0.5rem; font-size: 0.9rem;">Merchants can create their own discounts</div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = SecurityUtils.sanitizeHTML(
+            merchantDiscounts.map(discount => {
+                // Sanitize user-generated content to prevent XSS
+                const safeDiscountCode = SecurityUtils.escapeHTML(discount.discountCode || 'N/A');
+                const safeDescription = discount.description ? SecurityUtils.escapeHTML(discount.description) : '';
+                const safeMerchantName = SecurityUtils.escapeHTML(discount.merchantName || 'Unknown Merchant');
+                const safeMerchantId = SecurityUtils.escapeHTML(discount.merchantId || 'N/A');
+                const safeStatus = SecurityUtils.escapeHTML(discount.status || 'inactive');
+                const safeId = SecurityUtils.escapeHTML(discount.id || '');
+
+                return `
+                <tr class="discount-row">
+                    <td class="discount-name-cell">
+                        <div class="discount-code">${safeDiscountCode}</div>
+                        ${safeDescription ? `<div class="discount-description">${safeDescription}</div>` : ''}
+                    </td>
+                    <td class="merchant-name-cell">
+                        <div class="merchant-name">${safeMerchantName}</div>
+                        <div class="merchant-id">ID: ${safeMerchantId}</div>
+                    </td>
+                    <td class="discount-type-cell">
+                        <span class="type-badge type-${discount.discountType}">
+                            ${discount.discountType === 'percentage' ? 'Percentage' : 'Fixed Amount'}
+                        </span>
+                    </td>
+                    <td class="discount-value-cell">
+                        <div class="discount-value">
+                            ${discount.discountType === 'percentage' ?
+                        `<span class="discount-number">${discount.discountValue}%</span>` :
+                        `<span class="discount-number">${window.WizzMerchantDiscountsAPI.formatCurrency(discount.discountValue)}</span>`}
+                        </div>
+                        ${discount.minimumOrderValue ? `<div class="min-order">Min: ${window.WizzMerchantDiscountsAPI.formatCurrency(discount.minimumOrderValue)}</div>` : ''}
+                    </td>
+                    <td class="discount-status-cell">
+                        <span class="status-badge status-${safeStatus}">
+                            <i class="fas fa-circle"></i> ${SecurityUtils.escapeHTML((discount.status || 'inactive').toUpperCase())}
+                        </span>
+                    </td>
+                    <td class="discount-usage-cell">
+                        <div class="usage-container">
+                            <div class="usage-text">${discount.usage || 0} / ${discount.maxUsage || '∞'}</div>
+                            ${discount.maxUsage ? `
+                                <div class="usage-bar">
+                                    <div class="usage-fill" style="width: ${Math.min(((discount.usage || 0) / discount.maxUsage) * 100, 100)}%"></div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td class="discount-validity-cell">
+                        <div class="validity-date">
+                            <i class="fas fa-calendar-times"></i>
+                            <span>${window.WizzMerchantDiscountsAPI.formatDate(discount.validUntil)}</span>
+                        </div>
+                    </td>
+                    <td class="discount-actions-cell">
+                        <div class="action-buttons">
+                            <button class="action-btn edit-btn" onclick="editMerchantDiscount('${safeId}')" title="Edit Discount" data-write-only>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteMerchantDiscount('${safeId}')" title="Delete Discount" data-write-only>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            }).join('')
+        );
+    }
+
+    // Update merchant discount statistics
+    function updateMerchantDiscountStats() {
+        const totalElement = document.getElementById('totalMerchantDiscounts');
+        const activeElement = document.getElementById('activeMerchantDiscounts');
+        
+        if (totalElement) {
+            totalElement.textContent = merchantDiscounts.length;
+        }
+        
+        if (activeElement) {
+            const activeDiscounts = merchantDiscounts.filter(d => d.status === 'active').length;
+            activeElement.textContent = activeDiscounts;
+        }
+    }
+
+    // Show error in table
+    function showMerchantDiscountsError(message) {
+        const tbody = document.getElementById('merchantDiscountsTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 2rem; color: var(--md-sys-color-error);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <div>Error loading merchant discounts: ${message}</div>
+                    <button onclick="refreshMerchantDiscounts()" class="btn-primary" style="margin-top: 1rem;">
+                        <i class="fas fa-sync-alt"></i> Try Again
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+
+    // Edit merchant discount
+    function editMerchantDiscount(discountId) {
+        const discount = merchantDiscounts.find(d => d.id === discountId);
+        if (discount) {
+            alert(`Edit Merchant Discount:\n\nCode: ${discount.discountCode}\nMerchant: ${discount.merchantName}\nValue: ${discount.discountValue}${discount.discountType === 'percentage' ? '%' : ' IQD'}\n\n(Edit functionality to be implemented)`);
+        }
+    }
+
+    // Delete merchant discount
+    function deleteMerchantDiscount(discountId) {
+        const discount = merchantDiscounts.find(d => d.id === discountId);
+        if (discount && confirm(`Are you sure you want to delete the discount "${discount.discountCode}" from ${discount.merchantName}?`)) {
+            console.log('🗑️ Deleting discount:', discountId);
+            // Remove from array
+            merchantDiscounts = merchantDiscounts.filter(d => d.id !== discountId);
+            renderMerchantDiscounts();
+            updateMerchantDiscountStats();
+            alert('Discount deleted successfully!');
+        }
+    }
+
+    // Load merchant discounts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('📋 Initializing merchant discounts section...');
+        setTimeout(() => {
+            refreshMerchantDiscounts();
+        }, 500); // Small delay to ensure API is loaded
+    });
+</script>
+
+<!-- Navigation Manager will handle sidebar loading automatically -->
+<script>
+                (async function () {
+                    try {
+                                        await RBAC.ensure();
+                                        // Enforce RBAC - New system auto-detects page name
+                                        window.RBAC.enforcePage();
+                                        if (!RBAC.can('campaigns', 'write')) {
+                                            RBAC.applyReadOnly('body', 'campaigns');
+                                            document.querySelectorAll('[data-write-only]').forEach(el => el.style.display = 'none');
+                                        }
+                                    } catch (e) { console.warn('RBAC init failed', e); }
+                                })();
+                            </script>
+                <script>
+                    console.log('🚀 Promotions page script loading...');
+                    
+                    // =========================================================================
+                    // DATA LOADING & RENDERING
+                    // =========================================================================
+                    
+                    // Detect environment and set API base URL
+                    const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    
+                    // Use Lambda Function URL from config for main API (discounts, campaigns)
+                    const MAIN_API_URL = window.WIZZCENTRAL_CONFIG?.API_BASE_URL || 'https://wkmj5ihhypx7oviwo3yk6bi6lu0vjrum.lambda-url.us-east-1.on.aws';
+                    
+                    // Use API Gateway for push notifications
+                    const PUSH_API_URL = 'https://fdkevgp6g8.execute-api.us-east-1.amazonaws.com/Prod';
+                    
+                    // For backwards compatibility (some code uses API_BASE_URL)
+                    const API_BASE_URL = MAIN_API_URL;
+                    
+                    console.log('🌐 Main API URL (Discounts/Campaigns):', MAIN_API_URL);
+                    console.log('🔔 Push Notification API URL:', PUSH_API_URL);
+                    console.log('🏠 Is Local:', IS_LOCAL);
+                    
+                    // Check if backend is available
+                    const BACKEND_AVAILABLE = true; // Backend is now deployed! 🚀
+
+                    /**
+                     * Shows loading state for both tables
+                     */
+                    function showLoadingState() {
+                        const loadingRow = document.getElementById('discounts-loading-row');
+                        const campaignsLoadingRow = document.getElementById('campaigns-loading-row');
+                        if (loadingRow) loadingRow.style.display = '';
+                        if (campaignsLoadingRow) loadingRow.style.display = '';
+                    }
+
+                    /**
+                     * Hides loading state for both tables
+                     */
+                    function hideLoadingState() {
+                        const loadingRow = document.getElementById('discounts-loading-row');
+                        const campaignsLoadingRow = document.getElementById('campaigns-loading-row');
+                        if (loadingRow) loadingRow.style.display = 'none';
+                        if (campaignsLoadingRow) loadingRow.style.display = 'none';
+                    }
+
+                    /**
+                     * Fetches promotions and campaigns data from the backend API.
+                     */
+                    async function loadPromotionsData() {
+                        console.log('Fetching promotions data...');
+                        showLoadingState();
+
+                        // Check if backend is available
+                        if (!BACKEND_AVAILABLE) {
+                            console.log('⚠️ Backend not available on production yet');
+                            const backendPendingHtml = `
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 3rem;">
+                                        <div style="max-width: 600px; margin: 0 auto; padding: 2rem; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+                                            <i class="fas fa-server" style="font-size: 3rem; color: #ff9800; margin-bottom: 1rem;"></i>
+                                            <h3 style="color: #856404; margin: 1rem 0;">Backend API Not Yet Deployed</h3>
+                                            <p style="color: #856404; margin-bottom: 1rem;">
+                                                The promotions data and push notification features will be available once the backend Lambda functions are deployed to AWS.
+                                            </p>
+                                            <p style="color: #856404; font-size: 0.9rem;">
+                                                <strong>To enable this feature:</strong><br>
+                                                1. Deploy Lambda functions: <code style="background: #fff; padding: 0.25rem 0.5rem; border-radius: 4px;">./deploy-push-notifications.sh dev</code><br>
+                                                2. Update API Gateway URL in code<br>
+                                                3. Push changes to Git
+                                            </p>
+                                            <p style="color: #856404; font-size: 0.85rem; margin-top: 1rem;">
+                                                📝 See <code>QUICK_FIX_GUIDE.txt</code> for detailed instructions
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                            document.getElementById('merchant-discounts-tbody').innerHTML = backendPendingHtml;
+                            document.getElementById('special-campaigns-tbody').innerHTML = backendPendingHtml;
+                            return;
+                        }
+
+            try {
+                // Get authentication token
+                const idToken = window.Auth?.getIdToken();
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (idToken) {
+                    headers['Authorization'] = `Bearer ${idToken}`;
+                }
+                
+                console.log('🌐 Fetching from:', `${API_BASE_URL}/api/promotions`);
+                
+                const response = await fetch(`${API_BASE_URL}/api/promotions`, {
+                    method: 'GET',
+                    headers: headers
+                });
+        
+            // Check for non-2xx responses
+            if (!response.ok) {
+                // Check if this is due to missing backend (common on Amplify before Lambda deployment)
+                if (response.status === 404 || response.status === 0) {
+                    const backendPendingHtml = `
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 3rem;">
+                                <div style="max-width: 600px; margin: 0 auto; padding: 2rem; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+                                    <i class="fas fa-server" style="font-size: 3rem; color: #ff9800; margin-bottom: 1rem;"></i>
+                                    <h3 style="color: #856404; margin: 1rem 0;">Backend API Not Yet Deployed</h3>
+                                    <p style="color: #856404; margin-bottom: 1rem;">
+                                        The promotions data will be available once the backend Lambda functions are deployed to AWS.
+                                    </p>
+                                    <p style="color: #856404; font-size: 0.9rem;">
+                                        <strong>Next Step:</strong> Deploy Lambda functions using the deployment script:<br>
+                                        <code style="background: #fff; padding: 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.5rem;">
+                                            ./deploy-push-notifications.sh dev
+                                        </code>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById('merchant-discounts-tbody').innerHTML = backendPendingHtml;
+                    document.getElementById('special-campaigns-tbody').innerHTML = backendPendingHtml;
+                    return;
+                }
+                
+                const errorHtml = `<tr><td colspan="8" class="error-message">Failed to load data: ${response.status} ${response.statusText}</td></tr>`;
+                document.getElementById('merchant-discounts-tbody').innerHTML = errorHtml;
+                document.getElementById('special-campaigns-tbody').innerHTML = errorHtml;
+                return;
+            }
+
+            const data = await response.json();
+            console.log('Received data:', data);
+
+            if (data.promotions && data.campaigns) {
+                renderMerchantDiscounts(data.promotions);
+                renderSpecialCampaigns(data.campaigns);
+            } else {
+                throw new Error('Invalid data structure from API');
+            }
+        } catch (error) {
+                                    console.error('Error fetching promotions data:', error);
+                                    
+                                    // Show friendly message for network errors (backend not available)
+                                    if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                                        const backendPendingHtml = `
+                                            <tr>
+                                                <td colspan="8" style="text-align: center; padding: 3rem;">
+                                                    <div style="max-width: 600px; margin: 0 auto; padding: 2rem; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+                                                        <i class="fas fa-server" style="font-size: 3rem; color: #ff9800; margin-bottom: 1rem;"></i>
+                                                        <h3 style="color: #856404; margin: 1rem 0;">Backend API Not Available</h3>
+                                                        <p style="color: #856404; margin-bottom: 1rem;">
+                                                            Unable to connect to the backend API. This is expected if the Lambda functions haven't been deployed yet.
+                                                        </p>
+                                                        <p style="color: #856404; font-size: 0.9rem;">
+                                                            <strong>To fix this:</strong> Deploy the backend Lambda functions to AWS:<br>
+                                                            <code style="background: #fff; padding: 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.5rem;">
+                                                                ./deploy-push-notifications.sh dev
+                                                            </code>
+                                                        </p>
+                                                        <p style="color: #666; font-size: 0.85rem; margin-top: 1rem;">
+                                                            See <strong>AMPLIFY_DEPLOYMENT_PUSH_FIX.md</strong> for detailed instructions.
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                        document.getElementById('merchant-discounts-tbody').innerHTML = backendPendingHtml;
+                                        document.getElementById('special-campaigns-tbody').innerHTML = backendPendingHtml;
+                                    } else {
+                                        const errorHtml = `<tr><td colspan="5" class="error-message">Failed to load data: ${error.message}</td></tr>`;
+                                        document.getElementById('merchant-discounts-tbody').innerHTML = errorHtml;
+                                        document.getElementById('special-campaigns-tbody').innerHTML = errorHtml;
+                                    }
+                                } finally {
+                                    hideLoadingState();
+                                }
+                            }
+
+                            /**
+                             * Renders the merchant discounts table.
+                             * @param {Array} promotions - List of promotions.
+                             */
+                            function renderMerchantDiscounts(promotions) {
+                                const merchantDiscountsTbody = document.getElementById('merchant-discounts-tbody');
+
+                                // Update stats
+                                const total = promotions.length;
+                                const active = promotions.filter(p => (p.status || '').toUpperCase() === 'ACTIVE').length;
+                                document.getElementById('discounts-total').textContent = total;
+                                document.getElementById('discounts-active').textContent = active;
+
+                                if (promotions.length === 0) {
+                                    merchantDiscountsTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No merchant discounts found.</td></tr>';
+                                } else {
+                                    const rows = promotions.map(promo => {
+                                        const discountCode = escapeHtml(promo.discountCode || 'N/A');
+                                        const merchantName = escapeHtml(promo.merchantName || 'Unknown');
+                                        const merchantId = escapeHtml(promo.merchantId || 'N/A');
+                                        const type = escapeHtml(promo.type || 'Percentage');
+                                        const value = type === 'Fixed Amount' ? `${promo.value} IQD` : `${promo.value}%`;
+                                        const status = escapeHtml((promo.status || 'inactive').toLowerCase());
+                                        const usage = `${promo.usageCount || 0} / ${promo.usageLimit || 0}`;
+                                        const validUntil = promo.validUntil ? new Date(promo.validUntil).toLocaleDateString() : 'N/A';
+                                        const promotionId = escapeHtml(promo.promotionId || '');
+
+                                        return `
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;">${discountCode}</div>
+                                        ${promo.description ? `<div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${escapeHtml(promo.description)}</div>` : ''}
+                                    </td>
+                                    <td>
+                                        <div>${merchantName}</div>
+                                        <div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">ID: ${merchantId}</div>
+                                    </td>
+                                    <td><span class="badge badge-${type === 'Fixed Amount' ? 'fixed' : 'percentage'}">${type}</span></td>
+                                    <td><strong>${value}</strong></td>
+                                    <td><span class="status status-${status}">${status}</span></td>
+                                    <td>${usage}</td>
+                                    <td>${validUntil}</td>
+                                    <td data-permission="campaigns_admin:write">
+                                        <button class="btn-icon" onclick="sendDiscountNotification('${promotionId}', ${escapeHtml(JSON.stringify(promo))})" title="Send Push Notification" style="background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary);"><i class="fas fa-bell"></i></button>
+                                        <button class="btn-icon" onclick="editDiscount('${promotionId}')" title="Edit"><i class="fas fa-edit"></i></button>
+                                        <button class="btn-icon" onclick="deleteDiscount('${promotionId}')" title="Delete"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `;
+                                    }).join('');
+                                    merchantDiscountsTbody.innerHTML = rows;
+                                }
+                            }
+
+                            /**
+                             * Renders the special campaigns table.
+                             * @param {Array} campaigns - List of campaigns.
+                             */
+                            function renderSpecialCampaigns(campaigns) {
+                                const specialCampaignsTbody = document.getElementById('special-campaigns-tbody');
+
+                                // Update stats
+                                const total = campaigns.length;
+                                const active = campaigns.filter(c => (c.status || '').toLowerCase() === 'active').length;
+                                document.getElementById('campaigns-total').textContent = total;
+                                document.getElementById('campaigns-active').textContent = active;
+
+                                if (campaigns.length === 0) {
+                                    specialCampaignsTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No special campaigns found.</td></tr>';
+                                } else {
+                                    const rows = campaigns.map(campaign => {
+                                        const campaignId = escapeHtml(campaign.campaignId || 'N/A');
+                                        const campaignName = escapeHtml(campaign.campaignName || campaign.name || 'Unnamed Campaign');
+                                        const type = escapeHtml(campaign.type || 'General');
+                                        const target = escapeHtml(campaign.targetAudience || campaign.target || 'All Users');
+                                        const discount = campaign.discountValue ? `${campaign.discountValue}%` : 'N/A';
+                                        const status = escapeHtml((campaign.status || 'inactive').toLowerCase());
+                                        const usage = campaign.totalUsage || 0;
+                                        const startDate = campaign.startDate ? new Date(campaign.startDate).toLocaleDateString() : 'N/A';
+                                        const endDate = campaign.endDate ? new Date(campaign.endDate).toLocaleDateString() : 'N/A';
+
+                                        return `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500;">${campaignName}</div>
+                                ${campaign.description ? `<div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${escapeHtml(campaign.description)}</div>` : ''}
+                            </td>
+                            <td>${type}</td>
+                            <td>${target}</td>
+                            <td><strong>${discount}</strong></td>
+                            <td><span class="status status-${status}">${status}</span></td>
+                            <td>${usage}</td>
+                            <td>${startDate} - ${endDate}</td>
+                            <td data-permission="campaigns_admin:write">
+                                <button class="btn-icon" onclick="editCampaign('${campaignId}')" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon" onclick="deleteCampaign('${campaignId}')" title="Delete"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                                    }).join('');
+                                    specialCampaignsTbody.innerHTML = rows;
+                                }
+                            }
+
+                            /**
+                             * Escapes HTML special characters to prevent XSS.
+                             * @param {string} str - The string to escape.
+                             * @returns {string} - The escaped string.
+                             */
+                            function escapeHtml(str) {
+                                if (typeof str !== 'string') return '';
+                                return str.replace(/[&<>"']/g, function (match) {
+                                    return {
+                                        '&': '&amp;',
+                                        '<': '&lt;',
+                                        '>': '&gt;',
+                                        '"': '&quot;',
+                                        "'": '&#39;'
+                                    }[match];
+                                });
+                            }
+
+                            // Placeholder functions for edit/delete actions
+                            function editDiscount(promotionId) {
+                                console.log('Edit discount:', promotionId);
+                                alert('Edit discount functionality coming soon!');
+                            }
+
+                            function deleteDiscount(promotionId) {
+                                console.log('Delete discount:', promotionId);
+                                if (confirm('Are you sure you want to delete this discount?')) {
+                                    alert('Delete discount functionality coming soon!');
+                                }
+                            }
+
+                            function editCampaign(campaignId) {
+                                console.log('Edit campaign:', campaignId);
+                                alert('Edit campaign functionality coming soon!');
+                            }
+
+                            function deleteCampaign(campaignId) {
+                                console.log('Delete campaign:', campaignId);
+                                if (confirm('Are you sure you want to delete this campaign?')) {
+                                    alert('Delete campaign functionality coming soon!');
+                                }
+                            }
+
+                            // Load data when the page is ready
+                            document.addEventListener('DOMContentLoaded', () => {
+                                loadPromotionsData();
+
+                                // Connect refresh button
+                                const refreshBtn = document.getElementById('refreshDiscountsBtn');
+                                if (refreshBtn) {
+                                    refreshBtn.addEventListener('click', () => {
+                                        console.log('Refreshing promotions data...');
+                                        loadPromotionsData();
+                                    });
+                                }
+                            });
+                        </script>
+<script>
+    // =========================================================================
+    // PUSH NOTIFICATION FUNCTIONS
+    // =========================================================================
+
+    let currentDiscountForPush = null;
+
+    /**
+     * Open push notification modal for a discount
+     */
+    function sendDiscountNotification(discountId, discountData) {
+        console.log('📱 Opening push notification modal for discount:', discountId);
+        currentDiscountForPush = typeof discountData === 'string' ? JSON.parse(discountData) : discountData;
+
+        // Set discount ID
+        document.getElementById('push_discountId').value = discountId;
+
+        // Update discount preview
+        const preview = document.getElementById('discountPreview');
+        preview.innerHTML = `
+            <div style="display: flex; justify-content: space-between;">
+                <strong>Discount Code:</strong>
+                <span>${escapeHtml(currentDiscountForPush.discountCode || 'N/A')}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <strong>Type:</strong>
+                <span>${escapeHtml(currentDiscountForPush.type || 'N/A')}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <strong>Value:</strong>
+                <span>${currentDiscountForPush.value || 0}${currentDiscountForPush.type === 'Percentage' ? '%' : ' IQD'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <strong>Merchant:</strong>
+                <span>${escapeHtml(currentDiscountForPush.merchantName || 'Unknown')}</span>
+            </div>
+        `;
+
+        // Show modal
+        const modal = document.getElementById('pushNotificationModal');
+        modal.style.display = 'flex';
+
+        // Update estimated reach
+        updateEstimatedReach();
+    }
+
+    /**
+     * Close push notification modal
+     */
+    function closePushModal() {
+        const modal = document.getElementById('pushNotificationModal');
+        modal.style.display = 'none';
+        document.getElementById('pushNotificationForm').reset();
+        currentDiscountForPush = null;
+    }
+
+    /**
+     * Update estimated reach based on target audience
+     */
+    async function updateEstimatedReach() {
+        const targetAudience = document.getElementById('push_targetAudience').value;
+        const estimatedReachEl = document.getElementById('estimatedReach');
+
+        estimatedReachEl.textContent = 'Calculating...';
+
+        // Simulate API call to get estimated reach
+        // In production, this would query the actual customer database
+        const estimates = {
+            all: '~500-1000 customers',
+            nearby: '~50-100 customers nearby',
+            loyal: '~100-200 loyal customers',
+            new: '~30-50 new customers'
+        };
+
+        setTimeout(() => {
+            estimatedReachEl.textContent = estimates[targetAudience] || 'Unknown';
+        }, 500);
+    }
+
+        /**
+         * Send push notification
+         */
+        async function sendPushNotification(event) {
+            event.preventDefault();
+
+            // Check if backend is available
+            if (!BACKEND_AVAILABLE) {
+                alert('🚧 Push Notifications Not Yet Deployed\n\n' +
+                      'The backend Lambda functions haven\'t been deployed yet.\n\n' +
+                      'This feature works on localhost but requires AWS Lambda deployment for production.\n\n' +
+                      'See QUICK_FIX_GUIDE.txt for deployment instructions.');
+                return false;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                targetAudience: formData.get('targetAudience'),
+                notificationTitle: formData.get('notificationTitle') || undefined,
+                notificationBody: formData.get('notificationBody') || undefined,
+                scheduledTime: formData.get('sendTime') === 'scheduled' ? formData.get('scheduledTime') : undefined
+            };
+
+            console.log('📤 Sending push notification:', data);
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                const discountId = formData.get('discountId');
+                
+                // Get authentication token
+                const idToken = window.Auth?.getIdToken();
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (idToken) {
+                    headers['Authorization'] = `Bearer ${idToken}`;
+                }
+                
+                const response = await fetch(`${PUSH_API_URL}/api/discounts/${discountId}/send-notification`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert(`✅ Push notification sent successfully!\n\nTargeted: ${result.targeted} customers\nSent: ${result.sent}\nFailed: ${result.failed}`);
+                    closePushModal();
+                } else {
+                                throw new Error(result.message || 'Failed to send notification');
+                            }
+                        } catch (error) {
+                            console.error('❌ Error sending push notification:', error);
+                            alert(`❌ Error: ${error.message}`);
+                        } finally {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+
+                        return false;
+                    }
+
+                    // Setup event listeners for push notification modal
+                    document.addEventListener('DOMContentLoaded', () => {
+                        // Target audience change listener
+                        const targetAudienceSelect = document.getElementById('push_targetAudience');
+                        if (targetAudienceSelect) {
+                            targetAudienceSelect.addEventListener('change', updateEstimatedReach);
+                        }
+
+                        // Send time change listener
+                        const sendTimeSelect = document.getElementById('push_sendTime');
+                        const scheduledSection = document.getElementById('scheduledTimeSection');
+                        if (sendTimeSelect && scheduledSection) {
+                            sendTimeSelect.addEventListener('change', () => {
+                                scheduledSection.style.display = sendTimeSelect.value === 'scheduled' ? 'block' : 'none';
+                            });
+                        }
+    });
+</script>
+
+<script>
+        // =========================================================================
+        // MERCHANT INFORMATION NOTIFICATION FUNCTIONS
+        // =========================================================================
+
+        /**
+         * Open merchant information notification modal
+         */
+        function openMerchantInfoModal() {
+            console.log('📢 Opening merchant information notification modal');
+            const modal = document.getElementById('merchantInfoNotificationModal');
+            
+            if (!modal) {
+                console.error('❌ Modal element not found! ID: merchantInfoNotificationModal');
+                return;
+            }
+            
+            console.log('✅ Modal element found:', modal);
+            modal.style.display = 'flex';
+            console.log('✅ Modal display set to flex');
+
+            // Setup event listeners for dynamic fields
+            setupMerchantModalListeners();
+
+            // Update estimated reach
+            updateMerchantEstimatedReach();
+        }
+        
+        // Expose to window for inline onclick handlers
+        window.openMerchantInfoModal = openMerchantInfoModal;
+
+        /**
+         * Close merchant information notification modal
+         */
+        function closeMerchantInfoModal() {
+            const modal = document.getElementById('merchantInfoNotificationModal');
+            modal.style.display = 'none';
+            document.getElementById('merchantInfoNotificationForm').reset();
+
+            // Hide conditional sections
+            document.getElementById('cityFilterSection').style.display = 'none';
+            document.getElementById('categoryFilterSection').style.display = 'none';
+            document.getElementById('merchantScheduledTimeSection').style.display = 'none';
+        }
+        
+        // Expose to window for inline onclick handlers
+        window.closeMerchantInfoModal = closeMerchantInfoModal;
+
+        /**
+         * Setup event listeners for merchant notification modal
+         */
+        function setupMerchantModalListeners() {
+            // Target audience change listener
+            const targetAudienceSelect = document.getElementById('merchant_targetAudience');
+            const cityFilterSection = document.getElementById('cityFilterSection');
+            const categoryFilterSection = document.getElementById('categoryFilterSection');
+
+            if (targetAudienceSelect) {
+                targetAudienceSelect.addEventListener('change', () => {
+                    const value = targetAudienceSelect.value;
+                    cityFilterSection.style.display = value === 'by_city' ? 'block' : 'none';
+                    categoryFilterSection.style.display = value === 'by_category' ? 'block' : 'none';
+                    updateMerchantEstimatedReach();
+                });
+            }
+
+            // Send time change listener
+            const sendTimeSelect = document.getElementById('merchant_sendTime');
+            const scheduledSection = document.getElementById('merchantScheduledTimeSection');
+            if (sendTimeSelect && scheduledSection) {
+                sendTimeSelect.addEventListener('change', () => {
+                    scheduledSection.style.display = sendTimeSelect.value === 'scheduled' ? 'block' : 'none';
+                });
+            }
+
+            // Notification preview update listeners
+            const titleInput = document.getElementById('merchant_notificationTitle');
+            const bodyInput = document.getElementById('merchant_notificationBody');
+            const typeSelect = document.getElementById('merchant_notificationType');
+
+            [titleInput, bodyInput, typeSelect].forEach(el => {
+                if (el) {
+                    el.addEventListener('input', updateMerchantNotificationPreview);
+                }
+            });
+        }
+
+        /**
+         * Update merchant estimated reach based on target audience
+         */
+        async function updateMerchantEstimatedReach() {
+            const targetAudience = document.getElementById('merchant_targetAudience').value;
+            const estimatedReachEl = document.getElementById('merchantEstimatedReach');
+
+            estimatedReachEl.textContent = 'Calculating...';
+
+            // Simulate API call to get estimated reach
+            // In production, this would query the actual merchant database
+            const estimates = {
+                all: '~200-300 merchants',
+                active: '~150-200 active merchants',
+                inactive: '~50-100 inactive merchants',
+                new: '~10-20 new merchants',
+                by_city: '~30-50 merchants in selected city',
+                by_category: '~40-80 merchants in selected category'
+            };
+
+            setTimeout(() => {
+                estimatedReachEl.textContent = estimates[targetAudience] || 'Unknown';
+            }, 500);
+        }
+
+        /**
+         * Update notification preview
+         */
+        function updateMerchantNotificationPreview() {
+            const title = document.getElementById('merchant_notificationTitle').value;
+            const body = document.getElementById('merchant_notificationBody').value;
+            const type = document.getElementById('merchant_notificationType').value;
+
+            const previewEl = document.getElementById('merchantNotificationPreview');
+
+            const typeEmojis = {
+                info: 'ℹ️',
+                warning: '⚠️',
+                urgent: '🚨',
+                feature: '✨',
+                policy: '📋'
+            };
+
+            const emoji = typeEmojis[type] || 'ℹ️';
+            const previewTitle = title || 'Title will appear here';
+            const previewBody = body || 'Message will appear here';
+
+            previewEl.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="font-size: 1.5rem;">${emoji}</span>
+                <div style="font-weight: 600; font-size: 1rem;">${escapeHtml(previewTitle)}</div>
+            </div>
+            <div style="font-size: 0.9rem; color: #666; margin-left: 40px;">${escapeHtml(previewBody)}</div>
+        `;
+        }
+
+        /**
+         * Send merchant information notification
+         */
+        async function sendMerchantInfoNotification(event) {
+            console.log('🔥 sendMerchantInfoNotification called!', event);
+            event.preventDefault();
+
+            // Check if backend is available
+            if (!BACKEND_AVAILABLE) {
+                alert('🚧 Push Notifications Not Yet Deployed\n\n' +
+                      'The backend Lambda functions haven\'t been deployed yet.\n\n' +
+                      'To enable this feature:\n' +
+                      '1. Deploy Lambda functions with: ./deploy-push-notifications.sh\n' +
+                      '2. Update API Gateway URL in the code\n' +
+                      '3. Push changes to Git\n\n' +
+                      'See QUICK_FIX_GUIDE.txt for details.');
+                return false;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                notificationType: formData.get('notificationType'),
+                notificationTitle: formData.get('notificationTitle'),
+                notificationBody: formData.get('notificationBody'),
+                targetAudience: formData.get('targetAudience'),
+                city: formData.get('city') || undefined,
+                businessCategory: formData.get('businessCategory') || undefined,
+                priority: formData.get('priority') || 'normal',
+                actionUrl: formData.get('actionUrl') || undefined,
+                imageUrl: formData.get('imageUrl') || undefined,
+                scheduledTime: formData.get('sendTime') === 'scheduled' ? formData.get('scheduledTime') : undefined
+            };
+
+            console.log('📤 Sending merchant information notification:', data);
+
+            // Validation
+            if (!data.notificationTitle || !data.notificationBody) {
+                alert('❌ Please fill in all required fields');
+                return false;
+            }
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                        // Get authentication token from localStorage via Auth utility
+                        const idToken = window.Auth?.getIdToken();
+                        
+                        console.log('🔐 Auth check:', window.Auth ? 'Auth object found' : 'Auth object missing');
+                        console.log('🎫 ID Token:', idToken ? 'Present (' + idToken.substring(0, 20) + '...)' : 'Missing');
+                        
+                        if (!idToken) {
+                            console.error('❌ No ID token available - user may not be authenticated');
+                            alert('🔐 Authentication Required\n\nYou need to be logged in to send notifications.\n\nPlease log in and try again.');
+                            return false;
+                        }
+                        
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        };
+                        
+                        console.log('🌐 Sending request to:', `${PUSH_API_URL}/api/merchants/send-info-notification`);
+                        console.log('📦 Request data:', data);
+                        console.log('🔑 Auth header set:', headers.Authorization ? 'Yes (Bearer ***)' : 'No');
+                        
+                        const response = await fetch(`${PUSH_API_URL}/api/merchants/send-info-notification`, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(data)
+                        });
+
+                        console.log('📡 Response status:', response.status, response.statusText);
+                        const result = await response.json();
+                        console.log('📥 Response data:', result);
+
+                        if (response.ok && result.success) {
+                            console.log('✅ SUCCESS! About to show alert...');
+                            alert(`✅ Notification sent successfully!\n\nTargeted: ${result.targeted} merchants\nSent: ${result.sent}\nFailed: ${result.failed}`);
+                            console.log('✅ Alert shown, closing modal...');
+                            closeMerchantInfoModal();
+                        } else {
+                            console.log('❌ Request failed:', result.message);
+                            throw new Error(result.message || 'Failed to send notification');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error sending merchant notification:', error);
+                        console.error('❌ Error stack:', error.stack);
+                        
+                        // Show friendly message for network errors (backend not available)
+                        if (error.message.includes('Failed to fetch') || error.name === 'TypeError' || error.message.includes('NetworkError')) {
+                            alert(`🚨 Backend API Not Available\n\n` +
+                                  `The push notification service is not yet deployed to AWS.\n\n` +
+                                  `To fix this:\n` +
+                                  `1. Deploy Lambda functions: ./deploy-push-notifications.sh dev\n` +
+                                  `2. Update API Gateway URL in promotions.html\n` +
+                                  `3. Push changes to Git\n\n` +
+                                  `See AMPLIFY_DEPLOYMENT_PUSH_FIX.md for details.`);
+                        } else {
+                            alert(`❌ Error: ${error.message}`);
+                        }
+                    } finally {
+                        console.log('🔄 Resetting button...');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+
+                    return false;
+                }
+                
+                // Expose to window for inline onsubmit handler
+                window.sendMerchantInfoNotification = sendMerchantInfoNotification;
+                console.log('✅ sendMerchantInfoNotification exposed to window');
+                
+                // Attach event listener to form (no inline handlers due to CSP)
+                const merchantForm = document.getElementById('merchantInfoNotificationForm');
+                if (merchantForm) {
+                    merchantForm.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        sendMerchantInfoNotification(event);
+                    });
+                    console.log('✅ Merchant form event listener attached');
+                }
+
+                // Setup merchant notification modal on page load
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Add "Send to Merchants" button to page header if it doesn't exist
+                    const pageHeader = document.querySelector('.page-header');
+                    if (pageHeader && !document.getElementById('sendToMerchantsBtn')) {
+                        const headerActions = document.createElement('div');
+                        headerActions.style.cssText = 'display: flex; gap: 12px; align-items: center; margin-top: 16px;';
+                        headerActions.innerHTML = `
+                <button id="sendToMerchantsBtn" class="btn-primary" style="background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary);">
+                    <i class="fas fa-paper-plane"></i> Send to Merchants
+                </button>
+            `;
+                        pageHeader.appendChild(headerActions);
+                        
+                        // Add event listener to the button
+                        const btn = document.getElementById('sendToMerchantsBtn');
+                        if (btn) {
+                            btn.addEventListener('click', openMerchantInfoModal);
+                            console.log('✅ "Send to Merchants" button event listener added');
+                        }
+                    }
+
+        // Setup initial preview
+        updateMerchantNotificationPreview();
+    });
+
+            // Placeholder functions for edit/delete actions
+        </script>
+</body>
+</html>

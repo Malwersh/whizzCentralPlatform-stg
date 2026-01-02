@@ -1,0 +1,255 @@
+service: wizzcentral-unified-chat
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'staging'}
+  memorySize: 256
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    CHAT_SESSIONS_TABLE: ChatSessions
+    CHAT_MESSAGES_TABLE: ChatMessages
+    WEBSOCKET_CONNECTIONS_TABLE: WebSocketConnections
+    WEBSOCKET_CONNECTIONS_TABLE_OLD: websocket-connections-${self:provider.stage}
+    CHAT_SESSIONS_TABLE_OLD: chat-sessions-${self:provider.stage}
+    WEBSOCKET_API_ENDPOINT: ${env:WEBSOCKET_API_ENDPOINT}
+    # Driver Assignment System Environment Variables
+    ORDERS_TABLE: ${env:ORDERS_TABLE}
+    DRIVERS_TABLE: ${env:DRIVERS_TABLE}
+    WEBSOCKET_CONNECTIONS_TABLE_DRIVERS: ${env:WEBSOCKET_CONNECTIONS_TABLE_DRIVERS}
+    WEBSOCKET_ENDPOINT: ${env:WEBSOCKET_ENDPOINT}
+  
+  iamRoleStatements:
+    # New unified chat tables
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/ChatSessions
+        - arn:aws:dynamodb:${self:provider.region}:*:table/ChatSessions/index/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/ChatMessages
+        - arn:aws:dynamodb:${self:provider.region}:*:table/ChatMessages/index/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/WebSocketConnections
+        - arn:aws:dynamodb:${self:provider.region}:*:table/WebSocketConnections/index/*
+    # Driver Assignment System Tables
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${env:ORDERS_TABLE}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${env:ORDERS_TABLE}/index/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${env:ORDERS_TABLE}/stream/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${env:DRIVERS_TABLE}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${env:DRIVERS_TABLE}/index/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${env:WEBSOCKET_CONNECTIONS_TABLE_DRIVERS}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${env:WEBSOCKET_CONNECTIONS_TABLE_DRIVERS}/index/*
+    # Legacy tables for backward compatibility
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-connections-${self:provider.stage}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-connections-${self:provider.stage}/index/*
+        - arn:aws:dynamodb:${self:provider.region}:*:table/chat-sessions-${self:provider.stage}
+        - arn:aws:dynamodb:${self:provider.region}:*:table/chat-sessions-${self:provider.stage}/index/*
+    # WebSocket API management
+    - Effect: Allow
+      Action:
+        - execute-api:ManageConnections
+      Resource:
+        - arn:aws:execute-api:${self:provider.region}:*:*/${self:provider.stage}/POST/@connections/*
+        - arn:aws:execute-api:${self:provider.region}:*:*/${self:provider.stage}/DELETE/@connections/*
+
+package:
+  patterns:
+    - '!**/*'
+    - 'src/handlers/**'
+    - 'package.json'
+    - 'package-lock.json'
+    - 'node_modules/@aws-sdk/**'
+    - 'node_modules/@smithy/**'
+    - 'node_modules/@aws/**'
+    - 'node_modules/tslib/**'
+
+functions:
+  # Wave System - Handle Driver Accept
+  HandleDriverAccept:
+    handler: lambdas/WaveSystem_HandleDriverAccept.handler
+    description: "Handle driver accepting wave offer"
+    timeout: 30
+    memorySize: 256
+    events:
+      - http:
+          path: driver/accept-wave-offer
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: false
+
+  # Order Stream Processor for Driver Assignment
+  orderStreamProcessor:
+    handler: src/handlers/order-stream-processor.handler
+    description: "Monitors order status changes and automatically assigns drivers"
+    timeout: 60
+    memorySize: 512
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - WizzOrdersTable
+              - StreamArn
+          batchSize: 10
+          startingPosition: LATEST
+          maximumBatchingWindowInSeconds: 5
+
+  # Unified WebSocket Chat Handler
+  chatWebSocket:
+    handler: src/handlers/chat-websocket-handler.handler
+    description: "Unified WebSocket handler for live chat (customer, driver, merchant, agent)"
+    timeout: 30
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: $default
+      - websocket:
+          route: chat_init
+      - websocket:
+          route: chat_message
+      - websocket:
+          route: agent_connect
+      - websocket:
+          route: agent_disconnect
+      - websocket:
+          route: join_channel
+      - websocket:
+          route: leave_channel
+
+  # Legacy HTTP handlers for backward compatibility
+  sendChatMessage:
+    handler: src/handlers/chat-bridge.sendChatMessage
+    description: "Bridge HTTP chat messages to WebSocket Live Chat interface"
+    timeout: 12
+    events:
+      - http:
+          path: api/chat/send
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+      - http:
+          path: api/chat/send
+          method: options
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  postAgentReply:
+    handler: src/handlers/chat-bridge.postAgentReply
+    description: "Agent reply -> store + broadcast"
+    timeout: 12
+    events:
+      - http:
+          path: api/chat/reply
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+      - http:
+          path: api/chat/reply
+          method: options
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  getChatHistory:
+    handler: src/handlers/chat-bridge.getChatHistory
+    description: "Get chat history for debugging and support"
+    timeout: 12
+    events:
+      - http:
+          path: api/chat/history
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+      - http:
+          path: api/chat/history/{sessionId}
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+resources:
+  Outputs:
+    ChatBridgeApiEndpoint:
+      Description: "HTTP API endpoint for chat bridge"
+      Value:
+        Fn::Join:
+          - ""
+          - - "https://"
+            - Ref: ApiGatewayRestApi
+            - ".execute-api."
+            - ${self:provider.region}
+            - ".amazonaws.com/"
+            - ${self:provider.stage}
+    
+    OrderStreamProcessorArn:
+      Description: "ARN of the Order Stream Processor Lambda function"
+      Value:
+        Ref: OrderStreamProcessorLambdaFunction
+      Export:
+        Name: ${self:service}-${self:provider.stage}-OrderStreamProcessor
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3001
+    host: 0.0.0.0

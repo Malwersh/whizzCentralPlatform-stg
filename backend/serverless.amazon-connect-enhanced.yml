@@ -1,0 +1,543 @@
+service: wizzcentral-amazon-connect-enhanced
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  timeout: 30
+  memorySize: 512
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    CHAT_HISTORY_TABLE: ${self:service}-chat-history-${self:provider.stage}
+    CHAT_FILES_TABLE: ${self:service}-chat-files-${self:provider.stage}
+    AGENT_MANAGEMENT_TABLE: ${self:service}-agents-${self:provider.stage}
+    CHAT_ANALYTICS_TABLE: ${self:service}-analytics-${self:provider.stage}
+    WEBSOCKET_CONNECTIONS_TABLE: ${self:service}-websocket-connections-${self:provider.stage}
+    TYPING_INDICATORS_TABLE: ${self:service}-typing-indicators-${self:provider.stage}
+    PRESENCE_TABLE: ${self:service}-presence-${self:provider.stage}
+    CHAT_FILES_BUCKET: ${self:service}-chat-files-${self:provider.stage}
+    CONNECT_INSTANCE_ID: 35281ded-3770-4eb9-ab23-9c7415f8cb9b
+    CONTACT_FLOW_ID: 67330f39-fe8c-4f0f-b824-3d50731b08d9
+
+  iam:
+    role:
+      statements:
+        # DynamoDB permissions
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-*
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-*/index/*
+        
+        # S3 permissions for file uploads
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:DeleteObject
+            - s3:GetObjectVersion
+          Resource:
+            - arn:aws:s3:::${self:service}-chat-files-${self:provider.stage}/*
+        
+        - Effect: Allow
+          Action:
+            - s3:ListBucket
+          Resource:
+            - arn:aws:s3:::${self:service}-chat-files-${self:provider.stage}
+        
+        # Amazon Connect permissions
+        - Effect: Allow
+          Action:
+            - connect:StartChatContact
+            - connect:StopContact
+            - connect:DescribeContact
+            - connect:ListContacts
+          Resource:
+            - arn:aws:connect:${self:provider.region}:*:instance/${self:provider.environment.CONNECT_INSTANCE_ID}/*
+        
+        # Amazon Connect Participant permissions
+        - Effect: Allow
+          Action:
+            - connect-participant:CreateParticipantConnection
+            - connect-participant:SendMessage
+            - connect-participant:SendEvent
+            - connect-participant:DisconnectParticipant
+            - connect-participant:GetTranscript
+          Resource: "*"
+        
+        # API Gateway Management permissions for WebSocket
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource:
+            - arn:aws:execute-api:${self:provider.region}:*:*
+        
+        # SNS permissions for notifications
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            - arn:aws:sns:${self:provider.region}:*:amazon-connect-*
+
+functions:
+  # Enhanced chat functions
+  initiateEnhancedChat:
+    handler: src/handlers/amazon-connect-enhanced.initiateEnhancedChat
+    events:
+      - http:
+          path: /enhanced-chat/initiate
+          method: post
+          cors: true
+
+  # File management functions
+  generateFileUploadUrl:
+    handler: src/handlers/amazon-connect-enhanced.generateFileUploadUrl
+    events:
+      - http:
+          path: /chat/file-upload-url
+          method: post
+          cors: true
+
+  completeFileUpload:
+    handler: src/handlers/amazon-connect-enhanced.completeFileUpload
+    events:
+      - http:
+          path: /chat/file-upload-complete
+          method: post
+          cors: true
+
+  getFileDownloadUrl:
+    handler: src/handlers/amazon-connect-enhanced.getFileDownloadUrl
+    events:
+      - http:
+          path: /chat/file-download-url/{fileId}
+          method: get
+          cors: true
+
+  # Chat history functions
+  saveChatMessage:
+    handler: src/handlers/amazon-connect-enhanced.saveChatMessage
+    events:
+      - http:
+          path: /chat/history/save
+          method: post
+          cors: true
+
+  getChatHistory:
+    handler: src/handlers/amazon-connect-enhanced.getChatHistory
+    events:
+      - http:
+          path: /chat/history/{sessionId}
+          method: get
+          cors: true
+
+  exportChatHistory:
+    handler: src/handlers/amazon-connect-enhanced.exportChatHistory
+    events:
+      - http:
+          path: /chat/history/{sessionId}/export
+          method: get
+          cors: true
+
+  searchChatHistory:
+    handler: src/handlers/amazon-connect-enhanced.searchChatHistory
+    events:
+      - http:
+          path: /chat/history/search
+          method: get
+          cors: true
+
+  # Agent management functions
+  getAgentStatus:
+    handler: src/handlers/amazon-connect-enhanced.getAgentStatus
+    events:
+      - http:
+          path: /agents/{agentId}/status
+          method: get
+          cors: true
+
+  updateAgentStatus:
+    handler: src/handlers/amazon-connect-enhanced.updateAgentStatus
+    events:
+      - http:
+          path: /agents/{agentId}/status
+          method: put
+          cors: true
+
+  getAvailableAgents:
+    handler: src/handlers/amazon-connect-enhanced.getAvailableAgents
+    events:
+      - http:
+          path: /agents/available
+          method: get
+          cors: true
+
+  assignChatToAgent:
+    handler: src/handlers/amazon-connect-enhanced.assignChatToAgent
+    events:
+      - http:
+          path: /chat/assign
+          method: post
+          cors: true
+
+  # Analytics functions
+  recordChatAnalytics:
+    handler: src/handlers/amazon-connect-enhanced.recordChatAnalytics
+    events:
+      - http:
+          path: /chat/analytics/record
+          method: post
+          cors: true
+
+  getChatAnalytics:
+    handler: src/handlers/amazon-connect-enhanced.getChatAnalytics
+    events:
+      - http:
+          path: /chat/analytics
+          method: get
+          cors: true
+
+  # WebSocket functions
+  websocketConnect:
+    handler: src/handlers/amazon-connect-websocket.connect
+    events:
+      - websocket:
+          route: $connect
+
+  websocketDisconnect:
+    handler: src/handlers/amazon-connect-websocket.disconnect
+    events:
+      - websocket:
+          route: $disconnect
+
+  websocketMessage:
+    handler: src/handlers/amazon-connect-websocket.message
+    events:
+      - websocket:
+          route: $default
+
+  # WebSocket management functions
+  broadcastMessage:
+    handler: src/handlers/amazon-connect-websocket.broadcast
+    events:
+      - http:
+          path: /websocket/broadcast
+          method: post
+          cors: true
+
+  getActiveConnections:
+    handler: src/handlers/amazon-connect-websocket.getActiveConnections
+    events:
+      - http:
+          path: /websocket/connections
+          method: get
+          cors: true
+
+  getTypingIndicators:
+    handler: src/handlers/amazon-connect-websocket.getTypingIndicators
+    events:
+      - http:
+          path: /websocket/typing/{sessionId}
+          method: get
+          cors: true
+
+  getPresenceStatus:
+    handler: src/handlers/amazon-connect-websocket.getPresenceStatus
+    events:
+      - http:
+          path: /websocket/presence
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    # S3 Bucket for chat files
+    ChatFilesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-chat-files-${self:provider.stage}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - "*"
+              AllowedHeaders:
+                - "*"
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldFiles
+              Status: Enabled
+              ExpirationInDays: 30
+
+    # DynamoDB Tables
+    ChatHistoryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-chat-history-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+          - AttributeName: messageId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: sessionId
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: MessageIdIndex
+            KeySchema:
+              - AttributeName: messageId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
+    ChatFilesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-chat-files-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: fileId
+            AttributeType: S
+          - AttributeName: sessionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: fileId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: SessionIdIndex
+            KeySchema:
+              - AttributeName: sessionId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
+    AgentManagementTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-agents-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: agentId
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: currentQueue
+            AttributeType: S
+        KeySchema:
+          - AttributeName: agentId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: StatusIndex
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueueIndex
+            KeySchema:
+              - AttributeName: currentQueue
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    ChatAnalyticsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-analytics-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: analyticsId
+            AttributeType: S
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+          - AttributeName: eventType
+            AttributeType: S
+        KeySchema:
+          - AttributeName: analyticsId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: SessionIdIndex
+            KeySchema:
+              - AttributeName: sessionId
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: EventTypeIndex
+            KeySchema:
+              - AttributeName: eventType
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+    WebSocketConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-websocket-connections-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: userType
+            AttributeType: S
+          - AttributeName: sessionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserIdIndex
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: UserTypeIndex
+            KeySchema:
+              - AttributeName: userType
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: SessionIdIndex
+            KeySchema:
+              - AttributeName: sessionId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
+    TypingIndicatorsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-typing-indicators-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: connectionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: sessionId
+            KeyType: HASH
+          - AttributeName: userId
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: ConnectionIdIndex
+            KeySchema:
+              - AttributeName: connectionId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
+    PresenceTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-presence-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: userType
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserTypeIndex
+            KeySchema:
+              - AttributeName: userType
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+  Outputs:
+    EnhancedChatApiEndpoint:
+      Description: "Enhanced Amazon Connect Chat API Gateway endpoint URL"
+      Value:
+        Fn::Join:
+          - ""
+          - - "https://"
+            - Ref: "HttpApi"
+            - ".execute-api."
+            - ${self:provider.region}
+            - ".amazonaws.com/"
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-api-url
+
+    WebSocketApiEndpoint:
+      Description: "WebSocket API Gateway endpoint URL"
+      Value:
+        Fn::Join:
+          - ""
+          - - "wss://"
+            - Ref: "WebsocketsApi"
+            - ".execute-api."
+            - ${self:provider.region}
+            - ".amazonaws.com/"
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-websocket-url
+
+    ChatFilesBucketName:
+      Description: "S3 bucket for chat file attachments"
+      Value: ${self:service}-chat-files-${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-files-bucket
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3001
+    websocketPort: 3002

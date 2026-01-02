@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shared WizzOrders DynamoDB table for staging/prod
+
+Parameters:
+  TableName:
+    Type: String
+    Default: WizzOrders
+    Description: DynamoDB table name (shared across services)
+
+Resources:
+  WizzOrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: userId_gsi
+          AttributeType: S
+        - AttributeName: storeStatus
+          AttributeType: S
+        - AttributeName: orderNumber
+          AttributeType: S
+        - AttributeName: businessId
+          AttributeType: S
+
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+
+      GlobalSecondaryIndexes:
+        - IndexName: GSI_User
+          KeySchema:
+            - AttributeName: userId_gsi
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+        - IndexName: GSI_StoreStatus
+          KeySchema:
+            - AttributeName: storeStatus
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+        - IndexName: GSI_OrderNumber
+          KeySchema:
+            - AttributeName: orderNumber
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+        - IndexName: GSI_BusinessId
+          KeySchema:
+            - AttributeName: businessId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+Outputs:
+  WizzOrdersTableName:
+    Value: !Ref WizzOrdersTable
+    Export:
+      Name: !Sub "${AWS::StackName}-TableName"
+  WizzOrdersTableArn:
+    Value: !GetAtt WizzOrdersTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-TableArn"
+  WizzOrdersTableStreamArn:
+    Value: !GetAtt WizzOrdersTable.StreamArn
+    Export:
+      Name: !Sub "${AWS::StackName}-StreamArn"

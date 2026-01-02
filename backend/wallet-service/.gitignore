@@ -1,0 +1,49 @@
+# SAM build artifacts
+.aws-sam/
+samconfig.toml.bak
+
+# Build output
+dist/
+build/
+*.js.map
+
+# Dependencies
+node_modules/
+
+# Test files
+coverage/
+*.test.js
+*.spec.js
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Service credentials - NEVER COMMIT!
+credentials/
+service-cognito-config.env
+*-credentials.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+
+# Test scripts (keep for local testing)
+# test-*.js files are intentionally tracked

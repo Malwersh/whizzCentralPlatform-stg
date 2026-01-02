@@ -1,0 +1,19 @@
+{
+  "name": "region-propagation-engine",
+  "version": "1.0.0",
+  "description": "Lambda لحساب الحالة الفعلية للمناطق مع الوراثة الهرمية",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.645.0",
+    "@aws-sdk/lib-dynamodb": "^3.645.0",
+    "@aws-sdk/util-dynamodb": "^3.645.0"
+  },
+  "engines": {
+    "node": ">=20.x"
+  },
+  "author": "WizzCentral Team",
+  "license": "MIT"
+}

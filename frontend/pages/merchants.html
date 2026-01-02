@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>WizzCentral Platform - Merchants Management</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <!-- Security: DOMPurify for XSS Protection -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <link rel="stylesheet" href="../styles/merchants-table.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <!-- Security Utilities -->
+    <script src="../assets/js/security-utils.js"></script>
+    <script src="../assets/js/rbac.js"></script>
+
+    <!-- Material 3 Merchants Page Styles -->
+    <style>
+        /* Page Container */
+        .page-content {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Status Banner */
+        .status-banner {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            padding: 16px 24px;
+            border-radius: var(--md-sys-shape-corner-large);
+            margin-bottom: 24px;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-banner i {
+            font-size: 20px;
+        }
+
+        /* View Container */
+        .view-container {
+            transition: all var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+        }
+
+        /* Table Container */
+        .table-container {
+            background-color: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level1);
+            /* changed: allow horizontal scroll on small screens */
+            overflow-x: auto;
+            overflow-y: hidden;
+            border: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: transparent;
+            /* ensure columns don’t collapse on small screens */
+            min-width: 1100px;
+        }
+
+        .data-table thead {
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        .data-table th {
+            padding: 20px 16px;
+            text-align: left;
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+            font-weight: var(--md-sys-typescale-title-medium-font-weight);
+            color: var(--md-sys-color-on-surface);
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            text-transform: none;
+            letter-spacing: 0.25px;
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            color: var(--md-sys-color-on-surface);
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover {
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Column behaviors */
+        .data-table td:nth-child(1) { /* Business */
+            min-width: 260px;
+        }
+        .data-table td:nth-child(2), /* Owner */
+        .data-table td:nth-child(3) { /* Status */
+            white-space: nowrap;
+        }
+        .data-table td:nth-child(4) { /* Accepting Orders */
+            white-space: nowrap;
+        }
+        .data-table td:nth-child(5), /* Email */
+        .data-table td:nth-child(6) { /* Phone */
+            white-space: nowrap;
+        }
+        .data-table td:nth-child(7) { /* Address */
+            min-width: 240px;
+            word-break: break-word;
+        }
+        .data-table td:nth-child(8) { /* Last Update */
+            white-space: nowrap;
+        }
+        .data-table td:nth-child(9) { /* Actions */
+            min-width: 220px;
+        }
+
+        /* Business cell layout */
+        .business-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .business-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--md-sys-shape-corner-small);
+            object-fit: cover;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var(--md-sys-color-surface-container);
+            flex-shrink: 0;
+        }
+        .business-details h4 {
+            margin: 0 0 2px 0;
+            font-size: var(--md-sys-typescale-title-small-font-size);
+            color: var(--md-sys-color-on-surface);
+        }
+        .business-details p {
+            margin: 0;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: var(--md-sys-typescale-body-small-font-size);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--md-sys-shape-corner-full);
+            font-size: var(--md-sys-typescale-label-medium-font-size);
+            font-weight: var(--md-sys-typescale-label-medium-font-weight);
+            text-transform: none;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.approved {
+            background-color: var(--md-sys-color-success-container);
+            color: var(--md-sys-color-on-success-container);
+        }
+
+        .status-badge.pending {
+            background-color: var(--md-sys-color-warning-container);
+            color: var(--md-sys-color-on-warning-container);
+        }
+
+        .status-badge.rejected {
+            background-color: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn-action {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-full);
+            background: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface-variant);
+            cursor: pointer;
+            transition: transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard),
+                        box-shadow var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+        .btn-action:hover { box-shadow: var(--md-sys-elevation-level1); transform: translateY(-1px); }
+
+        .btn-primary {
+            padding: 0.75rem 1.5rem;
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--md-sys-elevation-level1);
+            filter: brightness(1.05);
+        }
+
+        .btn-secondary {
+            background-color: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: var(--md-sys-elevation-level1);
+            filter: brightness(1.05);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .btn-success {
+            background-color: var(--md-sys-color-success);
+            color: var(--md-sys-color-on-success);
+        }
+
+        .btn-warning {
+            background-color: var(--md-sys-color-warning);
+            color: var(--md-sys-color-on-warning);
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            min-height: 32px;
+            font-size: var(--md-sys-typescale-label-small-font-size);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: var(--md-sys-shape-corner-full);
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .product-card {
+            background-color: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 24px;
+            box-shadow: var(--md-sys-elevation-level1);
+            border: none;
+            transition: all var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            box-shadow: var(--md-sys-elevation-level2);
+            transform: translateY(-2px);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: var(--md-sys-shape-corner-medium);
+            margin-bottom: 16px;
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        .product-card h3 {
+            margin: 0 0 8px 0;
+            font-size: var(--md-sys-typescale-title-medium-font-size);
+            font-weight: var(--md-sys-typescale-title-medium-font-weight);
+            color: var(--md-sys-color-on-surface);
+            line-height: var(--md-sys-typescale-title-medium-line-height);
+        }
+
+        .product-card p {
+            margin: 0 0 12px 0;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+            line-height: var(--md-sys-typescale-body-medium-line-height);
+        }
+
+        .product-card .price {
+            color: var(--md-sys-color-success);
+            font-weight: var(--md-sys-typescale-title-medium-font-weight);
+            font-size: var(--md-sys-typescale-title-medium-font-size);
+            margin: 0;
+        }
+
+        .category-section {
+            margin-bottom: 32px;
+        }
+
+        .category-section h2 {
+            margin: 0 0 16px 0;
+            color: var(--md-sys-color-on-surface);
+            font-size: var(--md-sys-typescale-headline-small-font-size);
+            font-weight: var(--md-sys-typescale-headline-small-font-weight);
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--md-sys-color-primary);
+            display: inline-block;
+            line-height: var(--md-sys-typescale-headline-small-line-height);
+        }
+
+        .no-products-message {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--md-sys-color-on-surface-variant);
+            background-color: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+        }
+
+        .no-products-message i {
+            font-size: 48px;
+            color: var(--md-sys-color-outline);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        /* Navigation Header for Products */
+        .products-nav-header {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+            background-color: var(--md-sys-color-surface-container);
+            border-radius: var (--md-sys-shape-corner-large);
+            border-bottom: none;
+        }
+
+        .merchant-info h2 {
+            margin: 0;
+            color: var(--md-sys-color-on-surface);
+            font-size: var(--md-sys-typescale-headline-small-font-size);
+            font-weight: var(--md-sys-typescale-headline-small-font-weight);
+            line-height: var (--md-sys-typescale-headline-small-line-height);
+        }
+
+        .merchant-info p {
+            margin: 4px 0 0 0;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+        }
+
+        .btn-view-products {
+            background: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-view-products:hover {
+            background: var(--wizz-secondary-dark);
+        }
+
+        .btn-toggle-status {
+            border: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            transition: all 0.2s;
+            margin-left: 0.25rem;
+        }
+
+        .btn-toggle-status.approved {
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border: 1px solid var(--md-sys-color-primary);
+        }
+
+        .btn-toggle-status.approved:hover {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+        }
+
+        .btn-toggle-status.pending {
+            background: var(--md-sys-color-secondary-container);
+            color: var (--md-sys-color-on-secondary-container);
+            border: 1px solid var(--md-sys-color-secondary);
+        }
+
+        .btn-toggle-status.pending:hover {
+            background: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+        }
+
+        .btn-toggle-status:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: var(--md-sys-color-surface);
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid var(--md-sys-color-outline);
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+
+        .close-button {
+            color: var(--md-sys-color-on-surface-variant);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--md-sys-color-on-surface);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            padding: 0.75rem 1.5rem;
+            background: #00c2e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .form-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+        }
+
+        .form-message.success {
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .form-message.error {
+            background-color: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+        }
+
+        /* Additional Material 3 Enhancements */
+        .btn-view-products {
+            background-color: var(--md-sys-color-success);
+            color: var(--md-sys-color-on-success);
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--md-sys-shape-corner-full);
+            cursor: pointer;
+            font-size: var(--md-sys-typescale-label-medium-font-size);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+        }
+
+        .btn-view-products:hover {
+            box-shadow: var(--md-sys-elevation-level1);
+            filter: brightness(1.05);
+        }
+
+        .btn-toggle-status {
+            border: none;
+            padding: 8px;
+            border-radius: var(--md-sys-shape-corner-full);
+            cursor: pointer;
+            font-size: var(--md-sys-typescale-label-medium-font-size);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            transition: all var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            margin-left: 4px;
+        }
+
+        .btn-toggle-status.approved {
+            background-color: var(--md-sys-color-warning-container);
+            color: var(--md-sys-color-on-warning-container);
+        }
+
+        .btn-toggle-status.approved:hover {
+            background-color: var(--md-sys-color-warning);
+            color: var(--md-sys-color-on-warning);
+        }
+
+        .btn-toggle-status.pending {
+            background-color: var(--md-sys-color-success-container);
+            color: var(--md-sys-color-on-success-container);
+        }
+
+        .btn-toggle-status.pending:hover {
+            background-color: var(--md-sys-color-success);
+            color: var(--md-sys-color-on-success);
+        }
+
+        .btn-toggle-status:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Enhanced Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: var(--md-sys-color-surface-container-low);
+            margin: 5% auto;
+            padding: 32px;
+            border: none;
+            width: 90%;
+            max-width: 600px;
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--md-sys-color-on-surface);
+            font-size: var(--md-sys-typescale-headline-small-font-size);
+            font-weight: var(--md-sys-typescale-headline-small-font-weight);
+        }
+
+        .close-button {
+            color: var(--md-sys-color-on-surface-variant);
+            background: none;
+            border: none;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--md-sys-shape-corner-full);
+            transition: all var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+        }
+
+        .close-button:hover {
+            background-color: var(--md-sys-color-surface-container);
+            color: var(--md-sys-color-on-surface);
+        }
+
+        /* Enhanced Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: var(--md-sys-typescale-body-medium-font-weight);
+            color: var(--md-sys-color-on-surface);
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-sys-shape-corner-medium);
+            font-size: var(--md-sys-typescale-body-medium-font-size);
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            transition: border-color var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px var(--md-sys-color-primary-container);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+            justify-content: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Merchant Table Image Styling */
+        .merchant-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--md-sys-shape-corner-small);
+            object-fit: cover;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        .merchant-logo:hover {
+            transform: scale(1.1);
+            transition: transform var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            box-shadow: var(--md-sys-elevation-level2);
+        }
+
+        /* Merchant Profile Picture in Details */
+        .merchant-profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            object-fit: cover;
+            border: 2px solid var(--md-sys-color-outline-variant);
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        /* Business Logo in Products View */
+        .business-logo {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            object-fit: cover;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var (--md-sys-color-surface-container);
+        }
+
+        /* General image constraints for any uncontrolled images in data table */
+        .data-table img:not(.business-avatar):not(.product-image) {
+            max-width: 48px;
+            max-height: 48px;
+            width: auto;
+            height: auto;
+            border-radius: var(--md-sys-shape-corner-small);
+            object-fit: cover;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        /* Product images in merchant products view */
+        .product-image {
+            width: 100%;
+            max-width: 200px;
+            height: 140px;
+            border-radius: var(--md-sys-shape-corner-medium);
+            object-fit: cover;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        /* Fallback for any large images */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Specific styling for merchant info images (not in table) */
+        .merchant-info img {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--md-sys-shape-corner-small);
+            object-fit: cover;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        /* Normalize avatar size to 40px to match global stylesheet and avoid conflicts */
+        .business-info .business-avatar,
+        .business-avatar {
+            width: 40px !important;
+            height: 40px !important;
+            max-width: 40px !important;
+            max-height: 40px !important;
+        }
+        /* Trim duplicate badge styles to defer to merchants-table.css where possible */
+        /* Keep minimal overrides only when needed */
+        .status-badge { white-space: nowrap; }
+    </style>
+</head>
+
+<body data-page="merchants">
+    <!-- Sidebar include placeholder -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Auth and Data Status -->
+            <div id="dataStatus" class="status-banner">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Data Source:</strong> <span id="dataSourceIndicator">Loading merchants...</span>
+                </div>
+            </div>
+
+            <!-- Merchants List View (default) -->
+            <div id="merchantsListView" class="view-container">
+                <!-- Merchants Table -->
+                <div class="table-container">
+                    <div id="merchants-table-status"></div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Business</th>
+                                <th>Owner</th>
+                                <th>Status</th>
+                                <!-- changed: reflect rendered value -->
+                                <th>Accepting Orders</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Last Update</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="merchantsTableBody"><!-- rows injected by JS using delegated events --></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Merchant Products View (hidden by default) -->
+            <div id="merchantProductsView" class="view-container" style="display: none;">
+                <!-- Navigation Header -->
+                <div class="products-nav-header"
+                    style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+                    <button id="backToMerchantsBtn" class="btn-secondary"
+                        style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Merchants
+                    </button>
+                    <div class="merchant-info">
+                        <h2 id="selectedMerchantName" style="margin: 0; color: var(--md-sys-color-on-surface); font-size: 1.5rem;"></h2>
+                        <p id="selectedMerchantDetails" style="margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.9rem;">
+                        </p>
+                    </div>
+                    <button id="refreshProductsBtn" class="btn-primary"
+                        style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-sync"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <!-- Products Status Message -->
+                <div id="productsStatus" class="status-banner" style="display: none;">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="productsStatusText"></span>
+                </div>
+
+                <!-- Container for products -->
+                <div id="merchantProductsContainer" class="products-grid">
+                    <!-- Products will be rendered here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Edit Product Modal -->
+            <div id="editProductModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Edit Product</h2>
+                        <span class="close-button" data-action="close-edit-product">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editProductForm">
+                            <input type="hidden" id="editProductId">
+                            <div class="form-group">
+                                <label for="editProductName">Product Name (English)</label>
+                                <input type="text" id="editProductName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductNameAr">Product Name (Arabic)</label>
+                                <input type="text" id="editProductNameAr">
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductDescription">Description (English)</label>
+                                <textarea id="editProductDescription" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductDescriptionAr">Description (Arabic)</label>
+                                <textarea id="editProductDescriptionAr" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductAllergens">Allergens (comma-separated)</label>
+                                <textarea id="editProductAllergens" rows="2"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductIngredients">Ingredients (comma-separated)</label>
+                                <textarea id="editProductIngredients" rows="2"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductPrice">Price</label>
+                                <input type="number" id="editProductPrice" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductCategory">Category</label>
+                                <select id="editProductCategory" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductPreparationTime">Preparation Time (minutes)</label>
+                                <input type="number" id="editProductPreparationTime" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductIsAvailable">
+                                    <input type="checkbox" id="editProductIsAvailable">
+                                    Is Available
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProductImageUrl">Image URL</label>
+                                <input type="text" id="editProductImageUrl">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Save Changes</button>
+                                <button type="button" class="btn-secondary" data-action="cancel-edit-product">Cancel</button>
+                            </div>
+                        </form>
+                        <div id="editProductFormMessage" class="form-message" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- end page-content -->
+
+        <!-- Status Update Modal -->
+        <div id="statusModal" class="modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+            <div class="modal-content"
+                style="background:white; padding:1rem; border-radius:8px; max-width:400px; width:90%; position:relative;">
+                <button data-action="close-status-modal"
+                    style="position:absolute; top:8px; right:8px; background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+                <h3 style="margin-bottom: 1rem;">Update Merchant Status</h3>
+                <div id="statusModalBody"></div>
+                <div style="margin-top:1rem; text-align:right;">
+                    <button class="btn-secondary" data-action="cancel-status-modal" style="margin-right: 0.5rem;">Cancel</button>
+                    <button class="btn-primary" data-action="save-status-modal">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Merchant Details Modal -->
+        <div id="viewMerchantModal" class="modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+            <div class="modal-content"
+                style="background:white; padding:1rem; border-radius:8px; max-width:600px; width:90%; position:relative;">
+                <button data-action="close-view-merchant"
+                    style="position:absolute; top:8px; right:8px; background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+                <h3 style="margin-bottom: 1rem;">Merchant Details</h3>
+                <div id="merchantDetailsBody"></div>
+                <div style="margin-top:1rem; text-align:right;">
+                    <button class="btn-primary" data-action="close-view-merchant">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Merchant Modal -->
+        <div id="editMerchantModal" class="modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index: 1000;">
+            <div class="modal-content"
+                style="background:white; padding:1.5rem; border-radius:8px; max-width:700px; width:95%; max-height:90vh; overflow-y:auto; position:relative;">
+                <button data-action="close-edit-merchant"
+                    style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#6b7280; padding:4px;">&times;</button>
+
+                <h3 style="margin-bottom: 1.5rem; color: var(--md-sys-color-on-surface); font-size: 1.5rem;">Edit Merchant</h3>
+
+                <form id="editMerchantForm" style="display: grid; gap: 1rem;">
+                    <!-- Basic Information -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label for="editBusinessName"
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Business
+                                Name</label>
+                            <input type="text" id="editBusinessName" name="businessName" required
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                        </div>
+                        <div>
+                            <label for="editOwnerName"
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Owner
+                                Name</label>
+                            <input type="text" id="editOwnerName" name="ownerName"
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label for="editEmail"
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Email</label>
+                            <input type="email" id="editEmail" name="email" required
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                        </div>
+                        <div>
+                            <label for="editPhoneNumber"
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Phone
+                                Number</label>
+                            <input type="tel" id="editPhoneNumber" name="phoneNumber" required
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                        </div>
+                    </div>
+
+                    <!-- Business Type and Status -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label for="editBusinessType"
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Business
+                                Type</label>
+                            <select id="editBusinessType" name="businessType"
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                <option value="restaurant">Restaurant</option>
+                                <option value="store">Store</option>
+                                <option value="cafe">Cafe</option>
+                                <option value="cloudkitchen">Cloud Kitchen</option>
+                                <option value="pharmacy">Pharmacy</option>
+                                <option value="retail">Retail</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="editStatus"
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Status</label>
+                            <select id="editStatus" name="status"
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="under_review">Under Review</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Status Change Reason (shows only when status is changed) -->
+                    <div id="statusReasonSection" style="display: none;">
+                        <label for="editStatusReason"
+                            style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">
+                            Reason for Status Change <span style="color: #ef4444;">*</span>
+                        </label>
+                        <textarea id="editStatusReason" name="statusReason" rows="2" minlength="10" maxlength="500"
+                            placeholder="Please provide a reason for the status change..."
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem; resize: vertical;"></textarea>
+                        <small style="color: #6b7280; font-size: 0.75rem;">This will be included in the email
+                            notification sent to the merchant.</small>
+                    </div>
+
+                    <!-- Address - Match DynamoDB structure -->
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: #374151;">Address</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <input type="text" id="editStreet" name="street" placeholder="Street Address"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                            </div>
+                            <div>
+                                <input type="text" id="editCity" name="city" placeholder="City"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <input type="text" id="editDistrict" name="district" placeholder="District"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                            </div>
+                            <div>
+                                <input type="text" id="editCountry" name="country" placeholder="Country" value="Iraq"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Remove Description and Website sections as they're not in DynamoDB -->
+
+                    <!-- Form Messages -->
+                    <div id="editFormMessages" style="display: none;"></div>
+
+                    <!-- Submit Buttons -->
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; justify-content: flex-end;">
+                        <button type="button" data-action="cancel-edit-merchant"
+                            style="padding: 0.75rem 1.5rem; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 6px; cursor: pointer; font-size: 0.875rem;">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveEditBtn" class="btn-primary">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- AWS SDK and Core Scripts -->
+        <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1454.0.min.js"></script>
+        <script>
+            console.log('AWS SDK loaded:', typeof AWS !== 'undefined');
+
+            // Prevent dashboard.js from overriding our functions
+            window.MERCHANTS_PAGE = true;
+        </script>
+
+        <!-- Configuration -->
+        <script src="../config.js?v=2024-merchants"></script>
+        <script>
+            console.log('Config loaded:', typeof window.WIZZCENTRAL_CONFIG !== 'undefined');
+        </script>
+
+        <!-- Centralized utilities -->
+        <script src="../assets/js/auth-utils.js?v=2024-merchants"></script>
+        <script src="../assets/js/aws-utils.js?v=2024-merchants"></script>
+
+        <!-- Data service (depends on aws-utils) -->
+        <script src="../data-service.js?v=2024-merchants"></script>
+
+        <!-- Shared sidebar loader -->
+        <script src="../aggressive-sidebar-fix.js"></script>
+        <script src="../immediate-sidebar-fix.js"></script>
+        <script src="../assets/js/navigation.js?v=2024-merchants"></script>
+
+        <!-- Page-specific scripts -->
+        <script src="../merchants.js?v=2024-merchants"></script>
+        <script>
+            console.log('Merchants page script loaded');
+            
+            // Check authentication silently in background
+            if (window.Auth && typeof window.Auth.requireAuthentication === 'function') {
+                try {
+                    window.Auth.requireAuthentication();
+                } catch (e) {
+                    console.warn('Auth check error:', e);
+                }
+            }
+            
+            // Initialize merchants page when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', window.onDomReady);
+            } else {
+                window.onDomReady();
+            }
+        </script>
+<!-- Sidebar Loading Script -->
+<script>
+    // Load sidebar content
+    async function loadSidebar() {
+        try {
+            const response = await fetch('/includes/sidebar.html');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const html = await response.text();
+
+            const placeholder = document.getElementById('sidebar-placeholder');
+            if (placeholder) {
+                placeholder.innerHTML = html;
+                console.log('✅ Sidebar loaded successfully');
+
+                // Set active state for merchants page
+                const merchantsNavItem = document.querySelector('.nav-item[data-page="merchants"]');
+                if (merchantsNavItem) {
+                    // Remove any existing active states
+                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    // Add active to merchants
+                    merchantsNavItem.classList.add('active');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Failed to load sidebar:', error);
+        }
+    }
+
+    // Load sidebar when page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadSidebar);
+    } else {
+        loadSidebar();
+    }
+</script>
+<script>
+    (function () {
+        const init = async () => {
+            if (!window.RBAC) { console.warn('RBAC util missing'); return; }
+            await RBAC.ensure();
+            // Enforce RBAC - New system auto-detects page name
+            window.RBAC.enforcePage();
+            if (!RBAC.can('merchants', 'write')) {
+                RBAC.applyReadOnly('body', 'merchants');
+                document.querySelectorAll('[data-write-only]').forEach(el => { el.style.display = 'none'; });
+            }
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+    })();
+</script>
+    </body>
+
+    </html>

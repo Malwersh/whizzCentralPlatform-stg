@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizzCentral Platform - Orders Management</title>
+    <script src="../env.js"></script>
+    <script src="../config.js"></script>
+    <!-- Security: DOMPurify for XSS Protection -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <script src="../styles/wizz-theme-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <!-- Security Utilities -->
+    <script src="../assets/js/security-utils.js"></script>
+    <script src="../assets/js/rbac.js"></script>
+    <style>
+        /* Material 3 Orders Management Styles */
+        .orders-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+    
+        .orders-controls {
+            background-color: var(--md-sys-color-surface-container-low);
+            padding: 24px;
+            border-radius: var(--md-sys-shape-corner-large);
+            box-shadow: var(--md-sys-elevation-level1);
+            margin-bottom: 32px;
+        }
+    
+        .controls-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+    
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+    
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            font-size: var(--md-sys-typescale-body-large-font-size);
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            border-width: 2px;
+        }
+    
+        .filter-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+    
+        .filter-group select {
+            padding: 12px 16px;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-sys-shape-corner-small);
+            font-size: var(--md-sys-typescale-body-large-font-size);
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+        }
+    
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: var(--md-sys-shape-corner-full);
+            font-size: var(--md-sys-typescale-label-small-font-size);
+            font-weight: var(--md-sys-typescale-label-small-font-weight);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+        }
+    
+        .status-confirmed {
+            background-color: var(--md-sys-color-success-container);
+            color: var(--md-sys-color-on-success-container);
+        }
+    
+        .status-pending {
+            background-color: var(--md-sys-color-warning-container);
+            color: var(--md-sys-color-on-warning-container);
+        }
+    
+        .status-cancelled {
+            background-color: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+        }
+    
+        .orders-table {
+            background-color: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-sys-shape-corner-large);
+            overflow: hidden;
+            box-shadow: var(--md-sys-elevation-level1);
+        }
+    
+        .table-header {
+            background: var(--md-sys-color-surface-container-low);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    
+        .orders-grid {
+            overflow-x: auto;
+        }
+    
+        .orders-grid table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+    
+        .orders-grid th,
+        .orders-grid td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+    
+        .orders-grid th {
+            background: var(--md-sys-color-surface-container-low);
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 14px;
+        }
+    
+        .orders-grid td {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+            vertical-align: middle;
+        }
+    
+        .orders-grid tr:hover {
+            background: var(--md-sys-color-surface-container-low);
+        }
+
+        .orders-grid th:nth-child(1) { width: 140px; }
+        .orders-grid th:nth-child(2) { width: 220px; }
+        .orders-grid th:nth-child(3) { width: 120px; }
+        .orders-grid th:nth-child(4) { width: 110px; }
+        .orders-grid th:nth-child(5) { width: 140px; }
+        .orders-grid th:nth-child(6) { width: 120px; }
+        .orders-grid tbody tr:nth-child(even) { background: var(--md-sys-color-surface-container); }
+        .orders-grid tbody tr:hover { background: var(--md-sys-color-surface-container-highest); }
+
+        .view-details-btn {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+    
+        .view-details-btn:hover {
+            background: var(--wizz-primary-dark);
+        }
+    
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--md-sys-color-surface-variant);
+            border-top: 3px solid var(--md-sys-color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+    
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    
+        .modal-content {
+            background-color: var(--md-sys-color-surface);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+    
+        .modal-header h2 {
+            margin: 0;
+            color: var(--md-sys-color-on-surface);
+        }
+    
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-left: auto;
+        }
+    
+        .modal-body {
+            padding: 1.5rem;
+        }
+    
+        .order-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+    
+        .detail-item {
+            padding: 1rem;
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: 8px;
+        }
+    
+        .detail-label {
+            font-size: 12px;
+            color: var(--md-sys-color-on-surface-variant);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+    
+        .detail-value {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+            font-weight: 500;
+        }
+    
+        .raw-data {
+            background: var(--md-sys-color-secondary);
+            color: var(--md-sys-color-on-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .items-list {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            flex: 1;
+        }
+
+        .item-details {
+            display: flex;
+            gap: 1rem;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .pricing-details {
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .price-row:last-child {
+            border-bottom: none;
+        }
+
+        .total-row {
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+            border-top: 2px solid var(--md-sys-color-primary);
+            font-size: 16px;
+        }
+
+        .customer-cell { display: flex; flex-direction: column; gap: 4px; }
+        .customer-name { font-weight: 600; word-break: break-word; }
+        .customer-meta { font-size: 11px; color: var(--md-sys-color-on-surface-variant); line-height: 1.2; }
+        .status-badge { display: inline-flex; align-items: center; gap: 4px; letter-spacing: .75px; margin-right: 4px; }
+        .amount-cell { font-weight: 500; font-family: system-ui, Roboto, sans-serif; }
+        .order-id { font-family: "Courier New", monospace; font-size: 12px; background: var(--md-sys-color-surface-container); padding: 4px 6px; border-radius: 6px; display: inline-block; }
+        @media (max-width: 900px) { .orders-grid th:nth-child(4), .orders-grid td:nth-child(4) { display:none; } }
+        @media (max-width: 720px) { .orders-grid th:nth-child(5), .orders-grid td:nth-child(5) { display:none; } }
+    
+        @media (max-width: 768px) {
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+    
+            .filter-group {
+                justify-content: space-between;
+            }
+        }
+    </style>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+
+<body data-page="orders">
+    <!-- Aggressive sidebar fix - runs first -->
+    <script src="../aggressive-sidebar-fix.js"></script>
+    <!-- Immediate sidebar state fix -->
+    <script src="../immediate-sidebar-fix.js"></script>
+    <!-- Sidebar include placeholder -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Content -->
+        <div class="page-content">
+            <!-- Orders Statistics -->
+            <div class="orders-stats">
+                <div class="stat-card">
+                    <div class="stat-icon"
+                        style="background: linear-gradient(45deg, var(--md-sys-color-primary), var(--wizz-primary-dark));">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-value" id="total-orders">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"
+                        style="background: linear-gradient(45deg, var(--md-sys-color-secondary), var(--wizz-secondary-dark));">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Confirmed</div>
+                        <div class="stat-value" id="confirmed-orders">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"
+                        style="background: linear-gradient(45deg, var(--md-sys-color-tertiary), var(--md-sys-color-tertiary));">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="pending-orders">0</div>
+                        </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"
+                                style="background: linear-gradient(45deg, var(--md-sys-color-error), var(--md-sys-color-error));">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-label">Cancelled</div>
+                                <div class="stat-value" id="cancelled-orders">0</div>
+                            </div>
+                        </div>
+                        </div>
+                        
+                        <!-- Search and Filter Controls -->
+                        <div class="orders-controls">
+                            <div class="controls-row">
+                                <div class="search-box">
+                                    <!-- Removed inline onkeyup for CSP compliance -->
+                                    <input type="text" id="search-input" placeholder="Search orders by ID, customer name...">
+                                </div>
+                                <div class="filter-group">
+                                    <!-- Removed inline onchange for CSP compliance -->
+                                    <select id="status-filter">
+                                        <option value="">All Statuses</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                    <input type="date" id="date-from" title="From Date">
+                                    <input type="date" id="date-to" title="To Date">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="orders-table">
+                <div class="table-header">
+                    <h3>Orders List</h3>
+                    <div id="table-status">
+                        <span class="loading-spinner"></span>
+                        Loading orders...
+                    </div>
+                </div>
+                <div class="orders-grid">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                                </tr>
+                                </thead>
+                        <tbody id="orders-tbody">
+                            <!-- Orders will be populated here -->
+                        </tbody>
+                        </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Order Details</h2>
+                <button class="modal-close" data-action="close-order-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="order-details-content">
+                    <!-- Order details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AWS SDK -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
+    <!-- Configuration -->
+    <script src="../config.js"></script>
+    <!-- Centralized utilities -->
+    <script src="../assets/js/auth-utils.js"></script>
+    <script src="../assets/js/aws-utils.js"></script>
+    <!-- Orders API -->
+    <script src="../js/orders-api.js"></script>
+    <!-- Sidebar -->
+    <script src="../assets/js/navigation.js"></script>
+    <script src="../test-toggle-functionality.js"></script>
+<script>
+    let allOrders = [];
+    let filteredOrders = [];
+
+    // Load orders from API
+    async function loadOrders() {
+        const tableStatus = document.getElementById('table-status');
+        const tbody = document.getElementById('orders-tbody');
+
+        // SECURITY: Safe static content
+        tableStatus.innerHTML = '<span class="loading-spinner"></span> Loading orders...';
+
+        try {
+            // Use WizzOrdersAPI to get orders directly from DynamoDB
+            if (!window.WizzOrdersAPI) {
+                throw new Error('WizzOrdersAPI not available. Please ensure orders-api.js is loaded.');
+            }
+
+            console.log('🔄 Using WizzOrdersAPI instance...');
+            // WizzOrdersAPI is already instantiated globally, just use it directly
+            await window.WizzOrdersAPI.initialize();
+
+            console.log('🔄 Fetching orders from WizzOrders table...');
+            const result = await window.WizzOrdersAPI.getOrders(50);
+
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to fetch orders');
+            }
+
+            allOrders = result.orders || [];
+            
+            // Process orders to add formatted fields
+            allOrders = allOrders.map(order => ({
+                ...order,
+                cleanOrderId: order.orderId,
+                formattedDate: formatOrderDate(order.createdAt),
+                totalAmount: extractTotalAmount(order.total),
+                customerEmail: order.customerPhone || ''
+            }));
+            
+            filteredOrders = [...allOrders];
+
+            updateStatistics();
+            renderOrdersTable();
+
+            // SECURITY: Safe static content
+            tableStatus.innerHTML = `${allOrders.length} orders loaded from WizzOrders table`;
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            
+            // Check if error is due to expired token
+            const errorMessage = error.message || '';
+            if (errorMessage.includes('Token expired') || errorMessage.includes('Invalid login token')) {
+                console.warn('⚠️ Token expired, redirecting to login...');
+                // Clear expired tokens
+                localStorage.removeItem('idToken');
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('isAuthenticated');
+                // Redirect to login
+                window.location.href = '/pages/login.html';
+                return;
+            }
+            
+            // SECURITY: Safe static content
+            tableStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error loading orders';
+
+            // SECURITY: Sanitize error message
+            const safeErrorMessage = SecurityUtils.escapeHTML(error.message || 'Unknown error');
+            tbody.innerHTML = SecurityUtils.sanitizeHTML(`
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--md-sys-color-error);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <div>Failed to load orders: ${safeErrorMessage}</div>
+                            ${errorMessage.includes('Token expired') || errorMessage.includes('Invalid login token') ? 
+                                '<div style="margin-top: 1rem;"><a href="/pages/login.html" style="color: var(--md-sys-color-primary);">Please log in again</a></div>' : ''}
+                        </td>
+                    </tr>
+                `);
+        }
+    }
+
+    // Helper function to format order date
+    function formatOrderDate(dateString) {
+        if (!dateString || dateString === 'N/A') return 'N/A';
+        
+        try {
+            // Handle ISO string or timestamp
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Invalid Date';
+            
+            // Use date-fns if available
+            if (window.dateFns && typeof window.dateFns.format === 'function') {
+                return window.dateFns.format(date, 'MMM d, yyyy');
+            }
+
+            // Format as: Nov 4, 2025
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'Invalid Date';
+        }
+    }
+    
+    // Helper function to extract total amount from string
+    function extractTotalAmount(totalString) {
+        if (!totalString) return 0;
+        
+        // If it's already a number
+        if (typeof totalString === 'number') return totalString;
+        
+        // If it's a string like "25000 IQD" or "N/A"
+        if (typeof totalString === 'string') {
+            if (totalString === 'N/A') return 0;
+            
+            // Extract numbers from string
+            const match = totalString.match(/[\d,]+/);
+            if (match) {
+                const number = parseFloat(match[0].replace(/,/g, ''));
+                return isNaN(number) ? 0 : number;
+            }
+        }
+        
+        return 0;
+    }
+
+        // Helper: format currency consistently
+        function formatCurrency(amount, currency) {
+            const cur = (currency || 'IQD').toUpperCase();
+            const num = Number(amount || 0);
+            try {
+                if (typeof Intl !== 'undefined' && Intl.NumberFormat) {
+                    // IQD is 0-decimal; fallback to standard for others
+                    const minimumFractionDigits = cur === 'IQD' ? 0 : 2;
+                    const maximumFractionDigits = cur === 'IQD' ? 0 : 2;
+                    // Not all runtimes support currency IQD, so use style: 'decimal' and append code for safety
+                    const supportsCurrency = false;
+                    if (supportsCurrency) {
+                        return new Intl.NumberFormat('en-US', { style: 'currency', currency: cur }).format(num);
+                    }
+                    return `${new Intl.NumberFormat('en-US', { minimumFractionDigits, maximumFractionDigits }).format(num)} ${cur}`;
+                }
+            } catch (e) { /* ignore */ }
+            return `${(cur === 'IQD' ? Math.round(num) : num.toFixed(2))} ${cur}`;
+        }
+
+    // Update statistics
+    function updateStatistics() {
+        const stats = allOrders.reduce((acc, order) => {
+            acc.total++;
+            if (order.status === 'confirmed') acc.confirmed++;
+            else if (order.status === 'pending') acc.pending++;
+            else if (order.status === 'cancelled') acc.cancelled++;
+            return acc;
+        }, { total: 0, confirmed: 0, pending: 0, cancelled: 0 });
+
+        document.getElementById('total-orders').textContent = stats.total;
+        document.getElementById('confirmed-orders').textContent = stats.confirmed;
+        document.getElementById('pending-orders').textContent = stats.pending;
+        document.getElementById('cancelled-orders').textContent = stats.cancelled;
+    }
+
+    // Render orders table
+    function renderOrdersTable() {
+        const tbody = document.getElementById('orders-tbody');
+
+        if (filteredOrders.length === 0) {
+            // SECURITY: Safe static content
+            tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--md-sys-color-on-surface-variant);">
+                            <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <div>No orders found</div>
+                        </td>
+                    </tr>
+                `;
+            return;
+        }
+
+        // SECURITY: Sanitize all user-generated content before rendering
+        tbody.innerHTML = SecurityUtils.sanitizeHTML(
+            filteredOrders.map(order => {
+                const safeOrderId = SecurityUtils.escapeHTML(order.orderId);
+                const safeCustomerName = SecurityUtils.escapeHTML(order.customerName || 'N/A');
+                const safeCustomerEmail = SecurityUtils.escapeHTML(order.customerEmail || '');
+                const statusRaw = (order.status || '').toString();
+                const safeStatus = SecurityUtils.escapeHTML(statusRaw);
+                const safeStatusClass = SecurityUtils.escapeHTML(statusRaw.toLowerCase());
+                const safeFormattedDate = SecurityUtils.escapeHTML(order.formattedDate);
+                const safeCleanOrderId = SecurityUtils.escapeHTML(order.cleanOrderId);
+                const currency = order.currency || 'IQD';
+                const amountStr = formatCurrency(order.totalAmount || 0, currency);
+                const safeAmount = SecurityUtils.escapeHTML(amountStr);
+
+                return `
+                <tr>
+                    <td><span class="order-id" title="Order ID">${safeOrderId}</span></td>
+                    <td>
+                        <div class="customer-cell">
+                            <div class="customer-name">${safeCustomerName}</div>
+                            <div class="customer-meta">${safeCustomerEmail}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${safeStatusClass}">
+                            ${safeStatus}
+                        </span>
+                    </td>
+                    <td class="amount-cell">${safeAmount}</td>
+                    <td>${safeFormattedDate}</td>
+                    <td>
+                        <button class="view-details-btn" data-order-id="${safeCleanOrderId}">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+                `;
+            }).join('')
+        );
+    }
+
+    // Filter orders
+    function filterOrders() {
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const statusFilter = document.getElementById('status-filter').value;
+        const dateFrom = document.getElementById('date-from').value;
+        const dateTo = document.getElementById('date-to').value;
+
+        filteredOrders = allOrders.filter(order => {
+            // Text search
+            const matchesSearch = !searchTerm ||
+                order.orderId.toLowerCase().includes(searchTerm) ||
+                (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) ||
+                (order.customerEmail && order.customerEmail.toLowerCase().includes(searchTerm));
+
+            // Status filter
+            const matchesStatus = !statusFilter || order.status === statusFilter;
+
+            // Date filters
+            const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
+            const matchesDateFrom = !dateFrom || orderDate >= dateFrom;
+            const matchesDateTo = !dateTo || orderDate <= dateTo;
+
+            return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+        });
+
+        renderOrdersTable();
+        // SECURITY: Safe static content
+        document.getElementById('table-status').innerHTML = `${filteredOrders.length} orders shown`;
+    }
+
+    // Show order details
+    async function showOrderDetails(orderId) {
+        const modal = document.getElementById('orderModal');
+        const content = document.getElementById('order-details-content');
+
+        // SECURITY: Safe static content
+        content.innerHTML = '<div style="text-align: center;"><span class="loading-spinner"></span> Loading order details...</div>';
+        modal.style.display = 'block';
+
+        try {
+            // Find the order in the allOrders array
+            const order = allOrders.find(o => o.orderId === orderId || o.cleanOrderId === orderId);
+            
+            if (!order) {
+                throw new Error('Order not found');
+            }
+
+            // Use the fullData if available, otherwise use the order itself
+            const orderData = order.fullData || order;
+
+            // SECURITY: Sanitize all user-generated content before rendering
+            const safeOrderId = SecurityUtils.escapeHTML(order.orderId || 'N/A');
+            const safeStatus = SecurityUtils.escapeHTML(order.status || 'N/A');
+            const safeTotal = SecurityUtils.escapeHTML(order.total || 'N/A');
+            const safeFormattedDate = SecurityUtils.escapeHTML(order.formattedDate || 'N/A');
+            const safeCustomerName = SecurityUtils.escapeHTML(order.customerName || 'N/A');
+            const safeCustomerPhone = SecurityUtils.escapeHTML(order.customerPhone || 'N/A');
+            const safeStoreName = SecurityUtils.escapeHTML(order.storeName || 'N/A');
+            const safePaymentMethod = SecurityUtils.escapeHTML(order.paymentMethod || 'N/A');
+            const safeDeliveryAddress = SecurityUtils.escapeHTML(order.deliveryAddress || 'N/A');
+            const safeCurrency = SecurityUtils.escapeHTML(order.currency || 'IQD');
+            const safeDriverId = SecurityUtils.escapeHTML(order.driverId || '');
+            const safeConfirmedAt = order.confirmedAt ? SecurityUtils.escapeHTML(new Date(order.confirmedAt).toLocaleString()) : '';
+
+            // Build items HTML safely
+            let itemsHtml = '';
+            if (order.items && order.items.length > 0) {
+                const safeItemsHtml = order.items.map(item => {
+                    const safeItemName = SecurityUtils.escapeHTML(item.name || item.title || 'Item');
+                    const safeQuantity = SecurityUtils.escapeHTML(String(item.quantity || 1));
+                    const safePrice = item.price ? SecurityUtils.escapeHTML(String(item.price)) : '';
+
+                    return `
+                        <div class="item-row">
+                            <div class="item-name">${safeItemName}</div>
+                            <div class="item-details">
+                                <span>Qty: ${safeQuantity}</span>
+                                ${safePrice ? `<span>Price: ${safeCurrency} ${safePrice}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                itemsHtml = `
+                    <h4>Order Items</h4>
+                    <div class="items-list">
+                        ${safeItemsHtml}
+                    </div>
+                `;
+            }
+
+            // Safely stringify JSON
+            const safeJsonData = SecurityUtils.escapeHTML(JSON.stringify(orderData, null, 2));
+
+            content.innerHTML = SecurityUtils.sanitizeHTML(`
+                <div class="order-detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Order ID</div>
+                        <div class="detail-value">${safeOrderId}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="status-badge status-${safeStatus}">${safeStatus}</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Total Amount</div>
+                        <div class="detail-value">${safeTotal}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Created Date</div>
+                        <div class="detail-value">${safeFormattedDate}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Customer Name</div>
+                        <div class="detail-value">${safeCustomerName}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Customer Phone</div>
+                        <div class="detail-value">${safeCustomerPhone}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Store Name</div>
+                        <div class="detail-value">${safeStoreName}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Payment Method</div>
+                        <div class="detail-value">${safePaymentMethod}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Delivery Address</div>
+                        <div class="detail-value">${safeDeliveryAddress}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Currency</div>
+                        <div class="detail-value">${safeCurrency}</div>
+                    </div>
+                    ${safeDriverId ? `
+                    <div class="detail-item">
+                        <div class="detail-label">Driver ID</div>
+                        <div class="detail-value">${safeDriverId}</div>
+                    </div>
+                    ` : ''}
+                    ${safeConfirmedAt ? `
+                    <div class="detail-item">
+                        <div class="detail-label">Confirmed At</div>
+                        <div class="detail-value">${safeConfirmedAt}</div>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                ${itemsHtml}
+                
+                <details style="margin-top: 20px;">
+                    <summary style="cursor: pointer; font-weight: bold;">Raw Order Data</summary>
+                    <div class="raw-data" style="max-height: 300px; overflow-y: auto;">${safeJsonData}</div>
+                </details>
+            `);
+        } catch (error) {
+            console.error('Error loading order details:', error);
+            // SECURITY: Sanitize error message
+            const safeErrorMessage = SecurityUtils.escapeHTML(error.message || 'Unknown error');
+            content.innerHTML = SecurityUtils.sanitizeHTML(`
+                    <div style="text-align: center; color: var(--md-sys-color-error);">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <div>Failed to load order details: ${safeErrorMessage}</div>
+                    </div>
+                `);
+        }
+    }
+
+    // Close order modal
+    function closeOrderModal() {
+        document.getElementById('orderModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function (event) {
+        const modal = document.getElementById('orderModal');
+        if (event.target === modal) {
+            closeOrderModal();
+        }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('🚀 DOM Content Loaded - Starting orders page initialization');
+        console.log('🔍 Available global objects:', {
+            WizzOrdersAPI: !!window.WizzOrdersAPI,
+            AWSUtils: !!window.AWSUtils,
+            AuthUtils: !!window.AuthUtils
+        });
+
+        // Attach filter listeners (CSP-safe)
+        const searchInput = document.getElementById('search-input');
+        const statusFilter = document.getElementById('status-filter');
+        const dateFrom = document.getElementById('date-from');
+        const dateTo = document.getElementById('date-to');
+        [searchInput, statusFilter, dateFrom, dateTo].forEach(el => {
+            if (!el) return;
+            const evt = el.tagName === 'INPUT' && el.type === 'text' ? 'input' : 'change';
+            el.addEventListener(evt, filterOrders);
+        });
+
+        // Delegated click for view details buttons
+        document.getElementById('orders-tbody').addEventListener('click', (e) => {
+            const btn = e.target.closest('.view-details-btn');
+            if (btn && btn.dataset.orderId) {
+                showOrderDetails(btn.dataset.orderId);
+            }
+        });
+
+        // Close modal button (CSP-safe)
+        document.addEventListener('click', (e) => {
+            const closeBtn = e.target.closest('button[data-action="close-order-modal"]');
+            if (closeBtn) { closeOrderModal(); }
+        });
+
+        setTimeout(() => {
+            console.log('🔄 Starting loadOrders() after brief delay...');
+            loadOrders();
+        }, 100); // Small delay to ensure all scripts are loaded
+    });
+</script>
+<!-- Sidebar Loading Script -->
+<script>
+    // Load sidebar content
+    async function loadSidebar() {
+        try {
+            const response = await fetch('/includes/sidebar.html');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const html = await response.text();
+
+            const placeholder = document.getElementById('sidebar-placeholder');
+            if (placeholder) {
+                // SECURITY: Sidebar HTML is from trusted source (internal file)
+                placeholder.innerHTML = html;
+                console.log('✅ Sidebar loaded successfully');
+
+                // Set active state for orders page
+                const ordersNavItem = document.querySelector('.nav-item[data-page="orders"]');
+                if (ordersNavItem) {
+                    // Remove any existing active states
+                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    // Add active to orders
+                    ordersNavItem.classList.add('active');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Failed to load sidebar:', error);
+        }
+    }
+
+    // Load sidebar when page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadSidebar);
+    } else {
+        loadSidebar();
+    }
+</script>
+<script>
+    (async function () {
+        try {
+            await RBAC.ensure();
+            // Enforce RBAC - New system auto-detects page name
+            window.RBAC.enforcePage();
+            // Orders domain: read/write are same roles in backend, but keep generic
+            if (!RBAC.can('orders', 'write')) {
+                // apply read-only
+                RBAC.applyReadOnly('body', 'orders');
+                // Optionally hide creation/edit controls if identifiable
+                document.querySelectorAll('[data-write-only], .view-details-btn[data-action="write"]').forEach(el => el.style.display = 'none');
+            }
+        } catch (e) { console.warn('RBAC init failed', e); }
+    })();
+</script>
+</body>
+</html>

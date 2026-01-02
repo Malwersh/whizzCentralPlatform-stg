@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Access Denied - WizzCentral</title>
+  <script src="../env.js"></script>
+  <script src="../config.js"></script>
+  <link rel="stylesheet" href="../styles/material-3-design-system.css">
+  <script src="../styles/wizz-theme-config.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #FDC500 0%, #f9a825 100%);
+      color: #333;
+      font-family: 'Roboto', sans-serif;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      max-width: 600px;
+      text-align: center;
+    }
+    .icon {
+      font-size: 72px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+      margin: 0 0 16px;
+      color: #d32f2f;
+    }
+    .message {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .info-box {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 24px 0;
+      text-align: left;
+    }
+    .info-box h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      color: #856404;
+    }
+    .info-box p {
+      margin: 8px 0;
+      font-size: 14px;
+      color: #856404;
+    }
+    .info-box strong {
+      color: #333;
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: transform 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .btn-primary {
+      background: #FDC500;
+      color: white;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🚫</div>
+    <h1>Access Denied</h1>
+    <p class="message">You don't have permission to access this page.</p>
+    
+    <div class="info-box" id="userInfo">
+      <h3>📋 Your Access Information</h3>
+      <p><strong>Current Role:</strong> <span id="userRole">Loading...</span></p>
+      <p><strong>Groups:</strong> <span id="userGroups">Loading...</span></p>
+      <p><strong>Attempted Page:</strong> <span id="attemptedPage">Unknown</span></p>
+    </div>
+    
+    <p class="message">
+      If you believe you should have access to this page, please contact your administrator 
+      to review your permissions.
+    </p>
+    
+    <div class="buttons">
+      <a href="/pages/dashboard.html" class="btn btn-primary">Go to Dashboard</a>
+      <button onclick="window.logout()" class="btn btn-secondary">Logout</button>
+    </div>
+  </div>
+  
+  <script src="../assets/js/auth-utils.js"></script>
+  <script src="../assets/js/rbac.js"></script>
+  <script>
+    // Display user's current role and attempted page
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        // Get user's role
+        const roleName = window.RBAC.getRoleDisplayName();
+        document.getElementById('userRole').textContent = roleName;
+        
+        // Get user's groups
+        const groups = window.RBAC.getUserGroups();
+        document.getElementById('userGroups').textContent = 
+          groups.length > 0 ? groups.join(', ') : 'None assigned';
+        
+        // Get attempted page
+        const attemptedPage = sessionStorage.getItem('attemptedPage');
+        if (attemptedPage) {
+          const pageName = attemptedPage.split('/').pop();
+          document.getElementById('attemptedPage').textContent = pageName;
+        } else {
+          document.getElementById('attemptedPage').textContent = 'Unknown';
+        }
+        
+        // Log for debugging
+        console.log('User Role:', roleName);
+        console.log('User Groups:', groups);
+        console.log('Attempted Page:', attemptedPage);
+        
+      } catch (error) {
+        console.error('Error loading user info:', error);
+        document.getElementById('userRole').textContent = 'Error loading';
+        document.getElementById('userGroups').textContent = 'Error loading';
+      }
+    });
+  </script>
+</body>
+</html>

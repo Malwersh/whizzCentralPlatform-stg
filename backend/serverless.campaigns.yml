@@ -1,0 +1,319 @@
+service: wizzcentral-campaign-api
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: us-east-1
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    CAMPAIGNS_TABLE: WizzCentral_Campaigns
+    CONDITIONS_TABLE: WizzCentral_Campaign_Conditions
+    USAGE_TABLE: WizzCentral_Campaign_Usage
+    ANALYTICS_TABLE: WizzCentral_Campaign_Analytics
+    USERS_TABLE: WizzUser_users_dev
+    TRANSACTIONS_TABLE: WizzUser_transactions_dev
+    BUSINESSES_TABLE: WhizzMerchants_Businesses
+  
+  # IAM permissions
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaigns"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaigns/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Conditions"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Conditions/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Usage"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Usage/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Analytics"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_Campaign_Analytics/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzUser_users_dev"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzUser_users_dev/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzUser_transactions_dev"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WizzUser_transactions_dev/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WhizzMerchants_Businesses"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/WhizzMerchants_Businesses/index/*"
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+# Lambda Functions
+functions:
+  # Main Campaign API
+  campaignApi:
+    handler: lambda/campaign-api.handler
+    timeout: 30
+    memorySize: 256
+    events:
+      - http:
+          path: /campaigns
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /campaigns
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /campaigns/{campaignId}
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /campaigns/{campaignId}
+          method: put
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /campaigns/{campaignId}
+          method: delete
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /campaigns/{campaignId}/validate
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /campaigns/{campaignId}/apply
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /campaigns/{campaignId}/analytics
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /campaigns/eligible
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+
+  # Condition Engine API
+  conditionEngineApi:
+    handler: lambda/condition-engine-api.handler
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: /conditions/evaluate
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /conditions/validate
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /conditions/{campaignId}
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /conditions/{campaignId}
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /conditions/test
+          method: post
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+
+  # Analytics API
+  analyticsApi:
+    handler: lambda/analytics-api.handler
+    timeout: 30
+    memorySize: 256
+    events:
+      - http:
+          path: /analytics/dashboard
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /analytics/campaigns/{campaignId}
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /analytics/performance
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /analytics/trends
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /analytics/export
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+      - http:
+          path: /analytics/realtime
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: ${self:custom.cognitoAuthorizerId}
+
+  # Public API for customer applications (no auth required)
+  campaignPublicApi:
+    handler: lambda/campaign-public-api.handler
+    timeout: 15
+    memorySize: 256
+    events:
+      - http:
+          path: /public/campaigns/validate
+          method: post
+          cors: true
+      - http:
+          path: /public/campaigns/apply
+          method: post
+          cors: true
+      - http:
+          path: /public/campaigns/eligible
+          method: post
+          cors: true
+
+# Custom configurations
+custom:
+  # Cognito User Pool Authorizer ID (replace with your actual ID)
+  cognitoAuthorizerId: 
+    Ref: ApiGatewayAuthorizer
+  
+  # Stage-specific configurations
+  stageConfigs:
+    dev:
+      cognitoUserPoolArn: "arn:aws:cognito-idp:us-east-1:YOUR_ACCOUNT_ID:userpool/us-east-1_YOUR_POOL_ID"
+    prod:
+      cognitoUserPoolArn: "arn:aws:cognito-idp:us-east-1:YOUR_ACCOUNT_ID:userpool/us-east-1_YOUR_POOL_ID"
+
+# CloudFormation Resources
+resources:
+  Resources:
+    # Cognito Authorizer
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        AuthorizerResultTtlInSeconds: 300
+        IdentitySource: method.request.header.Authorization
+        Name: CognitoAuthorizer
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        Type: COGNITO_USER_POOLS
+        ProviderARNs:
+          - ${self:custom.stageConfigs.${self:provider.stage}.cognitoUserPoolArn}
+
+    # API Gateway CORS Configuration
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+
+# Outputs
+  Outputs:
+    ApiGatewayRestApiId:
+      Value:
+        Ref: ApiGatewayRestApi
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ApiGatewayRestApiId
+
+    ApiGatewayRestApiRootResourceId:
+      Value:
+        Fn::GetAtt:
+          - ApiGatewayRestApi
+          - RootResourceId
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ApiGatewayRestApiRootResourceId
+
+    CampaignApiUrl:
+      Description: "Campaign API Gateway endpoint URL"
+      Value:
+        Fn::Join:
+          - ""
+          - - "https://"
+            - Ref: ApiGatewayRestApi
+            - ".execute-api."
+            - ${self:provider.region}
+            - ".amazonaws.com/"
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-CampaignApiUrl
+
+# Plugins
+plugins:
+  - serverless-offline

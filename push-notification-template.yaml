@@ -1,0 +1,221 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: WizzCentral Push Notification System - Lambda Functions
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: nodejs18.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        DEVICE_TOKENS_TABLE: WhizzMerchants_DeviceTokens
+        BUSINESSES_TABLE: WhizzMerchants_Businesses
+        DISCOUNTS_TABLE: WhizzMerchants_Discounts
+        FIREBASE_SECRET_NAME: firebase-service-account
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name for resource tagging
+
+Resources:
+  # ============================================
+  # Lambda Execution Role
+  # ============================================
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub WizzCentral-PushNotification-LambdaRole-${Environment}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_DeviceTokens
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Discounts
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:firebase-service-account*
+
+  # ============================================
+  # Merchant Information Notification Lambda
+  # ============================================
+  MerchantInfoNotificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub WizzCentral-MerchantInfoNotification-${Environment}
+      CodeUri: backend/lambda/
+      Handler: merchant-info-notification.handler
+      Description: Sends information notifications to merchant devices via FCM
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Tags:
+        Environment: !Ref Environment
+        Project: WizzCentral
+        Service: PushNotifications
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /api/merchants/send-info-notification
+            Method: POST
+            RestApiId: !Ref PushNotificationApi
+
+  # ============================================
+  # Discount Push Notification Lambda
+  # ============================================
+  DiscountPushNotificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub WizzCentral-DiscountPushNotification-${Environment}
+      CodeUri: backend/lambda/
+      Handler: discount-push-notification.handler
+      Description: Sends discount offer notifications to customer devices via FCM
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Tags:
+        Environment: !Ref Environment
+        Project: WizzCentral
+        Service: PushNotifications
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /api/discounts/{discountId}/send-notification
+            Method: POST
+            RestApiId: !Ref PushNotificationApi
+
+  # ============================================
+  # API Gateway REST API
+  # ============================================
+  PushNotificationApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub WizzCentral-PushNotifications-${Environment}
+      StageName: Prod
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        MaxAge: "'3600'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_Cp9YnOQWi
+        AddDefaultAuthorizerToCorsPreflight: false
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+
+  # ============================================
+  # CloudWatch Log Groups
+  # ============================================
+  MerchantInfoNotificationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/WizzCentral-MerchantInfoNotification-${Environment}
+      RetentionInDays: 7
+
+  DiscountPushNotificationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/WizzCentral-DiscountPushNotification-${Environment}
+      RetentionInDays: 7
+
+  # ============================================
+  # CloudWatch Alarms
+  # ============================================
+  MerchantInfoNotificationErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub WizzCentral-MerchantInfoNotification-Errors-${Environment}
+      AlarmDescription: Alert when merchant notification Lambda has errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref MerchantInfoNotificationFunction
+
+  DiscountPushNotificationErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub WizzCentral-DiscountPushNotification-Errors-${Environment}
+      AlarmDescription: Alert when discount notification Lambda has errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DiscountPushNotificationFunction
+
+Outputs:
+  ApiGatewayUrl:
+    Description: "API Gateway endpoint URL for push notifications"
+    Value: !Sub "https://${PushNotificationApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+    Export:
+      Name: !Sub WizzCentral-PushNotification-ApiUrl-${Environment}
+
+  MerchantInfoNotificationFunctionArn:
+    Description: "Merchant Info Notification Lambda Function ARN"
+    Value: !GetAtt MerchantInfoNotificationFunction.Arn
+    Export:
+      Name: !Sub WizzCentral-MerchantInfoNotification-Arn-${Environment}
+
+  DiscountPushNotificationFunctionArn:
+    Description: "Discount Push Notification Lambda Function ARN"
+    Value: !GetAtt DiscountPushNotificationFunction.Arn
+    Export:
+      Name: !Sub WizzCentral-DiscountPushNotification-Arn-${Environment}
+
+  ApiGatewayId:
+    Description: "API Gateway ID"
+    Value: !Ref PushNotificationApi
+    Export:
+      Name: !Sub WizzCentral-PushNotification-ApiId-${Environment}

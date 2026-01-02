@@ -1,0 +1,17 @@
+{
+  "name": "region-resolver",
+  "version": "1.0.0",
+  "description": "Lambda function to resolve GPS coordinates to region with pricing",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.645.0",
+    "@aws-sdk/lib-dynamodb": "^3.645.0",
+    "@turf/turf": "^7.0.0",
+    "h3-js": "^4.1.0"
+  },
+  "author": "Wizz Platform",
+  "license": "MIT"
+}

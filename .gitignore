@@ -1,0 +1,21 @@
+.DS_Store
+
+# Environment files
+.env
+.env.*
+
+# Node
+node_modules/
+
+# Vite
+frontend/dist/
+dist/
+
+# Serverless/SAM build artifacts
+**/.aws-sam/
+
+# Logs
+*.log
+
+# Amplify-generated runtime config (do not commit)
+frontend/env.js

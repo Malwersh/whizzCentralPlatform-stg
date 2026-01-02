@@ -1,0 +1,683 @@
+# Enhanced Amazon Connect Chat Service Configuration
+# Serverless Framework configuration for chat features, file attachments, and analytics
+
+service: amazon-connect-enhanced-chat
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  timeout: 30
+  memorySize: 512
+  
+  environment:
+    REGION: ${self:provider.region}
+    STAGE: ${self:provider.stage}
+    CHAT_HISTORY_TABLE: AmazonConnect-ChatHistory-${self:provider.stage}
+    FILE_METADATA_TABLE: AmazonConnect-FileMetadata-${self:provider.stage}
+    AGENT_MANAGEMENT_TABLE: AmazonConnect-AgentManagement-${self:provider.stage}
+    ANALYTICS_TABLE: AmazonConnect-Analytics-${self:provider.stage}
+    CHAT_FILES_BUCKET: wizz-connect-chat-files-${self:provider.stage}
+    KMS_KEY_ID: alias/amazon-connect-encryption-${self:provider.stage}
+    CONNECT_INSTANCE_ID: ${env:CONNECT_INSTANCE_ID, ''}
+    CONNECT_CONTACT_FLOW_ID: ${env:CONNECT_CONTACT_FLOW_ID, ''}
+    WEBSOCKET_API_ID: ${env:WEBSOCKET_API_ID, ''}
+    WEBSOCKET_STAGE: ${env:WEBSOCKET_STAGE, 'dev'}
+
+  iam:
+    role:
+      statements:
+        # DynamoDB permissions
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/AmazonConnect-*-${self:provider.stage}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/AmazonConnect-*-${self:provider.stage}/index/*
+        
+        # S3 permissions for file attachments
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:DeleteObject
+            - s3:GetObjectVersion
+            - s3:PutObjectAcl
+          Resource:
+            - arn:aws:s3:::wizz-connect-chat-files-${self:provider.stage}/*
+        
+        - Effect: Allow
+          Action:
+            - s3:ListBucket
+            - s3:GetBucketLocation
+          Resource:
+            - arn:aws:s3:::wizz-connect-chat-files-${self:provider.stage}
+        
+        # KMS permissions for encryption
+        - Effect: Allow
+          Action:
+            - kms:Encrypt
+            - kms:Decrypt
+            - kms:ReEncrypt*
+            - kms:GenerateDataKey*
+            - kms:DescribeKey
+          Resource:
+            - arn:aws:kms:${self:provider.region}:*:key/*
+          Condition:
+            StringEquals:
+              kms:via: dynamodb.${self:provider.region}.amazonaws.com
+        
+        # Amazon Connect permissions
+        - Effect: Allow
+          Action:
+            - connect:StartChatContact
+            - connect:SendMessage
+            - connect:CreateParticipantConnection
+            - connect:GetTranscript
+            - connect:SendEvent
+          Resource:
+            - arn:aws:connect:${self:provider.region}:*:instance/*
+            - arn:aws:connect:${self:provider.region}:*:contact/*
+        
+        # API Gateway WebSocket permissions
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource:
+            - arn:aws:execute-api:${self:provider.region}:*:*/@connections/*
+        
+        # CloudWatch Logs permissions
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource:
+            - arn:aws:logs:${self:provider.region}:*:*
+
+  httpApi:
+    cors:
+      allowedOrigins:
+        - '*'
+      allowedHeaders:
+        - Content-Type
+        - X-Amz-Date
+        - Authorization
+        - X-Api-Key
+        - X-Amz-Security-Token
+        - X-Amz-User-Agent
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowCredentials: false
+
+functions:
+  # Chat Session Management
+  initiateChatSession:
+    handler: src/handlers/amazon-connect-chat.initiateChatSession
+    description: Initiate a new Amazon Connect chat session
+    events:
+      - httpApi:
+          path: /chat/sessions
+          method: post
+    environment:
+      FUNCTION_NAME: initiateChatSession
+
+  sendChatMessage:
+    handler: src/handlers/amazon-connect-chat.sendChatMessage
+    description: Send a message in an active chat session
+    events:
+      - httpApi:
+          path: /chat/sessions/{sessionId}/messages
+          method: post
+    environment:
+      FUNCTION_NAME: sendChatMessage
+
+  endChatSession:
+    handler: src/handlers/amazon-connect-chat.endChatSession
+    description: End an active chat session
+    events:
+      - httpApi:
+          path: /chat/sessions/{sessionId}/end
+          method: post
+    environment:
+      FUNCTION_NAME: endChatSession
+
+  # Chat History Management
+  getChatHistory:
+    handler: src/handlers/amazon-connect-chat.getChatHistory
+    description: Retrieve chat history for a session
+    events:
+      - httpApi:
+          path: /chat/sessions/{sessionId}/history
+          method: get
+    environment:
+      FUNCTION_NAME: getChatHistory
+
+  searchChatHistory:
+    handler: src/handlers/amazon-connect-chat.searchChatHistory
+    description: Search chat history across sessions
+    events:
+      - httpApi:
+          path: /chat/history/search
+          method: get
+    environment:
+      FUNCTION_NAME: searchChatHistory
+
+  exportChatHistory:
+    handler: src/handlers/amazon-connect-chat.exportChatHistory
+    description: Export chat history in various formats
+    events:
+      - httpApi:
+          path: /chat/sessions/{sessionId}/export
+          method: get
+    environment:
+      FUNCTION_NAME: exportChatHistory
+
+  # File Attachment Management
+  uploadFileAttachment:
+    handler: src/handlers/amazon-connect-chat.uploadFileAttachment
+    description: Generate presigned URL for file upload
+    events:
+      - httpApi:
+          path: /chat/files/upload
+          method: post
+    environment:
+      FUNCTION_NAME: uploadFileAttachment
+
+  confirmFileUpload:
+    handler: src/handlers/amazon-connect-chat.confirmFileUpload
+    description: Confirm successful file upload
+    events:
+      - httpApi:
+          path: /chat/files/{fileId}/confirm
+          method: post
+    environment:
+      FUNCTION_NAME: confirmFileUpload
+
+  # Agent Management
+  getAvailableAgents:
+    handler: src/handlers/amazon-connect-chat.getAvailableAgents
+    description: Get list of available agents
+    events:
+      - httpApi:
+          path: /chat/agents/available
+          method: get
+    environment:
+      FUNCTION_NAME: getAvailableAgents
+
+  updateAgentStatus:
+    handler: src/handlers/amazon-connect-chat.updateAgentStatus
+    description: Update agent status and availability
+    events:
+      - httpApi:
+          path: /chat/agents/{agentId}/status
+          method: put
+    environment:
+      FUNCTION_NAME: updateAgentStatus
+
+  # Analytics and Reporting
+  getChatAnalytics:
+    handler: src/handlers/amazon-connect-chat.getChatAnalytics
+    description: Get chat analytics and metrics
+    events:
+      - httpApi:
+          path: /chat/analytics
+          method: get
+    environment:
+      FUNCTION_NAME: getChatAnalytics
+
+  # WebSocket Connection Handlers (for real-time features)
+  connectWebSocket:
+    handler: src/handlers/websocket-chat.connect
+    description: Handle WebSocket connection
+    events:
+      - websocket:
+          route: $connect
+    environment:
+      FUNCTION_NAME: connectWebSocket
+
+  disconnectWebSocket:
+    handler: src/handlers/websocket-chat.disconnect
+    description: Handle WebSocket disconnection
+    events:
+      - websocket:
+          route: $disconnect
+    environment:
+      FUNCTION_NAME: disconnectWebSocket
+
+  handleWebSocketMessage:
+    handler: src/handlers/websocket-chat.handleMessage
+    description: Handle WebSocket messages
+    events:
+      - websocket:
+          route: $default
+    environment:
+      FUNCTION_NAME: handleWebSocketMessage
+
+  # DynamoDB Stream Handlers (for real-time notifications)
+  processChatEvents:
+    handler: src/handlers/stream-processors.processChatEvents
+    description: Process chat events from DynamoDB streams
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [ChatHistoryTable, StreamArn]
+          batchSize: 10
+          startingPosition: LATEST
+          maximumBatchingWindowInSeconds: 5
+    environment:
+      FUNCTION_NAME: processChatEvents
+
+resources:
+  Resources:
+    # S3 Bucket for file attachments
+    ChatFilesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: wizz-connect-chat-files-${self:provider.stage}
+        VersioningConfiguration:
+          Status: Enabled
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldFiles
+              Status: Enabled
+              ExpirationInDays: 90
+              NoncurrentVersionExpirationInDays: 30
+        NotificationConfiguration:
+          CloudWatchConfigurations:
+            - Event: s3:ObjectCreated:*
+              CloudWatchConfiguration:
+                LogGroupName: /aws/s3/wizz-connect-chat-files-${self:provider.stage}
+
+    # KMS Key for encryption
+    ConnectEncryptionKey:
+      Type: AWS::KMS::Key
+      Properties:
+        Description: KMS key for Amazon Connect chat encryption
+        KeyPolicy:
+          Statement:
+            - Sid: Enable IAM User Permissions
+              Effect: Allow
+              Principal:
+                AWS: 
+                  Fn::Sub: arn:aws:iam::${AWS::AccountId}:root
+              Action: kms:*
+              Resource: '*'
+            - Sid: Allow DynamoDB Service
+              Effect: Allow
+              Principal:
+                Service: dynamodb.amazonaws.com
+              Action:
+                - kms:Encrypt
+                - kms:Decrypt
+                - kms:ReEncrypt*
+                - kms:GenerateDataKey*
+                - kms:DescribeKey
+              Resource: '*'
+            - Sid: Allow Lambda Functions
+              Effect: Allow
+              Principal:
+                AWS:
+                  - Fn::GetAtt: [IamRoleLambdaExecution, Arn]
+              Action:
+                - kms:Encrypt
+                - kms:Decrypt
+                - kms:ReEncrypt*
+                - kms:GenerateDataKey*
+                - kms:DescribeKey
+              Resource: '*'
+
+    # KMS Key Alias
+    ConnectEncryptionKeyAlias:
+      Type: AWS::KMS::Alias
+      Properties:
+        AliasName: alias/amazon-connect-encryption-${self:provider.stage}
+        TargetKeyId:
+          Ref: ConnectEncryptionKey
+
+    # DynamoDB Tables (referenced from the creation script)
+    ChatHistoryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: AmazonConnect-ChatHistory-${self:provider.stage}
+        BillingMode: PROVISIONED
+        ProvisionedThroughput:
+          ReadCapacityUnits: 10
+          WriteCapacityUnits: 10
+        AttributeDefinitions:
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+          - AttributeName: customerId
+            AttributeType: S
+          - AttributeName: customerEmail
+            AttributeType: S
+        KeySchema:
+          - AttributeName: sessionId
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: customer-index
+            KeySchema:
+              - AttributeName: customerId
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+          - IndexName: email-index
+            KeySchema:
+              - AttributeName: customerEmail
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        SSESpecification:
+          SSEEnabled: true
+          KMSMasterKeyId:
+            Ref: ConnectEncryptionKey
+        Tags:
+          - Key: Service
+            Value: AmazonConnect
+          - Key: Environment
+            Value: ${self:provider.stage}
+
+    FileMetadataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: AmazonConnect-FileMetadata-${self:provider.stage}
+        BillingMode: PROVISIONED
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        AttributeDefinitions:
+          - AttributeName: fileId
+            AttributeType: S
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: fileId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: session-files-index
+            KeySchema:
+              - AttributeName: sessionId
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+        SSESpecification:
+          SSEEnabled: true
+          KMSMasterKeyId:
+            Ref: ConnectEncryptionKey
+        Tags:
+          - Key: Service
+            Value: AmazonConnect
+          - Key: Environment
+            Value: ${self:provider.stage}
+
+    AgentManagementTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: AmazonConnect-AgentManagement-${self:provider.stage}
+        BillingMode: PROVISIONED
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        AttributeDefinitions:
+          - AttributeName: agentId
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: lastUpdated
+            AttributeType: S
+        KeySchema:
+          - AttributeName: agentId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: status-index
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: lastUpdated
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+        SSESpecification:
+          SSEEnabled: true
+          KMSMasterKeyId:
+            Ref: ConnectEncryptionKey
+        Tags:
+          - Key: Service
+            Value: AmazonConnect
+          - Key: Environment
+            Value: ${self:provider.stage}
+
+    AnalyticsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: AmazonConnect-Analytics-${self:provider.stage}
+        BillingMode: PROVISIONED
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        AttributeDefinitions:
+          - AttributeName: eventId
+            AttributeType: S
+          - AttributeName: date
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+          - AttributeName: eventType
+            AttributeType: S
+        KeySchema:
+          - AttributeName: eventId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: date-index
+            KeySchema:
+              - AttributeName: date
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+          - IndexName: event-type-index
+            KeySchema:
+              - AttributeName: eventType
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 5
+              WriteCapacityUnits: 5
+        SSESpecification:
+          SSEEnabled: true
+          KMSMasterKeyId:
+            Ref: ConnectEncryptionKey
+        Tags:
+          - Key: Service
+            Value: AmazonConnect
+          - Key: Environment
+            Value: ${self:provider.stage}
+
+    # CloudWatch Log Groups
+    ChatHistoryLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/amazon-connect-enhanced-chat-${self:provider.stage}-processChatEvents
+        RetentionInDays: 14
+
+    # API Gateway CloudWatch Role
+    ApiGatewayCloudWatchRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: apigateway.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+  Outputs:
+    # API Gateway outputs
+    HttpApiId:
+      Description: ID of the HTTP API
+      Value:
+        Ref: HttpApi
+      Export:
+        Name: ${self:service}-${self:provider.stage}-HttpApiId
+
+    HttpApiUrl:
+      Description: URL of the HTTP API
+      Value:
+        Fn::Join:
+          - ''
+          - - 'https://'
+            - Ref: HttpApi
+            - '.execute-api.'
+            - ${self:provider.region}
+            - '.amazonaws.com'
+      Export:
+        Name: ${self:service}-${self:provider.stage}-HttpApiUrl
+
+    # WebSocket API outputs
+    WebSocketApiId:
+      Description: ID of the WebSocket API
+      Value:
+        Ref: WebsocketsApi
+      Export:
+        Name: ${self:service}-${self:provider.stage}-WebSocketApiId
+
+    WebSocketApiUrl:
+      Description: URL of the WebSocket API
+      Value:
+        Fn::Join:
+          - ''
+          - - 'wss://'
+            - Ref: WebsocketsApi
+            - '.execute-api.'
+            - ${self:provider.region}
+            - '.amazonaws.com/'
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-WebSocketApiUrl
+
+    # S3 Bucket outputs
+    ChatFilesBucketName:
+      Description: Name of the S3 bucket for chat files
+      Value:
+        Ref: ChatFilesBucket
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ChatFilesBucketName
+
+    # KMS Key outputs
+    ConnectEncryptionKeyId:
+      Description: ID of the KMS key for encryption
+      Value:
+        Ref: ConnectEncryptionKey
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ConnectEncryptionKeyId
+
+    ConnectEncryptionKeyArn:
+      Description: ARN of the KMS key for encryption
+      Value:
+        Fn::GetAtt: [ConnectEncryptionKey, Arn]
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ConnectEncryptionKeyArn
+
+    # DynamoDB Table outputs
+    ChatHistoryTableName:
+      Description: Name of the Chat History table
+      Value:
+        Ref: ChatHistoryTable
+      Export:
+        Name: ${self:service}-${self:provider.stage}-ChatHistoryTableName
+
+    FileMetadataTableName:
+      Description: Name of the File Metadata table
+      Value:
+        Ref: FileMetadataTable
+      Export:
+        Name: ${self:service}-${self:provider.stage}-FileMetadataTableName
+
+    AgentManagementTableName:
+      Description: Name of the Agent Management table
+      Value:
+        Ref: AgentManagementTable
+      Export:
+        Name: ${self:service}-${self:provider.stage}-AgentManagementTableName
+
+    AnalyticsTableName:
+      Description: Name of the Analytics table
+      Value:
+        Ref: AnalyticsTable
+      Export:
+        Name: ${self:service}-${self:provider.stage}-AnalyticsTableName
+
+plugins:
+  - serverless-offline
+  - serverless-webpack
+  - serverless-iam-roles-per-function
+
+custom:
+  webpack:
+    webpackConfig: 'webpack.config.js'
+    includeModules: true
+    packager: 'npm'
+
+  serverless-offline:
+    httpPort: 3001
+    websocketPort: 3002
+    lambdaPort: 3003

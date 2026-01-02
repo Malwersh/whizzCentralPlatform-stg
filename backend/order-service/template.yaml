@@ -1,0 +1,164 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Order Service - Centralized order cancellation with Wallet Hold release
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        
+Parameters:
+  Environment:
+    Type: String
+    Default: staging
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  WalletServiceUrl:
+    Type: String
+    Default: ""
+    Description: Wallet Service API URL
+
+  ServiceCognitoClientId:
+    Type: String
+    Default: ""
+    Description: Cognito Service Pool Client ID
+
+  ServiceCognitoClientSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Cognito Service Pool Client Secret
+
+  ServiceUsername:
+    Type: String
+    Default: ""
+    Description: Service account username (same as Driver Backend)
+
+  ServicePassword:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Service account password
+
+Resources:
+  OrderServiceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: nodejs20.x
+    Properties:
+      FunctionName: !Sub 'OrderService-${Environment}'
+      CodeUri: ./
+      Handler: dist/index.handler
+      Description: Centralized Order Service for cancellation and Hold release
+      Environment:
+        Variables:
+          ORDERS_TABLE: WizzOrders
+          WALLET_SERVICE_URL: !Ref WalletServiceUrl
+          SERVICE_COGNITO_CLIENT_ID: !Ref ServiceCognitoClientId
+          SERVICE_COGNITO_CLIENT_SECRET: !Ref ServiceCognitoClientSecret
+          SERVICE_USERNAME: !Ref ServiceUsername
+          SERVICE_PASSWORD: !Ref ServicePassword
+          CREATE_DISPATCH_JOB_LAMBDA: WaveSystem_CreateDispatchJob
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: WizzOrders
+        - Statement:
+          - Sid: CognitoAccess
+            Effect: Allow
+            Action:
+              - cognito-idp:InitiateAuth
+              - cognito-idp:GetUser
+            Resource: '*'
+          - Sid: InvokeCreateDispatchJob
+            Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:WaveSystem_CreateDispatchJob'
+      Events:
+        HealthCheck:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: get
+            RestApiId: !Ref OrderServiceApi
+        CancelOrder:
+          Type: Api
+          Properties:
+            Path: /order/cancel
+            Method: post
+            RestApiId: !Ref OrderServiceApi
+        UnassignOrder:
+          Type: Api
+          Properties:
+            Path: /order/unassign
+            Method: post
+            RestApiId: !Ref OrderServiceApi
+        OptionsProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: options
+            RestApiId: !Ref OrderServiceApi
+
+  OrderServiceApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub 'OrderServiceApi-${Environment}'
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      DefinitionBody:
+        openapi: '3.0.0'
+        info:
+          title: Order Service API
+          version: '1.0'
+        paths:
+          /health:
+            get:
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderServiceFunction.Arn}/invocations'
+          /order/cancel:
+            post:
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderServiceFunction.Arn}/invocations'
+
+  OrderServiceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/OrderService-${Environment}'
+      RetentionInDays: 14
+
+Outputs:
+  OrderServiceApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${OrderServiceApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}"
+    Export:
+      Name: !Sub 'OrderServiceApiUrl-${Environment}'
+
+  OrderServiceFunctionArn:
+    Description: "Order Service Lambda Function ARN"
+    Value: !GetAtt OrderServiceFunction.Arn
+    Export:
+      Name: !Sub 'OrderServiceFunctionArn-${Environment}'
+
+  OrderServiceFunctionName:
+    Description: "Order Service Lambda Function Name"
+    Value: !Ref OrderServiceFunction
+    Export:
+      Name: !Sub 'OrderServiceFunctionName-${Environment}'

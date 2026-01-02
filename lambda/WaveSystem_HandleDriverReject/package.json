@@ -1,0 +1,20 @@
+{
+  "name": "wavesystem-handle-driver-reject",
+  "version": "1.0.0",
+  "description": "Lambda function to handle driver rejection of wave offers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "wave-system",
+    "driver",
+    "reject",
+    "dispatch"
+  ],
+  "author": "Whizz Platform",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1000.0"
+  }
+}

@@ -1,0 +1,7 @@
+# Amplify redirects configuration
+# Frontend path rewrites
+/frontend/pages/*  /pages/:splat  200
+/frontend/*        /:splat        200
+
+# SPA fallback - serve index.html for all unmatched routes
+/*                 /index.html    404

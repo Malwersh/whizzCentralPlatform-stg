@@ -1,0 +1,450 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Wizz Wallet Service - Centralized wallet management for drivers, merchants, and platform
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: nodejs22.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        NODE_ENV: production
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - production
+    Description: Deployment environment
+
+  WalletsTableName:
+    Type: String
+    Default: dev-Wallets
+    Description: DynamoDB table name for wallets
+
+  LedgerTableName:
+    Type: String
+    Default: dev-LedgerEntries
+    Description: DynamoDB table name for ledger entries
+
+  HoldsTableName:
+    Type: String
+    Default: dev-Holds
+    Description: DynamoDB table name for holds
+
+  TopupRequestsTableName:
+    Type: String
+    Default: dev-TopupRequests
+    Description: DynamoDB table name for topup requests
+
+  AuditLogTableName:
+    Type: String
+    Default: dev-AuditLog
+    Description: DynamoDB table name for audit logs
+
+  IdempotencyKeysTableName:
+    Type: String
+    Default: dev-IdempotencyKeys
+    Description: DynamoDB table name for idempotency keys
+
+  DriverCognitoUserPoolId:
+    Type: String
+    Default: 'us-east-1_Mnrmklxro'
+    Description: Cognito User Pool for Drivers (hadhir-phone-only-pool - phone-based auth)
+
+  AdminCognitoUserPoolId:
+    Type: String
+    Default: 'us-east-1_Cp9YnOQWi'
+    Description: Cognito User Pool for Admins (wizzcentral - email-based auth)
+
+  ServiceCognitoUserPoolId:
+    Type: String
+    Default: 'us-east-1_8LyVWuZnO'
+    Description: Cognito User Pool for Service Accounts (wizz-wallet-service-pool)
+
+Resources:
+  # Cognito Post-Confirmation Trigger Lambda
+  WalletCreationTriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Environment}-wizz-wallet-creation-trigger
+      CodeUri: ./
+      Handler: dist/cognitoTrigger.handler
+      Runtime: nodejs22.x
+      Timeout: 30
+      MemorySize: 256
+      Description: Cognito trigger to create wallet for new drivers
+      Environment:
+        Variables:
+          WALLET_API_URL: !Sub https://${WalletServiceApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            # Allow Lambda to invoke Wallet Service API using IAM auth
+            - Effect: Allow
+              Action:
+                - 'execute-api:Invoke'
+              Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WalletServiceApi}/${Environment}/POST/wallet/create'
+
+  # Permission for Cognito to invoke the trigger
+  WalletCreationTriggerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt WalletCreationTriggerFunction.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${DriverCognitoUserPoolId}'
+
+
+  # Lambda Authorizer Function
+  WalletAuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Environment}-wizz-wallet-authorizer
+      CodeUri: authorizer_lambda/
+      Handler: authorizer.lambda_handler
+      Runtime: python3.9
+      Timeout: 10
+      MemorySize: 256
+      Description: Custom authorizer for Wallet Service - validates Cognito tokens and enforces RBAC
+      Environment:
+        Variables:
+          DRIVER_USER_POOL_ID: !Ref DriverCognitoUserPoolId
+          ADMIN_USER_POOL_ID: !Ref AdminCognitoUserPoolId
+          SERVICE_USER_POOL_ID: !Ref ServiceCognitoUserPoolId
+          REGION: !Ref AWS::Region
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:017000801446:layer:AWSLambdaPowertoolsPythonV2:68
+
+  # Lambda Function
+  WalletServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Environment}-wizz-wallet-service
+      CodeUri: ./
+      Handler: dist/index.handler
+      Description: Centralized wallet service for Wizz platform
+      Environment:
+        Variables:
+          WALLETS_TABLE: !Ref WalletsTableName
+          LEDGER_TABLE: !Ref LedgerTableName
+          HOLDS_TABLE: !Ref HoldsTableName
+          TOPUP_REQUESTS_TABLE: !Ref TopupRequestsTableName
+          AUDIT_LOG_TABLE: !Ref AuditLogTableName
+          IDEMPOTENCY_KEYS_TABLE: !Ref IdempotencyKeysTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WalletsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LedgerTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HoldsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TopupRequestsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AuditLogTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref IdempotencyKeysTableName
+      Events:
+        # Health check (NO AUTH - no Auth property means no authentication)
+        HealthCheck:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+
+        # Wallet endpoints - Driver operations
+        GetMyWallet:
+          Type: Api
+          Properties:
+            Path: /wallet/me
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+
+        GetMyTransactions:
+          Type: Api
+          Properties:
+            Path: /wallet/me/transactions
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+
+        CreateWallet:
+          Type: Api
+          Properties:
+            Path: /wallet/create
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            # No Auth = allows IAM-signed requests from Lambda trigger
+
+        GetWallet:
+          Type: Api
+          Properties:
+            Path: /wallet/{walletId}
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Admins can view any wallet
+
+        GetPlatformWallet:
+          Type: Api
+          Properties:
+            Path: /wallet/platform
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only admins
+
+        CreatePlatformWallet:
+          Type: Api
+          Properties:
+            Path: /wallet/platform/create
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only admins
+
+        # Hold endpoints - Service authenticated (backend services only)
+        CreateHold:
+          Type: Api
+          Properties:
+            Path: /wallet/hold/create
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only order service
+
+        ReleaseHold:
+          Type: Api
+          Properties:
+            Path: /wallet/hold/{holdId}/release
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only order service
+
+        CaptureHold:
+          Type: Api
+          Properties:
+            Path: /wallet/hold/{holdId}/capture
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only order service
+
+        GetActiveHolds:
+          Type: Api
+          Properties:
+            Path: /wallet/holds/active
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Driver can see their holds
+
+        # Topup endpoints
+        CreateTopupRequest:
+          Type: Api
+          Properties:
+            Path: /wallet/topup/request
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Driver authenticated
+
+        ApproveTopup:
+          Type: Api
+          Properties:
+            Path: /wallet/topup/{topupId}/approve
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only admins
+
+        RejectTopup:
+          Type: Api
+          Properties:
+            Path: /wallet/topup/{topupId}/reject
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only admins
+
+        GetTopupRequests:
+          Type: Api
+          Properties:
+            Path: /wallet/topup/requests
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only admins
+
+        GetMyTopupRequests:
+          Type: Api
+          Properties:
+            Path: /wallet/topup/my-requests
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Driver authenticated
+
+        # Settlement endpoints - Service authenticated
+        SettleOrder:
+          Type: Api
+          Properties:
+            Path: /wallet/settlement/settle
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only settlement service
+
+        GetSettlement:
+          Type: Api
+          Properties:
+            Path: /wallet/settlement/order/{orderId}
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Only settlement service
+
+        GetDriverSettlements:
+          Type: Api
+          Properties:
+            Path: /wallet/settlement/driver
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer  # Driver settlements
+
+  # API Gateway
+  WalletServiceApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub ${Environment}-wizz-wallet-api
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-Content-Sha256,x-trigger-secret'"
+        AllowOrigin: "'*'"
+      Auth:
+        Authorizers:
+          # Custom Lambda Authorizer - validates Cognito tokens and enforces RBAC
+          WalletAuthorizer:
+            FunctionArn: !GetAtt WalletAuthorizerFunction.Arn
+            FunctionPayloadType: REQUEST
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 0  # Disable caching - always validate RBAC
+
+  # CloudWatch Log Group
+  WalletServiceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${Environment}-wizz-wallet-service
+      RetentionInDays: 14
+
+  # IAM Role for Lambda
+  WalletServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Environment}-wizz-wallet-service-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchGetItem
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:TransactWriteItems
+                  - dynamodb:TransactGetItems
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WalletsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WalletsTableName}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LedgerTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LedgerTableName}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HoldsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HoldsTableName}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TopupRequestsTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TopupRequestsTableName}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditLogTableName}
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditLogTableName}/index/*
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IdempotencyKeysTableName}
+
+  # API Gateway CloudWatch Role
+  ApiGatewayCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+Outputs:
+  WalletServiceApi:
+    Description: API Gateway endpoint URL for Wallet Service
+    Value: !Sub https://${WalletServiceApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/
+    Export:
+      Name: !Sub ${Environment}-WalletServiceApiUrl
+
+  WalletServiceFunction:
+    Description: Wallet Service Lambda Function ARN
+    Value: !GetAtt WalletServiceFunction.Arn
+    Export:
+      Name: !Sub ${Environment}-WalletServiceFunctionArn
+
+  WalletServiceFunctionName:
+    Description: Wallet Service Lambda Function Name
+    Value: !Ref WalletServiceFunction
+    Export:
+      Name: !Sub ${Environment}-WalletServiceFunctionName
+
+  ApiId:
+    Description: API Gateway ID
+    Value: !Ref WalletServiceApi
+    Export:
+      Name: !Sub ${Environment}-WalletServiceApiId
+
+  WalletCreationTriggerFunctionArn:
+    Description: Wallet Creation Trigger Lambda Function ARN
+    Value: !GetAtt WalletCreationTriggerFunction.Arn
+    Export:
+      Name: !Sub ${Environment}-WalletCreationTriggerFunctionArn
+
+  WalletCreationTriggerFunctionName:
+    Description: Wallet Creation Trigger Lambda Function Name
+    Value: !Ref WalletCreationTriggerFunction
+    Export:
+      Name: !Sub ${Environment}-WalletCreationTriggerFunctionName
