@@ -4,9 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>WizzCentral Platform - Customers Management</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
+    <!-- Security: DOMPurify for XSS Protection -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
     <script src="../styles/wizz-theme-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,21 +17,14 @@
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
-    <!-- Security utilities -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <!-- Security Utilities -->
     <script src="../assets/js/security-utils.js"></script>
     <script src="../assets/js/rbac.js"></script>
+
     <style>
-        /* Material 3 Customers Page Enhancement */
-        .customers-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-    
         .customer-stat-card {
-            background-color: var(--md-sys-color-surface-container-low);
+            background: var(--md-sys-color-surface-container-low);
             border-radius: var(--md-sys-shape-corner-large);
             padding: 24px;
             box-shadow: var(--md-sys-elevation-level1);
@@ -37,12 +33,12 @@
             position: relative;
             overflow: hidden;
         }
-    
+
         .customer-stat-card:hover {
             box-shadow: var(--md-sys-elevation-level2);
             transform: translateY(-2px);
         }
-    
+
         .customer-stat-card::before {
             content: '';
             position: absolute;
@@ -1146,9 +1142,6 @@
     <!-- AWS SDK -->
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
 
-    <!-- Configuration -->
-    <script src="../config.js"></script>
-
     <!-- Centralized utilities -->
     <script src="../assets/js/auth-utils.js"></script>
     <script src="../assets/js/aws-utils.js"></script>
@@ -1169,19 +1162,7 @@
     </script>
     <script src="../customer-points-service.js"></script>
     <script src="../customers.js"></script>
-    
-    <!-- Authentication check -->
-    <script>
-        // Check authentication silently in background
-        if (window.Auth && typeof window.Auth.requireAuthentication === 'function') {
-            try {
-                window.Auth.requireAuthentication();
-            } catch (e) {
-                console.warn('Auth check error:', e);
-            }
-        }
-    </script>
-    
+
 
 <script>
     (async function () {

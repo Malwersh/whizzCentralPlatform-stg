@@ -1131,17 +1131,7 @@
     </script>
     <script src="../drivers.js?v=20250906"></script>
 
-    <!-- Authentication check -->
-    <script>
-        // Check authentication silently in background
-        if (window.Auth && typeof window.Auth.requireAuthentication === 'function') {
-            try {
-                window.Auth.requireAuthentication();
-            } catch (e) {
-                console.warn('Auth check error:', e);
-            }
-        }
-    </script>
+    <!-- Authentication is handled by page scripts (single source of truth) -->
     
     <!-- Inline build stamp for debugging -->
     <script>
@@ -1164,18 +1154,7 @@
             }
         })();
     </script>
-<script>
-        unctio   try {
-            await RBAC.ensure();
-            // Enforce RBAC - New system auto-detects page name
-            window.RBAC.enforcePage();
-            if (!RBAC.can('drivers', 'write')) {
-                RBAC.applyReadOnly('body', 'drivers');
-                document.querySelectorAll('[data-write-only]').forEach(el => { el.style.display = 'none'; });
-            }
-        } catch (e) { console.warn('RBAC init failed', e); }
-    })();
-</script>
+
 
 </body>
 

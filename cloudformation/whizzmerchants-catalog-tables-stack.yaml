@@ -1,0 +1,243 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: WhizzMerchants catalog DynamoDB tables (Products/Categories/Discounts/etc)
+
+Parameters:
+  ProductsTableName:
+    Type: String
+    Default: WhizzMerchants_Products
+  CategoriesTableName:
+    Type: String
+    Default: WhizzMerchants_Categories
+  GlobalProductsTableName:
+    Type: String
+    Default: WhizzMerchants_GlobalProducts
+  DiscountsTableName:
+    Type: String
+    Default: WhizzMerchants_Discounts
+  RegionListingsTableName:
+    Type: String
+    Default: WhizzMerchants_RegionListings
+  BusinessSubcategoriesTableName:
+    Type: String
+    Default: WhizzMerchants_BusinessSubcategories
+
+Resources:
+  WhizzMerchantsProductsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref ProductsTableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: productId
+          AttributeType: S
+        - AttributeName: businessId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: productId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: BusinessIdIndex
+          KeySchema:
+            - AttributeName: businessId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  WhizzMerchantsCategoriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref CategoriesTableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: categoryId
+          AttributeType: S
+        - AttributeName: businessType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: categoryId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: BusinessTypeIndex
+          KeySchema:
+            - AttributeName: businessType
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  WhizzMerchantsGlobalProductsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref GlobalProductsTableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: globalProductId
+          AttributeType: S
+        - AttributeName: barcode
+          AttributeType: S
+        - AttributeName: searchableName
+          AttributeType: S
+        - AttributeName: categoryId
+          AttributeType: S
+        - AttributeName: sku
+          AttributeType: S
+      KeySchema:
+        - AttributeName: globalProductId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: BarcodeIndex
+          KeySchema:
+            - AttributeName: barcode
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: SearchableNameCategoryIndex
+          KeySchema:
+            - AttributeName: searchableName
+              KeyType: HASH
+            - AttributeName: categoryId
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: SkuIndex
+          KeySchema:
+            - AttributeName: sku
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  WhizzMerchantsDiscountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DiscountsTableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: discountId
+          AttributeType: S
+        - AttributeName: businessId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: discountId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: BusinessIdIndex
+          KeySchema:
+            - AttributeName: businessId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  WhizzMerchantsRegionListingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref RegionListingsTableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: regionId
+          AttributeType: S
+        - AttributeName: metadataType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: regionId
+          KeyType: HASH
+        - AttributeName: metadataType
+          KeyType: RANGE
+
+  WhizzMerchantsBusinessSubcategoriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref BusinessSubcategoriesTableName
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: subcategoryId
+          AttributeType: S
+        - AttributeName: businessType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: subcategoryId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: BusinessTypeIndex
+          KeySchema:
+            - AttributeName: businessType
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+Outputs:
+  ProductsTableName:
+    Value: !Ref WhizzMerchantsProductsTable
+    Export:
+      Name: !Sub "${AWS::StackName}-ProductsTableName"
+  ProductsTableArn:
+    Value: !GetAtt WhizzMerchantsProductsTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ProductsTableArn"
+
+  CategoriesTableName:
+    Value: !Ref WhizzMerchantsCategoriesTable
+    Export:
+      Name: !Sub "${AWS::StackName}-CategoriesTableName"
+  CategoriesTableArn:
+    Value: !GetAtt WhizzMerchantsCategoriesTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-CategoriesTableArn"
+
+  GlobalProductsTableName:
+    Value: !Ref WhizzMerchantsGlobalProductsTable
+    Export:
+      Name: !Sub "${AWS::StackName}-GlobalProductsTableName"
+  GlobalProductsTableArn:
+    Value: !GetAtt WhizzMerchantsGlobalProductsTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-GlobalProductsTableArn"
+
+  DiscountsTableName:
+    Value: !Ref WhizzMerchantsDiscountsTable
+    Export:
+      Name: !Sub "${AWS::StackName}-DiscountsTableName"
+  DiscountsTableArn:
+    Value: !GetAtt WhizzMerchantsDiscountsTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-DiscountsTableArn"
+
+  RegionListingsTableName:
+    Value: !Ref WhizzMerchantsRegionListingsTable
+    Export:
+      Name: !Sub "${AWS::StackName}-RegionListingsTableName"
+  RegionListingsTableArn:
+    Value: !GetAtt WhizzMerchantsRegionListingsTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-RegionListingsTableArn"
+
+  BusinessSubcategoriesTableName:
+    Value: !Ref WhizzMerchantsBusinessSubcategoriesTable
+    Export:
+      Name: !Sub "${AWS::StackName}-BusinessSubcategoriesTableName"
+  BusinessSubcategoriesTableArn:
+    Value: !GetAtt WhizzMerchantsBusinessSubcategoriesTable.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-BusinessSubcategoriesTableArn"

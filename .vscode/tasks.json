@@ -1,0 +1,34 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Deploy Notifications (Staging)",
+			"type": "shell",
+			"command": "cd backend && bash ./deploy-notifications-staging.sh",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Notifications Stack Status",
+			"type": "shell",
+			"command": "aws cloudformation describe-stacks --stack-name wizzcentral-notifications-staging --region us-east-1 --profile Wizz_stg_UserApp --query 'Stacks[0].StackStatus' --output text",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Send Test Push (Staging)",
+			"type": "shell",
+			"command": "cd backend && bash ./scripts/send-test-push-staging.sh",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Describe Central Client (Staging)",
+			"type": "shell",
+			"command": "cd backend && aws cognito-idp describe-user-pool-client --user-pool-id us-east-1_wz7vwZZxz --client-id 17mu2qlqis0qcs1n1n980q7e3j --region us-east-1 --profile Wizz_stg_UserApp --query 'UserPoolClient.{ExplicitAuthFlows:ExplicitAuthFlows,AllowedOAuthFlows:AllowedOAuthFlows,AllowedOAuthScopes:AllowedOAuthScopes,SupportedIdentityProviders:SupportedIdentityProviders,TokenValidityUnits:TokenValidityUnits,RefreshTokenValidity:RefreshTokenValidity,AllowedOAuthFlowsUserPoolClient:AllowedOAuthFlowsUserPoolClient}' --output json | tee .tmp/central-client.json",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

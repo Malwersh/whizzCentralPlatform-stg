@@ -558,13 +558,22 @@
             const errorMessage = error.message || '';
             if (errorMessage.includes('Token expired') || errorMessage.includes('Invalid login token')) {
                 console.warn('⚠️ Token expired, redirecting to login...');
-                // Clear expired tokens
-                localStorage.removeItem('idToken');
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('isAuthenticated');
-                // Redirect to login
-                window.location.href = '/pages/login.html';
+                // Clear expired tokens (both storages) and redirect via centralized Auth
+                try {
+                    if (window.Auth) {
+                        if (typeof window.Auth.clearTokens === 'function') window.Auth.clearTokens();
+                        if (typeof window.Auth.redirectToLogin === 'function') {
+                            window.Auth.redirectToLogin('Orders: token expired');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Auth redirect failed, falling back:', e);
+                }
+
+                try { sessionStorage.clear(); } catch (_) {}
+                try { localStorage.clear(); } catch (_) {}
+                window.location.href = '../index.html';
                 return;
             }
             
@@ -579,7 +588,7 @@
                             <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                             <div>Failed to load orders: ${safeErrorMessage}</div>
                             ${errorMessage.includes('Token expired') || errorMessage.includes('Invalid login token') ? 
-                                '<div style="margin-top: 1rem;"><a href="/pages/login.html" style="color: var(--md-sys-color-primary);">Please log in again</a></div>' : ''}
+                                '<div style="margin-top: 1rem;"><a href="../index.html" style="color: var(--md-sys-color-primary);">Please log in again</a></div>' : ''}
                         </td>
                     </tr>
                 `);

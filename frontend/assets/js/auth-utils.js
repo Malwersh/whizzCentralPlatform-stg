@@ -2,19 +2,91 @@
 console.log('Loading auth-utils.js...');
 
 window.Auth = {
+    _redirectedThisLoad: false,
+    _redirectInProgress: false,
+    _authCheckedThisLoad: false,
+    _authCheckResult: null,
+    _authCheckWasSilent: false,
+
+    _readStorageItem(key) {
+        try {
+            return sessionStorage.getItem(key) || localStorage.getItem(key);
+        } catch (e) {
+            try { return localStorage.getItem(key); } catch (_) { return null; }
+        }
+    },
+
+    _writeStorageItem(key, value) {
+        try { sessionStorage.setItem(key, value); } catch (_) { }
+        try { localStorage.setItem(key, value); } catch (_) { }
+    },
+
+    _removeStorageItem(key) {
+        try { sessionStorage.removeItem(key); } catch (_) { }
+        try { localStorage.removeItem(key); } catch (_) { }
+    },
+
+    _decodeJwtPayload(token) {
+        try {
+            if (!token || typeof token !== 'string') return null;
+            const parts = token.split('.');
+            if (parts.length < 2) return null;
+            let b64 = parts[1];
+            b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
+            return JSON.parse(atob(b64));
+        } catch (e) {
+            return null;
+        }
+    },
+
     // Check if user is authenticated
-    requireAuthentication() {
+    // options: { silent: true } => do NOT redirect; just return boolean
+    requireAuthentication(options) {
+        const silent = (options === true) || (options && typeof options === 'object' && options.silent === true);
+        const force = !!(options && typeof options === 'object' && options.force === true);
+
+        const finalize = (result) => {
+            this._authCheckedThisLoad = true;
+            this._authCheckResult = result;
+            this._authCheckWasSilent = silent;
+            return result;
+        };
+
+        if (!force && this._authCheckedThisLoad) {
+            if (this._authCheckResult === true) {
+                console.log('🔐 Auth: Using cached authentication result (true)');
+                return true;
+            }
+            // If the previous check was a silent failure, allow a later non-silent call to re-check and redirect.
+            if (!silent && this._authCheckWasSilent === true) {
+                console.log('🔐 Auth: Previous check was silent+false; rechecking non-silent...');
+            } else {
+                console.log('🔐 Auth: Using cached authentication result (false)');
+                return false;
+            }
+        }
+
         console.log('🔐 Checking authentication...');
-        localStorage.setItem('lastAuthCheckTime', new Date().toISOString());
+        this._writeStorageItem('lastAuthCheckTime', new Date().toISOString());
         console.log('🔍 Current URL:', window.location.href);
         console.log('🔍 Current Path:', window.location.pathname);
 
+        // If a redirect is already happening (or loop was broken), do not keep triggering redirects.
+        try {
+            const loopBroken = this._readStorageItem('redirectLoop:broken') === 'true';
+            if (this._redirectInProgress || this._redirectedThisLoad || loopBroken) {
+                console.warn('Auth: redirect already in progress / loop broken; skipping new redirect attempt');
+                return finalize(false);
+            }
+        } catch (_) {}
+
         // Get authentication data
-        const isAuthenticated = localStorage.getItem('isAuthenticated');
-        const userEmail = localStorage.getItem('userEmail');
-        const userId = localStorage.getItem('userId');
-        const idToken = localStorage.getItem('idToken');
-        const accessToken = localStorage.getItem('accessToken');
+        const isAuthenticated = this._readStorageItem('isAuthenticated');
+        const userEmail = this._readStorageItem('userEmail');
+        const userId = this._readStorageItem('userId');
+        const idToken = this._readStorageItem('idToken');
+        const accessToken = this._readStorageItem('accessToken');
 
         console.log('📊 Auth status:', {
             isAuthenticated: isAuthenticated,
@@ -28,34 +100,34 @@ window.Auth = {
         // More lenient check - if we have basic auth flags, trust them
         if (isAuthenticated === 'true') {
             console.log('✅ Authentication check passed (isAuthenticated flag is true)');
-            return true;
+            return finalize(true);
         }
 
         // Also check if we have userEmail (might be set without isAuthenticated flag)
         if (userEmail && idToken) {
             console.log('✅ Authentication check passed (userEmail + idToken present)');
-            localStorage.setItem('isAuthenticated', 'true'); // Set the flag for next time
-            return true;
+            this._writeStorageItem('isAuthenticated', 'true'); // Set the flag for next time
+            return finalize(true);
         }
 
         // Adjusted: accept presence of idToken OR both basic flags; do not require accessToken strictly
         if (idToken) {
             console.log('🔑 Found idToken (accessToken optional), validating...');
             try {
-                const tokenPayload = JSON.parse(atob(idToken.split('.')[1] || '')) || {};
+                const tokenPayload = this._decodeJwtPayload(idToken) || {};
                 const currentTime = Math.floor(Date.now() / 1000);
 
                 // Check if token is expired
                 if (tokenPayload.exp && tokenPayload.exp < currentTime) {
                     console.warn('⚠️ Token expired, clearing token values only');
-                    localStorage.removeItem('idToken');
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
-                    this.redirectToLogin('Token expired');
-                    return false;
+                    this._removeStorageItem('idToken');
+                    this._removeStorageItem('accessToken');
+                    this._removeStorageItem('refreshToken');
+                    if (!silent) this.redirectToLogin('Token expired');
+                    return finalize(false);
                 }
 
-                // New: Validate issuer matches expected Cognito provider from config
+                // Validate issuer matches expected Cognito provider from config
                 try {
                     const cfg = window.WIZZCENTRAL_CONFIG || {};
                     const region = cfg.COGNITO_REGION || 'us-east-1';
@@ -66,8 +138,8 @@ window.Auth = {
                             console.error('Auth: idToken issuer mismatch', { iss: tokenPayload.iss, expectedIssuer });
                             // Clear only auth tokens and force clean login
                             this.clearTokens();
-                            this.redirectToLogin('Auth: idToken issuer mismatch');
-                            return false;
+                            if (!silent) this.redirectToLogin('Auth: idToken issuer mismatch');
+                            return finalize(false);
                         }
                     }
                 } catch (e) { console.warn('Auth: issuer validation failed', e); }
@@ -75,84 +147,90 @@ window.Auth = {
                 // Token is valid, ensure basic auth flags are set
                 if (isAuthenticated !== 'true') {
                     console.log('🔧 Setting basic auth flags from valid token');
-                    localStorage.setItem('isAuthenticated', 'true');
+                    this._writeStorageItem('isAuthenticated', 'true');
                     if (!userEmail && tokenPayload.email) {
-                        localStorage.setItem('userEmail', tokenPayload.email);
+                        this._writeStorageItem('userEmail', tokenPayload.email);
                     }
                     if (!userId && tokenPayload.sub) {
-                        localStorage.setItem('userId', tokenPayload.sub);
+                        this._writeStorageItem('userId', tokenPayload.sub);
                     }
                 }
 
                 console.log('✅ Authentication check passed (token validation)');
-                return true;
+                return finalize(true);
             } catch (error) {
                 console.warn('⚠️ Token validation failed, falling back:', error);
                 if (isAuthenticated === 'true' && userEmail) {
                     console.log('✅ Falling back to basic auth despite token error');
-                    return true;
+                    return finalize(true);
                 }
             }
         }
 
         // If we get here, authentication failed
         console.warn('❌ Authentication failed - redirecting to login');
-        this.redirectToLogin('No valid authentication found');
-        return false;
+        if (!silent) this.redirectToLogin('No valid authentication found');
+        return finalize(false);
     },
 
     // Redirect to login with return URL
     redirectToLogin(reason = 'Authentication required') {
         console.log('🚨 Redirecting to login. Reason:', reason);
 
-        // Loop protection
-        try {
-            const now = Date.now();
-            const lastTime = parseInt(localStorage.getItem('redirectLoop:lastTime') || '0', 10);
-            let count = parseInt(localStorage.getItem('redirectLoop:count') || '0', 10);
-            if (now - lastTime < 8000) { // within 8s window
-                count += 1;
-            } else {
-                count = 1; // reset window
-            }
-            localStorage.setItem('redirectLoop:lastTime', String(now));
-            localStorage.setItem('redirectLoop:count', String(count));
-
-            if (count > 5) {
-                console.warn('🛑 Redirect loop detected (count=' + count + '). Breaking loop.');
-                // Preserve debug info then stop auto redirects
-                localStorage.setItem('redirectLoop:broken', 'true');
-                // Do not redirect again automatically; show minimal banner
-                if (!document.getElementById('auth-loop-banner')) {
-                    const b = document.createElement('div');
-                    b.id = 'auth-loop-banner';
-                    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#b91c1c;color:#fff;padding:6px 10px;font:12px sans-serif;text-align:center';
-                    b.innerHTML = 'Authentication redirect loop stopped. Please open console, copy auth debug overlay, then click <button style="margin-left:6px;padding:2px 6px;background:#111;color:#fff;border:1px solid #444;border-radius:3px;cursor:pointer" onclick="(function(){localStorage.removeItem(\'redirectLoop:count\');localStorage.removeItem(\'redirectLoop:lastTime\');localStorage.removeItem(\'redirectLoop:broken\');location.reload();})()">Retry</button>';
-                    document.body.appendChild(b);
-                }
-                return; // Abort further redirect
-            }
-            if (localStorage.getItem('redirectLoop:broken') === 'true') {
-                console.warn('Redirect loop previously broken; skipping redirect.');
-                return;
-            }
-        } catch (e) { console.warn('Loop protection error', e); }
+        // Prevent multiple redirects from multiple scripts on the same page load
+        if (this._redirectInProgress || this._redirectedThisLoad) {
+            console.warn('Auth: redirect already triggered this load; skipping');
+            return;
+        }
 
         // Skip redirect if already on login page
         if (window.location.pathname.endsWith('/index.html') || window.location.pathname === '/') {
             console.log('Already on login page, not redirecting again.');
             return;
         }
-        
-        // Check if we just came from login (within last 10 seconds) to avoid redirect loops
-        const lastLoginTime = localStorage.getItem('lastLoginTime');
+
+        // If we just came from login, do NOT redirect and do NOT increment loop counters.
+        const lastLoginTime = this._readStorageItem('lastLoginTime');
         if (lastLoginTime) {
             const timeSinceLogin = Date.now() - parseInt(lastLoginTime, 10);
             if (timeSinceLogin < 10000) {
                 console.log('✅ Within grace period after login (' + timeSinceLogin + 'ms ago), skipping redirect');
-                // Give more time for tokens to be fully available across page navigation
                 return;
             }
+        }
+
+        // Loop protection (only when we are actually going to redirect)
+        try {
+            if (this._readStorageItem('redirectLoop:broken') === 'true') {
+                console.warn('Redirect loop previously broken; skipping redirect.');
+                return;
+            }
+
+            const now = Date.now();
+            const lastTime = parseInt(this._readStorageItem('redirectLoop:lastTime') || '0', 10);
+            let count = parseInt(this._readStorageItem('redirectLoop:count') || '0', 10);
+            if (now - lastTime < 8000) {
+                count += 1;
+            } else {
+                count = 1;
+            }
+            this._writeStorageItem('redirectLoop:lastTime', String(now));
+            this._writeStorageItem('redirectLoop:count', String(count));
+
+            if (count > 5) {
+                console.warn('🛑 Redirect loop detected (count=' + count + '). Breaking loop.');
+                this._writeStorageItem('redirectLoop:broken', 'true');
+                if (!document.getElementById('auth-loop-banner')) {
+                    const b = document.createElement('div');
+                    b.id = 'auth-loop-banner';
+                    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#b91c1c;color:#fff;padding:6px 10px;font:12px sans-serif;text-align:center';
+                    b.innerHTML = 'Authentication redirect loop stopped. Please open console, copy auth debug overlay, then click <button style="margin-left:6px;padding:2px 6px;background:#111;color:#fff;border:1px solid #444;border-radius:3px;cursor:pointer" onclick="(function(){try{sessionStorage.removeItem(\'redirectLoop:count\');sessionStorage.removeItem(\'redirectLoop:lastTime\');sessionStorage.removeItem(\'redirectLoop:broken\');}catch(e){} try{localStorage.removeItem(\'redirectLoop:count\');localStorage.removeItem(\'redirectLoop:lastTime\');localStorage.removeItem(\'redirectLoop:broken\');}catch(e){} location.reload();})()">Retry</button>';
+                    document.body.appendChild(b);
+                }
+                return;
+            }
+        } catch (e) {
+            console.warn('Loop protection error', e);
         }
 
         // Telemetry for debugging redirect loops
@@ -164,9 +242,9 @@ window.Auth = {
         } catch (e) { }
 
         try {
-            localStorage.setItem('lastRedirectFrom', window.location.pathname + window.location.search);
-            localStorage.setItem('lastRedirectReason', reason || 'unspecified');
-            localStorage.setItem('lastRedirectTime', new Date().toISOString());
+            this._writeStorageItem('lastRedirectFrom', window.location.pathname + window.location.search);
+            this._writeStorageItem('lastRedirectReason', reason || 'unspecified');
+            this._writeStorageItem('lastRedirectTime', new Date().toISOString());
         } catch (e) {
             console.warn('Failed to record redirect telemetry');
         }
@@ -177,52 +255,51 @@ window.Auth = {
 
         if (!currentPath.includes('/index.html') && !currentPath.endsWith('/login.html')) {
             const returnUrl = currentPath + window.location.search;
-            localStorage.setItem('returnUrl', returnUrl);
+            this._writeStorageItem('returnUrl', returnUrl);
             console.log('💾 Stored return URL:', returnUrl);
         }
 
-        // Build login URL based on hosting layout:
-        // - CloudFront legacy layout: /frontend/index.html
-        // - Amplify root hosting: /index.html
-        const p = String(window.location.pathname || '');
-        const base = p.startsWith('/frontend/') ? '/frontend' : '';
-        const loginUrl = window.location.origin + base + '/index.html';
+        // Build login URL based on hosting layout (root hosting vs /frontend prefix)
+        const basePrefix = (typeof this._getBasePrefix === 'function') ? this._getBasePrefix() : '';
+        const loginUrl = window.location.origin + basePrefix + '/index.html';
         console.log('🔄 Redirecting to login URL:', loginUrl);
+        this._redirectInProgress = true;
+        this._redirectedThisLoad = true;
         window.location.href = loginUrl;
     },
 
     // Store authentication tokens
     setToken(key, value) {
-        localStorage.setItem(key, value);
+        this._writeStorageItem(key, value);
     },
 
     // Get authentication token (defaults to idToken when no key specified)
     getToken(key = 'idToken') {
-        return localStorage.getItem(key);
+        return this._readStorageItem(key);
     },
 
     // Convenience helpers
     getIdToken() {
-        return localStorage.getItem('idToken');
+        return this._readStorageItem('idToken');
     },
 
     getAccessToken() {
-        return localStorage.getItem('accessToken');
+        return this._readStorageItem('accessToken');
     },
 
     // Extract current user info from stored session and token
     getCurrentUser() {
         try {
-            const userId = localStorage.getItem('userId');
-            const userEmail = localStorage.getItem('userEmail');
-            const idToken = localStorage.getItem('idToken');
+            const userId = this._readStorageItem('userId');
+            const userEmail = this._readStorageItem('userEmail');
+            const idToken = this._readStorageItem('idToken');
 
             let role = localStorage.getItem('role') || null;
             let username = null;
 
             if (idToken) {
                 try {
-                    const payload = JSON.parse(atob(idToken.split('.')[1]));
+                    const payload = this._decodeJwtPayload(idToken) || {};
                     username = payload['cognito:username'] || payload['username'] || username;
                     // Map cognito groups to a simple role
                     const groups = payload['cognito:groups'] || [];
@@ -253,18 +330,18 @@ window.Auth = {
     // Clear all authentication tokens
     clearTokens() {
         // More surgical clearing (keep returnUrl & debug flags)
-        const preservedReturn = localStorage.getItem('returnUrl');
-        const preservedDebug = localStorage.getItem('authDebug');
-        localStorage.removeItem('idToken');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('isAuthenticated');
-        if (preservedReturn) localStorage.setItem('returnUrl', preservedReturn);
-        if (preservedDebug) localStorage.setItem('authDebug', preservedDebug);
-        localStorage.removeItem('rememberLogin');
-        localStorage.removeItem('lastEmail');
+        const preservedReturn = this._readStorageItem('returnUrl');
+        const preservedDebug = this._readStorageItem('authDebug');
+        this._removeStorageItem('idToken');
+        this._removeStorageItem('accessToken');
+        this._removeStorageItem('refreshToken');
+        this._removeStorageItem('userEmail');
+        this._removeStorageItem('userId');
+        this._removeStorageItem('isAuthenticated');
+        if (preservedReturn) this._writeStorageItem('returnUrl', preservedReturn);
+        if (preservedDebug) this._writeStorageItem('authDebug', preservedDebug);
+        this._removeStorageItem('rememberLogin');
+        this._removeStorageItem('lastEmail');
     },
 
     // Global logout function
@@ -273,23 +350,56 @@ window.Auth = {
             if (typeof AWS !== 'undefined' && AWS.config && AWS.config.credentials) {
                 try { AWS.config.credentials.clearCachedId(); } catch (e) { }
             }
+
+            // Clear auth tokens/flags
             Auth.clearTokens();
-            if (Auth.redirectToLogin) {
-                Auth.redirectToLogin('manual-logout');
-            } else {
-                window.location.href = window.location.origin + '/frontend/index.html';
-            }
+
+            // On manual logout we also clear returnUrl & loop/telemetry keys so we don't get
+            // stuck by redirect-loop protection when we *want* to go to login.
+            const extraKeys = [
+                'returnUrl',
+                'lastLoginTime',
+                'lastRedirectFrom',
+                'lastRedirectReason',
+                'lastRedirectTime',
+                'redirectLoop:count',
+                'redirectLoop:lastTime',
+                'redirectLoop:broken'
+            ];
+
+            extraKeys.forEach((k) => {
+                try { Auth._removeStorageItem(k); } catch (_) { }
+            });
+
+            // role is read directly from localStorage in getCurrentUser()
+            try { localStorage.removeItem('role'); } catch (_) { }
+
+            // Reset in-memory flags so we can always navigate away on logout
+            Auth._redirectedThisLoad = false;
+            Auth._redirectInProgress = false;
+            Auth._authCheckedThisLoad = false;
+            Auth._authCheckResult = null;
+            Auth._authCheckWasSilent = false;
+
+            const basePrefix = (typeof Auth._getBasePrefix === 'function') ? Auth._getBasePrefix() : '';
+            const loginUrl = window.location.origin + basePrefix + '/index.html';
+            window.location.replace(loginUrl);
         } catch (error) {
             console.error('Logout error:', error);
-            window.location.href = window.location.origin + '/frontend/index.html';
+            try {
+                const basePrefix = (typeof Auth._getBasePrefix === 'function') ? Auth._getBasePrefix() : '';
+                window.location.replace(window.location.origin + basePrefix + '/index.html');
+            } catch (_) {
+                window.location.href = '/index.html';
+            }
         }
     },
 
     // Get and clear return URL after successful login
     getAndClearReturnUrl() {
-        const returnUrl = localStorage.getItem('returnUrl');
+        const returnUrl = this._readStorageItem('returnUrl');
         if (returnUrl) {
-            localStorage.removeItem('returnUrl');
+            this._removeStorageItem('returnUrl');
             return returnUrl;
         }
         return null;

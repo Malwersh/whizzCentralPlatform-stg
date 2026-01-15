@@ -15,9 +15,19 @@
  *    - إذا لا → انتظار ردود السائقين الآخرين
  */
 
-const AWS = require('aws-sdk');
-const dynamodb = new AWS.DynamoDB.DocumentClient();
-const lambda = new AWS.Lambda();
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+  UpdateCommand,
+} = require('@aws-sdk/lib-dynamodb');
+const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
+
+const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+  marshallOptions: { removeUndefinedValues: true },
+});
+const lambda = new LambdaClient({});
 
 function requireNonEmptyEnv(name) {
   const value = process.env[name];
@@ -136,19 +146,22 @@ async function updateWaveOfferStatus(offerId, orderId, driverId, waveNumber, rea
   const normalizedWaveNumber = Number.isFinite(waveNumber) ? waveNumber : (extractWaveNumberFromOfferId(offerId) || 1);
   const offerSK = `${driverId}#WAVE#${normalizedWaveNumber}`;
 
-  await dynamodb.update({
+  await dynamodb.send(
+    new UpdateCommand({
       TableName: WAVE_OFFERS_TABLE,
-    Key: {
-      orderId: orderId,
-      SK: offerSK
-    },
-    UpdateExpression: 'SET responseStatus = :status, responseAt = :now, rejectionReason = :reason, updatedAt = :now',
-    ExpressionAttributeValues: {
-      ':status': 'rejected',
-      ':now': now,
-      ':reason': reason
-    }
-  }).promise();
+      Key: {
+        orderId: orderId,
+        SK: offerSK,
+      },
+      UpdateExpression:
+        'SET responseStatus = :status, responseAt = :now, rejectionReason = :reason, updatedAt = :now',
+      ExpressionAttributeValues: {
+        ':status': 'rejected',
+        ':now': now,
+        ':reason': reason,
+      },
+    })
+  );
   
   console.log(`✅ WaveOffer status updated to rejected`);
 }
@@ -161,16 +174,19 @@ async function cleanupDriverState(driverId) {
   
   const now = new Date().toISOString();
   
-  await dynamodb.update({
-    TableName: DRIVER_LIVE_STATE_TABLE,
-    Key: { driverId: driverId },
-    UpdateExpression: 'SET currentWaveOfferId = :null, updatedAt = :now ADD metricsSnapshot.pendingOffers :decrement',
-    ExpressionAttributeValues: {
-      ':null': null,
-      ':now': now,
-      ':decrement': -1
-    }
-  }).promise();
+  await dynamodb.send(
+    new UpdateCommand({
+      TableName: DRIVER_LIVE_STATE_TABLE,
+      Key: { driverId: driverId },
+      UpdateExpression:
+        'SET currentWaveOfferId = :null, updatedAt = :now ADD metricsSnapshot.pendingOffers :decrement',
+      ExpressionAttributeValues: {
+        ':null': null,
+        ':now': now,
+        ':decrement': -1,
+      },
+    })
+  );
   
   console.log(`✅ Driver state cleaned (currentWaveOfferId = null, pendingOffers decreased)`);
 }
@@ -185,31 +201,37 @@ async function updateDriverPerformanceMetrics(driverId, reason) {
   
   try {
     // زيادة totalRejected وإعادة تعيين streak
-    await dynamodb.update({
-      TableName: process.env.DRIVER_PERFORMANCE_METRICS_TABLE || 'WizzDriverPerformanceMetrics',
-      Key: { driverId: driverId },
-      UpdateExpression: `
+    await dynamodb.send(
+      new UpdateCommand({
+        TableName:
+          process.env.DRIVER_PERFORMANCE_METRICS_TABLE || 'WizzDriverPerformanceMetrics',
+        Key: { driverId: driverId },
+        UpdateExpression: `
         SET totalRejected = if_not_exists(totalRejected, :zero) + :one,
             lastRejectedAt = :now,
             currentStreak = :zero,
             updatedAt = :now
         ADD rejectionReasons.#reason :one
       `,
-      ExpressionAttributeNames: {
-        '#reason': reason
-      },
-      ExpressionAttributeValues: {
-        ':zero': 0,
-        ':one': 1,
-        ':now': now
-      }
-    }).promise();
+        ExpressionAttributeNames: {
+          '#reason': reason,
+        },
+        ExpressionAttributeValues: {
+          ':zero': 0,
+          ':one': 1,
+          ':now': now,
+        },
+      })
+    );
     
     // حساب Acceptance Rate الجديد
-    const metrics = await dynamodb.get({
-      TableName: process.env.DRIVER_PERFORMANCE_METRICS_TABLE || 'WizzDriverPerformanceMetrics',
-      Key: { driverId: driverId }
-    }).promise();
+    const metrics = await dynamodb.send(
+      new GetCommand({
+        TableName:
+          process.env.DRIVER_PERFORMANCE_METRICS_TABLE || 'WizzDriverPerformanceMetrics',
+        Key: { driverId: driverId },
+      })
+    );
     
     if (metrics.Item) {
       const totalAccepted = metrics.Item.totalAccepted || 0;
@@ -220,14 +242,18 @@ async function updateDriverPerformanceMetrics(driverId, reason) {
         ? (totalAccepted / totalOffersReceived) * 100 
         : 0;
       
-      await dynamodb.update({
-        TableName: process.env.DRIVER_PERFORMANCE_METRICS_TABLE || 'WizzDriverPerformanceMetrics',
-        Key: { driverId: driverId },
-        UpdateExpression: 'SET acceptanceRate = :rate',
-        ExpressionAttributeValues: {
-          ':rate': Math.round(acceptanceRate * 100) / 100
-        }
-      }).promise();
+      await dynamodb.send(
+        new UpdateCommand({
+          TableName:
+            process.env.DRIVER_PERFORMANCE_METRICS_TABLE ||
+            'WizzDriverPerformanceMetrics',
+          Key: { driverId: driverId },
+          UpdateExpression: 'SET acceptanceRate = :rate',
+          ExpressionAttributeValues: {
+            ':rate': Math.round(acceptanceRate * 100) / 100,
+          },
+        })
+      );
       
       console.log(`✅ Metrics updated: totalRejected=${totalRejected}, acceptanceRate=${acceptanceRate.toFixed(2)}%, streak reset`);
     }
@@ -243,18 +269,20 @@ async function updateDriverPerformanceMetrics(driverId, reason) {
 async function addToRejectedDrivers(orderId, driverId) {
   console.log(`📋 Adding driver ${driverId} to rejected list for order ${orderId}`);
   
-  await dynamodb.update({
-    TableName: DISPATCH_JOBS_TABLE,
-    Key: {
-      orderId: orderId,
-      SK: 'METADATA'
-    },
-    UpdateExpression: 'ADD rejectedDrivers :driverSet SET updatedAt = :now',
-    ExpressionAttributeValues: {
-      ':driverSet': dynamodb.createSet([driverId]),
-      ':now': new Date().toISOString()
-    }
-  }).promise();
+  await dynamodb.send(
+    new UpdateCommand({
+      TableName: DISPATCH_JOBS_TABLE,
+      Key: {
+        orderId: orderId,
+        SK: 'METADATA',
+      },
+      UpdateExpression: 'ADD rejectedDrivers :driverSet SET updatedAt = :now',
+      ExpressionAttributeValues: {
+        ':driverSet': new Set([driverId]),
+        ':now': new Date().toISOString(),
+      },
+    })
+  );
   
   console.log(`✅ Driver added to rejected list`);
 }
@@ -266,15 +294,17 @@ async function checkWaveStatus(orderId, offerId) {
   console.log(`🔍 Checking wave status for order ${orderId}`);
   
   // جلب معلومات الـ offer لمعرفة رقم الموجة
-  const offerResult = await dynamodb.query({
-    TableName: WAVE_OFFERS_TABLE,
-    KeyConditionExpression: 'orderId = :orderId',
-    FilterExpression: 'offerId = :offerId',
-    ExpressionAttributeValues: {
-      ':orderId': orderId,
-      ':offerId': offerId
-    }
-  }).promise();
+  const offerResult = await dynamodb.send(
+    new QueryCommand({
+      TableName: WAVE_OFFERS_TABLE,
+      KeyConditionExpression: 'orderId = :orderId',
+      FilterExpression: 'offerId = :offerId',
+      ExpressionAttributeValues: {
+        ':orderId': orderId,
+        ':offerId': offerId,
+      },
+    })
+  );
   
   if (!offerResult.Items || offerResult.Items.length === 0) {
     throw new Error(`Offer ${offerId} not found`);
@@ -284,15 +314,17 @@ async function checkWaveStatus(orderId, offerId) {
   console.log(`📊 Wave number: ${waveNumber}`);
   
   // جلب جميع offers في نفس الموجة
-  const allOffersResult = await dynamodb.query({
-    TableName: WAVE_OFFERS_TABLE,
-    KeyConditionExpression: 'orderId = :orderId',
-    FilterExpression: 'waveNumber = :waveNumber',
-    ExpressionAttributeValues: {
-      ':orderId': orderId,
-      ':waveNumber': waveNumber
-    }
-  }).promise();
+  const allOffersResult = await dynamodb.send(
+    new QueryCommand({
+      TableName: WAVE_OFFERS_TABLE,
+      KeyConditionExpression: 'orderId = :orderId',
+      FilterExpression: 'waveNumber = :waveNumber',
+      ExpressionAttributeValues: {
+        ':orderId': orderId,
+        ':waveNumber': waveNumber,
+      },
+    })
+  );
   
   const offers = allOffersResult.Items || [];
   console.log(`📊 Total offers in wave: ${offers.length}`);
@@ -328,13 +360,15 @@ async function triggerNextWave(orderId) {
   console.log(`🌊 Triggering next wave for order ${orderId}`);
   
   // جلب DispatchJob لمعرفة الموجة الحالية
-  const jobResult = await dynamodb.get({
-    TableName: DISPATCH_JOBS_TABLE,
-    Key: {
-      orderId: orderId,
-      SK: 'METADATA'
-    }
-  }).promise();
+  const jobResult = await dynamodb.send(
+    new GetCommand({
+      TableName: DISPATCH_JOBS_TABLE,
+      Key: {
+        orderId: orderId,
+        SK: 'METADATA',
+      },
+    })
+  );
   
   if (!jobResult.Item) {
     throw new Error(`DispatchJob not found for order ${orderId}`);
@@ -353,18 +387,20 @@ async function triggerNextWave(orderId) {
   }
   
   // تحديث currentWaveNumber
-  await dynamodb.update({
-    TableName: DISPATCH_JOBS_TABLE,
-    Key: {
-      orderId: orderId,
-      SK: 'METADATA'
-    },
-    UpdateExpression: 'SET currentWaveNumber = :nextWave, updatedAt = :now',
-    ExpressionAttributeValues: {
-      ':nextWave': nextWave,
-      ':now': new Date().toISOString()
-    }
-  }).promise();
+  await dynamodb.send(
+    new UpdateCommand({
+      TableName: DISPATCH_JOBS_TABLE,
+      Key: {
+        orderId: orderId,
+        SK: 'METADATA',
+      },
+      UpdateExpression: 'SET currentWaveNumber = :nextWave, updatedAt = :now',
+      ExpressionAttributeValues: {
+        ':nextWave': nextWave,
+        ':now': new Date().toISOString(),
+      },
+    })
+  );
   
   // استدعاء StartWave Lambda
   const startWavePayload = {
@@ -372,11 +408,13 @@ async function triggerNextWave(orderId) {
     waveNumber: nextWave
   };
   
-  await lambda.invoke({
-    FunctionName: process.env.START_WAVE_FUNCTION || 'WaveSystem_StartWave',
-    InvocationType: 'Event', // Async
-    Payload: JSON.stringify(startWavePayload)
-  }).promise();
+  await lambda.send(
+    new InvokeCommand({
+      FunctionName: process.env.START_WAVE_FUNCTION || 'WaveSystem_StartWave',
+      InvocationType: 'Event',
+      Payload: Buffer.from(JSON.stringify(startWavePayload)),
+    })
+  );
   
   console.log(`✅ Next wave triggered successfully`);
 }
@@ -390,40 +428,46 @@ async function markOrderAsNoDriverAvailable(orderId) {
   const now = new Date().toISOString();
   
   // تحديث DispatchJob
-  await dynamodb.update({
-    TableName: DISPATCH_JOBS_TABLE,
-    Key: {
-      orderId: orderId,
-      SK: 'METADATA'
-    },
-    UpdateExpression: 'SET #status = :status, failureReason = :reason, updatedAt = :now',
-    ExpressionAttributeNames: {
-      '#status': 'status'
-    },
-    ExpressionAttributeValues: {
-      ':status': 'no_driver_available',
-      ':reason': 'all_waves_rejected',
-      ':now': now
-    }
-  }).promise();
+  await dynamodb.send(
+    new UpdateCommand({
+      TableName: DISPATCH_JOBS_TABLE,
+      Key: {
+        orderId: orderId,
+        SK: 'METADATA',
+      },
+      UpdateExpression:
+        'SET #status = :status, failureReason = :reason, updatedAt = :now',
+      ExpressionAttributeNames: {
+        '#status': 'status',
+      },
+      ExpressionAttributeValues: {
+        ':status': 'no_driver_available',
+        ':reason': 'all_waves_rejected',
+        ':now': now,
+      },
+    })
+  );
   
   // تحديث WizzOrders
-  await dynamodb.update({
-    TableName: process.env.ORDERS_TABLE || 'WizzOrders',
-    Key: {
-      PK: `ORDER#${orderId}`,
-      SK: 'META'
-    },
-    UpdateExpression: 'SET #status = :status, driverSearchFailed = :true, driverSearchFailedAt = :now, updatedAt = :now',
-    ExpressionAttributeNames: {
-      '#status': 'status'
-    },
-    ExpressionAttributeValues: {
-      ':status': 'pending_driver', // أو حالة مناسبة
-      ':true': true,
-      ':now': now
-    }
-  }).promise();
+  await dynamodb.send(
+    new UpdateCommand({
+      TableName: process.env.ORDERS_TABLE || 'WizzOrders',
+      Key: {
+        PK: `ORDER#${orderId}`,
+        SK: 'META',
+      },
+      UpdateExpression:
+        'SET #status = :status, driverSearchFailed = :true, driverSearchFailedAt = :now, updatedAt = :now',
+      ExpressionAttributeNames: {
+        '#status': 'status',
+      },
+      ExpressionAttributeValues: {
+        ':status': 'pending_driver',
+        ':true': true,
+        ':now': now,
+      },
+    })
+  );
   
   console.log(`✅ Order marked as no_driver_available`);
   

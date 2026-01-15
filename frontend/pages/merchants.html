@@ -1166,16 +1166,7 @@
         <script src="../merchants.js?v=2024-merchants"></script>
         <script>
             console.log('Merchants page script loaded');
-            
-            // Check authentication silently in background
-            if (window.Auth && typeof window.Auth.requireAuthentication === 'function') {
-                try {
-                    window.Auth.requireAuthentication();
-                } catch (e) {
-                    console.warn('Auth check error:', e);
-                }
-            }
-            
+
             // Initialize merchants page when DOM is ready
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', window.onDomReady);

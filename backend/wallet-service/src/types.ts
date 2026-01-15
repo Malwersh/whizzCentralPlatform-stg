@@ -236,6 +236,12 @@ export class IdempotencyConflictError extends WalletError {
   }
 }
 
+export class ConcurrentModificationError extends WalletError {
+  constructor(message: string = 'Wallet was modified concurrently. Please retry.') {
+    super(message, 'CONCURRENT_MODIFICATION', 409);
+  }
+}
+
 export class WalletNotFoundError extends WalletError {
   constructor(walletId: string) {
     super(`Wallet not found: ${walletId}`, 'WALLET_NOT_FOUND', 404);

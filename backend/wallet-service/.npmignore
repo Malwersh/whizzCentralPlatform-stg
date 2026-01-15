@@ -1,0 +1,40 @@
+# IMPORTANT: This repo ignores dist/ in .gitignore, but Lambda runs from dist/.
+# npm pack (used by AWS SAM NodejsNpmBuilder) uses .npmignore if present;
+# otherwise it falls back to .gitignore.
+#
+# So: keep dist/ INCLUDED in the package by NOT ignoring it here.
+
+# SAM build artifacts
+.aws-sam/
+
+# Dependencies (SAM builds/install separately)
+node_modules/
+
+# TypeScript sources are not needed at runtime
+src/
+*.ts
+
+# Tooling / local-only
+coverage/
+logs/
+*.log
+npm-debug.log*
+
+# Env/secrets
+.env
+.env.*
+credentials/
+*-credentials.env
+
+# OS/IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Other build output (dist is intentionally NOT ignored)
+build/
+*.bak
+*.backup

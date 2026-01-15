@@ -16,6 +16,15 @@ Parameters:
     NoEcho: true
     Default: ""
 
+  NotificationsApiBase:
+    Type: String
+    Default: "https://x066k4dftk.execute-api.us-east-1.amazonaws.com/staging"
+
+  NotificationsInternalKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+
 Globals:
   Function:
     Runtime: nodejs20.x
@@ -102,6 +111,8 @@ Resources:
           GOOGLE_MAPS_API_KEY: !Ref GoogleMapsApiKey
           ORDERS_TABLE:
             Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
+          NOTIFICATIONS_API_BASE: !Ref NotificationsApiBase
+          NOTIFICATIONS_INTERNAL_KEY: !Ref NotificationsInternalKey
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref DispatchJobsTable

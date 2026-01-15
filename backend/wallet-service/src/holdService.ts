@@ -1,4 +1,4 @@
-import { docClient, TABLES, GetCommand, QueryCommand, TransactWriteCommand } from './db';
+import { docClient, TABLES, GetCommand, QueryCommand, ScanCommand, TransactWriteCommand } from './db';
 import {
   Hold,
   Wallet,
@@ -14,6 +14,7 @@ import {
   InsufficientBalanceError,
   HoldNotFoundError,
   InvalidHoldStateError,
+  ConcurrentModificationError,
 } from './types';
 import {
   generateHoldId,
@@ -225,10 +226,39 @@ export class HoldService {
       };
     } catch (error: any) {
       if (error.name === 'TransactionCanceledException') {
-        const reasons = error.CancellationReasons || [];
-        if (reasons.some((r: any) => r.Code === 'ConditionalCheckFailed')) {
-          throw new Error('Insufficient balance or concurrent modification');
+        // Most common: repeated attempts for same order, or wallet balance/version changed.
+        // Try to be deterministic and return a business 4xx instead of 500.
+
+        // If the hold already exists for this order, return it (idempotent behavior).
+        const existingHoldResult = await docClient.send(
+          new GetCommand({
+            TableName: TABLES.HOLDS,
+            Key: { orderId, sk: 'HOLD' },
+          })
+        );
+
+        if (existingHoldResult.Item) {
+          return {
+            success: true,
+            hold: existingHoldResult.Item as Hold,
+            message: 'Hold already exists for this order (idempotent).',
+          };
         }
+
+        // Re-check wallet state to decide between insufficient funds vs. concurrency.
+        const latestWalletResult = await docClient.send(
+          new GetCommand({
+            TableName: TABLES.WALLETS,
+            Key: { walletId, sk: 'META' },
+          })
+        );
+
+        const latestWallet = latestWalletResult.Item as Wallet | undefined;
+        if (latestWallet && latestWallet.availableBalance < amount) {
+          throw new InsufficientBalanceError(latestWallet.availableBalance, amount);
+        }
+
+        throw new ConcurrentModificationError('Insufficient balance or concurrent modification');
       }
       throw error;
     }
@@ -246,17 +276,58 @@ export class HoldService {
     const { holdId, reason } = request;
     const timestamp = getCurrentTimestamp();
 
-    // Query hold by holdId using GSI
-    const queryResult = await docClient.send(
-      new QueryCommand({
-        TableName: TABLES.HOLDS,
-        IndexName: 'byHoldId',
-        KeyConditionExpression: 'holdId = :hid',
-        ExpressionAttributeValues: {
-          ':hid': holdId,
-        },
-      })
-    );
+    // Query hold by holdId using GSI. If the index doesn't exist (legacy/staging tables), fall back to Scan.
+    let queryResult:
+      | { Items?: unknown[]; LastEvaluatedKey?: unknown }
+      | undefined;
+
+    try {
+      queryResult = await docClient.send(
+        new QueryCommand({
+          TableName: TABLES.HOLDS,
+          IndexName: 'byHoldId',
+          KeyConditionExpression: 'holdId = :hid',
+          ExpressionAttributeValues: {
+            ':hid': holdId,
+          },
+        })
+      );
+    } catch (error: any) {
+      const isMissingIndex =
+        error?.name === 'ValidationException' &&
+        typeof error?.message === 'string' &&
+        error.message.includes('specified index') &&
+        error.message.includes('byHoldId');
+
+      if (!isMissingIndex) {
+        throw error;
+      }
+
+      // IMPORTANT:
+      // DynamoDB Scan's `Limit` caps *evaluated* items, not *returned* items.
+      // With a FilterExpression, `Limit: 1` can easily return 0 matches even when the item exists.
+      // So we paginate until we find the holdId or exhaust the table.
+      let lastEvaluatedKey: unknown | undefined;
+      do {
+        queryResult = await docClient.send(
+          new ScanCommand({
+            TableName: TABLES.HOLDS,
+            FilterExpression: 'holdId = :hid',
+            ExpressionAttributeValues: {
+              ':hid': holdId,
+            },
+            ExclusiveStartKey: lastEvaluatedKey as any,
+            Limit: 100,
+          })
+        );
+
+        if (queryResult.Items && queryResult.Items.length > 0) {
+          break;
+        }
+
+        lastEvaluatedKey = queryResult.LastEvaluatedKey;
+      } while (lastEvaluatedKey);
+    }
 
     if (!queryResult.Items || queryResult.Items.length === 0) {
       throw new HoldNotFoundError(`Hold not found: ${holdId}`);
@@ -422,19 +493,56 @@ export class HoldService {
     const { holdId, actualAmount, reason } = request;
     const timestamp = getCurrentTimestamp();
 
-    // Query hold by holdId using GSI
-    const queryResult = await docClient.send(
-      new QueryCommand({
-        TableName: TABLES.HOLDS,
-        IndexName: 'byHoldId',
-        KeyConditionExpression: 'holdId = :hid',
-        ExpressionAttributeValues: {
-          ':hid': holdId,
-        },
-      })
-    );
+    // Query hold by holdId using GSI. If the index doesn't exist (legacy/staging tables), fall back to Scan.
+    let queryResult:
+      | { Items?: unknown[]; LastEvaluatedKey?: unknown }
+      | undefined;
 
-    if (!queryResult.Items || queryResult.Items.length === 0) {
+    try {
+      queryResult = await docClient.send(
+        new QueryCommand({
+          TableName: TABLES.HOLDS,
+          IndexName: 'byHoldId',
+          KeyConditionExpression: 'holdId = :hid',
+          ExpressionAttributeValues: {
+            ':hid': holdId,
+          },
+        })
+      );
+    } catch (error: any) {
+      const isMissingIndex =
+        error?.name === 'ValidationException' &&
+        typeof error?.message === 'string' &&
+        error.message.includes('specified index') &&
+        error.message.includes('byHoldId');
+
+      if (!isMissingIndex) {
+        throw error;
+      }
+
+      let lastEvaluatedKey: unknown | undefined;
+      do {
+        queryResult = await docClient.send(
+          new ScanCommand({
+            TableName: TABLES.HOLDS,
+            FilterExpression: 'holdId = :hid',
+            ExpressionAttributeValues: {
+              ':hid': holdId,
+            },
+            ExclusiveStartKey: lastEvaluatedKey as any,
+            Limit: 100,
+          })
+        );
+
+        if (queryResult.Items && queryResult.Items.length > 0) {
+          break;
+        }
+
+        lastEvaluatedKey = queryResult.LastEvaluatedKey;
+      } while (lastEvaluatedKey);
+    }
+
+    if (!queryResult?.Items || queryResult.Items.length === 0) {
       throw new HoldNotFoundError(`Hold not found: ${holdId}`);
     }
 

@@ -9,7 +9,7 @@ import {
   parseBody,
   generateDriverWalletId,
 } from './utils';
-import { WalletError } from './types';
+import { WalletError, WalletNotFoundError } from './types';
 
 const walletService = new WalletService();
 const holdService = new HoldService();
@@ -199,7 +199,23 @@ async function getMyWallet(
   }
 
   const walletId = generateDriverWalletId(driverId);
-  const wallet = await walletService.getWallet(walletId);
+  let wallet;
+  try {
+    wallet = await walletService.getWallet(walletId);
+  } catch (error) {
+    // Root fix: if Cognito trigger was missed, provision on-demand for authenticated driver
+    if (error instanceof WalletNotFoundError) {
+      console.log('Wallet not found for driver - auto-provisioning...', {
+        driverId,
+        walletId,
+      });
+
+      await walletService.createWallet({ driverId });
+      wallet = await walletService.getWallet(walletId);
+    } else {
+      throw error;
+    }
+  }
 
   return buildSuccessResponse(wallet);
 }
@@ -218,7 +234,23 @@ async function getMyTransactions(
   const walletId = generateDriverWalletId(driverId);
   const limit = queryParams?.limit ? parseInt(queryParams.limit) : 50;
 
-  const transactions = await walletService.getTransactions(walletId, limit);
+  let transactions;
+  try {
+    transactions = await walletService.getTransactions(walletId, limit);
+  } catch (error) {
+    // Root fix: if wallet doesn't exist yet, provision and return empty history
+    if (error instanceof WalletNotFoundError) {
+      console.log('Wallet not found for driver transactions - auto-provisioning...', {
+        driverId,
+        walletId,
+      });
+
+      await walletService.createWallet({ driverId });
+      transactions = await walletService.getTransactions(walletId, limit);
+    } else {
+      throw error;
+    }
+  }
 
   return buildSuccessResponse(transactions);
 }
@@ -320,6 +352,7 @@ async function createHold(
     orderId: data.orderId,
     reason: data.reason,
     metadata: data.metadata,
+    assignmentAttempt: data.assignmentAttempt,
   });
 
   return buildSuccessResponse(result, 201);

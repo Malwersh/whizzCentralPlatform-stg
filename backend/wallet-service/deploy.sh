@@ -46,6 +46,20 @@ echo -e "${YELLOW}Environment:${NC} $ENVIRONMENT"
 echo -e "${YELLOW}Region:${NC} us-east-1"
 echo ""
 
+# Match local AWS CLI profiles used by samconfig.toml
+AWS_PROFILE=""
+case "$ENVIRONMENT" in
+    dev)
+        AWS_PROFILE="Wizz_dev_UserApp"
+        ;;
+    staging)
+        AWS_PROFILE="Wizz_stg_UserApp"
+        ;;
+    production)
+        AWS_PROFILE="Wizz_prod_UserApp"
+        ;;
+esac
+
 # Check if SAM CLI is installed
 if ! command -v sam &> /dev/null; then
     echo -e "${RED}❌ SAM CLI is not installed${NC}"
@@ -54,8 +68,8 @@ if ! command -v sam &> /dev/null; then
 fi
 
 # Check if AWS credentials are configured
-if ! aws sts get-caller-identity --profile "Wizz_${ENVIRONMENT}_UserApp" &> /dev/null; then
-    echo -e "${RED}❌ AWS credentials not configured for profile: Wizz_${ENVIRONMENT}_UserApp${NC}"
+if ! aws sts get-caller-identity --profile "$AWS_PROFILE" &> /dev/null; then
+    echo -e "${RED}❌ AWS credentials not configured for profile: $AWS_PROFILE${NC}"
     exit 1
 fi
 
@@ -106,7 +120,7 @@ if sam deploy --config-env "$ENVIRONMENT" --no-confirm-changeset; then
         --stack-name "${ENVIRONMENT}-wizz-wallet-service" \
         --query "Stacks[0].Outputs[?OutputKey=='WalletServiceApi'].OutputValue" \
         --output text \
-        --profile "Wizz_${ENVIRONMENT}_UserApp" \
+        --profile "$AWS_PROFILE" \
         --region us-east-1 2>/dev/null || echo "Unable to retrieve")
     
     echo -e "${YELLOW}📡 API Endpoint:${NC}"
@@ -128,6 +142,18 @@ if sam deploy --config-env "$ENVIRONMENT" --no-confirm-changeset; then
 else
     echo -e "${RED}❌ Deployment failed${NC}"
     exit 1
+fi
+
+# Step 5 (staging/dev): Attach Cognito PostConfirmation trigger
+if [[ "$ENVIRONMENT" == "dev" || "$ENVIRONMENT" == "staging" ]]; then
+    echo ""
+    echo -e "${BLUE}🔗 Step 5/5: Attaching Cognito PostConfirmation trigger...${NC}"
+    if bash ./attach-wallet-postconfirmation-trigger.sh "$ENVIRONMENT"; then
+        echo -e "${GREEN}✓${NC} Cognito trigger attached"
+    else
+        echo -e "${RED}❌ Failed to attach Cognito trigger${NC}"
+        exit 1
+    fi
 fi
 
 # Reinstall dev dependencies

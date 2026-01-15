@@ -85,7 +85,7 @@
                 <span class="user-role">Administrator</span>
             </div>
         </div>
-        <button class="logout-btn">
+        <button class="logout-btn" type="button" onclick="try{(window.Auth&&typeof window.Auth.logout==='function')?window.Auth.logout():((typeof window.logout==='function')?window.logout():null);}catch(e){console.warn('Logout failed',e);}">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
         </button>

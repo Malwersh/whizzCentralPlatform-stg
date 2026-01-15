@@ -186,7 +186,8 @@ window.RBAC = {
         console.log('🛡️ Enforcing RBAC for current page...');
         
         // First check authentication
-        if (!window.Auth || !window.Auth.requireAuthentication()) {
+        // RBAC must NOT trigger redirects; Auth is the sole redirect authority.
+        if (!window.Auth || !window.Auth.requireAuthentication({ silent: true })) {
             console.warn('RBAC: User not authenticated');
             return;
         }

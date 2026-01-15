@@ -2,9 +2,34 @@
 // Uses AWS Cognito groups for role-based access control
 console.log('🔐 Loading RBAC System...');
 
+function _rbacDecodeJwtPayload(token) {
+    try {
+        if (!token || typeof token !== 'string') return null;
+        const parts = token.split('.');
+        if (parts.length < 2) return null;
+        let b64 = parts[1];
+        // base64url -> base64
+        b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+        // pad
+        while (b64.length % 4) b64 += '=';
+        const json = atob(b64);
+        return JSON.parse(json);
+    } catch (e) {
+        console.warn('RBAC: Failed to decode JWT payload', e);
+        return null;
+    }
+}
+
 // RBAC Configuration
 window.RBAC_CONFIG = {
     groups: {
+        // Support both 'admin' and 'admins' group names
+        admin: {
+            name: 'Administrator',
+            precedence: 1,
+            allowedPages: '*',
+            permissions: ['*']
+        },
         admins: {
             name: 'Admins',
             precedence: 1,
@@ -26,7 +51,7 @@ window.RBAC_CONFIG = {
         merchants_admin: {
             name: 'Merchants Admin',
             precedence: 30,
-            allowedPages: ['dashboard.html', 'merchants.html', 'support-merchants.html'],
+            allowedPages: ['dashboard.html', 'merchants.html', 'support-merchants.html', 'orders.html', 'promotions.html', 'regions.html', 'regions-management.html', 'regions-toggle.html'],
             permissions: ['manage_merchants', 'approve_merchants', 'view_merchants']
         },
         drivers_admin: {
@@ -63,10 +88,18 @@ window.RBAC_CONFIG = {
 window.RBAC = {
     getUserGroups() {
         try {
-            const idToken = localStorage.getItem('idToken');
-            if (!idToken) return [];
-            const payload = JSON.parse(atob(idToken.split('.')[1]));
-            return payload['cognito:groups'] || [];
+            // Check both sessionStorage and localStorage for idToken
+            const idToken = sessionStorage.getItem('idToken') || localStorage.getItem('idToken');
+            if (!idToken) {
+                console.log('🔍 RBAC: No idToken found in sessionStorage or localStorage');
+                return [];
+            }
+            const payload = _rbacDecodeJwtPayload(idToken) || {};
+            const raw = payload['cognito:groups'] || payload['groups'] || payload['custom:groups'] || [];
+            const groups = Array.isArray(raw) ? raw : [raw].filter(Boolean);
+            const normalized = groups.map(g => String(g)).filter(Boolean);
+            console.log('🔐 RBAC: User groups from token:', normalized);
+            return normalized;
         } catch (error) {
             console.error('RBAC: Error getting groups:', error);
             return [];
@@ -78,11 +111,13 @@ window.RBAC = {
         if (userGroups.length === 0) return null;
         let primaryGroup = null;
         let lowestPrecedence = Infinity;
-        userGroups.forEach(groupName => {
-            const groupConfig = RBAC_CONFIG.groups[groupName];
+        userGroups.forEach(groupNameRaw => {
+            const groupName = String(groupNameRaw);
+            const key = RBAC_CONFIG.groups[groupName] ? groupName : groupName.toLowerCase();
+            const groupConfig = RBAC_CONFIG.groups[key];
             if (groupConfig && groupConfig.precedence < lowestPrecedence) {
                 lowestPrecedence = groupConfig.precedence;
-                primaryGroup = groupName;
+                primaryGroup = key;
             }
         });
         return primaryGroup;
@@ -116,18 +151,20 @@ window.RBAC = {
             return false;
         }
         
-        for (const groupName of userGroups) {
-            const groupConfig = RBAC_CONFIG.groups[groupName];
+        for (const groupNameRaw of userGroups) {
+            const groupName = String(groupNameRaw);
+            const key = RBAC_CONFIG.groups[groupName] ? groupName : groupName.toLowerCase();
+            const groupConfig = RBAC_CONFIG.groups[key];
             if (!groupConfig) {
                 console.warn(`⚠️ Group config not found for: ${groupName}`);
                 continue;
             }
             if (groupConfig.allowedPages === '*') {
-                console.log(`✅ Wildcard access via group: ${groupName}`);
+                console.log(`✅ Wildcard access via group: ${key}`);
                 return true;
             }
             if (Array.isArray(groupConfig.allowedPages) && groupConfig.allowedPages.includes(pageName)) {
-                console.log(`✅ Access granted via group: ${groupName}`);
+                console.log(`✅ Access granted via group: ${key}`);
                 return true;
             }
         }
@@ -138,8 +175,10 @@ window.RBAC = {
 
     hasPermission(permission) {
         const userGroups = this.getUserGroups();
-        for (const groupName of userGroups) {
-            const groupConfig = RBAC_CONFIG.groups[groupName];
+        for (const groupNameRaw of userGroups) {
+            const groupName = String(groupNameRaw);
+            const key = RBAC_CONFIG.groups[groupName] ? groupName : groupName.toLowerCase();
+            const groupConfig = RBAC_CONFIG.groups[key];
             if (!groupConfig) continue;
             if (groupConfig.permissions.includes('*')) return true;
             if (groupConfig.permissions.includes(permission)) return true;
@@ -149,9 +188,14 @@ window.RBAC = {
 
     isReadOnly() {
         const userGroups = this.getUserGroups();
-        if (userGroups.includes('admins')) return false;
-        for (const groupName of userGroups) {
-            const groupConfig = RBAC_CONFIG.groups[groupName];
+        // Check if user is admin (either 'admin' or 'admins' group)
+        const lowered = userGroups.map(g => String(g).toLowerCase());
+        if (lowered.includes('admin') || lowered.includes('admins')) return false;
+
+        for (const groupNameRaw of userGroups) {
+            const groupName = String(groupNameRaw);
+            const key = RBAC_CONFIG.groups[groupName] ? groupName : groupName.toLowerCase();
+            const groupConfig = RBAC_CONFIG.groups[key];
             if (groupConfig && groupConfig.readOnly) return true;
         }
         return false;
@@ -159,7 +203,8 @@ window.RBAC = {
 
     enforcePage() {
         console.log('🛡️ Enforcing RBAC...');
-        if (!window.Auth || !window.Auth.requireAuthentication()) return;
+        // RBAC must NOT trigger redirects; Auth is the sole redirect authority.
+        if (!window.Auth || !window.Auth.requireAuthentication({ silent: true })) return;
         const pageName = window.location.pathname.split('/').pop() || 'index.html';
         if (!this.hasPageAccess(pageName)) {
             console.warn('🚫 Access denied:', pageName);

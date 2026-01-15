@@ -1,0 +1,194 @@
+service: wizzcentral-notifications
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'staging'}
+  memorySize: 512
+  timeout: 30
+
+  environment:
+    STAGE: ${self:provider.stage}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+
+    # Token registry
+    PUSH_TOKENS_TABLE: WizzCentral_PushDeviceTokens_${self:provider.stage}
+
+    # Secrets
+    FIREBASE_ADMIN_SA_SECRET_ID: ${env:FIREBASE_ADMIN_SA_SECRET_ID, 'wizz/${self:provider.stage}/firebase/admin-service-account'}
+
+    # Internal auth for service-to-service push sends (Wave System -> Notifications)
+    NOTIFICATIONS_INTERNAL_KEY: ${env:NOTIFICATIONS_INTERNAL_KEY, ''}
+
+    # Cognito multi-app verification (set via deploy script)
+    COGNITO_REGION: ${env:COGNITO_REGION, 'us-east-1'}
+    CENTRAL_PLATFORM_USER_POOL_ID: ${env:CENTRAL_PLATFORM_USER_POOL_ID, 'us-east-1_Cp9YnOQWi'}
+    CENTRAL_PLATFORM_CLIENT_ID: ${env:CENTRAL_PLATFORM_CLIENT_ID, '22rf529lhbqtlvpdk2578h73l1'}
+    # WizzUser pool (set via deploy script)
+    USERS_USER_POOL_ID: ${env:USERS_USER_POOL_ID, ''}
+    USERS_CLIENT_ID: ${env:USERS_CLIENT_ID, ''}
+    MERCHANTS_USER_POOL_ID: ${env:MERCHANTS_USER_POOL_ID, ''}
+    MERCHANTS_CLIENT_ID: ${env:MERCHANTS_CLIENT_ID, ''}
+    # Staging Drivers pool (must match whizzDrivers-stg/frontend/lib/config/environment.dart)
+    DRIVERS_USER_POOL_ID: ${env:DRIVERS_USER_POOL_ID, 'us-east-1_RGTqUXF5C'}
+    DRIVERS_CLIENT_ID: ${env:DRIVERS_CLIENT_ID, '2d26d3muq0vvcuf42lkpgmkgsr'}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_PushDeviceTokens_${self:provider.stage}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_PushDeviceTokens_${self:provider.stage}/index/*
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource: "*"
+
+package:
+  patterns:
+    - '!**/*'
+    - 'src/**'
+    - 'package.json'
+    - 'package-lock.json'
+    - 'node_modules/**'
+    - '!wallet-service/**'
+    - '!order-service/**'
+    - '!**/.aws-sam/**'
+
+functions:
+  pushTokensRegister:
+    handler: src/handlers/push-tokens.register
+    timeout: 15
+    events:
+      - http:
+          path: push/tokens/register
+          method: post
+          cors: true
+      - http:
+          path: push/tokens/register
+          method: options
+          cors: true
+
+  pushTokensUnregister:
+    handler: src/handlers/push-tokens.unregister
+    timeout: 15
+    events:
+      - http:
+          path: push/tokens/unregister
+          method: post
+          cors: true
+      - http:
+          path: push/tokens/unregister
+          method: options
+          cors: true
+
+  pushAdminSendTest:
+    handler: src/handlers/push-admin.sendTest
+    timeout: 30
+    events:
+      - http:
+          path: push/send/test
+          method: post
+          cors: true
+      - http:
+          path: push/send/test
+          method: options
+          cors: true
+
+  pushSendWaveOffer:
+    handler: src/handlers/push-wave-offer.sendWaveOffer
+    timeout: 30
+    events:
+      - http:
+          path: push/send/wave-offer
+          method: post
+          cors: true
+      - http:
+          path: push/send/wave-offer
+          method: options
+          cors: true
+
+  pushSendOrderUpdate:
+    handler: src/handlers/push-order-update.sendOrderUpdate
+    timeout: 30
+    events:
+      - http:
+          path: push/send/order-update
+          method: post
+          cors: true
+      - http:
+          path: push/send/order-update
+          method: options
+          cors: true
+
+  pushSendMerchantOrder:
+    handler: src/handlers/push-merchant-order.sendMerchantOrder
+    timeout: 30
+    events:
+      - http:
+          path: push/send/merchant-order
+          method: post
+          cors: true
+      - http:
+          path: push/send/merchant-order
+          method: options
+          cors: true
+
+  pushSendMerchantOrderTokens:
+    handler: src/handlers/push-merchant-order-tokens.sendMerchantOrderTokens
+    timeout: 30
+    events:
+      - http:
+          path: push/send/merchant-order-tokens
+          method: post
+          cors: true
+      - http:
+          path: push/send/merchant-order-tokens
+          method: options
+          cors: true
+
+resources:
+  Resources:
+    PushDeviceTokensTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: WizzCentral_PushDeviceTokens_${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: token
+            AttributeType: S
+          - AttributeName: subjectId
+            AttributeType: S
+          - AttributeName: businessId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: token
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: SubjectIdIndex
+            KeySchema:
+              - AttributeName: subjectId
+                KeyType: HASH
+              - AttributeName: token
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: BusinessIdIndex
+            KeySchema:
+              - AttributeName: businessId
+                KeyType: HASH
+              - AttributeName: token
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+plugins: []

@@ -4,6 +4,7 @@ import {
   GetCommand,
   PutCommand,
   QueryCommand,
+  ScanCommand,
   UpdateCommand,
   TransactWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
@@ -34,4 +35,11 @@ export const TABLES = {
 };
 
 // Export commands for easier testing
-export { GetCommand, PutCommand, QueryCommand, UpdateCommand, TransactWriteCommand };
+export {
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  ScanCommand,
+  UpdateCommand,
+  TransactWriteCommand,
+};

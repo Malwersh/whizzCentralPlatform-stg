@@ -9,29 +9,49 @@
     // Skip public pages
     const publicPages = ['index.html', 'login.html', 'unauthorized.html', 'privacy-policy-merchants.html'];
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const pathname = window.location.pathname || '/';
+    const basePrefix = (pathname === '/frontend' || pathname.startsWith('/frontend/')) ? '/frontend' : '';
     
     if (publicPages.includes(currentPage)) {
         console.log('✅ Public page, skipping RBAC');
         return;
     }
     
-    // Check authentication first
-    const idToken = localStorage.getItem('idToken');
+    function decodeJwtPayload(token) {
+        try {
+            if (!token || typeof token !== 'string') return null;
+            const parts = token.split('.');
+            if (parts.length < 2) return null;
+            let b64 = parts[1];
+            b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
+            return JSON.parse(atob(b64));
+        } catch (e) {
+            console.warn('RBAC early-check: Failed to decode token payload', e);
+            return null;
+        }
+    }
+
+    // Check authentication first (support both storages)
+    const idToken = sessionStorage.getItem('idToken') || localStorage.getItem('idToken');
     if (!idToken) {
         console.warn('❌ No token, redirecting to login');
-        window.location.href = '/index.html';
+        window.location.href = basePrefix + '/index.html';
         return;
     }
     
     // Extract groups from token
     try {
-        const payload = JSON.parse(atob(idToken.split('.')[1]));
-        const groups = payload['cognito:groups'] || [];
+        const payload = decodeJwtPayload(idToken) || {};
+        const raw = payload['cognito:groups'] || payload['groups'] || payload['custom:groups'] || [];
+        const groups = (Array.isArray(raw) ? raw : [raw]).filter(Boolean).map(g => String(g));
+        const groupsLower = groups.map(g => g.toLowerCase());
         
         console.log('👥 User groups:', groups);
         
         // Define page access map
         const groupAccess = {
+            'admin': '*',
             'admins': '*',
             'financial_admin': ['dashboard.html', 'financial-management.html', 'orders.html', 'orders-management.html', 'merchants.html', 'drivers.html'],
             'support_admin': ['dashboard.html', 'support.html', 'support-merchants.html', 'support-production.html', 'customers.html', 'customers-simple.html', 'orders.html', 'merchants.html', 'drivers.html'],
@@ -52,7 +72,7 @@
         // Check if user has access
         let hasAccess = false;
         
-        for (const group of groups) {
+        for (const group of groupsLower) {
             const allowedPages = groupAccess[group];
             if (allowedPages === '*') {
                 console.log(`✅ Group "${group}" has wildcard access`);
@@ -69,11 +89,11 @@
         if (!hasAccess) {
             console.warn('❌ Access denied for page:', currentPage);
             sessionStorage.setItem('attemptedPage', window.location.pathname);
-            window.location.href = '/pages/unauthorized.html';
+            window.location.href = basePrefix + '/pages/unauthorized.html';
         }
         
     } catch (error) {
         console.error('RBAC check failed:', error);
-        window.location.href = '/index.html';
+        window.location.href = basePrefix + '/index.html';
     }
 })();

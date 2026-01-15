@@ -11,6 +11,7 @@ class NavigationManager {
         this.isInitialized = false;
         this._boundToggleHandler = this.toggleSidebar.bind(this);
         this._globalListenersBound = false;
+        this._initPromise = null;
     }
 
     async init() {
@@ -19,11 +20,37 @@ class NavigationManager {
             return;
         }
 
+        if (this._initPromise) {
+            console.log('🧭 NavigationManager: Init already in progress, awaiting...');
+            return this._initPromise;
+        }
+
+        this._initPromise = (async () => {
+
         console.log('🧭 NavigationManager: Initializing...');
         console.log('🔧 Current URL:', window.location.href);
         console.log('🔧 Current pathname:', window.location.pathname);
 
         try {
+            // Central auth gate for all pages that use the navigation shell.
+            // If a redirect-loop was previously detected, do not block rendering.
+            try {
+                let loopBroken = false;
+                try {
+                    loopBroken = (sessionStorage.getItem('redirectLoop:broken') || localStorage.getItem('redirectLoop:broken')) === 'true';
+                } catch (_) { }
+
+                if (!loopBroken && window.Auth && typeof window.Auth.requireAuthentication === 'function') {
+                    const ok = window.Auth.requireAuthentication();
+                    if (!ok) {
+                        console.warn('🧭 NavigationManager: Authentication required; aborting init');
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('🧭 NavigationManager: Auth gate error (continuing):', e);
+            }
+
             // Load sidebar HTML first
             await this.loadSidebar();
 
@@ -61,7 +88,13 @@ class NavigationManager {
 
         } catch (error) {
             console.error('❌ NavigationManager: Initialization failed:', error);
+        } finally {
+            this._initPromise = null;
         }
+
+        })();
+
+        return this._initPromise;
     }
 
     // Collapse any repeated /pages/ segments in the current path and redirect once
@@ -233,6 +266,45 @@ class NavigationManager {
             this.menuToggle.addEventListener('click', this._boundToggleHandler);
             this.menuToggle.dataset.navToggleBound = '1';
             console.log('🔧 NavigationManager: Mobile menu toggle connected');
+        }
+
+        // Logout button in sidebar footer
+        try {
+            const logoutBtn = this.sidebar && this.sidebar.querySelector('.logout-btn');
+            if (logoutBtn && !logoutBtn.dataset.logoutBound) {
+                logoutBtn.addEventListener('click', (e) => {
+                    try {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    } catch (_) { }
+
+                    try {
+                        if (window.Auth && typeof window.Auth.logout === 'function') {
+                            window.Auth.logout();
+                            return;
+                        }
+                        if (typeof window.logout === 'function') {
+                            window.logout();
+                            return;
+                        }
+
+                        const basePrefix = this._getBasePrefix();
+                        window.location.replace(window.location.origin + basePrefix + '/index.html');
+                    } catch (err) {
+                        console.warn('Logout failed:', err);
+                        try {
+                            const basePrefix = this._getBasePrefix();
+                            window.location.replace(window.location.origin + basePrefix + '/index.html');
+                        } catch (_) {
+                            window.location.href = '/index.html';
+                        }
+                    }
+                });
+                logoutBtn.dataset.logoutBound = '1';
+                console.log('🔧 NavigationManager: Logout button connected');
+            }
+        } catch (e) {
+            console.warn('NavigationManager: Failed to bind logout button', e);
         }
 
         // Sidebar toggle button
@@ -528,9 +600,24 @@ class NavigationManager {
                 let userEmail = '';
                 
                 try {
-                    // First try: Get from sessionStorage directly
-                    userEmail = localStorage.getItem('userEmail') || '';
-                    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+                    const readStorageItem = (key) => {
+                        try {
+                            const v = sessionStorage.getItem(key);
+                            if (v !== null && v !== undefined && v !== '') return v;
+                        } catch (_) {}
+                        try { return localStorage.getItem(key); } catch (_) { return null; }
+                    };
+
+                    const decodeJwtPayload = (token) => {
+                        const part = (token || '').split('.')[1] || '';
+                        const base64 = part.replace(/-/g, '+').replace(/_/g, '/');
+                        const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+                        return JSON.parse(atob(padded));
+                    };
+
+                    // First try: Get from storage (session preferred)
+                    userEmail = readStorageItem('userEmail') || '';
+                    const isAuthenticated = readStorageItem('isAuthenticated') === 'true';
                     
                     if (userEmail) {
                         userName = userEmail.split('@')[0]; // Use part before @
@@ -538,10 +625,10 @@ class NavigationManager {
                     }
                     
                     // Second try: Decode JWT token if available
-                    const token = localStorage.getItem('idToken');
+                    const token = readStorageItem('idToken');
                     if (token) {
                         try {
-                            const payload = JSON.parse(atob(token.split('.')[1]));
+                            const payload = decodeJwtPayload(token);
                             
                             if (payload.email) {
                                 userEmail = payload.email;
@@ -821,12 +908,16 @@ class NavigationManager {
     }
 }
 
-// Initialize the navigation manager
-const navigationManager = new NavigationManager();
-
 // Export for global access
 window.NavigationManager = NavigationManager;
-window.navigationManager = navigationManager;
+
+// Initialize/reuse a single navigation manager instance.
+// Multiple instances cause duplicated listeners and sidebar flicker.
+window.navigationManager = (window.navigationManager instanceof NavigationManager)
+    ? window.navigationManager
+    : new NavigationManager();
+
+const navigationManager = window.navigationManager;
 
 // Global logout function for sidebar
 if (!window.logout) {

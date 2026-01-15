@@ -62,7 +62,9 @@ parameter_overrides = [
     "HoldsTableName=staging-Holds",
     "TopupRequestsTableName=staging-TopupRequests",
     "AuditLogTableName=staging-AuditLog",
-    "IdempotencyKeysTableName=staging-IdempotencyKeys"
+    "IdempotencyKeysTableName=staging-IdempotencyKeys",
+    "DriverCognitoUserPoolId=us-east-1_RGTqUXF5C",
+    "ServiceCognitoUserPoolId=us-east-1_1oxqmSN5P"
 ]
 
 [production]

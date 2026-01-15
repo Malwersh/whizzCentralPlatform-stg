@@ -1,6 +1,15 @@
-const AWS = require('aws-sdk');
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+  UpdateCommand,
+} = require('@aws-sdk/lib-dynamodb');
 const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require('@aws-sdk/client-apigatewaymanagementapi');
+
+const dynamoDB = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+  marshallOptions: { removeUndefinedValues: true },
+});
 
 function requireNonEmptyEnv(name) {
   const value = process.env[name];
@@ -128,13 +137,15 @@ exports.handler = async (event) => {
     
     let offerData = null;
     try {
-      const offerResult = await dynamoDB.get({
+      const offerResult = await dynamoDB.send(
+        new GetCommand({
           TableName: WAVE_OFFERS_TABLE,
-        Key: {
-          orderId: extractedOrderId,
-          SK: offerSK
-        }
-      }).promise();
+          Key: {
+            orderId: extractedOrderId,
+            SK: offerSK,
+          },
+        })
+      );
       
       offerData = offerResult.Item;
       
@@ -170,28 +181,30 @@ exports.handler = async (event) => {
     console.log('🔍 Step 2: Verifying and claiming offer...');
     
     try {
-      await dynamoDB.update({
+      await dynamoDB.send(
+        new UpdateCommand({
           TableName: WAVE_OFFERS_TABLE,
-        Key: {
-          orderId: extractedOrderId,
-          SK: offerSK
-        },
-        UpdateExpression: `
+          Key: {
+            orderId: extractedOrderId,
+            SK: offerSK,
+          },
+          UpdateExpression: `
           SET responseStatus = :accepted,
               isWinner = :true,
               responseAt = :now,
               updatedAt = :timestamp
         `,
-        ConditionExpression: 'responseStatus = :pending AND expiresAt > :currentTime',
-        ExpressionAttributeValues: {
-          ':accepted': 'accepted',
-          ':true': true,
-          ':pending': 'pending',
-          ':now': now,
-          ':timestamp': timestamp,
-          ':currentTime': now
-        }
-      }).promise();
+          ConditionExpression: 'responseStatus = :pending AND expiresAt > :currentTime',
+          ExpressionAttributeValues: {
+            ':accepted': 'accepted',
+            ':true': true,
+            ':pending': 'pending',
+            ':now': now,
+            ':timestamp': timestamp,
+            ':currentTime': now,
+          },
+        })
+      );
       
       console.log('✅ Offer claimed successfully');
     } catch (error) {
@@ -218,28 +231,30 @@ exports.handler = async (event) => {
     console.log('🔍 Step 3: Updating WizzDriverLiveState...');
     
     try {
-      await dynamoDB.update({
+      await dynamoDB.send(
+        new UpdateCommand({
           TableName: DRIVER_LIVE_STATE_TABLE,
-        Key: { driverId },
-        UpdateExpression: `
+          Key: { driverId },
+          UpdateExpression: `
           SET #status = :status,
               isSearching = :isSearching,
               currentOrderId = :orderId,
               activeOrdersCount = if_not_exists(activeOrdersCount, :zero) + :one,
               lastUpdated = :now
         `,
-        ExpressionAttributeNames: {
-          '#status': 'status'
-        },
-        ExpressionAttributeValues: {
-          ':status': 'busy',
-          ':isSearching': false,
-          ':orderId': extractedOrderId,
-          ':zero': 0,
-          ':one': 1,
-          ':now': now
-        }
-      }).promise();
+          ExpressionAttributeNames: {
+            '#status': 'status',
+          },
+          ExpressionAttributeValues: {
+            ':status': 'busy',
+            ':isSearching': false,
+            ':orderId': extractedOrderId,
+            ':zero': 0,
+            ':one': 1,
+            ':now': now,
+          },
+        })
+      );
       
       console.log('✅ WizzDriverLiveState updated');
     } catch (error) {
@@ -269,13 +284,14 @@ exports.handler = async (event) => {
       
       console.log('📊 Incrementing assignmentAttemptCounter (independent of wave number)');
       
-      await dynamoDB.update({
+      await dynamoDB.send(
+        new UpdateCommand({
           TableName: ORDERS_TABLE,
-        Key: {
-          PK: `ORDER#${extractedOrderId}`,
-          SK: 'META'
-        },
-        UpdateExpression: `
+          Key: {
+            PK: `ORDER#${extractedOrderId}`,
+            SK: 'META',
+          },
+          UpdateExpression: `
           SET orderStatus = :status,
               #status = :status,
               driverId = :driverId,
@@ -293,28 +309,29 @@ exports.handler = async (event) => {
               pricingFrozen = :pricingFrozen
           ADD assignmentAttemptCounter :one
         `,
-        ConditionExpression: 'orderStatus <> :assignedStatus',
-        ExpressionAttributeNames: {
-          '#status': 'status'
-        },
-        ExpressionAttributeValues: {
-          ':status': 'assigned',
-          ':assignedStatus': 'assigned',
-          ':driverId': driverId,
-          ':now': now,
-          ':waveNumber': waveNumber,
-          ':timestamp': timestamp,
-          ':updatedBy': 'waveSystem',
-          ':bonusAmount': bonusAmount,
-          ':finalDeliveryFee': finalDeliveryFee,
-          ':isEmergencyWave': isEmergencyWave,
-          ':holdId': holdId || null,
-          ':holdStatus': holdStatus || null,
-          ':holdAmount': holdAmount || null,
-          ':pricingFrozen': holdId ? true : false,
-          ':one': 1  // For ADD assignmentAttemptCounter
-        }
-      }).promise();
+          ConditionExpression: 'orderStatus <> :assignedStatus',
+          ExpressionAttributeNames: {
+            '#status': 'status',
+          },
+          ExpressionAttributeValues: {
+            ':status': 'assigned',
+            ':assignedStatus': 'assigned',
+            ':driverId': driverId,
+            ':now': now,
+            ':waveNumber': waveNumber,
+            ':timestamp': timestamp,
+            ':updatedBy': 'waveSystem',
+            ':bonusAmount': bonusAmount,
+            ':finalDeliveryFee': finalDeliveryFee,
+            ':isEmergencyWave': isEmergencyWave,
+            ':holdId': holdId || null,
+            ':holdStatus': holdStatus || null,
+            ':holdAmount': holdAmount || null,
+            ':pricingFrozen': holdId ? true : false,
+            ':one': 1,
+          },
+        })
+      );
       
       console.log('✅ WizzOrders updated with bonus info');
     } catch (error) {
@@ -346,13 +363,14 @@ exports.handler = async (event) => {
     console.log('🔍 Step 5: Updating WizzDispatchJobs_dev...');
     
     try {
-      await dynamoDB.update({
+      await dynamoDB.send(
+        new UpdateCommand({
           TableName: DISPATCH_JOBS_TABLE,
-        Key: {
-          orderId: extractedOrderId,
-          SK: 'METADATA'
-        },
-        UpdateExpression: `
+          Key: {
+            orderId: extractedOrderId,
+            SK: 'METADATA',
+          },
+          UpdateExpression: `
           SET #status = :status,
               assignedDriverId = :driverId,
               assignedAt = :now,
@@ -360,17 +378,18 @@ exports.handler = async (event) => {
               totalWavesSent = :waveNumber,
               updatedAt = :timestamp
         `,
-        ExpressionAttributeNames: {
-          '#status': 'status'
-        },
-        ExpressionAttributeValues: {
-          ':status': 'assigned',
-          ':driverId': driverId,
-          ':now': now,
-          ':waveNumber': waveNumber,
-          ':timestamp': timestamp
-        }
-      }).promise();
+          ExpressionAttributeNames: {
+            '#status': 'status',
+          },
+          ExpressionAttributeValues: {
+            ':status': 'assigned',
+            ':driverId': driverId,
+            ':now': now,
+            ':waveNumber': waveNumber,
+            ':timestamp': timestamp,
+          },
+        })
+      );
       
       console.log('✅ WizzDispatchJobs_dev updated');
     } catch (error) {
@@ -385,15 +404,17 @@ exports.handler = async (event) => {
     
     try {
       // Query all offers for this order
-      const otherOffers = await dynamoDB.query({
+      const otherOffers = await dynamoDB.send(
+        new QueryCommand({
           TableName: WAVE_OFFERS_TABLE,
-        KeyConditionExpression: 'orderId = :orderId',
-        FilterExpression: 'responseStatus = :pending',
-        ExpressionAttributeValues: {
-          ':orderId': extractedOrderId,
-          ':pending': 'pending'
-        }
-      }).promise();
+          KeyConditionExpression: 'orderId = :orderId',
+          FilterExpression: 'responseStatus = :pending',
+          ExpressionAttributeValues: {
+            ':orderId': extractedOrderId,
+            ':pending': 'pending',
+          },
+        })
+      );
       
       console.log(`📋 Found ${otherOffers.Items.length} other pending offers to cancel`);
       
@@ -410,35 +431,39 @@ exports.handler = async (event) => {
       // Cancel each pending offer + notify driver
       for (const offer of otherOffers.Items) {
         // Update offer status in DB
-        await dynamoDB.update({
-          TableName: WAVE_OFFERS_TABLE,
-          Key: {
-            orderId: offer.orderId,
-            SK: offer.SK
-          },
-          UpdateExpression: `
+        await dynamoDB.send(
+          new UpdateCommand({
+            TableName: WAVE_OFFERS_TABLE,
+            Key: {
+              orderId: offer.orderId,
+              SK: offer.SK,
+            },
+            UpdateExpression: `
             SET responseStatus = :canceled,
                 responseAt = :now,
                 updatedAt = :timestamp
           `,
-          ExpressionAttributeValues: {
-            ':canceled': 'order_assigned_to_other',
-            ':now': now,
-            ':timestamp': timestamp
-          }
-        }).promise();
+            ExpressionAttributeValues: {
+              ':canceled': 'order_assigned_to_other',
+              ':now': now,
+              ':timestamp': timestamp,
+            },
+          })
+        );
         
         console.log(`✅ Cancelled offer for driver: ${offer.driverId}`);
         
         // Send WebSocket notification to remove offer from UI
         try {
           // Get active connectionId from WizzDriverLiveState
-          const driverStateResult = await dynamoDB.get({
+          const driverStateResult = await dynamoDB.send(
+            new GetCommand({
               TableName: DRIVER_LIVE_STATE_TABLE,
-            Key: {
-              driverId: offer.driverId
-            }
-          }).promise();
+              Key: {
+                driverId: offer.driverId,
+              },
+            })
+          );
           
           if (driverStateResult.Item && driverStateResult.Item.connectionId) {
             const connectionId = driverStateResult.Item.connectionId;
@@ -477,13 +502,15 @@ exports.handler = async (event) => {
     
     let orderDetails = null;
     try {
-      const orderResult = await dynamoDB.get({
+      const orderResult = await dynamoDB.send(
+        new GetCommand({
           TableName: ORDERS_TABLE,
-        Key: {
-          PK: `ORDER#${extractedOrderId}`,
-          SK: 'META'
-        }
-      }).promise();
+          Key: {
+            PK: `ORDER#${extractedOrderId}`,
+            SK: 'META',
+          },
+        })
+      );
       
       orderDetails = orderResult.Item;
       console.log('✅ Order details fetched');

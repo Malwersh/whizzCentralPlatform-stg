@@ -1,18 +1,39 @@
 // WizzCentral Login Page Script (externalized for CSP compliance)
 (function initLoginPage(){
+  function readStorageItem(key) {
+    try {
+      const v = sessionStorage.getItem(key);
+      if (v !== null && v !== undefined && v !== '') return v;
+    } catch (_) {}
+    try { return localStorage.getItem(key); } catch (_) { return null; }
+  }
+
+  function writeStorageItem(key, value) {
+    try { sessionStorage.setItem(key, value); } catch (_) {}
+    try { localStorage.setItem(key, value); } catch (_) {}
+  }
+
+  function removeStorageItem(key) {
+    try { sessionStorage.removeItem(key); } catch (_) {}
+    try { localStorage.removeItem(key); } catch (_) {}
+  }
+
   function getPostLoginUrl() {
     const cfg = window.WIZZCENTRAL_CONFIG || {};
     return cfg.DEFAULT_POST_LOGIN_PAGE || '/pages/dashboard.html';
   }
 
   try {
-    const isAuthed = localStorage.getItem('isAuthenticated') === 'true';
-    const idToken = localStorage.getItem('idToken');
+    const isAuthed = readStorageItem('isAuthenticated') === 'true';
+    const idToken = readStorageItem('idToken');
     if (isAuthed && idToken) {
       window.location.replace(getPostLoginUrl());
       return; // Skip initialization if already logged in
     }
   } catch(_){}
+
+  // User is not being auto-redirected -> show login UI
+  try { document.body.style.visibility = 'visible'; } catch (_) {}
 
   // Simple logger
   function log(message, type = 'info') {
@@ -32,6 +53,7 @@
   // Ensure Cognito library loaded
   if (!window.AmazonCognitoIdentity) {
     console.error('Cognito library not loaded - check CSP or network');
+    try { document.body.style.visibility = 'visible'; } catch (_) {}
     showStatus('❌ Auth library failed to load', 'error');
     return; // Abort further auth setup
   }
@@ -81,16 +103,16 @@
             const accessToken = result.getAccessToken().getJwtToken();
             const idToken = result.getIdToken().getJwtToken();
             const refreshToken = result.getRefreshToken().getToken();
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('idToken', idToken);
-            localStorage.setItem('refreshToken', refreshToken);
-            localStorage.setItem('userEmail', email);
-            localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('lastLoginTime', Date.now().toString());
+            writeStorageItem('accessToken', accessToken);
+            writeStorageItem('idToken', idToken);
+            writeStorageItem('refreshToken', refreshToken);
+            writeStorageItem('userEmail', email);
+            writeStorageItem('isAuthenticated', 'true');
+            writeStorageItem('lastLoginTime', Date.now().toString());
             showStatus('✅ Login successful! Redirecting...', 'success');
             setTimeout(() => {
-              const returnUrl = localStorage.getItem('returnUrl');
-              if (returnUrl) { localStorage.removeItem('returnUrl'); window.location.href = returnUrl; }
+              const returnUrl = readStorageItem('returnUrl');
+              if (returnUrl) { removeStorageItem('returnUrl'); window.location.href = returnUrl; }
               else { window.location.href = getPostLoginUrl(); }
             }, 1500);
           },
@@ -149,12 +171,12 @@
         cognitoUser.completeNewPasswordChallenge(newPassword, userAttributes, {
           onSuccess: function(result) {
             log('✅ Password changed successfully!', 'success');
-            localStorage.setItem('accessToken', result.getAccessToken().getJwtToken());
-            localStorage.setItem('idToken', result.getIdToken().getJwtToken());
-            localStorage.setItem('refreshToken', result.getRefreshToken().getToken());
-            localStorage.setItem('userEmail', userEmail);
-            localStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('lastLoginTime', Date.now().toString());
+            writeStorageItem('accessToken', result.getAccessToken().getJwtToken());
+            writeStorageItem('idToken', result.getIdToken().getJwtToken());
+            writeStorageItem('refreshToken', result.getRefreshToken().getToken());
+            writeStorageItem('userEmail', userEmail);
+            writeStorageItem('isAuthenticated', 'true');
+            writeStorageItem('lastLoginTime', Date.now().toString());
             showStatus('✅ Password changed! Redirecting to dashboard...', 'success');
             delete window.pendingPasswordChange;
             setTimeout(() => { window.location.href = getPostLoginUrl(); }, 1500);

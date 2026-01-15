@@ -137,6 +137,12 @@ Resources:
                 type: aws_proxy
                 httpMethod: POST
                 uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderServiceFunction.Arn}/invocations'
+          /order/unassign:
+            post:
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderServiceFunction.Arn}/invocations'
 
   OrderServiceLogGroup:
     Type: AWS::Logs::LogGroup

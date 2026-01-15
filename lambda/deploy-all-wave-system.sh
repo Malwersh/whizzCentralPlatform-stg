@@ -69,20 +69,21 @@ deploy_lambda() {
     
     # Deploy to AWS
     echo "☁️  Uploading to AWS..."
-    aws lambda update-function-code \
+    if aws lambda update-function-code \
         --function-name "$FUNCTION_NAME" \
         --zip-file fileb://function.zip \
         --region "$REGION" \
         "${PROFILE_ARGS[@]}" \
-        --output text > /dev/null
-    
-    if [ $? -eq 0 ]; then
+        --output text > /dev/null; then
         echo "✅ ${FUNCTION_NAME} deployed successfully"
     else
         echo "❌ Failed to deploy ${FUNCTION_NAME}"
+        cd ..
+        return 1
     fi
     
     cd ..
+    return 0
 }
 
 # Deploy all Lambda functions

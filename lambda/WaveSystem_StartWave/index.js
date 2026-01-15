@@ -28,6 +28,11 @@ const AWS = require('aws-sdk');
 const https = require('https');
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
+function getOptionalEnv(name) {
+  const value = process.env[name];
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 function requireNonEmptyEnv(name) {
   const value = process.env[name];
   if (typeof value !== 'string' || value.trim() === '') {
@@ -60,6 +65,61 @@ const DISPATCH_JOBS_TABLE = requireNonEmptyEnv('DISPATCH_JOBS_TABLE');
 const DRIVER_LIVE_STATE_TABLE = requireNonEmptyEnv('DRIVER_LIVE_STATE_TABLE');
 const WAVE_OFFERS_TABLE = requireNonEmptyEnv('WAVE_OFFERS_TABLE');
 const GOOGLE_MAPS_API_KEY = String(process.env.GOOGLE_MAPS_API_KEY || '').trim();
+
+// Notifications service (Serverless) - used to send FCM/APNs push for background/terminated reliability
+const NOTIFICATIONS_API_BASE = getOptionalEnv('NOTIFICATIONS_API_BASE'); // e.g. https://x066k4dftk.execute-api.us-east-1.amazonaws.com/staging
+const NOTIFICATIONS_INTERNAL_KEY = getOptionalEnv('NOTIFICATIONS_INTERNAL_KEY');
+
+function postJson(urlString, headers, body, timeoutMs = 2500) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(urlString);
+    const data = JSON.stringify(body);
+
+    const req = https.request(
+      {
+        method: 'POST',
+        hostname: url.hostname,
+        path: url.pathname + url.search,
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(data),
+          ...headers
+        }
+      },
+      (res) => {
+        let chunks = '';
+        res.on('data', (d) => (chunks += d));
+        res.on('end', () => {
+          resolve({ statusCode: res.statusCode || 0, body: chunks });
+        });
+      }
+    );
+
+    req.on('error', reject);
+    req.setTimeout(timeoutMs, () => req.destroy(new Error('request timeout')));
+    req.write(data);
+    req.end();
+  });
+}
+
+async function sendWaveOfferPushNotification(payload) {
+  if (!NOTIFICATIONS_API_BASE || !NOTIFICATIONS_INTERNAL_KEY) {
+    return { skipped: true, reason: 'Missing NOTIFICATIONS_API_BASE or NOTIFICATIONS_INTERNAL_KEY' };
+  }
+
+  const endpoint = `${NOTIFICATIONS_API_BASE.replace(/\/$/, '')}/push/send/wave-offer`;
+
+  const resp = await postJson(
+    endpoint,
+    {
+      'x-internal-key': NOTIFICATIONS_INTERNAL_KEY
+    },
+    payload,
+    3000
+  );
+
+  return resp;
+}
 
 const websocketManagementEndpoint = getWebsocketManagementEndpoint();
 console.log(`🔗 WebSocket management endpoint: ${websocketManagementEndpoint}`);
@@ -447,11 +507,24 @@ async function getQualifiedDrivers(dispatchJob, excludeDriverIds = [], permanent
   }
   
   // المرحلة 2: فلترة السائقين المتصلين والمتاحين
+  const filterStats = {
+    total: driversInRegion.length,
+    excludedPermanent: 0,
+    excludedTemporary: 0,
+    notAvailable: 0,
+    notSearching: 0,
+    missingConnectionId: 0,
+    badConnectionStatus: 0,
+    missingAllowedRegions: 0,
+    passed: 0,
+  };
+
   const availableDrivers = driversInRegion.filter(driver => {
     // 🚫 استبعاد دائم: السائقين الذين ألغوا الطلب بعد القبول (driver unassignment)
     // يُستبعدون من **جميع الموجات** دائماً (لا فرصة ثانية)
     if (Array.isArray(excludeDriverIds) && excludeDriverIds.includes(driver.driverId)) {
       console.log(`   🚫 Skipping driver ${driver.driverId} (⛔ PERMANENTLY EXCLUDED - unassigned after acceptance)`);
+      filterStats.excludedPermanent++;
       return false;
     }
     
@@ -460,6 +533,7 @@ async function getQualifiedDrivers(dispatchJob, excludeDriverIds = [], permanent
     // الموجات 4-5: يُعاد إرسال الطلب لهم (فرصة ثانية + بونص)
     if (!isEmergencyWave && waveNumber < 4 && Array.isArray(rejectedDriverIds) && rejectedDriverIds.includes(driver.driverId)) {
       console.log(`   ⏳ Skipping driver ${driver.driverId} temporarily (rejected/no-response in wave 1-${waveNumber-1}, will retry in wave 4+)`);
+      filterStats.excludedTemporary++;
       return false;
     }
     
@@ -471,8 +545,27 @@ async function getQualifiedDrivers(dispatchJob, excludeDriverIds = [], permanent
     
     const isAvailable = driver.status === 'available';
     const isSearching = driver.isSearching === true;
-    // ✅ إزالة isOnline - نعتمد على connectionStatus فقط
-    const hasConnection = driver.connectionId && driver.connectionStatus === 'connected';
+
+    if (!isAvailable) {
+      filterStats.notAvailable++;
+    }
+    if (!isSearching) {
+      filterStats.notSearching++;
+    }
+
+    const hasConnectionId = Boolean(driver.connectionId);
+    if (!hasConnectionId) {
+      filterStats.missingConnectionId++;
+    }
+
+    // ✅ Compatibility: some environments use 'active' instead of 'connected'
+    const connectionStatus = String(driver.connectionStatus || '').trim().toLowerCase();
+    const hasGoodConnectionStatus = connectionStatus === 'connected' || connectionStatus === 'active' || connectionStatus === '';
+    if (hasConnectionId && !hasGoodConnectionStatus) {
+      filterStats.badConnectionStatus++;
+    }
+
+    const hasConnection = hasConnectionId && hasGoodConnectionStatus;
     
     // 🆕 فحص أولويات المناطق حسب الموجة
     let hasRegionWithPriority = false;
@@ -483,21 +576,37 @@ async function getQualifiedDrivers(dispatchJob, excludeDriverIds = [], permanent
     } 
     // 🎯 Wave 1: فقط priority0 (الأقرب)
     else if (waveNumber === 1) {
-      if (driver.allowed_region_ids_priority0 && driver.allowed_region_ids_priority0.includes(restaurantRegionId)) {
+      if (Array.isArray(driver.allowed_region_ids_priority0) && driver.allowed_region_ids_priority0.includes(restaurantRegionId)) {
+        hasRegionWithPriority = true;
+      } else if (driver.current_work_region_id === restaurantRegionId) {
+        // Fallback: if allowed_region_ids_priority0 missing, use current region match
         hasRegionWithPriority = true;
       }
     }
     // 🌊 Wave 2-4: جميع المناطق المسموحة (priority0 + priority1)
     else {
-      if (driver.allowed_region_ids && driver.allowed_region_ids.includes(restaurantRegionId)) {
+      if (Array.isArray(driver.allowed_region_ids) && driver.allowed_region_ids.includes(restaurantRegionId)) {
+        hasRegionWithPriority = true;
+      } else if (driver.current_work_region_id === restaurantRegionId) {
+        // Fallback: if allowed_region_ids missing, use current region match
         hasRegionWithPriority = true;
       }
     }
 
-    return isAvailable && isSearching && hasConnection && hasRegionWithPriority;
+    if (!hasRegionWithPriority) {
+      filterStats.missingAllowedRegions++;
+    }
+
+    const passed = isAvailable && isSearching && hasConnection && hasRegionWithPriority;
+    if (passed) {
+      filterStats.passed++;
+    }
+
+    return passed;
   });
 
   console.log(`🔗 ${availableDrivers.length} drivers are available and connected`);
+  console.log(`📊 Driver filter diagnostics (wave ${waveNumber}):`, filterStats);
 
   if (availableDrivers.length === 0) {
     return [];
@@ -956,8 +1065,61 @@ async function sendWaveOffers(dispatchJob, selectedDrivers, waveNumber, isEmerge
       timestamp: new Date().toISOString()
     };
 
+    // Push fallback (critical for iOS background/terminated where WebSocket is unreliable)
+    // Include all required details so app can display full offer from push alone
+    const pushPayload = {
+      driverId: driver.driverId,
+      orderId: dispatchJob.orderId,
+      offerId,
+      waveNumber,
+      isEmergencyWave,
+      
+      // Restaurant Details
+      restaurantName: dispatchJob.restaurantName,
+      restaurantId: dispatchJob.restaurantId,
+      restaurantImageUrl: dispatchJob.storeImage || null,
+      restaurantLat: dispatchJob.restaurantLat,
+      restaurantLng: dispatchJob.restaurantLng,
+      
+      // Customer Details
+      customerName: dispatchJob.customerName || 'عميل',
+      customerAddress: extractFullAddress(dispatchJob.deliveryAddress),
+      customerLat: dispatchJob.deliveryLat,
+      customerLng: dispatchJob.deliveryLng,
+      
+      // Financial Details
+      deliveryFee: baseDeliveryFee,
+      bonusAmount: bonusAmount,
+      orderTotal: dispatchJob.orderTotal,
+      estimatedEarnings: totalEarnings,
+      currency: dispatchJob.currency || 'IQD',
+      
+      // Distance & Time
+      distance: dispatchJob.distanceKm || driver.distance,
+      estimatedMinutes: dispatchJob.estimatedMinutes || Math.ceil((dispatchJob.distanceKm || driver.distance) * 1.5),
+      
+      // Items
+      itemsCount: dispatchJob.itemsCount || (dispatchJob.items ? dispatchJob.items.length : 0),
+      
+      // Timing
+      expiresAt: message.offer?.expiresAt
+    };
+
     try {
-      await sendWebSocketMessage(driver.connectionId, message);
+      // Send WS + push in parallel; WS for real-time in foreground, push for background reliability
+      const [wsResult, pushResult] = await Promise.allSettled([
+        sendWebSocketMessage(driver.connectionId, message),
+        sendWaveOfferPushNotification(pushPayload)
+      ]);
+
+      if (pushResult.status === 'rejected') {
+        console.warn(`⚠️ Push send failed for driver ${driver.driverId}:`, pushResult.reason?.message || String(pushResult.reason));
+      }
+
+      if (wsResult.status === 'rejected') {
+        throw wsResult.reason;
+      }
+
       console.log(`✅ Sent offer to driver ${driver.driverId} (${driver.distance.toFixed(2)}km)${isEmergencyWave ? ' [EMERGENCY +25%]' : ''}`);
     } catch (error) {
       console.error(`❌ Failed to send offer to driver ${driver.driverId}:`, error.message);

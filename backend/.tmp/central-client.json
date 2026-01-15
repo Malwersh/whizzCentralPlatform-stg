@@ -1,0 +1,13 @@
+{
+    "ExplicitAuthFlows": [
+        "ALLOW_REFRESH_TOKEN_AUTH",
+        "ALLOW_USER_PASSWORD_AUTH",
+        "ALLOW_USER_SRP_AUTH"
+    ],
+    "AllowedOAuthFlows": null,
+    "AllowedOAuthScopes": null,
+    "SupportedIdentityProviders": null,
+    "TokenValidityUnits": {},
+    "RefreshTokenValidity": 30,
+    "AllowedOAuthFlowsUserPoolClient": false
+}

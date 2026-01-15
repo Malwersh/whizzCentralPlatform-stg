@@ -6,37 +6,28 @@ const DRIVERS_TABLE = 'WhizzDrivers_dev'; // Real drivers table
 // Ensure user is authenticated before loading drivers data
 async function ensureAuthenticated() {
     try {
-        if (!window.AuthService) {
-            throw new Error('AuthService not available');
+        // Preferred: centralized Auth (single redirect authority)
+        if (window.Auth && typeof window.Auth.requireAuthentication === 'function') {
+            const ok = await window.Auth.requireAuthentication();
+            return !!ok;
         }
-        
-        // Check if user is already authenticated
-        if (AuthService.isAuthenticated()) {
+
+        // Fallback: legacy AuthService
+        if (!window.AuthService || typeof window.AuthService.isAuthenticated !== 'function') {
+            throw new Error('No authentication service available');
+        }
+
+        if (window.AuthService.isAuthenticated()) {
             console.log('User is already authenticated');
             return true;
         }
-        
-        // Redirect to login if not authenticated using centralized helper
-        console.log('User not authenticated, redirecting to login...');
-        if (window.Auth && typeof Auth.redirectToLogin === 'function') {
-            Auth.redirectToLogin('drivers:auth-required');
-        } else {
-            // Safe fallback if Auth not loaded yet
-            const path = (window.location.pathname || '');
-            const loginPath = path.startsWith('/frontend/') ? '/frontend/index.html' : '/index.html';
-            window.location.href = loginPath;
-        }
+
+        console.log('User not authenticated (legacy AuthService)');
+        // IMPORTANT: don’t hard-redirect here; return false and let callers/page handle UI.
         return false;
         
     } catch (error) {
         console.error('Authentication check failed:', error);
-        if (window.Auth && typeof Auth.redirectToLogin === 'function') {
-            Auth.redirectToLogin('drivers:auth-check-failed');
-        } else {
-            const path = (window.location.pathname || '');
-            const loginPath = path.startsWith('/frontend/') ? '/frontend/index.html' : '/index.html';
-            window.location.href = loginPath;
-        }
         return false;
     }
 }
