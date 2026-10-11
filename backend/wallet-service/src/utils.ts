@@ -67,7 +67,7 @@ export function getTTLEpoch(days: number): number {
  * Validate amount is positive integer
  */
 export function validateAmount(amount: number): void {
-  if (!Number.isInteger(amount)) {
+  if (!Number.isSafeInteger(amount)) {
     throw new Error('Amount must be an integer');
   }
   if (amount <= 0) {

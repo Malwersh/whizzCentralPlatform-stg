@@ -1,3 +1,4 @@
+const { isDriverApproved } = require('./driver_eligibility');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
   DynamoDBDocumentClient,
@@ -91,6 +92,14 @@ exports.handler = async (event) => {
       };
     }
     
+    const profile = await dynamoDB.send(new GetCommand({
+      TableName: requireNonEmptyEnv('DRIVERS_TABLE'), Key: { driverId }, ConsistentRead: true
+    }));
+    if (!isDriverApproved(profile.Item)) {
+      return { statusCode: 403, body: JSON.stringify({ success: false,
+        code: 'DRIVER_NOT_VERIFIED', message: 'حساب السائق بانتظار تحقق الإدارة' }) };
+    }
+
     // Extract orderId and waveNumber from offerId if not provided
     // Format: OFFER_{orderId}_{driverId}_W{waveNumber}
     let extractedOrderId = orderId;

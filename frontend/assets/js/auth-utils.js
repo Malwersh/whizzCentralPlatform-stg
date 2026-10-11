@@ -10,7 +10,7 @@ window.Auth = {
 
     _readStorageItem(key) {
         try {
-            return sessionStorage.getItem(key) || localStorage.getItem(key);
+            return localStorage.getItem(key) || sessionStorage.getItem(key);
         } catch (e) {
             try { return localStorage.getItem(key); } catch (_) { return null; }
         }
@@ -40,137 +40,84 @@ window.Auth = {
         }
     },
 
-    // Check if user is authenticated
-    // options: { silent: true } => do NOT redirect; just return boolean
+    _sessionPromise: null,
+    _sessionGeneration: 0,
+
+    _validIdToken(token, minimumLifetime = 0) {
+        const cfg = window.WIZZCENTRAL_CONFIG || {};
+        const payload = this._decodeJwtPayload(token);
+        return !!(payload && payload.token_use === 'id' &&
+            payload.iss === `https://cognito-idp.${cfg.COGNITO_REGION}.amazonaws.com/${cfg.COGNITO_USER_POOL_ID}` &&
+            payload.aud === cfg.COGNITO_CLIENT_ID &&
+            payload.exp > Math.floor(Date.now() / 1000) + minimumLifetime);
+    },
+
+    // A synchronous route guard. Data access must await ensureSession().
     requireAuthentication(options) {
-        const silent = (options === true) || (options && typeof options === 'object' && options.silent === true);
-        const force = !!(options && typeof options === 'object' && options.force === true);
+        const silent = options === true || options?.silent === true;
+        if (this._validIdToken(this.getIdToken()) || this._readStorageItem('refreshToken')) return true;
+        if (!silent) this.redirectToLogin('Session expired. Please sign in again.');
+        return false;
+    },
 
-        const finalize = (result) => {
-            this._authCheckedThisLoad = true;
-            this._authCheckResult = result;
-            this._authCheckWasSilent = silent;
-            return result;
-        };
-
-        if (!force && this._authCheckedThisLoad) {
-            if (this._authCheckResult === true) {
-                console.log('🔐 Auth: Using cached authentication result (true)');
-                return true;
+    async ensureSession() {
+        const current = this.getIdToken();
+        if (this._validIdToken(current, 60)) return current;
+        if (this._sessionPromise) return this._sessionPromise;
+        const generation = this._sessionGeneration;
+        this._sessionPromise = (async () => {
+            const refreshToken = this._readStorageItem('refreshToken');
+            if (!refreshToken) {
+                const error = new Error('Session expired. Please sign in again.');
+                error.code = 'SessionExpired';
+                throw error;
             }
-            // If the previous check was a silent failure, allow a later non-silent call to re-check and redirect.
-            if (!silent && this._authCheckWasSilent === true) {
-                console.log('🔐 Auth: Previous check was silent+false; rechecking non-silent...');
-            } else {
-                console.log('🔐 Auth: Using cached authentication result (false)');
-                return false;
-            }
-        }
-
-        console.log('🔐 Checking authentication...');
-        this._writeStorageItem('lastAuthCheckTime', new Date().toISOString());
-        console.log('🔍 Current URL:', window.location.href);
-        console.log('🔍 Current Path:', window.location.pathname);
-
-        // If a redirect is already happening (or loop was broken), do not keep triggering redirects.
-        try {
-            const loopBroken = this._readStorageItem('redirectLoop:broken') === 'true';
-            if (this._redirectInProgress || this._redirectedThisLoad || loopBroken) {
-                console.warn('Auth: redirect already in progress / loop broken; skipping new redirect attempt');
-                return finalize(false);
-            }
-        } catch (_) {}
-
-        // Get authentication data
-        const isAuthenticated = this._readStorageItem('isAuthenticated');
-        const userEmail = this._readStorageItem('userEmail');
-        const userId = this._readStorageItem('userId');
-        const idToken = this._readStorageItem('idToken');
-        const accessToken = this._readStorageItem('accessToken');
-
-        console.log('📊 Auth status:', {
-            isAuthenticated: isAuthenticated,
-            userEmail: userEmail ? userEmail.substring(0, 5) + '***' : null,
-            userId: !!userId,
-            hasIdToken: !!idToken,
-            hasAccessToken: !!accessToken,
-            idTokenLength: idToken ? idToken.length : 0
-        });
-
-        // More lenient check - if we have basic auth flags, trust them
-        if (isAuthenticated === 'true') {
-            console.log('✅ Authentication check passed (isAuthenticated flag is true)');
-            return finalize(true);
-        }
-
-        // Also check if we have userEmail (might be set without isAuthenticated flag)
-        if (userEmail && idToken) {
-            console.log('✅ Authentication check passed (userEmail + idToken present)');
-            this._writeStorageItem('isAuthenticated', 'true'); // Set the flag for next time
-            return finalize(true);
-        }
-
-        // Adjusted: accept presence of idToken OR both basic flags; do not require accessToken strictly
-        if (idToken) {
-            console.log('🔑 Found idToken (accessToken optional), validating...');
+            const cfg = window.WIZZCENTRAL_CONFIG || {};
+            if (!cfg.COGNITO_REGION || !cfg.COGNITO_CLIENT_ID) throw new Error('Authentication configuration is missing.');
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 15000);
             try {
-                const tokenPayload = this._decodeJwtPayload(idToken) || {};
-                const currentTime = Math.floor(Date.now() / 1000);
-
-                // Check if token is expired
-                if (tokenPayload.exp && tokenPayload.exp < currentTime) {
-                    console.warn('⚠️ Token expired, clearing token values only');
-                    this._removeStorageItem('idToken');
-                    this._removeStorageItem('accessToken');
-                    this._removeStorageItem('refreshToken');
-                    if (!silent) this.redirectToLogin('Token expired');
-                    return finalize(false);
-                }
-
-                // Validate issuer matches expected Cognito provider from config
-                try {
-                    const cfg = window.WIZZCENTRAL_CONFIG || {};
-                    const region = cfg.COGNITO_REGION || 'us-east-1';
-                    const poolId = cfg.COGNITO_USER_POOL_ID;
-                    if (tokenPayload.iss && poolId) {
-                        const expectedIssuer = `https://cognito-idp.${region}.amazonaws.com/${poolId}`;
-                        if (tokenPayload.iss !== expectedIssuer) {
-                            console.error('Auth: idToken issuer mismatch', { iss: tokenPayload.iss, expectedIssuer });
-                            // Clear only auth tokens and force clean login
-                            this.clearTokens();
-                            if (!silent) this.redirectToLogin('Auth: idToken issuer mismatch');
-                            return finalize(false);
-                        }
+                const response = await fetch(`https://cognito-idp.${cfg.COGNITO_REGION}.amazonaws.com/`, {
+                    method: 'POST', signal: controller.signal,
+                    headers: { 'Content-Type': 'application/x-amz-json-1.1', 'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth' },
+                    body: JSON.stringify({ AuthFlow: 'REFRESH_TOKEN_AUTH', ClientId: cfg.COGNITO_CLIENT_ID,
+                        AuthParameters: { REFRESH_TOKEN: refreshToken } })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    const code = String(data.__type || '').split('#').pop();
+                    if (['NotAuthorizedException', 'UserNotFoundException'].includes(code)) {
+                        if (generation === this._sessionGeneration) this.clearTokens();
+                        const error = new Error('Session expired. Please sign in again.');
+                        error.code = 'SessionExpired';
+                        throw error;
                     }
-                } catch (e) { console.warn('Auth: issuer validation failed', e); }
-
-                // Token is valid, ensure basic auth flags are set
-                if (isAuthenticated !== 'true') {
-                    console.log('🔧 Setting basic auth flags from valid token');
-                    this._writeStorageItem('isAuthenticated', 'true');
-                    if (!userEmail && tokenPayload.email) {
-                        this._writeStorageItem('userEmail', tokenPayload.email);
-                    }
-                    if (!userId && tokenPayload.sub) {
-                        this._writeStorageItem('userId', tokenPayload.sub);
-                    }
+                    throw new Error('Unable to renew your session. Please retry.');
                 }
+                const tokens = data.AuthenticationResult;
+                if (!tokens || !this._validIdToken(tokens.IdToken) || !tokens.AccessToken)
+                    throw new Error('Invalid session response. Please retry.');
+                // A logout or a new login must never be undone by an in-flight refresh.
+                if (generation !== this._sessionGeneration || this._readStorageItem('refreshToken') !== refreshToken)
+                    throw new Error('Session changed. Please retry.');
+                this._writeStorageItem('idToken', tokens.IdToken);
+                this._writeStorageItem('accessToken', tokens.AccessToken);
+                if (tokens.RefreshToken) this._writeStorageItem('refreshToken', tokens.RefreshToken);
+                this._writeStorageItem('isAuthenticated', 'true');
+                window.AWSUtils?.reset();
+                return tokens.IdToken;
+            } finally { clearTimeout(timer); }
+        })();
+        try { return await this._sessionPromise; }
+        finally { this._sessionPromise = null; }
+    },
 
-                console.log('✅ Authentication check passed (token validation)');
-                return finalize(true);
-            } catch (error) {
-                console.warn('⚠️ Token validation failed, falling back:', error);
-                if (isAuthenticated === 'true' && userEmail) {
-                    console.log('✅ Falling back to basic auth despite token error');
-                    return finalize(true);
-                }
-            }
-        }
-
-        // If we get here, authentication failed
-        console.warn('❌ Authentication failed - redirecting to login');
-        if (!silent) this.redirectToLogin('No valid authentication found');
-        return finalize(false);
+    dataErrorMessage(error) {
+        const code = error?.code || error?.name || '';
+        if (code === 'SessionExpired') return 'Your session has expired. Please sign in again.';
+        if (/AccessDenied|Unauthorized/.test(code)) return 'Your account does not have permission to load this section.';
+        if (/Network|Timeout|Abort/.test(code)) return 'Connection interrupted. Please retry.';
+        return 'Unable to load data. Please retry. If the problem persists, contact the administrator.';
     },
 
     // Redirect to login with return URL
@@ -329,6 +276,8 @@ window.Auth = {
 
     // Clear all authentication tokens
     clearTokens() {
+        this._sessionGeneration++;
+        window.AWSUtils?.reset();
         // More surgical clearing (keep returnUrl & debug flags)
         const preservedReturn = this._readStorageItem('returnUrl');
         const preservedDebug = this._readStorageItem('authDebug');

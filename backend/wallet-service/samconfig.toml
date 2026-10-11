@@ -64,6 +64,7 @@ parameter_overrides = [
     "AuditLogTableName=staging-AuditLog",
     "IdempotencyKeysTableName=staging-IdempotencyKeys",
     "DriverCognitoUserPoolId=us-east-1_RGTqUXF5C",
+    "AdminCognitoUserPoolId=us-east-1_wz7vwZZxz",
     "ServiceCognitoUserPoolId=us-east-1_1oxqmSN5P"
 ]
 

@@ -207,20 +207,7 @@
 
     // Check if user is authenticated (also verify token not expired if possible)
     function isAuthenticated() {
-        const idToken = localStorage.getItem('idToken');
-        if (!idToken) return false;
-        try {
-            const payload = JSON.parse(atob(idToken.split('.')[1] || '')) || {};
-            if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-                // Expired
-                localStorage.removeItem('idToken');
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('isAuthenticated');
-                return false;
-            }
-        } catch (_) {}
-        return true;
+        return window.Auth ? window.Auth.requireAuthentication({ silent: true }) : false;
     }
 
     // Get stored tokens
