@@ -9,7 +9,7 @@ class WizzOrdersAPI {
 
     // Initialize AWS DynamoDB client
     async initialize() {
-        if (this.initialized) return;
+        // Reacquire the shared client after session renewal.
 
         try {
             // Use the centralized AWS utilities
@@ -39,73 +39,11 @@ class WizzOrdersAPI {
     // Get all orders from WizzOrders table
     async getOrders(limit = 50) {
         await this.initialize();
-
-        try {
-            console.log('📊 Fetching orders from WizzOrders table...');
-
-            const params = {
-                TableName: 'WizzOrders',
-                Limit: limit,
-                FilterExpression: 'begins_with(PK, :prefix)',
-                ExpressionAttributeValues: {
-                    ':prefix': 'ORDER#'
-                }
-            };
-
-            console.log('📋 Scan parameters:', params);
-
-            const result = await this.dynamoDB.scan(params).promise();
-            console.log(`✅ Found ${result.Items ? result.Items.length : 0} orders in WizzOrders table`);
-            console.log('📋 Raw DynamoDB result:', result);
-
-            if (!result.Items || result.Items.length === 0) {
-                console.log('📭 No orders found, returning empty result');
-                return { success: true, orders: [], count: 0 };
-            }
-
-            // Transform DynamoDB items to frontend format
-            const orders = result.Items.map(item => this.transformOrder(item));
-
-            return {
-                success: true,
-                orders: orders,
-                count: orders.length,
-                source: 'WizzOrders-DynamoDB'
-            };
-
-        } catch (error) {
-            console.error('❌ Error fetching orders from WizzOrders:', error);
-            
-            // Try a simpler scan without filter as fallback
-            try {
-                console.log('🔄 Trying fallback scan without filter...');
-                const fallbackParams = {
-                    TableName: 'WizzOrders',
-                    Limit: limit
-                };
-                
-                const fallbackResult = await this.dynamoDB.scan(fallbackParams).promise();
-                console.log(`✅ Fallback scan found ${fallbackResult.Items ? fallbackResult.Items.length : 0} items`);
-                
-                if (fallbackResult.Items && fallbackResult.Items.length > 0) {
-                    // Filter for orders in code
-                    const orders = fallbackResult.Items
-                        .filter(item => item.PK && item.PK.startsWith && item.PK.startsWith('ORDER#'))
-                        .map(item => this.transformOrder(item));
-                    
-                    return {
-                        success: true,
-                        orders: orders,
-                        count: orders.length,
-                        source: 'WizzOrders-DynamoDB-Fallback'
-                    };
-                }
-            } catch (fallbackError) {
-                console.error('❌ Fallback scan also failed:', fallbackError);
-            }
-            
-            throw error;
-        }
+        const items = await window.AWSUtils.scanAll('WizzOrders');
+        const orders = items.filter(item => item.PK?.startsWith('ORDER#') && item.SK === 'META')
+            .map(item => this.transformOrder(item))
+            .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+        return { success: true, orders: orders.slice(0, limit), count: orders.length, source: 'WizzOrders-DynamoDB' };
     }
 
     // Transform DynamoDB order item to frontend format

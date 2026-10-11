@@ -556,7 +556,8 @@ export class HoldService {
     }
 
     // Use actual amount or full hold amount
-    const captureAmount = actualAmount || hold.amount;
+    const captureAmount = actualAmount ?? hold.amount;
+    validateAmount(captureAmount);
 
     if (captureAmount > hold.amount) {
       throw new Error('Capture amount cannot exceed hold amount');

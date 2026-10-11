@@ -715,6 +715,7 @@ class NavigationManager {
                                 <span>Customers</span>
                             </a>
                         </li>
+                        <li class="nav-item" data-page="finance"><a href="finance.html" class="nav-link"><i class="fas fa-wallet"></i><span>إدارة شحن المحافظ</span></a></li>
                         <li class="nav-item" data-page="merchants">
                             <a href="merchants.html" class="nav-link">
                                 <i class="fas fa-store"></i>

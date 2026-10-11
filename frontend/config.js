@@ -1,5 +1,6 @@
 // WizzCentral Platform Configuration
 window.WIZZCENTRAL_CONFIG = {
+    REGIONS_DATA_SOURCE: 'dynamodb',
     // API Configuration
     // RegionDashboardAPI Lambda Function URL - Responds on root path without /regions
     API_BASE_URL: (typeof window !== 'undefined' && window.__API_BASE_URL__) || '',

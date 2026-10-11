@@ -74,6 +74,8 @@ export interface TopupRequest {
   driverId: string;
   walletId: string;
   amount: number; // Integer in IQD
+  transferReference?: string;
+  fundingSnapshot?: any;
   method: 'CASH_AGENT' | 'MANUAL_VERIFICATION' | 'BANK_TRANSFER';
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'POSTED' | 'CANCELED';
   createdAt: string;
@@ -81,11 +83,11 @@ export interface TopupRequest {
   createdById: string;
   createdByRole: 'DRIVER' | 'AGENT' | 'ADMIN';
   approvedById?: string;
-  approvedByRole?: 'ADMIN' | 'AGENT';
+  approvedByRole?: 'ADMIN' | 'AGENT' | 'finance_manager';
   approvedAt?: string;
   approvalNote?: string;
   rejectedById?: string;
-  rejectedByRole?: 'ADMIN' | 'AGENT';
+  rejectedByRole?: 'ADMIN' | 'AGENT' | 'finance_manager';
   rejectedAt?: string;
   rejectionReason?: string;
   evidenceRef?: string;
@@ -184,6 +186,7 @@ export interface GetTransactionsRequest {
 
 export interface GetTransactionsResponse {
   transactions: LedgerEntry[];
+  nextToken?: string;
   lastEvaluatedKey?: string;
 }
 
@@ -346,6 +349,9 @@ export interface GetActiveHoldsResponse {
 // Topup Service Request/Response Types
 
 export interface CreateTopupRequestRequest {
+  idempotencyKey?: string;
+  transferReference?: string;
+  fundingSnapshot?: any;
   driverId: string;
   amount: number;
   method?: 'CASH_AGENT' | 'MANUAL_VERIFICATION' | 'BANK_TRANSFER';
@@ -362,7 +368,7 @@ export interface CreateTopupRequestResponse {
 export interface ApproveTopupRequest {
   topupId: string;
   approvedById: string;
-  approvedByRole: 'ADMIN' | 'AGENT';
+  approvedByRole: 'ADMIN' | 'AGENT' | 'finance_manager';
   note?: string;
 }
 
@@ -376,7 +382,7 @@ export interface ApproveTopupResponse {
 export interface RejectTopupRequest {
   topupId: string;
   rejectedById: string;
-  rejectedByRole: 'ADMIN' | 'AGENT';
+  rejectedByRole: 'ADMIN' | 'AGENT' | 'finance_manager';
   rejectionReason: string;
 }
 

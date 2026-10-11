@@ -262,7 +262,7 @@ async function loadMerchantsFromDynamoDB() {
 
     try {
         const data = await withTimeout(
-            dynamoDB.scan(params).promise(),
+            AWSUtils.scanAll(MERCHANTS_TABLE).then(Items => ({ Items })),
             10000,
             'DynamoDB scan'
         );

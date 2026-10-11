@@ -1,7 +1,7 @@
 // Drivers Management JavaScript with Direct Authentication
 
 // Use centralized AWS utilities
-const DRIVERS_TABLE = 'WhizzDrivers_dev'; // Real drivers table
+const DRIVERS_TABLE = 'WhizzDrivers_staging'; // Real drivers table
 
 // Ensure user is authenticated before loading drivers data
 async function ensureAuthenticated() {
@@ -32,10 +32,10 @@ async function ensureAuthenticated() {
     }
 }
 
-// Load drivers data from DynamoDB - Real integration with WhizzDrivers_dev
+// Load drivers data from DynamoDB - Real integration with WhizzDrivers_staging
 async function loadDriversData() {
     try {
-        console.log('Loading drivers data from WhizzDrivers_dev table...');
+        console.log('Loading drivers data from WhizzDrivers_staging table...');
 
         // Ensure user is authenticated
         if (!(await ensureAuthenticated())) {
@@ -54,7 +54,7 @@ async function loadDriversData() {
         };
         
         console.log('Scanning drivers table with params:', params);
-        const result = await dynamoDB.scan(params).promise();
+        const result = { Items: await AWSUtils.scanAll(DRIVERS_TABLE) };
         
         console.log('DynamoDB scan result:', result);
         const items = (result && Array.isArray(result.Items)) ? result.Items : [];
@@ -67,23 +67,18 @@ async function loadDriversData() {
         drivers = [];
         const tbody = document.getElementById('driversTableBody');
         if (tbody) {
-            const msg = (error && (error.message || error.code)) ? String(error.message || error.code) : 'Unknown error';
-            const isAuth = /not authenticated|credential|Missing credentials|expired|token/i.test(msg);
-            const isAccess = /AccessDenied|not authorized|permission|denied/i.test(msg);
-            if (isAuth) {
-                const loginClick = "(function(){ if(window.Auth && typeof Auth.redirectToLogin==='function'){ Auth.redirectToLogin('drivers:login-required'); } else { var p=window.location.pathname||''; var lp=p.startsWith('/frontend/')?'/frontend/index.html':'/index.html'; window.location.href=lp; } })(); return false;";
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #e74c3c;">
-                    Authentication required. <a href="#" onclick="${loginClick}">Please login</a>
-                </td></tr>`;
-            } else if (isAccess) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #e74c3c;">
-                    Access denied when reading DynamoDB. Ensure your Cognito Identity Pool roles allow <code>Scan</code> on <strong>${DRIVERS_TABLE}</strong>.<br>
-                    Tip: add <code>dynamodb:Scan</code>, <code>dynamodb:UpdateItem</code>, <code>dynamodb:PutItem</code> for the table ARN.
-                </td></tr>`;
-            } else {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #e74c3c;">
-                    Failed to load drivers data: ${msg}
-                </td></tr>`;
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #e74c3c;"></td></tr>';
+            const cell = tbody.querySelector('td');
+            cell.textContent = window.Auth.dataErrorMessage(error);
+            const retry = document.createElement('button');
+            retry.textContent = 'Retry';
+            retry.onclick = () => loadDriversData();
+            cell.appendChild(retry);
+            if (error.code === 'SessionExpired') {
+                const login = document.createElement('button');
+                login.textContent = 'Sign in';
+                login.onclick = () => window.Auth.redirectToLogin('Session expired');
+                cell.appendChild(login);
             }
         }
     }
@@ -167,8 +162,8 @@ function processDriversItems(items) {
         name: item.name || item.fullName || 'Unknown Driver',
         email: item.email || 'N/A',
         phone: formatPhoneNumber(item.phoneNumber || item.phone),
-        status: mapDriverStatus(item.status || item.registrationStatus),
-        location: item.city || item.location || 'Unknown Location',
+        status: mapDriverStatus(item.status || item.registrationStatus, item),
+        location: [item.governorate_name, item.work_region_name].filter(Boolean).join(' / ') || item.city || item.location || 'Unknown Location',
         ordersCompleted: item.ordersCompleted || 0,
         rating: typeof item.rating === 'number' ? item.rating : 4.5,
         earnings: typeof item.earnings === 'number' ? item.earnings : 0,
@@ -180,23 +175,31 @@ function processDriversItems(items) {
         avatar: generateDriverAvatar(item.name || item.fullName),
         documents: {
             drivingLicense: item.drivingLicenseUrl || item.drivingLicense || null,
-            nationalId: item.nationalId || null,
+            nationalId: item.nationalIdUrl || null,
             vehicleRegistration: item.registrationPaperUrl || item.vehicleRegistration || null,
             nonCriminalRecord: item.nonCriminalRecord || null
         },
         fullData: item
     }));
 
-    console.log(`✅ Successfully loaded ${drivers.length} drivers from WhizzDrivers_dev!`);
+    console.log(`✅ Successfully loaded ${drivers.length} drivers from WhizzDrivers_staging!`);
     initializeDriversPage();
 }
 
 // Helper function to map driver status from database to display format
-function mapDriverStatus(dbStatus) {
+function mapDriverStatus(dbStatus, driver = {}) {
+    if (String(dbStatus).toUpperCase() === 'ACTIVE' &&
+        driver.isVerified !== true && driver.is_verified !== true && driver.documentsVerified !== true &&
+        !['APPROVED', 'VERIFIED'].includes(String(driver.registrationStatus || '').toUpperCase())) {
+        return 'pending';
+    }
+
     const statusMap = {
         'PENDING_REVIEW': 'pending',
         'PENDING': 'pending', 
         'APPROVED': 'online',
+        'VERIFIED': 'online',
+        'BANNED': 'offline',
         'ACTIVE': 'online',
         'REJECTED': 'offline',
         'SUSPENDED': 'offline',
@@ -571,7 +574,7 @@ function handleAddDriver(e) {
                 notify(`Failed to create driver in database: ${msg}`, 'error');
                 // If permissions missing, surface clear hint
                 if ((err.code === 'AccessDeniedException') || /not authorized|access denied|insufficient/i.test(msg)) {
-                    notify('AWS IAM role for Cognito Identity likely missing DynamoDB PutItem on WhizzDrivers_dev.', 'error');
+                    notify('AWS IAM role for Cognito Identity likely missing DynamoDB PutItem on WhizzDrivers_staging.', 'error');
                 }
                 // Fallback: add locally so user sees immediate result (optional)
                 drivers.push(newDriver);
@@ -617,7 +620,7 @@ function viewDriver(driverId) {
         'REJECTED': { text: 'Rejected', color: 'var(--md-sys-color-error)', bg: 'var(--md-sys-color-error-container)' }
     };
     
-    const statusInfo = statusMap[driver.status] || statusMap['PENDING_REVIEW'];
+    const statusInfo = statusMap[driver.fullData?.status || driver.status] || statusMap[driver.status === 'online' ? 'APPROVED' : 'PENDING_REVIEW'];
     statusBadge.textContent = statusInfo.text;
     statusBadge.style.color = statusInfo.color;
     statusBadge.style.background = statusInfo.bg;
@@ -625,7 +628,7 @@ function viewDriver(driverId) {
     // Populate Personal Information
     document.getElementById('viewDriverNameFull').textContent = driver.name || 'N/A';
     document.getElementById('viewDriverNationalId').textContent = driver.nationalId || 'N/A';
-    document.getElementById('viewDriverCityFull').textContent = driver.city || 'N/A';
+    document.getElementById('viewDriverCityFull').textContent = [driver.governorate_name, driver.work_region_name, driver.home_address_text].filter(Boolean).join(' / ') || driver.city || 'N/A';
     document.getElementById('viewDriverLicenseFull').textContent = driver.licenseNumber || 'N/A';
     
     // Populate Vehicle Information
@@ -652,69 +655,32 @@ function viewDriver(driverId) {
     openViewDriverModal();
 }
 
-function displayViewDriverDocuments(driver) {
-    const documentsSection = document.getElementById('viewDocumentsSection');
-    if (!documentsSection) return;
-    
-    let html = '';
-    
-    // SECURITY: Sanitize URLs to prevent XSS
-    const safeLicenseUrl = driver.drivingLicenseUrl ? SecurityUtils.sanitizeURL(driver.drivingLicenseUrl) : null;
-    const safeRegistrationUrl = driver.registrationPaperUrl ? SecurityUtils.sanitizeURL(driver.registrationPaperUrl) : null;
-    
-    // Driving License
-    if (safeLicenseUrl) {
-        html += `
-            <div class="document-card">
-                <h4>
-                    <i class="fas fa-id-card"></i> Driving License
-                </h4>
-                <a href="${safeLicenseUrl}" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> Open in New Tab
-                </a>
-                <img src="${safeLicenseUrl}" 
-                     alt="Driving License" 
-                     onerror="this.parentElement.innerHTML='<em style=\\'color: var(--md-sys-color-error);\\'>Failed to load image</em>'">
-            </div>
-        `;
-    } else {
-        html += `
-            <div class="document-card">
-                <h4>
-                    <i class="fas fa-id-card"></i> Driving License
-                </h4>
-                <em style="color: var(--md-sys-color-on-surface-variant);">No driving license uploaded</em>
-            </div>
-        `;
+async function displayViewDriverDocuments(driver) {
+    const section = document.getElementById('viewDocumentsSection');
+    if (!section) return;
+    section.replaceChildren();
+    for (const [label, value] of [
+        ['رخصة القيادة', driver.drivingLicenseUrl || driver.fullData?.drivingLicenseUrl],
+        ['سنوية السيارة', driver.registrationPaperUrl || driver.fullData?.registrationPaperUrl],
+        ['البطاقة الوطنية', driver.nationalIdUrl || driver.fullData?.nationalIdUrl]
+    ]) {
+        const card = document.createElement('div');
+        card.className = 'document-card';
+        const heading = document.createElement('h4');
+        heading.textContent = label;
+        card.append(heading);
+        section.append(card);
+        try {
+            const url = await AWSUtils.resolveDriverDocument(value);
+            if (!url) { card.append('لم يتم رفع المستند'); continue; }
+            const link = document.createElement('a');
+            link.href = url; link.target = '_blank'; link.rel = 'noopener'; link.textContent = 'فتح المستند';
+            const img = document.createElement('img');
+            img.src = url; img.alt = label;
+            img.onerror = () => img.remove();
+            card.append(link, img);
+        } catch (_) { card.append('تعذر فتح المستند. تحقق من صلاحيات الإدارة وأعد المحاولة.'); }
     }
-    
-    // Registration Paper
-    if (safeRegistrationUrl) {
-        html += `
-            <div class="document-card">
-                <h4>
-                    <i class="fas fa-file-alt"></i> Registration Paper
-                </h4>
-                <a href="${safeRegistrationUrl}" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> Open in New Tab
-                </a>
-                <img src="${safeRegistrationUrl}" 
-                     alt="Registration Paper" 
-                     onerror="this.parentElement.innerHTML='<em style=\\'color: var(--md-sys-color-error);\\'>Failed to load image</em>'">
-            </div>
-        `;
-    } else {
-        html += `
-            <div class="document-card">
-                <h4>
-                    <i class="fas fa-file-alt"></i> Registration Paper
-                </h4>
-                <em style="color: var(--md-sys-color-on-surface-variant);">No registration paper uploaded</em>
-            </div>
-        `;
-    }
-    
-    documentsSection.innerHTML = SecurityUtils.sanitizeHTML(html);
 }
 
 function openViewDriverModal() {
@@ -748,11 +714,14 @@ async function editDriver(driverId) {
         return;
     }
     
-    // Open the edit modal first
+    // Reset stale values before loading this driver.
+    document.getElementById('editDriverForm').reset();
+    document.getElementById('editDriverId').value = driver.id;
     openEditDriverModal();
     
     // Wait for cities to load
     await loadCitiesDropdown();
+    if (document.getElementById('editDriverId').value !== driver.id || document.getElementById('editDriverModal').style.display === 'none') return;
     
     // Populate read-only information section
     document.getElementById('viewDriverId').textContent = driver.id || 'N/A';
@@ -763,29 +732,17 @@ async function editDriver(driverId) {
     document.getElementById('editDriverId').value = driver.id;
     document.getElementById('editDriverName').value = driver.name || '';
     
-    // Set city after dropdown is loaded
-    setTimeout(() => {
-        const citySelect = document.getElementById('editDriverCity');
-        if (citySelect && driver.location) {
-            const matchingOption = Array.from(citySelect.options).find(
-                option => option.value === driver.location
-            );
-            
-            if (matchingOption) {
-                matchingOption.selected = true;
-                console.log(`✅ Auto-selected city: ${driver.location}`);
-            } else {
-                console.warn(`⚠️ City "${driver.location}" not found in dropdown`);
-            }
-        }
-    }, 150);
-    
-    document.getElementById('editDriverLicense').value = driver.licenseNumber || '';
-    document.getElementById('editDriverNationalId').value = driver.nationalId || '';
+    selectDriverRegions(driver.fullData || {});
+    document.getElementById('editLandmark').value = driver.fullData?.home_address_text || '';
+    document.getElementById('editDriverLicense').value = driver.fullData?.licenseNumber || '';
+    document.getElementById('editDriverNationalId').value = driver.fullData?.nationalId || '';
+    document.getElementById('editDriverNationalId').closest('.form-row').hidden = Number(driver.fullData?.profileSchemaVersion) === 2;
+    document.getElementById('editDriverNationalId').required = Number(driver.fullData?.profileSchemaVersion) !== 2;
+    document.getElementById('editDriverLicense').required = Number(driver.fullData?.profileSchemaVersion) !== 2;
     document.getElementById('editVehicleType').value = driver.fullData?.vehicleType || driver.vehicleType || '';
     
     // Map display status to DB status
-    const fullStatus = driver.fullData?.status || driver.status;
+    const fullStatus = driver.status === 'pending' ? 'PENDING_REVIEW' : (driver.fullData?.status || driver.status);
     let dbStatus = 'PENDING_REVIEW';
     if (fullStatus === 'online' || fullStatus === 'approved' || fullStatus === 'APPROVED' || fullStatus === 'ACTIVE') {
         dbStatus = 'ACTIVE';
@@ -795,68 +752,32 @@ async function editDriver(driverId) {
         dbStatus = 'REJECTED';
     }
     document.getElementById('editDriverStatus').value = dbStatus;
+    document.getElementById('editDriverStatus').dataset.initialStatus = dbStatus;
     
     // Display documents
     displayDriverDocuments(driver);
 }
 
-function displayDriverDocuments(driver) {
-    // Driving License
-    const drivingLicenseLink = document.getElementById('drivingLicenseLink');
-    const drivingLicenseImage = document.getElementById('drivingLicenseImage');
-    const drivingLicenseNone = document.getElementById('drivingLicenseNone');
-    
-    const drivingLicenseUrl = driver.fullData?.drivingLicenseUrl || driver.documents?.drivingLicense;
-    
-    if (drivingLicenseUrl) {
-        drivingLicenseLink.href = drivingLicenseUrl;
-        drivingLicenseLink.style.display = 'inline-block';
-        drivingLicenseNone.style.display = 'none';
-        
-        // Show image preview if it's an image
-        if (drivingLicenseUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-            const img = drivingLicenseImage.querySelector('img');
-            img.src = drivingLicenseUrl;
-            img.onerror = function() {
-                drivingLicenseImage.style.display = 'none';
-            };
-            drivingLicenseImage.style.display = 'block';
-        } else {
-            drivingLicenseImage.style.display = 'none';
-        }
-    } else {
-        drivingLicenseLink.style.display = 'none';
-        drivingLicenseImage.style.display = 'none';
-        drivingLicenseNone.style.display = 'block';
-    }
-    
-    // Registration Paper
-    const registrationPaperLink = document.getElementById('registrationPaperLink');
-    const registrationPaperImage = document.getElementById('registrationPaperImage');
-    const registrationPaperNone = document.getElementById('registrationPaperNone');
-    
-    const registrationPaperUrl = driver.fullData?.registrationPaperUrl || driver.documents?.vehicleRegistration;
-    
-    if (registrationPaperUrl) {
-        registrationPaperLink.href = registrationPaperUrl;
-        registrationPaperLink.style.display = 'inline-block';
-        registrationPaperNone.style.display = 'none';
-        
-        // Show image preview if it's an image
-        if (registrationPaperUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-            const img = registrationPaperImage.querySelector('img');
-            img.src = registrationPaperUrl;
-            img.onerror = function() {
-                registrationPaperImage.style.display = 'none';
-            };
-            registrationPaperImage.style.display = 'block';
-        } else {
-            registrationPaperImage.style.display = 'none';
-        }
-    } else {
-        registrationPaperLink.style.display = 'none';
-        registrationPaperImage.style.display = 'none';
-        registrationPaperNone.style.display = 'block';
+async function displayDriverDocuments(driver) {
+    for (const [field, value] of [
+        ['drivingLicense', driver.fullData?.drivingLicenseUrl],
+        ['registrationPaper', driver.fullData?.registrationPaperUrl],
+        ['nationalId', driver.fullData?.nationalIdUrl]
+    ]) {
+        const link = document.getElementById(`${field}Link`);
+        const image = document.getElementById(`${field}Image`);
+        const none = document.getElementById(`${field}None`);
+        if (!link) continue;
+        link.style.display = image.style.display = 'none';
+        none.style.display = 'block'; none.textContent = 'جار تحميل المستند...';
+        try {
+            const url = await AWSUtils.resolveDriverDocument(value);
+            if (!url) { none.textContent = 'لم يتم رفع المستند'; continue; }
+            link.href = url; link.style.display = 'inline-block'; none.style.display = 'none';
+            const img = image.querySelector('img'); img.src = url;
+            img.onerror = () => { image.style.display = 'none'; };
+            image.style.display = 'block';
+        } catch (_) { none.textContent = 'تعذر فتح المستند؛ تحقق من صلاحيات الإدارة'; }
     }
 }
 
@@ -880,109 +801,48 @@ function formatDateTime(timestamp) {
     }
 }
 
-async function loadCitiesDropdown() {
-    try {
-        const citySelect = document.getElementById('editDriverCity');
-        if (!citySelect) return;
-        
-        // Show loading state
-        citySelect.innerHTML = '<option value="">Loading cities...</option>';
-        
-        // Get DynamoDB client
-        const dynamoDB = await AWSUtils.getDynamoDBClient();
-        if (!dynamoDB) {
-            console.warn('DynamoDB not initialized, using fallback cities');
-            populateFallbackCities(citySelect);
-            return;
-        }
-        
-        // Scan WizzCentral_Regions table
-        const params = {
-            TableName: 'WizzCentral_Regions',
-            ProjectionExpression: 'regionName, regionNameArabic, regionCode',
-            Limit: 200
-        };
-        
-        console.log('Loading cities from WizzCentral_Regions...');
-        const result = await dynamoDB.scan(params).promise();
-        
-        const regions = result.Items || [];
-        console.log(`Found ${regions.length} regions`);
-        
-        // Remove duplicates based on English name (some regions appear multiple times)
-        const uniqueRegions = [];
-        const seenNames = new Set();
-        regions.forEach(region => {
-            const englishName = region.regionName || '';
-            if (englishName && !seenNames.has(englishName)) {
-                seenNames.add(englishName);
-                uniqueRegions.push(region);
-            }
-        });
-        
-        console.log(`Found ${uniqueRegions.length} unique cities after deduplication`);
-        
-        // Sort regions alphabetically by English name (since drivers table uses English)
-        uniqueRegions.sort((a, b) => {
-            const nameA = a.regionName || '';
-            const nameB = b.regionName || '';
-            return nameA.localeCompare(nameB, 'en');
-        });
-        
-        // Populate dropdown
-        citySelect.innerHTML = '<option value="">Select City / Region</option>';
-        uniqueRegions.forEach(region => {
-            const option = document.createElement('option');
-            const englishName = region.regionName || '';
-            const arabicName = region.regionNameArabic || '';
-            option.value = englishName; // Store English name (matches driver data)
-            option.textContent = `${englishName}${arabicName ? ' - ' + arabicName : ''}`;
-            citySelect.appendChild(option);
-        });
-        
-        console.log(`✅ Loaded ${uniqueRegions.length} cities into dropdown`);
-        
-    } catch (error) {
-        console.error('Error loading cities:', error);
-        const citySelect = document.getElementById('editDriverCity');
-        if (citySelect) {
-            populateFallbackCities(citySelect);
-        }
-    }
+let driverRegionModel = null;
+let editorLoadVersion = 0;
+function fillRegionSelect(select, rows, selected, label) {
+    select.replaceChildren(new Option(label, ''));
+    for (const row of rows) select.add(new Option(row.displayName, row.regionId));
+    select.value = selected || '';
 }
-
-function populateFallbackCities(selectElement) {
-    // Fallback cities in case DynamoDB fails (English names to match driver data)
-    const fallbackCities = [
-        { english: 'Baghdad', arabic: 'بغداد' },
-        { english: 'Basra', arabic: 'البصرة' },
-        { english: 'Erbil', arabic: 'أربيل' },
-        { english: 'Najaf', arabic: 'النجف' },
-        { english: 'Kirkuk', arabic: 'كركوك' },
-        { english: 'Mosul', arabic: 'الموصل' },
-        { english: 'Sulaymaniyah', arabic: 'السليمانية' },
-        { english: 'Karbala', arabic: 'كربلاء' },
-        { english: 'Diwaniyah', arabic: 'الديوانية' },
-        { english: 'Amarah', arabic: 'العمارة' },
-        { english: 'Nasiriyah', arabic: 'الناصرية' },
-        { english: 'Hillah', arabic: 'الحلة' }
-    ];
-    
-    selectElement.innerHTML = '<option value="">Select City / Region</option>';
-    fallbackCities.forEach(city => {
-        const option = document.createElement('option');
-        option.value = city.english; // Store English name
-        option.textContent = `${city.english} - ${city.arabic}`;
-        selectElement.appendChild(option);
-    });
+function selectDriverRegions(profile) {
+    if (!driverRegionModel) return;
+    const gov = document.getElementById('editGovernorate');
+    const selectedRegion = driverRegionModel.regions.find(r => r.regionId === profile.work_region_id);
+    fillRegionSelect(gov, driverRegionModel.governorates, profile.governorate_id || selectedRegion?.governorateId, 'اختر المحافظة');
+    const fill = selected => fillRegionSelect(document.getElementById('editDriverCity'),
+        driverRegionModel.regions.filter(r => r.governorateId === gov.value && (r.open || r.regionId === profile.work_region_id)), selected, 'اختر منطقة العمل');
+    fill(profile.work_region_id);
+    gov.onchange = () => fill(null);
+}
+async function loadCitiesDropdown() {
+    const version = ++editorLoadVersion;
+    const error = document.getElementById('editRegionError');
+    const save = document.querySelector('#editDriverModal .btn-primary');
+    if (save) save.disabled = true;
+    error.textContent = 'جاري تحميل المناطق…';
+    driverRegionModel = null;
+    try {
+        const [base, derived] = await Promise.all([AWSUtils.scanAll('WizzCentral_Regions'), AWSUtils.scanAll('WizzCentral_RegionsDerived_staging')]);
+        if (version !== editorLoadVersion) return;
+        driverRegionModel = DriverRegions.hierarchy(base, derived);
+        const driver = drivers.find(d => d.id === document.getElementById('editDriverId').value);
+        selectDriverRegions(driver?.fullData || {});
+        error.textContent = '';
+        if (save) save.disabled = false;
+    } catch (_) {
+        if (version === editorLoadVersion) error.textContent = 'تعذر تحميل المناطق. أغلق النافذة وأعد فتحها للمحاولة مجددًا.';
+    }
 }
 
 function openEditDriverModal() {
     const modal = document.getElementById('editDriverModal');
     if (modal) {
         modal.style.display = 'flex';
-        // Load cities when modal opens (if not already loaded)
-        loadCitiesDropdown();
+
     }
 }
 
@@ -990,6 +850,7 @@ function closeEditDriverModal() {
     const modal = document.getElementById('editDriverModal');
     if (modal) {
         modal.style.display = 'none';
+        editorLoadVersion++;
         // Reset form
         document.getElementById('editDriverForm').reset();
     }
@@ -1006,84 +867,42 @@ async function handleEditDriver(e) {
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         }
         
-        // Get form data (only fields that exist in DynamoDB)
         const formData = new FormData(e.target);
         const driverId = formData.get('driverId');
-        const name = formData.get('name');
-        const city = formData.get('city');
-        const licenseNumber = formData.get('licenseNumber');
-        const nationalId = formData.get('nationalId');
-        const vehicleType = formData.get('vehicleType');
-        const status = formData.get('status');
-        
-        console.log(`📝 Updating driver ${driverId}...`);
-        console.log('Form data:', { name, city, licenseNumber, nationalId, vehicleType, status });
-        
-        // Get DynamoDB client
+        const driver = drivers.find(d => d.id === driverId);
+        if (!driver || !driverRegionModel) throw Error('تعذر تحميل بيانات السائق أو المناطق');
+        const name = String(formData.get('name') || '').trim();
+        const status = String(formData.get('status'));
+        if (!name || !['PENDING_REVIEW','ACTIVE','SUSPENDED','REJECTED'].includes(status)) throw Error('تحقق من الاسم وحالة الحساب');
+        const values = DriverRegions.updateValues(driver.fullData, {
+            name, governorateId:formData.get('governorate_id'),regionId:formData.get('work_region_id'),
+            vehicleType:formData.get('vehicleType'),landmark:String(formData.get('landmark') || '')
+        }, driverRegionModel);
+        if (!values.home_address_text) throw Error('أدخل أقرب نقطة دالة');
+        if (Number(driver.fullData?.profileSchemaVersion) !== 2) {
+            values.licenseNumber = String(formData.get('licenseNumber') || '');
+            values.nationalId = String(formData.get('nationalId') || '');
+        }
+        // Preserve administrative state on ordinary edits; explicit status changes update approval together.
+        if (status !== document.getElementById('editDriverStatus').dataset.initialStatus) {
+            values.status = status;
+            values.registrationStatus = status === 'ACTIVE' ? 'APPROVED' : status;
+            values.isVerified = status === 'ACTIVE';
+        }
+        values.updatedAt = new Date().toISOString();
+        const names = {}, attributes = {}, updates = [];
+        for (const [field,value] of Object.entries(values)) {
+            names['#'+field] = field; attributes[':'+field] = value; updates.push('#'+field+' = :'+field);
+        }
+        names['#id'] = 'driverId';
+        let condition = 'attribute_exists(#id)';
+        if (driver.fullData?.updatedAt !== undefined) {
+            condition += ' AND #updatedAt = :originalUpdatedAt'; attributes[':originalUpdatedAt'] = driver.fullData.updatedAt;
+        }
         const dynamoDB = await AWSUtils.getDynamoDBClient();
-        if (!dynamoDB) {
-            throw new Error('AWS is not initialized. Please login again.');
-        }
-        
-        // Prepare update expression (only for fields that exist in table)
-        const updateExpression = 'SET #name = :name, #city = :city, #license = :license, #nationalId = :nationalId, #vehicleType = :vehicleType, #status = :status, #updatedAt = :timestamp';
-        
-        const expressionAttributeNames = {
-            '#name': 'name',
-            '#city': 'city',
-            '#license': 'licenseNumber',
-            '#nationalId': 'nationalId',
-            '#vehicleType': 'vehicleType',
-            '#status': 'status',
-            '#updatedAt': 'updatedAt'
-        };
-        
-        const expressionAttributeValues = {
-            ':name': name,
-            ':city': city,
-            ':license': licenseNumber,
-            ':nationalId': nationalId,
-            ':vehicleType': vehicleType,
-            ':status': status, // Already in DB format (APPROVED, PENDING_REVIEW, SUSPENDED)
-            ':timestamp': Math.floor(Date.now() / 1000)
-        };
-        
-        // Try updating with 'driverId' key first
-        let updateResult;
-        try {
-            const params = {
-                TableName: DRIVERS_TABLE,
-                Key: { driverId: driverId },
-                UpdateExpression: updateExpression,
-                ExpressionAttributeNames: expressionAttributeNames,
-                ExpressionAttributeValues: expressionAttributeValues,
-                ReturnValues: 'ALL_NEW'
-            };
-            
-            console.log('Updating with driverId key:', params);
-            updateResult = await dynamoDB.update(params).promise();
-        } catch (e1) {
-            // Fallback: try with 'id' key
-            if (e1?.code === 'ValidationException' || /key element does not match/i.test(e1?.message || '')) {
-                console.warn('Primary key driverId failed, retrying with id key');
-                const params = {
-                    TableName: DRIVERS_TABLE,
-                    Key: { id: driverId },
-                    UpdateExpression: updateExpression,
-                    ExpressionAttributeNames: expressionAttributeNames,
-                    ExpressionAttributeValues: expressionAttributeValues,
-                    ReturnValues: 'ALL_NEW'
-                };
-                
-                console.log('Updating with id key:', params);
-                updateResult = await dynamoDB.update(params).promise();
-            } else {
-                throw e1;
-            }
-        }
-        
-        console.log('✅ Driver updated successfully:', updateResult);
-        
+        await dynamoDB.update({TableName:DRIVERS_TABLE,Key:{driverId},UpdateExpression:'SET '+updates.join(', '),
+            ConditionExpression:condition,ExpressionAttributeNames:names,ExpressionAttributeValues:attributes}).promise();
+
         // Refresh data from database
         await loadDriversData();
         
@@ -1101,7 +920,9 @@ async function handleEditDriver(e) {
         console.error('❌ Error updating driver:', error);
         
         let errorMessage = 'Failed to update driver';
-        if (error.code === 'ResourceNotFoundException') {
+        if (error.code === 'ConditionalCheckFailedException') {
+            errorMessage = 'تغيرت بيانات السائق أثناء التعديل. أغلق النافذة وحدّث القائمة ثم أعد المحاولة.';
+        } else if (error.code === 'ResourceNotFoundException') {
             errorMessage = 'Driver not found in database';
         } else if (error.code === 'ValidationException') {
             errorMessage = 'Invalid data provided';
@@ -1157,14 +978,17 @@ async function toggleDriverStatus(driverId, currentStatus) {
 
         // Update the item in DynamoDB (write both status fields for compatibility)
         const baseUpdate = {
-            UpdateExpression: 'SET #status = :status, #reg = :status, #updatedAt = :timestamp',
+            ConditionExpression: 'attribute_exists(driverId)',
+            UpdateExpression: 'SET #status = :status, #reg = :status, #isVerified = :isVerified, #updatedAt = :timestamp',
             ExpressionAttributeNames: {
                 '#status': 'status',
                 '#reg': 'registrationStatus',
+                '#isVerified': 'isVerified',
                 '#updatedAt': 'updatedAt'
             },
             ExpressionAttributeValues: {
                 ':status': dbStatus,
+                ':isVerified': newStatus === 'online',
                 ':timestamp': Math.floor(Date.now() / 1000)
             },
             ReturnValues: 'ALL_NEW'
@@ -1173,7 +997,7 @@ async function toggleDriverStatus(driverId, currentStatus) {
         let result;
         try {
             const updateParams1 = {
-                TableName: 'WhizzDrivers_dev',
+                TableName: DRIVERS_TABLE,
                 Key: { driverId: driverId },
                 ...baseUpdate
             };
@@ -1183,7 +1007,7 @@ async function toggleDriverStatus(driverId, currentStatus) {
             if (e1?.code === 'ValidationException' || /key element does not match/i.test(e1?.message || '')) {
                 console.warn('Primary key driverId update failed, retrying with id key');
                 const updateParams2 = {
-                    TableName: 'WhizzDrivers_dev',
+                    TableName: DRIVERS_TABLE,
                     Key: { id: driverId },
                     ...baseUpdate
                 };
@@ -1326,7 +1150,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const tbody = document.getElementById('driversTableBody');
         if (tbody) {
             tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem; color: #e74c3c;">
-                Failed to initialize: ${error.message}. Please refresh the page.
+                ${window.Auth.dataErrorMessage(error)}
             </td></tr>`;
         }
     }
