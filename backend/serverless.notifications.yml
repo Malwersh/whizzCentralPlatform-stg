@@ -28,8 +28,8 @@ provider:
     # WizzUser pool (set via deploy script)
     USERS_USER_POOL_ID: ${env:USERS_USER_POOL_ID, ''}
     USERS_CLIENT_ID: ${env:USERS_CLIENT_ID, ''}
-    MERCHANTS_USER_POOL_ID: ${env:MERCHANTS_USER_POOL_ID, ''}
-    MERCHANTS_CLIENT_ID: ${env:MERCHANTS_CLIENT_ID, ''}
+    MERCHANTS_USER_POOL_ID: ${env:MERCHANTS_USER_POOL_ID, 'us-east-1_gtCR3ndzT'}
+    MERCHANTS_CLIENT_ID: ${env:MERCHANTS_CLIENT_ID, '4qabvh11nmghmf9fmc6e6ludd2'}
     # Staging Drivers pool (must match whizzDrivers-stg/frontend/lib/config/environment.dart)
     DRIVERS_USER_POOL_ID: ${env:DRIVERS_USER_POOL_ID, 'us-east-1_RGTqUXF5C'}
     DRIVERS_CLIENT_ID: ${env:DRIVERS_CLIENT_ID, '2d26d3muq0vvcuf42lkpgmkgsr'}

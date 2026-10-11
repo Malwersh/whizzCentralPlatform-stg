@@ -22,9 +22,9 @@ const COGNITO_REGION = process.env.COGNITO_REGION || 'us-east-1';
 const CENTRAL_PLATFORM_USER_POOL_ID = process.env.CENTRAL_PLATFORM_USER_POOL_ID || 'us-east-1_Cp9YnOQWi';
 const CENTRAL_PLATFORM_CLIENT_ID = process.env.CENTRAL_PLATFORM_CLIENT_ID || '22rf529lhbqtlvpdk2578h73l1';
 
-// WhizzMerchants Cognito (for merchants)
-const MERCHANTS_USER_POOL_ID = process.env.MERCHANTS_USER_POOL_ID || 'us-east-1_PHPkG78b5';
-const MERCHANTS_CLIENT_ID = process.env.MERCHANTS_CLIENT_ID || '1tl9g7nk2k2chtj5fg960fgdth';
+// WhizzMerchants Cognito (for merchants) - phone-based pool (WhizzMerchants-phone-users-staging)
+const MERCHANTS_USER_POOL_ID = process.env.MERCHANTS_USER_POOL_ID || 'us-east-1_gtCR3ndzT';
+const MERCHANTS_CLIENT_ID = process.env.MERCHANTS_CLIENT_ID || '4qabvh11nmghmf9fmc6e6ludd2';
 
 // WhizzDrivers Cognito (for drivers)
 const DRIVERS_USER_POOL_ID = process.env.DRIVERS_USER_POOL_ID || 'us-east-1_Mnrmklxro';
