@@ -77,17 +77,6 @@ const BUILD_VERSION = 'merchant-chat-deploy-2025-11-12T00:00:00Z';
 async function verifyJwt(idToken, userType = 'driver') {
     if (!idToken) throw new Error('Missing token');
     
-    // Dev mode: accept browser tokens without verification
-    if (idToken.startsWith('browser_agent_') || idToken.startsWith('browser_driver_')) {
-        console.log('⚠️ DEV MODE: Accepting browser token without verification');
-        return {
-            sub: idToken,
-            email: 'dev@wizz.com',
-            'cognito:groups': userType === 'support' ? ['support'] : [],
-            tokenSource: 'dev-browser'
-        };
-    }
-    
     // Try to verify with the appropriate user pool based on userType
     let verifier = null;
     if (userType === 'support' || userType === 'agent') {
@@ -129,7 +118,7 @@ const handler = async (event) => {
     // Diagnostic banner to verify deployment and environment mapping
     console.log(`🛠️ Build ${BUILD_VERSION} | Tables: connections=${WEBSOCKET_CONNECTIONS_TABLE} sessions=${CHAT_SESSIONS_TABLE} messages=${CHAT_MESSAGES_TABLE}`);
     try {
-        console.log('Full event received:', JSON.stringify(event));
+        console.log('WebSocket route:', event.requestContext?.routeKey);
 
         const connectionId = event.requestContext?.connectionId;
         const routeKey = event.requestContext?.routeKey;
