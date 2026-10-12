@@ -34,6 +34,35 @@ function requireNonEmptyEnv(name) {
   return value.trim();
 }
 
+function toNumber(value) {
+  if (value === null || value === undefined) return 0;
+  const num = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+// Some orders are stored in minor units (fils = IQD * 1000) while others are IQD.
+// Normalize to IQD before sending to dispatch/wave/frontend.
+function normalizeMoneyToIqd(rawAmount, referenceAmount = null) {
+  const amount = toNumber(rawAmount);
+  if (amount <= 0) return 0;
+
+  const reference = toNumber(referenceAmount);
+  if (reference > 0) {
+    const ratio = amount / reference;
+    // pricing.total (fils) vs total (IQD) => ratio around 1000
+    if (ratio >= 900 && ratio <= 1100) {
+      return amount / 1000;
+    }
+  }
+
+  // Fallback heuristic for large, thousand-based minor-unit values.
+  if (amount >= 100000 && amount % 1000 === 0) {
+    return amount / 1000;
+  }
+
+  return amount;
+}
+
 // ============================================
 // Constants
 // ============================================
@@ -369,6 +398,11 @@ async function createDispatchJobForOrder(order, excludedDrivers = []) {
   const now = new Date().toISOString();
   const expiresAt = new Date(Date.now() + DISPATCH_TIMEOUT_MINUTES * 60 * 1000).toISOString();
   
+  const rawTotal = toNumber(order.total || order.totalAmount || 0);
+  const normalizedOrderTotal = normalizeMoneyToIqd(order.pricing?.total || rawTotal, rawTotal);
+  const normalizedHoldRequiredAmount = normalizeMoneyToIqd(order.pricing?.goodsSubtotal || order.subtotal || 0, rawTotal);
+  const normalizedDeliveryFee = normalizeMoneyToIqd(order.pricing?.deliveryFee || order.deliveryFee || 0, rawTotal);
+
   const dispatchJob = {
     orderId: order.orderId,        // Primary Key (HASH) - matches table schema
     SK: 'METADATA',                 // Sort Key (RANGE) - matches table schema
@@ -403,9 +437,10 @@ async function createDispatchJobForOrder(order, excludedDrivers = []) {
     deliveryAddress: order.deliveryAddress.address || order.deliveryAddress.fullAddress || JSON.stringify(order.deliveryAddress),
     
     // معلومات مالية
-    orderTotal: order.pricing?.total || order.total || 0,
+    orderTotal: normalizedOrderTotal,
+    holdRequiredAmount: normalizedHoldRequiredAmount,
     currency: order.currency || 'IQD',
-    deliveryFee: order.pricing?.deliveryFee || order.deliveryFee || 0,
+    deliveryFee: normalizedDeliveryFee,
     
     // معلومات الزبون
     customerName: order.customerName || '',

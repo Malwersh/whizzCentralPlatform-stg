@@ -3,7 +3,7 @@ console.log('orders.js script loaded');
 
 // AWS and table config
 let dynamoDB = null;
-const ORDERS_TABLE = 'order-receiver-orders-dev';
+const ORDERS_TABLE = 'WizzOrders';
 const AWS_REGION = 'us-east-1';
 
 // Global data

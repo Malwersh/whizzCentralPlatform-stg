@@ -9,10 +9,10 @@
         discounts: 'WhizzMerchants_Discounts',
         platformDiscounts: 'WizzCentral_Platform_Discounts', // Platform-wide discounts managed by central platform
         campaigns: 'WizzCentral_Campaigns', // Special campaigns (first order, new customer, etc.)
-        drivers: 'WhizzDrivers_dev',
-        orders: 'WizzUser_transactions_dev', // Using transactions as proxy for orders
-        customers: 'WizzUser_users_dev',
-        supportTickets: 'wizzcentral-backend-support-tickets-dev' // Using the proper support tickets table
+        drivers: 'WhizzDrivers_staging',
+        orders: 'WizzOrders', // Using transactions as proxy for orders
+        customers: 'WizzUser_users_staging',
+        supportTickets: 'wizzcentral-backend-support-tickets-staging' // Using the proper support tickets table
     };
 
     // Helper to detect errors that suggest missing table or lacking permissions
@@ -33,59 +33,10 @@
     let _initPromise = null;
 
     async function getClientSafe() {
-        // Return cached client if available
-        if (_cachedClient) {
-            return _cachedClient;
-        }
-
-        // Prevent multiple concurrent initializations
-        if (_initPromise) {
-            return await _initPromise;
-        }
-
-        _initPromise = (async () => {
-            try {
-                console.log('INFO: Initializing DynamoDB client...');
-                
-                if (!window.AWSUtils) {
-                    throw new Error('AWSUtils not loaded - check script loading order');
-                }
-                
-                // Initialize AWS with retry logic
-                let initAttempts = 0;
-                const maxAttempts = 3;
-                
-                while (initAttempts < maxAttempts) {
-                    try {
-                        await AWSUtils.initialize();
-                        break;
-                    } catch (initError) {
-                        initAttempts++;
-                        console.warn(`AWS init attempt ${initAttempts}/${maxAttempts} failed:`, initError.message);
-                        if (initAttempts >= maxAttempts) throw initError;
-                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between retries
-                    }
-                }
-                
-                const client = await AWSUtils.getDynamoDBClient();
-                if (!client) {
-                    throw new Error('DynamoDB client unavailable - check AWS credentials and permissions');
-                }
-                
-                console.log('SUCCESS: DynamoDB client initialized');
-                _cachedClient = client;
-                return client;
-            } catch (e) {
-                console.error('ERROR: Failed to initialize DynamoDB client:', e?.message || e);
-                _initPromise = null; // Reset promise on error
-                return null;
-            }
-        })();
-
-        return await _initPromise;
+        if (!window.AWSUtils) throw new Error('AWS utilities unavailable.');
+        return window.AWSUtils.getDynamoDBClient();
     }
 
-    // Debug: list DynamoDB tables using low-level client
     async function listTables() {
         const client = await getClientSafe();
         if (!client) return [];
@@ -101,20 +52,16 @@
 
     async function scan(tableName, params = {}) {
         const client = await getClientSafe();
-        if (!client) {
-            return { Items: [], Count: 0 };
-        }
-        const req = {
-            TableName: tableName,
-            ...params,
-        };
-        try {
-            const res = await client.scan(req).promise();
-            return res || { Items: [], Count: 0 };
-        } catch (e) {
-            console.error('data-service scan error:', e);
-            return { Items: [], Count: 0 };
-        }
+        const items = [];
+        let key, count = 0;
+        do {
+            const page = await client.scan({ TableName: tableName, ...params,
+                ...(key ? { ExclusiveStartKey: key } : {}) }).promise();
+            items.push(...(page.Items || []));
+            count += page.Count || 0;
+            key = page.LastEvaluatedKey;
+        } while (key);
+        return { Items: items, Count: count };
     }
 
     async function putDocumentItem(tableName, item) {
@@ -214,15 +161,6 @@
         }));
 
         items.sort((a, b) => new Date(b.joinDate || 0) - new Date(a.joinDate || 0));
-
-        if (items.length === 0) {
-            // Fallback demo data
-            const now = Date.now();
-            items = [1, 2, 3, 4, 5].map(i => ({
-                name: `Demo Business ${i}`,
-                joinDate: new Date(now - i * 86400000).toISOString()
-            }));
-        }
 
         return items.slice(0, limit);
     }
@@ -374,7 +312,7 @@
         }
     }
 
-    // Added: Fetch drivers from DynamoDB (WhizzDrivers_dev)
+    // Added: Fetch drivers from DynamoDB (WhizzDrivers_staging)
     async function getDrivers(limit = 100) {
         const res = await scan(TABLES.drivers, { Limit: limit });
         const items = Array.isArray(res.Items) ? res.Items : [];

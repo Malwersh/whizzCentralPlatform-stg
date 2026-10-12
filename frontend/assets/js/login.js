@@ -2,10 +2,10 @@
 (function initLoginPage(){
   function readStorageItem(key) {
     try {
-      const v = sessionStorage.getItem(key);
+      const v = localStorage.getItem(key);
       if (v !== null && v !== undefined && v !== '') return v;
     } catch (_) {}
-    try { return localStorage.getItem(key); } catch (_) { return null; }
+    try { return sessionStorage.getItem(key); } catch (_) { return null; }
   }
 
   function writeStorageItem(key, value) {
@@ -26,7 +26,7 @@
   try {
     const isAuthed = readStorageItem('isAuthenticated') === 'true';
     const idToken = readStorageItem('idToken');
-    if (isAuthed && idToken) {
+    if (isAuthed && idToken && window.Auth?._validIdToken(idToken)) {
       window.location.replace(getPostLoginUrl());
       return; // Skip initialization if already logged in
     }

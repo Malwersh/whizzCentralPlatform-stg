@@ -183,7 +183,7 @@ async function initializeCustomersPage() {
                 <td colspan="9" style="text-align: center; padding: 40px; color: var(--md-sys-color-on-surface-variant);">
                     <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px; color: var(--md-sys-color-primary);"></i>
                     <div style="font-weight: 500; margin-bottom: 0.5rem;">Loading customers from DynamoDB...</div>
-                    <div style="font-size: 0.875rem; opacity: 0.8;">Fetching data from WizzUser_users_dev table</div>
+                    <div style="font-size: 0.875rem; opacity: 0.8;">Fetching data from WizzUser_users_staging table</div>
                 </td>
             </tr>
         `;
@@ -215,9 +215,9 @@ async function initializeCustomersPage() {
                 <tr>
                     <td colspan="9" style="text-align: center; padding: 40px; color: var(--md-sys-color-error);">
                         <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px; opacity: 0.7;"></i>
-                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Database Connection Error</div>
-                        <div style="font-size: 14px; opacity: 0.8;">Unable to load customer data from DynamoDB</div>
-                        <div style="font-size: 12px; margin-top: 8px; opacity: 0.6;">Error: ${error.message}</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Unable to load customers</div>
+                        <div style="font-size: 14px; opacity: 0.8;">Please retry loading customer data</div>
+                        <div style="font-size: 12px; margin-top: 8px; opacity: 0.6;">${window.Auth.dataErrorMessage(error)}</div>
                         <button onclick="refreshCustomerData()" style="margin-top: 16px; padding: 8px 16px; background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); border: none; border-radius: 4px; cursor: pointer;">
                             <i class="fas fa-sync"></i> Retry
                         </button>
@@ -242,13 +242,13 @@ async function loadCustomersData() {
         // Use centralized AWS utilities
         const dynamoDB = await AWSUtils.getDynamoDBClient();
 
-        console.log('Scanning WizzUser_users_dev table with proper permissions...');
+        console.log('Scanning WizzUser_users_staging table with proper permissions...');
 
         const params = {
-            TableName: 'WizzUser_users_dev'
+            TableName: 'WizzUser_users_staging'
         };
 
-        const result = await dynamoDB.scan(params).promise();
+        const result = { Items: await AWSUtils.scanAll('WizzUser_users_staging') };
         console.log('✅ DynamoDB scan successful! Result:', result);
         console.log('📊 Items returned:', result.Items ? result.Items.length : 0);
 
@@ -454,7 +454,7 @@ function renderCustomersTable() {
                     <i class="fas fa-database" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
                     <br>
                     <div style="font-weight: 500; margin-bottom: 0.5rem;">No customers found in DynamoDB</div>
-                    <div style="font-size: 0.875rem; opacity: 0.8;">The WizzUser_users_dev table appears to be empty</div>
+                    <div style="font-size: 0.875rem; opacity: 0.8;">The WizzUser_users_staging table appears to be empty</div>
                 </td>
             </tr>
         `;
@@ -853,7 +853,7 @@ async function handleEditCustomer(e) {
         
         // Update customer in DynamoDB
         const params = {
-            TableName: 'WizzUser_users_dev',
+            TableName: 'WizzUser_users_staging',
             Key: { userId: customerId },
             UpdateExpression: updateExpression,
             ExpressionAttributeNames: expressionAttributeNames,

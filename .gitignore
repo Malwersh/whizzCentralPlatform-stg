@@ -19,3 +19,9 @@ dist/
 
 # Amplify-generated runtime config (do not commit)
 frontend/env.js
+
+# Generated Python and Lambda bundles
+**/__pycache__/
+*.pyc
+**/function.zip
+lambda/WaveSystem_CreateDispatchJob/package/

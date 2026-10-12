@@ -18,173 +18,67 @@ window.AWSUtils = {
         });
     },
 
-    // Initialize AWS SDK and DynamoDB client (optimized)
+    _initializing: null,
+    _idToken: null,
+
     async initialize() {
-        if (this.isInitialized && this.dynamodbClient) {
-            console.log('AWS already initialized, using cached client');
-            return this.dynamodbClient;
-        }
-
-        try {
-            const startTime = Date.now();
-            const debugMode = sessionStorage.getItem('debugMode') === 'true';
-
-            const readStorageItem = (key) => {
-                try {
-                    if (window.Auth && typeof window.Auth.getToken === 'function') {
-                        const v = window.Auth.getToken(key);
-                        if (v !== null && v !== undefined && v !== '') return v;
-                    }
-                } catch (_) {}
-                try {
-                    const v = sessionStorage.getItem(key);
-                    if (v !== null && v !== undefined && v !== '') return v;
-                } catch (_) {}
-                try { return localStorage.getItem(key); } catch (_) { return null; }
-            };
-
-            const decodeJwtPayload = (token) => {
-                const part = (token || '').split('.')[1] || '';
-                const base64 = part.replace(/-/g, '+').replace(/_/g, '/');
-                const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-                const json = atob(padded);
-                return JSON.parse(json);
-            };
-
-            const idToken = readStorageItem('idToken');
-            const accessToken = readStorageItem('accessToken');
-            const basicAuth = readStorageItem('isAuthenticated') === 'true' && !!readStorageItem('userEmail');
-            // Allow forcing unauth credentials in debug via sessionStorage or query param
-            const debugForceUnauth = debugMode && (
-                sessionStorage.getItem('debugForceUnauth') === 'true' ||
-                (new URLSearchParams(window.location.search).get('debugForceUnauth') === '1')
-            );
-
-            if (typeof AWS === 'undefined') {
-                throw new Error('AWS SDK not loaded.');
-            }
-
-            // Use configuration from config.js
+        if (!window.Auth?.ensureSession) throw new Error('Authentication service is unavailable.');
+        const idToken = await window.Auth.ensureSession();
+        if (this.isInitialized && this.dynamodbClient && this._idToken === idToken) return this.dynamodbClient;
+        if (this._initializing) return this._initializing;
+        this._initializing = (async () => {
+            if (typeof AWS === 'undefined') throw new Error('AWS SDK not loaded.');
             const cfg = window.WIZZCENTRAL_CONFIG || {};
-            const outputs = {
-                "auth": {
-                    "user_pool_id": cfg.COGNITO_USER_POOL_ID || "us-east-1_Cp9YnOQWi",
-                    "aws_region": cfg.COGNITO_REGION || "us-east-1",
-                    "user_pool_client_id": cfg.COGNITO_CLIENT_ID || "5hun8p61grnakisu5gammcjelv",
-                    "identity_pool_id": cfg.COGNITO_IDENTITY_POOL_ID || "us-east-1:864073dc-423f-42ae-9b1a-67c1c913b38a",
-                    "mfa_methods": [],
-                    "standard_required_attributes": ["email"],
-                    "username_attributes": ["email"],
-                    "user_verification_types": ["email"],
-                    "groups": [],
-                    "mfa_configuration": "NONE",
-                    "password_policy": {
-                        "min_length": 8,
-                        "require_lowercase": true,
-                        "require_numbers": true,
-                        "require_symbols": true,
-                        "require_uppercase": true
-                    },
-                    "unauthenticated_identities_enabled": true
-                },
-                "version": "1.4"
-            };
-            console.log('Using embedded AWS configuration');
-
-            const region = outputs?.auth?.aws_region || outputs?.data?.aws_region || outputs?.aws_region || 'us-east-1';
-            const userPoolId = outputs?.auth?.user_pool_id;
-            const identityPoolId = outputs?.auth?.identity_pool_id;
-            if (!userPoolId || !identityPoolId) {
-                console.error('amplify_outputs.json missing auth IDs', { userPoolId, identityPoolId });
-                throw new Error('Invalid amplify_outputs.json (missing Cognito IDs)');
-            }
-            const cognitoProvider = `cognito-idp.${region}.amazonaws.com/${userPoolId}`;
-
-            AWS.config.region = region;
-
-            // Debug Mode: Allow unauthenticated Cognito identity ONLY if explicitly forced and no idToken
-            if (debugMode && debugForceUnauth && !idToken) {
-                console.warn('AWSUtils: Debug mode FORCING UNAUTH. Using unauthenticated Cognito Identity.');
-                AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-                    IdentityPoolId: identityPoolId
-                });
-                await this._ensureCredentials(AWS.config.credentials);
-                console.log('AWS (debug unauth) credentials fetched.');
-
-                this.dynamodbClient = new AWS.DynamoDB.DocumentClient({
-                    convertEmptyValues: true,
-                    removeUndefinedValues: true
-                });
-                this.isInitialized = true;
-                const duration = Date.now() - startTime;
-                console.log(`AWS initialized (debug unauth) in ${duration}ms.`);
-                return this.dynamodbClient;
-            }
-
-            // If no idToken and not in debug mode, follow original behavior
-            if (!idToken) { // changed: only idToken strictly required
-                console.log('AWSUtils: missing idToken (accessToken optional)');
-                // IMPORTANT: AWSUtils must not redirect; Auth is the sole redirect authority.
-                return null;
-            }
-
-            // Validate idToken issuer matches expected provider (skip in debugMode)
-            if (!debugMode) {
-                try {
-                    const payload = decodeJwtPayload(idToken) || {};
-                    const iss = payload.iss || '';
-                    const expectedIssuer = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`;
-                    if (!iss || (iss !== expectedIssuer && !iss.endsWith(`/${userPoolId}`))) {
-                        console.error('AWSUtils: idToken issuer mismatch', { iss, expectedIssuer });
-                        // IMPORTANT: do not clear tokens or redirect here; let Auth handle session policy.
-                        return null;
-                    }
-                } catch (e) {
-                    console.warn('AWSUtils: failed to parse idToken for issuer check', e);
-                }
-            } else {
-                console.warn('AWSUtils: Debug mode active. Skipping idToken issuer validation.');
-            }
-
-            // Configure AWS
-            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: identityPoolId,
-                Logins: {
-                    [cognitoProvider]: idToken
-                }
+            if (!cfg.COGNITO_USER_POOL_ID || !cfg.COGNITO_IDENTITY_POOL_ID) throw new Error('Missing Cognito configuration.');
+            AWS.config.region = cfg.COGNITO_REGION;
+            const provider = `cognito-idp.${cfg.COGNITO_REGION}.amazonaws.com/${cfg.COGNITO_USER_POOL_ID}`;
+            const credentials = new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: cfg.COGNITO_IDENTITY_POOL_ID, Logins: { [provider]: idToken }
             });
-
-            await this._ensureCredentials(AWS.config.credentials);
-            console.log('Successfully fetched AWS credentials.');
-
-            this.dynamodbClient = new AWS.DynamoDB.DocumentClient({
-                convertEmptyValues: true,
-                removeUndefinedValues: true
-            });
-
+            AWS.config.credentials = credentials;
+            await this._ensureCredentials(credentials);
+            if (window.Auth.getIdToken() !== idToken) throw new Error('Session changed. Please retry.');
+            this.dynamodbClient = new AWS.DynamoDB.DocumentClient({ credentials, convertEmptyValues: true });
+            this._idToken = idToken;
             this.isInitialized = true;
-            console.log('AWS initialized successfully.');
             return this.dynamodbClient;
-
-        } catch (error) {
-            console.error('Failed to initialize AWS:', error);
-            this.isInitialized = false;
-            throw error;
-        }
+        })();
+        try { return await this._initializing; }
+        catch (error) { this.reset(); throw error; }
+        finally { this._initializing = null; }
     },
 
-    // Get DynamoDB client (initializes if needed)
-    async getDynamoDBClient() {
-        if (!this.isInitialized) {
-            await this.initialize();
-        }
-        return this.dynamodbClient;
+    async getDynamoDBClient() { return this.initialize(); },
+
+    async scanAll(TableName) {
+        const client = await this.getDynamoDBClient();
+        if (!client) throw new Error('Please sign in again.');
+        const items = [];
+        let key;
+        do {
+            const page = await client.scan({ TableName, ...(key ? { ExclusiveStartKey: key } : {}) }).promise();
+            items.push(...(page.Items || []));
+            key = page.LastEvaluatedKey;
+        } while (key);
+        return items;
+    },
+
+    async resolveDriverDocument(value) {
+        if (!value) return null;
+        const bucket = 'whizzdrivers-documents-staging-699561669180';
+        const prefix = `s3://${bucket}/`;
+        if (!value.startsWith(prefix)) return /^https:\/\//.test(value) ? value : null;
+        const key = value.slice(prefix.length);
+        if (!key.startsWith('drivers/') || key.includes('..')) throw new Error('Invalid document path');
+        await this.getDynamoDBClient();
+        return new AWS.S3().getSignedUrlPromise('getObject', { Bucket: bucket, Key: key, Expires: 300 });
     },
 
     // Reset initialization state (useful for re-authentication)
     reset() {
         this.dynamodbClient = null;
         this.isInitialized = false;
+        this._idToken = null;
     }
 };
 

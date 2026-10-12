@@ -27,6 +27,21 @@ if SERVICE_USER_POOL_ID:
 
 # RBAC rules: endpoint → allowed user types
 RBAC_RULES = {
+    'GET /wallet/funding/admin/transactions': ['admin'],
+    'GET /wallet/funding/admin/wallets': ['admin'],
+    'GET /wallet/me/notifications': ['driver'],
+    'GET /wallet/funding/config': ['driver', 'admin'],
+    'POST /wallet/funding/receipt': ['driver'],
+    'POST /wallet/funding/payment': ['driver'],
+    'GET /wallet/funding/sandbox/config': ['driver'],
+    'GET /wallet/funding/sandbox': ['driver'],
+    'POST /wallet/funding/sandbox/payment': ['driver'],
+    'POST /wallet/funding/sandbox/check': ['driver'],
+    'GET /wallet/funding/admin/sandbox': ['admin'],
+    'PUT /wallet/funding/admin/sandbox': ['admin'],
+
+    'PUT /wallet/funding/admin/config': ['admin'],
+    'POST /wallet/funding/admin/receipt': ['admin'],
     # Driver endpoints
     'GET /wallet/me': ['driver'],
     'GET /wallet/me/transactions': ['driver'],
@@ -34,7 +49,7 @@ RBAC_RULES = {
     'GET /wallet/topup/my-requests': ['driver'],
     'GET /wallet/holds/active': ['driver'],
     'GET /wallet/settlement/driver': ['driver'],
-    
+
     # Admin endpoints
     'POST /wallet/topup/{id}/approve': ['admin'],
     'POST /wallet/topup/{id}/reject': ['admin'],
@@ -42,7 +57,7 @@ RBAC_RULES = {
     'GET /wallet/platform': ['admin', 'service'],  # Platform wallet access
     'POST /wallet/platform/create': ['admin', 'service'],  # Platform wallet creation
     'GET /wallet/{walletId}': ['admin'],
-    
+
     # Service endpoints (internal use only)
     'POST /wallet/create': ['service'],  # Called by Cognito trigger or backend services
     'POST /wallet/hold/create': ['service'],
@@ -50,7 +65,7 @@ RBAC_RULES = {
     'POST /wallet/hold/{id}/capture': ['service'],
     'POST /wallet/settlement/settle': ['service'],
     'GET /wallet/settlement/order/{id}': ['service'],
-    
+
     # Public endpoints
     'GET /health': ['driver', 'admin', 'service', 'public'],
 }
@@ -76,7 +91,7 @@ def verify_token(token: str) -> tuple:
         try:
             # Get signing key
             signing_key = jwk_client.get_signing_key_from_jwt(token)
-            
+
             # Decode and verify
             payload = jwt.decode(
                 token,
@@ -84,7 +99,7 @@ def verify_token(token: str) -> tuple:
                 algorithms=["RS256"],
                 options={"verify_exp": True}
             )
-            
+
             # Verify issuer matches pool
             pool_ids = {
                 'driver': DRIVER_USER_POOL_ID,
@@ -92,15 +107,15 @@ def verify_token(token: str) -> tuple:
             }
             if SERVICE_USER_POOL_ID:
                 pool_ids['service'] = SERVICE_USER_POOL_ID
-            
+
             expected_issuer = f'https://cognito-idp.{REGION}.amazonaws.com/{pool_ids[pool_type]}'
             if payload.get('iss') == expected_issuer:
                 return pool_type, payload
-                
+
         except Exception as e:
             # Try next pool
             continue
-    
+
     return None, None
 
 def generate_policy(principal_id: str, effect: str, resource: str, context: Dict = None) -> Dict:
@@ -118,10 +133,10 @@ def generate_policy(principal_id: str, effect: str, resource: str, context: Dict
             }]
         }
     }
-    
+
     if context:
         policy['context'] = context
-    
+
     return policy
 
 def lambda_handler(event, context):
@@ -130,45 +145,45 @@ def lambda_handler(event, context):
     Validates token and enforces RBAC
     """
     try:
-        print(f"Authorizer event: {json.dumps(event)}")
-        
+        print("Wallet authorization request")
+
         # Extract headers - REQUEST authorizer format
         # Event structure: event['headers'] OR event['requestContext']['http']['headers']
         headers = event.get('headers', {})
         if not headers and 'requestContext' in event:
             headers = event.get('requestContext', {}).get('http', {}).get('headers', {})
-        
+
         # Handle case-insensitive header names
         auth_header = (
-            headers.get('Authorization') or 
-            headers.get('authorization') or 
+            headers.get('Authorization') or
+            headers.get('authorization') or
             ''
         )
-        
+
         # Extract token
         token = auth_header.replace('Bearer ', '').replace('bearer ', '')
         if not token:
             print("No token provided")
-            print(f"Headers received: {json.dumps(headers)}")
+
             raise Exception('Unauthorized')
-        
+
         # Verify token
         user_type, payload = verify_token(token)
         if not user_type:
             print("Invalid token")
             raise Exception('Unauthorized')
-        
+
         print(f"Verified user type: {user_type}")
-        print(f"Token payload: {json.dumps(payload)}")
-        
+
+
         # Extract request info from REQUEST authorizer event
         # Different formats supported
         http_method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method', '')
         path = event.get('path') or event.get('requestContext', {}).get('http', {}).get('path', '')
-        
+
         # Normalize path for RBAC check (replace path parameters with {id})
         normalized_path = path
-        
+
         # Special handling for specific endpoints first
         if path == '/wallet/topup/request' or path == '/wallet/topup/my-requests' or path == '/wallet/topup/requests':
             # These are fixed paths, not parameterized
@@ -198,37 +213,41 @@ def lambda_handler(event, context):
             parts = path.split('/')
             if len(parts) == 3:
                 normalized_path = '/wallet/{walletId}'
-        
+
         endpoint = f"{http_method} {normalized_path}"
         print(f"Checking endpoint: {endpoint}")
-        
+
         # Check RBAC
         allowed_types = RBAC_RULES.get(endpoint, [])
         if user_type not in allowed_types:
             print(f"Access denied: {user_type} not in {allowed_types}")
             raise Exception('Forbidden')
-        
+
+        financial_endpoint = (normalized_path.startswith('/wallet/funding/admin/') or normalized_path == '/wallet/topup/requests' or normalized_path in ('/wallet/topup/{id}/approve', '/wallet/topup/{id}/reject'))
+        if financial_endpoint and 'finance_manager' not in payload.get('cognito:groups', []):
+            raise Exception('Forbidden')
         print(f"Access granted for {user_type}")
-        
+
         # Build context based on user type
         context = {
             'userType': user_type,
             'userId': payload.get('sub'),
             'username': payload.get('username', ''),
         }
-        
+
         # Add user-type specific fields
         if user_type == 'driver':
             context['driverId'] = payload.get('sub')
         elif user_type == 'admin':
             context['adminId'] = payload.get('sub')
+            context['financeManager'] = 'finance_manager' in payload.get('cognito:groups', [])
         elif user_type == 'service':
             context['serviceId'] = payload.get('sub')
             context['serviceName'] = payload.get('custom:service_name', '')
             context['serviceRole'] = payload.get('custom:service_role', '')
-        
+
         print(f"Returning context: {json.dumps(context)}")
-        
+
         # Generate allow policy
         return generate_policy(
             principal_id=payload.get('username', payload.get('sub')),
@@ -236,8 +255,9 @@ def lambda_handler(event, context):
             resource=event['methodArn'],
             context=context
         )
-        
+
     except Exception as e:
         print(f"Authorization failed: {str(e)}")
-        # Return 401 Unauthorized
+        if str(e) == 'Forbidden':
+            return generate_policy(payload.get('sub', 'unknown'), 'Deny', event['methodArn'])
         raise Exception('Unauthorized')

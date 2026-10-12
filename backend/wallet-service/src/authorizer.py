@@ -24,6 +24,13 @@ jwk_clients = {
 
 # RBAC rules: endpoint → allowed user types
 RBAC_RULES = {
+    'GET /wallet/funding/admin/transactions': ['admin'],
+    'GET /wallet/funding/admin/wallets': ['admin'],
+    'GET /wallet/funding/config': ['driver', 'admin'],
+    'POST /wallet/funding/receipt': ['driver'],
+    'POST /wallet/funding/payment': ['driver'],
+    'PUT /wallet/funding/admin/config': ['admin'],
+    'POST /wallet/funding/admin/receipt': ['admin'],
     # Driver endpoints
     'GET /wallet/me': ['driver'],
     'GET /wallet/me/transactions': ['driver'],
@@ -126,7 +133,7 @@ def lambda_handler(event, context):
     Validates token and enforces RBAC
     """
     try:
-        print(f"Authorizer event: {json.dumps(event)}")
+        print("Wallet authorization request")
         
         # Extract headers - REQUEST authorizer format
         # Event structure: event['headers'] OR event['requestContext']['http']['headers']
@@ -145,7 +152,7 @@ def lambda_handler(event, context):
         token = auth_header.replace('Bearer ', '').replace('bearer ', '')
         if not token:
             print("No token provided")
-            print(f"Headers received: {json.dumps(headers)}")
+
             raise Exception('Unauthorized')
         
         # Verify token
@@ -155,7 +162,7 @@ def lambda_handler(event, context):
             raise Exception('Unauthorized')
         
         print(f"Verified user type: {user_type}")
-        print(f"Token payload: {json.dumps(payload)}")
+
         
         # Extract request info from REQUEST authorizer event
         # Different formats supported
@@ -217,6 +224,7 @@ def lambda_handler(event, context):
         if user_type == 'driver':
             context['driverId'] = payload.get('sub')
         elif user_type == 'admin':
+            context['financeManager'] = 'finance_manager' in payload.get('cognito:groups', [])
             context['adminId'] = payload.get('sub')
         elif user_type == 'service':
             context['serviceId'] = payload.get('sub')

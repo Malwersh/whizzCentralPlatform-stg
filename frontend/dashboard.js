@@ -73,155 +73,42 @@ function initializeDashboardFeatures() {
 }
 
 async function loadDashboardStats() {
-    console.log('═══════════════════════════════════════════════════');
-    console.log('🔢 loadDashboardStats() FUNCTION CALLED');
-    console.log('🔢 Timestamp:', new Date().toISOString());
-    console.log('🔢 window.dataService exists:', !!window.dataService);
-    console.log('🔢 AWS object exists:', !!window.AWS);
-    console.log('═══════════════════════════════════════════════════');
-
-    try {
-        // Initialize AWS data service first
-        if (!window.dataService) {
-            console.error('❌ CRITICAL: window.dataService is NOT available!');
-            throw new Error('dataService not available');
-        }
-        
-        console.log('✅ dataService found, calling initialize()...');
-
-        await window.dataService.initialize();
-        console.log('✅ AWS dataService initialized');
-
-        const stats = {
-            customersCount: 0,
-            merchantsCount: 0,
-            driversCount: 0,
-            ordersCount: 0,
-            revenueCount: 0,
-            ticketsCount: 0,
-            promotionsCount: 0
-        };
-
-        // Define the real DynamoDB tables we'll scan
-        const tables = {
-            customers: 'WizzUser_users_dev',
-            merchants: 'WhizzMerchants_Businesses',
-            drivers: 'WhizzDrivers_dev',
-            orders: 'WizzOrders',
-            transactions: 'WizzUser_transactions_dev',
-            promotions: 'WhizzMerchants_Discounts'
-        };
-
-        console.log('📊 Scanning DynamoDB tables for real data...');
-
-        // 1. Get REAL customers count
-        try {
-            const customersResult = await window.dataService.scan(tables.customers, { Select: 'COUNT' });
-            stats.customersCount = customersResult?.Count || 0;
-            console.log(`✅ Customers: ${stats.customersCount} (from ${tables.customers})`);
-        } catch (error) {
-            console.warn(`⚠️ Failed to get customers:`, error.message);
-        }
-
-        // 2. Get REAL merchants count
-        try {
-            const merchantsResult = await window.dataService.scan(tables.merchants, { Select: 'COUNT' });
-            stats.merchantsCount = merchantsResult?.Count || 0;
-            console.log(`✅ Merchants: ${stats.merchantsCount} (from ${tables.merchants})`);
-        } catch (error) {
-            console.warn(`⚠️ Failed to get merchants:`, error.message);
-        }
-
-        // 3. Get REAL drivers count
-        try {
-            const driversResult = await window.dataService.scan(tables.drivers, { Select: 'COUNT' });
-            stats.driversCount = driversResult?.Count || 0;
-            console.log(`✅ Drivers: ${stats.driversCount} (from ${tables.drivers})`);
-        } catch (error) {
-            console.warn(`⚠️ Failed to get drivers:`, error.message);
-        }
-
-        // 4. Get REAL orders from WizzOrders table
-        try {
-            const ordersResult = await window.dataService.scan(tables.orders, { 
-                Limit: 100,
-                FilterExpression: 'begins_with(PK, :prefix)',
-                ExpressionAttributeValues: { ':prefix': 'ORDER#' }
+    const stats = { customersCount: null, merchantsCount: null, driversCount: null,
+        ordersCount: null, revenueCount: null, ticketsCount: null, promotionsCount: null };
+    const requests = [
+        ['customersCount', 'WizzUser_users_staging'],
+        ['merchantsCount', 'WhizzMerchants_Businesses'],
+        ['driversCount', 'WhizzDrivers_staging'],
+        ['ordersCount', 'WizzOrders']
+    ];
+    const results = await Promise.allSettled(requests.map(async ([metric, table]) => {
+        const rows = await window.AWSUtils.scanAll(table);
+        if (metric === 'customersCount') stats[metric] = rows.length;
+        if (metric === 'merchantsCount') stats[metric] = rows.filter(row =>
+            String(row.status || row.approvalStatus || '').toLowerCase() === 'approved' || row.isApproved === true || row.isActive === true).length;
+        if (metric === 'driversCount') stats[metric] = rows.filter(row => row.isOnline === true).length;
+        if (metric === 'ordersCount') {
+            const today = new Intl.DateTimeFormat('en-CA', {timeZone: 'Asia/Baghdad'}).format(new Date());
+            const orders = rows.filter(row => {
+                const date = new Date(row.createdAt || row.orderDate || row.timestamp);
+                return row.SK === 'META' && row.PK?.startsWith('ORDER#') && !isNaN(date) &&
+                    new Intl.DateTimeFormat('en-CA', {timeZone: 'Asia/Baghdad'}).format(date) === today;
             });
-            
-            const orders = ordersResult?.Items || [];
-            console.log(`✅ Found ${orders.length} orders in WizzOrders table`);
-
-            // Filter orders from today
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const ordersToday = orders.filter(order => {
-                if (!order.orderDate && !order.createdAt && !order.timestamp) return false;
-                
-                const dateStr = order.orderDate || order.createdAt || order.timestamp;
-                const orderDate = new Date(dateStr);
-                return orderDate >= today;
-            });
-
-            stats.ordersCount = ordersToday.length;
-            console.log(`✅ Orders Today: ${stats.ordersCount}`);
-
-            // Calculate revenue from today's orders
-            ordersToday.forEach(order => {
-                const totalField = order.total || order.totalAmount || order.amount || '0';
-                const numericValue = parseFloat(totalField.toString().replace(/[^0-9.]/g, ''));
-                if (!isNaN(numericValue)) {
-                    stats.revenueCount += numericValue;
-                }
-            });
-            console.log(`✅ Revenue Today: $${stats.revenueCount.toFixed(2)}`);
-
-        } catch (error) {
-            console.warn(`⚠️ Failed to get orders:`, error.message);
+            stats.ordersCount = orders.length;
+            // Total order value is not platform revenue; revenue stays unavailable until defined.
         }
-
-        // 5. Get REAL promotions count
-        try {
-            const promotionsResult = await window.dataService.scan(tables.promotions, { 
-                FilterExpression: 'attribute_exists(isActive) AND isActive = :active',
-                ExpressionAttributeValues: { ':active': true }
-            });
-            stats.promotionsCount = promotionsResult?.Items?.length || 0;
-            console.log(`✅ Active Promotions: ${stats.promotionsCount} (from ${tables.promotions})`);
-        } catch (error) {
-            console.warn(`⚠️ Failed to get promotions:`, error.message);
-        }
-
-        // 6. Support tickets - would need a real tickets table
-        stats.ticketsCount = 0;
-
-        // Update UI with real data
-        updateDashboardUI(stats);
-        showDashboardDataSourceIndicator('real');
-        console.log('✅ Dashboard stats loaded from REAL AWS data:', stats);
-        
-        return;
-
-    } catch (error) {
-        console.error('❌ Failed to load real AWS data:', error.message);
-        console.log('📋 Setting all stats to 0 as fallback');
-        
-        // Set all values to 0 as fallback
-        const stats = {
-            customersCount: 0,
-            merchantsCount: 0,
-            driversCount: 0,
-            ordersCount: 0,
-            revenueCount: 0,
-            ticketsCount: 0,
-            promotionsCount: 0
-        };
-        
-        updateDashboardUI(stats);
-        showDashboardDataSourceIndicator('failed');
-        console.error('❌ All data sources failed, showing zeros');
+    }));
+    for (let i = 0; i < results.length; i++) {
+        if (results[i].status === 'rejected') console.warn(`Dashboard ${requests[i][0]} unavailable`, results[i].reason?.code || 'load failed');
     }
+    for (const [id, value] of Object.entries(stats)) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value === null ? '—' : value.toLocaleString();
+            element.title = value === null ? 'Data unavailable or not yet configured' : '';
+        }
+    }
+    showDashboardDataSourceIndicator(results.some(r => r.status === 'rejected') ? 'failed' : 'real');
 }
 
 // Calculate dashboard statistics from API data
@@ -400,7 +287,7 @@ function showDashboardDataSourceIndicator(sourceType) {
             indicator.classList.add('failed');
             icon.className = 'indicator-icon fas fa-times-circle';
             text.textContent = 'Data Unavailable';
-            details.textContent = 'Both AWS and demo endpoints failed. Showing zero values.';
+            details.textContent = 'Some data could not be loaded. Unavailable values are shown as —; retry or sign in again.';
             break;
             
         default:
@@ -438,28 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Show success message
     showWelcomeMessage();
 
-    // Load statistics using data service
-    if (window.dataService) {
-        // Initialize data service first
-        window.dataService.initialize()
-            .then(() => {
-                return loadDashboardStats();
-            })
-            .catch(error => {
-                console.error('Data service initialization failed:', error);
-                // Show fallback data
-                showFallbackStats();
-            });
-    } else {
-        console.warn('Data service not available, loading fallback stats');
-        showFallbackStats();
-    }
 
-    // Initialize dashboard-specific functionality
-    initializeDashboard();
-
-    // Load dashboard data
-    loadDashboardStats();
 });
 
 // Show welcome message
@@ -473,12 +339,14 @@ function showFallbackStats() {
     const merchantsCountEl = document.getElementById('merchantsCount');
 
     // Show zero values when unable to connect
-    if (customersCountEl) customersCountEl.textContent = '0';
-    if (merchantsCountEl) merchantsCountEl.textContent = '0';
+    if (customersCountEl) customersCountEl.textContent = '—';
+    if (merchantsCountEl) merchantsCountEl.textContent = '—';
 }
 
 // Initialize dashboard functionality
 function initializeDashboard() {
+    if (window.__dashboardInitialized) return;
+    window.__dashboardInitialized = true;
     console.log('🔧 initializeDashboard() called');
     
     // Load dashboard statistics FIRST (most important!)

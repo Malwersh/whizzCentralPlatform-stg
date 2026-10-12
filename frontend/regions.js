@@ -23,7 +23,7 @@ class RegionsManager {
         this._drawnBoundary = null; // GeoJSON-like { type, coordinates }
         this._shapesLayer = null; // LayerGroup for polygons/lines
         // Server-side pagination state
-        this.pageMode = 'server'; // enable server paging by default
+        this.pageMode = window.WIZZCENTRAL_CONFIG?.REGIONS_DATA_SOURCE === 'dynamodb' ? 'client' : 'server'; // enable server paging by default
         this.tokenStack = [null]; // stack of page start tokens (null for first page)
         this.serverPageIndex = 0; // current index in tokenStack
         this.lastNextToken = null; // nextToken returned by last fetch
@@ -527,6 +527,10 @@ class RegionsManager {
     }
 
     async loadAllRegionsForDropdown() {
+        if (window.WIZZCENTRAL_CONFIG?.REGIONS_DATA_SOURCE === 'dynamodb') {
+            this.allRegionsForDropdown = await this.readStagingRegions();
+            return;
+        }
         try {
             console.log('📋 Loading all regions for dropdown...');
             const url = `${this._apiBase}/regions?limit=1000`;
@@ -610,7 +614,28 @@ class RegionsManager {
         }
     }
 
+    async readStagingRegions() {
+        const [base, derived] = await Promise.all([
+            AWSUtils.scanAll('WizzCentral_Regions'),
+            AWSUtils.scanAll('WizzCentral_RegionsDerived_staging')
+        ]);
+        const byId = new Map(derived.map(r => [r.regionId, r]));
+        const rows = base.map(r => ({ ...r, ...(byId.get(r.regionId || r.id) || {}) }));
+        const lookup = new Map(rows.map(r => [r.regionId || r.id, r]));
+        const governorate = (id) => {
+            const visited = new Set();
+            let row = lookup.get(id);
+            while (row && !visited.has(row.regionId || row.id)) {
+                visited.add(row.regionId || row.id);
+                if (Number(row.level) === 1) return row.name_ar || row.name;
+                row = lookup.get(row.parent_id);
+            }
+        };
+        return rows.map(r => this.transformRegionData(r, governorate));
+    }
+
     async fetchRegionsFromBackend() {
+        if (window.WIZZCENTRAL_CONFIG?.REGIONS_DATA_SOURCE === 'dynamodb') return this.readStagingRegions();
         try {
             const tbody = document.getElementById('regionsTableBody');
             if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="loading-cell"><div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Loading regions from API...</div></td></tr>`;
@@ -984,7 +1009,7 @@ class RegionsManager {
             governorate: gov || (lvl === 0 ? '—' : 'N/A'),
             level: lvl,
             parent_id: region.parent_id,
-            isActive: (region.is_active === true || region.is_active === 'true'),
+            isActive: [true, 1, 'true', '1'].includes(region.effective_is_active ?? region.is_active),
             serviceTypes: region.service_config,
             deliveryConfig: region.delivery_config,
             coordinates: { center: coordinates, boundaries: region.boundary ? region.boundary.coordinates : [] },
@@ -1201,6 +1226,7 @@ class RegionsManager {
     }
 
     async saveRegion() {
+        if (window.WIZZCENTRAL_CONFIG?.REGIONS_DATA_SOURCE === 'dynamodb') { this.showError('عرض المناطق متاح؛ تعديل المناطق يحتاج خدمة إدارة المناطق للحفاظ على التوريث والفهارس.'); return; }
         const form = this.formEl;
         if (!form) return;
 
@@ -1449,6 +1475,7 @@ class RegionsManager {
     }
 
     async toggleRegionStatus(regionId, event) {
+        if (window.WIZZCENTRAL_CONFIG?.REGIONS_DATA_SOURCE === 'dynamodb') { this.showError('عرض المناطق متاح؛ تعديل المناطق يحتاج خدمة إدارة المناطق للحفاظ على التوريث والفهارس.'); return; }
         console.log('🔄 Toggle status for:', regionId);
         if (event) event.stopPropagation();
         const idx = this.regions.findIndex(r => r.regionId === regionId);
@@ -1488,6 +1515,7 @@ class RegionsManager {
     }
 
     async deleteRegion(regionId, event) {
+        if (window.WIZZCENTRAL_CONFIG?.REGIONS_DATA_SOURCE === 'dynamodb') { this.showError('عرض المناطق متاح؛ تعديل المناطق يحتاج خدمة إدارة المناطق للحفاظ على التوريث والفهارس.'); return; }
         if (event) event.stopPropagation();
         if (!regionId) return;
         const ok = window.confirm('Delete this region? This cannot be undone.');

@@ -490,10 +490,10 @@
     <!-- Configuration -->
     <script src="../config.js"></script>
     <!-- Centralized utilities -->
-    <script src="../assets/js/auth-utils.js"></script>
-    <script src="../assets/js/aws-utils.js"></script>
+    <script src="../assets/js/auth-utils.js?v=20261011-session-fix2"></script>
+    <script src="../assets/js/aws-utils.js?v=20261011-session-fix2"></script>
     <!-- Orders API -->
-    <script src="../js/orders-api.js"></script>
+    <script src="../js/orders-api.js?v=20261011-session-fix2"></script>
     <!-- Sidebar -->
     <script src="../assets/js/navigation.js"></script>
     <script>
@@ -581,7 +581,7 @@
             tableStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error loading orders';
 
             // SECURITY: Sanitize error message
-            const safeErrorMessage = SecurityUtils.escapeHTML(error.message || 'Unknown error');
+            const safeErrorMessage = SecurityUtils.escapeHTML(window.Auth.dataErrorMessage(error));
             tbody.innerHTML = SecurityUtils.sanitizeHTML(`
                     <tr>
                         <td colspan="6" style="text-align: center; padding: 2rem; color: var(--md-sys-color-error);">
@@ -900,7 +900,7 @@
         } catch (error) {
             console.error('Error loading order details:', error);
             // SECURITY: Sanitize error message
-            const safeErrorMessage = SecurityUtils.escapeHTML(error.message || 'Unknown error');
+            const safeErrorMessage = SecurityUtils.escapeHTML(window.Auth.dataErrorMessage(error));
             content.innerHTML = SecurityUtils.sanitizeHTML(`
                     <div style="text-align: center; color: var(--md-sys-color-error);">
                         <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>

@@ -102,6 +102,8 @@ Resources:
       Handler: index.handler
       Environment:
         Variables:
+          DRIVERS_TABLE:
+            Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriversTableName
           DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
           DRIVER_LIVE_STATE_TABLE:
             Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriverLiveStateTableName
@@ -114,6 +116,9 @@ Resources:
           NOTIFICATIONS_API_BASE: !Ref NotificationsApiBase
           NOTIFICATIONS_INTERNAL_KEY: !Ref NotificationsInternalKey
       Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriversTableName
         - DynamoDBReadPolicy:
             TableName: !Ref DispatchJobsTable
         - DynamoDBWritePolicy:
@@ -215,6 +220,8 @@ Resources:
       Handler: index.handler
       Environment:
         Variables:
+          DRIVERS_TABLE:
+            Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriversTableName
           DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
           WAVE_OFFERS_TABLE: !Ref WaveOffersTable
           DRIVER_LIVE_STATE_TABLE:
@@ -224,6 +231,9 @@ Resources:
           WEBSOCKET_API_ENDPOINT:
             Fn::ImportValue: !Sub WizzUser-backend-${Environment}-WebSocketUrl
       Policies:
+        - DynamoDBReadPolicy:
+            TableName:
+              Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriversTableName
         - DynamoDBCrudPolicy:
             TableName: !Ref DispatchJobsTable
         - DynamoDBCrudPolicy:

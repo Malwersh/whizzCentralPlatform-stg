@@ -23,12 +23,15 @@
   "author": "Wizz Team",
   "license": "MIT",
   "dependencies": {
+    "@aws-crypto/sha256-js": "^5.0.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.470.0",
     "@aws-sdk/client-dynamodb": "^3.470.0",
+    "@aws-sdk/client-s3": "^3.1149.0",
+    "@aws-sdk/client-secrets-manager": "^3.1149.0",
     "@aws-sdk/lib-dynamodb": "^3.470.0",
+    "@aws-sdk/s3-request-presigner": "^3.1149.0",
     "@smithy/protocol-http": "^3.0.0",
     "@smithy/signature-v4": "^2.0.0",
-    "@aws-crypto/sha256-js": "^5.0.0",
     "esbuild": "^0.27.2",
     "uuid": "^9.0.1"
   },
