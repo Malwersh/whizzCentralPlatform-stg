@@ -1,3 +1,4 @@
+import {financialStaff,staffGuard,approvalAmount} from './staffAccess';
 import { walletNotification } from './walletNotifications';
 import { docClient, TABLES, GetCommand, QueryCommand, TransactWriteCommand } from './db';
 import {
@@ -187,6 +188,7 @@ export class TopupService {
     request: ApproveTopupRequest
   ): Promise<ApproveTopupResponse> {
     const { topupId, approvedById, approvedByRole, note } = request;
+    const staff=await financialStaff(approvedById,'finance.approve');
     const timestamp = getCurrentTimestamp();
     const idempotencyKey = `TOPUP_APPROVE#${topupId}`;
 
@@ -317,11 +319,13 @@ export class TopupService {
       newBalance: wallet.availableBalance + topup.amount,
     };
 
+    approvalAmount(staff,topup.amount);
     // Atomic transaction
     try {
     await docClient.send(
       new TransactWriteCommand({
         TransactItems: [
+          ...(staff?[staffGuard(staff)]:[]),
           walletNotification(topup, 'APPROVED', timestamp),
           { Update: {
             TableName: TABLES.IDEMPOTENCY_KEYS,

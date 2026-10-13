@@ -132,6 +132,10 @@ window.RBAC = {
             pageName = pageName + '.html';
         }
         
+        if(this.staff && !this.staff.employee.roles.includes('bootstrap_admin')) {
+            const permission={'staff.html':'staff.read','finance.html':'finance.read','drivers.html':'drivers.read'}[pageName];
+            return pageName==='account-security.html'||pageName==='index.html'||(!!permission&&this.staff.permissions.includes(permission));
+        }
         console.log('🔍 Checking page access for:', pageName);
         
         if (RBAC_CONFIG.publicPages.includes(pageName)) {
@@ -174,6 +178,7 @@ window.RBAC = {
     },
 
     hasPermission(permission) {
+        if(this.staff)return this.staff.permissions.includes(permission);
         const userGroups = this.getUserGroups();
         for (const groupNameRaw of userGroups) {
             const groupName = String(groupNameRaw);
@@ -187,6 +192,11 @@ window.RBAC = {
     },
 
     isReadOnly() {
+        if(this.staff) {
+            const page=window.location.pathname.split('/').pop();
+            const domain={'drivers.html':'drivers','merchants.html':'merchants','orders.html':'orders','support.html':'support','finance.html':'financial','regions.html':'regions','promotions.html':'campaigns'}[page];
+            return domain?!this.can(domain,'write'):false;
+        }
         const userGroups = this.getUserGroups();
         // Check if user is admin (either 'admin' or 'admins' group)
         const lowered = userGroups.map(g => String(g).toLowerCase());
@@ -310,6 +320,8 @@ window.RBAC = {
                     parentLi.style.display = 'none';
                 }
             } else if (pageName) {
+                link.style.display = '';
+                const parentLi=link.closest('li');if(parentLi)parentLi.style.display='';
                 console.log('✅ Showing menu item:', pageName);
             }
         });
@@ -319,6 +331,7 @@ window.RBAC = {
     
     // Auto-run navigation filtering when DOM is ready
     autoFilterNavigation() {
+        this.ensure().catch(()=>{});
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.filterNavigationMenu());
         } else {
@@ -331,12 +344,25 @@ window.RBAC = {
     },
 
     // Legacy API compatibility
-    async ensure() { return Promise.resolve(); },
+    async ensure() {
+        const base=window.WIZZCENTRAL_CONFIG?.STAFF_API_BASE_URL;
+        if(!base)return;
+        await window.Auth.ensureSession();
+        const response=await fetch(base+'/staff/me',{headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken')}});
+        if(!response.ok){this.staff=null;throw Error('Staff session unavailable');}
+        this.staff=await response.json();
+        this.filterNavigationMenu();
+        if(!this.staff.employee.roles.includes('bootstrap_admin')&&window.location.pathname.endsWith('/dashboard.html')) {
+            const page=this.staff.permissions.includes('staff.read')?'staff.html':this.staff.permissions.includes('finance.read')?'finance.html':this.staff.permissions.includes('drivers.read')?'drivers.html':'account-security.html';
+            window.location.replace(page);
+        }
+    },
     pageAllowed(page) { return this.hasPageAccess(page); },
     applyReadOnly() { this.applyReadOnlyMode(); },
     
     // Fetch current user information
     async fetchMe() {
+        if(this.staff)return {email:this.staff.employee.email,roles:this.staff.employee.roles};
         try {
             const idToken = localStorage.getItem('idToken');
             if (!idToken) {
@@ -367,6 +393,11 @@ window.RBAC = {
     
     // Check if user can perform action on domain
     can(domain, action = 'read') {
+        if(this.staff) {
+            const read={financial:'finance.read',campaigns:'promotions.read'};
+            const writes={drivers:['drivers.edit','drivers.review','drivers.suspend'],merchants:['merchants.edit','merchants.review','merchants.suspend'],orders:['orders.assign','orders.cancel'],customers:['customers.edit'],support:['support.reply','support.assign','support.close'],regions:['regions.edit','regions.activate'],campaigns:['promotions.create','promotions.edit','promotions.approve'],financial:['finance.request','finance.approve','finance.settings.request','finance.settings.approve']};
+            return action==='read'?this.staff.permissions.includes(read[domain]||domain+'.read'):(writes[domain]||[]).some(p=>this.staff.permissions.includes(p));
+        }
         const userGroups = this.getUserGroups();
         
         // Admins can do everything
