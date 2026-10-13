@@ -1,0 +1,1 @@
+{"name":"staging-account-deletion","version":"0.1.0","private":true,"scripts":{"test":"node --test test/*.test.cjs"},"dependencies":{"@aws-sdk/client-dynamodb":"^3.940.0","@aws-sdk/lib-dynamodb":"^3.940.0"}}
