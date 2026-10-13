@@ -30,6 +30,12 @@ function customerEvidence({db,maxPages=100}){
   if(canonical){if(!belongs(canonical,actor))throw error('OWNERSHIP_MISMATCH');profiles.set(canonical.userId,canonical);}
   // Verified Cognito email is only a lookup aid; each legacy profile needs its exact binding.
   if(actor.attrs?.email_verified==='true'&&actor.attrs.email){for(const row of await query(TABLES.profiles,'email-index','email',actor.attrs.email)){if(!belongs(row,actor))throw error('IDENTITY_AMBIGUOUS');profiles.set(row.userId,row);}}
+  if(actor.attrs?.phone_number_verified==='true'&&/^\+9647\d{9}$/.test(actor.attrs.phone_number||'')){
+   const phone=actor.attrs.phone_number;
+   for(const value of [phone,'0'+phone.slice(4),phone.slice(4)])for(const row of await query(TABLES.profiles,'phone-index','phone',value)){
+    if(!belongs(row,actor))throw error('IDENTITY_AMBIGUOUS');profiles.set(row.userId,row);
+   }
+  }
   if(!profiles.size)throw error('PROFILE_NOT_FOUND');
   const ids=[...new Set([actor.sub,...profiles.keys()])],wallets=[];
   const walletId='WALLET#CUSTOMER#'+actor.sub;
