@@ -14,7 +14,8 @@
     "revocation-worker.js",
     "invitations.js",
     "drivers.js",
-    "driver-regions.js"
+    "driver-regions.js",
+    "operational-settings.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs"

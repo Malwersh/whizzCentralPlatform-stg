@@ -19,7 +19,7 @@ Required next work, customer first:
 6. Customer adapter, worker and OTP/status UI; dedicated disposable integration identity with verified cleanup evidence.
 7. Driver, merchant/employee ownership, then platform staff adapters and screens. Never delete a merchant's other businesses or shared catalog when closing one business.
 
-Retention durations and monetary refund method are awaiting the user's policy input. Those are not assumed from other companies. No automatic final purge is enabled. Personal-data cleanup and retained financial records must be addressed separately; a missing policy is not permission to keep all personal data indefinitely.
+The owner approved the operational policy: seven financial years, zero extra retention for eligible personal/location/document/support data, and wallet-transfer or documented manual Zain Cash settlement. The policy is stored in staging-PlatformStaff and can be changed through independent approval in Settings. No automatic final purge is enabled until cleanup inventories and application integrations pass validation. Personal-data cleanup and retained financial records must be addressed separately; a missing policy is not permission to keep all personal data indefinitely.
 
 First safety patch is separate:
 - Customer fake-success UI/service removed locally; authenticated final deletion not yet connected.

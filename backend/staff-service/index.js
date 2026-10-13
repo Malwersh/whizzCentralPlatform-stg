@@ -6,6 +6,7 @@ const {CognitoIdentityProviderClient,AdminGetUserCommand,AdminUserGlobalSignOutC
 const {CognitoJwtVerifier}=require('aws-jwt-verify');
 const invitations=require('./invitations');
 const driverRoutes=require('./drivers');
+const settingsRoutes=require('./operational-settings');
 const {ROLES,LABELS,effective,allowed,validateAssignment}=require('./catalog');
 const db=DynamoDBDocumentClient.from(new DynamoDBClient({}),{marshallOptions:{removeUndefinedValues:true}}),cognito=new CognitoIdentityProviderClient({});
 const table=process.env.STAFF_TABLE;
@@ -49,6 +50,7 @@ async function handler(event){
   }
   if(method==='GET'&&path.startsWith('/staff/drivers'))return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE},actor,method,path));
   let input;try{input=JSON.parse(event.body||'{}');if(!input||typeof input!=='object'||Array.isArray(input))throw Error();}catch(_){throw fail('INVALID_BODY',400);}
+  if(path.startsWith('/staff/settings/'))return response(200,await settingsRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled},actor,method,path,input));
   if(method==='POST'&&path==='/staff/drivers/edit')return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE,guard,audit,id:randomUUID},actor,method,path,input));
   const invitationContext={db,cognito,table,pool:process.env.USER_POOL_ID,guard,audit,validateRegions};
   if(method==='POST'&&path==='/staff/invitations'){

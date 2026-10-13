@@ -133,7 +133,8 @@ window.RBAC = {
         }
         
         if(this.staff && !this.staff.employee.roles.includes('bootstrap_admin')) {
-            const permission={'staff.html':'staff.read','finance.html':'finance.read','drivers.html':'drivers.read'}[pageName];
+            if(pageName==='settings.html')return this.staff.permissions.includes('settings.read')||this.staff.permissions.includes('finance.read');
+            const permission={'staff.html':'staff.read','finance.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read'}[pageName];
             return pageName==='account-security.html'||pageName==='index.html'||(!!permission&&this.staff.permissions.includes(permission));
         }
         console.log('🔍 Checking page access for:', pageName);
@@ -353,7 +354,7 @@ window.RBAC = {
         this.staff=await response.json();
         this.filterNavigationMenu();
         if(!this.staff.employee.roles.includes('bootstrap_admin')&&window.location.pathname.endsWith('/dashboard.html')) {
-            const page=this.staff.permissions.includes('staff.read')?'staff.html':this.staff.permissions.includes('finance.read')?'finance.html':this.staff.permissions.includes('drivers.read')?'drivers.html':'account-security.html';
+            const page=this.staff.permissions.includes('staff.read')?'staff.html':this.staff.permissions.includes('finance.read')?'finance.html':this.staff.permissions.includes('drivers.read')?'drivers.html':this.staff.permissions.includes('settings.read')?'settings.html':'account-security.html';
             window.location.replace(page);
         }
     },
