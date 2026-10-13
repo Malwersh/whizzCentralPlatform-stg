@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Staging customer deletion requests and scoped SMS verification; irreversible worker not enabled
+Resources:
+  Requests:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: staging-AccountDeletion
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: pk, AttributeType: S}, {AttributeName: sk, AttributeType: S}]
+      KeySchema: [{AttributeName: pk, KeyType: HASH}, {AttributeName: sk, KeyType: RANGE}]
+      SSESpecification: {SSEEnabled: true}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      TimeToLiveSpecification: {AttributeName: expiresAt, Enabled: true}
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: staging
+      MethodSettings: [{ResourcePath: '/*', HttpMethod: '*', ThrottlingRateLimit: 5, ThrottlingBurstLimit: 10}]
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-account-deletion-requests
+      Runtime: nodejs22.x
+      CodeUri: .
+      Handler: index.handler
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          ENVIRONMENT: staging
+          DELETION_TABLE: !Ref Requests
+          STAFF_TABLE: staging-PlatformStaff
+          OTP_SECRET_ARN: arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ
+      Policies:
+        - DynamoDBCrudPolicy: {TableName: !Ref Requests}
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:Query]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging/index/*
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_wallets_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_wallets_staging/index/*
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-IdempotencyKeys
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+            - Effect: Allow
+              Action: dynamodb:GetItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringEquals:
+                  dynamodb:LeadingKeys: [OPERATIONAL_SETTINGS#ACCOUNT_DELETION]
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ
+      Events:
+        Deletion:
+          Type: Api
+          Properties: {RestApiId: !Ref Api, Path: '/deletion/{proxy+}', Method: ANY}
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${Api}.execute-api.${AWS::Region}.amazonaws.com/staging

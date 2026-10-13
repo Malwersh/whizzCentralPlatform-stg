@@ -26,3 +26,17 @@ First safety patch is separate:
 - Historical merchant endpoint replaced with a fail-closed authenticated response, deployed to Staging. No unverified JWT fallback, no full-request logging, no database or Cognito deletion in that legacy route. Its four guard tests passed.
 
 SAM/deployment wiring, integration evidence and app installation are still pending for the new flow.
+
+## Customer request API deployed on Staging
+
+Stack `staging-account-deletion`, API `https://77j15qyukg.execute-api.us-east-1.amazonaws.com/staging`:
+- GET `/deletion/status`: owned durable request receipt.
+- GET `/deletion/eligibility`: both wallet systems, live orders/holds/transfers, policy version; `executionReady` is explicitly false.
+- POST `/deletion/send`: action-specific SMS to the Cognito-verified phone, bound to subject, scope and request UUID, five-minute TTL and bounded attempts/sends.
+- POST `/deletion/request`: verified proof consumed atomically with a durable request; does not claim deletion completed.
+
+`customer-auth.js` requires Cognito GetUser validation and exact customer pool/client/subject/token-use. `customer-evidence.js` resolves legacy profile IDs using verified Cognito bindings and checks both financial stores with full pagination; read errors and malformed balances fail closed. Evidence snapshots are not atomic authorization for deletion. A read-only live check passed for the existing Ghayth test identity: two wallet systems, seven nonterminal order records, no active holds or pending transfers. No data changed.
+
+The request function has no permissions to change balances, remove profiles/assets, or delete Cognito users. Irreversible execution, cross-service eligibility locking, refund processing, automatic retry worker, mobile UI and online deletion page remain unfinished. Do not enable inventory readiness or connect a success message before those integrations are tested.
+
+56 tests pass for the coordinator, storage, policy, version pinning, identity/evidence, scoped OTP and request API boundaries. HTTP smoke test rejects unsigned access with 401. SMS delivery for this new deletion purpose has not yet been manually tested.
