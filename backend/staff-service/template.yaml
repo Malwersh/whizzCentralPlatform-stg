@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Staging employee permissions and audited role changes
+Resources:
+  StaffTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: staging-PlatformStaff
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+  StaffApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: staging
+      Cors:
+        AllowOrigin: "'https://staging.d2vmebm1e1n95m.amplifyapp.com'"
+        AllowHeaders: "'Authorization,Content-Type'"
+        AllowMethods: "'GET,POST,OPTIONS'"
+  StaffFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-wizz-staff-service
+      Runtime: nodejs22.x
+      Handler: index.handler
+      CodeUri: .
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          STAFF_TABLE: !Ref StaffTable
+          REGIONS_TABLE: WizzCentral_Regions
+          DRIVERS_TABLE: WhizzDrivers_staging
+          DERIVED_REGIONS_TABLE: WizzCentral_RegionsDerived_staging
+          USER_POOL_ID: us-east-1_wz7vwZZxz
+          CLIENT_ID: 17mu2qlqis0qcs1n1n980q7e3j
+          FRONTEND_ORIGIN: https://staging.d2vmebm1e1n95m.amplifyapp.com
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+              Resource: !GetAtt StaffTable.Arn
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:us-east-1:${AWS::AccountId}:table/WizzCentral_Regions
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:UpdateItem]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:us-east-1:${AWS::AccountId}:table/WhizzDrivers_staging
+            - Effect: Allow
+              Action: [dynamodb:Scan]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:us-east-1:${AWS::AccountId}:table/WizzCentral_RegionsDerived_staging
+            - Effect: Allow
+              Action: [cognito-idp:AdminGetUser, cognito-idp:AdminCreateUser, cognito-idp:AdminUserGlobalSignOut]
+              Resource: !Sub arn:${AWS::Partition}:cognito-idp:us-east-1:${AWS::AccountId}:userpool/us-east-1_wz7vwZZxz
+      Events:
+        Staff:
+          Type: Api
+          Properties:
+            RestApiId: !Ref StaffApi
+            Path: /staff/{proxy+}
+            Method: ANY
+  RevocationWorker:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-wizz-staff-revocations
+      Runtime: nodejs22.x
+      Handler: revocation-worker.handler
+      CodeUri: .
+      Timeout: 60
+      MemorySize: 256
+      Environment:
+        Variables:
+          STAFF_TABLE: !Ref StaffTable
+          USER_POOL_ID: us-east-1_wz7vwZZxz
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:Query, dynamodb:DeleteItem]
+              Resource: !GetAtt StaffTable.Arn
+            - Effect: Allow
+              Action: [cognito-idp:AdminUserGlobalSignOut]
+              Resource: !Sub arn:${AWS::Partition}:cognito-idp:us-east-1:${AWS::AccountId}:userpool/us-east-1_wz7vwZZxz
+      Events:
+        RetryRevocations:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+Outputs:
+  StaffApiUrl:
+    Value: !Sub https://${StaffApi}.execute-api.${AWS::Region}.amazonaws.com/staging

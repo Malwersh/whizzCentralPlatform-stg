@@ -1,3 +1,4 @@
+import {authorizeOrder} from './orderAuth';
 /**
  * Order Service - Main Lambda Handler
  */
@@ -43,6 +44,10 @@ export async function handler(
     // CORS preflight
     if (httpMethod === 'OPTIONS') {
       return buildSuccessResponse({ message: 'OK' }, 200);
+    }
+
+    if(httpMethod==='POST'&&['/order/cancel','/order/unassign'].includes(path)){
+      try{event={...event,body:JSON.stringify(await authorizeOrder(event,parseBody(event.body)))};}catch(e:any){return buildErrorResponse(e.status||500,e.status?e.message:'AUTHENTICATION_UNAVAILABLE','تعذر التحقق من صلاحية تنفيذ العملية');}
     }
 
     // POST /order/cancel

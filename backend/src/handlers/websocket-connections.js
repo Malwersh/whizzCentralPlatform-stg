@@ -22,9 +22,9 @@ const COGNITO_REGION = process.env.COGNITO_REGION || 'us-east-1';
 const CENTRAL_PLATFORM_USER_POOL_ID = process.env.CENTRAL_PLATFORM_USER_POOL_ID || 'us-east-1_Cp9YnOQWi';
 const CENTRAL_PLATFORM_CLIENT_ID = process.env.CENTRAL_PLATFORM_CLIENT_ID || '22rf529lhbqtlvpdk2578h73l1';
 
-// WhizzMerchants Cognito (for merchants)
-const MERCHANTS_USER_POOL_ID = process.env.MERCHANTS_USER_POOL_ID || 'us-east-1_PHPkG78b5';
-const MERCHANTS_CLIENT_ID = process.env.MERCHANTS_CLIENT_ID || '1tl9g7nk2k2chtj5fg960fgdth';
+// WhizzMerchants Cognito (for merchants) - phone-based pool (WhizzMerchants-phone-users-staging)
+const MERCHANTS_USER_POOL_ID = process.env.MERCHANTS_USER_POOL_ID || 'us-east-1_gtCR3ndzT';
+const MERCHANTS_CLIENT_ID = process.env.MERCHANTS_CLIENT_ID || '4qabvh11nmghmf9fmc6e6ludd2';
 
 // WhizzDrivers Cognito (for drivers)
 const DRIVERS_USER_POOL_ID = process.env.DRIVERS_USER_POOL_ID || 'us-east-1_Mnrmklxro';
@@ -77,17 +77,6 @@ const BUILD_VERSION = 'merchant-chat-deploy-2025-11-12T00:00:00Z';
 async function verifyJwt(idToken, userType = 'driver') {
     if (!idToken) throw new Error('Missing token');
     
-    // Dev mode: accept browser tokens without verification
-    if (idToken.startsWith('browser_agent_') || idToken.startsWith('browser_driver_')) {
-        console.log('⚠️ DEV MODE: Accepting browser token without verification');
-        return {
-            sub: idToken,
-            email: 'dev@wizz.com',
-            'cognito:groups': userType === 'support' ? ['support'] : [],
-            tokenSource: 'dev-browser'
-        };
-    }
-    
     // Try to verify with the appropriate user pool based on userType
     let verifier = null;
     if (userType === 'support' || userType === 'agent') {
@@ -129,7 +118,7 @@ const handler = async (event) => {
     // Diagnostic banner to verify deployment and environment mapping
     console.log(`🛠️ Build ${BUILD_VERSION} | Tables: connections=${WEBSOCKET_CONNECTIONS_TABLE} sessions=${CHAT_SESSIONS_TABLE} messages=${CHAT_MESSAGES_TABLE}`);
     try {
-        console.log('Full event received:', JSON.stringify(event));
+        console.log('WebSocket route:', event.requestContext?.routeKey);
 
         const connectionId = event.requestContext?.connectionId;
         const routeKey = event.requestContext?.routeKey;

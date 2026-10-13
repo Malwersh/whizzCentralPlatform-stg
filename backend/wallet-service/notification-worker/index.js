@@ -30,7 +30,7 @@ function createWorker(client,messaging,clock=()=>Date.now()){
    do{
     const result=await client.send(new QueryCommand({TableName:process.env.PUSH_TOKENS_TABLE,IndexName:'SubjectIdIndex',KeyConditionExpression:'subjectId = :driver',ExpressionAttributeValues:{':driver':item.driverId},ExclusiveStartKey:cursor}));
     for(const record of result.Items || []){
-     if(record.app!=='driver' || !record.token)continue;
+     if(record.app!==(item.recipientApp || 'driver') || !record.token)continue;
      hadToken=true;
      const hash=digest(record.token);
      if(delivered.has(hash))continue;

@@ -8,6 +8,7 @@ import os
 import boto3
 from jwt import PyJWKClient
 from typing import Dict, Any
+from staff_policy import access as staff_access
 
 # Cognito configuration
 DRIVER_USER_POOL_ID = os.environ['DRIVER_USER_POOL_ID']
@@ -21,14 +22,40 @@ jwk_clients = {
     'admin': PyJWKClient(f'https://cognito-idp.{REGION}.amazonaws.com/{ADMIN_USER_POOL_ID}/.well-known/jwks.json'),
 }
 
+for kind, variable in [('customer','CUSTOMER_USER_POOL_ID'),('merchant','MERCHANT_USER_POOL_ID')]:
+    if os.environ.get(variable):
+        jwk_clients[kind] = PyJWKClient(f"https://cognito-idp.{REGION}.amazonaws.com/{os.environ[variable]}/.well-known/jwks.json")
+
 # Add service pool only if configured
 if SERVICE_USER_POOL_ID:
     jwk_clients['service'] = PyJWKClient(f'https://cognito-idp.{REGION}.amazonaws.com/{SERVICE_USER_POOL_ID}/.well-known/jwks.json')
 
 # RBAC rules: endpoint → allowed user types
 RBAC_RULES = {
+    'GET /wallet/transfers/notifications': ['customer'],
+    'POST /wallet/transfers/notifications': ['customer'],
+    'POST /wallet/transfers/otp/send': ['driver','customer','merchant'],
+    'POST /wallet/transfers/otp/verify': ['driver','customer','merchant'],
+    'POST /wallet/funding/admin/transfer-settings/cancel': ['admin'],
+    'GET /wallet/funding/admin/transfer-settings': ['admin'],
+    'POST /wallet/funding/admin/transfer-settings': ['admin'],
+    'POST /wallet/funding/admin/transfer-settings/approve': ['admin'],
+    'GET /wallet/funding/admin/transfers': ['admin'],
+    'POST /wallet/transfers/cancel': ['driver','customer','merchant'],
+    'POST /wallet/transfers/request': ['driver','customer','merchant'],
+    'GET /wallet/transfers/context': ['driver','customer','merchant'],
+    'GET /wallet/transfers/recipient': ['driver','customer','merchant'],
+    'GET /wallet/transfers/history': ['driver','customer','merchant'],
+    'GET /wallet/transfers/status': ['driver','customer','merchant'],
+    'GET /wallet/transfers/accounts': ['merchant'],
+    'GET /wallet/transfers/members': ['merchant'],
+    'POST /wallet/transfers/members': ['merchant'],
+    'POST /wallet/funding/admin/transfer': ['admin'],
+    'POST /wallet/funding/admin/transfer/approve': ['admin'],
+    'GET /wallet/funding/admin/reconciliation': ['admin'],
     'GET /wallet/funding/admin/transactions': ['admin'],
     'GET /wallet/funding/admin/wallets': ['admin'],
+    'GET /wallet/funding/admin/owners': ['admin'],
     'GET /wallet/me/notifications': ['driver'],
     'GET /wallet/funding/config': ['driver', 'admin'],
     'POST /wallet/funding/receipt': ['driver'],
@@ -60,6 +87,8 @@ RBAC_RULES = {
 
     # Service endpoints (internal use only)
     'POST /wallet/create': ['service'],  # Called by Cognito trigger or backend services
+    'POST /wallet/funding/admin/lifecycle/retry': ['admin'],
+    'GET /wallet/funding/admin/lifecycle': ['admin'],
     'POST /wallet/hold/create': ['service'],
     'POST /wallet/hold/{id}/release': ['service'],
     'POST /wallet/hold/{id}/capture': ['service'],
@@ -104,6 +133,8 @@ def verify_token(token: str) -> tuple:
             pool_ids = {
                 'driver': DRIVER_USER_POOL_ID,
                 'admin': ADMIN_USER_POOL_ID,
+                'customer': os.environ.get('CUSTOMER_USER_POOL_ID'),
+                'merchant': os.environ.get('MERCHANT_USER_POOL_ID'),
             }
             if SERVICE_USER_POOL_ID:
                 pool_ids['service'] = SERVICE_USER_POOL_ID
@@ -117,6 +148,13 @@ def verify_token(token: str) -> tuple:
             continue
 
     return None, None
+
+def verify_live_mobile(token, payload):
+    user = boto3.client('cognito-idp', region_name=REGION).get_user(AccessToken=token)
+    attributes = {item['Name']: item['Value'] for item in user.get('UserAttributes', [])}
+    if attributes.get('sub') != payload.get('sub'):
+        raise Exception('Forbidden')
+    return attributes
 
 def generate_policy(principal_id: str, effect: str, resource: str, context: Dict = None) -> Dict:
     """Generate IAM policy for API Gateway"""
@@ -217,14 +255,32 @@ def lambda_handler(event, context):
         endpoint = f"{http_method} {normalized_path}"
         print(f"Checking endpoint: {endpoint}")
 
+        # Money transfers accept only access tokens from the designated app client.
+        if '/transfer' in normalized_path:
+            expected_client = os.environ.get({'driver':'DRIVER_CLIENT_ID','admin':'ADMIN_CLIENT_ID','customer':'CUSTOMER_CLIENT_ID','merchant':'MERCHANT_CLIENT_ID'}.get(user_type,''))
+            if not expected_client or payload.get('token_use') != 'access' or payload.get('client_id') != expected_client:
+                raise Exception('Forbidden')
+
         # Check RBAC
         allowed_types = RBAC_RULES.get(endpoint, [])
+        # REST API proxy methods arrive as ANY. Only the explicit mobile paths
+        # use this union; the handler enforces the actual verb and ownership.
+        if http_method == 'ANY' and normalized_path.startswith('/wallet/transfers/'):
+            allowed_types = sorted(set(kind for verb in ('GET', 'POST')
+                                       for kind in RBAC_RULES.get(f'{verb} {normalized_path}', [])))
         if user_type not in allowed_types:
             print(f"Access denied: {user_type} not in {allowed_types}")
             raise Exception('Forbidden')
 
+        mobile_attributes = {}
+        if '/transfers/' in normalized_path and user_type in ('driver', 'customer', 'merchant'):
+            mobile_attributes = verify_live_mobile(token, payload) or {}
+
         financial_endpoint = (normalized_path.startswith('/wallet/funding/admin/') or normalized_path == '/wallet/topup/requests' or normalized_path in ('/wallet/topup/{id}/approve', '/wallet/topup/{id}/reject'))
-        if financial_endpoint and 'finance_manager' not in payload.get('cognito:groups', []):
+        employee, permissions = None, set()
+        if user_type == 'admin' and os.environ.get('STAFF_TABLE'):
+            employee, permissions = staff_access(payload, http_method, normalized_path, ADMIN_USER_POOL_ID)
+        elif financial_endpoint and 'finance_manager' not in payload.get('cognito:groups', []):
             raise Exception('Forbidden')
         print(f"Access granted for {user_type}")
 
@@ -232,7 +288,10 @@ def lambda_handler(event, context):
         context = {
             'userType': user_type,
             'userId': payload.get('sub'),
+            'authTime': str(payload.get('auth_time', 0)),
             'username': payload.get('username', ''),
+            'phoneVerified': 'true' if mobile_attributes.get('phone_number_verified') == 'true' else 'false',
+            'verifiedPhone': mobile_attributes.get('phone_number', '') if mobile_attributes.get('phone_number_verified') == 'true' else '',
         }
 
         # Add user-type specific fields
@@ -240,7 +299,10 @@ def lambda_handler(event, context):
             context['driverId'] = payload.get('sub')
         elif user_type == 'admin':
             context['adminId'] = payload.get('sub')
-            context['financeManager'] = 'finance_manager' in payload.get('cognito:groups', [])
+            context['financeManager'] = ('finance.read' in permissions) if employee else ('finance_manager' in payload.get('cognito:groups', []))
+            if employee:
+                context['staffVersion'] = str(employee['version'])
+                context['staffPermissions'] = json.dumps(sorted(permissions))
         elif user_type == 'service':
             context['serviceId'] = payload.get('sub')
             context['serviceName'] = payload.get('custom:service_name', '')

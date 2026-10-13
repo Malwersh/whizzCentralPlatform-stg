@@ -1,0 +1,22 @@
+{
+  "name": "wizz-staging-staff-service",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.896.0",
+    "@aws-sdk/client-dynamodb": "^3.896.0",
+    "@aws-sdk/lib-dynamodb": "^3.896.0",
+    "aws-jwt-verify": "^5.0.0"
+  },
+  "files": [
+    "index.js",
+    "catalog.js",
+    "revocation-worker.js",
+    "invitations.js",
+    "drivers.js",
+    "driver-regions.js"
+  ],
+  "scripts": {
+    "test": "node --test test/*.cjs"
+  }
+}

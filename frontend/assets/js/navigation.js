@@ -841,7 +841,7 @@ class NavigationManager {
         if (window.RBAC) return;
         await new Promise((resolve, reject) => {
             const s = document.createElement('script');
-            s.src = this._prefix('/assets/js/rbac.js');
+            s.src = this._prefix('/assets/js/rbac.js?v=20261012-driver-actions2');
             s.async = true;
             s.onload = () => resolve();
             s.onerror = (e) => reject(new Error('Failed to load RBAC util'));
