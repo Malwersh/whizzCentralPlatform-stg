@@ -715,6 +715,7 @@ class NavigationManager {
                                 <span>Customers</span>
                             </a>
                         </li>
+                        <li class="nav-item" data-page="settings"><a href="settings.html" class="nav-link"><i class="fas fa-cog"></i><span>الإعدادات</span></a></li>
                         <li class="nav-item" data-page="finance"><a href="finance.html" class="nav-link"><i class="fas fa-wallet"></i><span>إدارة شحن المحافظ</span></a></li>
                         <li class="nav-item" data-page="merchants">
                             <a href="merchants.html" class="nav-link">
@@ -841,7 +842,7 @@ class NavigationManager {
         if (window.RBAC) return;
         await new Promise((resolve, reject) => {
             const s = document.createElement('script');
-            s.src = this._prefix('/assets/js/rbac.js');
+            s.src = this._prefix('/assets/js/rbac.js?v=20261013-settings');
             s.async = true;
             s.onload = () => resolve();
             s.onerror = (e) => reject(new Error('Failed to load RBAC util'));

@@ -76,13 +76,7 @@ export class WalletServiceClient {
       if (statusCode === 404) {
         throw new HoldReleaseError(`Hold not found: ${holdId}`);
       } else if (statusCode === 400) {
-        // Hold already released or invalid state
-        console.log('⚠️ Hold already released or invalid state - treating as success');
-        return {
-          success: true,
-          holdId,
-          message: 'Hold already released or not found',
-        };
+        throw new HoldReleaseError(`Hold release was not confirmed: ${errorMessage}`);
       } else if (statusCode === 401 || statusCode === 403) {
         // Authentication/Authorization error
         this.cognitoService.clearCache(); // Clear cached token

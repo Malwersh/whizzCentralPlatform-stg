@@ -50,6 +50,11 @@ provider:
             - arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_PushDeviceTokens_${self:provider.stage}/index/*
         - Effect: Allow
           Action:
+            - dynamodb:ConditionCheckItem
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/staging-AccountDeletion
+        - Effect: Allow
+          Action:
             - secretsmanager:GetSecretValue
           Resource: "*"
 

@@ -1,3 +1,4 @@
+import {lifecycleJob,lifecycleCompletion} from './lifecycleJob';
 import { docClient, TABLES, GetCommand, QueryCommand, ScanCommand, TransactWriteCommand } from './db';
 import {
   Hold,
@@ -51,6 +52,9 @@ export class HoldService {
     // Validate
     validateAmount(amount);
     
+    const prior = await docClient.send(new GetCommand({TableName:TABLES.HOLDS,Key:{orderId,sk:'HOLD'},ConsistentRead:true}));
+    if(prior.Item?.status==='ACTIVE'&&prior.Item.walletId===walletId&&prior.Item.amount===amount&&(prior.Item.metadata?.assignmentAttempt||1)===(assignmentAttempt||1))return {success:true,hold:prior.Item as Hold,message:'Hold already exists for this assignment'};
+
     const holdId = generateHoldId();
     const timestamp = getCurrentTimestamp();
 
@@ -59,6 +63,7 @@ export class HoldService {
       new GetCommand({
         TableName: TABLES.WALLETS,
         Key: { walletId, sk: 'META' },
+        ConsistentRead: true,
       })
     );
 
@@ -67,6 +72,7 @@ export class HoldService {
     }
 
     const wallet = walletResult.Item as Wallet;
+    if(wallet.status!=='ACTIVE'||wallet.currency!=='IQD')throw new InvalidHoldStateError('Wallet is unavailable for a new hold');
 
     // Check sufficient balance
     if (wallet.availableBalance < amount) {
@@ -83,7 +89,7 @@ export class HoldService {
       status: 'ACTIVE',
       statusCreatedAt: `ACTIVE#${timestamp}`, // For GSI sorting
       reason: reason || 'Order delivery fee hold',
-      metadata,
+      metadata: {...metadata,assignmentAttempt:assignmentAttempt||1},
       createdAt: timestamp,
       updatedAt: timestamp,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
@@ -94,11 +100,11 @@ export class HoldService {
     
     const debitEntry: LedgerEntry = {
       walletId,
-      sk: generateLedgerSK(timestamp, 'HOLD_DEBIT'),
+      sk: generateLedgerSK(timestamp, 'HOLD_DEBIT#'+txnId),
       transactionId: txnId,
       type: 'DEBIT',
       category: 'HOLD_CREATED',
-      amount: amount,
+      amount: -amount,
       balanceBefore: wallet.availableBalance,
       balanceAfter: wallet.availableBalance - amount,
       relatedEntityId: orderId,
@@ -110,7 +116,7 @@ export class HoldService {
 
     const creditEntry: LedgerEntry = {
       walletId,
-      sk: generateLedgerSK(timestamp, 'HOLD_CREDIT'),
+      sk: generateLedgerSK(timestamp, 'HOLD_CREDIT#'+txnId),
       transactionId: txnId,
       type: 'CREDIT',
       category: 'HOLD_CREATED',
@@ -129,6 +135,7 @@ export class HoldService {
       await docClient.send(
         new TransactWriteCommand({
           TransactItems: [
+            ...lifecycleJob(hold),
             // Create hold - Allow if no hold exists OR previous hold is RELEASED
             {
               Put: {
@@ -154,15 +161,18 @@ export class HoldService {
                   'updatedAt = :timestamp, ' +
                   '#version = #version + :one',
                 ConditionExpression: 
-                  'availableBalance >= :amount AND #version = :currentVersion',
+                  'availableBalance >= :amount AND #version = :currentVersion AND #walletStatus = :activeWallet AND currency = :currency',
                 ExpressionAttributeNames: {
                   '#version': 'version',
+                  '#walletStatus':'status',
                 },
                 ExpressionAttributeValues: {
                   ':amount': amount,
                   ':timestamp': timestamp,
                   ':one': 1,
                   ':currentVersion': wallet.version,
+                  ':activeWallet':'ACTIVE',
+                  ':currency':'IQD',
                 },
               },
             },
@@ -171,6 +181,7 @@ export class HoldService {
               Put: {
                 TableName: TABLES.LEDGER,
                 Item: debitEntry,
+                ConditionExpression: 'attribute_not_exists(sk)',
               },
             },
             // Record credit entry
@@ -178,6 +189,7 @@ export class HoldService {
               Put: {
                 TableName: TABLES.LEDGER,
                 Item: creditEntry,
+                ConditionExpression: 'attribute_not_exists(sk)',
               },
             },
             // Audit log
@@ -187,7 +199,7 @@ export class HoldService {
                 Item: {
                   logId: `LOG#${txnId}`,
                   datePartition: generateDatePartition(new Date(timestamp)),
-                  sk: timestamp,
+                  sk: timestamp+'#'+txnId,
                   action: 'HOLD_CREATED',
                   walletId,
                   amount,
@@ -234,10 +246,11 @@ export class HoldService {
           new GetCommand({
             TableName: TABLES.HOLDS,
             Key: { orderId, sk: 'HOLD' },
+            ConsistentRead: true,
           })
         );
 
-        if (existingHoldResult.Item) {
+        if (existingHoldResult.Item && existingHoldResult.Item.walletId === walletId && existingHoldResult.Item.amount === amount && existingHoldResult.Item.status === 'ACTIVE') {
           return {
             success: true,
             hold: existingHoldResult.Item as Hold,
@@ -272,7 +285,7 @@ export class HoldService {
    * - Delivery failed
    * - Hold expired
    */
-  async releaseHold(request: ReleaseHoldRequest): Promise<ReleaseHoldResponse> {
+  async releaseHold(request: ReleaseHoldRequest, orderGuard?: any): Promise<ReleaseHoldResponse> {
     const { holdId, reason } = request;
     const timestamp = getCurrentTimestamp();
 
@@ -335,6 +348,11 @@ export class HoldService {
 
     const hold = queryResult.Items[0] as Hold;
 
+    const canonical = await docClient.send(new GetCommand({TableName:TABLES.HOLDS,Key:{orderId:hold.orderId,sk:'HOLD'},ConsistentRead:true}));
+    if (!canonical.Item || canonical.Item.holdId !== holdId) throw new InvalidHoldStateError('Hold replaced by another assignment');
+    Object.assign(hold,canonical.Item);
+
+    if(hold.status==='RELEASED'){const current=await docClient.send(new GetCommand({TableName:TABLES.WALLETS,Key:{walletId:hold.walletId,sk:'META'},ConsistentRead:true}));if(!current.Item)throw new WalletNotFoundError('Wallet not found');return {success:true,holdId,message:'Hold already released',walletBalance:{available:current.Item.availableBalance,locked:current.Item.lockedBalance}};}
     // Check hold state
     if (hold.status !== 'ACTIVE') {
       throw new InvalidHoldStateError(
@@ -361,7 +379,7 @@ export class HoldService {
 
     const debitEntry: LedgerEntry = {
       walletId: hold.walletId,
-      sk: generateLedgerSK(timestamp, '0'),
+      sk: generateLedgerSK(timestamp, txnId+'#0'),
       txnId,
       transactionId: txnId,
       type: 'HOLD_RELEASED',
@@ -377,7 +395,7 @@ export class HoldService {
 
     const creditEntry: LedgerEntry = {
       walletId: hold.walletId,
-      sk: generateLedgerSK(timestamp, '1'),
+      sk: generateLedgerSK(timestamp, txnId+'#1'),
       txnId,
       transactionId: txnId,
       type: 'HOLD_RELEASED',
@@ -395,6 +413,8 @@ export class HoldService {
     await docClient.send(
       new TransactWriteCommand({
         TransactItems: [
+          ...(orderGuard ? [orderGuard] : []),
+          ...lifecycleCompletion(hold,'RELEASED'),
           // Update hold status
           {
             Update: {
@@ -402,7 +422,7 @@ export class HoldService {
               Key: { orderId: hold.orderId, sk: 'HOLD' },
               UpdateExpression: 
                 'SET #status = :released, statusCreatedAt = :releasedStatus, updatedAt = :timestamp, releasedAt = :timestamp',
-              ConditionExpression: '#status = :active',
+              ConditionExpression: '#status = :active AND holdId = :expectedHoldId',
               ExpressionAttributeNames: {
                 '#status': 'status',
               },
@@ -410,6 +430,7 @@ export class HoldService {
                 ':released': 'RELEASED',
                 ':releasedStatus': `RELEASED#${timestamp}`,
                 ':active': 'ACTIVE',
+                ':expectedHoldId': holdId,
                 ':timestamp': timestamp,
               },
             },
@@ -424,12 +445,13 @@ export class HoldService {
                 'availableBalance = availableBalance + :amount, ' +
                 'updatedAt = :timestamp, ' +
                 '#version = #version + :one',
-              ConditionExpression: 'lockedBalance >= :amount',
+              ConditionExpression: 'lockedBalance >= :amount AND #version = :currentVersion',
               ExpressionAttributeNames: {
                 '#version': 'version',
               },
               ExpressionAttributeValues: {
                 ':amount': hold.amount,
+                ':currentVersion': wallet.version,
                 ':timestamp': timestamp,
                 ':one': 1,
               },
@@ -440,6 +462,7 @@ export class HoldService {
             Put: {
               TableName: TABLES.LEDGER,
               Item: debitEntry,
+                ConditionExpression: 'attribute_not_exists(sk)',
             },
           },
           // Record credit entry
@@ -447,6 +470,7 @@ export class HoldService {
             Put: {
               TableName: TABLES.LEDGER,
               Item: creditEntry,
+                ConditionExpression: 'attribute_not_exists(sk)',
             },
           },
           // Audit log
@@ -456,7 +480,7 @@ export class HoldService {
               Item: {
                 logId: `LOG#${txnId}`,
                 datePartition: generateDatePartition(new Date(timestamp)),
-                sk: timestamp,
+                sk: timestamp+'#'+txnId,
                 action: 'HOLD_RELEASED',
                 walletId: hold.walletId,
                 amount: hold.amount,
@@ -489,7 +513,7 @@ export class HoldService {
    * - Order delivered successfully
    * - Money transfers from driver to platform/merchant
    */
-  async captureHold(request: CaptureHoldRequest): Promise<CaptureHoldResponse> {
+  async captureHold(request: CaptureHoldRequest, orderGuard?: any): Promise<CaptureHoldResponse> {
     const { holdId, actualAmount, reason } = request;
     const timestamp = getCurrentTimestamp();
 
@@ -548,6 +572,11 @@ export class HoldService {
 
     const hold = queryResult.Items[0] as Hold;
 
+    const canonical = await docClient.send(new GetCommand({TableName:TABLES.HOLDS,Key:{orderId:hold.orderId,sk:'HOLD'},ConsistentRead:true}));
+    if (!canonical.Item || canonical.Item.holdId !== holdId) throw new InvalidHoldStateError('Hold replaced by another assignment');
+    Object.assign(hold,canonical.Item);
+
+    if(hold.status==='CAPTURED'){if(actualAmount!==undefined&&actualAmount!==hold.capturedAmount)throw new InvalidHoldStateError('Capture amount differs from completed capture');return {success:true,holdId,capturedAmount:hold.capturedAmount!,releasedAmount:hold.amount-hold.capturedAmount!,message:'Hold already captured'};}
     // Check hold state
     if (hold.status !== 'ACTIVE') {
       throw new InvalidHoldStateError(
@@ -597,12 +626,12 @@ export class HoldService {
 
     const debitEntry: LedgerEntry = {
       walletId: hold.walletId,
-      sk: generateLedgerSK(timestamp, '0'),
+      sk: generateLedgerSK(timestamp, txnId+'#0'),
       txnId,
       transactionId: txnId,
       type: 'HOLD_CAPTURED',
-      amount: -captureAmount, // Debit from locked
-      balance: wallet.lockedBalance - captureAmount,
+      amount: -hold.amount, // Remove the entire hold; partial remainder is credited separately
+      balance: wallet.lockedBalance - hold.amount,
       relatedEntityId: holdId,
       relatedEntityType: 'HOLD',
       description: `Hold captured for settlement: ${reason || 'Order completed'}`,
@@ -614,7 +643,7 @@ export class HoldService {
     // Credit platform wallet
     const platformCreditEntry: LedgerEntry = {
       walletId: platformWalletId,
-      sk: generateLedgerSK(timestamp, '1'),
+      sk: generateLedgerSK(timestamp, txnId+'#1'),
       txnId,
       transactionId: txnId,
       type: 'SETTLEMENT_RECEIVED',
@@ -631,6 +660,8 @@ export class HoldService {
     // If partial capture, release the remaining amount
     const releaseAmount = hold.amount - captureAmount;
     const transactions: any[] = [
+      ...(orderGuard ? [orderGuard] : []),
+      ...lifecycleCompletion(hold,'CAPTURED'),
       // Update hold status
       {
         Update: {
@@ -638,7 +669,7 @@ export class HoldService {
           Key: { orderId: hold.orderId, sk: 'HOLD' },
           UpdateExpression:
             'SET #status = :captured, statusCreatedAt = :capturedStatus, updatedAt = :timestamp, capturedAt = :timestamp, capturedAmount = :captureAmount',
-          ConditionExpression: '#status = :active',
+          ConditionExpression: '#status = :active AND holdId = :expectedHoldId',
           ExpressionAttributeNames: {
             '#status': 'status',
           },
@@ -646,6 +677,7 @@ export class HoldService {
             ':captured': 'CAPTURED',
             ':capturedStatus': `CAPTURED#${timestamp}`,
             ':active': 'ACTIVE',
+                ':expectedHoldId': holdId,
             ':timestamp': timestamp,
             ':captureAmount': captureAmount,
           },
@@ -661,12 +693,13 @@ export class HoldService {
             (releaseAmount > 0 ? 'availableBalance = availableBalance + :releaseAmount, ' : '') +
             'updatedAt = :timestamp, ' +
             '#version = #version + :one',
-          ConditionExpression: 'lockedBalance >= :holdAmount',
+          ConditionExpression: 'lockedBalance >= :holdAmount AND #version = :currentVersion',
           ExpressionAttributeNames: {
             '#version': 'version',
           },
           ExpressionAttributeValues: {
             ':holdAmount': hold.amount,
+            ':currentVersion': wallet.version,
             ...(releaseAmount > 0 ? { ':releaseAmount': releaseAmount } : {}),
             ':timestamp': timestamp,
             ':one': 1,
@@ -682,11 +715,13 @@ export class HoldService {
             'SET availableBalance = availableBalance + :captureAmount, ' +
             'updatedAt = :timestamp, ' +
             '#version = #version + :one',
+          ConditionExpression: '#version = :currentVersion',
           ExpressionAttributeNames: {
             '#version': 'version',
           },
           ExpressionAttributeValues: {
             ':captureAmount': captureAmount,
+            ':currentVersion': platformWallet.version,
             ':timestamp': timestamp,
             ':one': 1,
           },
@@ -697,6 +732,7 @@ export class HoldService {
         Put: {
           TableName: TABLES.LEDGER,
           Item: debitEntry,
+                ConditionExpression: 'attribute_not_exists(sk)',
         },
       },
       // Record platform credit entry
@@ -704,6 +740,7 @@ export class HoldService {
         Put: {
           TableName: TABLES.LEDGER,
           Item: platformCreditEntry,
+                ConditionExpression: 'attribute_not_exists(sk)',
         },
       },
       // Audit log
@@ -713,7 +750,7 @@ export class HoldService {
           Item: {
             logId: `LOG#${txnId}`,
             datePartition: generateDatePartition(new Date(timestamp)),
-            sk: timestamp,
+            sk: timestamp+'#'+txnId,
             action: 'HOLD_CAPTURED',
             walletId: hold.walletId,
             amount: captureAmount,
@@ -738,7 +775,7 @@ export class HoldService {
           TableName: TABLES.LEDGER,
           Item: {
             walletId: hold.walletId,
-            sk: generateLedgerSK(timestamp, '1'),
+            sk: generateLedgerSK(timestamp, txnId+'#1'),
             txnId,
             transactionId: txnId,
             type: 'HOLD_PARTIAL_RELEASE',
@@ -751,6 +788,7 @@ export class HoldService {
             timestamp,
             createdAt: timestamp,
           } as LedgerEntry,
+          ConditionExpression: 'attribute_not_exists(sk)',
         },
       });
     }
