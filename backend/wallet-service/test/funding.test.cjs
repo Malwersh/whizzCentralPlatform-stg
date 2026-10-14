@@ -15,14 +15,17 @@ test('retry returns the original request and prevents changes under the same key
 test('new request reserves transfer reference and receipt atomically without increasing balance',async()=>{
  let transaction;let reads=0;
  docClient.send=async command=>{
-  if(command.constructor.name==='GetCommand')return ++reads===1?{}:{Item:{walletId:'WALLET#DRIVER#driver-id'}};
+  if(command.constructor.name==='GetCommand')return ++reads===1?{}:{Item:{walletId:'WALLET#DRIVER#driver-id',status:'ACTIVE',version:1}};
   transaction=command.input;return {};
  };
  const result=await service.createTopupRequest(request);
  assert.equal(result.topupRequest.status,'PENDING');
  const items=transaction.TransactItems;
  assert.equal(items.filter(x=>x.Put?.TableName.includes('Idempotency')).length,3);
- assert.equal(items.some(x=>x.Update),false);
+ const fence=items.find(x=>x.Update?.Key.walletId).Update;
+ assert.match(fence.ConditionExpression,/attribute_not_exists\(deletionRequestId\)/);
+ assert.equal(fence.UpdateExpression,'SET #v = #v + :one');
+ assert.equal(fence.UpdateExpression.includes('availableBalance'),false);
 });
 test('configuration cannot enable payment providers before integration',async()=>{
  let write;
@@ -48,7 +51,7 @@ test('approval atomically records credit, ledger, status, retry key and daily li
   if(command.constructor.name==='TransactWriteCommand'){tx=command.input;return {};}
   const key=command.input.Key;
   if(key?.topupId)return {Item:{...request,topupId:'topup',walletId:'WALLET#DRIVER#driver-id',createdById:'driver-id',status:'PENDING'}};
-  if(key?.walletId)return {Item:{walletId:key.walletId,availableBalance:0,version:1}};
+  if(key?.walletId)return {Item:{walletId:key.walletId,availableBalance:0,version:1,status:'ACTIVE'}};
   return {};
  };
  const result=await service.approveTopupRequest({topupId:'topup',approvedById:'manager',approvedByRole:'finance_manager'});
@@ -56,7 +59,9 @@ test('approval atomically records credit, ledger, status, retry key and daily li
  const items=tx.TransactItems;
  const wallets=items.filter(x=>x.Update?.TableName===require('../dist/db').TABLES.WALLETS);
  assert.equal(wallets.length,2);
- for(const w of wallets)assert.equal(w.Update.ConditionExpression,'#version = :expectedVersion');
+ for(const w of wallets)assert.match(w.Update.ConditionExpression,/#version = :expectedVersion/);
+ const driverWallet=wallets.find(w=>w.Update.Key.walletId==='WALLET#DRIVER#driver-id').Update;
+ assert.match(driverWallet.ConditionExpression,/#s = :active AND attribute_not_exists\(deletionRequestId\)/);
  assert.equal(items.filter(x=>x.Put?.TableName===require('../dist/db').TABLES.LEDGER).length,2);
  assert.match(items.find(x=>x.Update?.Key.idempotencyKey?.startsWith('FINANCE_DAILY#')).Update.ConditionExpression,/approvedAmount <= :remaining/);
  assert.equal(items.find(x=>x.Put?.Item.eventId)?.Put.Item.type,'wallet_topup_approved');
@@ -67,4 +72,20 @@ test('approved, rejected and self-created requests cannot be credited',async()=>
   docClient.send=async command=>command.input.Key?.topupId?{Item:{...request,status:'PENDING',createdById:'driver-id',...change}}:{};
   await assert.rejects(()=>service.approveTopupRequest({topupId:'topup',approvedById:'manager',approvedByRole:'finance_manager'}));
  }
+});
+test('closing or closed driver wallet cannot be credited by a finance approval',async()=>{
+ for(const status of ['SUSPENDED','CLOSED']){
+  let wrote=false;
+  docClient.send=async c=>{if(c.constructor.name==='TransactWriteCommand'){wrote=true;return {};}
+   if(c.input.Key?.topupId)return {Item:{...request,topupId:'topup',walletId:'WALLET#DRIVER#driver-id',createdById:'driver-id',status:'PENDING'}};
+   if(c.input.Key?.walletId)return {Item:{walletId:c.input.Key.walletId,status,availableBalance:0,version:1}};return {};
+  };
+  await assert.rejects(()=>service.approveTopupRequest({topupId:'topup',approvedById:'manager',approvedByRole:'finance_manager'}),e=>e.code==='ACCOUNT_CLOSING');
+  assert.equal(wrote,false);
+ }
+});
+test('topup creation rejects a wallet with a deletion marker before storing an intent',async()=>{
+ let wrote=false;
+ docClient.send=async c=>{if(c.constructor.name==='TransactWriteCommand'){wrote=true;return {};}return c.input.Key?.walletId?{Item:{walletId:c.input.Key.walletId,status:'ACTIVE',version:1,deletionRequestId:'request'}}:{};};
+ await assert.rejects(()=>service.createTopupRequest(request),e=>e.code==='ACCOUNT_CLOSING');assert.equal(wrote,false);
 });

@@ -1,4 +1,15 @@
 {
+  "settings_viewer": [
+    "settings.read"
+  ],
+  "settings_manager": [
+    "settings.read",
+    "settings.change.request"
+  ],
+  "settings_approver": [
+    "settings.read",
+    "settings.change.approve"
+  ],
   "staff_manager": [
     "staff.read",
     "staff.invite",
@@ -104,6 +115,9 @@
     "staff.read"
   ],
   "bootstrap_admin": [
+    "settings.read",
+    "settings.change.request",
+    "settings.change.approve",
     "staff.read",
     "staff.invite",
     "staff.change.request",

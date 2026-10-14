@@ -41,11 +41,13 @@ export async function requestTransfer(actor: TransferActor, input: any) {
   if(!settings.enabled)throw error('التحويلات موقوفة من الإعدادات','TRANSFERS_DISABLED',409);
   if(actor.type!=='FINANCE'){const mobile=actor.account||{principalId:actor.id,ownerId:actor.id,type:actor.type,walletId:source};actor={...actor,stepUp:await transferVerification(mobile,input,settings.reauthSeconds)};}
   recent(actor,settings);
-  await wallet(source);await wallet(input.recipientWalletId);
+  const sourceSnapshot=await wallet(source),destinationSnapshot=await wallet(input.recipientWalletId);
   const operation={...key(input.requestId),transferId:input.requestId,sourceWalletId:source,recipientWalletId:input.recipientWalletId,amount:input.amount,currency:'IQD',reason:input.reason.trim(),requestedBy:actor.id,requestedByStaffVersion:staff?.version,settingsVersion:settings.version,createdAt:new Date().toISOString(),expiresAt:Math.floor(Date.now()/1000)+settings.requestTtlSeconds,status:actor.type==='FINANCE'?'PENDING_APPROVAL':'COMPLETED'};
   if(actor.type!=='FINANCE')return execute(operation,actor,false);
   try {
-    await docClient.send(new TransactWriteCommand({TransactItems:[...(staff?[staffGuard(staff)]:[]),settingsGuard(settings),{Put:{TableName:TABLES.IDEMPOTENCY_KEYS,Item:operation,ConditionExpression:'attribute_not_exists(idempotencyKey)'}},audit(operation,actor.id,'TRANSFER_REQUESTED')]}));
+    // Pending intents also advance wallet versions. This serializes their
+    // creation with a deletion eligibility lock without debiting any money.
+    await docClient.send(new TransactWriteCommand({TransactItems:[...(staff?[staffGuard(staff)]:[]),settingsGuard(settings),...([sourceSnapshot,destinationSnapshot].map(w=>({Update:{TableName:TABLES.WALLETS,Key:{walletId:w.walletId,sk:'META'},UpdateExpression:'SET #v = #v + :one',ConditionExpression:'#s = :active AND #v = :version AND attribute_not_exists(deletionRequestId)',ExpressionAttributeNames:{'#s':'status','#v':'version'},ExpressionAttributeValues:{':active':'ACTIVE',':version':w.version,':one':1}}}))),{Put:{TableName:TABLES.IDEMPOTENCY_KEYS,Item:operation,ConditionExpression:'attribute_not_exists(idempotencyKey)'}},audit(operation,actor.id,'TRANSFER_REQUESTED')]}));
     return operation;
   } catch(e:any) {
     if(e.name==='TransactionCanceledException'){const retry=await record(input.requestId);if(retry){same(retry,input,source,actor.id);return retry;}}

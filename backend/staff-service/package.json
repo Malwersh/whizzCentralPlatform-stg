@@ -15,7 +15,9 @@
     "invitations.js",
     "drivers.js",
     "driver-regions.js",
-    "operational-settings.js"
+    "operational-settings.js",
+    "account-deletion.js",
+    "deletion-worker.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs"

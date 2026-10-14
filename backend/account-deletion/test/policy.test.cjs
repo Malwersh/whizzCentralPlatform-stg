@@ -15,3 +15,12 @@ test('owner account requires transfer or closing all owned businesses',()=>asser
 test('employee membership removal is separate from business deletion',()=>assert.deepEqual(blockers({sub:'member',type:'MERCHANT'},{kind:'MEMBERSHIP'},{...empty,isMember:true,isOwner:false}),[]));
 test('last required administrator needs succession, not deletion of platform data',()=>assert.equal(blockers({sub:'admin',type:'STAFF'},scope,{...empty,lastRequiredAdministrator:true})[0].code,'ADMIN_HANDOVER'));
 test('partial cleanup cannot report completed',()=>{const r={status:'PROCESSING',requiredSteps:['profile','devices','identity']};assert.equal(canFinish(r,{profile:{status:'COMPLETED'}}),false);assert.equal(canFinish(r,{profile:{status:'COMPLETED'},devices:{status:'COMPLETED'},identity:{status:'COMPLETED'}}),true);});
+
+test("normalized merchant scope retains its SMS target",()=>{const a={type:"MERCHANT",sub:"owner"};const scope=target(a,{kind:"BUSINESS",businessId:"store"});assert.deepEqual(target(a,scope),scope);assert.throws(()=>target(a,{kind:"BUSINESS",businessId:"store",id:"other"}),/INVALID_SCOPE/);});
+
+test('inaccessible legacy asset storage is an explicit deletion blocker',()=>{
+ const issues=require('../policy').blockers({type:'MERCHANT',sub:'owner'},{kind:'BUSINESS',id:'store'},{complete:true,isOwner:true,wallets:[],externalAssets:['businessPhotoUrl']});
+ assert.equal(issues[0].code,'EXTERNAL_ASSET_ACCESS_REQUIRED');
+});
+
+test('external asset access is distinguished from money settlement',()=>assert.equal(require('../policy').decision([{code:'EXTERNAL_ASSET_ACCESS_REQUIRED'}],{}),'PENDING_EXTERNAL_ASSET'));

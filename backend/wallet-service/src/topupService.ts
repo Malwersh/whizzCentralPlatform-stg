@@ -94,6 +94,7 @@ export class TopupService {
     if (!walletResult.Item) {
       throw new WalletNotFoundError(`Wallet not found for driver: ${driverId}`);
     }
+    if (walletResult.Item.status !== 'ACTIVE' || walletResult.Item.deletionRequestId) throw fundingError('هذه المحفظة غير متاحة للشحن','ACCOUNT_CLOSING',409);
 
     // Create topup request
     const topupRequest: TopupRequest = {
@@ -126,6 +127,8 @@ export class TopupService {
     await docClient.send(
       new TransactWriteCommand({
         TransactItems: [
+          {Update: {TableName: TABLES.WALLETS, Key: {walletId, sk:'META'}, UpdateExpression:'SET #v = #v + :one', ConditionExpression:'#s = :active AND attribute_not_exists(deletionRequestId) AND #v = :v', ExpressionAttributeNames:{'#s':'status','#v':'version'}, ExpressionAttributeValues:{':active':'ACTIVE',':v':walletResult.Item.version,':one':1}}},
+          ...(process.env.ACCOUNT_DELETION_TABLE && /^receipts\/[A-Za-z0-9_-]+\/[a-f0-9-]{36}\.(jpg|png)$/.test(evidenceRef!) ? [{Delete:{TableName:process.env.ACCOUNT_DELETION_TABLE,Key:{pk:`ACCOUNT_OPERATION#DRIVER#${driverId}`,sk:'FUNDING_RECEIPT#'+evidenceRef!.split('/').at(-1)!.split('.')[0]},ConditionExpression:'attribute_not_exists(pk) OR (assetKey = :asset AND subjectId = :sub)',ExpressionAttributeValues:{':asset':evidenceRef!,':sub':driverId}}}] : []),
           ...[referenceHash(request.transferReference!), referenceHash(evidenceRef!)].map((hash, index) => ({Put: {TableName: TABLES.IDEMPOTENCY_KEYS, Item: {idempotencyKey: `FUNDING_${index === 0 ? 'REFERENCE' : 'RECEIPT'}#${hash}`, sk:'META', topupId, driverId}, ConditionExpression: 'attribute_not_exists(idempotencyKey)'}})),
           {
             Put: {
@@ -258,6 +261,7 @@ export class TopupService {
     }
 
     const wallet = walletResult.Item as Wallet;
+    if (wallet.status !== 'ACTIVE' || walletResult.Item.deletionRequestId) throw fundingError('هذه المحفظة غير متاحة للشحن','ACCOUNT_CLOSING',409);
 
     // Get platform wallet
     const platformWalletId = getPlatformWalletId();
@@ -382,15 +386,17 @@ export class TopupService {
                 'SET availableBalance = availableBalance + :amount, ' +
                 'updatedAt = :timestamp, ' +
                 '#version = #version + :one',
-              ConditionExpression: '#version = :expectedVersion',
+              ConditionExpression: '#version = :expectedVersion AND #s = :active AND attribute_not_exists(deletionRequestId)',
               ExpressionAttributeNames: {
                 '#version': 'version',
+                '#s': 'status',
               },
               ExpressionAttributeValues: {
                 ':amount': topup.amount,
                 ':timestamp': timestamp,
                 ':one': 1,
                 ':expectedVersion': wallet.version,
+                ':active': 'ACTIVE',
               },
             },
           },

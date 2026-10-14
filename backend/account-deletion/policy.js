@@ -8,8 +8,10 @@ function target(actor,scope){
  if(!scope||!['ACCOUNT','BUSINESS','MEMBERSHIP'].includes(scope.kind))throw error('INVALID_SCOPE');
  if(actor.type!=='MERCHANT'&&scope.kind!=='ACCOUNT')throw error('INVALID_SCOPE');
  if(scope.kind==='ACCOUNT')return {kind:'ACCOUNT',id:actor.sub,type:actor.type};
- if(typeof scope.businessId!=='string'||!/^[A-Za-z0-9_-]{1,100}$/.test(scope.businessId))throw error('INVALID_SCOPE');
- return {kind:scope.kind,id:scope.businessId,type:actor.type};
+ const businessId=scope.businessId ?? (scope.type===actor.type?scope.id:undefined);
+ if(scope.businessId&&scope.id&&scope.businessId!==scope.id)throw error('INVALID_SCOPE');
+ if(typeof businessId!=='string'||!/^[A-Za-z0-9_-]{1,100}$/.test(businessId))throw error('INVALID_SCOPE');
+ return {kind:scope.kind,id:businessId,type:actor.type};
 }
 function blockers(actor,scope,evidence){
  if(!evidence||evidence.complete!==true)throw error('EVIDENCE_UNAVAILABLE');
@@ -21,6 +23,8 @@ function blockers(actor,scope,evidence){
  if(actor.type==='STAFF'&&evidence.lastRequiredAdministrator)issues.push({code:'ADMIN_HANDOVER',action:'ASSIGN_SUCCESSOR'});
  if(evidence.activeOrders?.length)issues.push({code:'ACTIVE_ORDERS',action:actor.type==='DRIVER'?'FINISH_OR_REASSIGN':'RESOLVE_ORDERS'});
  if(evidence.pendingTransfers?.length)issues.push({code:'PENDING_TRANSFERS',action:'RESOLVE_TRANSFERS'});
+ if(evidence.externalAssets?.length)issues.push({code:'EXTERNAL_ASSET_ACCESS_REQUIRED',action:'VERIFY_LEGACY_STORAGE_ACCESS'});
+ if(evidence.pendingPayments?.length)issues.push({code:'PENDING_PAYMENTS',action:'RESOLVE_PAYMENTS'});
  if(evidence.activeHolds?.length)issues.push({code:'ACTIVE_HOLDS',action:'RESOLVE_ORDER_HOLDS'});
  for(const wallet of evidence.wallets||[]){
   if(!Number.isSafeInteger(wallet.available)||!Number.isSafeInteger(wallet.locked))throw error('EVIDENCE_UNAVAILABLE');
@@ -30,6 +34,7 @@ function blockers(actor,scope,evidence){
  return issues;
 }
 function decision(issues,settings){
+ if(issues.length&&issues.every(i=>i.code==='EXTERNAL_ASSET_ACCESS_REQUIRED'))return 'PENDING_EXTERNAL_ASSET';
  if(issues.length)return 'PENDING_SETTLEMENT';
  if(!settings?.inventoryApproved||!settings?.retentionPolicyVersion)return 'PENDING_POLICY';
  return 'READY'; // No mandatory cooling-off period.

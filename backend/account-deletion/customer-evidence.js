@@ -1,8 +1,9 @@
 'use strict';
 const {GetCommand,QueryCommand,ScanCommand}=require('@aws-sdk/lib-dynamodb');
 const {error}=require('./policy');
-const TABLES={profiles:'WizzUser_users_staging',legacyWallets:'WizzUser_wallets_staging',wallets:'staging-Wallets',orders:'WizzOrders',holds:'staging-Holds',transfers:'staging-IdempotencyKeys'};
-const finishedOrders=new Set(['delivered','completed','cancelled','canceled','rejected','refunded']);
+const TABLES={profiles:'WizzUser_users_staging',legacyWallets:'WizzUser_wallets_staging',legacyTransactions:'WizzUser_transactions_staging',wallets:'staging-Wallets',orders:'WizzOrders',holds:'staging-Holds',transfers:'staging-IdempotencyKeys'};
+const finishedOrders=new Set(['delivered','completed','cancelled','canceled','rejected','refunded',
+ 'canceled_by_user','canceled_by_store','canceled_by_restaurant','canceled_by_driver','canceled_by_system']);
 const finishedTransfers=new Set(['COMPLETED','REJECTED','CANCELLED','CANCELED']);
 function belongs(profile,actor){
  return profile.userId===actor.sub||profile.cognitoSub===actor.sub||profile.cognitoUsername===actor.username||(actor.attrs?.email_verified==='true'&&profile.email===actor.attrs.email&&profile.cognitoUsername===actor.attrs.email);
@@ -44,16 +45,18 @@ function customerEvidence({db,maxPages=100}){
   const legacy=new Map();
   for(const id of ids)for(const row of await query(TABLES.legacyWallets,'userId-index','userId',id)){
    if(!ids.includes(row.userId)||!row.walletId||row.currency!=='IQD'||!Number.isSafeInteger(row.balance))throw error('EVIDENCE_UNAVAILABLE');
-   legacy.set(row.walletId,{walletId:row.walletId,available:row.balance,locked:0,source:'ORDER_PAYMENT'});
+   legacy.set(row.walletId,{walletId:row.walletId,ownerId:row.userId,available:row.balance,locked:0,source:'ORDER_PAYMENT'});
   }
   wallets.push(...legacy.values());
   const walletIds=[...new Set([walletId,...wallets.map(w=>w.walletId)])];
   const orders=await scanOwned(TABLES.orders,['userId','customerId','userSub'],ids,row=>!finishedOrders.has(String(row.status||'').toLowerCase()));
   const holds=await scanOwned(TABLES.holds,['walletId'],walletIds,row=>row.status==='ACTIVE');
   const transfers=await scanOwned(TABLES.transfers,['sourceWalletId','recipientWalletId'],walletIds,row=>row.transferId&&!finishedTransfers.has(row.status));
+  const paymentStates=new Set(['SUCCESS','COMPLETED','FAILED','CANCELLED','CANCELED','REFUNDED']);
+  const payments=await scanOwned(TABLES.legacyTransactions,['userId','walletId'],[...ids,...walletIds],row=>!paymentStates.has(String(row.status||'').toUpperCase()));
   // Snapshot only: the execution adapter must obtain a conditional eligibility lock and
   // enforce it in order/transfer services before these facts authorize irreversible cleanup.
-  return {complete:true,profileIds:[...profiles.keys()],wallets,activeOrders:orders.map(o=>({orderId:o.orderId,status:o.status})),activeHolds:holds.map(h=>({orderId:h.orderId,status:h.status})),pendingTransfers:transfers.map(t=>({transferId:t.transferId,status:t.status}))};
+  return {complete:true,profileIds:[...profiles.keys()],wallets,activeOrders:orders.map(o=>({orderId:o.orderId,status:o.status})),activeHolds:holds.map(h=>({orderId:h.orderId,status:h.status})),pendingTransfers:transfers.map(t=>({transferId:t.transferId,status:t.status})),pendingPayments:payments.map(p=>({transactionId:p.transactionId,status:p.status}))};
  };
 }
 module.exports={customerEvidence,belongs,TABLES};

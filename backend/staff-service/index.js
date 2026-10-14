@@ -7,6 +7,7 @@ const {CognitoJwtVerifier}=require('aws-jwt-verify');
 const invitations=require('./invitations');
 const driverRoutes=require('./drivers');
 const settingsRoutes=require('./operational-settings');
+const deletionRoutes=require('./account-deletion');
 const {ROLES,LABELS,effective,allowed,validateAssignment}=require('./catalog');
 const db=DynamoDBDocumentClient.from(new DynamoDBClient({}),{marshallOptions:{removeUndefinedValues:true}}),cognito=new CognitoIdentityProviderClient({});
 const table=process.env.STAFF_TABLE;
@@ -24,8 +25,8 @@ async function handler(event){
  try{
   const token=(event.headers?.Authorization||event.headers?.authorization||'').replace(/^Bearer\s+/i,'');let claims;
   try{claims=await verifier.verify(token);}catch(_){return response(401,{error:'UNAUTHORIZED'});}
-  const actor=await employee(claims.sub);if(!actor)throw fail('EMPLOYEE_INACTIVE');
-  const live=await cognito.send(new AdminGetUserCommand({UserPoolId:process.env.USER_POOL_ID,Username:claims.username}));if(!live.Enabled)throw fail('EMPLOYEE_INACTIVE');
+  const actor=await employee(claims.sub);if(!actor||actor.employeeId!==claims.sub||['DELETING','DELETED'].includes(actor.status))throw fail('EMPLOYEE_INACTIVE');
+  const live=await cognito.send(new AdminGetUserCommand({UserPoolId:process.env.USER_POOL_ID,Username:claims.username}));if(!live.Enabled||live.UserAttributes?.find(a=>a.Name==='sub')?.Value!==claims.sub)throw fail('EMPLOYEE_INACTIVE');
   const enrolled=live.UserMFASettingList?.includes('SOFTWARE_TOKEN_MFA')===true;
   if(event.httpMethod==='POST'&&event.path==='/staff/enrollment/finish'){
    if(actor.status==='ACTIVE')return response(200,{active:true});
@@ -50,6 +51,7 @@ async function handler(event){
   }
   if(method==='GET'&&path.startsWith('/staff/drivers'))return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE},actor,method,path));
   let input;try{input=JSON.parse(event.body||'{}');if(!input||typeof input!=='object'||Array.isArray(input))throw Error();}catch(_){throw fail('INVALID_BODY',400);}
+  if(path.startsWith('/staff/deletions/'))return response(200,await deletionRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,enrolled,allowed,query:event.queryStringParameters},actor,method,path,input));
   if(path.startsWith('/staff/settings/'))return response(200,await settingsRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled},actor,method,path,input));
   if(method==='POST'&&path==='/staff/drivers/edit')return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE,guard,audit,id:randomUUID},actor,method,path,input));
   const invitationContext={db,cognito,table,pool:process.env.USER_POOL_ID,guard,audit,validateRegions};
@@ -67,7 +69,7 @@ async function handler(event){
    requirePermission('staff.change.request');recent(claims);
    if(!validId(input.employeeId))throw fail('INVALID_EMPLOYEE_ID',400);
    if(input.employeeId===actor.employeeId)throw fail('SELF_CHANGE_FORBIDDEN');
-   const target=await employee(input.employeeId);if(!target)throw fail('EMPLOYEE_NOT_FOUND',404);if(target.roles.includes('bootstrap_admin'))throw fail('BOOTSTRAP_ACCOUNT_PROTECTED');
+   const target=await employee(input.employeeId);if(!target)throw fail('EMPLOYEE_NOT_FOUND',404);if(target.roles.includes('bootstrap_admin'))throw fail('BOOTSTRAP_ACCOUNT_PROTECTED');if(['DELETING','DELETED'].includes(target.status))throw fail('EMPLOYEE_INACTIVE');
    if(!Number.isInteger(input.version)||input.version!==target.version)throw fail('VERSION_CONFLICT',409);
    let assignment;try{assignment=validateAssignment(input);}catch(e){throw fail(e.message,400);}
    await validateRegions(assignment);
@@ -80,7 +82,7 @@ async function handler(event){
    if(!change||change.status!=='PENDING'||change.expiresAt<=Math.floor(Date.now()/1000))throw fail('CHANGE_NOT_PENDING',409);
    if(change.requestedBy===actor.employeeId||change.employeeId===actor.employeeId)throw fail('SELF_APPROVAL_FORBIDDEN');
    const requester=await employee(change.requestedBy);if(!allowed(requester,'staff.change.request')||requester.version!==change.requestedByVersion)throw fail('REQUESTER_PERMISSION_REVOKED');
-   const target=await employee(change.employeeId);if(!target||target.roles.includes('bootstrap_admin'))throw fail('PROTECTED_ACCOUNT');
+   const target=await employee(change.employeeId);if(!target||target.roles.includes('bootstrap_admin')||['DELETING','DELETED'].includes(target.status))throw fail('PROTECTED_ACCOUNT');
    const assignment=validateAssignment(change.assignment);await validateRegions(assignment);const revocation={pk:'REVOCATIONS',sk:change.changeId,employeeId:target.employeeId,username:target.username,createdAt:new Date().toISOString()};const next={...target,...assignment,...(!target.activatedAt&&target.mfaRequired&&assignment.status==='ACTIVE'?{status:'INVITED',activationApproved:true,mfaRequired:true}:{}),version:target.version+1,updatedAt:new Date().toISOString(),updatedBy:actor.employeeId};
    await db.send(new TransactWriteCommand({TransactItems:[guard(actor),guard(requester),{Put:{TableName:table,Item:next,ConditionExpression:'#v = :v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':change.baseVersion}}},{Update:{TableName:table,Key:{pk:change.pk,sk:change.sk},UpdateExpression:'SET #s = :approved, approvedBy = :actor',ConditionExpression:'#s = :pending AND expiresAt > :now',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':approved':'APPROVED',':pending':'PENDING',':actor':actor.employeeId,':now':Math.floor(Date.now()/1000)}}},{Put:{TableName:table,Item:revocation,ConditionExpression:'attribute_not_exists(sk)'}},audit(actor.employeeId,'STAFF_CHANGE_APPROVED',target,next,change.changeId)]}));
    let sessionsRevoked=true;try{await cognito.send(new AdminUserGlobalSignOutCommand({UserPoolId:process.env.USER_POOL_ID,Username:target.username}));await db.send(new DeleteCommand({TableName:table,Key:{pk:revocation.pk,sk:revocation.sk}}));}catch(_){sessionsRevoked=false;}

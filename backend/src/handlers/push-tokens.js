@@ -3,7 +3,8 @@ const {
   DynamoDBDocumentClient,
   PutCommand,
   DeleteCommand,
-  GetCommand
+  GetCommand,
+  TransactWriteCommand
 } = require('@aws-sdk/lib-dynamodb');
 
 const { verifyJwtMulti } = require('../utils/jwt-multi-verify');
@@ -77,7 +78,8 @@ exports.register = async (event) => {
         return forbidden('Internal registration only supports guest subjectId (must start with GUEST_)');
       }
     } else {
-      const { payload } = await verifyJwtMulti(event, userTypeHintFromApp(app));
+      const { payload, pool } = await verifyJwtMulti(event, userTypeHintFromApp(app));
+      if (pool !== ({user:'users',driver:'drivers',merchant:'merchants'})[app]) return forbidden('Token does not belong to this app');
       subjectId = payload.sub;
 
       // Optional: accept subjectId in payload but enforce match
@@ -89,8 +91,7 @@ exports.register = async (event) => {
     const nowIso = new Date().toISOString();
     const nowEpoch = Date.now();
 
-    await dynamodb.send(
-      new PutCommand({
+    const item={
         TableName: TOKENS_TABLE,
         Item: {
           token,
@@ -109,8 +110,15 @@ exports.register = async (event) => {
           lastSeenAt: nowIso,
           ttl: Math.floor(nowEpoch / 1000) + 60 * 60 * 24 * 180 // 180 days
         }
-      })
-    );
+      };
+    if(allowInternal)await dynamodb.send(new PutCommand(item));
+    else {
+      if(process.env.STAGE!=='staging')throw new Error('Staging push lifecycle configuration required');
+      const type=({user:'CUSTOMER',driver:'DRIVER',merchant:'MERCHANT'})[app];
+      const checks=[{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:`ACCOUNT_LIFECYCLE#${type}#${subjectId}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}];
+      if(app==='merchant'&&businessId)checks.push({ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:`BUSINESS_LIFECYCLE#MERCHANT#${businessId}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}});
+      await dynamodb.send(new TransactWriteCommand({TransactItems:[...checks,{Put:item}]}));
+    }
 
     return ok({ success: true, subjectId, app, platform });
   } catch (e) {

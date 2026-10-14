@@ -346,6 +346,7 @@ Resources:
           WALLET_LIFECYCLE_TABLE: !If [IsSandboxStaging, !Ref WalletLifecycleTable, '']
           ORDERS_TABLE: !If [IsSandboxStaging, 'WizzOrders', '']
           ENVIRONMENT: !Ref Environment
+          ACCOUNT_DELETION_TABLE: !If [IsSandboxStaging, 'staging-AccountDeletion', '']
           STAFF_TABLE: !If [IsSandboxStaging, 'staging-PlatformStaff', '']
           TRANSFER_OTP_SECRET_ARN: !If [IsSandboxStaging, 'arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ', '']
           CUSTOMER_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_TpyyrVkEE', '']
@@ -363,6 +364,16 @@ Resources:
           AUDIT_LOG_TABLE: !Ref AuditLogTableName
           IDEMPOTENCY_KEYS_TABLE: !Ref IdempotencyKeysTableName
       Policies:
+        - !If
+          - IsSandboxStaging
+          - Statement:
+              Effect: Allow
+              Action: [dynamodb:ConditionCheckItem, dynamodb:PutItem, dynamodb:DeleteItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['ACCOUNT_LIFECYCLE#DRIVER#*', 'ACCOUNT_LIFECYCLE#MERCHANT#*', 'BUSINESS_LIFECYCLE#MERCHANT#*', 'MEMBERSHIP_LIFECYCLE#MERCHANT#*', 'ACCOUNT_OPERATION#DRIVER#*']
+          - !Ref AWS::NoValue
         - !If
           - IsSandboxStaging
           - Statement:
