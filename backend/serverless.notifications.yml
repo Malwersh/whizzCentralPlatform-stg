@@ -14,9 +14,15 @@ provider:
 
     # Token registry
     PUSH_TOKENS_TABLE: WizzCentral_PushDeviceTokens_${self:provider.stage}
+    LIVE_ACTIVITIES_TABLE: WizzCentral_OrderLiveActivities_${self:provider.stage}
 
     # Secrets
     FIREBASE_ADMIN_SA_SECRET_ID: ${env:FIREBASE_ADMIN_SA_SECRET_ID, 'wizz/${self:provider.stage}/firebase/admin-service-account'}
+    APNS_AUTH_KEY_SECRET_ID: ${env:APNS_AUTH_KEY_SECRET_ID, 'wizz/${self:provider.stage}/apns/auth-key'}
+
+    # Live Activity config
+    LIVE_ACTIVITY_BUNDLE_ID: ${env:LIVE_ACTIVITY_BUNDLE_ID, 'com.wiz.wizuserapp'}
+    APNS_HOST: ${env:APNS_HOST, 'api.push.apple.com'}
 
     # Internal auth for service-to-service push sends (Wave System -> Notifications)
     NOTIFICATIONS_INTERNAL_KEY: ${env:NOTIFICATIONS_INTERNAL_KEY, ''}
@@ -48,6 +54,8 @@ provider:
           Resource:
             - arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_PushDeviceTokens_${self:provider.stage}
             - arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_PushDeviceTokens_${self:provider.stage}/index/*
+            - arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_OrderLiveActivities_${self:provider.stage}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/WizzCentral_OrderLiveActivities_${self:provider.stage}/index/*
         - Effect: Allow
           Action:
             - secretsmanager:GetSecretValue
@@ -156,6 +164,45 @@ functions:
           method: options
           cors: true
 
+  liveActivityRegister:
+    handler: src/handlers/live-activity-register.register
+    timeout: 15
+    events:
+      - http:
+          path: live-activity/register
+          method: post
+          cors: true
+      - http:
+          path: live-activity/register
+          method: options
+          cors: true
+
+  liveActivityPushUpdate:
+    handler: src/handlers/live-activity-push.sendUpdate
+    timeout: 30
+    events:
+      - http:
+          path: live-activity/push/update
+          method: post
+          cors: true
+      - http:
+          path: live-activity/push/update
+          method: options
+          cors: true
+
+  liveActivityPushEnd:
+    handler: src/handlers/live-activity-push.sendEnd
+    timeout: 30
+    events:
+      - http:
+          path: live-activity/push/end
+          method: post
+          cors: true
+      - http:
+          path: live-activity/push/end
+          method: options
+          cors: true
+
 resources:
   Resources:
     PushDeviceTokensTable:
@@ -190,5 +237,24 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
+
+    OrderLiveActivitiesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: WizzCentral_OrderLiveActivities_${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
 
 plugins: []

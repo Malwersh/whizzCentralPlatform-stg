@@ -7,6 +7,7 @@
 const { assignDriverToOrder } = require('../services/driver-assignment-service');
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { pushForOrder } = require('./live-activity-push');
 
 // Initialize DynamoDB client
 const dynamoDBClient = new DynamoDBClient({ region: "us-east-1" });
@@ -152,10 +153,76 @@ async function processOrderStatusChange(orderId, newStatus, orderData = null) {
                 console.log(`📋 No specific action for status: ${newStatus}`);
         }
 
+        // Update any active iOS Live Activities for this order (best-effort)
+        try {
+            await notifyLiveActivity(orderId, newStatus, order);
+        } catch (liveActivityError) {
+            console.warn(`⚠️ Live activity notification failed for order ${orderId}:`, liveActivityError.message);
+        }
+
     } catch (error) {
         console.error(`❌ Error processing status change for order ${orderId}:`, error);
         throw error;
     }
+}
+
+async function notifyLiveActivity(orderId, newStatus, order) {
+    const terminalStatuses = ['delivered', 'cancelled', 'failed', 'expired', 'rejected'];
+    const eventType = terminalStatuses.includes(newStatus) ? 'end' : 'update';
+
+    const statusLabels = {
+        pending: 'قيد الانتظار',
+        confirmed: 'مؤكد',
+        preparing: 'يتم التحضير',
+        ready_for_pickup: 'جاهز للاستلام',
+        assigned: 'تم تعيين سائق',
+        accepted: 'تم قبول الطلب',
+        heading_to_store: 'السائق في الطريق للمطعم',
+        arrived_at_store: 'السائق وصل للمطعم',
+        picked_up: 'تم استلام الطلب',
+        heading_to_customer: 'السائق في الطريق لك',
+        arrived_at_customer: 'السائق وصل',
+        delivered: 'تم التوصيل',
+        cancelled: 'تم الإلغاء',
+        failed: 'فشل',
+        expired: 'منتهي',
+        rejected: 'مرفوض'
+    };
+
+    const progressMap = {
+        pending: 0.1,
+        confirmed: 0.25,
+        preparing: 0.4,
+        ready_for_pickup: 0.5,
+        assigned: 0.6,
+        accepted: 0.6,
+        heading_to_store: 0.6,
+        arrived_at_store: 0.65,
+        picked_up: 0.8,
+        heading_to_customer: 0.8,
+        arrived_at_customer: 0.95,
+        delivered: 1.0,
+        cancelled: 1.0,
+        failed: 1.0,
+        expired: 1.0,
+        rejected: 1.0
+    };
+
+    const estimated = order.estimatedDeliveryTime;
+    let etaText = '';
+    if (estimated) {
+        const minutes = Math.max(0, Math.ceil((new Date(estimated).getTime() - Date.now()) / 60000));
+        etaText = minutes > 0 ? `التوصيل المتوقع خلال ${minutes} دقيقة` : 'الطلب قريباً';
+    }
+
+    await pushForOrder(orderId, {
+        status: newStatus,
+        statusLabel: statusLabels[newStatus] || newStatus,
+        storeName: order.storeName || order.businessName || '',
+        orderNumber: order.orderNumber || order.orderId || orderId,
+        etaText,
+        progress: progressMap[newStatus] || 0
+    }, eventType);
 }
 
 /**
