@@ -14,6 +14,7 @@ const secrets = new SecretsManagerClient({ region: process.env.AWS_REGION || 'us
 const TABLE_NAME = process.env.LIVE_ACTIVITIES_TABLE;
 const BUNDLE_ID = process.env.LIVE_ACTIVITY_BUNDLE_ID || 'com.wiz.wizuserapp';
 const APNS_HOST = process.env.APNS_HOST || 'api.push.apple.com';
+const APNS_FALLBACK_HOST = process.env.APNS_FALLBACK_HOST || 'api.sandbox.push.apple.com';
 const APNS_SECRET_ID = process.env.APNS_AUTH_KEY_SECRET_ID;
 
 let cachedAuth = null;
@@ -58,19 +59,19 @@ function makeApnsJwt(auth) {
   );
 }
 
-function sendApnsPush(activityPushToken, payload, eventType) {
+function sendApnsPushToHost(host, activityPushToken, payload) {
   return new Promise(async (resolve, reject) => {
     let client;
     try {
       const auth = await getApnsAuth();
       const jwt = makeApnsJwt(auth);
 
-      client = http2.connect(`https://${APNS_HOST}`);
+      client = http2.connect(`https://${host}`);
       const req = client.request({
         ':method': 'POST',
         ':path': `/3/device/${activityPushToken}`,
         ':scheme': 'https',
-        ':authority': APNS_HOST,
+        ':authority': host,
         'authorization': `bearer ${jwt}`,
         'apns-topic': `${BUNDLE_ID}.push-type.liveactivity`,
         'apns-push-type': 'liveactivity',
@@ -106,6 +107,21 @@ function sendApnsPush(activityPushToken, payload, eventType) {
       reject(err);
     }
   });
+}
+
+// Send to the primary host; if APNs rejects the token as belonging to the
+// other environment (debug builds get sandbox tokens), retry on the fallback host.
+async function sendApnsPush(activityPushToken, payload, eventType) {
+  try {
+    return await sendApnsPushToHost(APNS_HOST, activityPushToken, payload);
+  } catch (err) {
+    const reason = err?.data?.reason;
+    if (err?.status === 400 && (reason === 'BadDeviceToken' || reason === 'BadEnvironment')) {
+      console.log(`APNS token rejected on ${APNS_HOST} (${reason}); retrying on ${APNS_FALLBACK_HOST}`);
+      return await sendApnsPushToHost(APNS_FALLBACK_HOST, activityPushToken, payload);
+    }
+    throw err;
+  }
 }
 
 function buildPayload(orderId, statusData, eventType) {
