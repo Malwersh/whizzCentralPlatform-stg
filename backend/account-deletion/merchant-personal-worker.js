@@ -1,12 +1,13 @@
 'use strict';
-const {GetCommand,ScanCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
+const {GetCommand,QueryCommand,ScanCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {AdminGetUserCommand,AdminDisableUserCommand,AdminUserGlobalSignOutCommand,AdminDeleteUserCommand}=require('@aws-sdk/client-cognito-identity-provider');
 const {DeleteConnectionCommand}=require('@aws-sdk/client-apigatewaymanagementapi');
 const {merchantEvidence}=require('./merchant-evidence'),{coordinator}=require('./coordinator'),{dynamoStore}=require('./store'),{retentionSettings}=require('./settings'),{error}=require('./policy');
 const POOL='us-east-1_gtCR3ndzT';
-function createMerchantPersonalWorker({db,cognito,connections,verifiedMutationGuards=false,requestTable='staging-AccountDeletion',settings}){
+function createMerchantPersonalWorker({db,cognito,connections,s3,verifiedMutationGuards=false,requestTable='staging-AccountDeletion',settings}){
  const store=dynamoStore({db,table:requestTable}),evidence=merchantEvidence({db});
  async function rows(table,optional=false){let all=[],cursor;do{let p;try{p=await db.send(new ScanCommand({TableName:table,ConsistentRead:true,ExclusiveStartKey:cursor}));}catch(e){if(optional&&e.name==='ResourceNotFoundException')return [];throw e;}all.push(...p.Items||[]);cursor=p.LastEvaluatedKey;}while(cursor);return all;}
+ async function personRows(sub){const all=[];let cursor;do{let page;try{page=await db.send(new QueryCommand({TableName:'staging-MerchantPlatform',KeyConditionExpression:'pk=:pk',ExpressionAttributeValues:{':pk':'PERSON#'+sub},ConsistentRead:true,ExclusiveStartKey:cursor}));}catch(e){if(e.name==='ResourceNotFoundException')return [];throw e;}all.push(...page.Items||[]);cursor=page.LastEvaluatedKey;}while(cursor);return all;}
  const fence=r=>({ConditionCheck:{TableName:requestTable,Key:{pk:r.pk,sk:r.sk},ConditionExpression:'leaseOwner=:lease AND leaseUntil>:now AND #v=:v AND #s=:processing',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':lease':r.leaseOwner,':now':Math.floor(Date.now()/1000),':v':r.version,':processing':'PROCESSING'}}});
  async function lease(r){const {Item:p}=await db.send(new GetCommand({TableName:requestTable,Key:{pk:r.pk,sk:r.sk},ConsistentRead:true}));if(p?.leaseOwner!==r.leaseOwner||p.version!==r.version||p.leaseUntil<=Date.now()/1000)throw error('LEASE_LOST');}
  async function remove(r,table,row,keys,ownerField){if(row.legalHold||row.retentionHold)throw error('DOCUMENTED_RETENTION_HOLD');await db.send(new TransactWriteCommand({TransactItems:[fence(r),{Delete:{TableName:table,Key:Object.fromEntries(keys.map(k=>[k,row[k]])),ConditionExpression:'#owner=:owner AND (attribute_not_exists(legalHold) OR legalHold=:no) AND (attribute_not_exists(retentionHold) OR retentionHold=:no)',ExpressionAttributeNames:{'#owner':ownerField},ExpressionAttributeValues:{':owner':row[ownerField],':no':false}}}]}));}
@@ -31,10 +32,25 @@ function createMerchantPersonalWorker({db,cognito,connections,verifiedMutationGu
    try{const u=await cognito.send(new AdminGetUserCommand({UserPoolId:POOL,Username:r.subjectId}));if(!u.UserAttributes?.some(a=>a.Name==='sub'&&a.Value===r.subjectId))throw error('IDENTITY_GENERATION_CHANGED');if(step==='disableIdentity'){await cognito.send(new AdminDisableUserCommand({UserPoolId:POOL,Username:r.subjectId}));await cognito.send(new AdminUserGlobalSignOutCommand({UserPoolId:POOL,Username:r.subjectId}));}else await cognito.send(new AdminDeleteUserCommand({UserPoolId:POOL,Username:r.subjectId}));}catch(e){if(e.name!=='UserNotFoundException')throw e;}return;
   }
   if(step==='memberships'){
+   if(r.scope.kind==='ACCOUNT'){
+    let phoneNumber;try{const u=await cognito.send(new AdminGetUserCommand({UserPoolId:POOL,Username:r.subjectId}));phoneNumber=u.UserAttributes?.find(a=>a.Name==='phone_number')?.Value;}catch(e){if(e.name!=='UserNotFoundException')throw e;}
+    await require('./merchant-staff-cleanup').purge({db,r,job,requestTable,phoneNumber});
+   }
    for(const row of await rows('staging-IdempotencyKeys'))if(row.memberId===r.subjectId&&row.idempotencyKey?.startsWith('MERCHANT_FINANCE#')&&(r.scope.kind==='ACCOUNT'||row.idempotencyKey==='MERCHANT_FINANCE#'+r.scope.id+'#'+r.subjectId))await remove(r,'staging-IdempotencyKeys',row,['idempotencyKey','sk'],'memberId');return;
   }
   if(step==='personalData'){
    if(r.scope.kind!=='ACCOUNT')throw error('INVALID_CLEANUP_SCOPE');
+   const platformRows=await personRows(r.subjectId);
+   if(platformRows.some(row=>row.sk.startsWith('ASSET#')))await require('./merchant-onboarding-assets').purge({db,s3,r,job,requestTable});
+   for(const row of platformRows)if(row.pk==='PERSON#'+r.subjectId&&row.subjectId===r.subjectId&&!row.sk.startsWith('ASSET#'))await remove(r,'staging-MerchantPlatform',row,['pk','sk'],'subjectId');
+   let queueCursor;do{const page=await db.send(new QueryCommand({TableName:'staging-MerchantPlatform',KeyConditionExpression:'pk=:pk',ExpressionAttributeValues:{':pk':'REVIEW#MERCHANT'},ConsistentRead:true,ExclusiveStartKey:queueCursor}));for(const row of page.Items||[])if(row.pk==='REVIEW#MERCHANT'&&row.subjectId===r.subjectId)await remove(r,'staging-MerchantPlatform',row,['pk','sk'],'subjectId');queueCursor=page.LastEvaluatedKey;}while(queueCursor);
+   // Transfer verification is personal security data, separate from retained money records.
+   for(const row of await rows('staging-IdempotencyKeys')){
+    if(typeof row.idempotencyKey!=='string'||!row.idempotencyKey.startsWith('TRANSFER_VERIFY#'))continue;
+    const owned=row.principalId===r.subjectId;
+    const pointer=[`TRANSFER_VERIFY#ACTIVE#${r.subjectId}`,`TRANSFER_VERIFY#COOLDOWN#${r.subjectId}`].includes(row.idempotencyKey)||(/^TRANSFER_VERIFY#DAILY#\d+#/.test(row.idempotencyKey)&&row.idempotencyKey.endsWith('#'+r.subjectId));
+    if(owned||pointer)await remove(r,'staging-IdempotencyKeys',row,['idempotencyKey','sk'],owned?'principalId':'idempotencyKey');
+   }
    for(const row of await rows('WhizzMerchants_Users',true)){const owner=['userId','cognitoSub','cognitoUserId'].find(k=>row[k]===r.subjectId);if(owner)await remove(r,'WhizzMerchants_Users',row,['userId'],owner);}
    for(const row of await rows('WizzCentral_PushDeviceTokens_staging'))if(row.subjectId===r.subjectId&&row.app==='merchant')await remove(r,'WizzCentral_PushDeviceTokens_staging',row,['token'],'subjectId');
    for(const row of await rows('WizzUser_websocket_connections_staging'))if(row.userId===r.subjectId){await lease(r);try{await connections.send(new DeleteConnectionCommand({ConnectionId:row.connectionId}));}catch(e){if(e.name!=='GoneException'&&e.$metadata?.httpStatusCode!==410)throw e;}await remove(r,'WizzUser_websocket_connections_staging',row,['connectionId'],'userId');}

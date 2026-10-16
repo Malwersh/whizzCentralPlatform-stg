@@ -1,4 +1,22 @@
 {
+  "pricing_viewer": [
+    "pricing.read",
+    "pricing.simulate"
+  ],
+  "pricing_editor": [
+    "pricing.read",
+    "pricing.simulate",
+    "pricing.request"
+  ],
+  "pricing_approver": [
+    "pricing.read",
+    "pricing.simulate",
+    "pricing.approve"
+  ],
+  "merchant_staff_policy_manager": [
+    "merchant_staff_policy.read",
+    "merchant_staff_policy.manage"
+  ],
   "settings_viewer": [
     "settings.read"
   ],
@@ -115,6 +133,12 @@
     "staff.read"
   ],
   "bootstrap_admin": [
+    "pricing.read",
+    "pricing.simulate",
+    "pricing.request",
+    "pricing.approve",
+    "merchant_staff_policy.read",
+    "merchant_staff_policy.manage",
     "settings.read",
     "settings.change.request",
     "settings.change.approve",

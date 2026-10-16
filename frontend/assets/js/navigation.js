@@ -716,6 +716,7 @@ class NavigationManager {
                             </a>
                         </li>
                         <li class="nav-item" data-page="settings"><a href="settings.html" class="nav-link"><i class="fas fa-cog"></i><span>الإعدادات</span></a></li>
+                        <li class="nav-item" data-page="pricing"><a href="delivery-pricing.html" class="nav-link"><i class="fas fa-route"></i><span>Pricing &amp; Commissions</span></a></li>
                         <li class="nav-item" data-page="finance"><a href="finance.html" class="nav-link"><i class="fas fa-wallet"></i><span>إدارة شحن المحافظ</span></a></li>
                         <li class="nav-item" data-page="merchants">
                             <a href="merchants.html" class="nav-link">

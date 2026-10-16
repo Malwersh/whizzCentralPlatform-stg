@@ -205,6 +205,12 @@ def lambda_handler(event, context):
 
             raise Exception('Unauthorized')
 
+        # Device endpoints delegate to their exact read or transfer runtime.
+        # Never send opaque device credentials through the Cognito/person path.
+        branch_path = event.get('path', '')
+        if branch_path.startswith('/wallet/branch-device/'):
+            return authorize_branch_device(event, auth_header)
+
         # Verify token
         user_type, payload = verify_token(token)
         if not user_type:
@@ -323,3 +329,36 @@ def lambda_handler(event, context):
         if str(e) == 'Forbidden':
             return generate_policy(payload.get('sub', 'unknown'), 'Deny', event['methodArn'])
         raise Exception('Unauthorized')
+
+
+def authorize_branch_device(event, auth_header):
+    allowed_paths = ('/wallet/branch-device/balance', '/wallet/branch-device/transactions', '/wallet/branch-device/statement', '/wallet/branch-device/sales-report')
+    finance_methods = {
+        'context': 'GET', 'recipient': 'GET', 'history': 'GET', 'status': 'GET',
+        'otp/send': 'POST', 'otp/verify': 'POST', 'request': 'POST', 'cancel': 'POST',
+    }
+    path = event.get('path', '')
+    finance_prefix = '/wallet/branch-device/transfers/'
+    finance_method = finance_methods.get(path[len(finance_prefix):]) if path.startswith(finance_prefix) else None
+    if finance_method:
+        function = os.environ.get('MERCHANT_DEVICE_FINANCE_AUTHORIZER_FUNCTION', '')
+        route_allowed = event.get('httpMethod') == finance_method
+    else:
+        function = os.environ.get('MERCHANT_DEVICE_AUTHORIZER_FUNCTION', '')
+        route_allowed = event.get('httpMethod') == 'GET' and path in allowed_paths
+    if not function or not route_allowed or not auth_header.startswith('Bearer '):
+        raise Exception('Unauthorized')
+    method_arn = event.get('methodArn', '')
+    response = boto3.client('lambda').invoke(
+        FunctionName=function, InvocationType='RequestResponse',
+        Payload=json.dumps({'type': 'TOKEN', 'authorizationToken': auth_header, 'methodArn': method_arn}).encode('utf-8'))
+    if response.get('StatusCode') != 200 or response.get('FunctionError'):
+        raise Exception('Unauthorized')
+    result = json.loads(response['Payload'].read())
+    statements = result.get('policyDocument', {}).get('Statement', [])
+    if not result.get('principalId') or len(statements) != 1:
+        raise Exception('Unauthorized')
+    statement = statements[0]
+    if statement.get('Action') != 'execute-api:Invoke' or statement.get('Effect') != 'Allow' or statement.get('Resource') != method_arn:
+        raise Exception('Unauthorized')
+    return result

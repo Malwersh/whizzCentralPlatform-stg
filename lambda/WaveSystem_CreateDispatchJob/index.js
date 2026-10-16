@@ -398,10 +398,14 @@ async function createDispatchJobForOrder(order, excludedDrivers = []) {
   const now = new Date().toISOString();
   const expiresAt = new Date(Date.now() + DISPATCH_TIMEOUT_MINUTES * 60 * 1000).toISOString();
   
-  const rawTotal = toNumber(order.total || order.totalAmount || 0);
-  const normalizedOrderTotal = normalizeMoneyToIqd(order.pricing?.total || rawTotal, rawTotal);
-  const normalizedHoldRequiredAmount = normalizeMoneyToIqd(order.pricing?.goodsSubtotal || order.subtotal || 0, rawTotal);
-  const normalizedDeliveryFee = normalizeMoneyToIqd(order.pricing?.deliveryFee || order.deliveryFee || 0, rawTotal);
+  const rawTotal = toNumber(order.total ?? order.totalAmount ?? 0);
+  const verifiedMinorPricing = order.currency === 'IQD' && order.createdBy === 'wizzuser_app';
+  const readPricing = (field, fallback) => order.pricing?.[field] != null
+    ? (verifiedMinorPricing ? toNumber(order.pricing[field]) / 1000 : normalizeMoneyToIqd(order.pricing[field], rawTotal))
+    : toNumber(fallback);
+  const normalizedOrderTotal = readPricing('total', rawTotal);
+  const normalizedHoldRequiredAmount = readPricing('goodsSubtotal', order.subtotal);
+  const normalizedDeliveryFee = readPricing('deliveryFee', order.deliveryFee);
 
   const dispatchJob = {
     orderId: order.orderId,        // Primary Key (HASH) - matches table schema
@@ -409,6 +413,7 @@ async function createDispatchJobForOrder(order, excludedDrivers = []) {
     
     // معلومات أساسية
     dispatchJobId: dispatchJobId,
+    financialDispatch: Object.prototype.hasOwnProperty.call(order, 'financialSnapshot'),
     orderNumber: order.orderNumber || null,
     
     // حالة البحث

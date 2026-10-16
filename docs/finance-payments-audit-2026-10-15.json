@@ -1,0 +1,224 @@
+{
+  "auditDate": "2026-10-15",
+  "environment": "staging",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "scope": "Read-only source, public deployed UI assets, Lambda packages, API resources and table schemas. No human balances, orders or personal records read.",
+  "publishedUi": [
+    {
+      "path": "includes/sidebar.html",
+      "sha256": "2edec47736525349e32a8461612671eebdb33cf46bf15cffbfeae9875e7617d0",
+      "matchesLocal": true
+    },
+    {
+      "path": "assets/js/navigation.js",
+      "sha256": "d2c61574ea00d18e58b67a3baf747c619fda253ab6813b2272dab5f80148669d",
+      "matchesLocal": true
+    },
+    {
+      "path": "pages/finance.html",
+      "sha256": "2d30932b14017e7f92af0651b288d74b3873a8098603cd55531e1bdad97a6414",
+      "matchesLocal": true
+    },
+    {
+      "path": "finance.js",
+      "sha256": "82fde32b223ae2df3ebf3c446c5422f23ee4fbeb5141b89642f9ca576e57f534",
+      "matchesLocal": true
+    },
+    {
+      "path": "pages/financial-management.html",
+      "sha256": "7886fa98c88f0b246c52d981c3df791435ff540880ed6911bf1110b3f8793d50",
+      "matchesLocal": true
+    },
+    {
+      "path": "financial-management.js",
+      "sha256": "447f4539858f9747960754e8466b2bf0e8b27709aadfeb32ba48367b4f05b7b9",
+      "matchesLocal": true
+    },
+    {
+      "path": "pages/merchants.html",
+      "sha256": "d6e90e2596860fdd8ed7404590a04c7ad356bac5b7f28a78daa42a800832fe7b",
+      "matchesLocal": true
+    },
+    {
+      "path": "pages/promotions.html",
+      "sha256": "9724b7e59e9799425c425b6d7499d1868ac6a5f91a1d01cfe0b7baa09d752217",
+      "matchesLocal": true
+    }
+  ],
+  "runtime": [
+    {
+      "candidateFunctions": [
+        "WhizzDrivers-phone-registration-staging",
+        "WizzUser-DriverAssignmentAPI-staging",
+        "OrderService-staging",
+        "WhizzDrivers-phone-otp-staging",
+        "WizzUser-CreateOrder-staging",
+        "DriversApi-staging",
+        "staging-wizz-driver-review-events",
+        "staging-account-deletion-financial-expiry"
+      ]
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "handler": "functions/create-order/index.handler",
+      "codeSha256": "iEh5m7ooGUT84wXnXrANviRdEwxLje/EfsW8q30Nx3E=",
+      "revisionId": "bec2a707-48fe-41b8-8819-f76e35a4f72f",
+      "entry": "functions/create-order/index.js",
+      "sourceLines": 1257
+    },
+    {
+      "function": "DriversApi-staging",
+      "handler": "lambda_driver_api_v2.handler",
+      "codeSha256": "T/xQDTCihV5zUfKIEu6eQfTQSw5vN94Tg7J3hEmJYDY=",
+      "revisionId": "6099765a-49ad-4e04-ae70-148d81c91dc5",
+      "entry": "lambda_driver_api_v2.js",
+      "sourceLines": 5700
+    },
+    {
+      "function": "staging-wizz-wallet-service",
+      "handler": "dist/index.handler",
+      "codeSha256": "rif0xQqAexpstPV0so41XYBGopYeIDtgcT0XGCpFbxg=",
+      "revisionId": "df363c28-2a11-4017-952c-8d193e5283a2",
+      "entry": "dist/index.js",
+      "sourceLines": 651
+    },
+    {
+      "function": "staging-merchant-device-wallet-read",
+      "handler": "index.handler",
+      "codeSha256": "2GTc+4v65ozHby5RcI3+6y7rKZBx7msPOPqO9v/GuZw=",
+      "revisionId": "45648851-5f3f-4810-9200-ac460658546e",
+      "entry": "index.js",
+      "sourceLines": 66456
+    },
+    {
+      "function": "staging-wizz-wallet-authorizer",
+      "handler": "authorizer.lambda_handler",
+      "codeSha256": "2GC/wvqqc2F3en7rHmEIuu9Na22kSxJLox6sO5BCvoY=",
+      "revisionId": "703d0e2c-d45f-4a21-92c4-35f5871c6cb7",
+      "entry": "authorizer.py",
+      "sourceLines": 352
+    },
+    {
+      "transferProposalStatus": "CREATE_COMPLETE",
+      "execution": "AVAILABLE",
+      "changes": 33,
+      "reason": null
+    }
+  ],
+  "apiAndTableSchemas": {
+    "u3jf1ut8s1": [],
+    "z14s5f8oxh": [
+      {
+        "path": "/wallet/settlement/order",
+        "methods": []
+      },
+      {
+        "path": "/wallet/settlement/settle",
+        "methods": [
+          "OPTIONS",
+          "POST"
+        ]
+      },
+      {
+        "path": "/wallet/settlement",
+        "methods": []
+      },
+      {
+        "path": "/wallet/settlement/driver",
+        "methods": [
+          "GET",
+          "OPTIONS"
+        ]
+      },
+      {
+        "path": "/wallet/settlement/order/{orderId}",
+        "methods": [
+          "GET",
+          "OPTIONS"
+        ]
+      }
+    ],
+    "7oum9md7v6": [],
+    "WizzCentral_Commission_Rules": {
+      "error": "ResourceNotFoundException"
+    },
+    "WizzCentral_Delivery_Fee_Rules": {
+      "error": "ResourceNotFoundException"
+    },
+    "WizzCentral_Financial_Transactions": {
+      "error": "ResourceNotFoundException"
+    },
+    "WizzCentral_Financial_Settings": {
+      "error": "ResourceNotFoundException"
+    },
+    "staging-Wallets": {
+      "status": "ACTIVE",
+      "keys": [
+        {
+          "AttributeName": "walletId",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "indexes": []
+    },
+    "staging-LedgerEntries": {
+      "status": "ACTIVE",
+      "keys": [
+        {
+          "AttributeName": "walletId",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "sk",
+          "KeyType": "RANGE"
+        }
+      ],
+      "indexes": [
+        "byOrderId",
+        "byTxnId"
+      ]
+    },
+    "staging-WalletLifecycle": {
+      "status": "ACTIVE",
+      "keys": [
+        {
+          "AttributeName": "operationId",
+          "KeyType": "HASH"
+        }
+      ],
+      "indexes": [
+        "ByDue"
+      ]
+    },
+    "WizzOrders": {
+      "status": "ACTIVE",
+      "keys": [
+        {
+          "AttributeName": "PK",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "SK",
+          "KeyType": "RANGE"
+        }
+      ],
+      "indexes": [
+        "GSI_User",
+        "GSI_StoreStatus",
+        "GSI_BusinessId",
+        "GSI_OrderNumber"
+      ]
+    },
+    "OrderService-staging": {
+      "codeSha256": "TtcplqmWUZZ23XbPI83O4G22tAtcvRGN7FSaiYiLHYQ=",
+      "handler": "dist/index.handler"
+    }
+  },
+  "featureChangesDuringAudit": false,
+  "deploymentDuringAudit": false
+}

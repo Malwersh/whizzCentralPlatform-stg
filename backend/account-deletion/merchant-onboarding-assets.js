@@ -1,0 +1,19 @@
+'use strict';
+const {GetCommand,QueryCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
+const {ListObjectVersionsCommand,DeleteObjectsCommand}=require('@aws-sdk/client-s3');
+const {error}=require('./policy');
+const BUCKET='staging-merchant-onboarding-699561669180',TABLE='staging-MerchantPlatform';
+async function purge({db,s3,r,job,requestTable='staging-AccountDeletion',draftId}){
+ if(!s3||!r.subjectId||job.subjectId!==r.subjectId||!r.leaseOwner||!Number.isSafeInteger(r.version)||!/^[a-f0-9-]{36}$/i.test(r.subjectId)||(draftId&&!/^[a-f0-9-]{36}$/i.test(draftId)))throw error('INVALID_CLEANUP_SCOPE');
+ const clock=()=>Math.floor(Date.now()/1000);
+ const guard=()=>({ConditionCheck:{TableName:requestTable,Key:{pk:r.pk,sk:r.sk},ConditionExpression:'leaseOwner=:owner AND #v=:v AND leaseUntil>:now',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':owner':r.leaseOwner,':v':r.version,':now':clock()}}});
+ const lease=async()=>{const {Item}=await db.send(new GetCommand({TableName:requestTable,Key:{pk:r.pk,sk:r.sk},ConsistentRead:true}));if(Item?.leaseOwner!==r.leaseOwner||Item.version!==r.version||Item.leaseUntil<=clock())throw error('LEASE_LOST');};
+ const operations=await db.send(new QueryCommand({TableName:requestTable,KeyConditionExpression:'pk=:pk',ExpressionAttributeValues:{':pk':'ACCOUNT_OPERATION#MERCHANT#'+r.subjectId},ConsistentRead:true}));if(operations.LastEvaluatedKey||(operations.Items||[]).some(o=>(!draftId||o.draftId===draftId)&&(!Number.isSafeInteger(o.expiresAt)||o.expiresAt>clock())))throw error('EXTERNAL_WRITES_IN_PROGRESS');
+ const rows=[];let cursor;do{const page=await db.send(new QueryCommand({TableName:TABLE,KeyConditionExpression:'pk=:pk',ExpressionAttributeValues:{':pk':'PERSON#'+r.subjectId},ConsistentRead:true,ExclusiveStartKey:cursor}));rows.push(...page.Items||[]);cursor=page.LastEvaluatedKey;}while(cursor);
+ const owned=rows.filter(row=>row.subjectId===r.subjectId&&(!draftId||row.draftId===draftId));if(owned.some(row=>row.legalHold||row.retentionHold))throw error('DOCUMENTED_RETENTION_HOLD');
+ const prefix='persons/'+r.subjectId+'/'+(draftId?'drafts/'+draftId+'/':'');let keyMarker,versionMarker;
+ do{await lease();const page=await s3.send(new ListObjectVersionsCommand({Bucket:BUCKET,ExpectedBucketOwner:'699561669180',Prefix:prefix,KeyMarker:keyMarker,VersionIdMarker:versionMarker}));const objects=[...page.Versions||[],...page.DeleteMarkers||[]].map(v=>{if(!v.Key.startsWith(prefix))throw error('ASSET_SCOPE_INVALID');return {Key:v.Key,VersionId:v.VersionId};});if(objects.length){await lease();const result=await s3.send(new DeleteObjectsCommand({Bucket:BUCKET,ExpectedBucketOwner:'699561669180',Delete:{Objects:objects,Quiet:true}}));if(result.Errors?.length)throw error('ASSET_DELETE_RETRY_REQUIRED');}keyMarker=page.NextKeyMarker;versionMarker=page.NextVersionIdMarker;if(!page.IsTruncated)break;}while(keyMarker);
+ for(const row of owned){if(!draftId&&!row.sk.startsWith('ASSET#'))continue;await db.send(new TransactWriteCommand({TransactItems:[guard(),{Delete:{TableName:TABLE,Key:{pk:row.pk,sk:row.sk},ConditionExpression:'subjectId=:sub AND (attribute_not_exists(legalHold) OR legalHold=:no) AND (attribute_not_exists(retentionHold) OR retentionHold=:no)',ExpressionAttributeValues:{':sub':r.subjectId,':no':false}}}]}));}
+ let next;do{const page=await db.send(new QueryCommand({TableName:TABLE,KeyConditionExpression:'pk=:pk',ExpressionAttributeValues:{':pk':'REVIEW#MERCHANT'},ExclusiveStartKey:next,ConsistentRead:true}));for(const row of page.Items||[])if(row.subjectId===r.subjectId&&(!draftId||row.draftId===draftId))await db.send(new TransactWriteCommand({TransactItems:[guard(),{Delete:{TableName:TABLE,Key:{pk:row.pk,sk:row.sk},ConditionExpression:'subjectId=:sub',ExpressionAttributeValues:{':sub':r.subjectId}}}]}));next=page.LastEvaluatedKey;}while(next);
+}
+module.exports={purge,BUCKET};

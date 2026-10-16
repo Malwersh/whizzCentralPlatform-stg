@@ -1,0 +1,7 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const source=fs.readFileSync(require('node:path').join(__dirname,'../frontend/merchants.js'),'utf8'),code=source.slice(source.indexOf('async function toggleMerchantStatus('),source.indexOf('// Modal functions for merchant management'));
+test('company control uses the scoped staff API and preserves review status',async()=>{
+ const answers=['3','سبب تعليق تجريبي'],requests=[],merchant={id:'b',status:'approved',updatedAtRaw:'v1'},messages=[];
+ const context={merchantsData:[merchant],window:{prompt:()=>answers.shift(),Auth:{ensureSession:async()=>{},getToken:()=> 'fixture'},WIZZCENTRAL_CONFIG:{STAFF_API_BASE_URL:'https://fixture.invalid'}},fetch:async(url,input)=>{requests.push({url,...JSON.parse(input.body)});return {ok:true,json:async()=>({saved:true,platformSuspended:true,isActive:false,acceptingOrders:false,updatedAt:'v2'})};},renderMerchantsTable(){},showMessage:(...x)=>messages.push(x)};
+ vm.runInNewContext(code,context);await context.toggleMerchantStatus('b');assert.equal(requests[0].action,'SUSPEND');assert.equal(requests[0].baseUpdatedAt,'v1');assert.equal(merchant.status,'approved');assert.equal(merchant.isActive,false);assert.equal(merchant.updatedAtRaw,'v2');assert.equal(messages[0][1],'success');assert.ok(!code.includes('getDynamoDBClient'));assert.ok(!code.includes('.update('));
+});

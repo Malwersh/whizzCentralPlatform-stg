@@ -1,0 +1,27 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Local delivery-fee quote storage proposal; no API, Lambda or IAM. Coordinate customer deletion before enabling writes.",
+  "Conditions": {
+    "StagingAccountAndRegion": {"Fn::And": [
+      {"Fn::Equals": [{"Ref": "AWS::AccountId"}, "699561669180"]},
+      {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-east-1"]}
+    ]}
+  },
+  "Resources": {
+    "DeliveryQuotes": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "StagingAccountAndRegion",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "staging-DeliveryQuotes",
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [{"AttributeName": "pk", "AttributeType": "S"}, {"AttributeName": "sk", "AttributeType": "S"}],
+        "KeySchema": [{"AttributeName": "pk", "KeyType": "HASH"}, {"AttributeName": "sk", "KeyType": "RANGE"}],
+        "PointInTimeRecoverySpecification": {"PointInTimeRecoveryEnabled": true},
+        "SSESpecification": {"SSEEnabled": true},
+        "Tags": [{"Key": "Environment", "Value": "staging"}, {"Key": "Purpose", "Value": "delivery-fee-quotes"}]
+      }
+    }
+  }
+}

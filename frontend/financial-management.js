@@ -285,19 +285,8 @@ class FinancialManager {
     }
 
     async loadDeliveryFeeRules() {
-        try {
-            const response = await fetch(`${this.apiBaseUrl}/api/delivery-fees`);
-            const data = await response.json();
-            
-            if (data.success) {
-                this.deliveryFeeRules = data.data.rules;
-                this.renderDeliveryFeeRules();
-                console.log('✅ Loaded delivery fee rules:', this.deliveryFeeRules.length);
-            }
-        } catch (error) {
-            console.error('❌ Error loading delivery fee rules:', error);
-            throw error;
-        }
+        // Replaced by the versioned staff pricing screen; no legacy endpoint request.
+        this.deliveryFeeRules = [];
     }
 
     async loadFinancialSettings() {
@@ -580,7 +569,7 @@ class FinancialManager {
             if (data.success) {
                 this.showSuccess('Delivery fee rule created successfully!');
                 document.getElementById('delivery-fee-form').reset();
-                await this.loadDeliveryFeeRules();
+                // Delivery pricing is loaded by delivery-pricing.js through the staff API.
                 this.updateOverviewMetrics();
             } else {
                 this.showError(data.error || 'Failed to create delivery fee rule');

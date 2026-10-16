@@ -827,6 +827,74 @@
     <div class="main-content" id="mainContent">
         <!-- Page Content -->
         <div class="page-content">
+            <details id="merchant-types-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
+                <summary>أنواع الأنشطة المتاحة للتسجيل</summary>
+                <p>تظهر الأنواع المتاحة في قائمة نوع النشاط في تطبيق البزنز بعد حفظ التعديل. إزالة نوع من الخيارات تحفظ مراجعه للأنشطة القائمة.</p>
+                <a href="regions.html">إدارة مناطق العمل</a>
+                <p id="merchant-types-message" role="status"></p><button id="merchant-types-reload" type="button">تحديث الأنواع</button>
+                <form id="merchant-types-form" hidden>
+                  <label>اسم النوع بالعربية <input id="merchant-type-ar" required maxlength="150"></label>
+                  <label>الاسم بالإنجليزية <input id="merchant-type-en" required maxlength="150"></label>
+                  <label>طبيعة المنتجات <select id="merchant-type-model"><option value="FOOD">قائمة طعام</option><option value="RETAIL">سلع متجر</option></select></label>
+                  <label><input id="merchant-type-open" type="checkbox">إتاحته في قائمة التسجيل</label>
+                  <label>سبب الإضافة <input id="merchant-type-reason" required minlength="5" maxlength="300"></label>
+                  <button type="submit">إضافة نوع نشاط</button>
+                </form>
+                <table style="width:100%"><thead><tr><th>النوع</th><th>الاسم الإنجليزي</th><th>المنتجات</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="merchant-types-list"></tbody></table>
+            </details>
+            <details id="merchant-agreement-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
+              <summary>اتفاقية الشراكة</summary>
+              <p>تسري النسخة الجديدة على طلبات التقديم الجديدة. الطلبات المقدمة تحتفظ بالنص الذي وافق عليه صاحب النشاط.</p>
+              <form id="merchant-agreement-form" hidden>
+                <label>إصدار الاتفاقية <input id="merchant-agreement-version" maxlength="150" required></label>
+                <label>النص العربي <textarea id="merchant-agreement-text" rows="8" style="width:100%" minlength="10" maxlength="20000" required></textarea></label>
+                <label><input id="merchant-agreement-ready" type="checkbox">النص النهائي جاهز لقبول أصحاب الأنشطة</label>
+                <label>سبب التعديل <input id="merchant-agreement-reason" minlength="5" maxlength="300" required></label>
+                <button type="submit">حفظ الاتفاقية</button>
+              </form><p id="merchant-agreement-message" role="status"></p>
+            </details>
+            <details id="merchant-applications-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
+              <summary>طلبات إنشاء الأنشطة والفروع</summary>
+              <button id="merchant-applications-reload" type="button">تحديث الطلبات</button>
+              <p id="merchant-applications-message" role="status"></p>
+              <div id="merchant-applications-list"></div>
+            </details>
+            <details id="merchant-changes-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
+              <summary>طلبات تعديل الاسم والموقع</summary>
+              <p>تبقى بيانات النشاط المعتمدة سارية حتى اعتماد التعديل.</p>
+              <button id="merchant-changes-reload" type="button">تحديث الطلبات</button>
+              <p id="merchant-changes-message" role="status"></p><div id="merchant-changes-list"></div>
+            </details>
+            <details id="merchant-staff-policy-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
+                <summary>أنواع الموظفين والصلاحيات</summary>
+                <p>النوع حزمة عمل كاملة تديرها المنصة. يختار المالك النوع والفرع دون أذونات تفصيلية. تعديل القالب لا يوسع تعيينات الموظفين الحاليين تلقائيًا.</p>
+                <button id="staff-policy-reload" type="button">تحميل السياسة</button>
+                <p id="staff-policy-message" role="status" aria-live="polite"></p>
+                <div id="staff-policy-editor" hidden>
+                    <fieldset><legend>إتاحة الصلاحيات على المنصة</legend>
+                        <p>حجب صلاحية يمنع استعمالها ضمن السياسة الجديدة. إعادة إتاحتها تعيدها فقط لمن يحتفظ بمنح صريح لها؛ لا تضيفها لبقية الموظفين.</p>
+                        <div id="staff-policy-global-capabilities"></div>
+                        <label>سبب تعديل الإتاحة <input id="staff-policy-global-reason" minlength="5" maxlength="300"></label>
+                        <button id="staff-policy-global-save" type="button">حفظ إتاحة الصلاحيات</button>
+                    </fieldset>
+                    <label>نوع الموظف <select id="staff-policy-types"></select></label>
+                    <button id="staff-policy-new" type="button">إضافة نوع موظف</button>
+                    <div id="staff-policy-presets"></div>
+                    <form id="staff-policy-form">
+                        <label>الاسم العربي <input id="staff-policy-ar" required maxlength="100"></label>
+                        <label>الاسم الإنجليزي <input id="staff-policy-en" required maxlength="100"></label>
+                        <label>الوصف <input id="staff-policy-description" maxlength="1000"></label>
+                        <label>الترتيب <input id="staff-policy-order" type="number" min="0" max="1000" value="0" required></label>
+                        <label><input id="staff-policy-enabled" type="checkbox" checked>متاح للاختيار عند التفويض</label>
+                        <fieldset><legend>صلاحيات القالب</legend><div id="staff-policy-capabilities"></div></fieldset>
+                        <label>سبب التغيير <input id="staff-policy-reason" required minlength="5" maxlength="300"></label>
+                        <button type="submit">حفظ نوع الموظف</button>
+                    </form>
+                </div>
+                <button id="staff-policy-history-load" type="button" hidden>عرض سجل تغييرات السياسة</button>
+                <div id="staff-policy-history"></div>
+            </details>
+
             <!-- Auth and Data Status -->
             <div id="dataStatus" class="status-banner">
                 <i class="fas fa-info-circle"></i>
@@ -1162,6 +1230,10 @@
             });
         </script>
 
+        <script src="../merchant-changes.js?v=20261014-review"></script>
+        <script src="../merchant-applications.js?v=20261014"></script>
+        <script src="../merchant-types.js?v=20261014"></script>
+        <script src="../merchant-staff-policy.js?v=20261015"></script>
         <!-- Page-specific scripts -->
         <script src="../merchants.js?v=20261011-central-data"></script>
         <script>

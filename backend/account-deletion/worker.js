@@ -12,10 +12,10 @@ const {coordinator}=require('./coordinator');
 const {error}=require('./policy');
 const STEPS=['disableIdentity','personalData','financialArchive','walletClosure','profileClosure','identityClosure'];
 const POOL='us-east-1_TpyyrVkEE';
-function createWorker({db,cognito,connections,requestTable='staging-AccountDeletion',archiveTable='staging-AccountDeletionFinancialArchive',verifiedMutationGuards=false,settings}){
+function createWorker({db,cognito,connections,requestTable='staging-AccountDeletion',archiveTable='staging-AccountDeletionFinancialArchive',verifiedMutationGuards=false,settings,deliveryQuotesEnabled=false}){
  const store=dynamoStore({db,table:requestTable}),evidence=customerEvidence({db});
  const lock=customerLock({db,table:requestTable,verifiedMutationGuards});
- const cleanup=customerCleanup({db,cognito,connections,requestTable,archiveTable});
+ const cleanup=customerCleanup({db,cognito,connections,requestTable,archiveTable,deliveryQuotesEnabled});
  const config=settings||retentionSettings({db,table:'staging-PlatformStaff',approvedInventories:new Set(verifiedMutationGuards?['CUSTOMER']:[])});
  const adapter={evidence,requiredSteps:()=>STEPS,async lock(r,e,policy){
   const user=await cognito.send(new AdminGetUserCommand({UserPoolId:POOL,Username:r.subjectId}));
@@ -52,12 +52,12 @@ exports.handler=async (event,context)=>{
  async function processRequest(row){
   if(!enabledTypes.includes(row.actorType)||!row.subjectId||!row.requestId)throw error('WORKER_NOT_ENABLED');
   const config={db,cognito,connections,verifiedMutationGuards:true,requestTable:process.env.DELETION_TABLE,archiveTable:process.env.ARCHIVE_TABLE};
-  if(row.actorType==='CUSTOMER')return createWorker(config).process(row.subjectId,row.requestId);
+  if(row.actorType==='CUSTOMER')return createWorker({...config,deliveryQuotesEnabled:process.env.DELIVERY_QUOTES_ENABLED==='true'}).process(row.subjectId,row.requestId);
   const {S3Client}=require('@aws-sdk/client-s3');
   if(row.actorType==='DRIVER')return require('./driver-worker').createDriverWorker({...config,s3:new S3Client({})}).process(row.subjectId,row.requestId);
   const r=await require('./store').dynamoStore({db,table:process.env.DELETION_TABLE}).get({type:'MERCHANT',sub:row.subjectId},row.requestId);
   if(!r)throw error('REQUEST_NOT_FOUND');
-  if(r.scope.kind!=='BUSINESS')return require('./merchant-personal-worker').createMerchantPersonalWorker(config).process(row.subjectId,row.requestId);
+  if(r.scope.kind!=='BUSINESS')return require('./merchant-personal-worker').createMerchantPersonalWorker({...config,s3:new S3Client({})}).process(row.subjectId,row.requestId);
   return require('./merchant-worker').createMerchantBusinessWorker({...config,s3:new S3Client({})}).process(row.subjectId,row.requestId);
  }
  if(event.subjectId||event.requestId)return processRequest({...event,actorType:event.actorType||'CUSTOMER'});

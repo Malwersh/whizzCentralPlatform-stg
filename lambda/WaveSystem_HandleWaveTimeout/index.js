@@ -148,14 +148,15 @@ async function getExpiredOffers() {
   const now = new Date().toISOString();
   
   // Scan WaveOffers للعروض المعلقة
-  const result = await dynamodb.scan({
+  const result = await scanAll({
     TableName: WAVE_OFFERS_TABLE,
-    FilterExpression: 'responseStatus = :pending AND expiresAt < :now',
+    FilterExpression: '(responseStatus = :pending OR responseStatus = :financial) AND expiresAt < :now',
     ExpressionAttributeValues: {
       ':pending': 'pending',
+      ':financial': 'financial_pending',
       ':now': now
     }
-  }).promise();
+  });
   
   return result.Items || [];
 }
@@ -170,23 +171,27 @@ async function getStuckOrders() {
   const cutoffTime = new Date(now.getTime() - 90000); // 90 ثانية
   
   // Scan DispatchJobs للطلبات في حالة searching
-  const result = await dynamodb.scan({
+  const result = await scanAll({
     TableName: DISPATCH_JOBS_TABLE,
-    FilterExpression: '#status = :searching AND updatedAt < :cutoff AND currentWaveNumber < maxWaves',
+    FilterExpression: '#status = :searching AND #sk = :metadata AND ((financialDispatch = :financial AND attribute_exists(financialRedispatch)) OR (updatedAt < :cutoff AND (currentWaveNumber < maxWaves OR financialDispatch = :financial)))',
     ExpressionAttributeNames: {
-      '#status': 'status'
+      '#status': 'status',
+      '#sk': 'SK'
     },
     ExpressionAttributeValues: {
       ':searching': 'searching',
+      ':metadata': 'METADATA',
+      ':financial': true,
       ':cutoff': cutoffTime.toISOString()
     }
-  }).promise();
+  });
   
   const orders = result.Items || [];
   
   // 🔥 تصفية الطلبات: استبعاد الطلبات التي لها offers معلقة بالفعل
   const filteredOrders = [];
   for (const order of orders) {
+    if (order.financialDispatch === true) { filteredOrders.push(order); continue; }
     const hasActiveOffer = await checkActiveOffers(order.orderId);
     if (!hasActiveOffer) {
       filteredOrders.push(order);
@@ -228,32 +233,6 @@ async function checkActiveOffers(orderId) {
 // =====================================
 // جلب الطلبات العالقة (waves فارغة)
 // =====================================
-async function getStuckOrders() {
-  console.log('🔍 Scanning for stuck orders (empty waves)...');
-  
-  const now = new Date();
-  const cutoffTime = new Date(now.getTime() - 90000); // 90 ثانية مضت
-  
-  // Scan DispatchJobs للطلبات في حالة searching التي مر عليها أكثر من 90 ثانية
-  const result = await dynamodb.scan({
-    TableName: DISPATCH_JOBS_TABLE,
-    FilterExpression: '#status = :searching AND #sk = :metadata AND updatedAt < :cutoff AND currentWaveNumber < maxWaves',
-    ExpressionAttributeNames: {
-      '#status': 'status',
-      '#sk': 'SK'
-    },
-    ExpressionAttributeValues: {
-      ':searching': 'searching',
-      ':metadata': 'METADATA',
-      ':cutoff': cutoffTime.toISOString()
-    }
-  }).promise();
-  
-  console.log(`   Found ${result.Items ? result.Items.length : 0} stuck order(s)`);
-  
-  return result.Items || [];
-}
-
 // =====================================
 // تجميع العروض حسب الطلب
 // =====================================
@@ -285,6 +264,36 @@ async function processExpiredWave(orderId, offers, now) {
   };
   
   try {
+    const financialJob = await getDispatchJob(orderId);
+    if (financialJob?.financialDispatch === true) {
+      // Durable redispatch intent belongs to the released assignment. READY clears it atomically.
+      if(financialJob.financialRedispatch && financialJob.status==='searching') {
+        const intent=financialJob.financialRedispatch;
+        if(intent.waveNumber!==financialJob.currentWaveNumber+1||!Array.isArray(intent.excludeDriverIds))throw Error('INVALID_FINANCIAL_REDISPATCH');
+        const started=await invokeStartWave(financialJob.dispatchJobId,orderId,intent.waveNumber,intent.excludeDriverIds,[],false,false);
+        if(!started.success)throw Error('FINANCIAL_REDISPATCH_PENDING');
+        result.nextWaveStarted=true;
+        return result;
+      }
+
+      const {expireFinancialWave} = require('./financial-runtime');
+      const wave = Math.max(financialJob.currentWaveNumber || 1, financialJob.financialPreparingWave || 1);
+      const expired = await expireFinancialWave(orderId, wave);
+      if (!expired.expired) return result;
+      result.offersExpired = expired.driverIds.length;
+      if (wave >= MAX_WAVES || Date.parse(financialJob.expiresAt) <= Date.parse(now)) {
+        await dynamodb.update({TableName:DISPATCH_JOBS_TABLE,Key:{orderId,SK:'METADATA'},
+          UpdateExpression:'SET #s=:closed, noDriverReason=:reason, updatedAt=:now',
+          ConditionExpression:'#s=:searching AND currentWaveNumber=:wave AND financialDispatch=:yes',
+          ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':closed':'no_driver_available',':reason':'NO_QUALIFIED_DRIVERS',
+            ':now':now,':searching':'searching',':wave':wave,':yes':true}}).promise();
+        result.noDriverAvailable = true;
+      } else {
+        await invokeStartWave(financialJob.dispatchJobId,orderId,wave+1,expired.driverIds,[],false,false);
+        result.nextWaveStarted = true;
+      }
+      return result;
+    }
     // Step 1: تحديث جميع العروض المعلقة إلى expired
     await Promise.all(
       offers.map(offer => expireOffer(offer, now))
@@ -708,4 +717,14 @@ async function notifyNoDriverAvailable(orderId) {
   } catch (error) {
     console.error(`   ❌ Error notifying no driver available:`, error.message);
   }
+}
+
+async function scanAll(parameters) {
+  const Items = []; let cursor;
+  for (let page=0;page<50;page++) {
+    const result = await dynamodb.scan({...parameters,ConsistentRead:true,Limit:100,ExclusiveStartKey:cursor}).promise();
+    Items.push(...(result.Items || [])); cursor=result.LastEvaluatedKey;
+    if (!cursor) return {Items};
+  }
+  throw new Error('WAVE_TIMEOUT_SCAN_INCOMPLETE');
 }

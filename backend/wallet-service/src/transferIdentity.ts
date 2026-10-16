@@ -2,7 +2,7 @@ import {docClient,TABLES,GetCommand,ScanCommand,PutCommand,TransactWriteCommand}
 import {CognitoIdentityProviderClient,ListUsersCommand} from '@aws-sdk/client-cognito-identity-provider';
 import {fundingError} from './fundingService';
 import {randomUUID} from 'crypto';
-export type MobileAccount={principalId:string,ownerId:string,type:'DRIVER'|'CUSTOMER'|'MERCHANT',walletId:string,isOwner?:boolean,business?:any,permission?:any};
+export type MobileAccount={principalId:string,ownerId:string,type:'DRIVER'|'CUSTOMER'|'MERCHANT',walletId:string,isOwner?:boolean,business?:any,permission?:any; deviceGuards?:any[]; verificationScope?:string; deviceAudit?:(operation:any,action:string)=>any};
 export const financeKey=(businessId:string,memberId:string)=>({idempotencyKey:`MERCHANT_FINANCE#${businessId}#${memberId}`,sk:'META'});
 function fail():never{throw fundingError('ليس لديك صلاحية مالية لهذه المحفظة','WALLET_PERMISSION_REQUIRED',403);}
 export async function mobileAccount(userType:string,principalId:string,businessId?:string):Promise<MobileAccount>{
@@ -12,7 +12,7 @@ export async function mobileAccount(userType:string,principalId:string,businessI
  const permission=isOwner?undefined:(await docClient.send(new GetCommand({TableName:TABLES.IDEMPOTENCY_KEYS,Key:financeKey(businessId,principalId),ConsistentRead:true}))).Item;if(!isOwner&&(!permission?.enabled||permission.ownerId!==(business.ownerId||business.cognitoUserId)))fail();
  return {principalId,ownerId:businessId,type:'MERCHANT',walletId:`WALLET#MERCHANT#${businessId}`,isOwner,business,permission};
 }
-export function merchantGuards(a:MobileAccount){if(a.type!=='MERCHANT')return [];const b=a.business;const field=a.isOwner?(b.ownerId===a.principalId?'ownerId':'cognitoUserId'):(b.ownerId?'ownerId':'cognitoUserId');const guards:any[]=[{ConditionCheck:{TableName:process.env.MERCHANTS_TABLE,Key:{businessId:a.ownerId},ConditionExpression:`#owner = :owner AND attribute_not_exists(deletionRequestId)`,ExpressionAttributeNames:{'#owner':field},ExpressionAttributeValues:{':owner':b[field]}}}];if(process.env.ACCOUNT_DELETION_TABLE)guards.push(...[
+export function merchantGuards(a:MobileAccount){if(a.deviceGuards)return a.deviceGuards;if(a.type!=='MERCHANT')return [];const b=a.business;const field=a.isOwner?(b.ownerId===a.principalId?'ownerId':'cognitoUserId'):(b.ownerId?'ownerId':'cognitoUserId');const guards:any[]=[{ConditionCheck:{TableName:process.env.MERCHANTS_TABLE,Key:{businessId:a.ownerId},ConditionExpression:`#owner = :owner AND attribute_not_exists(deletionRequestId)`,ExpressionAttributeNames:{'#owner':field},ExpressionAttributeValues:{':owner':b[field]}}}];if(process.env.ACCOUNT_DELETION_TABLE)guards.push(...[
  {ConditionCheck:{TableName:process.env.ACCOUNT_DELETION_TABLE,Key:{pk:`BUSINESS_LIFECYCLE#MERCHANT#${a.ownerId}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},
  {ConditionCheck:{TableName:process.env.ACCOUNT_DELETION_TABLE,Key:{pk:`ACCOUNT_LIFECYCLE#MERCHANT#${a.principalId}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}
  ]);if(a.permission)guards.push({ConditionCheck:{TableName:TABLES.IDEMPOTENCY_KEYS,Key:financeKey(a.ownerId,a.principalId),ConditionExpression:'#enabled = :yes AND #v = :version',ExpressionAttributeNames:{'#enabled':'enabled','#v':'version'},ExpressionAttributeValues:{':yes':true,':version':a.permission.version}}});return guards;}
