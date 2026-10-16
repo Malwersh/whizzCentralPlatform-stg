@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Staging customer deletion requests and scoped SMS verification; irreversible worker not enabled
 Parameters:
+  DeliveryQuotesEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+    Description: Enable only after quote table exists and scoped cleanup package/IAM are verified.
   CustomerMutationGuardsVerified:
     Type: String
     Default: 'false'
@@ -134,7 +139,16 @@ Resources:
           DRIVER_MUTATION_GUARDS_VERIFIED: !Ref DriverMutationGuardsVerified
           MERCHANT_MUTATION_GUARDS_VERIFIED: !Ref MerchantMutationGuardsVerified
           AUTOMATIC_EXECUTION_ENABLED: !Ref AutomaticExecutionEnabled
+          DELIVERY_QUOTES_ENABLED: !Ref DeliveryQuotesEnabled
       Policies:
+        - Statement:
+            - Sid: CustomerDeliveryQuoteCleanup
+              Effect: Allow
+              Action: [dynamodb:Query, dynamodb:DeleteItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['CUSTOMER#*']
         - DynamoDBCrudPolicy: {TableName: !Ref Requests}
         - DynamoDBCrudPolicy: {TableName: !Ref FinancialArchive}
         - Statement:
@@ -147,6 +161,15 @@ Resources:
             - Effect: Allow
               Action: [cognito-idp:AdminGetUser, cognito-idp:AdminDisableUser, cognito-idp:AdminUserGlobalSignOut, cognito-idp:AdminDeleteUser]
               Resource: arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_gtCR3ndzT
+            - Effect: Allow
+              Action: [s3:ListBucketVersions]
+              Resource: arn:aws:s3:::staging-merchant-onboarding-699561669180
+              Condition:
+                StringLike:
+                  s3:prefix: ['persons/*']
+            - Effect: Allow
+              Action: [s3:DeleteObject, s3:DeleteObjectVersion]
+              Resource: arn:aws:s3:::staging-merchant-onboarding-699561669180/persons/*
             - Effect: Allow
               Action: [s3:ListBucket, s3:ListBucketVersions]
               Resource: arn:aws:s3:::whizzdrivers-documents-staging-699561669180
@@ -205,6 +228,7 @@ Resources:
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_BusinessWorkingHours
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_RegionListings
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Users
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_BusinessSubcategories
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_DeviceTokens

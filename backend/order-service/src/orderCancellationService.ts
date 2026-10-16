@@ -11,6 +11,7 @@ import {
   CancelOrderResponse,
   Order,
   OrderNotFoundError,
+  OrderServiceError,
   UnauthorizedError,
   InvalidStatusError,
 } from './types';
@@ -40,6 +41,7 @@ export class OrderCancellationService {
 
     // Step 1: Get order from WizzOrders
     const order = await this.getOrder(orderId);
+    if (Object.prototype.hasOwnProperty.call(order, 'financialSnapshot')) throw new OrderServiceError('Financial order requires its return/cancellation workflow', 409, 'FINANCIAL_CANCELLATION_REQUIRED');
 
     // Step 2: Validate cancellation rules
     this.validateCancellation(order, canceledBy, requestedBy);
@@ -273,7 +275,7 @@ export class OrderCancellationService {
         },
         ExpressionAttributeValues: expressionAttributeValues,
         // ConditionExpression to prevent race conditions
-        ConditionExpression: 'attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
+        ConditionExpression: 'attribute_not_exists(financialSnapshot) AND attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
       })
     );
 

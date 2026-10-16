@@ -292,6 +292,17 @@ exports.handler = async (event) => {
       return { statusCode: 200, message: 'Order already assigned' };
     }
 
+    const financialSource = await dynamodb.get({TableName:'WizzOrders',Key:{PK:`ORDER#${dispatchJob.orderId}`,SK:'META'},
+      ConsistentRead:true,ProjectionExpression:'financialSnapshot'}).promise();
+    if (financialSource.Item && Object.prototype.hasOwnProperty.call(financialSource.Item,'financialSnapshot')) dispatchJob.financialDispatch = true;
+    if (dispatchJob.financialDispatch === true && process.env.FINANCIAL_DISPATCH_MODE !== 'REQUIRED') throw new Error('FINANCIAL_DISPATCH_DISABLED');
+    if (dispatchJob.financialDispatch === true) {
+      const existingWave = await dynamodb.get({TableName:DISPATCH_JOBS_TABLE,
+        Key:{orderId:dispatchJob.orderId,SK:`FINANCIAL_WAVE#${waveNumber}`},ConsistentRead:true}).promise();
+      if (existingWave.Item) return await runFinancialDispatch(dispatchJob,existingWave.Item.driverIds,waveNumber);
+    }
+
+
     // Step 1.5: جلب العملة من WizzOrders
     const orderCurrency = await getOrderCurrency(dispatchJob.orderId);
     dispatchJob.currency = orderCurrency;
@@ -310,7 +321,7 @@ exports.handler = async (event) => {
     }
     qualifiedDrivers = approvedDrivers;
 
-    if (qualifiedDrivers.length === 0) {
+    if (qualifiedDrivers.length === 0 && dispatchJob.financialDispatch !== true) {
       console.warn(`⚠️ No qualified drivers found for Wave ${waveNumber}`);
       
       // إذا كانت الموجة الطارئة (Wave 5)، نتوقف نهائياً
@@ -343,6 +354,11 @@ exports.handler = async (event) => {
       }).promise();
       
       return { statusCode: 200, message: `Wave ${waveNumber} skipped, no drivers available` };
+    }
+
+    if (dispatchJob.financialDispatch === true) {
+      if (process.env.FINANCIAL_DISPATCH_MODE !== 'REQUIRED') throw new Error('FINANCIAL_DISPATCH_DISABLED');
+      return await runFinancialDispatch(dispatchJob,qualifiedDrivers.slice(0,Math.min(25,WAVE_SIZE)).map(d=>d.driverId),waveNumber);
     }
 
     // Step 3: اختيار السائقين حسب نوع الموجة
@@ -1311,4 +1327,16 @@ async function calculateEstimatedDuration(originLat, originLng, destLat, destLng
   const fallbackDuration = Math.ceil(distanceKm * 1.5);
   console.log(`📐 Fallback formula: ${fallbackDuration} minutes (${distanceKm}km * 1.5)`);
   return fallbackDuration;
+}
+
+async function runFinancialDispatch(dispatchJob,driverIds,waveNumber) {
+  if (process.env.FINANCIAL_DISPATCH_MODE !== 'REQUIRED') throw new Error('FINANCIAL_DISPATCH_DISABLED');
+  const {runFinancialWave} = require('./financial-runtime');
+  const result = await runFinancialWave({orderId:dispatchJob.orderId,branchId:dispatchJob.restaurantId,waveNumber,driverIds},async(driverId,message)=>{
+    const state = await dynamodb.get({TableName:DRIVER_LIVE_STATE_TABLE,Key:{driverId},ConsistentRead:true}).promise();
+    if (!state.Item?.connectionId) throw new Error('FINANCIAL_DRIVER_CONNECTION_UNAVAILABLE');
+    await sendWebSocketMessage(state.Item.connectionId,message);
+  });
+  await scheduleWaveTimeout(dispatchJob,waveNumber);
+  return {statusCode:200,...result};
 }

@@ -67,8 +67,25 @@ Resources:
               Action: [dynamodb:Scan]
               Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
             - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:PutItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
+            - Effect: Allow
+              Action: [dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
+            - Effect: Allow
+              Action: [s3:GetObject]
+              Resource: arn:aws:s3:::staging-merchant-onboarding-699561669180/persons/*
+            - Effect: Allow
               Action: [cognito-idp:AdminGetUser, cognito-idp:AdminCreateUser, cognito-idp:AdminUserGlobalSignOut]
               Resource: !Sub arn:${AWS::Partition}:cognito-idp:us-east-1:${AWS::AccountId}:userpool/us-east-1_wz7vwZZxz
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:ConditionCheckItem]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Regions
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_RegionsDerived_staging
       Events:
         Staff:
           Type: Api

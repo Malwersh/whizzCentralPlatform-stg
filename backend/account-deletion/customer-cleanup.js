@@ -38,7 +38,7 @@ function financialRecord(row,kind,job,now){
  return {requestId:job.requestId,subjectAlias:'DELETED#'+job.requestId,policyVersion:job.policyVersion,kind,data,archivedAt:now,expiresAt:Math.floor(created.getTime()/1000)};
 }
 function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock=()=>new Date().toISOString(),maxPages=100,
- actorType='CUSTOMER',pool=POOL,personalTables=PERSONAL,profileTable='WizzUser_users_staging',profileKey='userId',orderPii=ORDER_PII,financialTables,
+ deliveryQuotesEnabled=false,actorType='CUSTOMER',pool=POOL,personalTables=PERSONAL,profileTable='WizzUser_users_staging',profileKey='userId',orderPii=ORDER_PII,financialTables,
  authTables=['WizzUser_phone_auth_staging','WizzUser_phone_link_staging'],temporaryTables=['WizzUser_temp_users_staging','WizzUser_password_reset_tokens_staging']}){
  if(requestTable!=='staging-AccountDeletion'||archiveTable!=='staging-AccountDeletionFinancialArchive')throw error('INVALID_STAGING_TABLE');
  if(!((actorType==='CUSTOMER'&&pool===POOL&&profileTable==='WizzUser_users_staging'&&profileKey==='userId')||(actorType==='DRIVER'&&pool==='us-east-1_RGTqUXF5C'&&profileTable==='WhizzDrivers_staging'&&profileKey==='driverId')||(actorType==='MERCHANT'&&pool==='us-east-1_gtCR3ndzT'&&profileTable==='WhizzMerchants_Businesses'&&profileKey==='businessId')))throw error('INVALID_CLEANUP_CONFIGURATION');
@@ -130,7 +130,7 @@ function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock
  return {async execute(step,r,job){
   if(r.actorType!==actorType||!r.leaseOwner||!Number.isSafeInteger(r.version)||job.subjectId!==r.subjectId||job.requestId!==r.requestId||job.pool!==pool)throw error('INVALID_CLEANUP_SCOPE');
   if(step==='disableIdentity'){await identity(AdminDisableUserCommand,r,job);await identity(AdminUserGlobalSignOutCommand,r,job);return;}
-  if(step==='personalData')return personal(r,job);
+  if(step==='personalData'){if(actorType==='CUSTOMER'&&deliveryQuotesEnabled)await require('./customer-delivery-quotes').purge({db,r,job,requestTable,clock,maxPages});return personal(r,job);}
   if(step==='financialArchive')return financial(r,job);
   if(step==='walletClosure')return wallets(r,job);
   if(step==='profileClosure'){for(const id of job.profileIds){const row=await get(profileTable,{[profileKey]:id});if(!row)continue;if(row.deletionRequestId!==job.requestId)throw error('PROFILE_GENERATION_CHANGED');if(actorType==='CUSTOMER'&&['profileImage','profileImageUrl','photoUrl','avatarUrl'].some(k=>row[k]))throw error('ASSET_INVENTORY_REQUIRED');await remove(r,profileTable,{[profileKey]:id},row,['deletionRequestId','cognitoSub','cognitoUsername']);}return;}

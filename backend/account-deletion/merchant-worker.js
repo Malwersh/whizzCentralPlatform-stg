@@ -25,10 +25,11 @@ function createMerchantBusinessWorker({db,cognito,s3,connections,requestTable='s
   const {Item:p}=await db.send(new GetCommand({TableName:'WhizzMerchants_Businesses',Key:{businessId:r.scope.id},ConsistentRead:true}));
   if(!p||p.ownerId!==r.subjectId||p.cognitoUserId!==r.subjectId)throw error('OWNER_REQUIRED');
   if(p.legalHold||p.retentionHold)throw error('DOCUMENTED_RETENTION_HOLD');
+  if(p.onboardingDraftId){const {Item:draft}=await db.send(new GetCommand({TableName:'staging-MerchantPlatform',Key:{pk:'PERSON#'+r.subjectId,sk:'DRAFT#'+p.onboardingDraftId},ConsistentRead:true}));if(!draft||draft.subjectId!==r.subjectId||draft.businessId!==p.businessId)throw error('ASSET_SCOPE_INVALID');}
   // External asset deletion must be inventoried rather than guessed from a URL.
   const assetInventory=await assets.inventory(p);
-  return lock(r,e,{schema:1,requestId:r.requestId,subjectId:r.subjectId,assets:assetInventory,businessId:r.scope.id,ownedIds:[r.scope.id],pool:POOL,username:user.Username,phone:attrs.phone_number,profileIds:[r.scope.id],wallets:e.wallets,walletIds:e.wallets.map(w=>w.walletId),policyVersion:r.policyVersion,financialYears:policy.financialRetentionYears});
- },execute:(step,r,job)=>step==='assets'?assets.cleanup(r,job):cleanup.execute(step,r,job)};
+  return lock(r,e,{schema:1,requestId:r.requestId,subjectId:r.subjectId,assets:assetInventory,businessId:r.scope.id,ownedIds:[r.scope.id],pool:POOL,username:user.Username,phone:attrs.phone_number,profileIds:[r.scope.id],...(p.onboardingDraftId?{onboardingDraftId:p.onboardingDraftId}:{}),wallets:e.wallets,walletIds:e.wallets.map(w=>w.walletId),policyVersion:r.policyVersion,financialYears:policy.financialRetentionYears});
+ },execute:async(step,r,job)=>{if(step!=='assets')return cleanup.execute(step,r,job);await require('./merchant-staff-cleanup').purge({db,r,job,requestTable});await require('./merchant-business-changes').purge({db,r,job,requestTable});await assets.cleanup(r,job);if(job.onboardingDraftId)await require('./merchant-onboarding-assets').purge({db,s3,r,job,requestTable,draftId:job.onboardingDraftId});}};
  const service=coordinator({store,adapters:{MERCHANT:adapter},settings:config});
  return {async process(subjectId,requestId){
   if(!verifiedMutationGuards)throw error('MUTATION_GUARDS_NOT_VERIFIED');

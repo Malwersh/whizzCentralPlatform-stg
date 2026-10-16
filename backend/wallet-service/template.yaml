@@ -15,6 +15,10 @@ Globals:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
 
 Parameters:
+  MerchantStaffPermissionMode:
+    Type: String
+    Default: CENTRAL
+    AllowedValues: [CENTRAL]
   Environment:
     Type: String
     Default: dev
@@ -306,6 +310,8 @@ Resources:
       Description: Custom authorizer for Wallet Service - validates Cognito tokens and enforces RBAC
       Environment:
         Variables:
+          MERCHANT_DEVICE_AUTHORIZER_FUNCTION: !If [IsSandboxStaging, !GetAtt MerchantDeviceWalletFunction.Arn, '']
+          MERCHANT_DEVICE_FINANCE_AUTHORIZER_FUNCTION: !If [IsSandboxStaging, !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-merchant-device-transfers', '']
           DRIVER_USER_POOL_ID: !Ref DriverCognitoUserPoolId
           ADMIN_USER_POOL_ID: !Ref AdminCognitoUserPoolId
           SERVICE_USER_POOL_ID: !Ref ServiceCognitoUserPoolId
@@ -318,6 +324,13 @@ Resources:
           ADMIN_CLIENT_ID: !If [IsSandboxStaging, '17mu2qlqis0qcs1n1n980q7e3j', '']
           STAFF_TABLE: !If [IsSandboxStaging, 'staging-PlatformStaff', '']
       Policies:
+        - !If
+          - IsSandboxStaging
+          - Statement:
+              Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: [!GetAtt MerchantDeviceWalletFunction.Arn, !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-merchant-device-transfers']
+          - !Ref AWS::NoValue
         - !If
           - IsSandboxStaging
           - Version: '2012-10-17'
@@ -333,6 +346,392 @@ Resources:
         - !Sub arn:aws:lambda:${AWS::Region}:017000801446:layer:AWSLambdaPowertoolsPythonV2:68
 
   # Lambda Function
+  # Staging-only reader: no permission to create wallets or move funds.
+  MerchantDeviceWalletFunction:
+    Type: AWS::Serverless::Function
+    Condition: IsSandboxStaging
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      FunctionName: !Sub ${Environment}-merchant-device-wallet-read
+      CodeUri: ./
+      Handler: dist/merchantDeviceWallet.handler
+      Timeout: 20
+      MemorySize: 256
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          MERCHANT_STAFF_PERMISSION_MODE: !Ref MerchantStaffPermissionMode
+          WALLETS_TABLE: !Ref WalletsTableName
+          LEDGER_TABLE: !Ref LedgerTableName
+          AUDIT_LOG_TABLE: !Ref AuditLogTableName
+      Role: !GetAtt MerchantDeviceWalletRole.Arn
+
+  # Imported release74 role: keep its physical name and explicit inline policy.
+  MerchantDeviceWalletRole:
+    Type: AWS::IAM::Role
+    Condition: IsSandboxStaging
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RoleName: staging-merchant-device-wallet-read-role
+      Path: /
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: MerchantDeviceReadOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: dynamodb:GetItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WalletsTableName}
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['WALLET#MERCHANT#*']
+              - Effect: Allow
+                Action: dynamodb:Scan
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders
+                Condition:
+                  StringEquals:
+                    dynamodb:Select: SPECIFIC_ATTRIBUTES
+                  ForAllValues:StringEquals:
+                    dynamodb:Attributes: [PK, SK, businessId, storeId, merchantId, createdAt, status, currency, pricing, total, subtotal, createdBy, financialSnapshot]
+              - Effect: Allow
+                Action: dynamodb:Query
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LedgerTableName}
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['WALLET#MERCHANT#*']
+              - Effect: Allow
+                Action: dynamodb:PutItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['BRANCH#*']
+              - Effect: Allow
+                Action: dynamodb:PutItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditLogTableName}
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['date#*']
+              - Effect: Allow
+                Action: dynamodb:GetItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['BRANCH#*']
+                  ForAllValues:StringEquals:
+                    dynamodb:Attributes: ["pk", "sk", "businessId", "ownerId", "cognitoUserId", "subjectId", "membershipId", "displayName", "role", "status", "version", "permissionSchema", "extraPermissions", "grant", "deviceId", "deviceVersion", "sessionId", "membershipVersion", "pinVersion", "tokenHash", "expiresAt", "deletionRequestId"]
+                  StringEquals:
+                    dynamodb:Select: SPECIFIC_ATTRIBUTES
+              - Effect: Allow
+                Action: dynamodb:ConditionCheckItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['BRANCH#*']
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AccountDeletion
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['BUSINESS_LIFECYCLE#MERCHANT#*', 'ACCOUNT_LIFECYCLE#MERCHANT#*']
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+                Condition:
+                  ForAllValues:StringEquals:
+                    dynamodb:LeadingKeys: ['OPERATIONAL_SETTINGS#MERCHANT_STAFF_PERMISSIONS']
+              - Effect: Allow
+                Action: [logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/staging-merchant-device-wallet-read:*
+
+  MerchantDeviceApiWalletBranchDeviceTransactions:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId:
+        Ref: MerchantDeviceApiWalletBranchDevice
+      PathPart: transactions
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceTransactionsGET:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceTransactions
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: 2bqq12
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:staging-merchant-device-wallet-read/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: 5yyq0m
+        CacheKeyParameters: []
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceTransactionsOPTIONS:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceTransactions
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+      - StatusCode: '200'
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode":200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: 5yyq0m
+        CacheKeyParameters: []
+        IntegrationResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
+            method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceBalance:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId:
+        Ref: MerchantDeviceApiWalletBranchDevice
+      PathPart: balance
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceBalanceGET:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceBalance
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: 2bqq12
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:staging-merchant-device-wallet-read/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: 7fl7me
+        CacheKeyParameters: []
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceBalanceOPTIONS:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceBalance
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+      - StatusCode: '200'
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode":200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: 7fl7me
+        CacheKeyParameters: []
+        IntegrationResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
+            method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceStatement:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId:
+        Ref: MerchantDeviceApiWalletBranchDevice
+      PathPart: statement
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceStatementGET:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceStatement
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: 2bqq12
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:staging-merchant-device-wallet-read/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: ms12eb
+        CacheKeyParameters: []
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceStatementOPTIONS:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceStatement
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+      - StatusCode: '200'
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode":200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: ms12eb
+        CacheKeyParameters: []
+        IntegrationResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
+            method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceSalesReport:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId:
+        Ref: MerchantDeviceApiWalletBranchDevice
+      PathPart: sales-report
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceSalesReportGET:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceSalesReport
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: 2bqq12
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:staging-merchant-device-wallet-read/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: wbshmk
+        CacheKeyParameters: []
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceSalesReportOPTIONS:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceSalesReport
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+      - StatusCode: '200'
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode":200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: wbshmk
+        CacheKeyParameters: []
+        IntegrationResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
+            method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDevice:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId: imwu0l
+      PathPart: branch-device
+    Condition: IsSandboxStaging
+
+
   WalletServiceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -832,43 +1231,46 @@ Resources:
   WalletServiceApi:
     Type: AWS::Serverless::Api
     Properties:
+      # Explicit imported device resources share this API with the existing SAM routes.
+      # Merge preserves those routes during a reviewed future OpenAPI update.
       Name: !Sub ${Environment}-wizz-wallet-api
+      Mode: merge
       StageName: !Ref Environment
       Cors:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-Content-Sha256,x-trigger-secret'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Staff-Session,X-Api-Key,X-Amz-Security-Token,X-Amz-Content-Sha256,x-trigger-secret'"
         AllowOrigin: "'*'"
       GatewayResponses:
         UNAUTHORIZED:
           ResponseParameters:
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         ACCESS_DENIED:
           ResponseParameters:
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         AUTHORIZER_FAILURE:
           ResponseParameters:
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         AUTHORIZER_CONFIGURATION_ERROR:
           ResponseParameters:
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         DEFAULT_4XX:
           ResponseParameters:
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         DEFAULT_5XX:
           ResponseParameters:
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
       Auth:
         Authorizers:
           # Custom Lambda Authorizer - validates Cognito tokens and enforces RBAC

@@ -278,6 +278,9 @@ async function loadMerchantsFromDynamoDB() {
                 // Updated status detection - use isActive for status since there's no status field
                 status: item.status || (item.isActive === false ? 'pending' : (item.isActive === true ? 'approved' : 'unknown')),
                 isActive: item.isActive !== undefined ? item.isActive : true,
+                updatedAtRaw: item.updatedAt ?? null,
+                platformSuspended: item.platformSuspended === true,
+                ordersBlocked: item.ordersBlocked === true,
                 // Updated address handling for the actual table structure with proper fallbacks
                 address: buildAddressFromData(item),
                 owner: item.ownerName || item.owner || item.contactName || 'N/A',
@@ -568,7 +571,7 @@ function renderMerchantsTable() {
         const safeAvatar = SecurityUtils.sanitizeURL(merchant.avatar);
         const safeId = SecurityUtils.escapeHTML(merchant.id || '');
         const safeStatus = SecurityUtils.escapeHTML(merchant.status || 'unknown');
-        const safeStatusLabel = SecurityUtils.escapeHTML(statusInfo.label);
+        const safeStatusLabel = SecurityUtils.escapeHTML(merchant.platformSuspended ? 'معلّق من المنصة' : merchant.ordersBlocked ? 'الطلبات ممنوعة من المنصة' : statusInfo.label);
 
         // Format accepting orders status
         const acceptingOrdersStatus = merchant.acceptingOrders ?
@@ -616,8 +619,8 @@ function renderMerchantsTable() {
                         </button>
                         <button class="btn-toggle-status ${merchant.status === 'approved' ? 'approved' : 'pending'}" 
                                 data-action="toggle-status" data-id="${safeId}" data-status="${safeStatus}" 
-                                title="${merchant.status === 'approved' ? 'Suspend Merchant' : 'Approve Merchant'}">
-                            <i class="fas ${merchant.status === 'approved' ? 'fa-pause' : 'fa-check'}"></i>
+                                title="التحكم بالنشاط والطلبات">
+                            <i class="fas fa-sliders-h"></i>
                         </button>
                     </div>
                 </td>
@@ -678,68 +681,19 @@ function updateMerchantStats() {
 }
 
 // Toggle merchant status between approved and pending
-async function toggleMerchantStatus(merchantId, legacyStatusParam) {
-    // Determine current status from data arrays if not explicitly passed
-    let merchant = merchantsData.find(m => m.id === merchantId) || filteredMerchants.find(m => m.id === merchantId);
-    if (!merchant) {
-        console.warn('toggleMerchantStatus: merchant not found', merchantId);
-        return;
-    }
-    const currentStatus = legacyStatusParam || merchant.status || 'pending';
-    console.log(`🔄 Toggling status for merchant ${merchantId} from ${currentStatus}`);
+async function toggleMerchantStatus(merchantId) {
+    const merchant=merchantsData.find(m=>m.id===merchantId);
+    if(!merchant)return;
+    const action=window.prompt('إجراء المنصة: 1 منع الطلبات الجديدة، 2 رفع منع الطلبات، 3 تعليق النشاط، 4 رفع التعليق. رفع المنع لا يشغّل الاستقبال تلقائيًا.','1');
+    const actions={'1':'PAUSE_ORDERS','2':'RESUME_ORDERS','3':'SUSPEND','4':'UNSUSPEND'};
+    if(!actions[action])return;
+    const reason=window.prompt('سبب الإجراء — خمسة أحرف على الأقل');if(!reason)return;
     try {
-        // Find button via data attributes
-        const button = document.querySelector(`button[data-action="toggle-status"][data-id="${merchantId}"]`);
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        }
-        const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
-        const newIsActive = newStatus === 'approved';
-        console.log(`📝 Updating merchant ${merchantId} to status: ${newStatus}, isActive: ${newIsActive}`);
-        const dynamoDB = await AWSUtils.getDynamoDBClient();
-        const updateParams = {
-            TableName: 'WhizzMerchants_Businesses',
-            Key: { businessId: merchantId },
-            UpdateExpression: 'SET #status = :status, #isActive = :isActive, #lastStatusUpdate = :timestamp, #statusUpdatedBy = :updatedBy, #statusSource = :source',
-            ExpressionAttributeNames: {
-                '#status': 'status',
-                '#isActive': 'isActive',
-                '#lastStatusUpdate': 'lastStatusUpdate',
-                '#statusUpdatedBy': 'statusUpdatedBy',
-                '#statusSource': 'statusSource'
-            },
-            ExpressionAttributeValues: {
-                ':status': newStatus,
-                ':isActive': newIsActive,
-                ':timestamp': new Date().toISOString(),
-                ':updatedBy': sessionStorage.getItem('userEmail') || 'admin',
-                ':source': 'admin_dashboard'
-            },
-            ReturnValues: 'ALL_NEW'
-        };
-        const result = await dynamoDB.update(updateParams).promise();
-        console.log('✅ Status update successful:', result);
-        // Update local objects
-        merchant.status = newStatus;
-        merchant.isActive = newIsActive;
-        const globalIdx = merchantsData.findIndex(m => m.id === merchantId); if (globalIdx !== -1) { merchantsData[globalIdx].status = newStatus; merchantsData[globalIdx].isActive = newIsActive; }
-        const filteredIdx = filteredMerchants.findIndex(m => m.id === merchantId); if (filteredIdx !== -1) { filteredMerchants[filteredIdx].status = newStatus; filteredMerchants[filteredIdx].isActive = newIsActive; }
-        renderMerchantsTable();
-        updateMerchantStats();
-        showMessage(`Merchant status updated to ${newStatus} successfully!`, 'success');
-        setTimeout(() => hideMessage(), 3000);
-    } catch (error) {
-        console.error('❌ Error updating merchant status:', error);
-        const button = document.querySelector(`button[data-action="toggle-status"][data-id="${merchantId}"]`);
-        if (button) {
-            button.disabled = false;
-            const icon = (merchant.status === 'approved') ? 'fa-pause' : 'fa-check';
-            button.innerHTML = `<i class="fas ${icon}"></i>`;
-        }
-        showMessage(`Error: ${error.message || 'Failed to update merchant status'}`, 'error');
-        setTimeout(() => hideMessage(), 5000);
-    }
+      await window.Auth.ensureSession();
+      const r=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/merchants/control',{method:'POST',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},body:JSON.stringify({businessId:merchantId,baseUpdatedAt:merchant.updatedAtRaw,action:actions[action],reason})});
+      const d=await r.json();if(!r.ok)throw Error(({PERMISSION_REQUIRED:'لا تملك صلاحية التحكم بالنشاط.',VERSION_OR_STATE_CONFLICT:'تغيرت بيانات النشاط. حدّث القائمة.',INVALID_CONTROL_REQUEST:'اكتب سببًا من خمسة أحرف على الأقل.'})[d.error]||'تعذر تنفيذ الإجراء.');
+      Object.assign(merchant,{updatedAtRaw:d.updatedAt,...d});renderMerchantsTable();showMessage('تم حفظ إجراء المنصة. تشغيل الاستقبال يبقى بيد المالك بعد رفع الحظر.','success');
+    } catch(e){showMessage(e.message,'error');}
 }
 
 // Modal functions for merchant management

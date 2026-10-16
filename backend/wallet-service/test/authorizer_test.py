@@ -74,3 +74,70 @@ class MobileTransferAuthorization(unittest.TestCase):
         self.assertEqual(self.invoke('merchant','merchant-client','/wallet/transfers/accounts','ANY')['policyDocument']['Statement'][0]['Effect'],'Allow')
         self.assertEqual(self.invoke('customer','customer-client','/wallet/transfers/members','ANY')['policyDocument']['Statement'][0]['Effect'],'Deny')
         self.assertEqual(self.invoke('merchant','merchant-client','/wallet/transfers/unknown','ANY')['policyDocument']['Statement'][0]['Effect'],'Deny')
+
+class BranchDeviceAuthorization(unittest.TestCase):
+    def setUp(self):
+        import io
+        from unittest.mock import patch
+        self.io = io
+        self.calls = []
+        self.response = {'principalId': 'device', 'policyDocument': {'Version': '2012-10-17', 'Statement': [{'Action': 'execute-api:Invoke', 'Effect': 'Allow', 'Resource': 'arn:method'}]}}
+        os.environ['MERCHANT_DEVICE_AUTHORIZER_FUNCTION'] = 'synthetic-reader'
+        self.addCleanup(lambda: os.environ.pop('MERCHANT_DEVICE_AUTHORIZER_FUNCTION', None))
+        def invoke(**kwargs):
+            self.calls.append(kwargs)
+            return {'StatusCode': 200, 'Payload': io.BytesIO(auth.json.dumps(self.response).encode())}
+        client = types.SimpleNamespace(invoke=invoke)
+        self.patch = patch.object(auth.boto3, 'client', lambda service: client, create=True)
+        self.patch.start()
+        self.addCleanup(self.patch.stop)
+        self.event = {'headers': {'Authorization': 'Bearer opaque-device'}, 'httpMethod': 'GET', 'path': '/wallet/branch-device/balance', 'methodArn': 'arn:method'}
+
+    def test_device_transport_uses_its_own_authority_and_passes_no_employee_or_owner_identity(self):
+        auth.verify_token = lambda token: (_ for _ in ()).throw(AssertionError('must not treat device as person'))
+        result = auth.lambda_handler(self.event, None)
+        self.assertEqual(result['principalId'], 'device')
+        payload = auth.json.loads(self.calls[0]['Payload'])
+        self.assertEqual(payload, {'type': 'TOKEN', 'authorizationToken': 'Bearer opaque-device', 'methodArn': 'arn:method'})
+
+    def test_statement_route_is_get_only_and_uses_the_same_exact_device_authority(self):
+        result = auth.lambda_handler({**self.event, 'path': '/wallet/branch-device/sales-report'}, None)
+        self.assertEqual(result['principalId'], 'device')
+        with self.assertRaisesRegex(Exception, 'Unauthorized'):
+            auth.lambda_handler({**self.event, 'path': '/wallet/branch-device/statement', 'httpMethod': 'POST'}, None)
+        self.assertEqual(len(self.calls), 1)
+
+    def test_device_namespace_never_authorizes_a_financial_write_or_unknown_route(self):
+        for method, path in [('POST', '/wallet/branch-device/request'), ('GET', '/wallet/branch-device/unknown')]:
+            with self.assertRaisesRegex(Exception, 'Unauthorized'):
+                auth.lambda_handler({**self.event, 'httpMethod': method, 'path': path}, None)
+        self.assertEqual(self.calls, [])
+
+    def test_transfer_routes_delegate_only_to_the_write_runtime_with_exact_methods(self):
+        os.environ['MERCHANT_DEVICE_FINANCE_AUTHORIZER_FUNCTION'] = 'synthetic-transfer'
+        self.addCleanup(lambda: os.environ.pop('MERCHANT_DEVICE_FINANCE_AUTHORIZER_FUNCTION', None))
+        methods = {'context':'GET', 'recipient':'GET', 'history':'GET', 'status':'GET', 'otp/send':'POST', 'otp/verify':'POST', 'request':'POST', 'cancel':'POST'}
+        for action, method in methods.items():
+            route = {**self.event, 'path':'/wallet/branch-device/transfers/' + action, 'httpMethod':method}
+            auth.lambda_handler(route, None)
+            self.assertEqual(self.calls[-1]['FunctionName'], 'synthetic-transfer')
+            with self.assertRaisesRegex(Exception, 'Unauthorized'):
+                auth.lambda_handler({**route, 'httpMethod':'DELETE' if method == 'POST' else 'POST'}, None)
+        before = len(self.calls)
+        with self.assertRaisesRegex(Exception, 'Unauthorized'):
+            auth.lambda_handler({**self.event, 'path':'/wallet/branch-device/transfers/approve', 'httpMethod':'POST'}, None)
+        self.assertEqual(len(self.calls), before)
+        self.response['policyDocument']['Statement'][0]['Resource'] = '*'
+        with self.assertRaisesRegex(Exception, 'Unauthorized'):
+            auth.lambda_handler({**self.event, 'path':'/wallet/branch-device/transfers/context'}, None)
+        os.environ.pop('MERCHANT_DEVICE_FINANCE_AUTHORIZER_FUNCTION')
+        with self.assertRaisesRegex(Exception, 'Unauthorized'):
+            auth.lambda_handler({**self.event, 'path':'/wallet/branch-device/transfers/context'}, None)
+
+    def test_missing_authority_and_a_wildcard_response_fail_closed(self):
+        self.response['policyDocument']['Statement'][0]['Resource'] = '*'
+        with self.assertRaisesRegex(Exception, 'Unauthorized'):
+            auth.lambda_handler(self.event, None)
+        os.environ.pop('MERCHANT_DEVICE_AUTHORIZER_FUNCTION')
+        with self.assertRaisesRegex(Exception, 'Unauthorized'):
+            auth.lambda_handler(self.event, None)

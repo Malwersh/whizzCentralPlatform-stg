@@ -1,0 +1,251 @@
+{
+  "stack": "staging-wizz-wallet-service",
+  "status": "IMPORT_COMPLETE",
+  "codeUnchanged": true,
+  "environmentUnchanged": true,
+  "resources": [
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDevice",
+      "PhysicalResourceId": "wkm2t0",
+      "ResourceType": "AWS::ApiGateway::Resource",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:45.882000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceBalance",
+      "PhysicalResourceId": "7fl7me",
+      "ResourceType": "AWS::ApiGateway::Resource",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:47.880000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceBalanceGET",
+      "PhysicalResourceId": "z14s5f8oxh|7fl7me|GET",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:50.207000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceBalanceOPTIONS",
+      "PhysicalResourceId": "z14s5f8oxh|7fl7me|OPTIONS",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:50.246000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceSalesReport",
+      "PhysicalResourceId": "wbshmk",
+      "ResourceType": "AWS::ApiGateway::Resource",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:47.917000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceSalesReportGET",
+      "PhysicalResourceId": "z14s5f8oxh|wbshmk|GET",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:49.990000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceSalesReportOPTIONS",
+      "PhysicalResourceId": "z14s5f8oxh|wbshmk|OPTIONS",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:50.221000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceStatement",
+      "PhysicalResourceId": "ms12eb",
+      "ResourceType": "AWS::ApiGateway::Resource",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:48.112000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceStatementGET",
+      "PhysicalResourceId": "z14s5f8oxh|ms12eb|GET",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:50.562000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceStatementOPTIONS",
+      "PhysicalResourceId": "z14s5f8oxh|ms12eb|OPTIONS",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:50.414000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceTransactions",
+      "PhysicalResourceId": "5yyq0m",
+      "ResourceType": "AWS::ApiGateway::Resource",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:47.946000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceTransactionsGET",
+      "PhysicalResourceId": "z14s5f8oxh|5yyq0m|GET",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:50.371000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceApiWalletBranchDeviceTransactionsOPTIONS",
+      "PhysicalResourceId": "z14s5f8oxh|5yyq0m|OPTIONS",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "LastUpdatedTimestamp": "2026-10-15 19:52:50.274000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "ResourceStatusReason": "Applying stack-level tags as part of this import operation will cause a replacement of this resource, we are therefore not going to apply or update tags",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceWalletFunction",
+      "PhysicalResourceId": "staging-merchant-device-wallet-read",
+      "ResourceType": "AWS::Lambda::Function",
+      "LastUpdatedTimestamp": "2026-10-15 19:53:07.772000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    },
+    {
+      "LogicalResourceId": "MerchantDeviceWalletRole",
+      "PhysicalResourceId": "staging-merchant-device-wallet-read-role",
+      "ResourceType": "AWS::IAM::Role",
+      "LastUpdatedTimestamp": "2026-10-15 19:53:02.747000+00:00",
+      "ResourceStatus": "UPDATE_COMPLETE",
+      "DriftInformation": {
+        "StackResourceDriftStatus": "NOT_CHECKED"
+      }
+    }
+  ],
+  "driftVerification": [
+    {
+      "logical": "MerchantDeviceWalletRole",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceWalletFunction",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceTransactions",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceTransactionsGET",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceTransactionsOPTIONS",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceBalance",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceBalanceGET",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceBalanceOPTIONS",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceStatement",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceStatementGET",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceStatementOPTIONS",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceSalesReport",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceSalesReportGET",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDeviceSalesReportOPTIONS",
+      "status": "IN_SYNC",
+      "differences": []
+    },
+    {
+      "logical": "MerchantDeviceApiWalletBranchDevice",
+      "status": "IN_SYNC",
+      "differences": []
+    }
+  ],
+  "changeSet": "adopt-merchant-reader-release75",
+  "newTransferRuntimePublished": false,
+  "humanGrantsChanged": false
+}

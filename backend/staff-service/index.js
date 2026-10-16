@@ -8,6 +8,7 @@ const invitations=require('./invitations');
 const driverRoutes=require('./drivers');
 const settingsRoutes=require('./operational-settings');
 const deletionRoutes=require('./account-deletion');
+const onboardingPolicy=require('./onboarding-policy');
 const {ROLES,LABELS,effective,allowed,validateAssignment}=require('./catalog');
 const db=DynamoDBDocumentClient.from(new DynamoDBClient({}),{marshallOptions:{removeUndefinedValues:true}}),cognito=new CognitoIdentityProviderClient({});
 const table=process.env.STAFF_TABLE;
@@ -51,7 +52,13 @@ async function handler(event){
   }
   if(method==='GET'&&path.startsWith('/staff/drivers'))return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE},actor,method,path));
   let input;try{input=JSON.parse(event.body||'{}');if(!input||typeof input!=='object'||Array.isArray(input))throw Error();}catch(_){throw fail('INVALID_BODY',400);}
+  if(path==='/staff/pricing'||path.startsWith('/staff/pricing/'))return response(200,await require('./delivery-pricing').route({db,table,employee,guard,audit,enrolled,recent,claims,query:event.queryStringParameters},actor,method,path,input));
+  if(path==='/staff/merchants/staff-policy'||path.startsWith('/staff/merchants/staff-policy/'))return response(200,await require('./merchant-staff-policy').route({db,table,guard,audit,enrolled,recent,claims,query:event.queryStringParameters},actor,method,path,input));
+  if(path==='/staff/merchants/changes')return response(200,await require('./merchant-changes').route({db,table,guard,audit},actor,method,input));
+  if(path==='/staff/merchants/control')return response(200,await require('./merchant-control').route({db,table,guard,audit},actor,method,input));
+  if(path.startsWith('/staff/merchants/'))return response(200,await require('./merchant-onboarding').route({db,table,guard,audit,query:event.queryStringParameters},actor,method,path,input));
   if(path.startsWith('/staff/deletions/'))return response(200,await deletionRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,enrolled,allowed,query:event.queryStringParameters},actor,method,path,input));
+  if(path==='/staff/settings/onboarding'||path.startsWith('/staff/settings/onboarding/'))return response(200,await settingsRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled,settingsSpec:{pk:'OPERATIONAL_SETTINGS#MERCHANT_ONBOARDING',validate:onboardingPolicy.validate,actionPrefix:'ONBOARDING',directSave:true}},actor,method,path.replace('/staff/settings/onboarding','/staff/settings/account-deletion'),input));
   if(path.startsWith('/staff/settings/'))return response(200,await settingsRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled},actor,method,path,input));
   if(method==='POST'&&path==='/staff/drivers/edit')return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE,guard,audit,id:randomUUID},actor,method,path,input));
   const invitationContext={db,cognito,table,pool:process.env.USER_POOL_ID,guard,audit,validateRegions};

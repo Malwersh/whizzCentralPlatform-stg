@@ -133,6 +133,7 @@ window.RBAC = {
         }
         
         if(this.staff && !this.staff.employee.roles.includes('bootstrap_admin')) {
+            if(['pricing.html','delivery-pricing.html'].includes(pageName))return this.staff.permissions.includes('pricing.read');
             if(pageName==='settings.html')return this.staff.permissions.includes('settings.read')||this.staff.permissions.includes('finance.read');
             const permission={'staff.html':'staff.read','finance.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read'}[pageName];
             return pageName==='account-security.html'||pageName==='index.html'||(!!permission&&this.staff.permissions.includes(permission));
@@ -395,7 +396,7 @@ window.RBAC = {
     // Check if user can perform action on domain
     can(domain, action = 'read') {
         if(this.staff) {
-            const read={financial:'finance.read',campaigns:'promotions.read'};
+            const read={pricing:'pricing.read',financial:'finance.read',campaigns:'promotions.read'};
             const writes={drivers:['drivers.edit','drivers.review','drivers.suspend'],merchants:['merchants.edit','merchants.review','merchants.suspend'],orders:['orders.assign','orders.cancel'],customers:['customers.edit'],support:['support.reply','support.assign','support.close'],regions:['regions.edit','regions.activate'],campaigns:['promotions.create','promotions.edit','promotions.approve'],financial:['finance.request','finance.approve','finance.settings.request','finance.settings.approve']};
             return action==='read'?this.staff.permissions.includes(read[domain]||domain+'.read'):(writes[domain]||[]).some(p=>this.staff.permissions.includes(p));
         }

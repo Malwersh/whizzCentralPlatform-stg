@@ -44,6 +44,17 @@ provider:
     role:
       statements:
         - Effect: Allow
+          Action: dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/staging-MerchantPlatform
+            - arn:aws:dynamodb:${self:provider.region}:*:table/WhizzMerchants_Businesses
+            - arn:aws:dynamodb:${self:provider.region}:*:table/staging-AccountDeletion
+          Condition:
+            'Null':
+              'dynamodb:Attributes': 'false'
+            'ForAllValues:StringEquals':
+              'dynamodb:Attributes': [pk, sk, businessId, ownerId, deviceId, version, status, expiresAt, deviceVersion, tokenHash, cognitoUserId, deletionRequestId]
+        - Effect: Allow
           Action:
             - dynamodb:PutItem
             - dynamodb:GetItem
