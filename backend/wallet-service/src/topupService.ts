@@ -1,3 +1,5 @@
+import {financialStaff,staffGuard,approvalAmount} from './staffAccess';
+import { walletNotification } from './walletNotifications';
 import { docClient, TABLES, GetCommand, QueryCommand, TransactWriteCommand } from './db';
 import {
   TopupRequest,
@@ -23,6 +25,7 @@ import {
   generateDatePartition,
   getPlatformWalletId,
 } from './utils';
+import { fundingError, referenceHash } from './fundingService';
 
 /**
  * Topup Service - Add Balance to Wallets
@@ -49,6 +52,8 @@ export class TopupService {
     request: CreateTopupRequestRequest
   ): Promise<CreateTopupRequestResponse> {
     const { driverId, amount, method, evidenceRef, note } = request;
+    if (!request.idempotencyKey || !/^[a-zA-Z0-9-]{16,80}$/.test(request.idempotencyKey)) throw fundingError("مفتاح الطلب مطلوب");
+    if (method !== "MANUAL_VERIFICATION" || amount < 25000 || !Number.isSafeInteger(amount) || !evidenceRef || !request.transferReference) throw fundingError("الحد الأدنى 25000 دينار والوصل ومرجع التحويل مطلوبان");
 
     // Validate
     validateAmount(amount);
@@ -61,7 +66,7 @@ export class TopupService {
     const topupId = generateTopupId();
     const walletId = `WALLET#DRIVER#${driverId}`;
     const timestamp = getCurrentTimestamp();
-    const idempotencyKey = `TOPUP_CREATE#${driverId}#${Date.now()}#${amount}`;
+    const idempotencyKey = `TOPUP_CREATE#${driverId}#${request.idempotencyKey}`;
 
     // Check idempotency
     const existingKey = await docClient.send(
@@ -73,7 +78,9 @@ export class TopupService {
 
     if (existingKey.Item) {
       console.log('Duplicate topup request detected, returning existing result');
-      return existingKey.Item.result as CreateTopupRequestResponse;
+      const saved = existingKey.Item.result as CreateTopupRequestResponse;
+      if (saved.topupRequest.amount !== amount || saved.topupRequest.evidenceRef !== evidenceRef || saved.topupRequest.transferReference !== request.transferReference) throw fundingError('مفتاح الطلب مستخدم ببيانات مختلفة','IDEMPOTENCY_CONFLICT',409);
+      return saved;
     }
 
     // Check wallet exists
@@ -87,6 +94,7 @@ export class TopupService {
     if (!walletResult.Item) {
       throw new WalletNotFoundError(`Wallet not found for driver: ${driverId}`);
     }
+    if (walletResult.Item.status !== 'ACTIVE' || walletResult.Item.deletionRequestId) throw fundingError('هذه المحفظة غير متاحة للشحن','ACCOUNT_CLOSING',409);
 
     // Create topup request
     const topupRequest: TopupRequest = {
@@ -98,6 +106,8 @@ export class TopupService {
       method: method || 'CASH_AGENT',
       status: 'PENDING',
       evidenceRef,
+      transferReference: request.transferReference,
+      fundingSnapshot: request.fundingSnapshot,
       note,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -113,9 +123,13 @@ export class TopupService {
     };
 
     // Save to database
+    try {
     await docClient.send(
       new TransactWriteCommand({
         TransactItems: [
+          {Update: {TableName: TABLES.WALLETS, Key: {walletId, sk:'META'}, UpdateExpression:'SET #v = #v + :one', ConditionExpression:'#s = :active AND attribute_not_exists(deletionRequestId) AND #v = :v', ExpressionAttributeNames:{'#s':'status','#v':'version'}, ExpressionAttributeValues:{':active':'ACTIVE',':v':walletResult.Item.version,':one':1}}},
+          ...(process.env.ACCOUNT_DELETION_TABLE && /^receipts\/[A-Za-z0-9_-]+\/[a-f0-9-]{36}\.(jpg|png)$/.test(evidenceRef!) ? [{Delete:{TableName:process.env.ACCOUNT_DELETION_TABLE,Key:{pk:`ACCOUNT_OPERATION#DRIVER#${driverId}`,sk:'FUNDING_RECEIPT#'+evidenceRef!.split('/').at(-1)!.split('.')[0]},ConditionExpression:'attribute_not_exists(pk) OR (assetKey = :asset AND subjectId = :sub)',ExpressionAttributeValues:{':asset':evidenceRef!,':sub':driverId}}}] : []),
+          ...[referenceHash(request.transferReference!), referenceHash(evidenceRef!)].map((hash, index) => ({Put: {TableName: TABLES.IDEMPOTENCY_KEYS, Item: {idempotencyKey: `FUNDING_${index === 0 ? 'REFERENCE' : 'RECEIPT'}#${hash}`, sk:'META', topupId, driverId}, ConditionExpression: 'attribute_not_exists(idempotencyKey)'}})),
           {
             Put: {
               TableName: TABLES.TOPUP_REQUESTS,
@@ -157,6 +171,13 @@ export class TopupService {
         ],
       })
     );
+    } catch (error: any) {
+      if (error.name !== 'TransactionCanceledException') throw error;
+      const retry = await docClient.send(new GetCommand({TableName:TABLES.IDEMPOTENCY_KEYS,Key:{idempotencyKey,sk:'META'},ConsistentRead:true}));
+      const saved = retry.Item?.result as CreateTopupRequestResponse | undefined;
+      if (saved && saved.topupRequest.amount === amount && saved.topupRequest.evidenceRef === evidenceRef && saved.topupRequest.transferReference === request.transferReference) return saved;
+      throw fundingError('التحويل أو الوصل مستخدم في طلب آخر، أو تكرر الطلب ببيانات مختلفة', 'DUPLICATE_FUNDING',409);
+    }
 
     return response;
   }
@@ -170,6 +191,7 @@ export class TopupService {
     request: ApproveTopupRequest
   ): Promise<ApproveTopupResponse> {
     const { topupId, approvedById, approvedByRole, note } = request;
+    const staff=await financialStaff(approvedById,'finance.approve');
     const timestamp = getCurrentTimestamp();
     const idempotencyKey = `TOPUP_APPROVE#${topupId}`;
 
@@ -178,6 +200,7 @@ export class TopupService {
       new GetCommand({
         TableName: TABLES.IDEMPOTENCY_KEYS,
         Key: { idempotencyKey, sk: 'META' },
+        ConsistentRead: true,
       })
     );
 
@@ -238,6 +261,7 @@ export class TopupService {
     }
 
     const wallet = walletResult.Item as Wallet;
+    if (wallet.status !== 'ACTIVE' || walletResult.Item.deletionRequestId) throw fundingError('هذه المحفظة غير متاحة للشحن','ACCOUNT_CLOSING',409);
 
     // Get platform wallet
     const platformWalletId = getPlatformWalletId();
@@ -260,7 +284,7 @@ export class TopupService {
     // Ledger entries for driver wallet (credit)
     const driverCreditEntry: LedgerEntry = {
       walletId: topup.walletId,
-      sk: generateLedgerSK(timestamp, '0'),
+      sk: generateLedgerSK(timestamp, txnId),
       txnId,
       transactionId: txnId,
       type: 'TOPUP',
@@ -277,7 +301,7 @@ export class TopupService {
     // Ledger entries for platform wallet (debit - cash received)
     const platformDebitEntry: LedgerEntry = {
       walletId: platformWalletId,
-      sk: generateLedgerSK(timestamp, '0'),
+      sk: generateLedgerSK(timestamp, txnId),
       txnId,
       transactionId: txnId,
       type: 'TOPUP',
@@ -299,10 +323,23 @@ export class TopupService {
       newBalance: wallet.availableBalance + topup.amount,
     };
 
+    approvalAmount(staff,topup.amount);
     // Atomic transaction
+    try {
     await docClient.send(
       new TransactWriteCommand({
         TransactItems: [
+          ...(staff?[staffGuard(staff)]:[]),
+          walletNotification(topup, 'APPROVED', timestamp),
+          { Update: {
+            TableName: TABLES.IDEMPOTENCY_KEYS,
+            Key: { idempotencyKey: `FINANCE_DAILY#${approvedById}#${timestamp.slice(0,10)}`, sk:'META' },
+            UpdateExpression: 'SET #ttl = :expiry ADD approvedAmount :amount',
+            ConditionExpression: 'attribute_not_exists(approvedAmount) OR approvedAmount <= :remaining',
+            ExpressionAttributeNames: {'#ttl':'ttl'},
+            ExpressionAttributeValues: {':amount':topup.amount,':remaining':500000-topup.amount,':expiry':Math.floor(Date.now()/1000)+172800}
+          } },
+
           // Update topup status
           {
             Update: {
@@ -349,13 +386,17 @@ export class TopupService {
                 'SET availableBalance = availableBalance + :amount, ' +
                 'updatedAt = :timestamp, ' +
                 '#version = #version + :one',
+              ConditionExpression: '#version = :expectedVersion AND #s = :active AND attribute_not_exists(deletionRequestId)',
               ExpressionAttributeNames: {
                 '#version': 'version',
+                '#s': 'status',
               },
               ExpressionAttributeValues: {
                 ':amount': topup.amount,
                 ':timestamp': timestamp,
                 ':one': 1,
+                ':expectedVersion': wallet.version,
+                ':active': 'ACTIVE',
               },
             },
           },
@@ -368,6 +409,7 @@ export class TopupService {
                 'SET availableBalance = availableBalance + :amount, ' +
                 'updatedAt = :timestamp, ' +
                 '#version = #version + :one',
+              ConditionExpression: '#version = :expectedVersion',
               ExpressionAttributeNames: {
                 '#version': 'version',
               },
@@ -375,6 +417,7 @@ export class TopupService {
                 ':amount': topup.amount,
                 ':timestamp': timestamp,
                 ':one': 1,
+                ':expectedVersion': platformWallet.version,
               },
             },
           },
@@ -413,6 +456,12 @@ export class TopupService {
       })
     );
 
+    } catch (error: any) {
+      if (error.name !== 'TransactionCanceledException') throw error;
+      const retry = await docClient.send(new GetCommand({TableName: TABLES.IDEMPOTENCY_KEYS, Key:{idempotencyKey,sk:'META'}, ConsistentRead:true}));
+      if (retry.Item?.result) return retry.Item.result as ApproveTopupResponse;
+      throw fundingError('تغير الرصيد أو حالة الطلب، أو بلغ الاعتماد الحد اليومي؛ حدث الصفحة وأعد المحاولة', 'APPROVAL_CONFLICT', 409);
+    }
     return response;
   }
 
@@ -420,37 +469,13 @@ export class TopupService {
    * Get admin's total approved amount for today (for daily limit check)
    */
   private async getAdminDailyApprovals(adminId: string): Promise<number> {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const startOfDay = `${today}T00:00:00.000Z`;
-    const endOfDay = `${today}T23:59:59.999Z`;
-
-    try {
-      const result = await docClient.send(
-        new QueryCommand({
-          TableName: TABLES.AUDIT_LOG,
-          IndexName: 'ActionIndex', // Assumes GSI on action + timestamp
-          KeyConditionExpression: '#action = :action AND #timestamp BETWEEN :start AND :end',
-          FilterExpression: 'metadata.approvedById = :adminId',
-          ExpressionAttributeNames: {
-            '#action': 'action',
-            '#timestamp': 'timestamp',
-          },
-          ExpressionAttributeValues: {
-            ':action': 'TOPUP_APPROVED',
-            ':start': startOfDay,
-            ':end': endOfDay,
-            ':adminId': adminId,
-          },
-        })
-      );
-
-      const total = (result.Items || []).reduce((sum, item) => sum + (item.amount || 0), 0);
-      console.log(`Admin ${adminId} daily approvals: ${total} IQD`);
-      return total;
-    } catch (error) {
-      console.warn('Could not check daily limit (index may not exist), allowing approval:', error);
-      return 0; // Allow if we can't check
-    }
+    const today = new Date().toISOString().slice(0, 10);
+    const result = await docClient.send(new GetCommand({
+      TableName: TABLES.IDEMPOTENCY_KEYS,
+      Key: { idempotencyKey: `FINANCE_DAILY#${adminId}#${today}`, sk: 'META' },
+      ConsistentRead: true,
+    }));
+    return result.Item?.approvedAmount || 0;
   }
 
   /**
@@ -489,6 +514,7 @@ export class TopupService {
     await docClient.send(
       new TransactWriteCommand({
         TransactItems: [
+          walletNotification(topup, 'REJECTED', timestamp),
           {
             Update: {
               TableName: TABLES.TOPUP_REQUESTS,

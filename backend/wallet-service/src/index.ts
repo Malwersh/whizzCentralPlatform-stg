@@ -1,3 +1,15 @@
+import {customerNotifications,readCustomerNotifications} from './customerNotifications';
+import {sendTransferCode,verifyTransferCode} from './transferVerification';
+import {cancelMobileTransfer} from './transferService';
+import {mobileAccount,merchantMembers,saveMerchantMember,merchantAccounts} from './transferIdentity';
+import {transferContext,transferRecipient,transferHistory,transferStatus} from './transferClient';
+import {lifecycleWorker,listLifecycle,retryLifecycle} from './walletLifecycle';
+import { transferSettingsOverview, proposeTransferSettings, approveTransferSettings, cancelTransferSettings } from './transferSettings';
+import { requestTransfer, approveTransfer, listTransferRequests, TransferActor } from './transferService';
+import { reconciliationReport } from './reconciliation';
+import { sandboxConfig, sandboxOverview, createSandboxPayment, checkSandboxPayment, sandboxSettings, saveSandboxSettings, reconcileSandboxPayments, sandboxNotification } from './sandboxPayments';
+import { docClient, QueryCommand, ScanCommand, TABLES } from './db';
+import { getFundingConfig, saveFundingConfig, receiptUpload, receiptView, validateReceipt, fundingError } from './fundingService';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { WalletService } from './walletService';
 import { HoldService } from './holdService';
@@ -28,6 +40,10 @@ const settlementService = new SettlementService();
 export async function handler(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  if ((event as any).source === 'aws.events') {
+    await reconcileSandboxPayments();
+    return buildSuccessResponse({reconciled:true});
+  }
   console.log('Wallet Service Request:', {
     path: event.path,
     method: event.httpMethod,
@@ -38,6 +54,10 @@ export async function handler(
     const path = event.path;
     const method = event.httpMethod;
 
+    if(path === '/wallet/funding/sandbox/notification' && method === 'POST') {
+      if((event.body || '').length>8192) return buildErrorResponse(413,'PAYLOAD_TOO_LARGE','Payload too large');
+      return buildSuccessResponse(await sandboxNotification(parseBody(event.body)));
+    }
     // Health check
     if (path === '/health' && method === 'GET') {
       return buildSuccessResponse({ status: 'healthy', service: 'wallet' });
@@ -63,6 +83,102 @@ export async function handler(
       console.log('Authenticated as: anonymous');
     }
 
+    const finance = adminId && (authorizer?.financeManager === true || authorizer?.financeManager === 'true');
+    const financialRoute = path.startsWith('/wallet/funding/admin') || path === '/wallet/topup/requests' || /\/wallet\/topup\/[^/]+\/(approve|reject)$/.test(path);
+    if (financialRoute && !finance) return buildErrorResponse(403, 'FINANCE_MANAGER_REQUIRED', 'صلاحية المدير المالي مطلوبة');
+    if (path.startsWith('/wallet/funding/') && !driverId && !adminId) return buildErrorResponse(401,'UNAUTHORIZED','يرجى تسجيل الدخول');
+    if (path === '/wallet/funding/admin/transfer-settings' && method === 'GET') return buildSuccessResponse(await transferSettingsOverview());
+    if (path === '/wallet/funding/admin/transfer-settings' && method === 'POST') return buildSuccessResponse(await proposeTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)));
+    if (path === '/wallet/funding/admin/transfer-settings/approve' && method === 'POST') return buildSuccessResponse(await approveTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)?.changeId));
+    if (path === '/wallet/funding/admin/transfer-settings/cancel' && method === 'POST') return buildSuccessResponse(await cancelTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)?.changeId));
+    if (path === '/wallet/funding/admin/transfers' && method === 'GET') return buildSuccessResponse(await listTransferRequests(event.queryStringParameters?.cursor));
+    if(path==='/wallet/transfers/notifications'){if(authorizer?.userType!=='customer')return buildErrorResponse(403,'CUSTOMER_REQUIRED','حساب مستخدم مطلوب');if(method==='GET')return buildSuccessResponse(await customerNotifications(authorizer.userId,event.queryStringParameters?.cursor));if(method==='POST')return buildSuccessResponse(await readCustomerNotifications(authorizer.userId,parseBody(event.body)));}
+    if(path==='/wallet/transfers/accounts'&&method==='GET'){if(authorizer?.userType!=='merchant')return buildErrorResponse(403,'MERCHANT_REQUIRED','حساب مطعم مطلوب');return buildSuccessResponse(await merchantAccounts(authorizer?.userId));}
+    if (path.startsWith('/wallet/transfers/') && method === 'GET') {
+      const a=await mobileAccount(authorizer?.userType,authorizer?.userId,event.queryStringParameters?.businessId);
+      if(path==='/wallet/transfers/members')return buildSuccessResponse(await merchantMembers(a));
+      if(path==='/wallet/transfers/context')return buildSuccessResponse({...await transferContext(a),phoneVerified:String(authorizer?.phoneVerified)==='true',verifiedPhone:authorizer?.verifiedPhone||''});
+      if(path==='/wallet/transfers/recipient')return buildSuccessResponse(await transferRecipient(a,event.queryStringParameters?.phone||'',event.queryStringParameters?.type||'DRIVER'));
+      if(path==='/wallet/transfers/status')return buildSuccessResponse(await transferStatus(a,event.queryStringParameters?.requestId||''));
+      if(path==='/wallet/transfers/history')return buildSuccessResponse(await transferHistory(a,event.queryStringParameters?.cursor));
+    }
+    if(['/wallet/transfers/otp/send','/wallet/transfers/otp/verify'].includes(path)&&method==='POST'){if(process.env.ENVIRONMENT!=='staging')return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);try{return buildSuccessResponse(path.endsWith('/send')?await sendTransferCode(a,(event.headers.Authorization||event.headers.authorization||'').replace(/^Bearer /,''),input):await verifyTransferCode(a,input));}catch(e:any){if(e.name==='TransactionCanceledException')return buildErrorResponse(429,'OTP_LIMIT','انتظر قبل إعادة المحاولة أو اطلب رمزًا جديدًا');throw e;}}
+    if(path==='/wallet/transfers/members'&&method==='POST'){const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await saveMerchantMember(a,Number(authorizer?.authTime||0),input));}
+    if(path==='/wallet/transfers/cancel'&&method==='POST'){const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await cancelMobileTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime||0)},input));}
+    if (path === '/wallet/transfers/request' && method === 'POST') {
+      const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      return buildSuccessResponse(await requestTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime || 0)},input));
+    }
+    if(path.startsWith('/wallet/transfers/'))return buildErrorResponse(405,'METHOD_NOT_ALLOWED','هذه العملية غير متاحة');
+    if (path === '/wallet/funding/admin/transfer' && method === 'POST') {
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      const actor: TransferActor = {id:adminId,type:'FINANCE',authTime:Number(authorizer?.authTime || 0)};
+      return buildSuccessResponse(await requestTransfer(actor,parseBody(event.body)));
+    }
+    if (path === '/wallet/funding/admin/transfer/approve' && method === 'POST') {
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      return buildSuccessResponse(await approveTransfer({id:adminId,type:'FINANCE',authTime:Number(authorizer?.authTime || 0)},parseBody(event.body)?.requestId));
+    }
+    if(path==='/wallet/funding/admin/owners'&&method==='GET'){let owners:any[]=[],cursor:any,pages=0;do{const result=await docClient.send(new ScanCommand({TableName:process.env.DRIVERS_TABLE,ExclusiveStartKey:cursor,Limit:100,ProjectionExpression:'driverId, #n, fullName, phone, phoneNumber',ExpressionAttributeNames:{'#n':'name'}}));owners.push(...(result.Items||[]));cursor=result.LastEvaluatedKey;if(++pages>100)throw Error('Owner list incomplete');}while(cursor);return buildSuccessResponse({owners:owners.map(d=>({ownerId:d.driverId,name:d.name||d.fullName,phone:d.phoneNumber||d.phone}))});}
+    if(path === '/wallet/funding/admin/lifecycle/retry' && method === 'POST')return buildSuccessResponse(await retryLifecycle(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if (path === '/wallet/funding/admin/lifecycle' && method === 'GET') return buildSuccessResponse(await listLifecycle(event.queryStringParameters?.cursor));
+    if (path === '/wallet/funding/admin/reconciliation' && method === 'GET') return buildSuccessResponse(await reconciliationReport());
+    if (path === '/wallet/funding/admin/transactions' && method === 'GET') {
+      const walletId = event.queryStringParameters?.walletId || '';
+      const cursor = event.queryStringParameters?.cursor;
+      if (!/^WALLET#(DRIVER#[a-f0-9-]{36}|PLATFORM)$/.test(walletId)) return buildErrorResponse(400, 'INVALID_WALLET', 'المحفظة غير صالحة');
+      if (cursor) {
+        try {
+          if (cursor.length > 2048) throw new Error('cursor');
+          const key = JSON.parse(cursor);
+          if (key.walletId !== walletId || typeof key.sk !== 'string' || !key.sk.startsWith('ts#') || Object.keys(key).length !== 2) throw new Error('cursor');
+        } catch (_) { return buildErrorResponse(400, 'INVALID_CURSOR', 'مؤشر السجل غير صالح'); }
+      }
+      return buildSuccessResponse(await walletService.getTransactions(walletId, 50, cursor));
+    }
+    if (path === '/wallet/funding/admin/wallets' && method === 'GET') {
+      const cursor = event.queryStringParameters?.cursor;
+      let start;
+      if (cursor) {
+        try {
+          if (cursor.length > 1024) throw new Error('cursor');
+          start = JSON.parse(Buffer.from(cursor, 'base64url').toString());
+          if (!start || typeof start.walletId !== 'string' || start.sk !== 'META' || Object.keys(start).length !== 2) throw new Error('cursor');
+        } catch (_) { return buildErrorResponse(400, 'INVALID_CURSOR', 'مؤشر الصفحة غير صالح'); }
+      }
+      const result = await docClient.send(new ScanCommand({
+        TableName: TABLES.WALLETS, Limit: 50, ExclusiveStartKey: start,
+        FilterExpression: 'sk = :meta', ExpressionAttributeValues: { ':meta': 'META' },
+        ProjectionExpression: 'walletId, sk, ownerId, ownerType, currency, #s, availableBalance, lockedBalance, updatedAt',
+        ExpressionAttributeNames: { '#s': 'status' }
+      }));
+      return buildSuccessResponse({ wallets: result.Items || [], nextCursor: result.LastEvaluatedKey ? Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString('base64url') : null });
+    }
+    if (path === '/wallet/funding/config' && method === 'GET') return buildSuccessResponse(await getFundingConfig());
+    if (path === '/wallet/funding/admin/config' && method === 'PUT') return buildSuccessResponse(await saveFundingConfig(parseBody(event.body), adminId));
+    if (path === '/wallet/funding/receipt' && method === 'POST') {
+      if (!driverId) return buildErrorResponse(403,'DRIVER_REQUIRED','حساب سائق مطلوب');
+      return buildSuccessResponse(await receiptUpload(driverId,parseBody(event.body)));
+    }
+    if (path === '/wallet/funding/admin/receipt' && method === 'POST') return buildSuccessResponse(await receiptView(parseBody(event.body)?.key || ''));
+    if (path.startsWith('/wallet/funding/sandbox')) {
+      if (!driverId) return buildErrorResponse(403,'DRIVER_REQUIRED','حساب سائق مطلوب');
+      if (path === '/wallet/funding/sandbox/config' && method === 'GET') return buildSuccessResponse(await sandboxConfig(driverId));
+      if (path === '/wallet/funding/sandbox' && method === 'GET') return buildSuccessResponse(await sandboxOverview(driverId));
+      if (path === '/wallet/funding/sandbox/payment' && method === 'POST') return buildSuccessResponse(await createSandboxPayment(driverId,parseBody(event.body)));
+      if (path === '/wallet/funding/sandbox/check' && method === 'POST') return buildSuccessResponse(await checkSandboxPayment(driverId,parseBody(event.body)?.requestId));
+      return buildErrorResponse(404,'NOT_FOUND','Route not found');
+    }
+    if (path === '/wallet/funding/admin/sandbox' && method === 'GET') return buildSuccessResponse(event.queryStringParameters?.driverId ? await sandboxOverview(event.queryStringParameters.driverId) : await sandboxSettings());
+    if (path === '/wallet/funding/admin/sandbox' && method === 'PUT') return buildSuccessResponse(await saveSandboxSettings(parseBody(event.body),adminId));
+    if (path === '/wallet/funding/payment' && method === 'POST') return buildErrorResponse(409,'PAYMENT_PROVIDER_NOT_CONFIGURED','طريقة الدفع الحقيقي غير مفعلة بعد');
+
+    if (path === '/wallet/me/notifications' && method === 'GET') {
+      if (!driverId) return buildErrorResponse(401,'UNAUTHORIZED','Driver authentication required');
+      const result = await docClient.send(new QueryCommand({TableName:process.env.WALLET_NOTIFICATIONS_TABLE,IndexName:'ByDriver',KeyConditionExpression:'driverId = :driver',ExpressionAttributeValues:{':driver':driverId},ScanIndexForward:false,Limit:50}));
+      return buildSuccessResponse({notifications:(result.Items || []).map(item=>({eventId:item.eventId,type:item.type,title:item.title,body:item.body,createdAt:item.createdAt,topupId:item.topupId,amount:item.amount}))});
+    }
     // Route handlers
     if (path === '/wallet/me' && method === 'GET') {
       if (!driverId) {
@@ -92,16 +208,19 @@ export async function handler(
 
     // Platform wallet endpoints (must come before /wallet/{walletId})
     if (path === '/wallet/platform' && method === 'GET') {
+      if (!finance && !serviceId) return buildErrorResponse(403, 'FORBIDDEN', 'صلاحية مالية مطلوبة');
       return await getPlatformWallet();
     }
 
     if (path === '/wallet/platform/create' && method === 'POST') {
+      if (!finance && !serviceId) return buildErrorResponse(403, 'FORBIDDEN', 'صلاحية مالية مطلوبة');
       return await createPlatformWallet();
     }
 
     // Generic wallet endpoint (after specific routes)
     if (path.startsWith('/wallet/') && method === 'GET' && !path.includes('/hold') && !path.includes('/topup') && !path.includes('/settlement')) {
-      // GET /wallet/{walletId} - Admin only (will add auth check later)
+      // Defense in depth: the gateway authorizer is not the only ownership boundary.
+      if (!finance) return buildErrorResponse(403, 'FINANCE_MANAGER_REQUIRED', 'صلاحية المدير المالي مطلوبة');
       const walletId = path.split('/')[2];
       return await getWallet(walletId);
     }
@@ -164,6 +283,7 @@ export async function handler(
     }
 
     if (path.match(/^\/wallet\/settlement\/order\/[^/]+$/) && method === 'GET') {
+      if (!serviceId && !finance) return buildErrorResponse(403, 'FORBIDDEN', 'صلاحية مالية مطلوبة');
       const orderId = path.split('/')[4];
       return await getSettlement(orderId);
     }
@@ -233,10 +353,12 @@ async function getMyTransactions(
 
   const walletId = generateDriverWalletId(driverId);
   const limit = queryParams?.limit ? parseInt(queryParams.limit) : 50;
+  // Accept both `nextToken` and `lastEvaluatedKey` for frontend compatibility
+  const pageToken = queryParams?.nextToken || queryParams?.lastEvaluatedKey || undefined;
 
   let transactions;
   try {
-    transactions = await walletService.getTransactions(walletId, limit);
+    transactions = await walletService.getTransactions(walletId, limit, pageToken);
   } catch (error) {
     // Root fix: if wallet doesn't exist yet, provision and return empty history
     if (error instanceof WalletNotFoundError) {
@@ -246,7 +368,7 @@ async function getMyTransactions(
       });
 
       await walletService.createWallet({ driverId });
-      transactions = await walletService.getTransactions(walletId, limit);
+      transactions = await walletService.getTransactions(walletId, limit, pageToken);
     } else {
       throw error;
     }
@@ -424,7 +546,15 @@ async function createTopupRequest(
     return buildErrorResponse(400, 'INVALID_REQUEST', 'amount is required');
   }
 
+  const config = await getFundingConfig();
+  if (!config.manual.enabled) throw fundingError('التحويل اليدوي غير متاح حالياً','METHOD_DISABLED',409);
+  if (data.configVersion !== config.version) throw fundingError('تغيرت بيانات التحويل؛ أعد تحميل الإعدادات','CONFIG_CHANGED',409);
+  if (typeof data.transferReference !== 'string' || !/^[a-zA-Z0-9-]{4,80}$/.test(data.transferReference)) throw fundingError('مرجع التحويل غير صالح');
+  await validateReceipt(driverId, data.evidenceRef);
   const result = await topupService.createTopupRequest({
+    idempotencyKey: data.idempotencyKey,
+    transferReference: data.transferReference,
+    fundingSnapshot: config.manual,
     driverId,
     amount: data.amount,
     method: data.method,
@@ -452,7 +582,7 @@ async function approveTopupRequest(
   const result = await topupService.approveTopupRequest({
     topupId,
     approvedById: adminId,
-    approvedByRole: 'ADMIN',
+    approvedByRole: 'finance_manager',
     note: data?.note,
   });
 
@@ -519,35 +649,9 @@ async function getMyTopupRequests(
 /**
  * POST /wallet/settlement/settle
  */
-async function settleOrder(body: string | null): Promise<APIGatewayProxyResult> {
-  const data = parseBody(body);
-
-  if (!data.orderId || !data.driverId || !data.platformFeeAmount) {
-    return buildErrorResponse(
-      400,
-      'INVALID_REQUEST',
-      'orderId, driverId, and platformFeeAmount are required'
-    );
-  }
-
-  if (!data.settledBy || !data.settledByRole) {
-    return buildErrorResponse(
-      400,
-      'INVALID_REQUEST',
-      'settledBy and settledByRole are required'
-    );
-  }
-
-  const result = await settlementService.settleOrder({
-    orderId: data.orderId,
-    driverId: data.driverId,
-    platformFeeAmount: data.platformFeeAmount,
-    settledBy: data.settledBy,
-    settledByRole: data.settledByRole,
-    metadata: data.metadata,
-  });
-
-  return buildSuccessResponse(result);
+async function settleOrder(_body: string | null): Promise<APIGatewayProxyResult> {
+  // Capture already credits the platform. The legacy second debit must never execute.
+  return buildErrorResponse(409, 'LEGACY_SETTLEMENT_DISABLED', 'تتم تسوية المبلغ المحجوز بواسطة Capture؛ مسار الخصم الإضافي معطل');
 }
 
 /**
@@ -571,3 +675,4 @@ async function getDriverSettlements(
   const result = await settlementService.getDriverSettlements(driverId);
   return buildSuccessResponse(result);
 }
+export async function walletLifecycleWorker(){return lifecycleWorker();}

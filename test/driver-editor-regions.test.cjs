@@ -1,0 +1,8 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {hierarchy,updateValues}=require('../frontend/assets/js/driver-regions');
+const base=[{regionId:'iq',level:0,name_ar:'العراق'},{regionId:'g',parent_id:'iq',level:1,name_ar:'النجف'},{regionId:'d',parent_id:'g',level:2,name_ar:'القضاء'},{regionId:'r',parent_id:'d',level:3,name_ar:'الحيرة'},{regionId:'closed',parent_id:'d',level:3,name_ar:'مغلقة'}];
+const derived=base.map(r=>({regionId:r.regionId,effective_is_active:r.regionId==='closed'?0:1}));
+const selection={name:'Driver',regionId:'r',governorateId:'g',vehicleType:'car',landmark:'School'};
+test('editor joins derived activation with actual region IDs and hierarchy',()=>{const m=hierarchy(base,derived);assert.equal(m.regions.find(r=>r.regionId==='r').open,true);assert.equal(m.regions.find(r=>r.regionId==='closed').open,false);const v=updateValues({},selection,m);assert.equal(v.work_region_id,'r');assert.equal(v.governorate_id,'g');assert.equal(v.parent_district_id,'d');assert.equal(v.work_region_name,'الحيرة');});
+test('mismatched governorate, closed new region and unknown vehicle are rejected',()=>{const m=hierarchy(base,derived);for(const changes of [{governorateId:'other'},{regionId:'closed'},{vehicleType:'unknown'}])assert.throws(()=>updateValues({},{...selection,...changes},m));});
+test('existing closed region can be preserved; online drivers cannot change work area',()=>{const m=hierarchy(base,derived);assert.equal(updateValues({work_region_id:'closed'},{...selection,regionId:'closed'},m).work_region_id,'closed');assert.throws(()=>updateValues({isOnline:true,work_region_id:'closed'},selection,m));});

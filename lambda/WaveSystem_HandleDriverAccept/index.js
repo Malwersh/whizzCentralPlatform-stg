@@ -1,3 +1,4 @@
+const { isDriverApproved } = require('./driver_eligibility');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
   DynamoDBDocumentClient,
@@ -7,9 +8,10 @@ const {
 } = require('@aws-sdk/lib-dynamodb');
 const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require('@aws-sdk/client-apigatewaymanagementapi');
 
-const dynamoDB = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+const {driverRequestContext,driverLifecycleClient}=require('./driver-lifecycle');
+const dynamoDB = driverLifecycleClient(DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true },
-});
+}));
 
 function requireNonEmptyEnv(name) {
   const value = process.env[name];
@@ -59,14 +61,17 @@ const ORDERS_TABLE = process.env.ORDERS_TABLE || 'WizzOrders';
  * 7. إرسال إشعارات
  */
 
-exports.handler = async (event) => {
+exports.handler = event => driverRequestContext.run({}, () => handleRequest(event));
+const handleRequest = async (event) => {
   console.log('🌊 HandleDriverAccept Lambda triggered');
-  console.log('📥 Event:', JSON.stringify(event, null, 2));
+  console.log('Driver acceptance request received');
   
   try {
     // Parse request body
     const body = JSON.parse(event.body || '{}');
     const { offerId, driverId, orderId, holdId, holdStatus, holdAmount } = body;
+    if (process.env.DRIVERS_TABLE !== 'WhizzDrivers_staging') throw new Error('STAGING_DRIVER_TABLE_REQUIRED');
+    driverRequestContext.getStore().sub = driverId;
     
     console.log('📋 Request parameters:');
     console.log(`   - offerId: ${offerId}`);
@@ -91,6 +96,14 @@ exports.handler = async (event) => {
       };
     }
     
+    const profile = await dynamoDB.send(new GetCommand({
+      TableName: requireNonEmptyEnv('DRIVERS_TABLE'), Key: { driverId }, ConsistentRead: true
+    }));
+    if (!isDriverApproved(profile.Item)) {
+      return { statusCode: 403, body: JSON.stringify({ success: false,
+        code: 'DRIVER_NOT_VERIFIED', message: 'حساب السائق بانتظار تحقق الإدارة' }) };
+    }
+
     // Extract orderId and waveNumber from offerId if not provided
     // Format: OFFER_{orderId}_{driverId}_W{waveNumber}
     let extractedOrderId = orderId;

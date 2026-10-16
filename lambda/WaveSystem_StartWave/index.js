@@ -1,3 +1,4 @@
+const { isDriverApproved } = require('./driver_eligibility');
 /**
  * WaveSystem_StartWave Lambda Function
  * 
@@ -299,7 +300,15 @@ exports.handler = async (event) => {
     // Step 2: البحث عن السائقين المؤهلين
     const waveThresholds = getWaveThresholds(waveNumber, isEmergencyWave);
     console.log(`📊 Wave ${waveNumber} thresholds:`, waveThresholds);
-    const qualifiedDrivers = await getQualifiedDrivers(dispatchJob, excludeDriverIds, excludeDriverIds, rejectedDriverIds, isFinalWave, isEmergencyWave, waveNumber, waveThresholds);
+    let qualifiedDrivers = await getQualifiedDrivers(dispatchJob, excludeDriverIds, excludeDriverIds, rejectedDriverIds, isFinalWave, isEmergencyWave, waveNumber, waveThresholds);
+
+    const approvedDrivers = [];
+    for (const candidate of qualifiedDrivers) {
+      const profile = await dynamodb.get({ TableName: requireNonEmptyEnv('DRIVERS_TABLE'),
+        Key: { driverId: candidate.driverId }, ConsistentRead: true }).promise();
+      if (isDriverApproved(profile.Item)) approvedDrivers.push(candidate);
+    }
+    qualifiedDrivers = approvedDrivers;
 
     if (qualifiedDrivers.length === 0) {
       console.warn(`⚠️ No qualified drivers found for Wave ${waveNumber}`);
@@ -1036,6 +1045,7 @@ async function sendWaveOffers(dispatchJob, selectedDrivers, waveNumber, isEmerge
         
         // Financial (from DispatchJob)
         orderTotal: dispatchJob.orderTotal,
+        holdRequiredAmount: dispatchJob.holdRequiredAmount || dispatchJob.orderTotal,
         deliveryFee: baseDeliveryFee,
         bonusAmount: bonusAmount,
         estimatedEarnings: totalEarnings,
@@ -1091,6 +1101,7 @@ async function sendWaveOffers(dispatchJob, selectedDrivers, waveNumber, isEmerge
       deliveryFee: baseDeliveryFee,
       bonusAmount: bonusAmount,
       orderTotal: dispatchJob.orderTotal,
+      holdRequiredAmount: dispatchJob.holdRequiredAmount || dispatchJob.orderTotal,
       estimatedEarnings: totalEarnings,
       currency: dispatchJob.currency || 'IQD',
       

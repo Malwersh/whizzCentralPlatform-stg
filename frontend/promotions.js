@@ -169,7 +169,7 @@ function applyEmergencyFixToPage() {
 // Promotions Management JavaScript
 
 // Use centralized AWS utilities
-const PROMOTIONS_TABLE = 'WizzPromo_promos_dev'; // Assumed table name
+const PROMOTIONS_TABLE = 'WhizzMerchants_Discounts';
 
 // Load promotions data from DynamoDB - TEMPORARILY DISABLED FOR DEBUGGING
 async function loadPromotionsData() {
@@ -179,7 +179,6 @@ async function loadPromotionsData() {
     }
     try {
         const idToken = localStorage.getItem('idToken');
-        console.log('DEBUG: Debug loadPromotionsData:', window.WIZZCENTRAL_CONFIG.API_BASE_URL + '/promotions', 'Authorization:', `Bearer ${idToken}`);
         const urlLoad = `${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/promotions`;
         const headersLoad = { 'Authorization': `Bearer ${idToken}` };
         const response = await fetch(urlLoad, { headers: headersLoad });

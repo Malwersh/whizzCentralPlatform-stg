@@ -19,7 +19,7 @@
     
     <!-- Security Utilities -->
     <script src="../assets/js/security-utils.js"></script>
-    <script src="../assets/js/rbac.js"></script>
+    <script src="../assets/js/rbac.js?v=20261012-driver-actions2"></script>
 
     <!-- Material 3 Enhanced Driver Management Styles -->
     <style>
@@ -785,8 +785,10 @@
                             <input type="text" id="editDriverName" name="name" required>
                         </div>
                         <div class="form-group">
-                            <label for="editDriverCity">City / Region</label>
-                            <select id="editDriverCity" name="city" required>
+                            <label for="editGovernorate">المحافظة</label>
+                            <select id="editGovernorate" name="governorate_id" required></select>
+                            <label for="editDriverCity">منطقة العمل</label>
+                            <select id="editDriverCity" name="work_region_id" required>
                                 <option value="">Loading cities...</option>
                             </select>
                         </div>
@@ -802,6 +804,8 @@
                         </div>
                     </div>
 
+                    <div class="form-group"><label for="editLandmark">أقرب نقطة دالة</label><input id="editLandmark" name="landmark" required></div>
+                    <p id="editRegionError" role="alert"></p>
                     <!-- Vehicle & Status -->
                     <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 24px 0 16px 0;">
                         <i class="fas fa-car"></i> Vehicle & Status
@@ -813,7 +817,7 @@
                                 <option value="">Select vehicle type</option>
                                 <option value="motorcycle">Motorcycle (دراجة نارية)</option>
                                 <option value="car">Car (سيارة)</option>
-                                <option value="bicycle">Bicycle (دراجة هوائية)</option>
+
                             </select>
                         </div>
                         <div class="form-group">
@@ -855,6 +859,12 @@
                                 </div>
                                 <span id="registrationPaperNone" style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">No document uploaded</span>
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label>البطاقة الوطنية</label>
+                            <a id="nationalIdLink" target="_blank" rel="noopener" style="display:none">فتح المستند</a>
+                            <div id="nationalIdImage" style="display:none"><img alt="البطاقة الوطنية" style="max-width:100%"></div>
+                            <span id="nationalIdNone">لم يتم رفع المستند</span>
                         </div>
                     </div>
                 </form>
@@ -1106,14 +1116,14 @@
     <script src="../config.js?v=20250906"></script>
 
     <!-- Authentication service (direct Cognito) -->
-    <script src="../auth-service.js?v=20250906"></script>
+    <script src="../auth-service.js?v=20261011-session-fix2"></script>
 
     <!-- Centralized utilities -->
-    <script src="../assets/js/auth-utils.js?v=20250906"></script>
-    <script src="../assets/js/aws-utils.js?v=20250906"></script>
+    <script src="../assets/js/auth-utils.js?v=20261011-session-fix2"></script>
+    <script src="../assets/js/aws-utils.js?v=20261011-session-fix2"></script>
 
     <!-- Data service (depends on aws-utils) -->
-    <script src="../data-service.js?v=20250906"></script>
+    <script src="../data-service.js?v=20261011-session-fix2"></script>
 
     <!-- Page-specific scripts -->
     <script src="../assets/js/navigation.js?v=20250906"></script>
@@ -1129,7 +1139,8 @@
             }
         });
     </script>
-    <script src="../drivers.js?v=20250906"></script>
+    <script src="../assets/js/driver-regions.js?v=20261012-driver-actions2"></script>
+    <script src="../drivers.js?v=20261012-driver-actions2"></script>
 
     <!-- Authentication is handled by page scripts (single source of truth) -->
     

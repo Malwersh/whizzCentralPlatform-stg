@@ -97,8 +97,21 @@ export class WalletService {
    */
   async getTransactions(
     walletId: string,
-    limit: number = 50
+    limit: number = 50,
+    lastEvaluatedKey?: string
   ): Promise<GetTransactionsResponse> {
+    // Decode continuation token (if provided) into an ExclusiveStartKey.
+    // Invalid tokens are ignored so pagination fails safe to the first page.
+    let exclusiveStartKey: Record<string, any> | undefined;
+    if (lastEvaluatedKey) {
+      try {
+        exclusiveStartKey = JSON.parse(lastEvaluatedKey);
+      } catch (error) {
+        console.warn('Invalid pagination token ignored:', lastEvaluatedKey);
+        exclusiveStartKey = undefined;
+      }
+    }
+
     const result = await docClient.send(
       new QueryCommand({
         TableName: TABLES.LEDGER,
@@ -109,14 +122,18 @@ export class WalletService {
         },
         Limit: limit,
         ScanIndexForward: false, // Most recent first
+        ExclusiveStartKey: exclusiveStartKey,
       })
     );
 
+    const nextToken = result.LastEvaluatedKey
+      ? JSON.stringify(result.LastEvaluatedKey)
+      : undefined;
+
     return {
       transactions: (result.Items || []) as LedgerEntry[],
-      lastEvaluatedKey: result.LastEvaluatedKey
-        ? JSON.stringify(result.LastEvaluatedKey)
-        : undefined,
+      nextToken,
+      lastEvaluatedKey: nextToken,
     };
   }
 

@@ -87,6 +87,37 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: !Sub '${ProjectName}-${Stage}-userpool'
+      MfaConfiguration: OPTIONAL
+      EnabledMfas:
+        - SOFTWARE_TOKEN_MFA
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+        InviteMessageTemplate:
+          EmailSubject: "دعوتك إلى منصة WizzCentral — Staging"
+          EmailMessage: |
+            <!doctype html>
+            <html lang="ar" dir="rtl">
+            <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+            <body style="margin:0;background:#f3f5f9;font-family:Arial,Tahoma,sans-serif;color:#17243b;direction:rtl">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 12px">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden">
+            <tr><td style="padding:28px;background:#06265e;color:#ffffff"><div dir="ltr" style="font-size:28px;font-weight:bold;text-align:right">WizzCentral</div><div style="margin-top:10px;font-size:14px;color:#ffce00">دعوة موظف — بيئة Staging</div></td></tr>
+            <tr><td style="padding:28px;line-height:1.9;text-align:right">
+            <h1 style="margin:0 0 16px;font-size:24px;color:#06265e">مرحبًا بك في فريق Wizz</h1>
+            <p>تمت دعوتك للانضمام إلى المنصة المركزية. افتح رابط الدخول واستخدم البريد الإلكتروني الذي وصلته هذه الدعوة مع كلمة المرور المؤقتة أدناه.</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f5f9;border:1px solid #dce3ed;border-radius:10px"><tr><td style="padding:18px">
+            <div style="font-size:14px;color:#526078">معرّف الحساب</div><div dir="ltr" style="text-align:left;word-break:break-all;font-size:16px">{username}</div>
+            <div style="margin-top:16px;font-size:14px;color:#526078">كلمة المرور المؤقتة</div><div dir="ltr" style="text-align:left;font-family:monospace;font-size:20px;font-weight:bold;word-break:break-all">{####}</div>
+            </td></tr></table>
+            <p style="text-align:center;margin:28px 0"><a href="https://staging.d2vmebm1e1n95m.amplifyapp.com/index.html" style="display:inline-block;background:#ffce00;color:#06265e;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold">الدخول إلى المنصة</a></p>
+            <h2 style="font-size:18px;color:#06265e">خطوات تفعيل حسابك</h2>
+            <ol style="padding-right:22px"><li>سجّل الدخول ببريدك الإلكتروني وكلمة المرور المؤقتة.</li><li>اختر كلمة مرور جديدة خاصة بك.</li><li>فعّل التحقق بخطوتين باستخدام Microsoft Authenticator أو تطبيق مصادقة مماثل، وأكمل التفعيل.</li><li>سجّل الدخول مجددًا للوصول إلى الأقسام المسموح بها حسب أدوارك.</li></ol>
+            <p style="font-size:14px;color:#526078">إذا لم يعمل الزر، انسخ الرابط التالي إلى المتصفح:</p>
+            <p dir="ltr" style="text-align:left;word-break:break-all;font-size:13px"><a href="https://staging.d2vmebm1e1n95m.amplifyapp.com/index.html" style="color:#06265e">https://staging.d2vmebm1e1n95m.amplifyapp.com/index.html</a></p>
+            <p style="font-size:14px;color:#526078">احتفظ ببيانات الدخول لنفسك. إذا انتهت صلاحية كلمة المرور المؤقتة، تواصل مع مسؤول المنصة لطلب دعوة جديدة.</p>
+            </td></tr><tr><td style="padding:18px 28px;background:#f3f5f9;color:#526078;font-size:12px;text-align:center">WizzCentral · إدارة الموظفين · Staging</td></tr>
+            </table></td></tr></table>
+            </body></html>
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
@@ -171,14 +202,64 @@ Resources:
               - Effect: Allow
                 Action:
                   - mobileanalytics:PutEvents
-                  - cognito-sync:*
-                  - cognito-identity:*
                 Resource: '*'
+
+  CentralAdminDataRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-${Stage}-admin-data'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref CentralIdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: authenticated
+      Policies:
+        - PolicyName: StagingAdministration
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:Scan, dynamodb:GetItem, dynamodb:Query]
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_${Stage}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_users_${Stage}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Regions'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionsDerived_${Stage}'
+              - Effect: Allow
+                Action: [dynamodb:UpdateItem]
+                Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_${Stage}'
+              - Effect: Allow
+                Action: [s3:GetObject]
+                Resource: !Sub 'arn:aws:s3:::whizzdrivers-documents-${Stage}-${AWS::AccountId}/drivers/*'
 
   IdentityPoolRoleAttachment:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
     Properties:
       IdentityPoolId: !Ref CentralIdentityPool
+      RoleMappings:
+        CentralUsers:
+          Type: Rules
+          AmbiguousRoleResolution: Deny
+          IdentityProvider: !Sub 'cognito-idp.${AWS::Region}.amazonaws.com/${CentralUserPool}:${CentralUserPoolClient}'
+          RulesConfiguration:
+            Rules:
+              - Claim: 'cognito:groups'
+                MatchType: Contains
+                Value: admins
+                RoleARN: !GetAtt CentralAdminDataRole.Arn
+              - Claim: 'cognito:groups'
+                MatchType: Contains
+                Value: support
+                RoleARN: !GetAtt CentralAuthRole.Arn
       Roles:
         authenticated: !GetAtt CentralAuthRole.Arn
         unauthenticated: !GetAtt CentralUnauthRole.Arn

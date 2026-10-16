@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Staging driver review changes to durable notification outbox
+Parameters:
+  DriverStreamArn:
+    Type: String
+    AllowedPattern: '^arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging/stream/.*$'
+Resources:
+  DriverReviewWorker:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-wizz-driver-review-events
+      CodeUri: driver-review-notifications/
+      Handler: index.handler
+      Runtime: nodejs22.x
+      Timeout: 30
+      Environment:
+        Variables:
+          NOTIFICATIONS_TABLE: staging-WalletNotifications
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: dynamodb:PutItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletNotifications
+            - Effect: Allow
+              Action: [dynamodb:DescribeStream, dynamodb:GetRecords, dynamodb:GetShardIterator]
+              Resource: !Ref DriverStreamArn
+      Events:
+        DriverReviewChanges:
+          Type: DynamoDB
+          Properties:
+            Stream: !Ref DriverStreamArn
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 10
+            MaximumRetryAttempts: -1
+            BisectBatchOnFunctionError: true
+            FunctionResponseTypes: [ReportBatchItemFailures]
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"eventName":["MODIFY"]}'

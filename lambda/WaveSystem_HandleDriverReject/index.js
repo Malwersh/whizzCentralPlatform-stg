@@ -24,9 +24,10 @@ const {
 } = require('@aws-sdk/lib-dynamodb');
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 
-const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+const {driverRequestContext,driverLifecycleClient}=require('./driver-lifecycle');
+const dynamodb = driverLifecycleClient(DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true },
-});
+}));
 const lambda = new LambdaClient({});
 
 function requireNonEmptyEnv(name) {
@@ -53,12 +54,15 @@ function extractWaveNumberFromOfferId(offerId) {
   return null;
 }
 
-exports.handler = async (event) => {
-  console.log('📥 HandleDriverReject Event:', JSON.stringify(event, null, 2));
+exports.handler = event => driverRequestContext.run({}, () => handleRequest(event));
+const handleRequest = async (event) => {
+  console.log('Driver rejection request received');
   
   try {
     // استخراج البيانات من Event
     const { driverId, orderId, offerId, rejectionReason } = parseEvent(event);
+    if (DRIVER_LIVE_STATE_TABLE !== 'WizzDriverLiveState_staging') throw new Error('STAGING_DRIVER_TABLE_REQUIRED');
+    driverRequestContext.getStore().sub = driverId;
     
     if (!driverId || !orderId || !offerId) {
       throw new Error('Missing required parameters: driverId, orderId, or offerId');

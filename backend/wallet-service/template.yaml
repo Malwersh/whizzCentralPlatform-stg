@@ -69,7 +69,104 @@ Parameters:
     Default: 'us-east-1_8LyVWuZnO'
     Description: Cognito User Pool for Service Accounts (wizz-wallet-service-pool)
 
+Conditions:
+  IsSandboxStaging: !Equals [!Ref Environment, staging]
+
 Resources:
+  WalletLifecycleTable:
+    Type: AWS::DynamoDB::Table
+    Condition: IsSandboxStaging
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: staging-WalletLifecycle
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: operationId
+          AttributeType: S
+        - AttributeName: queuePartition
+          AttributeType: S
+        - AttributeName: nextAttemptAt
+          AttributeType: N
+      GlobalSecondaryIndexes:
+        - IndexName: ByDue
+          KeySchema:
+            - AttributeName: queuePartition
+              KeyType: HASH
+            - AttributeName: nextAttemptAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: operationId
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+  WalletLifecycleWorker:
+    Type: AWS::Serverless::Function
+    Condition: IsSandboxStaging
+    Properties:
+      FunctionName: staging-wizz-wallet-lifecycle
+      CodeUri: ./
+      Handler: dist/index.walletLifecycleWorker
+      Timeout: 120
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:UpdateItem]
+              Resource:
+                - !GetAtt WalletLifecycleTable.Arn
+                - !Sub '${WalletLifecycleTable.Arn}/index/ByDue'
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WalletsTableName}
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:Scan, dynamodb:UpdateItem]
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HoldsTableName}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HoldsTableName}/index/*
+            - Effect: Allow
+              Action: [dynamodb:PutItem]
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LedgerTableName}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditLogTableName}
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem, dynamodb:ConditionCheckItem]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders
+      Environment:
+        Variables:
+          WALLET_LIFECYCLE_TABLE: !Ref WalletLifecycleTable
+          ORDERS_TABLE: WizzOrders
+          WALLETS_TABLE: !Ref WalletsTableName
+          HOLDS_TABLE: !Ref HoldsTableName
+          LEDGER_TABLE: !Ref LedgerTableName
+          AUDIT_LOG_TABLE: !Ref AuditLogTableName
+          IDEMPOTENCY_KEYS_TABLE: !Ref IdempotencyKeysTableName
+      Events:
+        RetryLifecycle:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+  FundingReceiptsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [PUT]
+            AllowedOrigins: ["*"]
+            AllowedHeaders: ["*"]
+
   # Cognito Post-Confirmation Trigger Lambda
   WalletCreationTriggerFunction:
     Type: AWS::Serverless::Function
@@ -104,6 +201,99 @@ Resources:
 
 
   # Lambda Authorizer Function
+  SandboxPaymentsTable:
+    Condition: IsSandboxStaging
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${Environment}-SandboxPayments
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  WalletNotificationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${Environment}-WalletNotifications
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: eventId, AttributeType: S}
+        - {AttributeName: driverId, AttributeType: S}
+        - {AttributeName: createdAt, AttributeType: S}
+        - {AttributeName: deliveryStatus, AttributeType: S}
+        - {AttributeName: nextAttemptAt, AttributeType: N}
+      KeySchema:
+        - {AttributeName: eventId, KeyType: HASH}
+      GlobalSecondaryIndexes:
+        - IndexName: ByDriver
+          KeySchema:
+            - {AttributeName: driverId, KeyType: HASH}
+            - {AttributeName: createdAt, KeyType: RANGE}
+          Projection: {ProjectionType: ALL}
+        - IndexName: PendingDelivery
+          KeySchema:
+            - {AttributeName: deliveryStatus, KeyType: HASH}
+            - {AttributeName: nextAttemptAt, KeyType: RANGE}
+          Projection: {ProjectionType: ALL}
+      StreamSpecification: {StreamViewType: NEW_IMAGE}
+      TimeToLiveSpecification: {AttributeName: ttl, Enabled: true}
+      SSESpecification: {SSEEnabled: true}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+  WalletNotificationWorker:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Environment}-wizz-wallet-notification-worker
+      CodeUri: notification-worker/
+      Handler: index.handler
+      Runtime: nodejs22.x
+      Timeout: 60
+      MemorySize: 512
+      Environment:
+        Variables:
+          WALLET_NOTIFICATIONS_TABLE: !Ref WalletNotificationsTable
+          PUSH_TOKENS_TABLE: !Sub WizzCentral_PushDeviceTokens_${Environment}
+          FIREBASE_ADMIN_SA_SECRET_ID: !Sub wizz/${Environment}/firebase/admin-service-account
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WalletNotificationsTable
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:Query, dynamodb:DeleteItem]
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_PushDeviceTokens_${Environment}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_PushDeviceTokens_${Environment}/index/SubjectIdIndex
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:wizz/${Environment}/firebase/admin-service-account-*
+      Events:
+        WalletOutboxStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt WalletNotificationsTable.StreamArn
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 10
+            MaximumRetryAttempts: 3
+            FunctionResponseTypes: [ReportBatchItemFailures]
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"eventName":["INSERT"]}'
+        RetryPending:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: true
+
   WalletAuthorizerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -120,6 +310,25 @@ Resources:
           ADMIN_USER_POOL_ID: !Ref AdminCognitoUserPoolId
           SERVICE_USER_POOL_ID: !Ref ServiceCognitoUserPoolId
           REGION: !Ref AWS::Region
+          CUSTOMER_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_TpyyrVkEE', '']
+          MERCHANT_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_gtCR3ndzT', '']
+          CUSTOMER_CLIENT_ID: !If [IsSandboxStaging, '4a9e8o3em311eq2rgckp0pd2s9', '']
+          MERCHANT_CLIENT_ID: !If [IsSandboxStaging, '4qabvh11nmghmf9fmc6e6ludd2', '']
+          DRIVER_CLIENT_ID: !If [IsSandboxStaging, '2d26d3muq0vvcuf42lkpgmkgsr', '']
+          ADMIN_CLIENT_ID: !If [IsSandboxStaging, '17mu2qlqis0qcs1n1n980q7e3j', '']
+          STAFF_TABLE: !If [IsSandboxStaging, 'staging-PlatformStaff', '']
+      Policies:
+        - !If
+          - IsSandboxStaging
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+              - Effect: Allow
+                Action: [cognito-idp:AdminGetUser]
+                Resource: !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${AdminCognitoUserPoolId}
+          - !Ref AWS::NoValue
       Layers:
         - !Sub arn:aws:lambda:${AWS::Region}:017000801446:layer:AWSLambdaPowertoolsPythonV2:68
 
@@ -133,6 +342,21 @@ Resources:
       Description: Centralized wallet service for Wizz platform
       Environment:
         Variables:
+          WALLET_NOTIFICATIONS_TABLE: !Ref WalletNotificationsTable
+          WALLET_LIFECYCLE_TABLE: !If [IsSandboxStaging, !Ref WalletLifecycleTable, '']
+          ORDERS_TABLE: !If [IsSandboxStaging, 'WizzOrders', '']
+          ENVIRONMENT: !Ref Environment
+          ACCOUNT_DELETION_TABLE: !If [IsSandboxStaging, 'staging-AccountDeletion', '']
+          STAFF_TABLE: !If [IsSandboxStaging, 'staging-PlatformStaff', '']
+          TRANSFER_OTP_SECRET_ARN: !If [IsSandboxStaging, 'arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ', '']
+          CUSTOMER_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_TpyyrVkEE', '']
+          MERCHANT_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_gtCR3ndzT', '']
+          MERCHANTS_TABLE: !If [IsSandboxStaging, 'WhizzMerchants_Businesses', '']
+          DRIVERS_TABLE: !If [IsSandboxStaging, 'WhizzDrivers_staging', '']
+          SANDBOX_PAYMENTS_TABLE: !If [IsSandboxStaging, !Ref SandboxPaymentsTable, '']
+          SANDBOX_RETURN_URL: !If [IsSandboxStaging, 'https://staging.d2vmebm1e1n95m.amplifyapp.com/pages/payment-return.html', '']
+          SANDBOX_QI_WEBHOOK_URL: !If [IsSandboxStaging, 'https://z14s5f8oxh.execute-api.us-east-1.amazonaws.com/staging/wallet/funding/sandbox/notification', '']
+          FUNDING_RECEIPTS_BUCKET: !Ref FundingReceiptsBucket
           WALLETS_TABLE: !Ref WalletsTableName
           LEDGER_TABLE: !Ref LedgerTableName
           HOLDS_TABLE: !Ref HoldsTableName
@@ -140,6 +364,69 @@ Resources:
           AUDIT_LOG_TABLE: !Ref AuditLogTableName
           IDEMPOTENCY_KEYS_TABLE: !Ref IdempotencyKeysTableName
       Policies:
+        - !If
+          - IsSandboxStaging
+          - Statement:
+              Effect: Allow
+              Action: [dynamodb:ConditionCheckItem, dynamodb:PutItem, dynamodb:DeleteItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['ACCOUNT_LIFECYCLE#DRIVER#*', 'ACCOUNT_LIFECYCLE#MERCHANT#*', 'BUSINESS_LIFECYCLE#MERCHANT#*', 'MEMBERSHIP_LIFECYCLE#MERCHANT#*', 'ACCOUNT_OPERATION#DRIVER#*']
+          - !Ref AWS::NoValue
+        - !If
+          - IsSandboxStaging
+          - Statement:
+              Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ
+          - !Ref AWS::NoValue
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:ConditionCheckItem]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses
+            - Effect: Allow
+              Action: [cognito-idp:ListUsers]
+              Resource:
+                - !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_TpyyrVkEE
+                - !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_gtCR3ndzT
+        - !If
+          - IsSandboxStaging
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:PutItem, dynamodb:UpdateItem]
+                Resource: !GetAtt WalletLifecycleTable.Arn
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:UpdateItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders
+              - Effect: Allow
+                Action: [dynamodb:Scan]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_staging
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+          - !Ref AWS::NoValue
+        - !If
+          - IsSandboxStaging
+          - DynamoDBCrudPolicy:
+              TableName: !Ref SandboxPaymentsTable
+          - !Ref AWS::NoValue
+        - !If
+          - IsSandboxStaging
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:wizz/staging/payments/*/sandbox-*'
+          - !Ref AWS::NoValue
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WalletNotificationsTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: [s3:PutObject, s3:GetObject]
+              Resource: !Sub '${FundingReceiptsBucket.Arn}/receipts/*'
         - DynamoDBCrudPolicy:
             TableName: !Ref WalletsTableName
         - DynamoDBCrudPolicy:
@@ -153,6 +440,221 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref IdempotencyKeysTableName
       Events:
+        WalletLifecycleRetry:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/lifecycle/retry
+            Method: post
+            RestApiId: !Ref WalletServiceApi
+        WalletLifecycleRead:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/lifecycle
+            Method: get
+            RestApiId: !Ref WalletServiceApi
+        FinancialOwners:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/owners
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        WalletNotificationsInbox:
+          Type: Api
+          Properties:
+            Path: /wallet/me/notifications
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        TransferSettingsCancel:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer-settings/cancel
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        TransferSettingsRead:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer-settings
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        TransferSettingsPropose:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer-settings
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        TransferSettingsApprove:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer-settings/approve
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceTransferList:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfers
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        MobileTransferRoutes:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WalletServiceApi
+            Path: /wallet/transfers/{proxy+}
+            Method: ANY
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceTransfer:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceTransferApprove:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer/approve
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceReconciliation:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/reconciliation
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceTransactions:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transactions
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceWallets:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/wallets
+            Method: get
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FundingConfig:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/config
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FundingAdminConfig:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/config
+            Method: PUT
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FundingReceipt:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/receipt
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FundingAdminReceipt:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/receipt
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FundingPayment:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/payment
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        SandboxNotification:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/sandbox/notification
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+        SandboxReconciliation:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+            Enabled: !If [IsSandboxStaging, true, false]
+        SandboxConfig:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/sandbox/config
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        SandboxOverview:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/sandbox
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        SandboxPayment:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/sandbox/payment
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        SandboxCheck:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/sandbox/check
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        SandboxAdminGet:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/sandbox
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        SandboxAdminPut:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/sandbox
+            Method: PUT
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
         # Health check (NO AUTH - no Auth property means no authentication)
         HealthCheck:
           Type: Api
@@ -336,6 +838,37 @@ Resources:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-Content-Sha256,x-trigger-secret'"
         AllowOrigin: "'*'"
+      GatewayResponses:
+        UNAUTHORIZED:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        ACCESS_DENIED:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        AUTHORIZER_FAILURE:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        AUTHORIZER_CONFIGURATION_ERROR:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
       Auth:
         Authorizers:
           # Custom Lambda Authorizer - validates Cognito tokens and enforces RBAC

@@ -44,23 +44,7 @@ export class OrderCancellationService {
     // Step 2: Validate cancellation rules
     this.validateCancellation(order, canceledBy, requestedBy);
 
-    // Step 3: Release Hold (if exists and ACTIVE)
     let holdReleased = false;
-    if (order.holdId && order.holdStatus === 'ACTIVE') {
-      console.log(`💰 Order has active Hold: ${order.holdId}`);
-      try {
-        await this.walletClient.releaseHold(order.holdId, reason);
-        holdReleased = true;
-        console.log('✅ Hold released successfully');
-      } catch (error: any) {
-        console.error('❌ Failed to release Hold:', error.message);
-        // Continue with cancellation even if Hold release fails
-        // (Hold might be already released or expired)
-      }
-    } else {
-      console.log('ℹ️ No active Hold to release');
-    }
-
     // Step 4: Update WizzOrders with Timeline event
     const newStatus = `canceled_by_${canceledBy}`;
     
@@ -81,8 +65,29 @@ export class OrderCancellationService {
       canceledBy,
       cancelReason: reason,
       holdStatus: holdReleased ? 'RELEASED' : order.holdStatus,
+      walletFinancialStatus: order.holdId && !holdReleased ? 'PENDING_RELEASE' : (holdReleased?'RELEASED':'NONE'),
+      walletPendingHoldId: order.holdId && !holdReleased ? order.holdId : '',
+      originalStatus: order.status,
+      originalDriverId: order.driverId,
       orderTimeline: updatedTimeline,
     });
+    // Step 3: Release Hold (if exists and ACTIVE)
+    if (order.holdId && order.holdStatus === 'ACTIVE') {
+      console.log(`💰 Order has active Hold: ${order.holdId}`);
+      try {
+        await this.walletClient.releaseHold(order.holdId, reason);
+        holdReleased = true;
+        console.log('✅ Hold released successfully');
+      } catch (error: any) {
+        console.error('❌ Failed to release Hold:', error.message);
+        // Continue with cancellation even if Hold release fails
+        // (Hold might be already released or expired)
+      }
+    } else {
+      console.log('ℹ️ No active Hold to release');
+    }
+
+
 
     console.log(`✅ Order ${orderId} cancelled successfully`);
     console.log(`   New Status: ${newStatus}`);
@@ -194,7 +199,7 @@ export class OrderCancellationService {
     }
 
     if (canceledBy === 'customer') {
-      const customerId = order.customerId || order.userId;
+      const customerId = order.customerId || order.userId || (order as any).guestToken;
       if (customerId !== requestedBy) {
         throw new UnauthorizedError('Order does not belong to this customer');
       }
@@ -221,6 +226,10 @@ export class OrderCancellationService {
       canceledBy: string;
       cancelReason: string;
       holdStatus?: string;
+      walletFinancialStatus: string;
+      walletPendingHoldId: string;
+      originalStatus: string;
+      originalDriverId?: string;
       orderTimeline?: any[];
     }
   ): Promise<void> {
@@ -229,12 +238,18 @@ export class OrderCancellationService {
     let updateExpression = 'SET #status = :status, canceledAt = :canceledAt, canceledBy = :canceledBy, cancelReason = :cancelReason, updatedAt = :updatedAt';
     const expressionAttributeValues: Record<string, any> = {
       ':status': updates.status,
+      ':originalStatus': updates.originalStatus,
       ':canceledAt': updates.canceledAt,
       ':canceledBy': updates.canceledBy,
       ':cancelReason': updates.cancelReason,
       ':updatedAt': getCurrentTimestamp(),
     };
 
+    updateExpression += ', walletFinancialStatus = :financial, walletPendingHoldId = :pendingHold';
+    expressionAttributeValues[':financial'] = updates.walletFinancialStatus;
+    expressionAttributeValues[':pendingHold'] = updates.walletPendingHoldId;
+
+    if(updates.originalDriverId)expressionAttributeValues[':originalDriverId']=updates.originalDriverId;
     if (updates.holdStatus) {
       updateExpression += ', holdStatus = :holdStatus';
       expressionAttributeValues[':holdStatus'] = updates.holdStatus;
@@ -258,7 +273,7 @@ export class OrderCancellationService {
         },
         ExpressionAttributeValues: expressionAttributeValues,
         // ConditionExpression to prevent race conditions
-        ConditionExpression: 'attribute_exists(PK)',
+        ConditionExpression: 'attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
       })
     );
 

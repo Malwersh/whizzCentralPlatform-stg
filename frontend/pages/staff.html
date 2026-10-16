@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الموظفون والصلاحيات</title>
+<script src="../env.js"></script><script src="../config.js"></script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
+<script src="../assets/js/auth-utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+<script src="../auth-service.js"></script>
+<link rel="stylesheet" href="../styles/material-3-design-system.css">
+<style>main{max-width:1100px;margin:auto;padding:24px}section{padding:24px;margin:20px 0;border:1px solid #ddd;border-radius:16px}button,input,select,textarea{font:inherit;padding:10px}table{width:100%;border-collapse:collapse}td,th{padding:12px;text-align:right;border-bottom:1px solid #ddd}label{display:block;margin:12px 0}fieldset label{display:inline-block;margin:10px}#message{white-space:pre-wrap}.scroll{overflow:auto}.invitation-status{font-size:14px;max-width:320px;white-space:normal}.invitation-error{color:#b3261e}.invitation-success{color:#146c2e}</style>
+</head>
+<body><main>
+<a href="dashboard.html">العودة إلى المنصة</a>
+<h1>الموظفون والصلاحيات</h1><a href="settings.html">الإعدادات التشغيلية</a><a id="finance-link" href="finance.html" hidden>القسم المالي والمحافظ</a><a href="account-security.html">حماية حسابي والتحقق بخطوتين</a>
+<p>يمكن للموظف امتلاك أكثر من دور. تعديل الأدوار أو النطاق يحتاج اعتماد موظف مستقل مخوّل.</p>
+<p id="message" role="status" aria-live="polite"></p><button id="reload">تحديث</button>
+<div id="content" hidden>
+<section><h2>الموظفون</h2><button id="new-employee" hidden>إنشاء موظف ودعوة جديدة</button><div class="scroll"><table><thead><tr><th>الموظف</th><th>الحالة</th><th>الأدوار</th><th>النطاق</th><th>الإجراء</th></tr></thead><tbody id="employees"></tbody></table></div></section>
+<section id="editor" hidden><h2>اقتراح تعديل صلاحيات موظف</h2><p id="selected"></p>
+<form id="change-form"><div id="new-fields" hidden><label>اسم الموظف<input id="employee-name" maxlength="100"></label><label>البريد الإلكتروني<input id="employee-email" type="email" maxlength="254" dir="ltr"></label></div><fieldset id="roles"><legend>الأدوار</legend></fieldset>
+<label>حالة الموظف<select id="status"><option value="ACTIVE">نشط</option><option value="SUSPENDED">موقوف</option></select></label>
+<label><input type="checkbox" id="all-regions">جميع المناطق</label>
+<label>المناطق المسموحة<select id="regions" multiple size="8"></select></label>
+<label>سقف الاعتماد بالدينار<input id="approval-limit" type="number" min="0" max="1000000000" step="1" required></label>
+<label>سبب التعديل<textarea id="reason" minlength="5" maxlength="300" required></textarea></label>
+<button type="submit">إرسال للاعتماد</button></form></section>
+<section><h2>طلبات الصلاحيات وحذف الحسابات</h2><div class="scroll"><table><thead><tr><th>الموظف</th><th>المنشئ</th><th>التعديل المقترح</th><th>السبب</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="changes"></tbody></table></div></section>
+<section id="audit-section" hidden><h2>سجل التدقيق</h2><button id="audit-load">عرض السجل</button><div class="scroll"><table><thead><tr><th>التاريخ</th><th>العملية</th><th>المنفذ</th><th>التفاصيل</th></tr></thead><tbody id="audit"></tbody></table></div></section></div></main><script src="../assets/js/staff-invitation-ui.js?v=20261012-invitation-feedback"></script><script src="../staff.js?v=20261014-account-deletion-final"></script></body></html>

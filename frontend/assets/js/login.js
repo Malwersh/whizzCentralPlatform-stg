@@ -1,11 +1,11 @@
 // WizzCentral Login Page Script (externalized for CSP compliance)
-(function initLoginPage(){
+(async function initLoginPage(){
   function readStorageItem(key) {
     try {
-      const v = sessionStorage.getItem(key);
+      const v = localStorage.getItem(key);
       if (v !== null && v !== undefined && v !== '') return v;
     } catch (_) {}
-    try { return localStorage.getItem(key); } catch (_) { return null; }
+    try { return sessionStorage.getItem(key); } catch (_) { return null; }
   }
 
   function writeStorageItem(key, value) {
@@ -23,11 +23,25 @@
     return cfg.DEFAULT_POST_LOGIN_PAGE || '/pages/dashboard.html';
   }
 
+  async function landingUrl() {
+    const base=window.WIZZCENTRAL_CONFIG?.STAFF_API_BASE_URL;
+    if(!base)return getPostLoginUrl();
+    const response=await fetch(base+'/staff/me',{headers:{Authorization:'Bearer '+readStorageItem('accessToken')}});
+    if(!response.ok)throw Error('حساب الموظف غير متاح. تواصل مع مسؤول المنصة.');
+    const profile=await response.json(),prefix=getPostLoginUrl().replace(/[^/]+$/,'');
+    if(profile.activationRequired)return prefix+'account-security.html';
+    if(profile.employee.roles.includes('bootstrap_admin'))return getPostLoginUrl();
+    if(profile.permissions.includes('staff.read'))return prefix+'staff.html';
+    if(profile.permissions.includes('settings.read'))return prefix+'settings.html';
+    if(profile.permissions.includes('finance.read'))return prefix+'finance.html';
+    if(profile.permissions.includes('drivers.read'))return prefix+'drivers.html';
+    return prefix+'account-security.html';
+  }
   try {
     const isAuthed = readStorageItem('isAuthenticated') === 'true';
     const idToken = readStorageItem('idToken');
-    if (isAuthed && idToken) {
-      window.location.replace(getPostLoginUrl());
+    if (isAuthed && idToken && window.Auth?._validIdToken(idToken)) {
+      window.location.replace(await landingUrl());
       return; // Skip initialization if already logged in
     }
   } catch(_){}
@@ -76,6 +90,38 @@
   const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
   log('✅ User Pool initialized', 'success');
 
+  let pendingMfa = null;
+  function mfaChallenge(user, callbacks) {
+    pendingMfa = {user, callbacks};
+    document.getElementById('loginForm')?.classList.add('hidden');
+    document.getElementById('newPasswordForm')?.classList.add('hidden');
+    document.getElementById('mfaForm')?.classList.remove('hidden');
+    showStatus('أدخل رمز تطبيق التحقق لإكمال تسجيل الدخول.', 'info');
+  }
+  document.getElementById('mfaForm')?.addEventListener('submit', event => {
+    event.preventDefault();
+    const code = document.getElementById('mfaCode').value.trim();
+    if (!pendingMfa || !/^\d{6}$/.test(code)) { showStatus('أدخل رمزًا من ستة أرقام.', 'error'); return; }
+    const button = document.getElementById('mfaSubmit');
+    button.disabled = true;
+    const {user, callbacks} = pendingMfa;
+    user.sendMFACode(code, {
+      ...callbacks,
+      onSuccess(result) { pendingMfa = null; document.getElementById('mfaCode').value = ''; callbacks.onSuccess(result); },
+      onFailure(error) { button.disabled = false; showStatus('رمز التحقق غير صحيح أو انتهت صلاحيته. أعد المحاولة.', 'error'); }
+    }, 'SOFTWARE_TOKEN_MFA');
+  });
+  document.getElementById('mfaCancel')?.addEventListener('click', () => {
+    pendingMfa?.user.signOut(); pendingMfa = null;
+    document.getElementById('mfaCode').value = '';
+    document.getElementById('mfaSubmit').disabled = false;
+    document.getElementById('mfaForm').classList.add('hidden');
+    document.getElementById('loginForm').classList.remove('hidden');
+    const button = document.getElementById('loginBtn'); button.disabled = false; button.textContent = 'Sign In';
+    delete window.pendingPasswordChange;
+    showStatus('', 'info');
+  });
+
   // Login submit handler
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
@@ -87,7 +133,7 @@
       if (!emailEl || !passwordEl || !loginBtn) return;
 
       const email = emailEl.value.trim();
-      const password = passwordEl.value.trim();
+      const password = passwordEl.value;
       if (!email || !password) { showStatus('Please enter both email and password', 'error'); return; }
 
       loginBtn.disabled = true; loginBtn.textContent = 'Signing in...';
@@ -110,10 +156,11 @@
             writeStorageItem('isAuthenticated', 'true');
             writeStorageItem('lastLoginTime', Date.now().toString());
             showStatus('✅ Login successful! Redirecting...', 'success');
-            setTimeout(() => {
+            setTimeout(async () => {
+              let landing;try{landing=await landingUrl();}catch(error){showStatus(error.message,'error');loginBtn.disabled=false;return;}
               const returnUrl = readStorageItem('returnUrl');
-              if (returnUrl) { removeStorageItem('returnUrl'); window.location.href = returnUrl; }
-              else { window.location.href = getPostLoginUrl(); }
+              if (returnUrl && !landing.endsWith('/account-security.html')) { removeStorageItem('returnUrl'); window.location.href = returnUrl; }
+              else { window.location.href = landing; }
             }, 1500);
           },
           onFailure: function(err) {
@@ -127,6 +174,7 @@
             showStatus(`❌ ${errorMessage}`, 'error');
             loginBtn.disabled = false; loginBtn.textContent = 'Sign In';
           },
+          totpRequired: function() { mfaChallenge(cognitoUser, this); },
           newPasswordRequired: function(userAttributes, requiredAttributes) {
             log('⚠️ New password required', 'warning');
             showStatus('Please set a new password to continue', 'info');
@@ -156,10 +204,10 @@
       const confirmPasswordEl = document.getElementById('confirmPassword');
       const btn = document.getElementById('changePasswordBtn');
       if (!newPasswordEl || !confirmPasswordEl || !btn) return;
-      const newPassword = newPasswordEl.value.trim();
-      const confirmPassword = confirmPasswordEl.value.trim();
+      const newPassword = newPasswordEl.value;
+      const confirmPassword = confirmPasswordEl.value;
       if (newPassword !== confirmPassword) { showStatus('❌ Passwords do not match', 'error'); return; }
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
       if (!passwordRegex.test(newPassword)) { showStatus('❌ Password must meet complexity requirements', 'error'); return; }
       btn.disabled = true; btn.textContent = 'Changing Password...'; showStatus('Changing password...', 'info');
       try {
@@ -169,6 +217,7 @@
         const userEmail = userAttributes.email;
         delete userAttributes.email_verified; delete userAttributes.email;
         cognitoUser.completeNewPasswordChallenge(newPassword, userAttributes, {
+          totpRequired: function() { mfaChallenge(cognitoUser, this); },
           onSuccess: function(result) {
             log('✅ Password changed successfully!', 'success');
             writeStorageItem('accessToken', result.getAccessToken().getJwtToken());
@@ -179,7 +228,7 @@
             writeStorageItem('lastLoginTime', Date.now().toString());
             showStatus('✅ Password changed! Redirecting to dashboard...', 'success');
             delete window.pendingPasswordChange;
-            setTimeout(() => { window.location.href = getPostLoginUrl(); }, 1500);
+            setTimeout(async () => {try{window.location.href=await landingUrl();}catch(error){showStatus(error.message,'error');}}, 1500);
           },
           onFailure: function(err) {
             log(`❌ Password change failed: ${err.code || err.name}`, 'error');
