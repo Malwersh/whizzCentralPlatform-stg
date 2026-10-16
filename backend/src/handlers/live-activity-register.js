@@ -41,7 +41,8 @@ exports.register = async (event) => {
     let userId;
 
     if (guestToken) {
-      subjectId = `GUEST_${guestToken}`;
+      // guestToken from the orders backend already carries the GUEST_ prefix; don't double it.
+      subjectId = guestToken.startsWith('GUEST_') ? guestToken : `GUEST_${guestToken}`;
       userId = subjectId;
     } else {
       try {
