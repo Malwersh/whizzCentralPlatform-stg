@@ -244,7 +244,7 @@ class SimplifiedCampaignManager {
                 singleUse: checked('singleUse'),
                 stackable: checked('stackable'),
                 applicableToAll: !region && segment === 'all',
-                discountSource: 'campaign'
+                ...(this.editingCampaignId ? {} : { discountSource: 'campaign' })
             };
 
             if (!window.dataService) {

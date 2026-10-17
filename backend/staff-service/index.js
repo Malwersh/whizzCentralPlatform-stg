@@ -55,6 +55,7 @@ async function handler(event){
   }
   if(method==='GET'&&path.startsWith('/staff/drivers'))return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE},actor,method,path));
   let input;try{input=JSON.parse(event.body||'{}');if(!input||typeof input!=='object'||Array.isArray(input))throw Error();}catch(_){throw fail('INVALID_BODY',400);}
+  if(path==='/staff/offers'||path.startsWith('/staff/offers/'))return response(200,await require('./offers').route({db,table,guard,audit,query:event.queryStringParameters},actor,method,path,input));
   if(path==='/staff/dispatch-reviews'||path.startsWith('/staff/dispatch-reviews/')){const rollout=require('./finance-rollout').createFinanceRollout({db});return response(200,await require('./dispatch-reviews').route({db:rollout.db,scopeContains:rollout.containsOrder,table,employee,guard,audit,enrolled,recent,claims,query:event.queryStringParameters},actor,method,path,input));}
   if(path==='/staff/slideshow'||path.startsWith('/staff/slideshow/'))return response(200,await require('./home-slideshow').route({db,table,guard,audit},actor,method,path,input));
   if(path==='/staff/promotions')return response(200,await require('./promotions').route({db,guard,audit,enrolled},actor,method,method==='GET'?event.queryStringParameters||{}:input));

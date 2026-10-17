@@ -39,8 +39,9 @@ function assets(ctx){
 }
 
 
-function offerInfo(row){return {title:row.title||row.name||'',description:row.description||'',status:row.status||(row.isActive===true?'active':'inactive'),value:row.value??row.discountValue,type:row.type||row.discountType,startAt:row.validFrom||row.startDate||row.valid_from||null,endAt:row.validTo||row.endDate||row.valid_to||null};}
+function offerInfo(row){return {...require('./offers').normalize(row),status:row.isActive===false?'inactive':row.status||(row.isActive===true?'active':'inactive')};}
 function offerLive(row){
+ const engine=require('./discount-engine');try{const d=row.businessId?engine.normalizeDiscount(row):engine.normalizePlatformPromo(row);if(!(row.businessId?engine.validateDiscount(d,Number.MAX_SAFE_INTEGER):engine.validatePlatformPromo(d,Number.MAX_SAFE_INTEGER)).valid)return false;}catch{return false;}
  const o=offerInfo(row),now=Date.now(),limit=row.usageLimit??row.usage_limit??null,used=row.usageCount??row.usage_count??row.usage??row.currentUsage??0;
  return row.isActive!==false&&o.status==='active'&&(!o.startAt||(Number.isFinite(Date.parse(o.startAt))&&Date.parse(o.startAt)<=now))&&(!o.endAt||(Number.isFinite(Date.parse(o.endAt))&&now<Date.parse(o.endAt)))&&(!limit||used<limit);
 }
@@ -57,7 +58,7 @@ async function route(ctx,actor,method,path,input){
  const current=await state(ctx);
  if(method==='GET'&&path==='/staff/slideshow'){
   const slides=await Promise.all(current.slides.filter(s=>inScope(actor,s)).map(async s=>({...s,imageUrl:await assets(ctx).url(s.imageKey)})));
-  return {version:current.version,slides,canEdit:allowed(actor,'promotions.edit')||allowed(actor,'promotions.create'),canPublish:allowed(actor,'promotions.approve')};
+  return {version:current.version,slides,canCreate:allowed(actor,'promotions.create'),canEdit:allowed(actor,'promotions.edit'),canPublish:allowed(actor,'promotions.approve'),allRegions:actor.scope?.allRegions===true};
  }
  if(method==='GET'&&path==='/staff/slideshow/report')return {slides:await Promise.all(current.slides.filter(s=>inScope(actor,s)).map(async s=>({slideId:s.id,title:s.title,...(await journey.read(ctx.db,{pk:'STATS#'+s.id,sk:'TOTAL'})||{})}))),note:'Views and taps are estimates. Orders and savings are recorded with successful order placement; cancellations are not subtracted.'};
  if(method==='GET'&&path==='/staff/slideshow/options'){
@@ -73,9 +74,11 @@ async function route(ctx,actor,method,path,input){
   const imageKey=`home-slideshow/${actor.employeeId}/${randomUUID()}.jpg`;
   await assets(ctx).put(imageKey,body);return {imageKey,imageUrl:await assets(ctx).url(imageKey)};
  }
- if(method!=='POST'||path!=='/staff/slideshow/save')throw fail('NOT_FOUND',404);
- const s=validate(input.slide),before=current.slides.find(x=>x.id===s.id);
- if(!allowed(actor,before?'promotions.edit':'promotions.create'))throw fail('You do not have permission to save this slide.',403);
+ if(method!=='POST'||!['/staff/slideshow/save','/staff/slideshow/status'].includes(path))throw fail('NOT_FOUND',404);
+ const statusOnly=path.endsWith('/status'),previous=statusOnly?current.slides.find(x=>x.id===input.id):null;
+ if(statusOnly&&(!previous||!allowed(actor,'promotions.approve')))throw fail('Publishing or pausing requires promotion approval permission.',403);
+ const s=validate(statusOnly?{...previous,status:input.status}:input.slide),before=current.slides.find(x=>x.id===s.id);
+ if(!statusOnly&&!allowed(actor,before?'promotions.edit':'promotions.create'))throw fail('You do not have permission to save this slide.',403);
  if(!inScope(actor,s)||(before&&!inScope(actor,before)))throw fail('Choose regions within your assigned scope.',403);
  if((s.status==='published'||before?.status==='published')&&!allowed(actor,'promotions.approve'))throw fail('Publishing or changing a published slide requires promotion approval permission.',403);
  if(input.baseVersion!==current.version)throw fail('Slides changed in another window. Refresh before saving.',409);
@@ -83,6 +86,8 @@ async function route(ctx,actor,method,path,input){
  if(s.imageKey!==before?.imageKey&&!s.imageKey.startsWith(`home-slideshow/${actor.employeeId}/`))throw fail('Upload an image using your own account.',403);
  const head=await assets(ctx).head(s.imageKey);if(head.ContentType!=='image/jpeg'||head.ContentLength>600000)throw fail('Uploaded image is unavailable.');
  const destination=await target(ctx,s);
+
+ if(['campaign','platform'].includes(s.action.type)&&!require('./offers').inScope(actor,destination,[]))throw fail('Offer is outside your assigned region scope.',403);
 
  if(s.action.type==='discount'){const merchant=await get(ctx,TABLES.merchant,{businessId:destination.businessId});if(!merchant||(actor.scope?.allRegions!==true&&!actor.scope?.regionIds?.includes(merchant.regionId)))throw fail('Merchant is outside your region scope.',403);}
  if(s.action.type==='category'){const merchant=await get(ctx,TABLES.merchant,{businessId:s.action.merchantId});if(!merchant||(actor.scope?.allRegions!==true&&!actor.scope?.regionIds?.includes(merchant.regionId)))throw fail('Merchant is outside your region scope.',403);}
@@ -108,7 +113,7 @@ async function publicFeed(ctx,event){
   if(s.action.type==='discount'){const merchant=await get(ctx,TABLES.merchant,{businessId:row.businessId});if(!merchant||merchant.isDeleted||merchant.deletedAt||merchant.isActive===false||merchant.platformSuspended===true)continue;}
   let merchants=[];
   if(['platform','campaign','discount'].includes(s.action.type)){
-   try{await journey.eligibility(ctx.db,row,{identity,customer,regionIds:ancestors,source:s.action.type==='discount'?'merchant':'platform'});}catch(e){if(e.status===409)continue;throw e;}
+   try{await journey.eligibility(ctx.db,row,{identity,customer,regionIds:ancestors,source:s.action.type==='discount'?'merchant':'platform',preview:true});}catch(e){if(e.status===409)continue;throw e;}
    const merchantIds=row.targetRestaurants?.length?row.targetRestaurants:row.allowedBusinessIds?.length?row.allowedBusinessIds:row.businessIds?.length?row.businessIds:row.businessId?[row.businessId]:[];
    for(const businessId of merchantIds){const m=await get(ctx,TABLES.merchant,{businessId});if(m&&!m.isDeleted&&!m.deletedAt&&m.isActive!==false&&!m.platformSuspended)merchants.push({id:businessId,name:m.businessName||m.businessNameArabic||m.name||businessId});}
    if(merchantIds.length&&!merchants.length)continue;

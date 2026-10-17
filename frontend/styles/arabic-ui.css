@@ -1,0 +1,19 @@
+/* Arabic-first presentation; codes, values and user-entered text keep their data. */
+html[lang="ar"] body { font-family: Tahoma, Arial, sans-serif; }
+html[lang="ar"] body.wizz-shell #mainContent :is(h1,h2,h3,h4,button,input,select,textarea,table) { font-family: Tahoma, Arial, sans-serif; }
+html[lang="ar"] body.wizz-shell :is(.admin-eyebrow,.stat-label,.page-title,.md-navigation-item) { letter-spacing: 0; }
+html[dir="rtl"] .form-group label { text-align: start; }
+html[dir="rtl"] body.wizz-shell #mainContent :is(.search-container,.search-input-container) > i { left: auto; right: 14px; }
+html[dir="rtl"] body.wizz-shell #mainContent :is(.search-container,.search-input-container) > input { padding-inline: 42px 14px; }
+html[dir="rtl"] :is(input[dir="ltr"],bdi[dir="ltr"]) { direction: ltr; text-align: start; }
+html[dir="rtl"] body.wizz-shell #mainContent th { text-transform: none; letter-spacing: 0; }
+html[dir="rtl"] body.wizz-shell #mainContent .finance-content label { align-items: flex-start; }
+html[dir="rtl"] body.wizz-shell .admin-shortcut { text-align: start; }
+html[dir="rtl"] body.wizz-shell :is(.admin-heading-copy,.dashboard-page-header,.admin-section-heading) { min-width: 0; }
+html[dir="rtl"] body.wizz-shell .admin-eyebrow { font-size: 11px; }
+html[dir="rtl"] body.wizz-shell #sidebar .logo { letter-spacing: 0; }
+html[dir="rtl"] body.wizz-shell #mainContent :is(.fields,.form-grid) { grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); }
+html[dir="rtl"] body.wizz-shell #mainContent :is(.form-group,.field,.fields > label) { min-width: 0; }
+html[dir="rtl"] body.wizz-shell #mainContent .search-input-container { min-width: 0; max-width: 100%; }
+html[dir="rtl"] body.wizz-shell #mainContent .filters-container { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+html[dir="rtl"] body.wizz-shell #mainContent .filters-container .form-select { min-width: 0; flex: 1 1 130px; max-width: 100%; }

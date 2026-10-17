@@ -37,9 +37,9 @@ async function eligibility(db,raw,{identity,customer,regionIds=[],branchId,sourc
  const limit=raw.singleUse?1:raw.perCustomerLimit;
  if(limit!=null&&(!Number.isSafeInteger(limit)||limit<1))fail('OFFER_CUSTOMER_LIMIT_UNSUPPORTED');
  let redemption=null;
- if(signedIn){const key={pk:'USER#'+identity.sub,sk:'OFFER#'+source+'#'+raw.discountId},stored=await read(db,key);const used=stored?.count??((source==='merchant'?(await customer.history()).uses['id:'+raw.discountId]:(raw.code&&(await customer.history()).uses['code:'+raw.code]))||0);
+ if(signedIn&&(!preview||limit)){const key={pk:'USER#'+identity.sub,sk:'OFFER#'+source+'#'+raw.discountId},stored=await read(db,key);const used=stored?.count??((source==='merchant'?(await customer.history()).uses['id:'+raw.discountId]:(raw.code&&(await customer.history()).uses['code:'+raw.code]))||0);
  if(limit&&used>=limit)fail('OFFER_ALREADY_USED');redemption=putCount(key,stored,used+1);
- }else if(limit||firstOrder)fail('OFFER_LOGIN_REQUIRED');
+ }else if(!signedIn&&(limit||firstOrder))fail('OFFER_LOGIN_REQUIRED');
  return {redemption,merchants};
 }
 async function regionAncestors(db,regionId){const list=[];for(let n=0;regionId&&n<8&&!list.includes(regionId);n++){const r=(await db.send(new GetCommand({TableName:'WizzCentral_Regions',Key:{regionId},ConsistentRead:true}))).Item;if(!r)break;list.push(regionId);regionId=r.parent_id;}return list;}

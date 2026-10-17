@@ -287,23 +287,14 @@
                 return [];
             }
 
-            // Scan the unified platform discounts table and filter for campaigns
-            const params = {
-                TableName: TABLES.platformDiscounts,
-                FilterExpression: 'discountSource = :source',
-                ExpressionAttributeValues: {
-                    ':source': 'campaign'
-                }
-            };
-
-            const result = await scan(TABLES.platformDiscounts, {
-                FilterExpression: params.FilterExpression,
-                ExpressionAttributeValues: params.ExpressionAttributeValues
-            });
+            // The table is authoritative for platform ownership. Legacy records may
+            // have a missing or obsolete discountSource tag but remain redeemable.
+            const result = await scan(TABLES.platformDiscounts);
             console.log(`✅ Retrieved ${result.Items?.length || 0} campaigns from unified table`);
             
-            return (result.Items || []).map(item => ({
-                id: item.campaignId || item.discountId,
+            return (result.Items || []).filter(item => !item.isDeleted && item.deletedAt == null && item.deletionRequestId == null).map(item => ({
+                id: item.discountId,
+                discountId: item.discountId,
                 campaignId: item.campaignId || item.discountId,
                 title: item.title || item.name,
                 version: item.version ?? null,
@@ -366,8 +357,8 @@
             const result = await client.get(params).promise();
             const item = result.Item;
             
-            // Verify this is actually a campaign
-            if (item && item.discountSource === 'campaign') {
+            // Use the same ownership and deletion rules as the campaign list.
+            if (item && !item.isDeleted && item.deletedAt == null && item.deletionRequestId == null) {
                 return item;
             }
             

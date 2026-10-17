@@ -8,7 +8,8 @@
     "@aws-sdk/client-s3": "^3.1152.0",
     "@aws-sdk/lib-dynamodb": "^3.896.0",
     "@aws-sdk/s3-request-presigner": "^3.1152.0",
-    "aws-jwt-verify": "^5.0.0"
+    "aws-jwt-verify": "^5.0.0",
+    "@aws-sdk/client-lambda": "^3.896.0"
   },
   "files": [
     "index.js",
@@ -42,7 +43,11 @@
     "campaign-version.js",
     "write-workflow.js",
     "commercial-reference.js",
-    "commercial-options.js"
+    "commercial-options.js",
+    "offers.js",
+    "discount-contract.js",
+    "discount-engine.js",
+    "campaign-notifications.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",
