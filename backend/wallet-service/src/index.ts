@@ -1,3 +1,12 @@
+import {customerNotifications,readCustomerNotifications} from './customerNotifications';
+import {sendTransferCode,verifyTransferCode} from './transferVerification';
+import {cancelMobileTransfer} from './transferService';
+import {mobileAccount,merchantMembers,saveMerchantMember,merchantAccounts} from './transferIdentity';
+import {transferContext,transferRecipient,transferHistory,transferStatus} from './transferClient';
+import {lifecycleWorker,listLifecycle,retryLifecycle} from './walletLifecycle';
+import { transferSettingsOverview, proposeTransferSettings, approveTransferSettings, cancelTransferSettings } from './transferSettings';
+import { requestTransfer, approveTransfer, listTransferRequests, TransferActor } from './transferService';
+import { reconciliationReport } from './reconciliation';
 import { sandboxConfig, sandboxOverview, createSandboxPayment, checkSandboxPayment, sandboxSettings, saveSandboxSettings, reconcileSandboxPayments, sandboxNotification } from './sandboxPayments';
 import { docClient, QueryCommand, ScanCommand, TABLES } from './db';
 import { getFundingConfig, saveFundingConfig, receiptUpload, receiptView, validateReceipt, fundingError } from './fundingService';
@@ -78,6 +87,43 @@ export async function handler(
     const financialRoute = path.startsWith('/wallet/funding/admin') || path === '/wallet/topup/requests' || /\/wallet\/topup\/[^/]+\/(approve|reject)$/.test(path);
     if (financialRoute && !finance) return buildErrorResponse(403, 'FINANCE_MANAGER_REQUIRED', 'صلاحية المدير المالي مطلوبة');
     if (path.startsWith('/wallet/funding/') && !driverId && !adminId) return buildErrorResponse(401,'UNAUTHORIZED','يرجى تسجيل الدخول');
+    if (path === '/wallet/funding/admin/transfer-settings' && method === 'GET') return buildSuccessResponse(await transferSettingsOverview());
+    if (path === '/wallet/funding/admin/transfer-settings' && method === 'POST') return buildSuccessResponse(await proposeTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)));
+    if (path === '/wallet/funding/admin/transfer-settings/approve' && method === 'POST') return buildSuccessResponse(await approveTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)?.changeId));
+    if (path === '/wallet/funding/admin/transfer-settings/cancel' && method === 'POST') return buildSuccessResponse(await cancelTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)?.changeId));
+    if (path === '/wallet/funding/admin/transfers' && method === 'GET') return buildSuccessResponse(await listTransferRequests(event.queryStringParameters?.cursor));
+    if(path==='/wallet/transfers/notifications'){if(authorizer?.userType!=='customer')return buildErrorResponse(403,'CUSTOMER_REQUIRED','حساب مستخدم مطلوب');if(method==='GET')return buildSuccessResponse(await customerNotifications(authorizer.userId,event.queryStringParameters?.cursor));if(method==='POST')return buildSuccessResponse(await readCustomerNotifications(authorizer.userId,parseBody(event.body)));}
+    if(path==='/wallet/transfers/accounts'&&method==='GET'){if(authorizer?.userType!=='merchant')return buildErrorResponse(403,'MERCHANT_REQUIRED','حساب مطعم مطلوب');return buildSuccessResponse(await merchantAccounts(authorizer?.userId));}
+    if (path.startsWith('/wallet/transfers/') && method === 'GET') {
+      const a=await mobileAccount(authorizer?.userType,authorizer?.userId,event.queryStringParameters?.businessId);
+      if(path==='/wallet/transfers/members')return buildSuccessResponse(await merchantMembers(a));
+      if(path==='/wallet/transfers/context')return buildSuccessResponse({...await transferContext(a),phoneVerified:String(authorizer?.phoneVerified)==='true',verifiedPhone:authorizer?.verifiedPhone||''});
+      if(path==='/wallet/transfers/recipient')return buildSuccessResponse(await transferRecipient(a,event.queryStringParameters?.phone||'',event.queryStringParameters?.type||'DRIVER'));
+      if(path==='/wallet/transfers/status')return buildSuccessResponse(await transferStatus(a,event.queryStringParameters?.requestId||''));
+      if(path==='/wallet/transfers/history')return buildSuccessResponse(await transferHistory(a,event.queryStringParameters?.cursor));
+    }
+    if(['/wallet/transfers/otp/send','/wallet/transfers/otp/verify'].includes(path)&&method==='POST'){if(process.env.ENVIRONMENT!=='staging')return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);try{return buildSuccessResponse(path.endsWith('/send')?await sendTransferCode(a,(event.headers.Authorization||event.headers.authorization||'').replace(/^Bearer /,''),input):await verifyTransferCode(a,input));}catch(e:any){if(e.name==='TransactionCanceledException')return buildErrorResponse(429,'OTP_LIMIT','انتظر قبل إعادة المحاولة أو اطلب رمزًا جديدًا');throw e;}}
+    if(path==='/wallet/transfers/members'&&method==='POST'){const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await saveMerchantMember(a,Number(authorizer?.authTime||0),input));}
+    if(path==='/wallet/transfers/cancel'&&method==='POST'){const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await cancelMobileTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime||0)},input));}
+    if (path === '/wallet/transfers/request' && method === 'POST') {
+      const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      return buildSuccessResponse(await requestTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime || 0)},input));
+    }
+    if(path.startsWith('/wallet/transfers/'))return buildErrorResponse(405,'METHOD_NOT_ALLOWED','هذه العملية غير متاحة');
+    if (path === '/wallet/funding/admin/transfer' && method === 'POST') {
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      const actor: TransferActor = {id:adminId,type:'FINANCE',authTime:Number(authorizer?.authTime || 0)};
+      return buildSuccessResponse(await requestTransfer(actor,parseBody(event.body)));
+    }
+    if (path === '/wallet/funding/admin/transfer/approve' && method === 'POST') {
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      return buildSuccessResponse(await approveTransfer({id:adminId,type:'FINANCE',authTime:Number(authorizer?.authTime || 0)},parseBody(event.body)?.requestId));
+    }
+    if(path==='/wallet/funding/admin/owners'&&method==='GET'){let owners:any[]=[],cursor:any,pages=0;do{const result=await docClient.send(new ScanCommand({TableName:process.env.DRIVERS_TABLE,ExclusiveStartKey:cursor,Limit:100,ProjectionExpression:'driverId, #n, fullName, phone, phoneNumber',ExpressionAttributeNames:{'#n':'name'}}));owners.push(...(result.Items||[]));cursor=result.LastEvaluatedKey;if(++pages>100)throw Error('Owner list incomplete');}while(cursor);return buildSuccessResponse({owners:owners.map(d=>({ownerId:d.driverId,name:d.name||d.fullName,phone:d.phoneNumber||d.phone}))});}
+    if(path === '/wallet/funding/admin/lifecycle/retry' && method === 'POST')return buildSuccessResponse(await retryLifecycle(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if (path === '/wallet/funding/admin/lifecycle' && method === 'GET') return buildSuccessResponse(await listLifecycle(event.queryStringParameters?.cursor));
+    if (path === '/wallet/funding/admin/reconciliation' && method === 'GET') return buildSuccessResponse(await reconciliationReport());
     if (path === '/wallet/funding/admin/transactions' && method === 'GET') {
       const walletId = event.queryStringParameters?.walletId || '';
       const cursor = event.queryStringParameters?.cursor;
@@ -629,3 +675,4 @@ async function getDriverSettlements(
   const result = await settlementService.getDriverSettlements(driverId);
   return buildSuccessResponse(result);
 }
+export async function walletLifecycleWorker(){return lifecycleWorker();}

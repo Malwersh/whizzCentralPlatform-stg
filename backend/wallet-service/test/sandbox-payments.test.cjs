@@ -44,8 +44,8 @@ test('an uncertain creation is retained and client retry cannot call the provide
  let stored;let creates=0;
  docClient.send=async command=>{
   const {Key}=command.input;
-  if(command.constructor.name==='GetCommand')return Key.pk==='SETTINGS'?{Item:config}:{Item:stored};
-  if(command.constructor.name==='PutCommand'){stored=command.input.Item;return {};}
+  if(command.constructor.name==='GetCommand')return Key.walletId?{Item:{status:'ACTIVE',version:1}}:Key.pk==='SETTINGS'?{Item:config}:{Item:stored};
+  if(command.constructor.name==='TransactWriteCommand'){stored=command.input.TransactItems.find(i=>i.Put).Put.Item;return {};}
   if(command.constructor.name==='UpdateCommand'){stored={...stored,state:'CREATION_UNCERTAIN'};return {};}
   throw Error('unexpected write');
  };

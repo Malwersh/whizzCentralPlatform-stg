@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "APPROVED_LIMITS_AND_SAFE_SEARCH_EXHAUSTION_PUBLISHED_GATES_OFF",
+  "financialActivation": "OFF",
+  "approvedLimits": {
+    "schemaVersion": 1,
+    "status": "USER_APPROVED_2026_10_16",
+    "environment": "staging",
+    "financialActivation": "OFF",
+    "quoteMaxPerCustomerPerMinute": 5,
+    "driverOfferTtlSeconds": 60,
+    "driverPositionMaxAgeSeconds": 120,
+    "reassignmentWindowSeconds": 300,
+    "maximumWaves": 4,
+    "exhaustion": {
+      "orderCancellation": false,
+      "releaseFunds": false,
+      "reviewRequired": true
+    },
+    "routingCredential": "PENDING_SECRET_MANAGER",
+    "globalRoutingQuota": "PENDING_CAPACITY_REVIEW"
+  },
+  "functions": [
+    {
+      "name": "WaveSystem_StartWave",
+      "baseCodeSha256": "sgXLQYWI7ALk+krIXcCem6+IuI5Mdvj82v0K0UzQBn4=",
+      "baseRevisionId": "9c206e46-519c-472a-bd19-29a165979582",
+      "handler": "index.handler",
+      "codeSha256": "f12sFZKNLjcBGqkpmlovTwvGvnqVkZf382xfbAd1Y84=",
+      "preservedFiles": 2932,
+      "replacedFiles": [
+        "financial-runtime.js",
+        "index.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "baseCodeSha256": "Ah9XoW37BiWewAm6lysIe+nVhnY2IC08eKJUT6j42FY=",
+      "baseRevisionId": "63f3c99e-0808-4c25-923d-01e4aeba86ad",
+      "handler": "index.handler",
+      "codeSha256": "vKOLJHFU4h4Nwmq44EQibFm4VQ/Uygs0AfyU56ERVh0=",
+      "preservedFiles": 2928,
+      "replacedFiles": [
+        "financial-runtime.js",
+        "index.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "Dc7KCOOLyTbFpGKfCNHsJRTwXSNovovNNniV7WQ8ntU=",
+      "baseRevisionId": "6ab218c4-85e5-4570-903c-88b6536e9f9c",
+      "handler": "index.financialAcceptanceHandler",
+      "codeSha256": "/0q3kAtIoNMkWBGbBBtkRiMMzbPt6keb0ssa1Yjqsto=",
+      "preservedFiles": 0,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "baseCodeSha256": "l5oHnMh7qPuQDjAilL1WBZ2NmkLezwSXK2481EaCazA=",
+      "baseRevisionId": "e95214cb-d307-481c-97a7-24c3bc3cbda8",
+      "handler": "merchant_order_handler.handler",
+      "codeSha256": "2ekUkswQHJdLcalPxbCHct8PPROgw/uE107rQZ3imnI=",
+      "preservedFiles": 4253,
+      "replacedFiles": [
+        "merchant_order_handler.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "baseCodeSha256": "yPzqyuOSAs1YP5gzdIwhvXjxaiOEX/KVBgZu896sHXI=",
+      "baseRevisionId": "71179dd5-72f7-4df9-a13d-8aa6dbdfeb48",
+      "handler": "functions/get-user-orders/index.handler",
+      "codeSha256": "3zENjGYf7a0P55bDvrKM+qA22s9j42kgYxFuTwptOAM=",
+      "preservedFiles": 11375,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "WizzUser-GetOrder-staging",
+      "baseCodeSha256": "9G8zvn9XW9SzGC9TDibbdszjAN9cLCW17zEP2ykw+5s=",
+      "baseRevisionId": "507b7d8e-f779-41c6-9a4a-e1d838446d47",
+      "handler": "functions/get-order/index.handler",
+      "codeSha256": "y2S/Xf4cXytSDgVBPp/k8KjUdvkyx0dOMLCVkmp2EkY=",
+      "preservedFiles": 11374,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "baseCodeSha256": "R8QEG/AZZrd2L0t2BIT7lPi50SKzgsmVhKx5zRkmD7M=",
+      "baseRevisionId": "cfbb8452-74ea-4533-b009-a996b0349b45",
+      "handler": "index.handler",
+      "codeSha256": "j4mFcOGoAvR7YelKIATiT1NQQPNdHo+nshHEM06NeMQ=",
+      "preservedFiles": 5850,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": []
+    }
+  ],
+  "publication": [
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "f12sFZKNLjcBGqkpmlovTwvGvnqVkZf382xfbAd1Y84=",
+      "revisionId": "8213df81-be61-4915-8802-3c77fd25cdba",
+      "unrelatedEnvironmentPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "vKOLJHFU4h4Nwmq44EQibFm4VQ/Uygs0AfyU56ERVh0=",
+      "revisionId": "e0750490-3336-48fe-9943-4aca87b54aa2",
+      "unrelatedEnvironmentPreserved": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "/0q3kAtIoNMkWBGbBBtkRiMMzbPt6keb0ssa1Yjqsto=",
+      "revisionId": "ecfb62c1-d2be-40a4-a89a-9d4e72781b18",
+      "unrelatedEnvironmentPreserved": true
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "2ekUkswQHJdLcalPxbCHct8PPROgw/uE107rQZ3imnI=",
+      "revisionId": "049e5683-6d8e-4753-8cc1-c21650a298c6",
+      "unrelatedEnvironmentPreserved": true
+    },
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "codeSha256": "3zENjGYf7a0P55bDvrKM+qA22s9j42kgYxFuTwptOAM=",
+      "revisionId": "c00d52f6-dedd-42fc-b7d5-1c7c351f1df1",
+      "unrelatedEnvironmentPreserved": true
+    },
+    {
+      "name": "WizzUser-GetOrder-staging",
+      "codeSha256": "y2S/Xf4cXytSDgVBPp/k8KjUdvkyx0dOMLCVkmp2EkY=",
+      "revisionId": "b2eb7571-15eb-41e4-bae2-e696829064bc",
+      "unrelatedEnvironmentPreserved": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "j4mFcOGoAvR7YelKIATiT1NQQPNdHo+nshHEM06NeMQ=",
+      "revisionId": "52581dbc-cceb-4dd4-8b2e-9cf820bf19f4",
+      "unrelatedEnvironmentPreserved": true
+    }
+  ],
+  "infra": [
+    {
+      "stack": "staging-cod-lifecycle",
+      "id": "arn:aws:cloudformation:us-east-1:699561669180:changeSet/cod31-limits-1792175831/a2e8a8aa-99a0-40b9-bd73-caf4a57f0e2c",
+      "changes": [
+        {
+          "id": "Cod26WaveSystemHandleWaveTimeoutFunctionGuardPolicy",
+          "action": "Modify",
+          "type": "AWS::IAM::Policy"
+        },
+        {
+          "id": "DriverFinancialAcceptanceFunction",
+          "action": "Modify",
+          "type": "AWS::Lambda::Function"
+        }
+      ],
+      "result": "UPDATE_COMPLETE"
+    },
+    {
+      "stack": "staging-delivery-quotes",
+      "id": "arn:aws:cloudformation:us-east-1:699561669180:changeSet/cod31-limits-1792175841/e00713d5-3693-4d9b-8897-0442973b9a72",
+      "changes": [
+        {
+          "id": "DeliveryQuotesFunction",
+          "action": "Modify",
+          "type": "AWS::Lambda::Function"
+        },
+        {
+          "id": "QuoteGetMethod",
+          "action": "Modify",
+          "type": "AWS::ApiGateway::Method"
+        },
+        {
+          "id": "QuoteGetPermission",
+          "action": "Modify",
+          "type": "AWS::Lambda::Permission"
+        },
+        {
+          "id": "QuotePostMethod",
+          "action": "Modify",
+          "type": "AWS::ApiGateway::Method"
+        },
+        {
+          "id": "QuotePostPermission",
+          "action": "Modify",
+          "type": "AWS::Lambda::Permission"
+        }
+      ],
+      "result": "UPDATE_COMPLETE"
+    }
+  ],
+  "actualConfiguration": {
+    "date": "2026-10-16",
+    "functions": [
+      {
+        "name": "WaveSystem_StartWave",
+        "limits": {
+          "FINANCIAL_OFFER_TTL_SECONDS": "60",
+          "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120",
+          "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "300"
+        },
+        "dispatchMode": "OFF"
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "limits": {
+          "FINANCIAL_OFFER_TTL_SECONDS": "60",
+          "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120",
+          "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "300"
+        },
+        "dispatchMode": "OFF"
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "limits": {
+          "FINANCIAL_OFFER_TTL_SECONDS": "60",
+          "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120",
+          "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "300"
+        },
+        "dispatchMode": "OFF"
+      }
+    ],
+    "quote": {
+      "maxPerMinute": 5,
+      "enabled": false,
+      "secretConfigured": false
+    },
+    "apiStagesUnchanged": true,
+    "supersededReviewSetsRemoved": 0
+  },
+  "verification": {
+    "iam": [
+      {
+        "action": "dynamodb:UpdateItem",
+        "table": "WizzOrders",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "table": "staging-Holds",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "table": "staging-Holds",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "table": "staging-Wallets",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "table": "staging-Holds",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "table": "staging-LedgerEntries",
+        "decision": "implicitDeny"
+      }
+    ],
+    "financialActivation": "OFF",
+    "writerClosed": {
+      "statusCode": 409,
+      "code": "FINANCIAL_DISPATCH_DISABLED"
+    },
+    "humanOrdersChanged": false,
+    "fundsChanged": false
+  },
+  "isolatedDynamoDb": {
+    "scope": "REAL_DYNAMODB_ISOLATED_SEARCH_EXHAUSTION",
+    "applicationTablesAccessed": false,
+    "financialActivation": "OFF",
+    "reviewVisible": true,
+    "orderNotCancelled": true,
+    "fundsUnchanged": true,
+    "noLedgerWrites": true,
+    "replaySafe": true,
+    "assignmentRaceProtected": true,
+    "deletionBarrierProtected": true,
+    "tableDeleted": true
+  },
+  "tests": {
+    "wallet": 469,
+    "merchantBackend": 195,
+    "customerBackend": 26,
+    "merchantFlutterFullBeforeFinalCacheAddition": 176,
+    "merchantFlutterFocusedNew": 2,
+    "customerFlutterFull": 36,
+    "customerFlutterSkippedExisting": 4,
+    "customerFlutterFocusedNew": 1,
+    "typescriptBuild": "PASS",
+    "flutterAnalysis": "NO_ERRORS_EXISTING_WARNINGS_AND_STYLE_NOTES",
+    "deviceBuildOrInstall": false
+  },
+  "apiStagesChanged": false,
+  "timeoutWorkerSchedule": {
+    "state": "ENABLED",
+    "expression": "rate(1 minute)",
+    "modified": false
+  },
+  "dispatchCreatorPatch": {
+    "legacyPricingUnchanged": true,
+    "unpublishedLocalPricingNotCopied": true,
+    "automaticReviewSearchRestartBlocked": true
+  },
+  "humanDataOrFundsChanged": false,
+  "otpOrPushSent": false,
+  "pending": [
+    "Operator review queue and authorized manual recovery decisions are not implemented.",
+    "Flutter message changes require a new application build/install.",
+    "On-demand position refresh and device/background validation remain required before activation; offers can expire sooner than the configured upper bound.",
+    "Mapbox secret, global routing quota and live commercial pricing/agreements/funding prerequisites remain incomplete.",
+    "No financial end-to-end canary under deployed application identities/roles or feature activation was performed."
+  ]
+}

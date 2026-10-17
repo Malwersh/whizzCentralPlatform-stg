@@ -171,6 +171,12 @@
             <button type="submit" id="changePasswordBtn">Change Password</button>
             <button type="button" id="cancelBtn" class="btn-secondary mt-10">Cancel</button>
         </form>
+        <form id="mfaForm" class="hidden" dir="rtl">
+            <label for="mfaCode">رمز تطبيق التحقق</label>
+            <input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+            <button id="mfaSubmit" type="submit">التحقق وتسجيل الدخول</button>
+            <button id="mfaCancel" type="button" class="btn-secondary">إلغاء</button>
+        </form>
         <div id="status" class="status"></div>
     </div>
 
@@ -178,6 +184,6 @@
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1471.0.min.js"></script>
     <script
         src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
-    <script src="./assets/js/login.js?v=20261011-session-fix2" defer></script>
+    <script src="./assets/js/login.js?v=20261012-driver-actions2" defer></script>
 </body>
 </html>

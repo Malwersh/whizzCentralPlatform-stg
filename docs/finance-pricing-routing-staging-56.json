@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "part": 56,
+  "environment": "Staging",
+  "atUtc": "2026-10-17T04:05:14.359799+00:00",
+  "activationPerformed": false,
+  "functions": [
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "MgzHPKWQwIJWli01AyLIg1fX8jiDxOh/32prPldSNI4=",
+      "revisionId": "6a7ed81e-aa30-4630-827b-7f0c5abc2469",
+      "environmentPreserved": true
+    }
+  ],
+  "amplify": {
+    "appId": "d2vmebm1e1n95m",
+    "branch": "staging",
+    "jobId": "69",
+    "status": "SUCCEED"
+  },
+  "preparation": {
+    "account": "699561669180",
+    "region": "us-east-1",
+    "base": {
+      "account": "699561669180",
+      "region": "us-east-1",
+      "checkedAt": "2026-10-17T03:56:31.908778+00:00",
+      "staff": {
+        "name": "staging-wizz-staff-service",
+        "handler": "index.handler",
+        "codeSha256": "rxC2dzs9CPvcn7h80TKomaN/s1B4QbRlpdSDK94gBic=",
+        "revisionId": "a970dfcb-ead8-4638-89a8-30cc5befc1fb",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx"
+      },
+      "frontend": {
+        "jobId": "68",
+        "codeSha256": "5AZZW6VIhyV2asmXXAzB7n3qBg9F3V7tugWarsLOyZI="
+      }
+    },
+    "activation": false,
+    "staff": {
+      "codeSha256": "MgzHPKWQwIJWli01AyLIg1fX8jiDxOh/32prPldSNI4=",
+      "changedFiles": [
+        "catalog.js",
+        "delivery-pricing.js",
+        "index.js",
+        "pricing-runtime/deliveryPricing.js",
+        "pricing-runtime/money.js"
+      ],
+      "preservedFiles": 4510
+    },
+    "frontend": {
+      "codeSha256": "SEvwEMp4gKoC3d3jwxknrPP6oYMVJXmQ5O8mfskExGQ=",
+      "changedFiles": [
+        "assets/js/navigation.js",
+        "assets/js/rbac.js",
+        "delivery-pricing.js",
+        "financial-management.html",
+        "financial-management.js",
+        "includes/sidebar.html",
+        "pages/delivery-pricing.html"
+      ],
+      "preservedFiles": 176
+    }
+  },
+  "verification": {
+    "frontend": [
+      {
+        "path": "assets/js/navigation.js",
+        "matchesCandidate": true,
+        "sha256": "6f1db32d19dc556dc40dc797450c3cd386150daa7c9f373b3bc899765b10186c"
+      },
+      {
+        "path": "assets/js/rbac.js",
+        "matchesCandidate": true,
+        "sha256": "2a20fd0480bdba97e56d941fc13400064dee58ebefd49e5975000f175a53c28d"
+      },
+      {
+        "path": "delivery-pricing.js",
+        "matchesCandidate": true,
+        "sha256": "2cc7f6202c1f79141a3a538653b1998bc0d9219c88aa89acc22e4960943679a5"
+      },
+      {
+        "path": "financial-management.html",
+        "matchesCandidate": true,
+        "sha256": "c66c9b568ee032136a22c1f5087ef0eb1cf5df0a764ab89dffd6dc68109c7462"
+      },
+      {
+        "path": "financial-management.js",
+        "matchesCandidate": true,
+        "sha256": "81044a6596e62555e052ea4e615d09ea9115b014b612224138ecf655b424b1f1"
+      },
+      {
+        "path": "includes/sidebar.html",
+        "matchesCandidate": true,
+        "sha256": "975b856e56397c38527af5ac117bffee023cc6312a00e29ae1d7c08a3ded37ff"
+      },
+      {
+        "path": "pages/delivery-pricing.html",
+        "matchesCandidate": true,
+        "sha256": "f25f1f4d44a0e9b22fbc2bae040ed2e8ffc13eeea16e1c8797bd4f9a4a89f7f6"
+      }
+    ],
+    "unauthenticatedPricingStatus": 401,
+    "functions": [
+      {
+        "name": "DriversApi-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-CancelOrder-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-GetGuestOrders-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-GetOrder-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-GetUserOrders-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-MerchantOrderStatusUpdate-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-SearchOrderByNumber-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-UpdateOrderStatus-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "codeMatchesRecordedPublication": true,
+        "gatesClosed": true
+      }
+    ],
+    "activationPerformed": false
+  },
+  "routingSecret": {
+    "stackName": "staging-finance-routing-secret-56",
+    "stackStatus": "CREATE_COMPLETE",
+    "secretArn": "arn:aws:secretsmanager:us-east-1:699561669180:secret:staging/finance/mapbox/server-routing-IZJNcs",
+    "versionId": "74337bf0-c8af-49f0-99ac-7798a2abe46c",
+    "valueInSource": false,
+    "runtimeGrantsChanged": false,
+    "runtimeBindingsChanged": false,
+    "gatesChanged": false
+  },
+  "routingProviderTest": {
+    "credentialReadFromSecretsManager": true,
+    "providerRequests": 1,
+    "source": "MAPBOX_DIRECTIONS_V5",
+    "quality": "ROAD",
+    "distanceMeters": 811,
+    "durationSeconds": 105,
+    "normalization": "CEIL_METERS_SECONDS_V1",
+    "financialWrites": false,
+    "coverageChecked": false,
+    "driverLocationChanged": false
+  },
+  "pricingDynamoDBTest": {
+    "realDynamoDB": true,
+    "humanRowsRead": false,
+    "livePricingChanged": false,
+    "financialWrites": false,
+    "atomicDraft": true,
+    "selfApprovalRejected": true,
+    "revokedRequesterRejected": true,
+    "independentPublication": true,
+    "repeatedPublicationRejected": true,
+    "sameEngineSimulation": true,
+    "tableDeleted": true
+  },
+  "tests": {
+    "staffTestsPassed": 144,
+    "dedicatedPricingTestsIncluded": 11,
+    "pricingRbacTestPassed": true,
+    "browser": {
+      "draftForms": true,
+      "sameEngineSimulation": true,
+      "staleResultCleared": true,
+      "safeText": true,
+      "conflict": true,
+      "readOnly": true,
+      "realWrites": false
+    }
+  },
+  "livePricingUnchanged": true,
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "535e6be012354b611903eaeba04d959b7be4259c574c8706f6c36c7eeb0d7b66",
+      "reason": "Part54 binds a Staging test confirmation to a preapproved request while retaining immutable pending replay and default UUID behavior; commercial approval flow is unchanged."
+    }
+  ],
+  "sourceSha256": {
+    "backend/finance-routing-secret.staging.json": "83841331c789977456fe45777dcbd78104a48125c5bddd9e6713092a1986ba1e",
+    "scripts/prepare-central-pricing-release-56.py": "d3fa0fe00412fdae1bf5039a3af54c5b94ab60c6ba92f32c8e984f5ab24dd5c1",
+    "scripts/publish-central-pricing-staging-56.py": "cfc023f04815855d0e9a20adffecc6a1db3e269777bc0a607318f3b91eb6c6b6",
+    "scripts/test-pricing-rbac-56.cjs": "47ca9421be92c43c5c688c16732f9a8893af384c2eb21ade1311404fba530472",
+    "scripts/test-central-pricing-staging-56.cjs": "f412f1b866022084d2d8d4220b3d33129cd5b05d41a41c7e70b8c129a14191f5",
+    "backend/staff-service/delivery-pricing.js": "cc5a0837d2509b74b8e4feec318c74e1788ef2405f12d41c14f97e7edc9c9865",
+    "backend/staff-service/catalog.js": "36465f9f01d6cac4633f3726c5dd49da0fead36d2dcfb8ac04502d4bbc3c6a90",
+    "frontend/assets/js/navigation.js": "6f1db32d19dc556dc40dc797450c3cd386150daa7c9f373b3bc899765b10186c",
+    "frontend/assets/js/rbac.js": "2a20fd0480bdba97e56d941fc13400064dee58ebefd49e5975000f175a53c28d",
+    "frontend/delivery-pricing.js": "2cc7f6202c1f79141a3a538653b1998bc0d9219c88aa89acc22e4960943679a5",
+    "frontend/financial-management.html": "c66c9b568ee032136a22c1f5087ef0eb1cf5df0a764ab89dffd6dc68109c7462",
+    "frontend/financial-management.js": "81044a6596e62555e052ea4e615d09ea9115b014b612224138ecf655b424b1f1",
+    "frontend/includes/sidebar.html": "975b856e56397c38527af5ac117bffee023cc6312a00e29ae1d7c08a3ded37ff",
+    "frontend/pages/delivery-pricing.html": "f25f1f4d44a0e9b22fbc2bae040ed2e8ffc13eeea16e1c8797bd4f9a4a89f7f6"
+  },
+  "limits": [
+    "Secret value is stored only in Secrets Manager; no secret-read IAM grants or Lambda bindings were changed in Part56.",
+    "Provider test is one real road request through the existing secret reader, not a coverage or published-Lambda routing proof.",
+    "No live CURRENT pricing policy was created; fixture prices existed only in a disposable table which was deleted.",
+    "Anonymous HTTP 401 and browser fixtures do not prove a two-human authenticated approval journey.",
+    "Runtime gates remain closed; no phone build/install or real order/fund operation."
+  ]
+}

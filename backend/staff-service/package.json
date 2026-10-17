@@ -1,0 +1,52 @@
+{
+  "name": "wizz-staging-staff-service",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.896.0",
+    "@aws-sdk/client-dynamodb": "^3.896.0",
+    "@aws-sdk/client-s3": "^3.1152.0",
+    "@aws-sdk/lib-dynamodb": "^3.896.0",
+    "@aws-sdk/s3-request-presigner": "^3.1152.0",
+    "aws-jwt-verify": "^5.0.0"
+  },
+  "files": [
+    "index.js",
+    "catalog.js",
+    "revocation-worker.js",
+    "invitations.js",
+    "drivers.js",
+    "driver-regions.js",
+    "operational-settings.js",
+    "account-deletion.js",
+    "deletion-worker.js",
+    "onboarding-policy.js",
+    "merchant-onboarding.js",
+    "merchant-control.js",
+    "merchant-changes.js",
+    "business-change-review.js",
+    "merchant-change-regions.js",
+    "merchant-staff-policy.js",
+    "staff-permission-policy.js",
+    "staff-capabilities.js",
+    "delivery-pricing.js",
+    "pricing-runtime",
+    "dispatch-settings.js",
+    "dispatch-settings-contract.js",
+    "home-slideshow.js",
+    "offer-eligibility.js",
+    "dispatch-reviews.js",
+    "commercial-management.js",
+    "commercial-owner.js",
+    "promotions.js",
+    "campaign-version.js",
+    "write-workflow.js",
+    "commercial-reference.js",
+    "commercial-options.js"
+  ],
+  "scripts": {
+    "test": "node --test test/*.cjs",
+    "pretest": "node ../../scripts/sync-delivery-pricing-runtime.cjs --check",
+    "prepack": "node ../../scripts/sync-delivery-pricing-runtime.cjs --check"
+  }
+}

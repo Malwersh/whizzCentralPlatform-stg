@@ -1,3 +1,4 @@
+const {isFinancialOrder,LEGACY_ONLY}=require('../legacy-order-policy');
 /**
  * Driver Unassignment Service
  * 
@@ -55,6 +56,7 @@ export class DriverUnassignmentService {
 
     // Step 1: Get order
     const order = await this.getOrder(orderId);
+    if (isFinancialOrder(order)) throw new OrderServiceError('Financial order requires its return/cancellation workflow', 409, 'FINANCIAL_CANCELLATION_REQUIRED');
 
     // Step 2: Validate unassignment
     this.validateUnassignment(order, driverId, requestedBy);
@@ -69,20 +71,7 @@ export class DriverUnassignmentService {
       );
     }
 
-    // Step 4: Release Hold (if exists)
     let holdReleased = false;
-    if (order.holdId && order.holdStatus === 'ACTIVE') {
-      console.log(`💰 Releasing Hold: ${order.holdId}`);
-      try {
-        await this.walletClient.releaseHold(order.holdId, `Driver unassigned: ${reason}`);
-        holdReleased = true;
-        console.log('✅ Hold released successfully');
-      } catch (error: any) {
-        console.error('❌ Failed to release Hold:', error.message);
-        // Continue - notification will inform about hold issue
-      }
-    }
-
     // Step 5: Update driverHistory
     const updatedDriverHistory = OrderTimelineManager.updateDriverHistoryOnUnassign(
       order.driverHistory,
@@ -119,7 +108,25 @@ export class DriverUnassignmentService {
       orderTimeline: updatedTimeline,
       excludedDrivers: updatedExcludedDrivers,
       holdStatus: holdReleased ? 'RELEASED' : order.holdStatus,
+      walletFinancialStatus: order.holdId && !holdReleased ? 'PENDING_RELEASE' : (holdReleased?'RELEASED':'NONE'),
+      walletPendingHoldId: order.holdId && !holdReleased ? order.holdId : '',
+      originalStatus: order.status,
+      originalDriverId: order.driverId,
     });
+    // Step 4: Release Hold (if exists)
+    if (order.holdId && order.holdStatus === 'ACTIVE') {
+      console.log(`💰 Releasing Hold: ${order.holdId}`);
+      try {
+        await this.walletClient.releaseHold(order.holdId, `Driver unassigned: ${reason}`);
+        holdReleased = true;
+        console.log('✅ Hold released successfully');
+      } catch (error: any) {
+        console.error('❌ Failed to release Hold:', error.message);
+        // Continue - notification will inform about hold issue
+      }
+    }
+
+
 
     console.log(`✅ Driver ${driverId} unassigned from order ${orderId}`);
     console.log(`   New Status: ${newStatus}`);
@@ -277,6 +284,10 @@ export class DriverUnassignmentService {
       driverHistory: any[];
       orderTimeline: any[];
       holdStatus?: string;
+      walletFinancialStatus: string;
+      walletPendingHoldId: string;
+      originalStatus: string;
+      originalDriverId?: string;
     }
   ): Promise<void> {
     console.log(`💾 Updating order ${orderId} for reassignment...`);
@@ -290,6 +301,7 @@ export class DriverUnassignmentService {
 
     const expressionAttributeValues: Record<string, any> = {
       ':status': updates.status,
+      ':originalStatus': updates.originalStatus,
       ':driverHistory': updates.driverHistory,
       ':orderTimeline': updates.orderTimeline,
       ':excludedDrivers': updates.excludedDrivers,
@@ -297,6 +309,11 @@ export class DriverUnassignmentService {
       ':updatedAt': getCurrentTimestamp(),
     };
 
+    updateExpression += ', walletFinancialStatus = :financial, walletPendingHoldId = :pendingHold';
+    expressionAttributeValues[':financial'] = updates.walletFinancialStatus;
+    expressionAttributeValues[':pendingHold'] = updates.walletPendingHoldId;
+
+    if(updates.originalDriverId)expressionAttributeValues[':originalDriverId']=updates.originalDriverId;
     if (updates.holdStatus) {
       updateExpression += ', #holdStatus = :holdStatus';
       expressionAttributeNames['#holdStatus'] = 'holdStatus';
@@ -316,7 +333,7 @@ export class DriverUnassignmentService {
         UpdateExpression: updateExpression,
         ExpressionAttributeNames: expressionAttributeNames,
         ExpressionAttributeValues: expressionAttributeValues,
-        ConditionExpression: 'attribute_exists(PK)',
+        ConditionExpression: LEGACY_ONLY+' AND attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
       })
     );
 

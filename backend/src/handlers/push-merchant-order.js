@@ -110,8 +110,12 @@ exports.sendMerchantOrder = async (event) => {
     );
 
     const items = tokensResp.Items || [];
-    const merchantItems = items.filter((it) => String(it?.app || '').toLowerCase() === 'merchant');
-    const tokens = Array.from(new Set(merchantItems.map((it) => it.token).filter(Boolean)));
+    const devicePolicy=require('../utils/branch-device-push');
+    const merchantItems=[];
+    for(const item of items.filter(it=>String(it?.app||'').toLowerCase()==='merchant')){
+      try{if(await devicePolicy.allowed(dynamodb,item))merchantItems.push(item);}catch(_){/* A device whose live authorization cannot be read receives nothing. */}
+    }
+    const tokens = Array.from(new Set(merchantItems.map((it) => it.branchDeviceId?it.fcmToken:it.token).filter(Boolean)));
 
     if (tokens.length === 0) {
       return ok({
@@ -173,14 +177,22 @@ exports.sendMerchantOrder = async (event) => {
       }
     };
 
-    const result = await messaging.sendEachForMulticast(multicastMessage);
+    const deviceTokens=new Set(merchantItems.filter(it=>it.branchDeviceId).map(it=>it.fcmToken));
+    const groups=[{tokens:tokens.filter(t=>!deviceTokens.has(t)),device:false},{tokens:tokens.filter(t=>deviceTokens.has(t)),device:true}];
+    const result={responses:[],successCount:0,failureCount:0};
+    const orderedTokens=[];
+    for(const group of groups){
+      if(!group.tokens.length)continue;
+      const payload=group.device?devicePolicy.deviceMessage(multicastMessage,group.tokens):{...multicastMessage,tokens:group.tokens};
+      const sent=await messaging.sendEachForMulticast(payload);orderedTokens.push(...group.tokens);result.responses.push(...sent.responses);result.successCount+=sent.successCount;result.failureCount+=sent.failureCount;
+    }
 
     const failures = [];
     result.responses.forEach((r, i) => {
       if (!r.success) {
         const err = r.error;
         failures.push({
-          token: tokens[i],
+          token: orderedTokens[i],
           code: err?.code,
           errorInfoCode: err?.errorInfo?.code,
           errorInfoMessage: err?.errorInfo?.message,

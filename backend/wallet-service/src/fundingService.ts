@@ -27,7 +27,17 @@ export async function saveFundingConfig(input: any, actor: string) {
 }
 export async function receiptUpload(driver: string, input: any) {
  if (!['image/jpeg','image/png'].includes(input.contentType) || !Number.isInteger(input.size) || input.size < 1 || input.size > 4 * 1024 * 1024) throw fundingError('الوصل يجب أن يكون صورة JPG أو PNG بحجم لا يتجاوز 4 ميجابايت');
- const key = `receipts/${driver}/${randomUUID()}.${input.contentType === 'image/png' ? 'png' : 'jpg'}`;
+ const walletId=`WALLET#DRIVER#${driver}`;
+ const {Item:wallet}=await docClient.send(new GetCommand({TableName:TABLES.WALLETS,Key:{walletId,sk:'META'},ConsistentRead:true}));
+ if(!wallet||wallet.status!=='ACTIVE'||wallet.deletionRequestId)throw fundingError('هذه المحفظة غير متاحة للشحن','ACCOUNT_CLOSING',409);
+ const operationId=randomUUID(),key = `receipts/${driver}/${operationId}.${input.contentType === 'image/png' ? 'png' : 'jpg'}`;
+ const deletionTable=process.env.ACCOUNT_DELETION_TABLE;
+ const operations:any[]=[{Update:{TableName:TABLES.WALLETS,Key:{walletId,sk:'META'},UpdateExpression:'SET #v = #v + :one',ConditionExpression:'#v = :v AND #s = :active AND attribute_not_exists(deletionRequestId)',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':wallet.version,':one':1,':active':'ACTIVE'}}}];
+ if(deletionTable){
+  if(deletionTable!=='staging-AccountDeletion'||process.env.ENVIRONMENT!=='staging')throw fundingError('إعداد التحقق غير صحيح','INVALID_LIFECYCLE_CONFIGURATION',503);
+  operations.push({ConditionCheck:{TableName:deletionTable,Key:{pk:`ACCOUNT_LIFECYCLE#DRIVER#${driver}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},{Put:{TableName:deletionTable,Item:{pk:`ACCOUNT_OPERATION#DRIVER#${driver}`,sk:`FUNDING_RECEIPT#${operationId}`,subjectId:driver,operationId,kind:'FUNDING_RECEIPT',assetKey:key,expiresAt:Math.floor(Date.now()/1000)+600},ConditionExpression:'attribute_not_exists(pk)'}});
+ }
+ await docClient.send(new TransactWriteCommand({TransactItems:operations}));
  const uploadUrl = await getSignedUrl(s3, new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: input.contentType, ContentLength: input.size, ServerSideEncryption:'AES256', IfNoneMatch:'*' }), { expiresIn: 300 });
  return { key, uploadUrl, contentType: input.contentType };
 }

@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_ATOMIC_TRANSITION_AND_LEASE_COORDINATOR_VERIFIED_ISOLATED",
+  "published": false,
+  "financialActivation": "OFF_UNCHANGED",
+  "liveFeatureFlagsChanged": false,
+  "livePolicyChanged": false,
+  "runtimeEntryPointsChangedLocally": true,
+  "executionReady": false,
+  "publicationReady": false,
+  "scope": [
+    "Shared durable transition intent in existing dispatch job partition",
+    "Atomic predecessor offer evidence and pending-offer expiration",
+    "Bounded execution lease with increasing fencing version",
+    "StartWave and Timeout planning-only routing; pinned-cycle decline rejects before mutations",
+    "Reusable existing financialSearch review state without cancellation or fund release"
+  ],
+  "tests": {
+    "walletPassed": 501,
+    "accountDeletionPassed": 213,
+    "newCoordinatorTests": 9,
+    "newEntrypointTests": 4,
+    "typescriptBuild": true,
+    "generatedPolicyCheck": true,
+    "customerQuoteRuntimeCheck": true,
+    "fourRepositoryWhitespaceChecks": true
+  },
+  "isolatedDynamoDB": {
+    "scope": "REAL_DYNAMODB_ISOLATED_DISPATCH_TRANSITIONS",
+    "applicationTablesAccessed": false,
+    "published": false,
+    "offersSent": 0,
+    "competingTriggersOneIntent": true,
+    "leaseExcludesOldWorker": true,
+    "preparationDeadlineReviewOnly": true,
+    "moneyUnchanged": true,
+    "actualDeadlinesAndOfferExpirationAtomic": true,
+    "assignmentRaceBlocksTransition": true,
+    "tableDeleted": true
+  },
+  "offlineRuntime": {
+    "schemaVersion": 1,
+    "mode": "OFF",
+    "executionReady": false,
+    "publicationReady": false,
+    "sha256": "ccf76cddc6c2f8cfcf9b3d258356b56bdc41d911811dc52df61e9ee4e6eb078d",
+    "destinations": [
+      "WaveSystem_StartWave",
+      "WaveSystem_HandleWaveTimeout",
+      "WaveSystem_HandleDriverReject"
+    ],
+    "blockers": [
+      "Creator and durable wave executor adapters",
+      "Acceptance, decline and financial cycle contracts",
+      "Coordinated IAM and live-package verification",
+      "Central wave editor, recovery and full behavior compatibility"
+    ]
+  },
+  "notComplete": [
+    "Creator event-derived idempotency and cycle integration",
+    "Durable recipient/offer producer and fenced APPLIED acknowledgement",
+    "Notification delivery outbox and retries",
+    "Acceptance and decline adapters for pinned cycles",
+    "ALL waves larger than 25 offers",
+    "Authorized review, fresh cycle and reassignment rollover",
+    "Dispatch-intent retention and cleanup integration",
+    "Coordinated v2 central editor, funded recovery and performance events",
+    "Live IAM, package reconciliation and deployment"
+  ],
+  "verificationLimits": [
+    "APPLIED acknowledgements in tests were seeded fixtures, not produced by an executor",
+    "DynamoDB test used one disposable table and logical key adapter, no application tables",
+    "TransactionConflict may reject both lease contenders; caller retries without claiming success",
+    "No Lambda/Gateway/device verification, no push, no real driver data",
+    "No wallet, hold or ledger mutation, no human policy change"
+  ],
+  "sourceDigests": [
+    {
+      "path": "backend/wallet-service/src/dispatchCoordinator.ts",
+      "sha256": "6271857d62a19ebcd36d850f07335789a6793cf2bb02ae41ca2434b565d9298b"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCoordinatorRuntime.ts",
+      "sha256": "9fdd6313712f4200e3ee0e2483d563eb0a8bbac793c64974a1dc8a2583c800a7"
+    },
+    {
+      "path": "backend/wallet-service/src/financialSearch.ts",
+      "sha256": "5bf9319d55bf3696bd1fd510c89021e267bc2f1d2fecc55420e63b21ae7cf564"
+    },
+    {
+      "path": "backend/wallet-service/test/dispatch-coordinator.test.cjs",
+      "sha256": "3964f03d0a3458372d41cbd1c699d6752071299633169dc2afbe85ed3d594a86"
+    },
+    {
+      "path": "backend/wallet-service/test/dispatch-entrypoints.test.cjs",
+      "sha256": "537aabf71420c8c26c6f43f5d24ad060b0b63a7538cc4f1b21138fd30346f299"
+    },
+    {
+      "path": "lambda/WaveSystem_StartWave/index.js",
+      "sha256": "1a8fca4caaddc36e253719624d7a074366407b5878e71e8cccec0e871ff18dc5"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleWaveTimeout/index.js",
+      "sha256": "4f9741b7c7d074e926c9f06e94d2f7ff62d7ec6e6bd749b9c865a60b5a1d7f79"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleDriverReject/index.js",
+      "sha256": "3cf065a568da7e49398bb120aa5a5e92f39a19466c0fbae59409adca23cfff84"
+    },
+    {
+      "path": "scripts/build-dispatch-coordinator-runtime.cjs",
+      "sha256": "a4d5249bd4d17b2b5e00566cfa0928e272c8c11364e082c20ef64f5420af480f"
+    },
+    {
+      "path": "scripts/test-dispatch-coordinator-staging.cjs",
+      "sha256": "3cc9a8b6b0b5d8a3d431cae251315981e0fe73b02cef0d792a5a356e4c384d63"
+    },
+    {
+      "path": "scripts/test-dispatch-cycle-staging.cjs",
+      "sha256": "0acf7af25773d436b0578a7068f96d25eddaf8d9c47a6bc3e1e1551236afdf91"
+    }
+  ]
+}

@@ -86,6 +86,7 @@ exports.handler = async (event) => {
   // Check if this is a DIRECT INVOCATION (for driver unassignment)
   // ========================================
   if (event.orderId && !event.Records) {
+    if(process.env.DISPATCH_CYCLE_MODE&&process.env.DISPATCH_CYCLE_MODE!=='OFF')throw Error('UNIFIED_REASSIGNMENT_NOT_READY');
     console.log('🔄 Direct invocation for order reassignment');
     console.log(`   Order ID: ${event.orderId}`);
     console.log(`   Reason: ${event.reason || 'driver_unassigned'}`);
@@ -133,6 +134,13 @@ exports.handler = async (event) => {
   for (const record of event.Records) {
     
     try {
+      if(process.env.DISPATCH_CYCLE_MODE&&process.env.DISPATCH_CYCLE_MODE!=='OFF'){
+        const result=await require('./dispatch-cycle-runtime').createUnifiedDispatchFromStream(record,async input=>{
+          const r=await lambda.invoke({FunctionName:START_WAVE_LAMBDA,InvocationType:'Event',Payload:JSON.stringify(input)}).promise();
+          if(r.StatusCode!==202||r.FunctionError)throw Error('DISPATCH_START_INVOKE_UNCERTAIN');
+        });
+        if(!result.legacyFallback){if(result.skipped)results.skipped++;else results.processed++;continue;}
+      }
       // ========================================
       // Step 1: فلترة - فقط MODIFY events
       // ========================================
@@ -232,6 +240,7 @@ exports.handler = async (event) => {
       results.processed++;
       
     } catch (error) {
+      if(process.env.DISPATCH_CYCLE_MODE&&process.env.DISPATCH_CYCLE_MODE!=='OFF')throw error;
       console.error(`❌ Error processing record:`, error);
       console.error('Record:', JSON.stringify(record, null, 2));
       results.errors++;
@@ -254,6 +263,10 @@ exports.handler = async (event) => {
 // دالة إنشاء DispatchJob
 // ============================================
 async function createDispatchJobForOrder(order, excludedDrivers = []) {
+  // Search exhaustion requires an explicit reviewed recovery, never a stream-triggered restart.
+  if(order.financialSearch?.status==='no_driver_available'&&order.financialSearch?.reviewStatus==='REQUIRED')return {success:true,skipped:true,reason:'FINANCIAL_SEARCH_REVIEW_REQUIRED'};
+  const pinned=await dynamodb.get({TableName:DISPATCH_JOBS_TABLE,Key:{orderId:order.orderId,SK:'METADATA'},ConsistentRead:true}).promise();
+  if(pinned.Item&&Object.prototype.hasOwnProperty.call(pinned.Item,'dispatchCycle'))throw Error('UNIFIED_DISPATCH_NOT_READY');
   
   console.log(`\n📋 Creating DispatchJob for order ${order.orderId}`);
   if (excludedDrivers.length > 0) {
@@ -398,10 +411,14 @@ async function createDispatchJobForOrder(order, excludedDrivers = []) {
   const now = new Date().toISOString();
   const expiresAt = new Date(Date.now() + DISPATCH_TIMEOUT_MINUTES * 60 * 1000).toISOString();
   
-  const rawTotal = toNumber(order.total || order.totalAmount || 0);
-  const normalizedOrderTotal = normalizeMoneyToIqd(order.pricing?.total || rawTotal, rawTotal);
-  const normalizedHoldRequiredAmount = normalizeMoneyToIqd(order.pricing?.goodsSubtotal || order.subtotal || 0, rawTotal);
-  const normalizedDeliveryFee = normalizeMoneyToIqd(order.pricing?.deliveryFee || order.deliveryFee || 0, rawTotal);
+  const rawTotal = toNumber(order.total ?? order.totalAmount ?? 0);
+  const verifiedMinorPricing = order.currency === 'IQD' && order.createdBy === 'wizzuser_app';
+  const readPricing = (field, fallback) => order.pricing?.[field] != null
+    ? (verifiedMinorPricing ? toNumber(order.pricing[field]) / 1000 : normalizeMoneyToIqd(order.pricing[field], rawTotal))
+    : toNumber(fallback);
+  const normalizedOrderTotal = readPricing('total', rawTotal);
+  const normalizedHoldRequiredAmount = readPricing('goodsSubtotal', order.subtotal);
+  const normalizedDeliveryFee = readPricing('deliveryFee', order.deliveryFee);
 
   const dispatchJob = {
     orderId: order.orderId,        // Primary Key (HASH) - matches table schema
@@ -409,6 +426,7 @@ async function createDispatchJobForOrder(order, excludedDrivers = []) {
     
     // معلومات أساسية
     dispatchJobId: dispatchJobId,
+    financialDispatch: Object.prototype.hasOwnProperty.call(order, 'financialSnapshot'),
     orderNumber: order.orderNumber || null,
     
     // حالة البحث

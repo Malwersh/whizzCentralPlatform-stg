@@ -1,0 +1,69 @@
+{
+  "name": "staging-wizz-staff-service",
+  "beforeSha256": "EisjmoOhOv9pW5NXGx+qQYVxub0V7NJO3mqfrfJ4WBY=",
+  "afterSha256": "CDTlRToZs2u2q06QXt/Dm+QjuinAMKlpGN5GBr7SMi4=",
+  "changedFiles": [
+    "commercial-management.js",
+    "commercial-reference.js"
+  ],
+  "configurationPreserved": true,
+  "iamChanged": false,
+  "permissionChecks": 2,
+  "financialActivation": false,
+  "amplify": {
+    "baseJobId": "85",
+    "jobId": "86",
+    "changedFiles": [
+      "commercial-management.js",
+      "pages/merchants.html",
+      "pages/promotions.html"
+    ],
+    "codeSha256": "JDsmVYz4MFOJRmHieIZia0eF1oQEi2jm4C8v+MCJtAI=",
+    "status": "SUCCEED",
+    "hostedFilesMatched": true
+  },
+  "part": 72,
+  "date": "2026-10-17",
+  "allocation": {
+    "format": "AG-000001",
+    "counterTable": "staging-PlatformStaff",
+    "counterKey": {
+      "pk": "SYSTEM_COUNTER#COMMERCIAL_SUPPORT",
+      "sk": "CURRENT"
+    },
+    "binding": "Existing BRANCH commercial agreement indexes in staging-MerchantPlatform",
+    "allocatedOn": "First authorized agreement read",
+    "termsOrConsentModified": false,
+    "globalReverseLookupAdded": false,
+    "counterNeverReset": true
+  },
+  "tests": {
+    "staffPassed": 181,
+    "deletionPassed": 241,
+    "flutterPassed": 8,
+    "browserPassed": true,
+    "liveDynamoDb": {
+      "passed": true,
+      "parallelCalls": 16,
+      "uniqueAgreements": 8,
+      "stableReplays": true,
+      "deletedNumberNotReused": true,
+      "failedFenceNoAllocation": true,
+      "sharedBranchClosureStable": true,
+      "isolatedTable": "staging-reference72-test-1792248863",
+      "isolatedTableDeleted": true
+    },
+    "flutterAnalysis": {
+      "errors": 0,
+      "warnings": 0,
+      "styleInfos": 4
+    }
+  },
+  "simulator": {
+    "device": "iPhone 16 Pro",
+    "built": true,
+    "installed": true,
+    "launched": true
+  },
+  "humanConsentWritten": false
+}
