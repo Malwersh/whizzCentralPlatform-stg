@@ -7,7 +7,7 @@ type Row = Record<string, any>;
 const TABLE = 'WizzOrders';
 const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 const fields = ['PK', 'SK', 'orderId', 'storeId', 'businessId', 'merchantId', 'status', 'orderStatus', 'driverId', 'assignedDriverId',
-  'deletionStatus', 'isDeleted', 'deletedAt', 'financialSnapshot', 'holdId', 'holdStatus', 'holdAmount',
+  'deletionRequestId', 'deletionStatus', 'isDeleted', 'deletedAt', 'financialSnapshot', 'holdId', 'holdStatus', 'holdAmount',
   'walletPendingHoldId', 'financialAcceptance', 'assignmentAttemptCounter', 'financialRelease', 'financialOutcome', 'returnStatus', 'returnCaseId', 'cancellationStatus', 'cancellationRequestId'];
 export class DriverOfferOrderReadError extends Error {
   constructor(public readonly code: 'INVALID_DRIVER_OFFER_ORDER_READ' | 'DRIVER_OFFER_ORDER_UNAVAILABLE' |
@@ -51,7 +51,7 @@ export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDB
         ![saved.status, saved.orderStatus].some(v => v === 'ready_for_pickup') ||
         [saved.status, saved.orderStatus].some(v => v !== undefined && v !== 'ready_for_pickup') || saved.driverId != null || saved.assignedDriverId != null ||
         saved.holdId != null || saved.walletPendingHoldId != null || saved.financialAcceptance != null ||
-        saved.financialOutcome != null || saved.returnStatus != null || saved.returnCaseId != null || saved.cancellationStatus != null || saved.cancellationRequestId != null || saved.deletionStatus != null || saved.deletedAt != null || (saved.isDeleted !== undefined && saved.isDeleted !== false)) return fail('DRIVER_OFFER_ORDER_UNAVAILABLE');
+        saved.financialOutcome != null || saved.returnStatus != null || saved.returnCaseId != null || saved.cancellationStatus != null || saved.cancellationRequestId != null || saved.deletionRequestId != null || saved.deletionStatus != null || saved.deletedAt != null || (saved.isDeleted !== undefined && saved.isDeleted !== false)) return fail('DRIVER_OFFER_ORDER_UNAVAILABLE');
     const previousAttempt=saved.assignmentAttemptCounter??0;
     let priorRelease:Row|null=null,releaseCondition:Row|null=null;
     if(!Number.isSafeInteger(previousAttempt)||previousAttempt<0||previousAttempt>=1000)return fail('DRIVER_OFFER_ORDER_UNAVAILABLE');

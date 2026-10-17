@@ -14,7 +14,7 @@ test('decoded claims alone, disabled identity and mismatching live attributes ne
 });
 test('return runtime is disabled by default and a driver token cannot select merchant confirmation',async()=>{
  const {financialAcceptanceHandler}=require('../dist/driverFinancialRuntime'),old={...process.env};
- try{process.env.FINANCIAL_DISPATCH_MODE='REQUIRED';process.env.STAGE='staging';process.env.AWS_REGION='us-east-1';process.env.FINANCIAL_OFFER_TTL_SECONDS='60';process.env.FINANCIAL_POSITION_MAX_AGE_SECONDS='120';
+ try{Object.assign(process.env,require('./helpers/finance-rollout-fixture.cjs').scopeEnv());process.env.FINANCIAL_DISPATCH_MODE='REQUIRED';process.env.STAGE='staging';process.env.AWS_REGION='us-east-1';process.env.FINANCIAL_OFFER_TTL_SECONDS='60';process.env.FINANCIAL_POSITION_MAX_AGE_SECONDS='120';
   delete process.env.FINANCIAL_COD_RETURNS_MODE;
   assert.equal((await financialAcceptanceHandler({action:'confirm_return',body:{},accessToken:token()})).code,'COD_RETURNS_DISABLED');
   process.env.FINANCIAL_COD_RETURNS_MODE='REQUIRED';

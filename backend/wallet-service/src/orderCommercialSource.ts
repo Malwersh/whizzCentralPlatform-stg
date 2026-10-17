@@ -1,7 +1,7 @@
 import {DynamoDBDocumentClient, GetCommand} from '@aws-sdk/lib-dynamodb';
 import {calculateOrderCommercialPricing} from './orderCommercialPricing';
 import {createStagingOrderGoodsPricing} from './orderGoodsPricing';
-import {moneyFromMinor, readMoney, multiplyMoney} from './money';
+import {moneyFromMinor, readMoney, multiplyMoney, readWholeIqdRounding, quantizeWholeIqd, toWholeIqdExact} from './money';
 import {quoteEntityIdValid, quoteHash} from './deliveryQuoteRecord';
 import {prepareDriverOfferFinancialSnapshot} from './driverOfferOrderReader';
 type Row=Record<string,any>;
@@ -48,11 +48,16 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
   const agreementId=validId(branch.commercialAgreementId),version=positive(branch.commercialAgreementVersion);
   const key={pk:'COMMERCIAL_AGREEMENT#'+agreementId,sk:'VERSION#'+version};
   const record=await get(platform,key);
-  exact(record,['pk','sk','schemaVersion','terms','otherCharges','allowedFundingPolicyIds','termsHash']);
-  if(record.pk!==key.pk||record.sk!==key.sk||record.schemaVersion!==1||!Array.isArray(record.allowedFundingPolicyIds)||
+  exact(record,['pk','sk','schemaVersion','terms','otherCharges','allowedFundingPolicyIds','termsHash',...(record.schemaVersion===2?['fundingPolicySnapshots']:[])]);
+  if(record.pk!==key.pk||record.sk!==key.sk||![1,2].includes(record.schemaVersion)||!Array.isArray(record.allowedFundingPolicyIds)||
    record.allowedFundingPolicyIds.length>20||new Set(record.allowedFundingPolicyIds).size!==record.allowedFundingPolicyIds.length||
    record.allowedFundingPolicyIds.some((v:any)=>!quoteEntityIdValid(v)))return fail();
-  if(record.termsHash!==quoteHash({terms:record.terms,otherCharges:record.otherCharges,allowedFundingPolicyIds:record.allowedFundingPolicyIds}))return fail();
+  if(record.schemaVersion===2){
+   if(!Array.isArray(record.fundingPolicySnapshots)||record.fundingPolicySnapshots.length!==record.allowedFundingPolicyIds.length)return fail();
+   const seen=new Set<string>();
+   for(const v of record.fundingPolicySnapshots){exact(v,['id','version','digest']);validId(v.id);positive(v.version);if(seen.has(v.id)||!record.allowedFundingPolicyIds.includes(v.id)||typeof v.digest!=='string'||!/^[a-f0-9]{64}$/.test(v.digest))return fail();seen.add(v.id);}
+  }
+  if(record.termsHash!==quoteHash({terms:record.terms,otherCharges:record.otherCharges,allowedFundingPolicyIds:record.allowedFundingPolicyIds,...(record.schemaVersion===2?{fundingPolicySnapshots:record.fundingPolicySnapshots}:{})}))return fail();
   const terms=record.terms;
   if(terms.id!==agreementId||terms.version!==version||terms.merchantId!==merchantId||
    (terms.branchId!==null&&terms.branchId!==branchId)||terms.status!=='ACTIVE'||at<instant(terms.effectiveFrom)||
@@ -83,13 +88,23 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
    const policyKey={pk:'DISCOUNT_FUNDING#'+policyId,sk:'CURRENT'};
    const policy=await get(staff,policyKey);
    exact(policy,['pk','sk','schemaVersion','id','version','status','campaignId','campaignVersion','source','merchantId','branchId',
-    'target','effectiveFrom','effectiveTo','merchantNumerator','denominator','rounding','approvedBy','approvedAt']);
-   if(policy.schemaVersion!==1||policy.id!==policyId||policy.version!==policyVersion||policy.status!=='ACTIVE'||
+    'target','effectiveFrom','effectiveTo','merchantNumerator','denominator','rounding','approvedBy','approvedAt',...(policy.schemaVersion===2?['merchantShareFinalRounding']:[])]);
+   if(![1,2].includes(policy.schemaVersion)||policy.id!==policyId||policy.version!==policyVersion||policy.status!=='ACTIVE'||
     policy.campaignId!==snapshot.discountId||policy.campaignVersion!==snapshot.version||policy.source!==snapshot.source||
     policy.merchantId!==merchantId||policy.branchId!==branchId||policy.target!=='GOODS'||policy.rounding!=='MERCHANT_TOWARD_ZERO_PLATFORM_REMAINDER'||
     at<instant(policy.effectiveFrom)||at>=instant(policy.effectiveTo)||!quoteEntityIdValid(policy.approvedBy)||instant(policy.approvedAt)>at||
     !Number.isSafeInteger(policy.merchantNumerator)||policy.merchantNumerator<0||policy.merchantNumerator>positive(policy.denominator))return fail();
-   const amount=moneyFromMinor(snapshot.amount),merchantShare=multiplyMoney(amount,policy.merchantNumerator,policy.denominator,'TOWARD_ZERO');
+   if(record.schemaVersion===2){const accepted=record.fundingPolicySnapshots.find((v:Row)=>v.id===policyId);if(!accepted||accepted.version!==policy.version||accepted.digest!==quoteHash(policy))return fail('DISCOUNT_FUNDING_UNAUTHORIZED');}
+   const amount=moneyFromMinor(snapshot.amount),rawMerchantShare=multiplyMoney(amount,policy.merchantNumerator,policy.denominator,'TOWARD_ZERO');
+   let merchantShare=rawMerchantShare;
+   if(policy.schemaVersion===2){
+    try{
+     toWholeIqdExact(amount);
+     const final=readWholeIqdRounding(policy.merchantShareFinalRounding);
+     if(final.mode!=='TOWARD_ZERO')return fail();
+     merchantShare=quantizeWholeIqd(rawMerchantShare,final);
+    }catch{return fail('DISCOUNT_FUNDING_UNAVAILABLE');}
+   }
    discounts.push({id:snapshot.discountId,version:positive(snapshot.version),target:'GOODS',amount,merchantShare,
     platformShare:moneyFromMinor(amount.minorAmount-merchantShare.minorAmount)});
    validUntil=Math.min(validUntil,instant(policy.effectiveTo));

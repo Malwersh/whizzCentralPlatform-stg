@@ -2,7 +2,7 @@
 const {GetCommand,QueryCommand,ScanCommand}=require('@aws-sdk/lib-dynamodb');
 const {error}=require('./policy');
 const TABLES={profiles:'WizzUser_users_staging',legacyWallets:'WizzUser_wallets_staging',legacyTransactions:'WizzUser_transactions_staging',wallets:'staging-Wallets',orders:'WizzOrders',holds:'staging-Holds',transfers:'staging-IdempotencyKeys'};
-const finishedOrders=new Set(['delivered','completed','cancelled','canceled','rejected','refunded',
+const finishedOrders=new Set(['returned','delivered','completed','cancelled','canceled','rejected','refunded',
  'canceled_by_user','canceled_by_store','canceled_by_restaurant','canceled_by_driver','canceled_by_system']);
 const finishedTransfers=new Set(['COMPLETED','REJECTED','CANCELLED','CANCELED']);
 function belongs(profile,actor){
@@ -49,14 +49,16 @@ function customerEvidence({db,maxPages=100}){
   }
   wallets.push(...legacy.values());
   const walletIds=[...new Set([walletId,...wallets.map(w=>w.walletId)])];
-  const orders=await scanOwned(TABLES.orders,['userId','customerId','userSub'],ids,row=>!finishedOrders.has(String(row.status||'').toLowerCase()));
+  const ownedOrders=await scanOwned(TABLES.orders,['userId','customerId','userSub'],ids);
+  const orders=ownedOrders.filter(row=>!finishedOrders.has(String(row.status||'').toLowerCase()));
+  const cod=await require('./cod-retention').pendingCod({db,maxPages,orderIds:ownedOrders.map(o=>o.orderId)});
   const holds=await scanOwned(TABLES.holds,['walletId'],walletIds,row=>row.status==='ACTIVE');
   const transfers=await scanOwned(TABLES.transfers,['sourceWalletId','recipientWalletId'],walletIds,row=>row.transferId&&!finishedTransfers.has(row.status));
   const paymentStates=new Set(['SUCCESS','COMPLETED','FAILED','CANCELLED','CANCELED','REFUNDED']);
   const payments=await scanOwned(TABLES.legacyTransactions,['userId','walletId'],[...ids,...walletIds],row=>!paymentStates.has(String(row.status||'').toUpperCase()));
   // Snapshot only: the execution adapter must obtain a conditional eligibility lock and
   // enforce it in order/transfer services before these facts authorize irreversible cleanup.
-  return {complete:true,profileIds:[...profiles.keys()],wallets,activeOrders:orders.map(o=>({orderId:o.orderId,status:o.status})),activeHolds:holds.map(h=>({orderId:h.orderId,status:h.status})),pendingTransfers:transfers.map(t=>({transferId:t.transferId,status:t.status})),pendingPayments:payments.map(p=>({transactionId:p.transactionId,status:p.status}))};
+  return {complete:true,profileIds:[...profiles.keys()],wallets,activeOrders:orders.map(o=>({orderId:o.orderId,status:o.status})),activeHolds:holds.map(h=>({orderId:h.orderId,status:h.status})),pendingTransfers:transfers.map(t=>({transferId:t.transferId,status:t.status})),pendingPayments:[...cod,...payments.map(p=>({transactionId:p.transactionId,status:p.status}))]};
  };
 }
 module.exports={customerEvidence,belongs,TABLES};

@@ -69,10 +69,17 @@ const EMERGENCY_WAVE_BONUS_PERCENTAGE = 0.25; // 25% بونص في الموجة 
 // =====================================
 // Main Handler
 // =====================================
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
   console.log('⏰ HandleWaveTimeout triggered:', JSON.stringify(event, null, 2));
 
   try {
+    let hostSummary=null;
+    if(process.env.DISPATCH_LEGACY_HOST_MODE==='REQUIRED')hostSummary=await require('./dispatch-cycle-runtime').runHostedLegacyTick(event,context,async selectors=>{
+      const response=await lambda.invoke({FunctionName:START_WAVE_LAMBDA,InvocationType:'RequestResponse',Payload:JSON.stringify({orderId:selectors.orderId,dispatchJobId:selectors.assignmentId,cycleId:selectors.cycleId})}).promise();
+      if(response.FunctionError)throw Error('DISPATCH_HOST_START_UNKNOWN');
+      const result=JSON.parse(response.Payload||'{}');if(result.statusCode!==200)throw Error('DISPATCH_HOST_START_UNKNOWN');
+      return result;
+    });
     const now = new Date().toISOString();
     
     // Step 1: جلب العروض المنتهية + الطلبات العالقة
@@ -86,7 +93,7 @@ exports.handler = async (event) => {
       console.log('✅ No expired offers found');
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: 'No expired offers to process' })
+        body: JSON.stringify({ message: 'No expired offers to process',...(hostSummary?{host:hostSummary}:{}) })
       };
     }
     
@@ -110,6 +117,7 @@ exports.handler = async (event) => {
     );
     
     const summary = {
+      ...(hostSummary?{host:hostSummary}:{}),
       totalOrders: results.length,
       offersExpired: results.reduce((sum, r) => sum + r.offersExpired, 0),
       nextWavesStarted: results.filter(r => r.nextWaveStarted).length,
@@ -173,7 +181,7 @@ async function getStuckOrders() {
   // Scan DispatchJobs للطلبات في حالة searching
   const result = await scanAll({
     TableName: DISPATCH_JOBS_TABLE,
-    FilterExpression: '#status = :searching AND #sk = :metadata AND ((financialDispatch = :financial AND attribute_exists(financialRedispatch)) OR (updatedAt < :cutoff AND (currentWaveNumber < maxWaves OR financialDispatch = :financial)))',
+    FilterExpression: '#status = :searching AND #sk = :metadata AND (attribute_exists(dispatchCycle) OR (financialDispatch = :financial AND attribute_exists(financialRedispatch)) OR (financialDispatch = :financial AND (financialWaveDeadline <= :now OR expiresAt <= :now)) OR (updatedAt < :cutoff AND (currentWaveNumber < maxWaves OR financialDispatch = :financial)))',
     ExpressionAttributeNames: {
       '#status': 'status',
       '#sk': 'SK'
@@ -182,7 +190,8 @@ async function getStuckOrders() {
       ':searching': 'searching',
       ':metadata': 'METADATA',
       ':financial': true,
-      ':cutoff': cutoffTime.toISOString()
+      ':cutoff': cutoffTime.toISOString(),
+      ':now': now.toISOString()
     }
   });
   
@@ -191,7 +200,7 @@ async function getStuckOrders() {
   // 🔥 تصفية الطلبات: استبعاد الطلبات التي لها offers معلقة بالفعل
   const filteredOrders = [];
   for (const order of orders) {
-    if (order.financialDispatch === true) { filteredOrders.push(order); continue; }
+    if (Object.prototype.hasOwnProperty.call(order,'dispatchCycle') || order.financialDispatch === true) { filteredOrders.push(order); continue; }
     const hasActiveOffer = await checkActiveOffers(order.orderId);
     if (!hasActiveOffer) {
       filteredOrders.push(order);
@@ -265,7 +274,17 @@ async function processExpiredWave(orderId, offers, now) {
   
   try {
     const financialJob = await getDispatchJob(orderId);
+    if (financialJob && Object.prototype.hasOwnProperty.call(financialJob,'dispatchCycle')) {
+      if(process.env.DISPATCH_LEGACY_HOST_MODE==='REQUIRED'&&financialJob.dispatchCycle?.engine==='LEGACY'){result.dispatchAction='HOST_MANAGED';return result;}
+      const plan=await require('./dispatch-cycle-runtime').coordinateUnifiedDispatch({orderId,assignmentId:financialJob.dispatchJobId,source:'TIMEOUT'});
+      result.transitionClaimed=plan.claimed===true;
+      result.dispatchAction=plan.action;
+      return result;
+    }
     if (financialJob?.financialDispatch === true) {
+      const {exhaustFinancialSearch}=require('./financial-runtime');
+      const search=await exhaustFinancialSearch(orderId);
+      if(search.exhausted||search.assigned){result.noDriverAvailable=search.exhausted;return result;}
       // Durable redispatch intent belongs to the released assignment. READY clears it atomically.
       if(financialJob.financialRedispatch && financialJob.status==='searching') {
         const intent=financialJob.financialRedispatch;
@@ -281,12 +300,9 @@ async function processExpiredWave(orderId, offers, now) {
       const expired = await expireFinancialWave(orderId, wave);
       if (!expired.expired) return result;
       result.offersExpired = expired.driverIds.length;
-      if (wave >= MAX_WAVES || Date.parse(financialJob.expiresAt) <= Date.parse(now)) {
-        await dynamodb.update({TableName:DISPATCH_JOBS_TABLE,Key:{orderId,SK:'METADATA'},
-          UpdateExpression:'SET #s=:closed, noDriverReason=:reason, updatedAt=:now',
-          ConditionExpression:'#s=:searching AND currentWaveNumber=:wave AND financialDispatch=:yes',
-          ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':closed':'no_driver_available',':reason':'NO_QUALIFIED_DRIVERS',
-            ':now':now,':searching':'searching',':wave':wave,':yes':true}}).promise();
+      if (wave >= (financialJob.financialSearchMaxWave ?? financialJob.maxWaves ?? 4) || Date.parse(financialJob.expiresAt) <= Date.parse(now)) {
+        const closed=await exhaustFinancialSearch(orderId);
+        if(!closed.exhausted)throw Error('FINANCIAL_SEARCH_EXHAUSTION_PENDING');
         result.noDriverAvailable = true;
       } else {
         await invokeStartWave(financialJob.dispatchJobId,orderId,wave+1,expired.driverIds,[],false,false);
@@ -566,7 +582,8 @@ async function getDispatchJob(orderId) {
     Key: {
       orderId: orderId,
       SK: 'METADATA'
-    }
+    },
+    ConsistentRead: true
   }).promise();
   
   return result.Item || null;

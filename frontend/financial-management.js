@@ -97,7 +97,7 @@ class FinancialManager {
         this._merchantActiveIndex = -1;
         const renderResults = (list, term) => {
             if (!list.length) {
-                resultsBox.innerHTML = '<div style="padding:10px;font-size:0.8rem;color:#6c757d;">No matches</div>';
+                resultsBox.innerHTML = "<div style=\"padding:10px;font-size:0.8rem;color:#6c757d;\">لا توجد نتائج مطابقة</div>";
                 return;
             }
             const esc = s => s.replace(/[.*+?^${}()|[\\]\\]/g, r => `\\${r}`);
@@ -108,7 +108,7 @@ class FinancialManager {
                 const email = (m.email || '').replace(re, '<mark>$1</mark>');
                 const loc = (m.location || '').replace(re, '<mark>$1</mark>');
                 return `<div class="merchant-result-item" data-idx="${i}" data-id="${m.id}" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #eee;">
-                    <div style="font-weight:600;font-size:0.8rem;">${name || '(No Name)'} <span style="opacity:.7;">${nameAr}</span></div>
+                    <div style="font-weight:600;font-size:0.8rem;">${name || "(دون اسم)"} <span style="opacity:.7;">${nameAr}</span></div>
                     <div style="font-size:0.7rem;opacity:.75;">${email}</div>
                     <div style="font-size:0.7rem;opacity:.65;">${loc}</div>
                 </div>`;
@@ -128,7 +128,7 @@ class FinancialManager {
             merchantIdInput.value = m.id;
             resultsBox.style.display = 'none';
             resultsBox.innerHTML = '';
-            this.showSuccess('Merchant selected');
+            this.showSuccess("تم اختيار المتجر");
         };
         const updateActiveVisual = () => {
             const nodes = resultsBox.querySelectorAll('.merchant-result-item');
@@ -144,12 +144,12 @@ class FinancialManager {
         };
         const performRemoteFetch = async (q) => {
             resultsBox.style.display = 'block';
-            resultsBox.innerHTML = '<div style="padding:10px;font-size:0.85rem;color:#6c757d;">Searching...</div>';
+            resultsBox.innerHTML = "<div style=\"padding:10px;font-size:0.85rem;color:#6c757d;\">جارٍ البحث...</div>";
             try {
                 const resp = await fetch(`${this.apiBaseUrl}/api/merchants/search?query=${encodeURIComponent(q)}`);
                 const data = await resp.json();
                 if (!data.success) {
-                    resultsBox.innerHTML = '<div style="padding:10px;font-size:0.85rem;color:#b00020;">Search failed</div>';
+                    resultsBox.innerHTML = "<div style=\"padding:10px;font-size:0.85rem;color:#b00020;\">تعذّر البحث</div>";
                     return;
                 }
                 this._merchantSearchCache.raw = data.data.merchants || [];
@@ -157,7 +157,7 @@ class FinancialManager {
                 this._merchantSearchCache.filtered = filterLocal(q);
                 renderResults(this._merchantSearchCache.filtered, q);
             } catch (e) {
-                resultsBox.innerHTML = '<div style="padding:10px;font-size:0.85rem;color:#b00020;">Error searching</div>';
+                resultsBox.innerHTML = "<div style=\"padding:10px;font-size:0.85rem;color:#b00020;\">تعذّر البحث</div>";
             }
         };
         const liveFilter = (q) => {
@@ -238,12 +238,12 @@ class FinancialManager {
             const failures = results.filter(r => r && r._err);
             // Avoid flashing an error if at least one critical load succeeded
             if (failures.length === results.length) {
-                setTimeout(()=> this.showError('Failed to load financial data'), 200);
+                setTimeout(()=> this.showError("تعذّر تحميل البيانات المالية."), 200);
             }
             this.updateOverviewMetrics();
         } catch (error) {
             console.error('❌ Error loading initial data:', error);
-            setTimeout(()=> this.showError('Failed to load financial data'), 200);
+            setTimeout(()=> this.showError("تعذّر تحميل البيانات المالية."), 200);
         }
     }
 
@@ -265,29 +265,26 @@ class FinancialManager {
 
     async loadCommissionRulesForMerchant(merchantId) {
         if (!merchantId) {
-            this.showError('Enter merchant ID');
+            this.showError("أدخل معرّف المتجر");
             return;
         }
         const container = document.getElementById('commission-rules-list');
-        container.innerHTML = '<div class="loading-spinner">Loading commission rules...</div>';
+        container.innerHTML = "<div class=\"loading-spinner\">جارٍ تحميل قواعد العمولة...</div>";
         try {
             const response = await fetch(`${this.apiBaseUrl}/api/commissions?merchantId=${encodeURIComponent(merchantId)}`);
             const data = await response.json();
             if (!data.success) {
-                container.innerHTML = '<p style="padding:20px;text-align:center;color:#b00020;">Failed to load rules</p>';
+                container.innerHTML = "<p style=\"padding:20px;text-align:center;color:#b00020;\">تعذّر تحميل القواعد.</p>";
                 return;
             }
             this.commissionRules = data.data.rules || [];
             this.renderCommissionRules();
         } catch (e) {
-            container.innerHTML = '<p style="padding:20px;text-align:center;color:#b00020;">Error loading rules</p>';
+            container.innerHTML = "<p style=\"padding:20px;text-align:center;color:#b00020;\">تعذّر تحميل القواعد</p>";
         }
     }
 
-    async loadDeliveryFeeRules() {
-        // Replaced by the versioned staff pricing screen; no legacy endpoint request.
-        this.deliveryFeeRules = [];
-    }
+    async loadDeliveryFeeRules() { this.deliveryFeeRules=[]; }
 
     async loadFinancialSettings() {
         try {
@@ -360,12 +357,12 @@ class FinancialManager {
             const resp = await fetch(url);
             const data = await resp.json();
             const items = data.items || data.data?.items || [];
-            sel.innerHTML = '<option value="">Select region...</option>' + items.map(r=>`<option value="${r.regionId}">${r.name} (${r.level})</option>`).join('');
+            sel.innerHTML = "<option value=\"\">اختر المنطقة...</option>" + items.map(r=>`<option value="${r.regionId}">${r.name} (${r.level})</option>`).join('');
             sel._loaded = true;
         } catch(e) {
             console.warn('Failed to load regions', e);
             const sel = document.getElementById('report-region');
-            if (sel) sel.innerHTML = '<option value="">Failed to load regions</option>';
+            if (sel) sel.innerHTML = "<option value=\"\">تعذّر تحميل المناطق.</option>";
         }
     }
 
@@ -373,10 +370,10 @@ class FinancialManager {
         const scope = document.getElementById('report-scope').value;
         const start = document.getElementById('report-start-date').value;
         const end = document.getElementById('report-end-date').value;
-        if (!start || !end) { this.showError('Please select both start and end dates'); return; }
+        if (!start || !end) { this.showError("اختر تاريخ البدء وتاريخ الانتهاء."); return; }
         if (scope === 'region') {
             const regionId = document.getElementById('report-region').value;
-            if (!regionId) { this.showError('Select a region'); return; }
+            if (!regionId) { this.showError("اختر منطقة"); return; }
             await this.generateRegionReport({ regionId, start, end });
         } else {
             await this.generateReport();
@@ -385,32 +382,32 @@ class FinancialManager {
 
     async generateRegionReport({ regionId, start, end }) {
         const container = document.getElementById('report-results');
-        container.innerHTML = '<div class="loading-spinner" style="display:block;">Loading region report...</div>';
+        container.innerHTML = "<div class=\"loading-spinner\" style=\"display:block;\">جارٍ تحميل تقرير المنطقة...</div>";
         try {
             const url = `${this.apiBaseUrl}/api/region-financials?regionId=${encodeURIComponent(regionId)}&startDate=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}`;
             const resp = await fetch(url);
             const data = await resp.json();
-            if (!data.success) { container.innerHTML = `<div class="error-message">${data.error || 'Failed to load region report'}</div>`; return; }
+            if (!data.success) { container.innerHTML = `<div class="error-message">${data.error || "تعذّر تحميل تقرير المنطقة."}</div>`; return; }
             const d = data.data;
             const rows = d.merchants || [];
             const totals = d.financialTotals || {};
 
             const table = `
-                <div style="margin-bottom:10px;color:#6c757d;">Region: <b>${d.region?.name || regionId}</b> · Period: ${new Date(d.period.startDate).toLocaleDateString()} → ${new Date(d.period.endDate).toLocaleDateString()}</div>
+                <div style="margin-bottom:10px;color:#6c757d;">المنطقة: <b>${d.region?.name || regionId}</b> · Period: ${new Date(d.period.startDate).toLocaleDateString()} → ${new Date(d.period.endDate).toLocaleDateString()}</div>
                 <div style="overflow:auto;">
                 <table style="width:100%; border-collapse:collapse;">
                     <thead>
                         <tr style="background:#f8f9fa;">
-                            <th style="text-align:left;padding:10px;border-bottom:1px solid #eaecef;">Merchant</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Total Orders</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Confirmed</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Canceled</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Returned</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Gross Revenue</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Commission Collected</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Commission %</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Delivery Contribution</th>
-                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">Net To Merchant</th>
+                            <th style="text-align:left;padding:10px;border-bottom:1px solid #eaecef;">المتجر</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">إجمالي الطلبات</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">مؤكد</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">ملغى</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">مرتجع</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">إجمالي الإيرادات</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">العمولات المحصّلة</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">نسبة العمولة %</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">مساهمة التوصيل</th>
+                            <th style="text-align:right;padding:10px;border-bottom:1px solid #eaecef;">صافي مستحقات المتجر</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -427,11 +424,11 @@ class FinancialManager {
                                 <td style="text-align:right;padding:8px 10px;border-bottom:1px solid #f1f3f4;">${(r.financial.deliveryFees||0).toLocaleString()} IQD</td>
                                 <td style="text-align:right;padding:8px 10px;border-bottom:1px solid #f1f3f4;">${(r.financial.netToMerchant||0).toLocaleString()} IQD</td>
                             </tr>
-                        `).join('') : `<tr><td colspan="10" style="text-align:center;padding:20px;color:#6c757d;">No merchants found in region or no transactions in period</td></tr>`}
+                        `).join('') : `<tr><td colspan="10" style="text-align:center;padding:20px;color:#6c757d;">لا توجد متاجر في المنطقة أو عمليات خلال الفترة المحددة.</td></tr>`}
                     </tbody>
                     <tfoot>
                         <tr style="background:#f8f9fa;font-weight:600;">
-                            <td style="padding:10px;border-top:1px solid #eaecef;">Totals</td>
+                            <td style="padding:10px;border-top:1px solid #eaecef;">الإجماليات</td>
                             <td style="text-align:right;padding:10px;border-top:1px solid #eaecef;">${(d.totals?.totalOrders)||0}</td>
                             <td style="text-align:right;padding:10px;border-top:1px solid #eaecef;">${(d.totals?.confirmedOrders)||0}</td>
                             <td style="text-align:right;padding:10px;border-top:1px solid #eaecef;">${(d.totals?.canceledOrders)||0}</td>
@@ -448,7 +445,7 @@ class FinancialManager {
             `;
             container.innerHTML = table;
         } catch (e) {
-            container.innerHTML = '<div class="error-message">Failed to load region report</div>';
+            container.innerHTML = "<div class=\"error-message\">تعذّر تحميل تقرير المنطقة.</div>";
         }
     }
 
@@ -473,7 +470,7 @@ class FinancialManager {
         try {
             const merchantId = document.getElementById('commission-merchant-id').value.trim();
             if (!merchantId) {
-                this.showError('Merchant ID is required');
+                this.showError("معرّف المتجر مطلوب.");
                 return;
             }
             const effFromStr = document.getElementById('commission-effective-from').value;
@@ -481,7 +478,7 @@ class FinancialManager {
             const effectiveFrom = effFromStr ? new Date(effFromStr).getTime() : Date.now();
             const effectiveTo = effToStr ? new Date(effToStr).getTime() : null;
             if (effectiveTo && effectiveTo <= effectiveFrom) {
-                this.showError('Effective To must be after Effective From');
+                this.showError("يجب أن يكون تاريخ الانتهاء بعد تاريخ بدء السريان.");
                 return;
             }
             const formData = {
@@ -501,16 +498,16 @@ class FinancialManager {
             });
             const data = await response.json();
             if (data.success) {
-                this.showSuccess('Commission rule created');
+                this.showSuccess("أُنشئت قاعدة العمولة.");
                 document.getElementById('commission-form').reset();
                 // Preserve merchantId for convenience
                 document.getElementById('commission-merchant-id').value = merchantId;
                 await this.loadCommissionRulesForMerchant(merchantId);
             } else {
-                this.showError(data.error || 'Failed to create commission rule');
+                this.showError(data.error || "تعذّر إنشاء قاعدة العمولة.");
             }
         } catch (error) {
-            this.showError('Failed to create commission rule');
+            this.showError("تعذّر إنشاء قاعدة العمولة.");
         }
     }
 
@@ -542,43 +539,7 @@ class FinancialManager {
         return rates;
     }
 
-    async createDeliveryFeeRule() {
-        try {
-            const formData = {
-                ruleName: document.getElementById('delivery-rule-name').value,
-                ruleType: document.getElementById('delivery-fee-type').value,
-                isActive: document.getElementById('delivery-fee-active').checked,
-                priority: 10,
-                conditions: {
-                    regionId: document.getElementById('delivery-region').value,
-                    serviceType: document.getElementById('delivery-service-type').value
-                },
-                rates: this.getDeliveryRates()
-            };
-
-            const response = await fetch(`${this.apiBaseUrl}/api/delivery-fees`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                this.showSuccess('Delivery fee rule created successfully!');
-                document.getElementById('delivery-fee-form').reset();
-                // Delivery pricing is loaded by delivery-pricing.js through the staff API.
-                this.updateOverviewMetrics();
-            } else {
-                this.showError(data.error || 'Failed to create delivery fee rule');
-            }
-        } catch (error) {
-            console.error('❌ Error creating delivery fee rule:', error);
-            this.showError('Failed to create delivery fee rule');
-        }
-    }
+    createDeliveryFeeRule() { window.location.assign("/pages/delivery-pricing.html"); }
 
     getDeliveryRates() {
         const rates = {
@@ -642,7 +603,7 @@ class FinancialManager {
         const container = document.getElementById('commission-rules-list');
         if (!container) return;
         if (this.commissionRules.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:#6c757d;padding:20px;">No commission rules for merchant</p>';
+            container.innerHTML = "<p style=\"text-align:center;color:#6c757d;padding:20px;\">لا توجد قواعد عمولة لهذا المتجر.</p>";
             return;
         }
         const now = Date.now();
@@ -654,9 +615,9 @@ class FinancialManager {
                     <div class="rule-details">Type: ${rule.ruleType} | Priority: ${rule.priority} | Rate: ${this.formatCommissionRate(rule.rates)} | Window: ${rule.effectiveFrom ? new Date(rule.effectiveFrom).toLocaleDateString() : '—'} → ${rule.effectiveTo ? new Date(rule.effectiveTo).toLocaleDateString() : '∞'}</div>
                 </div>
                 <div class="rule-actions" style="display:flex;gap:6px;align-items:center;">
-                    <span class="status-badge ${rule.isActive && activeWindow ? 'status-active' : 'status-inactive'}">${rule.isActive && activeWindow ? 'Active' : 'Inactive'}</span>
-                    <button class="button-secondary" style="padding:6px 10px;font-size:0.7rem;" onclick="financialManager.editCommissionRule('${rule.ruleId}')">Edit</button>
-                    <button class="button-secondary" style="padding:6px 10px;font-size:0.7rem;border-color:#dc3545;color:#dc3545;" onclick="financialManager.deleteCommissionRule('${rule.ruleId}')">Delete</button>
+                    <span class="status-badge ${rule.isActive && activeWindow ? 'status-active' : 'status-inactive'}">${rule.isActive && activeWindow ? "نشط" : "غير نشط"}</span>
+                    <button class="button-secondary" style="padding:6px 10px;font-size:0.7rem;" onclick="financialManager.editCommissionRule('${rule.ruleId}')">تعديل</button>
+                    <button class="button-secondary" style="padding:6px 10px;font-size:0.7rem;border-color:#dc3545;color:#dc3545;" onclick="financialManager.deleteCommissionRule('${rule.ruleId}')">حذف</button>
                 </div>
             </div>`;
         }).join('');
@@ -665,7 +626,7 @@ class FinancialManager {
     renderDeliveryFeeRules() {
         const container = document.getElementById('delivery-rules-list');
         if (this.deliveryFeeRules.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 20px;">No delivery fee rules found</p>';
+            container.innerHTML = "<p style=\"text-align: center; color: #6c757d; padding: 20px;\">لا توجد قواعد لرسوم التوصيل.</p>";
             return;
         }
         container.innerHTML = this.deliveryFeeRules.map(rule => `
@@ -675,9 +636,9 @@ class FinancialManager {
                     <div class="rule-details">Type: ${rule.ruleType} | Region: ${rule.conditions?.regionId || '—'} | ${this.formatDeliveryRate(rule.rates)}</div>
                 </div>
                 <div class="rule-actions" style="display:flex;gap:6px;align-items:center;">
-                    <span class="status-badge ${rule.isActive ? 'status-active' : 'status-inactive'}">${rule.isActive ? 'Active' : 'Inactive'}</span>
-                    <button class="button-secondary" style="padding:6px 10px;font-size:0.7rem;" onclick="financialManager.editDeliveryRule('${rule.ruleId}')">Edit</button>
-                    <button class="button-secondary" style="padding:6px 10px;font-size:0.7rem;border-color:#dc3545;color:#dc3545;" onclick="financialManager.deleteDeliveryRule('${rule.ruleId}')">Delete</button>
+                    <span class="status-badge ${rule.isActive ? 'status-active' : 'status-inactive'}">${rule.isActive ? "نشط" : "غير نشط"}</span>
+                    <button class="button-secondary" style="padding:6px 10px;font-size:0.7rem;" onclick="financialManager.editDeliveryRule('${rule.ruleId}')">تعديل</button>
+                    <button class="button-secondary" style="padding:6px 10px;font-size:0.7rem;border-color:#dc3545;color:#dc3545;" onclick="financialManager.deleteDeliveryRule('${rule.ruleId}')">حذف</button>
                 </div>
             </div>
         `).join('');
@@ -713,17 +674,17 @@ class FinancialManager {
         const endDate = document.getElementById('report-end-date').value;
         const merchantIdInput = document.getElementById('report-merchant-id');
         const merchantId = merchantIdInput ? merchantIdInput.value.trim() : '';
-        if (!startDate || !endDate) { this.showError('Please select both start and end dates'); return; }
+        if (!startDate || !endDate) { this.showError("اختر تاريخ البدء وتاريخ الانتهاء."); return; }
         try {
             const params = new URLSearchParams({ startDate, endDate });
             if (merchantId) params.append('merchantId', merchantId);
             const url = `${this.apiBaseUrl}/api/financial-reports/${reportType}?${params.toString()}`;
             const response = await fetch(url);
             const data = await response.json();
-            if (data.success) { this.renderReportResults(data.data, reportType); this.showSuccess('Report generated successfully!'); }
-            else { this.showError(data.error || 'Failed to generate report'); }
+            if (data.success) { this.renderReportResults(data.data, reportType); this.showSuccess("أُعدّ التقرير بنجاح."); }
+            else { this.showError(data.error || "تعذّر إعداد التقرير."); }
         } catch (error) {
-            console.error('❌ Error generating report:', error); this.showError('Failed to generate report');
+            console.error('❌ Error generating report:', error); this.showError("تعذّر إعداد التقرير.");
         }
     }
 
@@ -758,53 +719,53 @@ class FinancialManager {
                 return `
                     <div class="metric-card">
                         <div class="metric-value">${reportData.summary?.totalRevenue || 0} IQD</div>
-                        <div class="metric-label">Total Revenue</div>
+                        <div class="metric-label">إجمالي الإيرادات</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${reportData.summary?.totalCommissions || 0} IQD</div>
-                        <div class="metric-label">Total Commissions</div>
+                        <div class="metric-label">إجمالي العمولات</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${reportData.summary?.totalDeliveryFees || 0} IQD</div>
-                        <div class="metric-label">Total Delivery Fees</div>
+                        <div class="metric-label">إجمالي رسوم التوصيل</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${reportData.summary?.commissionsPercentage || 0}%</div>
-                        <div class="metric-label">Commission Rate</div>
+                        <div class="metric-label">نسبة العمولة</div>
                     </div>
                 `;
             case 'commission':
                 return `
                     <div class="metric-card">
                         <div class="metric-value">${reportData.totalOrders || 0}</div>
-                        <div class="metric-label">Total Orders</div>
+                        <div class="metric-label">إجمالي الطلبات</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${reportData.totalCommissions || 0} IQD</div>
-                        <div class="metric-label">Total Commissions</div>
+                        <div class="metric-label">إجمالي العمولات</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${reportData.averageCommissionRate || 0}%</div>
-                        <div class="metric-label">Average Rate</div>
+                        <div class="metric-label">متوسط النسبة</div>
                     </div>
                 `;
             case 'delivery-fees':
                 return `
                     <div class="metric-card">
                         <div class="metric-value">${reportData.totalDeliveries || 0}</div>
-                        <div class="metric-label">Total Deliveries</div>
+                        <div class="metric-label">إجمالي التوصيلات</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${reportData.totalDeliveryFees || 0} IQD</div>
-                        <div class="metric-label">Total Fees</div>
+                        <div class="metric-label">إجمالي الرسوم</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${reportData.averageDeliveryFee || 0} IQD</div>
-                        <div class="metric-label">Average Fee</div>
+                        <div class="metric-label">متوسط الرسوم</div>
                     </div>
                 `;
             default:
-                return '<div class="metric-card"><div class="metric-value">No data</div></div>';
+                return "<div class=\"metric-card\"><div class=\"metric-value\">لا توجد بيانات</div></div>";
         }
     }
 
@@ -837,9 +798,9 @@ class FinancialManager {
             };
             const resp = await fetch(`${this.apiBaseUrl}/api/financial-settings`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const data = await resp.json();
-            if (!data.success) return this.showError(data.error || 'Failed to save settings');
-            this.showSuccess('Settings saved');
-        } catch (e) { this.showError('Failed to save settings'); }
+            if (!data.success) return this.showError(data.error || "تعذّر حفظ الإعدادات.");
+            this.showSuccess("حُفظت الإعدادات.");
+        } catch (e) { this.showError("تعذّر حفظ الإعدادات."); }
     }
 
     // Quick action methods
@@ -867,61 +828,31 @@ class FinancialManager {
             
             if (data.success) {
                 const commission = data.data.commission;
-                this.showSuccess(`Sample commission calculated: ${commission.commissionAmount} IQD (${commission.appliedRate.percentage || 0}%)`);
+                this.showSuccess(`قيمة العمولة التجريبية: ${commission.commissionAmount} IQD (${commission.appliedRate.percentage || 0}%)`);
             }
         } catch (error) {
             console.error('❌ Error calculating sample commission:', error);
-            this.showError('Failed to calculate sample commission');
+            this.showError("تعذّر احتساب العمولة التجريبية.");
         }
     }
 
-    async calculateSampleDeliveryFee() {
-        const sampleDelivery = {
-            distanceKm: 5.2,
-            orderValue: 18000,
-            deliveryTime: new Date().toISOString(),
-            weather: 'clear'
-        };
-
-        try {
-            const response = await fetch(`${this.apiBaseUrl}/api/delivery-fees/calculate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    deliveryData: sampleDelivery,
-                    regionId: 'REG_IQ_BGD'
-                })
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                const fee = data.data.deliveryFee;
-                this.showSuccess(`Sample delivery fee calculated: ${fee.deliveryFee} IQD for ${sampleDelivery.distanceKm}km delivery`);
-            }
-        } catch (error) {
-            console.error('❌ Error calculating sample delivery fee:', error);
-            this.showError('Failed to calculate sample delivery fee');
-        }
-    }
+    calculateSampleDeliveryFee() { window.location.assign("/pages/delivery-pricing.html"); }
 
     editCommissionRule(ruleId) {
         const rule = this.commissionRules.find(r => r.ruleId === ruleId);
-        if (!rule) return this.showError('Rule not found');
+        if (!rule) return this.showError("لم يُعثر على القاعدة.");
         // Simple prompt-based editor
-        const newName = prompt('Rule Name:', rule.ruleName);
+        const newName = prompt("اسم القاعدة:", rule.ruleName);
         if (newName === null) return; // cancel
-        let isActive = prompt('Active? (true/false):', String(rule.isActive));
+        let isActive = prompt("هل تريد التفعيل؟ أدخل true للتفعيل أو false للإيقاف:", String(rule.isActive));
         if (isActive === null) return;
         isActive = isActive === 'true';
-        const newPriorityStr = prompt('Priority (number):', String(rule.priority));
+        const newPriorityStr = prompt("الأولوية (رقم):", String(rule.priority));
         if (newPriorityStr === null) return;
         const newPriority = parseInt(newPriorityStr) || rule.priority;
-        const effFromStr = prompt('Effective From (YYYY-MM-DD) leave blank to keep:', rule.effectiveFrom ? new Date(rule.effectiveFrom).toISOString().slice(0,10) : '');
+        const effFromStr = prompt("تاريخ بدء السريان بصيغة YYYY-MM-DD. اتركه فارغًا للإبقاء على التاريخ الحالي:", rule.effectiveFrom ? new Date(rule.effectiveFrom).toISOString().slice(0,10) : '');
         if (effFromStr === null) return;
-        const effToStr = prompt('Effective To (YYYY-MM-DD or blank for none):', rule.effectiveTo ? new Date(rule.effectiveTo).toISOString().slice(0,10) : '');
+        const effToStr = prompt("تاريخ انتهاء السريان بصيغة YYYY-MM-DD. اتركه فارغًا دون تاريخ انتهاء:", rule.effectiveTo ? new Date(rule.effectiveTo).toISOString().slice(0,10) : '');
         if (effToStr === null) return;
         const body = {
             ruleName: newName.trim() || rule.ruleName,
@@ -932,69 +863,41 @@ class FinancialManager {
         if (effToStr) body.effectiveTo = new Date(effToStr).getTime(); else if (effToStr === '') body.effectiveTo = null;
         // Rates editing (basic)
         if (rule.ruleType === 'percentage' || rule.ruleType === 'hybrid') {
-            const percStr = prompt('Percentage (%) leave blank to keep:', rule.rates.percentage != null ? String(rule.rates.percentage) : '');
+            const percStr = prompt("النسبة المئوية (%). اتركه فارغًا للإبقاء على القيمة الحالية:", rule.rates.percentage != null ? String(rule.rates.percentage) : '');
             if (percStr === null) return; if (percStr.trim() !== '') body.rates = { ...rule.rates, percentage: parseFloat(percStr) };
         }
         if (rule.ruleType === 'flat_fee' || rule.ruleType === 'hybrid') {
-            const flatStr = prompt('Flat Fee (IQD) leave blank to keep:', rule.rates.flatFee != null ? String(rule.rates.flatFee) : '');
+            const flatStr = prompt("المبلغ الثابت (د.ع). اتركه فارغًا للإبقاء على القيمة الحالية:", rule.rates.flatFee != null ? String(rule.rates.flatFee) : '');
             if (flatStr === null) return; if (flatStr.trim() !== '') body.rates = { ...(body.rates || rule.rates), flatFee: parseFloat(flatStr) };
         }
         fetch(`${this.apiBaseUrl}/api/commissions/${ruleId}`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
         }).then(r=>r.json()).then(data => {
             if (!data.success) {
-                this.showError(data.error || 'Update failed');
+                this.showError(data.error || "تعذّر التحديث");
                 if (data.conflicts) console.warn('Conflicts:', data.conflicts);
                 return;
             }
-            this.showSuccess('Commission rule updated');
+            this.showSuccess("حُدّثت قاعدة العمولة.");
             const merchantId = document.getElementById('commission-merchant-id').value.trim();
             if (merchantId) this.loadCommissionRulesForMerchant(merchantId);
-        }).catch(()=>this.showError('Update failed'));
+        }).catch(()=>this.showError("تعذّر التحديث"));
     }
 
     deleteCommissionRule(ruleId) {
-        if (!confirm('Delete this commission rule? (Soft delete)')) return;
+        if (!confirm("هل تريد حذف قاعدة العمولة؟ سيُحتفظ بسجلها في النظام.")) return;
         fetch(`${this.apiBaseUrl}/api/commissions/${ruleId}`, { method: 'DELETE' })
             .then(r=>r.json()).then(data => {
-                if (!data.success) return this.showError(data.error || 'Delete failed');
-                this.showSuccess('Commission rule deleted');
+                if (!data.success) return this.showError(data.error || "تعذّر الحذف");
+                this.showSuccess("حُذفت قاعدة العمولة.");
                 const merchantId = document.getElementById('commission-merchant-id').value.trim();
                 if (merchantId) this.loadCommissionRulesForMerchant(merchantId);
-            }).catch(()=>this.showError('Delete failed'));
+            }).catch(()=>this.showError("تعذّر الحذف"));
     }
 
-    editDeliveryRule(ruleId) {
-        const rule = this.deliveryFeeRules.find(r => r.ruleId === ruleId);
-        if (!rule) return this.showError('Rule not found');
-        const newName = prompt('Rule Name:', rule.ruleName);
-        if (newName === null) return;
-        let isActive = prompt('Active? (true/false):', String(rule.isActive));
-        if (isActive === null) return; isActive = isActive === 'true';
-        const baseStr = prompt('Base Fee (IQD) blank=keep:', rule.rates.baseFee != null ? String(rule.rates.baseFee) : ''); if (baseStr === null) return;
-        const perKmStr = prompt('Per KM Rate (IQD) blank=keep:', rule.rates.perKmRate != null ? String(rule.rates.perKmRate) : ''); if (perKmStr === null) return;
-        const body = { ruleName: newName.trim() || rule.ruleName, isActive };
-        const rates = { ...rule.rates };
-        if (baseStr.trim() !== '') rates.baseFee = parseFloat(baseStr);
-        if (perKmStr.trim() !== '') rates.perKmRate = parseFloat(perKmStr);
-        body.rates = rates;
-        fetch(`${this.apiBaseUrl}/api/delivery-fees/${ruleId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-            .then(r=>r.json()).then(data => {
-                if (!data.success) return this.showError(data.error || 'Update failed');
-                this.showSuccess('Delivery fee rule updated');
-                this.loadDeliveryFeeRules();
-            }).catch(()=>this.showError('Update failed'));
-    }
+    editDeliveryRule() { window.location.assign("/pages/delivery-pricing.html"); }
 
-    deleteDeliveryRule(ruleId) {
-        if (!confirm('Delete this delivery fee rule? (Soft delete)')) return;
-        fetch(`${this.apiBaseUrl}/api/delivery-fees/${ruleId}`, { method: 'DELETE' })
-            .then(r=>r.json()).then(data => {
-                if (!data.success) return this.showError(data.error || 'Delete failed');
-                this.showSuccess('Delivery fee rule deleted');
-                this.loadDeliveryFeeRules();
-            }).catch(()=>this.showError('Delete failed'));
-    }
+    deleteDeliveryRule() { window.location.assign("/pages/delivery-pricing.html"); }
 }
 
 // Overview: Merchant Financial Explorer logic
@@ -1021,14 +924,14 @@ class FinancialManager {
     let cache = { raw: [], query: '' };
 
     const renderResults = (list, term) => {
-        if (!list.length) { resultsBox.innerHTML = '<div style="padding:8px;color:#6c757d;">No matches</div>'; return; }
+        if (!list.length) { resultsBox.innerHTML = "<div style=\"padding:8px;color:#6c757d;\">لا توجد نتائج مطابقة</div>"; return; }
         const esc = s => s.replace(/[.*+?^${}()|[\\]\\]/g, r => `\\${r}`);
         const re = term ? new RegExp(`(${esc(term)})`, 'ig') : null;
         resultsBox.innerHTML = list.map(m => {
             const name = (m.name||'').replace(re,'<mark>$1</mark>');
             const email = (m.email||'').replace(re,'<mark>$1</mark>');
             return `<div class="merchant-result-item" data-id="${m.id}" style="padding:8px 10px;cursor:pointer;border-bottom:1px solid #eee;">
-                <div style="font-weight:600;font-size:0.85rem;">${name||'(No Name)'} <span style="opacity:.7;font-size:0.75rem;">${m.city||''}</span></div>
+                <div style="font-weight:600;font-size:0.85rem;">${name||"(دون اسم)"} <span style="opacity:.7;font-size:0.75rem;">${m.city||''}</span></div>
                 <div style="font-size:0.75rem;opacity:.75;">${email}</div>
             </div>`;
         }).join('');
@@ -1051,7 +954,7 @@ class FinancialManager {
 
     const performRemoteFetch = async (q) => {
         resultsBox.style.display='block';
-        resultsBox.innerHTML = '<div style="padding:8px;color:#6c757d;">Searching...</div>';
+        resultsBox.innerHTML = "<div style=\"padding:8px;color:#6c757d;\">جارٍ البحث...</div>";
         try {
             const resp = await fetch(`${base}/api/merchants/search?query=${encodeURIComponent(q)}`);
             const data = await resp.json();
@@ -1060,7 +963,7 @@ class FinancialManager {
             cache.filtered = filterLocal(q);
             renderResults(cache.filtered,q);
         } catch(e){
-            resultsBox.innerHTML = '<div style="padding:8px;color:#b00020;">Error</div>';
+            resultsBox.innerHTML = "<div style=\"padding:8px;color:#b00020;\">خطأ</div>";
         }
     };
 
@@ -1088,26 +991,26 @@ class FinancialManager {
             // Render KPI cards
             kpiGrid.style.display='grid';
             kpiGrid.innerHTML = [
-                {label:'Total Orders', value:f.totals.totalOrders},
-                {label:'Confirmed Orders', value:f.totals.confirmedOrders},
-                {label:'Canceled Orders', value:f.totals.canceledOrders},
-                {label:'Returned Orders', value:f.totals.returnedOrders},
-                {label:'Gross Revenue (IQD)', value:f.financial.grossRevenue.toLocaleString()},
-                {label:'Commission Collected (IQD)', value:f.financial.commissionCollected.toLocaleString()},
-                {label:'Commission %', value:`${f.financial.commissionPercent}%`},
-                {label:'Delivery Contribution (IQD)', value:f.financial.deliveryFees.toLocaleString()},
-                {label:'Net To Merchant (IQD)', value:f.financial.netToMerchant.toLocaleString()}
+                {label:"إجمالي الطلبات", value:f.totals.totalOrders},
+                {label:"الطلبات المؤكدة", value:f.totals.confirmedOrders},
+                {label:"الطلبات الملغاة", value:f.totals.canceledOrders},
+                {label:"الطلبات المرتجعة", value:f.totals.returnedOrders},
+                {label:"إجمالي الإيرادات (د.ع)", value:f.financial.grossRevenue.toLocaleString()},
+                {label:"العمولات المحصّلة (د.ع)", value:f.financial.commissionCollected.toLocaleString()},
+                {label:"نسبة العمولة %", value:`${f.financial.commissionPercent}%`},
+                {label:"مساهمة التوصيل (د.ع)", value:f.financial.deliveryFees.toLocaleString()},
+                {label:"صافي مستحقات المتجر (د.ع)", value:f.financial.netToMerchant.toLocaleString()}
             ].map(k=>`<div class="metric-card"><div class="metric-value">${k.value}</div><div class="metric-label">${k.label}</div></div>`).join('');
 
             // Details panel
             details.style.display='block';
             details.innerHTML = `
-                <div class="section-title"><span class="icon">📅</span> Period</div>
+                <div class="section-title"><span class="icon">📅</span> الفترة</div>
                 <div style="font-size:0.9rem;color:#6c757d;margin-bottom:10px;">${new Date(f.period.startDate).toLocaleDateString()} → ${new Date(f.period.endDate).toLocaleDateString()}</div>
-                <div style="font-size:0.9rem;">Merchant: <b>${selectedMerchant.name}</b> <span style="opacity:.7">(${selectedMerchant.id})</span></div>
+                <div style="font-size:0.9rem;">المتجر: <b>${selectedMerchant.name}</b> <span style="opacity:.7">(${selectedMerchant.id})</span></div>
             `;
         } catch (e) {
-            alert('Failed to load merchant financials');
+            alert("تعذّر تحميل البيانات المالية للمتجر.");
         }
     });
 
@@ -1149,40 +1052,14 @@ window.testMerchantCommission = async (merchantId, merchantName) => {
             const commission = result.data.commission;
             alert(`💰 Commission for ${merchantName}:\n\nOrder: 25,000 IQD\nCommission: ${commission.commissionAmount.toLocaleString()} IQD\nRate: ${commission.appliedRate.percentage}%\nRule: ${result.data.appliedRule.ruleName}`);
         } else {
-            alert(`Error calculating commission: ${result.message}`);
+            alert(`تعذّر احتساب العمولة: ${result.message}`);
         }
     } catch (error) {
-        alert(`Error: ${error.message}`);
+        alert(`خطأ: ${window.WizzLocale.error(error.message)}`);
     }
 };
 
-window.testMerchantDelivery = async (merchantId, merchantName) => {
-    try {
-        const response = await fetch(`${financialManager.apiBaseUrl}/api/delivery-fees/calculate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                deliveryData: {
-                    fromLocation: { latitude: 24.7136, longitude: 46.6753, regionId: 'REG_IQ_NJF' },
-                    toLocation: { latitude: 24.7200, longitude: 46.6800, regionId: 'REG_IQ_NJF' },
-                    distance: 2.5,
-                    serviceType: 'standard',
-                    orderValue: 25000
-                }
-            })
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            const delivery = result.data.deliveryFee;
-            alert(`🚚 Delivery Fee for ${merchantName}:\n\nDistance: 2.5km\nFee: ${delivery.deliveryFee.toLocaleString()} IQD\nBase Fee: ${delivery.baseFee.toLocaleString()} IQD\nRule: ${result.data.appliedRule.ruleName}`);
-        } else {
-            alert(`Error calculating delivery fee: ${result.message}`);
-        }
-    } catch (error) {
-        alert(`Error: ${error.message}`);
-    }
-};
+window.testMerchantDelivery = () => window.location.assign("/pages/delivery-pricing.html");
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {

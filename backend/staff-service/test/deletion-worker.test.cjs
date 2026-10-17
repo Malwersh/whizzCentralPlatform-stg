@@ -8,3 +8,7 @@ test('hold or mismatched generation stops before provider deletion',async()=>{fo
 test('partial staff inventory never deletes identity',async()=>{const f=fixture({scan:{LastEvaluatedKey:{pk:'next'}}});await assert.rejects(f.run(),/INCOMPLETE/);assert.equal(f.calls.length,0);});
 
 test('recreated provider username cannot delete a new identity',async()=>{const f=fixture({identitySub:'new-subject'});await assert.rejects(f.run(),/IDENTITY_GENERATION_CHANGED/);assert.equal(f.calls.includes('AdminDeleteUserCommand'),false);});
+test('staff identity redaction suppresses its pending review requests and preserves executed receipts',()=>{
+ const {redact}=require('../account-deletion');for(const status of ['PENDING_EXECUTION','BLOCKED_DEPENDENCY','NEEDS_REVIEW']){const r=redact({kind:'DISPATCH_REVIEW_DECISION',actorId:id,caseId:'case',requestId:'request',status,reason:'PRIVATE'},id);assert.equal(r.status,'SUPPRESSED_DELETION');assert.equal(r.reason,undefined);assert.equal(r.receipt.executed,false);assert.equal(r.receipt.caseId,'case');}
+ const done=redact({kind:'DISPATCH_REVIEW_DECISION',actorId:id,status:'EXECUTED',reason:'PRIVATE',receipt:{requestId:'request',caseId:'case',executed:true}},id);assert.equal(done.status,'EXECUTED');assert.equal(done.receipt.executed,true);assert.equal(done.reason,undefined);
+});

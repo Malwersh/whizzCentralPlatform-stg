@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 function fixture({tables={},current,identitySub='subject',paginated=false,deliveryQuotesEnabled=false}={}){
  const commands=[],classes={};for(const n of ['GetCommand','ScanCommand','TransactWriteCommand','AdminDisableUserCommand','AdminUserGlobalSignOutCommand','AdminDeleteUserCommand','AdminGetUserCommand'])classes[n]=class{constructor(input){this.name=n;this.input=input;}};
- const mod={exports:{}};vm.runInNewContext(fs.readFileSync(__dirname+'/../customer-cleanup.js','utf8'),{module:mod,require:n=>n==='./policy'?require('../policy'):n==='./customer-delivery-quotes'?{purge:async args=>commands.push({name:'QuotePurge',input:{r:args.r,job:args.job}})}:classes});
+ const mod={exports:{}};vm.runInNewContext(fs.readFileSync(__dirname+'/../customer-cleanup.js','utf8'),{module:mod,require:n=>n==='node:util'?require(n):n==='./cod-retention'?require('./cod-loader.cjs')(classes):n==='./policy'?require('../policy'):n==='./customer-delivery-quotes'?{purge:async args=>commands.push({name:'QuotePurge',input:{r:args.r,job:args.job}})}:classes});
  const r={actorType:'CUSTOMER',subjectId:'subject',requestId:'request',pk:'pk',sk:'sk',version:2,leaseOwner:'worker',leaseUntil:2000000000,status:'PROCESSING'};
  const db={send:async c=>{commands.push(c);if(c.name==='ScanCommand')return {Items:tables[c.input.TableName]||[],...(paginated?{LastEvaluatedKey:{id:'next'}}:{})};if(c.name==='GetCommand')return {Item:c.input.TableName==='staging-AccountDeletion'?(current||r):undefined};return {};}};
  const cognito={send:async c=>{commands.push(c);return {UserAttributes:[{Name:'sub',Value:identitySub}]};}};

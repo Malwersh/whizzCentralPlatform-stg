@@ -1,0 +1,2 @@
+const vm=require('node:vm'),fs=require('node:fs');
+module.exports=classes=>{const module={exports:{}};vm.runInNewContext(fs.readFileSync(__dirname+'/../cod-retention.js','utf8'),{module,require:n=>n==='node:util'?require(n):n==='./policy'?require('../policy'):n==='./customer-cleanup'?require('../customer-cleanup'):classes});return module.exports;};

@@ -1,3 +1,4 @@
+import {directWrite} from './writeWorkflow';
 import {transferVerification} from './transferVerification';
 import {MobileAccount,merchantGuards} from './transferIdentity';
 import {financialStaff,staffGuard,approvalAmount} from './staffAccess';
@@ -43,7 +44,7 @@ export async function requestTransfer(actor: TransferActor, input: any) {
   recent(actor,settings);
   const sourceSnapshot=await wallet(source),destinationSnapshot=await wallet(input.recipientWalletId);
   const operation={...key(input.requestId),transferId:input.requestId,sourceWalletId:source,recipientWalletId:input.recipientWalletId,amount:input.amount,currency:'IQD',reason:input.reason.trim(),requestedBy:actor.id,requestedByStaffVersion:staff?.version,settingsVersion:settings.version,createdAt:new Date().toISOString(),expiresAt:Math.floor(Date.now()/1000)+settings.requestTtlSeconds,status:actor.type==='FINANCE'?'PENDING_APPROVAL':'COMPLETED'};
-  if(actor.type!=='FINANCE')return execute(operation,actor,false);
+  if(actor.type!=='FINANCE'||directWrite())return execute(operation,actor,false);
   try {
     // Pending intents also advance wallet versions. This serializes their
     // creation with a deletion eligibility lock without debiting any money.
@@ -60,7 +61,7 @@ export async function approveTransfer(actor: TransferActor, id: string) {
   if(actor.type!=='FINANCE' || !uuid.test(id))throw error('صلاحية مالية مطلوبة','FORBIDDEN',403);
   const operation=await record(id);
   if(!operation || operation.sourceWalletId!=='WALLET#PLATFORM')throw error('طلب التحويل غير موجود','NOT_FOUND',404);
-  if(operation.requestedBy===actor.id)throw error('منشئ الطلب لا يستطيع اعتماده','SECOND_APPROVER_REQUIRED',403);
+  if(!directWrite()&&operation.requestedBy===actor.id)throw error('منشئ الطلب لا يستطيع اعتماده','SECOND_APPROVER_REQUIRED',403);
   if(operation.status==='COMPLETED')return operation;
   if(operation.status!=='PENDING_APPROVAL' || Math.min(operation.expiresAt,Math.floor(Date.parse(operation.createdAt)/1000)+settings.requestTtlSeconds)<=Math.floor(Date.now()/1000))throw error('طلب التحويل منتهي أو غير قابل للاعتماد','TRANSFER_STATE',409);
   return execute(operation,actor,true);
@@ -76,16 +77,16 @@ async function execute(o:any,actor:TransferActor,approval:boolean) {
   if(source.availableBalance<o.amount)throw error('الرصيد المتاح غير كافٍ؛ المحجوز لا يمكن تحويله','INSUFFICIENT_AVAILABLE_BALANCE',409);
   if(!Number.isSafeInteger(destination.availableBalance+o.amount))throw error('تجاوز حد الرصيد','BALANCE_LIMIT',409);
   const now=new Date().toISOString();const done={...o,status:'COMPLETED',completedAt:now,approvedBy:approval?actor.id:undefined};
-  const approver=approval?await financialStaff(actor.id,'finance.approve'):undefined;
+  const approver=approval||actor.type==='FINANCE'?await financialStaff(actor.id,approval?'finance.approve':'finance.request'):undefined;
   const requester=approval?await financialStaff(o.requestedBy,'finance.request'):undefined;
   if(requester&&requester.version!==o.requestedByStaffVersion)throw error('تغيّرت صلاحيات منشئ الطلب؛ أنشئ طلبًا جديدًا','REQUESTER_PERMISSION_CHANGED',403);
   approvalAmount(approver,o.amount);
-  const items:any[]=[...(actor.stepUp?[actor.stepUp.guard]:[]),...(actor.account?merchantGuards(actor.account):[]),...(approver?[staffGuard(approver)]:[]),...(requester?[staffGuard(requester)]:[]),settingsGuard(settings)];
+  const items:any[]=[...(actor.stepUp?[actor.stepUp.guard]:[]),...(actor.account?merchantGuards(actor.account):[]),...(approver?[staffGuard(approver)]:[]),...(requester&&o.requestedBy!==actor.id?[staffGuard(requester)]:[]),settingsGuard(settings)];
   for(const [w,delta] of [[source,-o.amount],[destination,o.amount]] as [any,number][]){
     items.push({Update:{TableName:TABLES.WALLETS,Key:{walletId:w.walletId,sk:'META'},UpdateExpression:'SET availableBalance = availableBalance + :delta, #v = #v + :one, updatedAt = :now',ConditionExpression:'attribute_exists(walletId) AND #s = :active AND currency = :currency AND #v = :version AND availableBalance >= :minimum AND attribute_not_exists(deletionRequestId)',ExpressionAttributeNames:{'#s':'status','#v':'version'},ExpressionAttributeValues:{':delta':delta,':one':1,':now':now,':active':'ACTIVE',':currency':'IQD',':version':w.version,':minimum':delta<0?o.amount:0}}});
     items.push({Put:{TableName:TABLES.LEDGER,Item:{walletId:w.walletId,sk:`ts#${now}#TRANSFER#${o.transferId}`,transactionId:o.transferId,type:delta<0?'DEBIT':'CREDIT',category:'TRANSFER',amount:delta,balanceBefore:w.availableBalance,balanceAfter:w.availableBalance+delta,createdAt:now,description:o.reason,relatedEntityId:o.transferId,metadata:{sourceWalletId:o.sourceWalletId,recipientWalletId:o.recipientWalletId}},ConditionExpression:'attribute_not_exists(sk)'}});
   }
-  items.push(approval?{Update:{TableName:TABLES.IDEMPOTENCY_KEYS,Key:key(o.transferId),UpdateExpression:'SET #s = :completed, completedAt = :now, approvedBy = :actor',ConditionExpression:'#s = :pending AND requestedBy <> :actor AND expiresAt > :time AND createdAt > :oldest',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':completed':'COMPLETED',':pending':'PENDING_APPROVAL',':now':now,':actor':actor.id,':time':Math.floor(Date.now()/1000),':oldest':new Date(Date.now()-settings.requestTtlSeconds*1000).toISOString()}}}:{Put:{TableName:TABLES.IDEMPOTENCY_KEYS,Item:done,ConditionExpression:'attribute_not_exists(idempotencyKey)'}});
+  items.push(approval?{Update:{TableName:TABLES.IDEMPOTENCY_KEYS,Key:key(o.transferId),UpdateExpression:'SET #s = :completed, completedAt = :now, approvedBy = :actor',ConditionExpression:`#s = :pending AND ${directWrite()?'':'requestedBy <> :actor AND '}expiresAt > :time AND createdAt > :oldest`,ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':completed':'COMPLETED',':pending':'PENDING_APPROVAL',':now':now,':actor':actor.id,':time':Math.floor(Date.now()/1000),':oldest':new Date(Date.now()-settings.requestTtlSeconds*1000).toISOString()}}}:{Put:{TableName:TABLES.IDEMPOTENCY_KEYS,Item:done,ConditionExpression:'attribute_not_exists(idempotencyKey)'}});
   // Reserve a daily outgoing limit atomically with the money movement.
   const dailyLimit=source.ownerType==='PLATFORM'?settings.platformDaily:source.ownerType==='CUSTOMER'?settings.customerDaily:source.ownerType==='MERCHANT'?settings.merchantDaily:settings.driverDaily;
   if(o.amount>dailyLimit)throw error('تجاوزت الحد اليومي للتحويل','TRANSFER_CONCURRENT_OR_LIMIT',409);

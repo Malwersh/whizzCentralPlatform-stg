@@ -15,6 +15,14 @@ Globals:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
 
 Parameters:
+  PlatformWriteMode:
+    Type: String
+    Default: REVIEW
+    AllowedValues: [REVIEW, DIRECT]
+  PlatformDirectOperatorIds:
+    Type: String
+    Default: ''
+
   MerchantStaffPermissionMode:
     Type: String
     Default: CENTRAL
@@ -108,6 +116,7 @@ Resources:
         SSEEnabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
+  # COD writer/integration and extra legacy guard policies are owned by cod-lifecycle.staging.json.
   WalletLifecycleWorker:
     Type: AWS::Serverless::Function
     Condition: IsSandboxStaging
@@ -268,9 +277,27 @@ Resources:
           WALLET_NOTIFICATIONS_TABLE: !Ref WalletNotificationsTable
           PUSH_TOKENS_TABLE: !Sub WizzCentral_PushDeviceTokens_${Environment}
           FIREBASE_ADMIN_SA_SECRET_ID: !Sub wizz/${Environment}/firebase/admin-service-account
+          STAGE: !Ref Environment
+          FINANCIAL_COD_ACCOUNT_ID: !Ref AWS::AccountId
+          FINANCIAL_COD_NOTIFICATIONS_MODE: 'OFF'
+          DISPATCH_RESPONSE_NOTIFICATIONS_MODE: 'OFF'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref WalletNotificationsTable
+        - !If
+          - IsSandboxStaging
+          - Statement:
+              - Effect: Allow
+                Action: dynamodb:GetItem
+                Resource:
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_staging
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AccountDeletion
+                Condition:
+                  'Null':
+                    dynamodb:Attributes: 'false'
+                  ForAllValues:StringEquals:
+                    dynamodb:Attributes: [pk, sk, driverId, cognitoSub, isDeleted, deletedAt, deletionRequestId]
+          - !Ref AWS::NoValue
         - Statement:
             - Effect: Allow
               Action: [dynamodb:Query, dynamodb:DeleteItem]
@@ -310,6 +337,9 @@ Resources:
       Description: Custom authorizer for Wallet Service - validates Cognito tokens and enforces RBAC
       Environment:
         Variables:
+          PLATFORM_ENVIRONMENT: !Ref Environment
+          PLATFORM_WRITE_MODE: !Ref PlatformWriteMode
+          PLATFORM_DIRECT_OPERATOR_IDS: !Ref PlatformDirectOperatorIds
           MERCHANT_DEVICE_AUTHORIZER_FUNCTION: !If [IsSandboxStaging, !GetAtt MerchantDeviceWalletFunction.Arn, '']
           MERCHANT_DEVICE_FINANCE_AUTHORIZER_FUNCTION: !If [IsSandboxStaging, !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-merchant-device-transfers', '']
           DRIVER_USER_POOL_ID: !Ref DriverCognitoUserPoolId
@@ -741,6 +771,9 @@ Resources:
       Description: Centralized wallet service for Wizz platform
       Environment:
         Variables:
+          PLATFORM_ENVIRONMENT: !Ref Environment
+          PLATFORM_WRITE_MODE: !Ref PlatformWriteMode
+          PLATFORM_DIRECT_OPERATOR_IDS: !Ref PlatformDirectOperatorIds
           WALLET_NOTIFICATIONS_TABLE: !Ref WalletNotificationsTable
           WALLET_LIFECYCLE_TABLE: !If [IsSandboxStaging, !Ref WalletLifecycleTable, '']
           ORDERS_TABLE: !If [IsSandboxStaging, 'WizzOrders', '']

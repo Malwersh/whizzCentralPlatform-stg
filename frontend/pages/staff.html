@@ -14,7 +14,7 @@
 <body><main>
 <a href="dashboard.html">العودة إلى المنصة</a>
 <h1>الموظفون والصلاحيات</h1><a href="settings.html">الإعدادات التشغيلية</a><a id="finance-link" href="finance.html" hidden>القسم المالي والمحافظ</a><a href="account-security.html">حماية حسابي والتحقق بخطوتين</a>
-<p>يمكن للموظف امتلاك أكثر من دور. تعديل الأدوار أو النطاق يحتاج اعتماد موظف مستقل مخوّل.</p>
+<p>يمكن للموظف امتلاك أكثر من دور. احفظ الأدوار والنطاق لتطبيق التعديل.</p>
 <p id="message" role="status" aria-live="polite"></p><button id="reload">تحديث</button>
 <div id="content" hidden>
 <section><h2>الموظفون</h2><button id="new-employee" hidden>إنشاء موظف ودعوة جديدة</button><div class="scroll"><table><thead><tr><th>الموظف</th><th>الحالة</th><th>الأدوار</th><th>النطاق</th><th>الإجراء</th></tr></thead><tbody id="employees"></tbody></table></div></section>
@@ -25,6 +25,6 @@
 <label>المناطق المسموحة<select id="regions" multiple size="8"></select></label>
 <label>سقف الاعتماد بالدينار<input id="approval-limit" type="number" min="0" max="1000000000" step="1" required></label>
 <label>سبب التعديل<textarea id="reason" minlength="5" maxlength="300" required></textarea></label>
-<button type="submit">إرسال للاعتماد</button></form></section>
-<section><h2>طلبات الصلاحيات وحذف الحسابات</h2><div class="scroll"><table><thead><tr><th>الموظف</th><th>المنشئ</th><th>التعديل المقترح</th><th>السبب</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="changes"></tbody></table></div></section>
+<button type="submit">حفظ</button></form></section>
+<section><h2>سجل تغييرات الموظفين</h2><div class="scroll"><table><thead><tr><th>الموظف</th><th>المنشئ</th><th>التعديل المقترح</th><th>السبب</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="changes"></tbody></table></div></section>
 <section id="audit-section" hidden><h2>سجل التدقيق</h2><button id="audit-load">عرض السجل</button><div class="scroll"><table><thead><tr><th>التاريخ</th><th>العملية</th><th>المنفذ</th><th>التفاصيل</th></tr></thead><tbody id="audit"></tbody></table></div></section></div></main><script src="../assets/js/staff-invitation-ui.js?v=20261012-invitation-feedback"></script><script src="../staff.js?v=20261014-account-deletion-final"></script></body></html>

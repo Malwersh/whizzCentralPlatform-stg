@@ -1,0 +1,357 @@
+{
+  "part": 61,
+  "environment": "Staging",
+  "userDate": "2026-10-17",
+  "implementation": "Commercial agreements/funding retention integrated into existing merchant branch closure and existing financial expiry worker",
+  "allApplicationDataDeclaredTestByUser": true,
+  "applicationDataReset": false,
+  "activationPerformed": false,
+  "publication": {
+    "part": 61,
+    "environment": "Staging",
+    "atUtc": "2026-10-17T05:46:09.367766+00:00",
+    "stackName": "staging-finance-commercial-retention-access-61",
+    "customPolicyChecks": [
+      {
+        "host": "worker",
+        "action": "GetItem",
+        "table": "staging-PlatformStaff",
+        "key": "COMMERCIAL_AGREEMENT#fixture",
+        "decision": "allowed"
+      },
+      {
+        "host": "worker",
+        "action": "Query",
+        "table": "staging-PlatformStaff",
+        "key": "DISCOUNT_FUNDING#fixture",
+        "decision": "allowed"
+      },
+      {
+        "host": "worker",
+        "action": "DeleteItem",
+        "table": "staging-PlatformStaff",
+        "key": "AUDIT",
+        "decision": "allowed"
+      },
+      {
+        "host": "worker",
+        "action": "DeleteItem",
+        "table": "staging-PlatformStaff",
+        "key": "COMMERCIAL_AGREEMENT#fixture",
+        "decision": "implicitDeny"
+      },
+      {
+        "host": "worker",
+        "action": "DeleteItem",
+        "table": "staging-PlatformStaff",
+        "key": "EMPLOYEE#fixture",
+        "decision": "implicitDeny"
+      },
+      {
+        "host": "expiry",
+        "action": "DeleteItem",
+        "table": "staging-MerchantPlatform",
+        "key": "COMMERCIAL_AGREEMENT#fixture",
+        "decision": "allowed"
+      },
+      {
+        "host": "expiry",
+        "action": "DeleteItem",
+        "table": "staging-MerchantPlatform",
+        "key": "PERSON#fixture",
+        "decision": "implicitDeny"
+      },
+      {
+        "host": "expiry",
+        "action": "GetItem",
+        "table": "staging-Wallets",
+        "key": "WALLET#MERCHANT#fixture",
+        "decision": "allowed"
+      },
+      {
+        "host": "expiry",
+        "action": "UpdateItem",
+        "table": "staging-Wallets",
+        "key": "WALLET#MERCHANT#fixture",
+        "decision": "implicitDeny"
+      },
+      {
+        "host": "expiry",
+        "action": "DeleteItem",
+        "table": "staging-PlatformStaff",
+        "key": "DISCOUNT_FUNDING#fixture",
+        "decision": "allowed"
+      },
+      {
+        "host": "expiry",
+        "action": "GetItem",
+        "table": "staging-AccountDeletion",
+        "key": "SUBJECT#MERCHANT#fixture",
+        "decision": "allowed"
+      }
+    ],
+    "effectivePolicyChecks": [
+      {
+        "host": "worker",
+        "action": "GetItem",
+        "table": "staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "host": "worker",
+        "action": "Query",
+        "table": "staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "host": "worker",
+        "action": "DeleteItem",
+        "table": "staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "host": "expiry",
+        "action": "DeleteItem",
+        "table": "staging-MerchantPlatform",
+        "decision": "allowed"
+      },
+      {
+        "host": "expiry",
+        "action": "GetItem",
+        "table": "staging-Wallets",
+        "decision": "allowed"
+      },
+      {
+        "host": "expiry",
+        "action": "DeleteItem",
+        "table": "staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "host": "expiry",
+        "action": "GetItem",
+        "table": "staging-AccountDeletion",
+        "decision": "allowed"
+      }
+    ],
+    "functions": [
+      {
+        "name": "staging-account-deletion-financial-expiry",
+        "codeSha256": "UVL9PPZ8z/92JfM4iiSsfrcF3Ek8HW06IKcUD1crt8E=",
+        "revisionId": "606f1c95-d3a8-40f3-9a65-66449846b4cd",
+        "environmentPreserved": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "IpaBI86d1iVC1la4D/TgCQaWrUqMTKLdmzNds6mMjkQ=",
+        "revisionId": "df830554-7b42-45e3-8057-6858a4158376",
+        "environmentPreserved": true
+      },
+      {
+        "name": "staging-account-deletion-worker",
+        "codeSha256": "rpPImLkinGSDlBGKaGrU+e3DdWbKMmqehSOM/6zMuRM=",
+        "revisionId": "fa6016a1-25f0-416d-96d5-d585dc6b9bc8",
+        "environmentPreserved": true
+      }
+    ],
+    "activationPerformed": false,
+    "liveExpiryDryRun": {
+      "removed": 0,
+      "archivesRemoved": 0,
+      "eligible": 0,
+      "blocked": 67,
+      "dryRun": true,
+      "incomplete": false
+    },
+    "closedCommercialHandlerVerified": true
+  },
+  "packages": {
+    "expiry": {
+      "codeSha256": "UVL9PPZ8z/92JfM4iiSsfrcF3Ek8HW06IKcUD1crt8E=",
+      "changedFiles": [
+        "commercial-retention.js",
+        "financial-purge.js"
+      ],
+      "preservedFiles": 4754
+    },
+    "worker": {
+      "codeSha256": "rpPImLkinGSDlBGKaGrU+e3DdWbKMmqehSOM/6zMuRM=",
+      "changedFiles": [
+        "commercial-retention.js",
+        "merchant-worker.js"
+      ],
+      "preservedFiles": 4758
+    },
+    "staff": {
+      "codeSha256": "IpaBI86d1iVC1la4D/TgCQaWrUqMTKLdmzNds6mMjkQ=",
+      "changedFiles": [
+        "commercial-management.js"
+      ],
+      "preservedFiles": 4519
+    }
+  },
+  "base": {
+    "expiry": {
+      "name": "staging-account-deletion-financial-expiry",
+      "codeSha256": "x1ZbIOdmUkwg340dHN34TV0wDf4tEREzny+ucqHwp6Q=",
+      "revisionId": "6c96f160-81ff-4ef4-8cbd-4b1ae2088558",
+      "role": "arn:aws:iam::699561669180:role/staging-account-deletion-FinancialExpiryRole-IuLxJxc5s29r"
+    },
+    "worker": {
+      "name": "staging-account-deletion-worker",
+      "codeSha256": "pViy+z6n5rYCebxC/bTyGquGZXU/z5dJ3t0YYCb3Ufo=",
+      "revisionId": "2316280f-730d-41cf-8ff0-d2d2c7d1a8e6",
+      "role": "arn:aws:iam::699561669180:role/staging-account-deletion-WorkerRole-u5xpbVRU9G0Q"
+    },
+    "staff": {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "/iwI3CZrvLRQXdBlzGyAQcIMjq2OEgjgLTHAyZS+zxc=",
+      "revisionId": "9a5ff05f-671d-49c1-9f1c-9ad12ecf0bb4",
+      "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx"
+    }
+  },
+  "verification": {
+    "local": {
+      "part": 61,
+      "tests": 399,
+      "pass": 399,
+      "fail": 0,
+      "candidateSourcesMatched": true,
+      "testResultSha256": "ed6ffb970b784a87853203cf9bc6d528ac46df3a49e1448e20ba93f59f264f9f",
+      "testedSources": {
+        "backend/account-deletion/commercial-retention.js": "9547a4fc73dee1627de8cab48cf99324d8e709ec3d623481e5e57de92bae3bb2",
+        "backend/account-deletion/financial-purge.js": "86e1072ec8dfdf7ee2e5e3e5f3f94917a6761216e1e188b960d4e901f1cf592d",
+        "backend/account-deletion/merchant-worker.js": "020697166e0f6c4c5af4332960a5e90f3d41d50d9761605a2d15ed60bd3516d8",
+        "backend/staff-service/commercial-management.js": "8867fd10d96b65fec151f2312d118c30b0b887a55ad3201316657898cffc8091"
+      }
+    },
+    "dynamodb": {
+      "part": 61,
+      "isolatedTable": "staging-commercial-retention-test-61-64954ad2-ad8e-474c-bf27-9c6667e85595",
+      "applicationTableWrites": 0,
+      "humanWrites": 0,
+      "financialBalanceWrites": 0,
+      "concurrentLifecycleFence": true,
+      "sharedAgreementPreserved": true,
+      "auditMovedAtomically": true,
+      "idempotentResume": true,
+      "activeSiblingBlocksExpiry": true,
+      "nonzeroWalletBlocksExpiry": true,
+      "concurrentHoldFence": true,
+      "expiryAfterAllClosures": true,
+      "tableDeleted": true
+    }
+  },
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "535e6be012354b611903eaeba04d959b7be4259c574c8706f6c36c7eeb0d7b66",
+      "reason": "Part54 binds a Staging test confirmation to a preapproved request while retaining immutable pending replay and default UUID behavior; commercial approval flow is unchanged."
+    },
+    {
+      "path": "backend/wallet-service/src/money.ts",
+      "beforeSha256": "a650a50ed22593f5cee9c88df9ab01869acff4a32c234fef5ade9497dd39e90e",
+      "afterSha256": "c02c3752fc00f6088cd529bf617b0506fa8be4458da3e1bdd47d029a13865165",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/deliveryPricing.ts",
+      "beforeSha256": "ee05af2c120e9052d25eeed4f898275ec5a734ac21be99f135e77d219535aab3",
+      "afterSha256": "154584f9ab57b2efc274bbdbe97e183c77b9c264cf3ea21da5ca7de745857da9",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialPricing.ts",
+      "beforeSha256": "7a2c30ee07aa06ce1e00808a7b279973d6f21b634f5a5884bc5d0ca56866d690",
+      "afterSha256": "f83727625f3bb1c77439a85fa2f87caee17546021f4f0ef38abeb773d8bdaaf1",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialSource.ts",
+      "beforeSha256": "4abde486156dd14be3c4812774113c299d56c9598e7320c1460c26036be220e8",
+      "afterSha256": "0b81190c88e902ee9613b7fa35889de0d20918a20724a9a01d3a8104f32bd875",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published."
+    }
+  ],
+  "relatedSourceHashes": {
+    "backend/account-deletion/commercial-retention.js": "9547a4fc73dee1627de8cab48cf99324d8e709ec3d623481e5e57de92bae3bb2",
+    "backend/account-deletion/financial-purge.js": "86e1072ec8dfdf7ee2e5e3e5f3f94917a6761216e1e188b960d4e901f1cf592d",
+    "backend/account-deletion/merchant-worker.js": "020697166e0f6c4c5af4332960a5e90f3d41d50d9761605a2d15ed60bd3516d8",
+    "backend/account-deletion/template.yaml": "ac22e6072a0831409f1f88a17722978e08f90e6f128d391fe5717ed790a03814",
+    "backend/staff-service/commercial-management.js": "8867fd10d96b65fec151f2312d118c30b0b887a55ad3201316657898cffc8091",
+    "backend/finance-commercial-retention-access.staging.json": "4691f2bf78d1dc67f33db4d6520780bfcf46ed97870b2efe807103f78faf34ed"
+  },
+  "tablesReused": [
+    "staging-MerchantPlatform",
+    "staging-PlatformStaff",
+    "WhizzMerchants_Businesses",
+    "staging-AccountDeletion",
+    "staging-AccountDeletionFinancialArchive",
+    "staging-Wallets"
+  ],
+  "newApplicationTables": 0,
+  "retentionRules": [
+    "Archive before BRANCH indexes and request markers are removed.",
+    "Keep canonical commercial sources unchanged for scoped siblings.",
+    "Move only explicitly indexed commercial audit events atomically into private financial archive.",
+    "Reuse approved financialRetentionYears/policyVersion from deletion job; do not invent a retention period.",
+    "Purge only after expiry and completed closure of every scoped branch, absent branch profiles, zero closed wallets and no holds.",
+    "Fence source/archive/closure/wallet records within one DynamoDB transaction.",
+    "Resume using canonical key ordering and stable source digests."
+  ],
+  "rollback": "Private original archives are stored under /private/tmp/finance61. After commercial records exist, rollback must preserve the archive adapter, supported source kinds and closed gates; do not restore a worker that removes indexes before archiving.",
+  "remainingIntegration": [
+    "Campaign version adoption and all campaign writers, including legacy owner, branch-device staff and platform promotions.",
+    "Coordinated financial reader/writer publication for approved rounding and commercial schema v2.",
+    "Commercial admin permissions and authenticated owner acceptance/independent approval end-to-end.",
+    "Scoped financial canary, app integration/installation and activation verification."
+  ],
+  "limitations": [
+    "Actual DynamoDB transactions were verified in a disposable isolated table; this is not a human owner/staff acceptance test.",
+    "Live expiry was invoked dry-run only; existing commercial-management and financial activation gates remain closed.",
+    "No frontend or phone app changed in this slice; Amplify job72 remains the hosted UI."
+  ],
+  "postPublicationMetadataAudit": {
+    "functions": 28,
+    "hashDrift": [],
+    "activationPerformed": false,
+    "centralPolicy": {
+      "version": 2,
+      "policyVersion": "dispatch-schema-v2-release50",
+      "dispatchSchemaVersion": 2,
+      "performanceMode": "LEGACY_METRICS",
+      "limits": {
+        "quoteMaxPerCustomerPerMinute": 5,
+        "driverOfferTtlSeconds": 60,
+        "driverPositionMaxAgeSeconds": 120,
+        "reassignmentWindowSeconds": 300,
+        "maximumWaves": 4
+      }
+    }
+  }
+}

@@ -134,6 +134,7 @@ window.RBAC = {
         
         if(this.staff && !this.staff.employee.roles.includes('bootstrap_admin')) {
             if(['pricing.html','delivery-pricing.html'].includes(pageName))return this.staff.permissions.includes('pricing.read');
+            if(['merchants.html','promotions.html'].includes(pageName)&&this.staff.permissions.includes('commercial.read'))return true;
             if(pageName==='settings.html')return this.staff.permissions.includes('settings.read')||this.staff.permissions.includes('finance.read');
             const permission={'staff.html':'staff.read','finance.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read'}[pageName];
             return pageName==='account-security.html'||pageName==='index.html'||(!!permission&&this.staff.permissions.includes(permission));
@@ -245,19 +246,24 @@ window.RBAC = {
     _applyReadOnlyUI() {
         const actionButtons = document.querySelectorAll('button, .btn');
         actionButtons.forEach(button => {
+            // Commercial sections render only server-authorized actions; other page domains remain read-only.
+            if(button.closest('[data-commercial-kind]'))return;
             const text = button.textContent.toLowerCase();
-            if (text.includes('add') || text.includes('edit') || text.includes('delete') || 
+            const markedWrite = button.matches('[data-write-only], [data-write-action]');
+            const arabicWrite = /إضافة|تعديل|حذف|إزالة|إنشاء|حفظ|اعتماد|نشر|إيقاف|تفعيل/.test(text) ||
+                /(?:تحديث|تغيير)\s+(?:الحالة|العرض|الحملة|المتجر|المنتج|بيانات)/.test(text);
+            if (markedWrite || arabicWrite || text.includes('add') || text.includes('edit') || text.includes('delete') ||
                 text.includes('remove') || text.includes('create') || text.includes('save') || 
                 text.includes('update')) {
                 button.disabled = true;
                 button.style.opacity = '0.5';
                 button.style.cursor = 'not-allowed';
-                button.title = 'Read-only mode';
+                button.title = 'للاطلاع فقط';
             }
         });
         const inputs = document.querySelectorAll('input:not([type="search"]), textarea, select');
         inputs.forEach(input => {
-            if (!input.closest('.search-form')) {
+            if (!input.closest('.search-form') && !input.closest('[data-commercial-kind]')) {
                 input.disabled = true;
                 input.style.backgroundColor = '#f5f5f5';
             }
@@ -266,7 +272,7 @@ window.RBAC = {
             const banner = document.createElement('div');
             banner.id = 'rbac-readonly-banner';
             banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#fbbf24;color:#92400e;padding:8px 16px;text-align:center;font-size:14px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.1);';
-            banner.innerHTML = '🔒 Read-Only Mode - You have view-only access';
+            banner.textContent = 'للاطلاع فقط — لا تملك صلاحية إجراء التعديلات';
             document.body.appendChild(banner);
         }
     },
@@ -397,7 +403,7 @@ window.RBAC = {
     can(domain, action = 'read') {
         if(this.staff) {
             const read={pricing:'pricing.read',financial:'finance.read',campaigns:'promotions.read'};
-            const writes={drivers:['drivers.edit','drivers.review','drivers.suspend'],merchants:['merchants.edit','merchants.review','merchants.suspend'],orders:['orders.assign','orders.cancel'],customers:['customers.edit'],support:['support.reply','support.assign','support.close'],regions:['regions.edit','regions.activate'],campaigns:['promotions.create','promotions.edit','promotions.approve'],financial:['finance.request','finance.approve','finance.settings.request','finance.settings.approve']};
+            const writes={pricing:['pricing.request','pricing.approve'],drivers:['drivers.edit','drivers.review','drivers.suspend'],merchants:['merchants.edit','merchants.review','merchants.suspend'],orders:['orders.assign','orders.cancel'],customers:['customers.edit'],support:['support.reply','support.assign','support.close'],regions:['regions.edit','regions.activate'],campaigns:['promotions.create','promotions.edit','promotions.approve'],financial:['finance.request','finance.approve','finance.settings.request','finance.settings.approve']};
             return action==='read'?this.staff.permissions.includes(read[domain]||domain+'.read'):(writes[domain]||[]).some(p=>this.staff.permissions.includes(p));
         }
         const userGroups = this.getUserGroups();

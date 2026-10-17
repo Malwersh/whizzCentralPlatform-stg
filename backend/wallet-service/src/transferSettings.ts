@@ -1,3 +1,4 @@
+import {directWrite} from './writeWorkflow';
 import {financialStaff,staffGuard} from './staffAccess';
 import { randomUUID } from 'crypto';
 import { docClient, TABLES, GetCommand, TransactWriteCommand } from './db';
@@ -20,23 +21,27 @@ export function settingsGuard(settings:TransferSettings){return {ConditionCheck:
 export function baghdadDay(date:Date=new Date()){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Baghdad',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);const get=(type:string)=>parts.find(p=>p.type===type)!.value;return `${get('year')}-${get('month')}-${get('day')}`;}
 function authenticated(authTime:number){const age=Math.floor(Date.now()/1000)-authTime;if(!Number.isInteger(authTime)||age< -30||age>300)throw fundingError('أعد تسجيل الدخول لتعديل الإعدادات المالية','REAUTH_REQUIRED',403);}
 function audit(action:string,actor:string,before:any,after:any,id:string){const now=new Date().toISOString();return {Put:{TableName:TABLES.AUDIT_LOG,Item:{datePartition:'date#'+baghdadDay().replace(/-/g,''),sk:`${now}#${id}`,action,actorId:actor,before,after,timestamp:now},ConditionExpression:'attribute_not_exists(sk)'}};}
-export async function transferSettingsOverview(){const [config,pending]=await Promise.all([getTransferSettings(),docClient.send(new GetCommand({TableName:TABLES.IDEMPOTENCY_KEYS,Key:pendingKey,ConsistentRead:true}))]);return {config,pending:pending.Item || null};}
+export async function transferSettingsOverview(){const [config,pending]=await Promise.all([getTransferSettings(),docClient.send(new GetCommand({TableName:TABLES.IDEMPOTENCY_KEYS,Key:pendingKey,ConsistentRead:true}))]);return {config,pending:pending.Item || null,directWrite:directWrite()};}
 export async function proposeTransferSettings(actor:string,authTime:number,input:any){
  authenticated(authTime);const staff=await financialStaff(actor,'finance.settings.request');const current=await getTransferSettings();const proposed=validateTransferSettings(input);
  if(current.version!==proposed.version)throw fundingError('تغيرت الإعدادات؛ أعد التحميل','CONFIG_CONFLICT',409);
  const now=Math.floor(Date.now()/1000),changeId=randomUUID();const pending={...pendingKey,changeId,status:'PENDING',requestedBy:actor,requestedByStaffVersion:staff?.version,baseVersion:current.version,proposed,createdAt:new Date().toISOString(),expiresAt:now+3600};
+ if(directWrite()){
+  const next={...proposed,version:current.version+1};
+  await docClient.send(new TransactWriteCommand({TransactItems:[...(staff?[staffGuard(staff)]:[]),{Put:{TableName:TABLES.IDEMPOTENCY_KEYS,Item:{...transferConfigKey,config:next,updatedBy:actor,updatedAt:new Date().toISOString()},ConditionExpression:current.version===0?'attribute_not_exists(idempotencyKey)':'config.#v=:v',...(current.version===0?{}:{ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':current.version}})}},audit('TRANSFER_SETTINGS_SAVED',actor,current,next,changeId)]}));return {status:'SAVED',config:next};
+ }
  try{await docClient.send(new TransactWriteCommand({TransactItems:[...(staff?[staffGuard(staff)]:[]),settingsGuard(current),{Put:{TableName:TABLES.IDEMPOTENCY_KEYS,Item:pending,ConditionExpression:'attribute_not_exists(idempotencyKey) OR #s <> :pending OR expiresAt <= :now',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':pending':'PENDING',':now':now}}},audit('TRANSFER_SETTINGS_PROPOSED',actor,current,proposed,changeId)]}));return pending;}
  catch(e:any){if(e.name==='TransactionCanceledException')throw fundingError('يوجد طلب إعدادات معلق أو تغيرت الإعدادات؛ أعد التحميل','CONFIG_CONFLICT',409);throw e;}
 }
 export async function approveTransferSettings(actor:string,authTime:number,changeId:string){
  authenticated(authTime);const current=await getTransferSettings();const {Item:pending}=await docClient.send(new GetCommand({TableName:TABLES.IDEMPOTENCY_KEYS,Key:pendingKey,ConsistentRead:true}));
  if(!pending || pending.changeId!==changeId || pending.status!=='PENDING' || pending.expiresAt<=Math.floor(Date.now()/1000))throw fundingError('طلب الإعدادات غير صالح أو انتهت مهلته','CONFIG_STATE',409);
- if(pending.requestedBy===actor)throw fundingError('يجب أن يعتمد التغيير مدير مالي آخر','SECOND_APPROVER_REQUIRED',403);
+ if(!directWrite()&&pending.requestedBy===actor)throw fundingError('يجب أن يعتمد التغيير مدير مالي آخر','SECOND_APPROVER_REQUIRED',403);
  if(pending.baseVersion!==current.version)throw fundingError('تغيرت الإعدادات؛ أنشئ طلباً جديداً','CONFIG_CONFLICT',409);
  const staff=await financialStaff(actor,'finance.settings.approve');const requester=await financialStaff(pending.requestedBy,'finance.settings.request');if(requester&&requester.version!==pending.requestedByStaffVersion)throw fundingError('تغيّرت صلاحيات منشئ الطلب','REQUESTER_PERMISSION_CHANGED',403);
  const next={...validateTransferSettings(pending.proposed),version:current.version+1};
  const put:any={TableName:TABLES.IDEMPOTENCY_KEYS,Item:{...transferConfigKey,config:next,updatedBy:actor,updatedAt:new Date().toISOString()},ConditionExpression:current.version===0?'attribute_not_exists(idempotencyKey)':'config.#v = :v',...(current.version===0?{}:{ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':current.version}})};
- try{await docClient.send(new TransactWriteCommand({TransactItems:[...(staff?[staffGuard(staff)]:[]),...(requester?[staffGuard(requester)]:[]),{Put:put},{Update:{TableName:TABLES.IDEMPOTENCY_KEYS,Key:pendingKey,UpdateExpression:'SET #s = :approved, approvedBy = :actor',ConditionExpression:'#s = :pending AND changeId = :id AND requestedBy <> :actor AND expiresAt > :now',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':approved':'APPROVED',':pending':'PENDING',':actor':actor,':id':changeId,':now':Math.floor(Date.now()/1000)}}},audit('TRANSFER_SETTINGS_APPROVED',actor,current,next,changeId)]}));return next;}
+ try{await docClient.send(new TransactWriteCommand({TransactItems:[...(staff?[staffGuard(staff)]:[]),...(requester&&pending.requestedBy!==actor?[staffGuard(requester)]:[]),{Put:put},{Update:{TableName:TABLES.IDEMPOTENCY_KEYS,Key:pendingKey,UpdateExpression:'SET #s = :approved, approvedBy = :actor',ConditionExpression:`#s = :pending AND changeId = :id AND ${directWrite()?'':'requestedBy <> :actor AND '}expiresAt > :now`,ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':approved':'APPROVED',':pending':'PENDING',':actor':actor,':id':changeId,':now':Math.floor(Date.now()/1000)}}},audit('TRANSFER_SETTINGS_APPROVED',actor,current,next,changeId)]}));return next;}
  catch(e:any){if(e.name==='TransactionCanceledException')throw fundingError('تغيرت حالة الطلب؛ أعد التحميل','CONFIG_CONFLICT',409);throw e;}
 }
 export async function cancelTransferSettings(actor:string,authTime:number,changeId:string){

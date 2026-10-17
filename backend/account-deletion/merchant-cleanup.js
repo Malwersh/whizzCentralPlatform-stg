@@ -21,7 +21,7 @@ const FINANCIAL=[
  ['staging-LedgerEntries',{keys:['walletId','sk'],owners:['walletId'],kind:'ledger'}],
  ['staging-TopupRequests',{keys:['topupId','sk'],owners:['walletId'],kind:'topup'}],
  ['staging-IdempotencyKeys',{keys:['idempotencyKey','sk'],owners:['sourceWalletId','recipientWalletId'],kind:'transfer'}],
- ['staging-AuditLog',{keys:['datePartition','sk'],owners:['walletId','sourceWalletId','recipientWalletId'],kind:'audit'}],
+ ['staging-AuditLog',{keys:['datePartition','sk'],owners:['walletId','sourceWalletId','recipientWalletId','branchId'],kind:'audit'}],
 ];
 function merchantBusinessCleanup({db,cognito,connections,requestTable='staging-AccountDeletion',archiveTable='staging-AccountDeletionFinancialArchive',clock=()=>new Date().toISOString()}){
  const common=customerCleanup({db,cognito,connections,requestTable,archiveTable,clock,actorType:'MERCHANT',pool:POOL,profileTable:'WhizzMerchants_Businesses',profileKey:'businessId',personalTables:PERSONAL,financialTables:FINANCIAL,orderPii:['businessName','restaurantName','storeName','merchantPhone','merchantEmail','businessPhone','businessEmail','businessAddress','storeAddress'],authTables:[],temporaryTables:[]});

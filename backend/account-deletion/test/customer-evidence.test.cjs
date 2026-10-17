@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 function fixture({balance=0,legacyBalance=0,foreignProfile=false,foreignWallet=false,paginated=false,failedRead=false,orderStatus='preparing',legacyPaymentStatus}={}){
  const classes={};for(const name of ['GetCommand','QueryCommand','ScanCommand'])classes[name]=class{constructor(input){this.name=name;this.input=input;}};
- const module={exports:{}};vm.runInNewContext(fs.readFileSync(__dirname+'/../customer-evidence.js','utf8'),{module,require:n=>n==='./policy'?require('../policy'):classes});
+ const module={exports:{}};vm.runInNewContext(fs.readFileSync(__dirname+'/../customer-evidence.js','utf8'),{module,require:n=>n==='./cod-retention'?require('./cod-loader.cjs')(classes):n==='./policy'?require('../policy'):classes});
  const db={send:async c=>{const i=c.input;if(failedRead&&i.TableName==='staging-Holds')throw Error('Read failure');
   if(c.name==='GetCommand'){if(i.TableName==='WizzUser_users_staging')return {};return {Item:{walletId:'WALLET#CUSTOMER#sub',ownerType:'CUSTOMER',ownerId:foreignWallet?'victim':'sub',currency:'IQD',version:1,availableBalance:balance,lockedBalance:0}};}
   if(c.name==='QueryCommand'){if(i.IndexName==='phone-index')return {Items:[{userId:'legacy',cognitoUsername:'cognito'}]};if(i.IndexName==='email-index')return {Items:[{userId:'legacy',email:'verified@test.invalid',cognitoUsername:foreignProfile?'victim':'verified@test.invalid'}]};return {Items:i.ExpressionAttributeValues[':value']==='legacy'?[{walletId:'legacy-wallet',userId:'legacy',balance:legacyBalance,currency:'IQD'}]:[]};}

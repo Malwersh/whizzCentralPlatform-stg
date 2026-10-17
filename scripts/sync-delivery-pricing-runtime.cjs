@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const ts=require('../backend/wallet-service/node_modules/typescript');
 const destination=path.resolve(__dirname,'../backend/staff-service/pricing-runtime');
 const check=process.argv.includes('--check');
-for(const name of ['money','deliveryPricing']){
+for(const name of ['money','deliveryPricing','orderAllocation','deliveryQuoteRecord','orderCommercialPricing']){
  const source=fs.readFileSync(path.resolve(__dirname,'../backend/wallet-service/src/'+name+'.ts'),'utf8');
  const hash=crypto.createHash('sha256').update(source).digest('hex');
  const result=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,strict:true},reportDiagnostics:true});

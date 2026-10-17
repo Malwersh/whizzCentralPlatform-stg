@@ -24,6 +24,9 @@ def access(payload, method, path, pool):
     if not live.get('Enabled') or (employee.get('mfaRequired') and 'SOFTWARE_TOKEN_MFA' not in live.get('UserMFASettingList',[])): raise Exception('Forbidden')
     if payload.get('auth_time',0) < employee.get('minimumAuthTime',0): raise Exception('Forbidden')
     permissions = set(permission for role in employee.get('roles',[]) for permission in STAFF_ROLES.get(role,[]))
-    if 'bootstrap_admin' in employee.get('roles',[]): permissions.add('bootstrap.only')
+    direct = os.environ.get('PLATFORM_ENVIRONMENT') == 'staging' and os.environ.get('PLATFORM_WRITE_MODE') == 'DIRECT'
+    operator = direct and payload['sub'] in os.environ.get('PLATFORM_DIRECT_OPERATOR_IDS','').split(',')
+    if operator: permissions.update(p for values in STAFF_ROLES.values() for p in values)
+    if 'bootstrap_admin' in employee.get('roles',[]) or operator: permissions.add('bootstrap.only')
     if not any(permission in permissions for permission in required_permissions(method,path)): raise Exception('Forbidden')
     return employee, permissions

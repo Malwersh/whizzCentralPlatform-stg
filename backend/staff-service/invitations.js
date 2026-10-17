@@ -1,4 +1,5 @@
 'use strict';
+const workflow=require('./write-workflow');const direct=()=>workflow.direct?.()===true;
 const {randomUUID}=require('crypto');
 const {GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {AdminCreateUserCommand,AdminGetUserCommand}=require('@aws-sdk/client-cognito-identity-provider');
@@ -24,9 +25,10 @@ async function create(context,actor,input){
  if(!employeeId)throw fail('PROVISIONING_INCOMPLETE',503);
  const now=new Date().toISOString(),changeId=randomUUID();
  const employee={pk:'EMPLOYEE#'+employeeId,sk:'PROFILE',employeeId,username:result.User.Username,email:value.email,name:value.name,roles:[],scope:{allRegions:false,regionIds:[]},status:'PENDING',approvalLimit:0,version:1,mfaRequired:true,activationApproved:false,invitationStatus:'DRAFT',createdAt:now,updatedAt:now};
+ if(direct())Object.assign(employee,value.assignment,{status:'INVITED',activationApproved:true});
  const change={pk:'CHANGE#'+changeId,sk:'META',changeId,employeeId,baseVersion:1,requestedBy:actor.employeeId,requestedByVersion:actor.version,status:'PENDING',assignment:value.assignment,reason:value.reason,createdAt:now,expiresAt:Math.floor(Date.now()/1000)+3600};
- await db.send(new TransactWriteCommand({TransactItems:[guard(actor),{Put:{TableName:table,Item:employee,ConditionExpression:'attribute_not_exists(pk)'}},{Put:{TableName:table,Item:change,ConditionExpression:'attribute_not_exists(pk)'}},{Update:{TableName:table,Key:emailKey,UpdateExpression:'SET #s = :complete, employeeId = :id',ConditionExpression:'claimId = :claim',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':complete':'CREATED',':id':employeeId,':claim':claimId}}},audit(actor.employeeId,'STAFF_INVITATION_PREPARED',null,{employeeId,email:value.email,changeId},changeId)]}));
- return {employee,change};
+ await db.send(new TransactWriteCommand({TransactItems:[guard(actor),{Put:{TableName:table,Item:employee,ConditionExpression:'attribute_not_exists(pk)'}},...(!direct()?[{Put:{TableName:table,Item:change,ConditionExpression:'attribute_not_exists(pk)'}}]:[]),{Update:{TableName:table,Key:emailKey,UpdateExpression:'SET #s = :complete, employeeId = :id',ConditionExpression:'claimId = :claim',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':complete':'CREATED',':id':employeeId,':claim':claimId}}},audit(actor.employeeId,'STAFF_INVITATION_PREPARED',null,{employeeId,email:value.email,changeId},changeId)]}));
+ return {employee,...(!direct()?{change}:{}),directWrite:direct()};
 }
 async function send(context,actor,target){
  const {db,cognito,table,pool,guard,audit}=context;

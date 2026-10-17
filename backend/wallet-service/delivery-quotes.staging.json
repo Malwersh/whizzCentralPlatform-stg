@@ -1,11 +1,39 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Local delivery-fee quote storage proposal; no API, Lambda or IAM. Coordinate customer deletion before enabling writes.",
+  "Description": "Staging delivery quote storage and CLOSED API with protected commercial preview. Canonical ownership; no pricing, quota or routing credential activation.",
   "Conditions": {
-    "StagingAccountAndRegion": {"Fn::And": [
-      {"Fn::Equals": [{"Ref": "AWS::AccountId"}, "699561669180"]},
-      {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-east-1"]}
-    ]}
+    "StagingAccountAndRegion": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "699561669180"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        }
+      ]
+    },
+    "HasRoutingCredential": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "MapboxSecretArn"
+            },
+            ""
+          ]
+        }
+      ]
+    }
   },
   "Resources": {
     "DeliveryQuotes": {
@@ -16,11 +44,579 @@
       "Properties": {
         "TableName": "staging-DeliveryQuotes",
         "BillingMode": "PAY_PER_REQUEST",
-        "AttributeDefinitions": [{"AttributeName": "pk", "AttributeType": "S"}, {"AttributeName": "sk", "AttributeType": "S"}],
-        "KeySchema": [{"AttributeName": "pk", "KeyType": "HASH"}, {"AttributeName": "sk", "KeyType": "RANGE"}],
-        "PointInTimeRecoverySpecification": {"PointInTimeRecoveryEnabled": true},
-        "SSESpecification": {"SSEEnabled": true},
-        "Tags": [{"Key": "Environment", "Value": "staging"}, {"Key": "Purpose", "Value": "delivery-fee-quotes"}]
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "staging"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "delivery-fee-quotes"
+          }
+        ]
+      }
+    },
+    "QuoteLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "StagingAccountAndRegion",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/WizzUser-DeliveryQuotes-staging"
+      }
+    },
+    "DeliveryQuoteRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "ClosedQuoteReadAndWrite",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cognito-idp:GetUser"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": [
+                    "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+                    "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_addresses_staging",
+                    "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+                    "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+                    "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+                    "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Regions",
+                    "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_RegionsDerived_staging"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:LeadingKeys": [
+                        "OPERATIONAL_SETTINGS#DELIVERY_PRICING",
+                        "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_RegionIndex_staging/index/h3-index"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "DeliveryQuotes",
+                      "Arn"
+                    ]
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "CUSTOMER#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Fn::If": [
+                    "HasRoutingCredential",
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "secretsmanager:GetSecretValue"
+                      ],
+                      "Resource": {
+                        "Ref": "MapboxSecretArn"
+                      }
+                    },
+                    {
+                      "Ref": "AWS::NoValue"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "ScopedLogs",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "QuoteLogs",
+                      "Arn"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "DeliveryQuotesFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "FunctionName": "WizzUser-DeliveryQuotes-staging",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.handler",
+        "Timeout": 30,
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "DeliveryQuoteRole",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": {
+            "Ref": "QuoteCodeBucket"
+          },
+          "S3Key": {
+            "Ref": "QuoteCodeKey"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "staging",
+            "USERS_TABLE": "WizzUser_users_staging",
+            "USER_POOL_ID": "us-east-1_TpyyrVkEE",
+            "USER_POOL_CLIENT_ID": "4a9e8o3em311eq2rgckp0pd2s9",
+            "DELIVERY_QUOTES_ENABLED": "false",
+            "DELIVERY_QUOTE_MAX_PER_MINUTE": "5",
+            "MAPBOX_SECRET_ARN": {
+              "Ref": "MapboxSecretArn"
+            },
+            "DELIVERY_OPERATIONS_MODE": "CENTRAL"
+          }
+        }
+      }
+    },
+    "DeliveryQuotesResource": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CustomerRestApiId"
+        },
+        "ParentId": {
+          "Ref": "CustomerRootResourceId"
+        },
+        "PathPart": "delivery-quotes"
+      }
+    },
+    "CommercialPreviewResource": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CustomerRestApiId"
+        },
+        "ParentId": {
+          "Ref": "CustomerOrdersResourceId"
+        },
+        "PathPart": "commercial-preview"
+      }
+    },
+    "QuoteGetMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CustomerRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "DeliveryQuotesResource"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "CustomerAuthorizerId"
+        },
+        "AuthorizationScopes": [
+          "aws.cognito.signin.user.admin"
+        ],
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "DeliveryQuotesFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "QuoteGetPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "DeliveryQuotesFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": "699561669180",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:execute-api:us-east-1:699561669180:${CustomerRestApiId}/staging/GET/delivery-quotes"
+        }
+      }
+    },
+    "QuotePostMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CustomerRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "DeliveryQuotesResource"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "CustomerAuthorizerId"
+        },
+        "AuthorizationScopes": [
+          "aws.cognito.signin.user.admin"
+        ],
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "DeliveryQuotesFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "QuotePostPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "DeliveryQuotesFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": "699561669180",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:execute-api:us-east-1:699561669180:${CustomerRestApiId}/staging/POST/delivery-quotes"
+        }
+      }
+    },
+    "QuoteOptionsMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CustomerRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "DeliveryQuotesResource"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Customer-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Headers": false,
+              "method.response.header.Access-Control-Allow-Methods": false
+            }
+          }
+        ]
+      }
+    },
+    "PreviewPostMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CustomerRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "CommercialPreviewResource"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "CustomerAuthorizerId"
+        },
+        "AuthorizationScopes": [
+          "aws.cognito.signin.user.admin"
+        ],
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+                "arn:aws:lambda:us-east-1:699561669180:function:WizzUser-CreateOrder-staging",
+                "/invocations"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "PreviewPostPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "FunctionName": "arn:aws:lambda:us-east-1:699561669180:function:WizzUser-CreateOrder-staging",
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": "699561669180",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:execute-api:us-east-1:699561669180:${CustomerRestApiId}/staging/POST/orders/commercial-preview"
+        }
+      }
+    },
+    "PreviewOptionsMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CustomerRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "CommercialPreviewResource"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Customer-Id'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Headers": false,
+              "method.response.header.Access-Control-Allow-Methods": false
+            }
+          }
+        ]
+      }
+    },
+    "QuoteApiDeployment": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Condition": "StagingAccountAndRegion",
+      "DependsOn": [
+        "QuoteGetMethod",
+        "QuotePostMethod",
+        "QuoteOptionsMethod",
+        "PreviewPostMethod",
+        "PreviewOptionsMethod"
+      ],
+      "Properties": {
+        "RestApiId": {
+          "Ref": "CustomerRestApiId"
+        },
+        "Description": "Closed delivery quotes and protected commercial preview; stage pointer switched after full snapshot comparison."
+      }
+    }
+  },
+  "Parameters": {
+    "QuoteCodeBucket": {
+      "Type": "String",
+      "AllowedValues": [
+        "aws-sam-cli-managed-default-samclisourcebucket-c0s0eilxsprc"
+      ]
+    },
+    "QuoteCodeKey": {
+      "Type": "String",
+      "AllowedPattern": "cod29/[a-f0-9]{64}\\.zip"
+    },
+    "CustomerRestApiId": {
+      "Type": "String",
+      "Default": "4jut6787c8",
+      "AllowedValues": [
+        "4jut6787c8"
+      ]
+    },
+    "CustomerRootResourceId": {
+      "Type": "String"
+    },
+    "CustomerOrdersResourceId": {
+      "Type": "String"
+    },
+    "CustomerAuthorizerId": {
+      "Type": "String",
+      "Default": "r7nmgw",
+      "AllowedValues": [
+        "r7nmgw"
+      ]
+    },
+    "MapboxSecretArn": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "^$|^arn:aws:secretsmanager:us-east-1:699561669180:secret:[A-Za-z0-9/_+=.@-]+-[A-Za-z0-9]{6}$"
+    }
+  },
+  "Outputs": {
+    "QuoteFunctionArn": {
+      "Condition": "StagingAccountAndRegion",
+      "Value": {
+        "Fn::GetAtt": [
+          "DeliveryQuotesFunction",
+          "Arn"
+        ]
+      }
+    },
+    "QuoteRoleArn": {
+      "Condition": "StagingAccountAndRegion",
+      "Value": {
+        "Fn::GetAtt": [
+          "DeliveryQuoteRole",
+          "Arn"
+        ]
+      }
+    },
+    "QuoteApiDeploymentId": {
+      "Condition": "StagingAccountAndRegion",
+      "Value": {
+        "Ref": "QuoteApiDeployment"
+      }
+    },
+    "QuoteTableArn": {
+      "Condition": "StagingAccountAndRegion",
+      "Value": {
+        "Fn::GetAtt": [
+          "DeliveryQuotes",
+          "Arn"
+        ]
       }
     }
   }

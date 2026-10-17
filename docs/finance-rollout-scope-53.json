@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "part": 53,
+  "environment": "Staging",
+  "preparedAtUtc": "2026-10-17T03:20:08.117666+00:00",
+  "status": "SCOPE_GUARD_IMPLEMENTED_LOCALLY_NOT_PUBLISHED",
+  "scopeGuardImplemented": true,
+  "published": false,
+  "activated": false,
+  "cohortConfiguredInAWS": false,
+  "AWSCalls": 0,
+  "humanRowsRead": false,
+  "humanOrderOrFinancialWrites": false,
+  "IAMChanged": false,
+  "phaseT1LiveVerificationComplete": false,
+  "contract": "docs/finance-rollout-scope-53.md",
+  "runtimeConfigurationKeys": [
+    "FINANCE_ROLLOUT_CONFIG",
+    "FINANCE_ROLLOUT_SHA256"
+  ],
+  "scopeDefinition": {
+    "maximumScopes": 4,
+    "maximumOrdersPerScope": 10,
+    "maximumDriversPerScope": 10,
+    "onlyExplicitOrderIds": true,
+    "verifiedCustomerAndBranchBinding": true,
+    "driverRecordAndSubjectBinding": true,
+    "durableOrderPin": "financeRollout",
+    "drainRetainsSettlementReturnsAndReplay": true,
+    "doesNotAuthorizeCallerOrReleaseMoney": true
+  },
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    }
+  ],
+  "sourceSha256": {
+    "backend/wallet-service/src/financeRollout.ts": "0b83f1f457e24ca0a0f7b5142d5ea6fd30a38b63f932dcf4ec2c89f1a67b6b83",
+    "backend/wallet-service/src/deliveryQuote.ts": "2e67236812a4b8bb43c381e7bcd055e074a5777e4a7339c039ae7107b8d65b76",
+    "backend/wallet-service/src/deliveryQuoteOrder.ts": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+    "backend/wallet-service/src/deliveryQuoteRuntime.ts": "b7738c17a59a4119fb641a05abe160743232ef54ee17123b1ffba80a06d00b2a",
+    "backend/wallet-service/src/driverFinancialRuntime.ts": "3b3227bce8bfcee9555603abc176e9e93cc8bf5a3eb6d108c818e3e583153d80",
+    "backend/wallet-service/src/dispatchCoordinatorRuntime.ts": "93f030528ace2475ea34de3f0037b3ea0d63dd1564ca088991776b4619a12846",
+    "backend/wallet-service/src/dispatchLegacyBridgeRuntime.ts": "22bd004d9f36e43b27d8e0716b65a4f05e071253e045b01c06b84c62269a4df5",
+    "backend/wallet-service/src/dispatchLegacyDelivery.ts": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+    "backend/wallet-service/src/dispatchResponseRuntime.ts": "61933a6d13596480ecf5c1128ea9b35fae913ad0d574feab55dc178892ff0c74",
+    "backend/wallet-service/src/codIntegrationRuntime.ts": "15d15e09ccd9f3700c6838a649ca352ccd20157a6c16bafdbb438255ee8a53d1",
+    "backend/wallet-service/src/dispatchReviewHostRuntime.ts": "364be6840e05ea8f6ba0bccfe607858c98591421719b48988c2665fd61660ee7",
+    "backend/wallet-service/notification-worker/index.js": "35b37d7502b38d3c826b392e0a547944e829b300c69b0d850c19d533013bf8ed",
+    "backend/wallet-service/notification-worker/finance-rollout.js": "0616d4bf1d89771dbcb769bd038103895f23638271a3a0c42b2baf86ee748855",
+    "backend/staff-service/index.js": "c0c0da44d2c6268e44109191a1c551cfeca8e3b4873557543ed4771c6806133c",
+    "backend/staff-service/dispatch-reviews.js": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+    "backend/staff-service/finance-rollout.js": "0616d4bf1d89771dbcb769bd038103895f23638271a3a0c42b2baf86ee748855",
+    "backend/src/utils/pinned-wave-push-handler.js": "afed408f34425fcdb73a2688b30c4befde7dc9ea7be67f4ef03e2c1fd4b6951a",
+    "backend/src/utils/finance-rollout.js": "0616d4bf1d89771dbcb769bd038103895f23638271a3a0c42b2baf86ee748855",
+    "lambda/WaveSystem_CreateDispatchJob/index.js": "87b3e70bff8ce28f449bffc264c20d2c53181da5204e6ba6e103a7787767c5fd",
+    "../wizzuser-stg/backend/src/functions/create-order/index.js": "a2b42c2f44b3d8eb42be74de4b5ca0d73cd3867acff993a8822ff099e92a84d7",
+    "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+    "../wizzuser-stg/backend/src/functions/delivery-quotes/index.js": "c285979e31c6846ee7a31e04e0f38f515ec7ae7873be678fb9a3384f47892b54",
+    "../wizzuser-stg/backend/src/functions/shared/customer-order-view.js": "6399adf6a8a7ce5238a0581b8de42cc9c4d1371335949aa453df603091dc488f",
+    "../whizzDrivers-stg/backend/lambda_driver_api_v2.js": "e0a6089e75934334b020fd85d09987f515ae027590c4941fdfae1e69a18f7287",
+    "../whizzMerchants-stg/backend/functions/orders/merchant_order_handler.js": "d82614496bfcc416db9ec74fb674c13f4d9ff9db62237b5bb277ff3df2351519",
+    "scripts/sync-finance-rollout-runtime.cjs": "142a5aa7c69aa0767e69459344f4d1f47c237852d80534f5d255b42dd5e8d1ae",
+    "scripts/sync-delivery-quote-order-runtime.cjs": "adf2e4826080ba84d29ded9c620f8c264773f47e7d594e7bd42d82a9035dc425",
+    "scripts/check-finance-rollout-deployment.cjs": "dc3f1bc78cc438eff6088ae70d3fe4badf8095ea5ec25ea45f128ab9d2e89a93",
+    "scripts/prepare-finance-transition-52.cjs": "6463fe5c9a8cec3d5ab342b31558f188a9a5ad9af229b5b09f08d08478e60aa5",
+    "backend/wallet-service/test/finance-rollout.test.cjs": "1214c176cae3ef40559d56b4b175cc087806728d7c73774ec38454ec39f3d30f",
+    "backend/wallet-service/test/helpers/finance-rollout-fixture.cjs": "971d85433b1a5a9c628c8f646e05a1613f22609de2a8fbc6fd644d96ba9bd01c",
+    "scripts/test/finance-rollout-deployment.test.cjs": "15c816c0d1721e0fe8931024ced9ee8c6e2f067123486e46f01be12ac9ac8d16"
+  },
+  "build": {
+    "typeScript": true,
+    "standaloneRuntimeBundles": [
+      {
+        "name": "driverFinancialRuntime",
+        "bytes": 3179742,
+        "sha256": "27217a66e85937d1070072261453cdf4a19035f6607e9fb145503782b2b650b8"
+      },
+      {
+        "name": "dispatchCoordinatorRuntime",
+        "bytes": 1890293,
+        "sha256": "a73db79b8d561a80602afe71c3ae3a88814d671a87f91c09fdd1d25db95b0070"
+      },
+      {
+        "name": "dispatchLegacyBridgeRuntime",
+        "bytes": 2916594,
+        "sha256": "6bbe6bded51300d3b5bbe9232a0eac530105b5323d15701a389ef8f8aaf7e8ed"
+      },
+      {
+        "name": "dispatchResponseRuntime",
+        "bytes": 1405547,
+        "sha256": "696bc7b20f62e1315612d93f7bf3492b742695fb88d31243f4319a70314b5e8b"
+      },
+      {
+        "name": "dispatchReviewHostRuntime",
+        "bytes": 3070665,
+        "sha256": "db2be086870f718d33702cc2fd7a8a457be64ac1aa95afdab39187c93ac0928b"
+      },
+      {
+        "name": "codIntegrationRuntime",
+        "bytes": 3137057,
+        "sha256": "f9c5e7ae329d9f8f5d4cccd969fc04b732e30d5a97d579b28fed66c4ed308ec1"
+      }
+    ],
+    "privateArtifactDirectory": "/private/tmp/finance-rollout53-reviewed-wvPlnt",
+    "generatedCjsCopiesMatched": true,
+    "quoteAndOrderGeneratedRuntimeMatched": true,
+    "actualMinifiedOtherSdkTest": true
+  },
+  "tests": {
+    "wallet-all": {
+      "tests": 673,
+      "pass": 673,
+      "fail": 0
+    },
+    "user": {
+      "tests": 46,
+      "pass": 46,
+      "fail": 0
+    },
+    "driver": {
+      "tests": 27,
+      "pass": 27,
+      "fail": 0
+    },
+    "merchant": {
+      "tests": 195,
+      "pass": 195,
+      "fail": 0
+    },
+    "staff-deletion": {
+      "tests": 379,
+      "pass": 379,
+      "fail": 0
+    },
+    "release-tests": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    }
+  },
+  "requiredGuardedFunctions": [
+    "WizzUser-DeliveryQuotes-staging",
+    "WizzUser-CreateOrder-staging",
+    "WaveSystem_CreateDispatchJob",
+    "WaveSystem_StartWave",
+    "WaveSystem_HandleWaveTimeout",
+    "WaveSystem_HandleDriverAccept",
+    "WaveSystem_HandleDriverReject",
+    "DriversApi-staging",
+    "staging-driver-financial-accept",
+    "staging-cod-integration",
+    "staging-wizz-staff-service",
+    "staging-wizz-wallet-notification-worker",
+    "wizzcentral-notifications-staging-pushSendWaveOffer"
+  ],
+  "deploymentToolAgreementIsNotActivationApproval": true,
+  "supersededCandidates": "Part52 two-package preparation now refuses scoped source. Those old candidates must not be published alone.",
+  "requiredBeforeCoordinatedRelease": [
+    "Fresh published package/configuration comparison and closed-gate coordinated candidates.",
+    "Effective IAM for projected order identity/financeRollout fields, notification item reads and transaction conditions; no permissions granted in this part.",
+    "Update all bundled public-order projections, including read-only Lambda copies.",
+    "Verify matching cohort configuration and retained draining versions against live functions, not an offline manifest alone.",
+    "Use preselected API request IDs for synthetic canary; align Checkout generated UUID before device cohort testing.",
+    "Verify provider/device acknowledgments and pricing/funding/deletion/retention prerequisites before activation."
+  ],
+  "limits": [
+    "Tests inject identity, provider and DB adapters; no authenticated deployed handler or real DynamoDB transaction/device/provider delivery proved here.",
+    "Standalone bundles prove source packaging, not ZIP overlays from freshly downloaded live packages.",
+    "No Flutter change or installed device build. Legacy ALL expansion, scan scale, recovery and performance v1.6 remain outside this part."
+  ]
+}

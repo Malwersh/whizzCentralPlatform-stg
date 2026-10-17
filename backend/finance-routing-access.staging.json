@@ -1,0 +1,48 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Staging only: exact routing-secret read for Quote and StartWave. No writes, no wildcard secret access, no runtime activation.",
+  "Resources": {
+    "QuoteRoutingRead": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "FinanceRoutingCurrentSecret57",
+        "Roles": [
+          "staging-delivery-quotes-DeliveryQuoteRole-ZBt492FUdXTr"
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "secretsmanager:GetSecretValue"
+              ],
+              "Resource": "arn:aws:secretsmanager:us-east-1:699561669180:secret:staging/finance/mapbox/server-routing-IZJNcs"
+            }
+          ]
+        }
+      }
+    },
+    "WaveRoutingRead": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "FinanceRoutingCurrentSecret57",
+        "Roles": [
+          "wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE"
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "secretsmanager:GetSecretValue"
+              ],
+              "Resource": "arn:aws:secretsmanager:us-east-1:699561669180:secret:staging/finance/mapbox/server-routing-IZJNcs"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

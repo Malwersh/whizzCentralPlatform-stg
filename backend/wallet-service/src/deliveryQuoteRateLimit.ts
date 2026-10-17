@@ -20,9 +20,10 @@ const digest = (row: Row) => quoteHash({ pk: row.pk, sk: row.sk, schemaVersion: 
  * spend quota but never authorize routing: cost protection fails closed, with no compensating writes.
  */
 export function createStagingDeliveryQuoteRateLimiter(options: {
-  db: Pick<DynamoDBDocumentClient, 'send'>; maxPerMinute: number; now?: () => number;
+  db: Pick<DynamoDBDocumentClient, 'send'>; maxPerMinute: number; policyCondition?: Row|null; now?: () => number;
 }) {
   if (!Number.isSafeInteger(options.maxPerMinute) || options.maxPerMinute < 1 || options.maxPerMinute > 120) return unavailable();
+  if(options.policyCondition&&(options.policyCondition.ConditionCheck?.TableName!=='staging-PlatformStaff'||options.policyCondition.ConditionCheck?.Key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS'||options.policyCondition.ConditionCheck?.Key?.sk!=='CURRENT'))return unavailable();
   const now = options.now ?? Date.now;
   return Object.freeze({ async reserve(customer: QuoteCustomer): Promise<void> {
     const condition = customer?.condition?.ConditionCheck;
@@ -47,7 +48,7 @@ export function createStagingDeliveryQuoteRateLimiter(options: {
       const row: Row = { ...key, schemaVersion: 1, subjectId: customer.subjectId, windowStart, count: count + 1, version: (old?.version ?? 0) + 1 };
       row.digest = digest(row);
       try {
-        await options.db.send(new TransactWriteCommand({ TransactItems: [customer.condition, { Put: {
+        await options.db.send(new TransactWriteCommand({ TransactItems: [customer.condition, ...(options.policyCondition?[options.policyCondition]:[]), { Put: {
           TableName: TABLE, Item: row,
           ConditionExpression: old
             ? '#digest=:digest AND #version=:version AND subjectId=:sub AND (attribute_not_exists(legalHold) OR legalHold=:no) AND (attribute_not_exists(retentionHold) OR retentionHold=:no)'
@@ -62,8 +63,8 @@ export function createStagingDeliveryQuoteRateLimiter(options: {
       } catch (e: any) {
         // Retry only a proven quota-row CAS conflict. Unknown/network/other guard failures stay closed.
         const reasons = e.CancellationReasons;
-        if (e.name === 'TransactionCanceledException' && Array.isArray(reasons) && reasons.length === 2 &&
-            reasons[0]?.Code === 'None' && reasons[1]?.Code === 'ConditionalCheckFailed') continue;
+        if (e.name === 'TransactionCanceledException' && Array.isArray(reasons) && reasons.length === (options.policyCondition?3:2) &&
+            reasons.slice(0,-1).every((r:any)=>r?.Code==='None') && reasons[reasons.length-1]?.Code === 'ConditionalCheckFailed') continue;
         return unavailable();
       }
     }

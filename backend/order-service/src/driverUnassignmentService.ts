@@ -1,3 +1,4 @@
+const {isFinancialOrder,LEGACY_ONLY}=require('../legacy-order-policy');
 /**
  * Driver Unassignment Service
  * 
@@ -55,7 +56,7 @@ export class DriverUnassignmentService {
 
     // Step 1: Get order
     const order = await this.getOrder(orderId);
-    if (Object.prototype.hasOwnProperty.call(order, 'financialSnapshot')) throw new OrderServiceError('Financial order requires its return/cancellation workflow', 409, 'FINANCIAL_CANCELLATION_REQUIRED');
+    if (isFinancialOrder(order)) throw new OrderServiceError('Financial order requires its return/cancellation workflow', 409, 'FINANCIAL_CANCELLATION_REQUIRED');
 
     // Step 2: Validate unassignment
     this.validateUnassignment(order, driverId, requestedBy);
@@ -332,7 +333,7 @@ export class DriverUnassignmentService {
         UpdateExpression: updateExpression,
         ExpressionAttributeNames: expressionAttributeNames,
         ExpressionAttributeValues: expressionAttributeValues,
-        ConditionExpression: 'attribute_not_exists(financialSnapshot) AND attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
+        ConditionExpression: LEGACY_ONLY+' AND attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
       })
     );
 

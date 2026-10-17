@@ -1,4 +1,5 @@
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { codIntegrationEvent } from './codIntegrationEvent';
 import { verifyFinancialAssignment } from './financialAssignment';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { readMoney, toWholeIqdExact } from './money';
@@ -22,7 +23,7 @@ function wallet(row:Row|null,id:string,type:string,owner?:string):Row {
  ![row.availableBalance,row.lockedBalance,row.version].every(Number.isSafeInteger)||row.availableBalance<0||row.lockedBalance<0||row.version<1||row.version>=Number.MAX_SAFE_INTEGER)return fail('COD_WALLET_UNAVAILABLE');
  safe(row.availableBalance+row.lockedBalance);return row;
 }
-/** First-assignment COD only. No client amounts, no generic capture/settle service, no payout.
+/** Verified current-assignment COD only. No client amounts, no generic capture/settle service, no payout.
  * Merchant entitlement is funded in its existing wallet LOCKED bucket and linked to an order line.
  * Authentication must validate the original live driver credential, not invocation/Gateway context.
  */
@@ -117,9 +118,9 @@ export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClie
   }
   if(journalLines.reduce((s,r)=>s+BigInt(r.delta),0n)!==0n)return fail();
   const receipt={success:true,kind:'COD_COMPLETION',orderId,operationId,deliveredAt:timestamp,holdCaptured:H>0,capturedAmount:H,cashCollected:true,cashCollectedAmount:C,replayed:false};
-  // Single terminal outcome key is shared with the future return/cancellation writer.
+  // Single terminal outcome key is shared by completion, return and cancellation writers.
   ops.push({Put:{TableName:T.holds,Item:{...outcomeKey,kind:'COD_COMPLETION_JOURNAL',schemaVersion:1,operationId,outcome:'COMPLETED',driverId:actor.driverId,subjectId:actor.subjectId,
-   branchId,offerId:offer.offerId,offerDigest:offer.digest,allocation:a,journalLines,receipt,createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
+   branchId,attempt:order.assignmentAttemptCounter,offerId:offer.offerId,offerDigest:offer.digest,allocation:a,journalLines,receipt,createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
    {Put:{TableName:T.holds,Item:{orderId,sk:'MERCHANT_PAYABLE',kind:'MERCHANT_ORDER_PAYABLE',financialSchemaVersion:2,walletId:mw.walletId,branchId,
     amount:M,status:'LOCKED_PENDING_SETTLEMENT',operationId,agreement:order.commercialPricing?.agreement??null,createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
    set(exactCheck(T.orders,key,order,[...new Set([...Object.keys(order),'financialOutcome','returnStatus','cancellationStatus','returnCaseId','cancellationRequestId','deletionStatus','deletionRequestId','deletedAt','isDeleted'])]),
@@ -128,8 +129,7 @@ export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClie
    set(exactCheck(T.live,liveKey,live),{status:live.isActive===true?'available':'offline',currentOrderId:null,activeOrdersCount:0,isSearching:false}),
    {Put:{TableName:T.audit,Item:{datePartition:'date#'+timestamp.slice(0,10).replace(/-/g,''),sk:timestamp+'#'+operationId,logId:operationId,
     action:'COD_ORDER_COMPLETED',actorId:actor.subjectId,orderId,branchId,operationId,createdAt:timestamp,cashEvidence:'DRIVER_DECLARATION',amount:C,currency:'IQD'},ConditionExpression:'attribute_not_exists(sk)'}},
-   {Put:{TableName:T.lifecycle,Item:{operationId:operationId+':EVENT',kind:'COD_COMPLETION_OUTBOX',orderId,driverId:actor.driverId,
-    financialOperationId:operationId,status:'PENDING_INTEGRATION',eventType:'ORDER_DELIVERED',createdAt:timestamp},ConditionExpression:'attribute_not_exists(operationId)'}});
+   codIntegrationEvent({kind:'COD_COMPLETION_OUTBOX',financialOperationId:operationId,orderId,driverId:actor.driverId,subjectId:actor.subjectId,branchId,offerId:offer.offerId,attempt:order.assignmentAttemptCounter,waveNumber:order.assignmentWaveNumber,createdAt:timestamp}));
   if(ops.length>100||Buffer.byteLength(JSON.stringify(ops))>3500000)return fail('COD_COMPLETION_UNAVAILABLE');
   if(!equal(actor,await authenticateDriver()))return fail('UNAUTHORIZED');
   try{await db.send(new TransactWriteCommand({TransactItems:ops as any,ClientRequestToken:quoteHash(ops).slice(0,36)}));}

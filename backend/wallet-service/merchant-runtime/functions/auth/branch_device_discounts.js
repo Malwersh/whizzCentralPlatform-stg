@@ -1,14 +1,15 @@
 'use strict';
 const {GetCommand,ScanCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {createHash,randomUUID}=require('node:crypto');
+const {versioned}=require('../shared/campaign-version');
 const D='WhizzMerchants_Discounts',T='staging-MerchantPlatform';
-const FIELDS=['discountId','businessId','title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_count','usage_limit','updated_at','created_at','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters'];
+const FIELDS=['discountId','businessId','title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_count','usage_limit','updated_at','created_at','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters','version','fundingPolicyId','fundingPolicyVersion','legalHold','retentionHold'];
 const fail=(code,status=400)=>{throw Object.assign(Error(code),{status});};
 const pick=r=>Object.fromEntries(FIELDS.filter(k=>r[k]!==undefined).map(k=>[k,r[k]]));
 const digest=r=>createHash('sha256').update(JSON.stringify(r)).digest('hex');
 const revision=r=>digest(pick(r));
 const simple=r=>['percentage','fixedAmount'].includes(r.type)&&r.applicability==='allItems'&&!(r.applicable_item_ids?.length||r.applicable_category_ids?.length||r.conditional_rule||Object.keys(r.conditional_parameters||{}).length);
-const view=r=>({...Object.fromEntries(FIELDS.filter(k=>!['conditional_parameters','applicable_item_ids','applicable_category_ids'].includes(k)&&r[k]!==undefined).map(k=>[k,r[k]])),revision:revision(r),editable:editable(r)});
+const view=r=>({...Object.fromEntries(FIELDS.filter(k=>!['conditional_parameters','applicable_item_ids','applicable_category_ids','legalHold','retentionHold'].includes(k)&&r[k]!==undefined).map(k=>[k,r[k]])),revision:revision(r),editable:editable(r)});
 const get=async(db,table,key)=>(await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;
 async function prove(db,guards){try{await db.send(new TransactWriteCommand({TransactItems:guards}));}catch(e){if(e.name==='TransactionCanceledException')fail('VERSION_OR_STATE_CONFLICT',409);throw e;}}
 function validate(data){
@@ -51,17 +52,20 @@ async function execute(db,{b,d,s,m,authorization,common},input){
  const id=action==='discounts_create'?randomUUID():input.discountId,now=new Date().toISOString();
  const row=action==='discounts_create'?null:await get(db,D,{discountId:id});
  if(action!=='discounts_create'&&(!row||row.businessId!==b.businessId))fail('DISCOUNT_UNAVAILABLE',404);
+ if(row&&(row.legalHold===true||row.retentionHold===true))fail('CAMPAIGN_RETENTION_HOLD',409);
  if(row&&revision(row)!==input.baseRevision)fail('VERSION_OR_STATE_CONFLICT',409);
  if(row&&!simple(row))fail('DISCOUNT_UNSUPPORTED',409);
  if(action==='discounts_status'&&input.active)validate(row);
  if((action==='discounts_create'||action==='discounts_update')&&Date.parse(data.valid_to)<=Date.now()||action==='discounts_status'&&input.active&&Date.parse(row.valid_to)<=Date.now())fail('DISCOUNT_EXPIRED',409);
  let after=action==='discounts_delete'?null:row?{...row,...(data||{}),...(action==='discounts_status'?{status:input.active?'active':'inactive'}:{}),updated_at:now}:{discountId:id,id,businessId:b.businessId,...data,applicability:'allItems',applicable_item_ids:[],applicable_category_ids:[],conditional_rule:null,conditional_parameters:{},usage_limit:null,usage_count:0,status:'inactive',created_at:now,updated_at:now};
+ after=after?versioned(row,after):null;
+ const adopt=!!row&&row.version===undefined;
  const changed=!row||after===null||Object.keys(data||{status:after.status}).some(k=>row[k]!==after[k]);
  let write;
  if(!row)write={Put:{TableName:D,Item:after,ConditionExpression:'attribute_not_exists(discountId)'}};
  else if(action==='discounts_delete')write={Delete:fence(row)};
- else if(!changed)write={ConditionCheck:fence(row)};
- else{const op=fence(row),patch={...(data||{status:after.status}),updated_at:now};op.UpdateExpression='SET '+Object.entries(patch).map(([k,v],i)=>{op.ExpressionAttributeNames['#set'+i]=k;op.ExpressionAttributeValues[':set'+i]=v;return '#set'+i+'=:set'+i;}).join(',');write={Update:op};}
+ else if(!changed&&!adopt)write={ConditionCheck:fence(row)};
+ else{const op=fence(row),patch={...(data||{status:after.status}),updated_at:now,version:after.version};op.UpdateExpression='SET '+Object.entries(patch).map(([k,v],i)=>{op.ExpressionAttributeNames['#set'+i]=k;op.ExpressionAttributeValues[':set'+i]=v;return '#set'+i+'=:set'+i;}).join(',');const removed=['fundingPolicyId','fundingPolicyVersion'].filter(k=>row[k]!==undefined&&after[k]===undefined);if(removed.length)op.UpdateExpression+=' REMOVE '+removed.map((k,i)=>{op.ExpressionAttributeNames['#remove'+i]=k;return '#remove'+i;}).join(',');write={Update:op};}
  const eventAction={discounts_create:'DISCOUNT_CREATED',discounts_update:'DISCOUNT_UPDATED',discounts_status:'DISCOUNT_STATUS_CHANGED',discounts_delete:'DISCOUNT_DELETED'}[action];
  const audit={pk:key.pk,sk:'STAFF_AUDIT#OPERATIONS#'+now+'#'+randomUUID(),ownerId:b.ownerId,businessId:b.businessId,actorId:s.subjectId,actorName:m.displayName||'',roleName:m.grant?.roleNameAr||m.role,deviceId:d.deviceId,sessionId:s.sessionId,permissionVersion:m.version,policyVersion:authorization.policy.version,action:eventAction,entityId:id,createdAt:now,result:'SUCCEEDED',before:row?view(row):null,after:after?view(after):null};
  try{await db.send(new TransactWriteCommand({TransactItems:[...common,write,{Put:{TableName:T,Item:{...key,ownerId:b.ownerId,businessId:b.businessId,discountId:id,fingerprint,createdAt:now},ConditionExpression:'attribute_not_exists(pk)'}},...(changed?[{Put:{TableName:T,Item:audit,ConditionExpression:'attribute_not_exists(pk)'}}]:[])]}));}catch(e){if(e.name!=='TransactionCanceledException')throw e;const repeated=await replay();if(repeated)return repeated;fail('VERSION_OR_STATE_CONFLICT',409);}

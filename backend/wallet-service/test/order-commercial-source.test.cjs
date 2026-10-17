@@ -51,3 +51,14 @@ test('commercial expiry is bounded by funding policy even when delivery Quote la
  const f=fixture();f.funded();f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'}).effectiveTo='2026-10-15T12:01:00.000Z';
  assert.equal((await f.prepare()).expiresAt,'2026-10-15T12:01:00.000Z');
 });
+test('schema two agreement binds owner-consented funding version and full policy digest',async()=>{
+ const {quoteHash}=require('../dist/deliveryQuoteRecord');
+ const f=fixture();f.funded();
+ const policy=f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'}),key={pk:'COMMERCIAL_AGREEMENT#a1',sk:'VERSION#1'},record=f.change('staging-MerchantPlatform',key);
+ record.schemaVersion=2;record.fundingPolicySnapshots=[{id:'fp1',version:policy.version,digest:quoteHash(policy)}];
+ record.termsHash=quoteHash({terms:record.terms,otherCharges:record.otherCharges,allowedFundingPolicyIds:record.allowedFundingPolicyIds,fundingPolicySnapshots:record.fundingPolicySnapshots});
+ for(const [table,sk]of [['staging-MerchantPlatform','CURRENT'],['staging-MerchantPlatform','ACCEPTANCE#1'],['staging-PlatformStaff','APPROVAL#1']])f.change(table,{pk:key.pk,sk}).termsHash=record.termsHash;
+ assert.equal((await f.prepare()).funding.amount.minorAmount,500000);
+ policy.merchantNumerator=0;await assert.rejects(f.prepare(),e=>e.code==='DISCOUNT_FUNDING_UNAUTHORIZED');
+ policy.merchantNumerator=1;policy.version=2;f.input.discount.campaign.fundingPolicyVersion=2;await assert.rejects(f.prepare(),e=>e.code==='DISCOUNT_FUNDING_UNAUTHORIZED');
+});

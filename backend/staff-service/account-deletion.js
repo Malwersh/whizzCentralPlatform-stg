@@ -1,4 +1,5 @@
 'use strict';
+const workflow=require('./write-workflow');const direct=()=>workflow.direct?.()===true;
 const {randomUUID}=require('crypto');
 const {GetCommand,QueryCommand,ScanCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const fail=(code,status=403)=>Object.assign(Error(code),{status});
@@ -26,18 +27,23 @@ async function route(c,actor,method,path,input){
   if(target.legalHold||target.retentionHold)throw fail('DOCUMENTED_RETENTION_HOLD',409);
   // Free text is intentionally not copied to the deletion job.
   const id=randomUUID(),job={pk:'STAFF_DELETIONS',sk:id,requestId:id,employeeId:target.employeeId,baseVersion:target.version,status:'PENDING_APPROVAL',requestedBy:actor.employeeId,requestedByVersion:actor.version,createdAt:new Date().toISOString(),expiresAt:Math.floor(Date.now()/1000)+3600};
+  if(direct()){
+   const next={...target,status:'DELETING',roles:[],approvalLimit:0,version:target.version+1,deletionRequestId:id,minimumAuthTime:Math.floor(Date.now()/1000)+1};
+   const ready={...job,status:'READY',executedBy:actor.employeeId,writeMode:'DIRECT'};
+   await db.send(new TransactWriteCommand({TransactItems:[guard(actor),{Put:{TableName:table,Item:next,ConditionExpression:'#v=:v AND #s=:s AND attribute_not_exists(deletionRequestId) AND (attribute_not_exists(legalHold) OR legalHold=:no) AND (attribute_not_exists(retentionHold) OR retentionHold=:no)',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':target.version,':s':target.status,':no':false}}},{Put:{TableName:table,Item:ready,ConditionExpression:'attribute_not_exists(sk)'}},audit(actor.employeeId,'STAFF_DELETION_SCHEDULED',null,{employeeId:target.employeeId,requestId:id},id)]}));return ready;
+  }
   await db.send(new TransactWriteCommand({TransactItems:[guard(actor),{ConditionCheck:{TableName:table,Key:{pk:'EMPLOYEE#'+target.employeeId,sk:'PROFILE'},ConditionExpression:'#v = :v AND #s = :s',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':target.version,':s':target.status}}},{Put:{TableName:table,Item:job,ConditionExpression:'attribute_not_exists(sk)'}},audit(actor.employeeId,'STAFF_DELETION_REQUESTED',null,{employeeId:target.employeeId,requestId:id},id)]}));return job;
  }
  if(path==='/staff/deletions/approve'){
   requirePermission('staff.change.approve');if(!valid(input.requestId))throw fail('INVALID_REQUEST',400);
   const {Item:job}=await db.send(new GetCommand({TableName:table,Key:{pk:'STAFF_DELETIONS',sk:input.requestId},ConsistentRead:true}));
   if(!job||job.status!=='PENDING_APPROVAL'||job.expiresAt<=Math.floor(Date.now()/1000))throw fail('REQUEST_NOT_PENDING',409);
-  if([job.requestedBy,job.employeeId].includes(actor.employeeId))throw fail('SELF_APPROVAL_FORBIDDEN');
+  if(!direct()&&[job.requestedBy,job.employeeId].includes(actor.employeeId))throw fail('SELF_APPROVAL_FORBIDDEN');
   const requester=await employee(job.requestedBy),target=await employee(job.employeeId);
   if(!c.allowed(requester,'staff.change.request')||requester.version!==job.requestedByVersion)throw fail('REQUESTER_PERMISSION_REVOKED');
   if(!target||target.roles.includes('bootstrap_admin')||target.version!==job.baseVersion||!['SUSPENDED','PENDING','INVITED'].includes(target.status)||target.legalHold||target.retentionHold)throw fail('TARGET_CHANGED_OR_HELD',409);
   const next={...target,status:'DELETING',roles:[],approvalLimit:0,version:target.version+1,deletionRequestId:job.requestId,minimumAuthTime:Math.floor(Date.now()/1000)+1};
-  await db.send(new TransactWriteCommand({TransactItems:[guard(actor),guard(requester),{Put:{TableName:table,Item:next,ConditionExpression:'#v = :v AND #s = :s AND attribute_not_exists(deletionRequestId) AND (attribute_not_exists(legalHold) OR legalHold = :no) AND (attribute_not_exists(retentionHold) OR retentionHold = :no)',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':target.version,':s':target.status,':no':false}}},{Put:{TableName:table,Item:{...job,status:'READY',approvedBy:actor.employeeId,approvedAt:new Date().toISOString()},ConditionExpression:'#s = :pending AND expiresAt > :now',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':pending':'PENDING_APPROVAL',':now':Math.floor(Date.now()/1000)}}},audit(actor.employeeId,'STAFF_DELETION_APPROVED',null,{employeeId:target.employeeId,requestId:job.requestId},randomUUID())]}));return {requestId:job.requestId,status:'READY'};
+  await db.send(new TransactWriteCommand({TransactItems:[guard(actor),...(requester.employeeId===actor.employeeId?[]:[guard(requester)]),{Put:{TableName:table,Item:next,ConditionExpression:'#v = :v AND #s = :s AND attribute_not_exists(deletionRequestId) AND (attribute_not_exists(legalHold) OR legalHold = :no) AND (attribute_not_exists(retentionHold) OR retentionHold = :no)',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':target.version,':s':target.status,':no':false}}},{Put:{TableName:table,Item:{...job,status:'READY',approvedBy:actor.employeeId,approvedAt:new Date().toISOString()},ConditionExpression:'#s = :pending AND expiresAt > :now',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':pending':'PENDING_APPROVAL',':now':Math.floor(Date.now()/1000)}}},audit(actor.employeeId,'STAFF_DELETION_APPROVED',null,{employeeId:target.employeeId,requestId:job.requestId},randomUUID())]}));return {requestId:job.requestId,status:'READY'};
  }
  throw fail('NOT_FOUND',404);
 }
@@ -51,6 +57,8 @@ function redact(value,id,related=false){
   if(related&&['reason','rejectionReason','note','notes','comment','description'].includes(k))continue;
   if(value.employeeId===id&&['name','email','username','phone','phoneNumber','firstName','lastName','address','dateOfBirth','photoUrl','avatarUrl','identityUrl'].includes(k))continue;
   out[k]=redact(v,id,related);
- }return out;
+ }
+ if(value.kind==='DISPATCH_REVIEW_DECISION'&&value.actorId===id&&['PENDING_EXECUTION','BLOCKED_DEPENDENCY','NEEDS_REVIEW'].includes(value.status)){out.status='SUPPRESSED_DELETION';out.resultCode='EMPLOYEE_DELETED';out.receipt={status:'SUPPRESSED_DELETION',executed:false,requestId:value.requestId,caseId:value.caseId,resultCode:'EMPLOYEE_DELETED',holdReleased:false};}
+ return out;
 }
 module.exports={route,redact};

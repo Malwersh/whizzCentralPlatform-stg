@@ -1,7 +1,7 @@
 'use strict';
 const {GetCommand,ScanCommand}=require('@aws-sdk/lib-dynamodb');
 const {error}=require('./policy');
-const terminalOrders=new Set(['delivered','completed','rejected','refunded','cancelled','canceled','canceled_by_user','canceled_by_customer','canceled_by_store','canceled_by_restaurant','canceled_by_driver','canceled_by_system']);
+const terminalOrders=new Set(['returned','delivered','completed','rejected','refunded','cancelled','canceled','canceled_by_user','canceled_by_customer','canceled_by_store','canceled_by_restaurant','canceled_by_driver','canceled_by_system']);
 const terminalTransfers=new Set(['COMPLETED','REJECTED','CANCELLED','CANCELED']);
 function merchantEvidence({db,maxPages=100}){
  async function rows(table){let cursor,count=0,all=[];do{const r=await db.send(new ScanCommand({TableName:table,ConsistentRead:true,ExclusiveStartKey:cursor}));all.push(...r.Items||[]);cursor=r.LastEvaluatedKey;if(++count>=maxPages&&cursor)throw error('EVIDENCE_INCOMPLETE');}while(cursor);return all;}
@@ -25,7 +25,8 @@ function merchantEvidence({db,maxPages=100}){
   const holds=(await rows('staging-Holds')).filter(h=>h.walletId===walletId);
   const topups=(await rows('staging-TopupRequests')).filter(t=>t.walletId===walletId&&!['APPROVED','REJECTED','COMPLETED','CANCELLED','CANCELED'].includes(t.status));
   const transfers=(await rows('staging-IdempotencyKeys')).filter(t=>(t.sourceWalletId===walletId||t.recipientWalletId===walletId)&&t.transferId&&!terminalTransfers.has(t.status));
-  return {complete:true,isOwner:true,isMember,wallets:w?[{walletId,source:'CORE',version:w.version,available:w.availableBalance,locked:w.lockedBalance}]:[],activeOrders:orders.filter(o=>!terminalOrders.has(String(o.status||'').toLowerCase())).map(o=>({orderId:o.orderId,status:o.status})),activeHolds:holds.filter(h=>h.status==='ACTIVE').map(h=>({orderId:h.orderId,status:h.status})),pendingTransfers:transfers.map(t=>({transferId:t.transferId,status:t.status})),pendingPayments:topups.map(t=>({topupId:t.topupId,status:t.status})),externalAssets:['businessPhotoUrl','businessPhoto','logoUrl','photoUrl','imageUrl','licenseUrl','identityUrl','healthCertificateUrl','ownerPhotoUrl'].filter(k=>typeof b[k]==='string'&&b[k].includes('order-receiver-business-photos-dev-1755170214.s3.amazonaws.com/'))};
+  const cod=await require('./cod-retention').pendingCod({db,maxPages,branchId:scope.id});
+  return {complete:true,isOwner:true,isMember,wallets:w?[{walletId,source:'CORE',version:w.version,available:w.availableBalance,locked:w.lockedBalance}]:[],activeOrders:orders.filter(o=>!terminalOrders.has(String(o.status||'').toLowerCase())).map(o=>({orderId:o.orderId,status:o.status})),activeHolds:holds.filter(h=>h.status==='ACTIVE').map(h=>({orderId:h.orderId,status:h.status})),pendingTransfers:transfers.map(t=>({transferId:t.transferId,status:t.status})),pendingPayments:[...cod,...topups.map(t=>({topupId:t.topupId,status:t.status}))],externalAssets:['businessPhotoUrl','businessPhoto','logoUrl','photoUrl','imageUrl','licenseUrl','identityUrl','healthCertificateUrl','ownerPhotoUrl'].filter(k=>typeof b[k]==='string'&&b[k].includes('order-receiver-business-photos-dev-1755170214.s3.amazonaws.com/'))};
  };
 }
 module.exports={merchantEvidence};
