@@ -1,4 +1,4 @@
-import { Money, readMoney, moneyFromMinor, addMoney, subtractMoney, multiplyMoney } from './money';
+import { Money, readMoney, moneyFromMinor, addMoney, subtractMoney, multiplyMoney, readWholeIqdRounding, quantizeWholeIqd } from './money';
 import { allocateOrder } from './orderAllocation';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 
@@ -21,23 +21,46 @@ function time(v: unknown): number {
 }
 function amount(v: unknown): Money { const m = readMoney(v); if (m.minorAmount < 0) return fail(); return m; }
 const zero = moneyFromMinor(0);
-function charge(value: unknown, bases: Record<string, Money>) {
-  const r = row(value, ['kind', 'basis', 'fixed', 'rate', 'rounding']);
+export function validateCommercialCharge(value: unknown): Row {
+  const hasFinal = !!value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'finalRounding');
+  const r = row(value, ['kind', 'basis', 'fixed', 'rate', 'rounding', ...(hasFinal ? ['finalRounding'] : [])]);
+  if (hasFinal) readWholeIqdRounding(r.finalRounding);
   if (!['EXACT', 'TOWARD_ZERO', 'HALF_AWAY_FROM_ZERO'].includes(r.rounding)) return fail();
   if (r.kind === 'NONE') {
     if (r.basis !== null || r.fixed !== null || r.rate !== null || r.rounding !== 'EXACT') return fail();
-    return { amount: zero, basis: null, basisAmount: null };
+  } else if (r.kind === 'FIXED') {
+    if (r.basis !== null || r.rate !== null || r.rounding !== 'EXACT') return fail();
+    amount(r.fixed);
+  } else if (r.kind === 'PERCENT') {
+    if (r.fixed !== null || !['GOODS_GROSS', 'AFTER_MERCHANT_DISCOUNT', 'CUSTOMER_GOODS_PAYMENT'].includes(r.basis)) return fail();
+    const rate = row(r.rate, ['numerator', 'denominator']);
+    integer(rate.numerator, 0); integer(rate.denominator);
+    if (rate.numerator > rate.denominator) return fail();
+  } else return fail();
+  return JSON.parse(JSON.stringify(r));
+}
+function charge(value: unknown, bases: Record<string, Money>) {
+  const r = validateCommercialCharge(value), hasFinal = Object.prototype.hasOwnProperty.call(r, 'finalRounding');
+  const final = hasFinal ? readWholeIqdRounding(r.finalRounding) : null;
+  const finish = (raw: Money, basis: string | null, basisAmount: Money | null) => {
+    const amount = final ? quantizeWholeIqd(raw, final) : raw;
+    return { amount, basis, basisAmount, ...(final ? { beforeFinalRounding: raw, finalRounding: final, finalRoundingAdjustment: subtractMoney(amount, raw) } : {}) };
+  };
+  if (!['EXACT', 'TOWARD_ZERO', 'HALF_AWAY_FROM_ZERO'].includes(r.rounding)) return fail();
+  if (r.kind === 'NONE') {
+    if (r.basis !== null || r.fixed !== null || r.rate !== null || r.rounding !== 'EXACT') return fail();
+    return finish(zero, null, null);
   }
   if (r.kind === 'FIXED') {
     if (r.basis !== null || r.rate !== null || r.rounding !== 'EXACT') return fail();
-    return { amount: amount(r.fixed), basis: null, basisAmount: null };
+    return finish(amount(r.fixed), null, null);
   }
   if (r.kind !== 'PERCENT' || r.fixed !== null || !Object.prototype.hasOwnProperty.call(bases, r.basis)) return fail();
   const rate = row(r.rate, ['numerator', 'denominator']);
   integer(rate.numerator, 0); integer(rate.denominator);
   if (rate.numerator > rate.denominator) return fail();
   const basisAmount = bases[r.basis];
-  return { amount: multiplyMoney(basisAmount, rate.numerator, rate.denominator, r.rounding), basis: r.basis, basisAmount };
+  return finish(multiplyMoney(basisAmount, rate.numerator, rate.denominator, r.rounding), r.basis, basisAmount);
 }
 /** Pure calculation of already-resolved commercial terms. Not a policy/approval/payment reader,
  * campaign eligibility engine, discount usage reservation, funding proof or financial writer.

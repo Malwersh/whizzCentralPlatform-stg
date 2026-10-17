@@ -195,7 +195,7 @@ async function loadTransfers(more=false){
  if(!more)el('transfer-requests').replaceChildren();
  for(const request of data.requests){
   const row=document.createElement('tr');cell(row,request.transferId);cell(row,owners.get(request.recipientWalletId.replace('WALLET#DRIVER#',''))?.name || request.recipientWalletId);cell(row,`${request.amount} د.ع`);cell(row,request.reason);cell(row,request.status==='COMPLETED'?'مكتمل':request.expiresAt<=Date.now()/1000?'انتهت المهلة':'بانتظار اعتماد مستقل');
-  if(request.status==='PENDING_APPROVAL' && request.expiresAt>Date.now()/1000 && can('finance.approve') && request.requestedBy!==staffProfile?.employee?.employeeId && (can('bootstrap.only')||request.amount<=(staffProfile?.employee?.approvalLimit||0)))button(cell(row,''),'اعتماد من مدير آخر',async()=>{if(!confirm(`اعتماد تحويل ${request.amount} دينار إلى ${request.recipientWalletId}؟`))return;await call('/wallet/funding/admin/transfer/approve','POST',{requestId:request.transferId});el('transfer-message').textContent='تم التحويل';await loadTransfers();});else cell(row,'—');
+  if(request.status==='PENDING_APPROVAL' && request.expiresAt>Date.now()/1000 && can('finance.approve') && (staffProfile?.directWrite||request.requestedBy!==staffProfile?.employee?.employeeId) && (can('bootstrap.only')||request.amount<=(staffProfile?.employee?.approvalLimit||0)))button(cell(row,''),'اعتماد من مدير آخر',async()=>{if(!confirm(`اعتماد تحويل ${request.amount} دينار إلى ${request.recipientWalletId}؟`))return;await call('/wallet/funding/admin/transfer/approve','POST',{requestId:request.transferId});el('transfer-message').textContent='تم التحويل';await loadTransfers();});else cell(row,'—');
   el('transfer-requests').append(row);
  }
  transferCursor=data.nextCursor;el('transfer-more').hidden=!transferCursor;
@@ -209,22 +209,22 @@ el('transfer-create').onclick=async()=>{
   if(!el('transfer-recipient').value)throw Error('اختر محفظة المستلم أولاً');
   const input={recipientWalletId:el('transfer-recipient').value,amount:Number(el('transfer-amount').value),reason:el('transfer-reason').value.trim()};
   if(!transferAttempt || JSON.stringify(transferAttempt.input)!==JSON.stringify(input))transferAttempt={input,requestId:crypto.randomUUID()};
-  await call('/wallet/funding/admin/transfer','POST',{...input,requestId:transferAttempt.requestId});
-  el('transfer-message').textContent='تم إنشاء الطلب؛ يحتاج اعتماد مدير مالي آخر. تطبق الحدود السارية عند الاعتماد.';await loadTransfers();
+  const result=await call('/wallet/funding/admin/transfer','POST',{...input,requestId:transferAttempt.requestId});
+  el('transfer-message').textContent=result.status==='COMPLETED'?'تم التحويل.':'تم إنشاء الطلب؛ يحتاج اعتماد مدير مالي آخر. تطبق الحدود السارية عند الاعتماد.';await loadTransfers();
  }catch(e){el('transfer-message').textContent=e.message;}
  finally{el('transfer-create').disabled=false;}
 };
 const policyFields={minAmount:'أقل مبلغ',maxAmount:'أعلى مبلغ',driverDaily:'حد السائق اليومي',customerDaily:'حد الزبون اليومي',merchantDaily:'حد المطعم اليومي',platformDaily:'حد المنصة اليومي',requestTtlSeconds:'مدة الطلب بالثواني',reauthSeconds:'مدة إعادة التحقق بالثواني'};
 async function loadTransferSettings(){
  try{
-  const data=await call('/wallet/funding/admin/transfer-settings');transferPolicy=data.config;settingsPending=data.pending;
+  const data=await call('/wallet/funding/admin/transfer-settings');transferPolicy=data.config;el('transfer-settings-propose').textContent=data.directWrite?'حفظ الإعدادات':'إرسال للاعتماد';settingsPending=data.pending;
   el('transfer-setting-enabled').checked=transferPolicy.enabled;
   el('transfer-create').disabled=!can('finance.request')||!transferPolicy.enabled || !el('transfer-recipient').value;
   for(const key of Object.keys(policyFields))el('transfer-setting-'+key).value=transferPolicy[key];
   el('transfer-amount').min=transferPolicy.minAmount;el('transfer-amount').max=transferPolicy.maxAmount;
   el('transfer-policy-summary').textContent=`${transferPolicy.enabled?'التحويلات مفعلة':'التحويلات موقوفة'} — المبلغ ${transferPolicy.minAmount}–${transferPolicy.maxAmount} دينار، وحد المنصة اليومي ${transferPolicy.platformDaily} دينار. يوم بغداد. مدة الطلب ${transferPolicy.requestTtlSeconds/60} دقيقة، وتسجيل الدخول الحديث ${transferPolicy.reauthSeconds/60} دقيقة. الاعتماد من مدير آخر إلزامي.`;
   el('transfer-settings-pending').replaceChildren();
-  const pending=settingsPending?.status==='PENDING' && settingsPending.expiresAt>Date.now()/1000;
+  const pending=!data.directWrite&&settingsPending?.status==='PENDING' && settingsPending.expiresAt>Date.now()/1000;
   el('transfer-settings-approve').hidden=!pending||!can('finance.settings.approve');el('transfer-settings-cancel').hidden=!pending||!(can('finance.settings.request')||can('finance.settings.approve'));
   el('transfer-settings-propose').disabled=!!pending;
   if(pending){for(const key of ['enabled',...Object.keys(policyFields)]){const row=document.createElement('tr');cell(row,policyFields[key] || 'تفعيل التحويل');cell(row,String(transferPolicy[key]));cell(row,String(settingsPending.proposed[key]));el('transfer-settings-pending').append(row);}}

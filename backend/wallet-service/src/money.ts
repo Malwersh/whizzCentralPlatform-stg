@@ -65,6 +65,29 @@ export function subtractMoney(left: Money, right: Money): Money {
   return moneyFromMinor(bounded(BigInt(readMoney(left).minorAmount) - BigInt(readMoney(right).minorAmount)));
 }
 export type MoneyRounding = 'EXACT' | 'TOWARD_ZERO' | 'HALF_AWAY_FROM_ZERO';
+export type WholeIqdRounding = Readonly<{ incrementIqd: number; mode: MoneyRounding }>;
+/** Explicit versioned price policy. Absence must never quantize legacy snapshots. */
+export function readWholeIqdRounding(value: unknown): WholeIqdRounding {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new MoneyError('INVALID_ROUNDING');
+  const r = value as Record<string, unknown>;
+  if (Object.keys(r).sort().join(',') !== 'incrementIqd,mode' ||
+      typeof r.incrementIqd !== 'number' || !Number.isSafeInteger(r.incrementIqd) || r.incrementIqd < 1 ||
+      r.incrementIqd > Math.floor(Number.MAX_SAFE_INTEGER / 1000) ||
+      !['EXACT', 'TOWARD_ZERO', 'HALF_AWAY_FROM_ZERO'].includes(r.mode as string)) throw new MoneyError('INVALID_ROUNDING');
+  return Object.freeze({ incrementIqd: r.incrementIqd, mode: r.mode as MoneyRounding });
+}
+/** Round the final charge before consent/hash/quote/offer creation, never at wallet persistence. */
+export function quantizeWholeIqd(value: Money, policy: WholeIqdRounding): Money {
+  const p = readWholeIqdRounding(policy), amount = BigInt(readMoney(value).minorAmount), step = BigInt(p.incrementIqd) * 1000n;
+  let units = amount / step;
+  const remainder = amount % step;
+  if (remainder !== 0n) {
+    if (p.mode === 'EXACT') throw new MoneyError('PRECISION_LOSS');
+    const absolute = remainder < 0n ? -remainder : remainder;
+    if (p.mode === 'HALF_AWAY_FROM_ZERO' && absolute * 2n >= step) units += amount < 0n ? -1n : 1n;
+  }
+  return moneyFromMinor(bounded(units * step));
+}
 /** Rate is an integer rational (e.g. 125/10000). Rounding must be explicitly selected. */
 export function multiplyMoney(value: Money, numerator: number, denominator: number, rounding: MoneyRounding): Money {
   const amount = BigInt(readMoney(value).minorAmount);

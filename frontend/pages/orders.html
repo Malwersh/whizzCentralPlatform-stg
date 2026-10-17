@@ -419,6 +419,14 @@
                         </div>
                         </div>
                         
+                        <section id="dispatch-reviews" dir="rtl" style="background:white;padding:20px;margin:20px 0;border:1px solid #ddd;border-radius:12px">
+                            <h2>مراجعة تعذر الإسناد والقبول</h2>
+                            <p>انتهاء البحث لا يلغي الطلب ولا يحرر الحجز. القرارات هنا طلبات متابعة؛ لا تعني تنفيذ الإلغاء أو إعادة البحث.</p>
+                            <button id="dispatch-review-reload" type="button">تحديث حالات المراجعة</button>
+                            <button id="dispatch-review-more" type="button" hidden>المزيد من الحالات</button>
+                            <p id="dispatch-review-message" role="status" aria-live="polite"></p>
+                            <div id="dispatch-review-list"></div>
+                        </section>
                         <!-- Search and Filter Controls -->
                         <div class="orders-controls">
                             <div class="controls-row">
@@ -979,5 +987,6 @@
         } catch (e) { console.warn('RBAC init failed', e); }
     })();
 </script>
+<script src="../dispatch-reviews.js?v=20261016-part43"></script>
 </body>
 </html>

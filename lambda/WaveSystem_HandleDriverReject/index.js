@@ -70,6 +70,18 @@ const handleRequest = async (event) => {
     
     console.log(`🚫 Driver ${driverId} rejected order ${orderId}. Reason: ${rejectionReason || 'none'}`);
     
+    // Pinned cycles must never enter legacy decline/metrics writes. The new
+    // decline adapter is not enabled by the planning-only coordinator mode.
+    const cycleJob=await dynamodb.send(new GetCommand({TableName:DISPATCH_JOBS_TABLE,Key:{orderId,SK:'METADATA'},ConsistentRead:true}));
+    if(cycleJob.Item && Object.prototype.hasOwnProperty.call(cycleJob.Item,'dispatchCycle')) {
+      if(process.env.DISPATCH_CYCLE_MODE==='LEGACY_RESPONSES'){
+        const token=String(event.headers?.Authorization??event.headers?.authorization??'').replace(/^Bearer /i,'');
+        const result=await require('./dispatch-cycle-runtime').respondPinnedLegacyOffer('DECLINE',{orderId,offerId,waveNumber:extractWaveNumberFromOfferId(offerId)},token);
+        return {statusCode:200,body:JSON.stringify(result)};
+      }
+      return {statusCode:409,body:JSON.stringify({success:false,code:'UNIFIED_DECLINE_NOT_READY'})};
+    }
+
     // Step 1: تحديث WaveOffer status → rejected
     const waveNumber = extractWaveNumberFromOfferId(offerId) || 1;
     await updateWaveOfferStatus(offerId, orderId, driverId, waveNumber, rejectionReason);
@@ -378,6 +390,9 @@ async function triggerNextWave(orderId) {
     throw new Error(`DispatchJob not found for order ${orderId}`);
   }
   
+  if(Object.prototype.hasOwnProperty.call(jobResult.Item,'dispatchCycle')) {
+    return require('./dispatch-cycle-runtime').coordinateUnifiedDispatch({orderId,assignmentId:jobResult.Item.dispatchJobId,source:'DECLINE'});
+  }
   const currentWave = jobResult.Item.currentWaveNumber || 1;
   const maxWaves = jobResult.Item.maxWaves || 3;
   const nextWave = currentWave + 1;

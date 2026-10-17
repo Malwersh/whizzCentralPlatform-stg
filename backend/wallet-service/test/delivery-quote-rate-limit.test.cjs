@@ -66,3 +66,11 @@ test('actual quote service only reserves new calculations; replay and GET never 
  const first=await service.create(input);await service.create(input);await service.get({quoteId:first.quoteId});assert.equal(reserved,1);assert.equal(q.providerCalls,1);
  await rejected(service.create({...input,requestId:'22345678-1234-4123-8123-123456789abc'}),'QUOTE_RATE_LIMITED');assert.equal(q.providerCalls,1);
 });
+test('central policy revocation blocks quota admission without retrying or starting routing',async()=>{
+ const f=fixture(),policyCondition={ConditionCheck:{TableName:'staging-PlatformStaff',Key:{pk:'OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS',sk:'CURRENT'},ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':1}}};let writes=0;
+ const limiter=createStagingDeliveryQuoteRateLimiter({maxPerMinute:5,policyCondition,now:()=>f.time,db:{send:async cmd=>{
+  if(cmd instanceof GetCommand)return {};
+  writes++;assert.deepEqual(cmd.input.TransactItems[1],policyCondition);assert(cmd.input.TransactItems[2].Put);
+  throw Object.assign(Error(),{name:'TransactionCanceledException',CancellationReasons:[{Code:'None'},{Code:'ConditionalCheckFailed'},{Code:'None'}]});
+ }}});await rejected(limiter.reserve(f.customer),'QUOTE_RATE_UNAVAILABLE');assert.equal(writes,1);assert.equal(f.rows.size,0);
+});

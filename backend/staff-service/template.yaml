@@ -1,6 +1,23 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Staging employee permissions and audited role changes
+Parameters:
+  PlatformSessionPolicy:
+    Type: String
+    Default: VALID_SESSION
+    AllowedValues: [VALID_SESSION, RECENT_LOGIN]
+  PlatformWriteMode:
+    Type: String
+    Default: REVIEW
+    AllowedValues: [REVIEW, DIRECT]
+  PlatformDirectOperatorIds:
+    Type: String
+    Default: ''
+
+  CommercialAdminEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
 Resources:
   StaffTable:
     Type: AWS::DynamoDB::Table
@@ -42,6 +59,14 @@ Resources:
       MemorySize: 256
       Environment:
         Variables:
+          PLATFORM_ENVIRONMENT: staging
+          PLATFORM_SESSION_POLICY: !Ref PlatformSessionPolicy
+          PLATFORM_WRITE_MODE: !Ref PlatformWriteMode
+          PLATFORM_DIRECT_OPERATOR_IDS: !Ref PlatformDirectOperatorIds
+          COMMERCIAL_ADMIN_ENABLED: !Ref CommercialAdminEnabled
+          DISPATCH_REVIEW_MODE: 'OFF'
+          DISPATCH_REVIEW_EXECUTION_MODE: 'OFF'
+          DISPATCH_RESTART_START_MODE: 'OFF'
           STAFF_TABLE: !Ref StaffTable
           REGIONS_TABLE: WizzCentral_Regions
           DRIVERS_TABLE: WhizzDrivers_staging
@@ -54,6 +79,26 @@ Resources:
             - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:Scan, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
               Resource: !GetAtt StaffTable.Arn
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts
+            - Effect: Allow
+              Action: [dynamodb:Scan]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts
+              Condition:
+                StringEquals:
+                  dynamodb:Select: SPECIFIC_ATTRIBUTES
+                ForAllValues:StringEquals:
+                  dynamodb:Attributes: [discountId, businessId, title, name, code, version, status, isActive, isDeleted, deletedAt, deletionRequestId, validFrom, validTo, valid_from, valid_to, startDate, endDate, fundingPolicyId, fundingPolicyVersion]
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Regions
             - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:Scan]
               Resource: !Sub arn:${AWS::Partition}:dynamodb:us-east-1:${AWS::AccountId}:table/WizzCentral_Regions
@@ -75,6 +120,16 @@ Resources:
             - Effect: Allow
               Action: [dynamodb:ConditionCheckItem]
               Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:Query, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
             - Effect: Allow
               Action: [s3:GetObject]
               Resource: arn:aws:s3:::staging-merchant-onboarding-699561669180/persons/*

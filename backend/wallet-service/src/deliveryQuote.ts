@@ -80,7 +80,7 @@ function readFences(db: DB) {
  */
 export function createStagingDeliveryQuotes(options: {
   db: DB; authenticateCustomer: () => Promise<QuoteCustomer>;
-  beforeCalculate?: (customer: QuoteCustomer) => Promise<void>;
+  beforeCalculate?: (customer: QuoteCustomer, selection: {branchId:string;addressId:string;requestId:string}) => Promise<void>;
   createRouter: (db: DB) => ReturnType<typeof createCoveredDeliveryRouter>; now?: () => number;
 }) {
   const { db } = options, now = options.now ?? Date.now;
@@ -135,7 +135,7 @@ export function createStagingDeliveryQuotes(options: {
         if (existing.requestHash !== requestHash) return fail('QUOTE_REQUEST_CONFLICT');
         return deliver(c, existing);
       }
-      await options.beforeCalculate?.(c);
+      await options.beforeCalculate?.(c,{branchId,addressId,requestId});
       const capture = readFences(db);
       const context = createStagingDeliveryPricingContext({ db: capture.db, router: options.createRouter(capture.db), now,
         authenticateCustomer: async () => {

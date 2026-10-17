@@ -1,0 +1,60 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Staging customer delivery quote cleanup only. Existing lease and customer profile fences remain mandatory.",
+  "Conditions": {
+    "StagingOnly": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "699561669180"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "CustomerQuoteCleanupAccess": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Condition": "StagingOnly",
+      "Properties": {
+        "ManagedPolicyName": "staging-customer-quote-cleanup-67",
+        "Roles": [
+          "staging-account-deletion-WorkerRole-u5xpbVRU9G0Q"
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:Query",
+                "dynamodb:DeleteItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes"
+              ],
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "CUSTOMER#*"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

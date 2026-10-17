@@ -11,7 +11,7 @@ const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 const tables = { assignment: 'WizzDispatchJobs_staging', driver: 'WhizzDrivers_staging',
   position: 'WizzDriverLiveState_staging', policy: 'staging-PlatformStaff', branch: 'WhizzMerchants_Businesses', deletion: 'staging-AccountDeletion' };
 const fields = {
-  assignment: ['orderId','SK','dispatchJobId','restaurantId','status','currentWaveNumber','expiresAt','assignedDriverId','driverId','deletionRequestId','financialExcludedDriverIds','financialRedispatch'],
+  assignment: ['orderId','SK','dispatchJobId','restaurantId','status','currentWaveNumber','expiresAt','assignedDriverId','driverId','deletionRequestId','financialExcludedDriverIds','financialRedispatch','dispatchCycle','dispatchTransition'],
   driver: ['driverId','cognitoSub','status','registrationStatus','vehicleType','deletionRequestId','deletedAt','isDeleted','isSuspended','isBanned'],
   position: ['driverId','status','isActive','isSearching','lat','lng','locationUpdatedAt','currentOrderId','activeOrdersCount'],
   policy: ['pk','sk','version','values'],
@@ -49,10 +49,12 @@ export function createStagingDriverOfferContext(options: {
   router: { getRoute(origin: unknown, destination: unknown): Promise<BoundRoadRoute> };
   positionMaxAgeSeconds: number;
   offerTtlSeconds: number;
+  offerDeadline?: string;
   now?: () => number;
 }) {
   const { db, cognito, router, positionMaxAgeSeconds, offerTtlSeconds } = options, now = options.now ?? Date.now;
   if (![positionMaxAgeSeconds, offerTtlSeconds].every(n => Number.isSafeInteger(n) && n >= 1 && n <= 900)) return fail('INVALID_DRIVER_OFFER_CONTEXT');
+  if(options.offerDeadline!==undefined&&!Number.isFinite(date(options.offerDeadline)))return fail('INVALID_DRIVER_OFFER_CONTEXT');
   const orderReader = createStagingDriverOfferOrderReader({ db });
   async function get(table: string, key: Row, selected: string[]): Promise<Row> {
     const names = Object.fromEntries(selected.map((f,i) => ['#f'+i,f]));
@@ -129,7 +131,7 @@ export function createStagingDriverOfferContext(options: {
       ]);
       await identity(subjectId);
       const offer = buildDriverOffer({schemaVersion:1,offerId:request.offerId,
-        assignment:{id:assignment.dispatchJobId,version:request.waveNumber,expiresAt:assignment.expiresAt},
+        assignment:{id:assignment.dispatchJobId,version:request.waveNumber,expiresAt:new Date(Math.min(date(assignment.expiresAt),date(options.offerDeadline??assignment.expiresAt))).toISOString()},
         driver:{id:request.driverId,subjectId,vehicleType:driver.vehicleType,positionVersion:observed,point,
           observedAt:position.locationUpdatedAt,expiresAt:new Date(observed+positionMaxAgeSeconds*1000).toISOString()},
         order:order.snapshot,policy:{version:policy.version,rules:bundle.driverRules},pickupRoute,deliveryRoute,

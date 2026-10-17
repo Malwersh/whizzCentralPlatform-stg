@@ -1,3 +1,6 @@
+import {pinnedFinancialWaveFence} from './dispatchWaveFence';
+import {createStagingDispatchCoordinator} from './dispatchCoordinator';
+import { codIntegrationEvent, codAcceptanceOperation } from './codIntegrationEvent';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { createStagingDriverOfferContext } from './driverOfferContext';
 import { buildDriverOffer, driverOfferView, prepareDriverOfferAcceptance } from './driverOffer';
@@ -17,8 +20,15 @@ const fail=(c:DriverAcceptanceError['code']):never=>{throw new DriverAcceptanceE
  */
 export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocumentClient,'send'>;
   context:ReturnType<typeof createStagingDriverOfferContext>;
+  contextForOffer?:(offer:Row)=>ReturnType<typeof createStagingDriverOfferContext>;
   authenticateDriver:()=>Promise<{driverId:string;subjectId:string}>;now?:()=>number}) {
   const {db,context,authenticateDriver}=options,now=options.now??Date.now;
+  async function afterDecline(saved:Row){
+    try{const assignment=await strongGet(db,tables.jobs,{orderId:saved.orderId,SK:'METADATA'});
+    if(!assignment||!Object.prototype.hasOwnProperty.call(assignment,'dispatchCycle'))return {success:true,declined:true,offerId:saved.offerId};
+    const transition=await createStagingDispatchCoordinator({db,now}).plan({orderId:saved.orderId,assignmentId:saved.financialOffer.assignmentId,source:'DECLINE'});return {success:true,declined:true,offerId:saved.offerId,transition};}
+    catch{return {success:true,declined:true,offerId:saved.offerId,transitionPending:true};}
+  }
   return Object.freeze({async accept(value:unknown) {
     if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='offerId,orderId,waveNumber')return fail('INVALID_FINANCIAL_ACCEPTANCE');
     const input=detach(value as Row),{orderId,offerId,waveNumber}=input;
@@ -39,7 +49,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     }
     const replay=prior(saved);if(replay)return replay;
     if(saved.responseStatus!=='financial_pending'||saved.isWinner!==false)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
-    const references=await context.checkAcceptance({orderId,branchId:offer.branchId,driverId:actor.driverId,offerId,waveNumber});
+    const references=await (options.contextForOffer?.(offer)??context).checkAcceptance({orderId,branchId:offer.branchId,driverId:actor.driverId,offerId,waveNumber});
     if(references.subjectId!==actor.subjectId||references.driver.vehicleType!==offer.source.driver.vehicleType||references.assignment.dispatchJobId!==offer.assignmentId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const timestamp=new Date(now()).toISOString();
     const enabled=references.bundle.driverRules.filter((r:Row)=>r.status==='PUBLISHED'&&Date.parse(r.effectiveFrom)<=Date.parse(timestamp)&&
@@ -50,6 +60,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     const waveKey={orderId,SK:`FINANCIAL_WAVE#${waveNumber}`},wave=await strongGet(db,tables.jobs,waveKey);
     if(!wave||wave.kind!=='FINANCIAL_WAVE'||wave.state!=='READY'||wave.assignmentId!==offer.assignmentId||wave.branchId!==offer.branchId||
         !Array.isArray(wave.driverIds)||!wave.driverIds.includes(actor.driverId))return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
+    const pinnedGuards=await pinnedFinancialWaveFence(db,references.assignment,offer,waveNumber,wave,now());
     const walletId='WALLET#DRIVER#'+actor.driverId,walletKey={walletId,sk:'META'},wallet=await strongGet(db,tables.wallets,walletKey);
     if(!wallet||wallet.ownerType!=='DRIVER'||wallet.ownerId!==actor.driverId||wallet.currency!=='IQD'||wallet.status!=='ACTIVE'||wallet.deletionRequestId!=null||
         ![wallet.availableBalance,wallet.lockedBalance,wallet.version].every(Number.isSafeInteger)||wallet.availableBalance<0||wallet.lockedBalance<0||wallet.version<1||
@@ -60,10 +71,10 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     if(oldHold&&(!references.order.priorRelease||oldHold.status!=='RELEASED'||oldHold.releaseOperationId!==references.order.priorRelease.operationId||oldHold.metadata?.assignmentAttempt!==references.order.nextAssignmentAttempt-1||oldHold.metadata?.offerDigest!==references.order.priorRelease.offerDigest||!equal(oldHold,references.order.priorRelease.releasedHold)))return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const holdId=amount?'FH:'+quoteHash({orderId,offerId,digest:offer.digest}).slice(0,48):null;
     const receipt={success:true,kind:'FINANCIAL_DRIVER_ACCEPTANCE',offerId,orderId,driverId:actor.driverId,acceptedAt:timestamp,
-      holdId,holdStatus:amount?'ACTIVE':'NOT_REQUIRED',holdAmount:amount,replayed:false};
+      assignmentAttempt:references.order.nextAssignmentAttempt,holdId,holdStatus:amount?'ACTIVE':'NOT_REQUIRED',holdAmount:amount,replayed:false};
     const g=references.guards;
     const ops:Row[]=[g.driver,g.policy,g.branch,...g.deletions,...(references.order.releaseCondition?[references.order.releaseCondition]:[]),
-      exactCheck(tables.jobs,waveKey,wave),
+      exactCheck(tables.jobs,waveKey,wave),...pinnedGuards,
       updateChecked(g.assignment,'SET #uStatus=:uAssigned, #uDriver=:uDriver, #uAt=:uAt',
         {'#uStatus':'status','#uDriver':'assignedDriverId','#uAt':'assignedAt'},{':uAssigned':'assigned',':uDriver':actor.driverId,':uAt':timestamp}),
       updateChecked(g.position,'SET #uStatus=:uBusy, #uOrder=:uOrder, #uCount=:uCount, #uSearch=:uFalse',
@@ -77,7 +88,9 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
         {'#uStatus':'responseStatus','#uWin':'isWinner','#uAt':'responseAt','#uTerms':'acceptedTerms','#uReceipt':'financialReceipt'},
         {':uAccepted':'financial_accepted',':uTrue':true,':uAt':timestamp,':uTerms':plan.acceptedTerms,':uReceipt':receipt}),
       {Put:{TableName:tables.audit,Item:{datePartition:'date#'+timestamp.slice(0,10).replace(/-/g,''),sk:timestamp+'#'+offerId,
-        logId:offerId,action:'FINANCIAL_DRIVER_OFFER_ACCEPTED',actorId:actor.subjectId,driverId:actor.driverId,orderId,offerId,holdId,amount,currency:'IQD',createdAt:timestamp},ConditionExpression:'attribute_not_exists(sk)'}}];
+        logId:offerId,action:'FINANCIAL_DRIVER_OFFER_ACCEPTED',actorId:actor.subjectId,driverId:actor.driverId,branchId:offer.branchId,orderId,offerId,holdId,amount,currency:'IQD',createdAt:timestamp},ConditionExpression:'attribute_not_exists(sk)'}}];
+    ops.push(codIntegrationEvent({kind:'COD_ACCEPTANCE_OUTBOX',financialOperationId:codAcceptanceOperation(orderId,offerId,references.order.nextAssignmentAttempt),
+      orderId,driverId:actor.driverId,subjectId:actor.subjectId,branchId:offer.branchId,offerId,attempt:references.order.nextAssignmentAttempt,waveNumber,createdAt:timestamp}));
     const walletFence=exactCheck(tables.wallets,walletKey,wallet,['walletId','sk','ownerType','ownerId','status','currency','availableBalance','lockedBalance','version','deletionRequestId']);
     if(amount){
       ops.push(updateChecked(walletFence,'SET #uAv=:uAv, #uLocked=:uLocked, #uVersion=:uVersion, #uAt=:uAt',
@@ -115,14 +128,16 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     if(!saved||saved.offerId!==input.offerId||saved.financialOffer?.driverSubjectId!==actor.subjectId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const offer=buildDriverOffer(saved.financialOffer?.source);
     if(!equal(offer,saved.financialOffer)||offer.driverId!==actor.driverId||offer.orderId!==input.orderId||offer.offerId!==input.offerId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
-    if(saved.responseStatus==='financial_declined')return {success:true,declined:true,offerId:input.offerId};
+    if(saved.responseStatus==='financial_declined')return afterDecline(saved);
     if(saved.responseStatus!=='financial_pending'||saved.isWinner!==false)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
-    const live=await context.checkAcceptance({orderId:input.orderId,branchId:offer.branchId,driverId:actor.driverId,offerId:input.offerId,waveNumber:input.waveNumber});
+    const live=await (options.contextForOffer?.(offer)??context).checkAcceptance({orderId:input.orderId,branchId:offer.branchId,driverId:actor.driverId,offerId:input.offerId,waveNumber:input.waveNumber});
     driverOfferView(offer,actor.driverId,actor.subjectId,new Date(now()).toISOString());
+    const wave=Object.prototype.hasOwnProperty.call(live.assignment,'dispatchCycle')?await strongGet(db,tables.jobs,{orderId:input.orderId,SK:'FINANCIAL_WAVE#'+input.waveNumber}):null;
+    const pinnedGuards=await pinnedFinancialWaveFence(db,live.assignment,offer,input.waveNumber,wave,now());
     const g=live.guards;
-    await db.send(new TransactWriteCommand({TransactItems:[live.order.condition,...(live.order.releaseCondition?[live.order.releaseCondition]:[]),g.assignment,g.driver,g.position,g.policy,g.branch,...g.deletions,
+    await db.send(new TransactWriteCommand({TransactItems:[live.order.condition,...(live.order.releaseCondition?[live.order.releaseCondition]:[]),g.assignment,g.driver,g.position,g.policy,g.branch,...g.deletions,...pinnedGuards,...(wave?[exactCheck(tables.jobs,{orderId:input.orderId,SK:wave.SK},wave)]:[]),
       updateChecked(exactCheck(tables.offers,key,saved),'SET #uStatus=:uStatus, #uAt=:uAt',{'#uStatus':'responseStatus','#uAt':'responseAt'},
         {':uStatus':'financial_declined',':uAt':new Date(now()).toISOString()})] as any}));
-    return {success:true,declined:true,offerId:input.offerId};
+    return afterDecline(saved);
   }});
 }

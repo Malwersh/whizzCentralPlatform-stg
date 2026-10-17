@@ -10,6 +10,8 @@ provider:
 
   environment:
     STAGE: ${self:provider.stage}
+    PINNED_LEGACY_PUSH_MODE: 'OFF'
+    PINNED_DISPATCH_ACCOUNT_ID: '699561669180'
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
 
     # Token registry
@@ -54,6 +56,17 @@ provider:
               'dynamodb:Attributes': 'false'
             'ForAllValues:StringEquals':
               'dynamodb:Attributes': [pk, sk, businessId, ownerId, deviceId, version, status, expiresAt, deviceVersion, tokenHash, cognitoUserId, deletionRequestId]
+        - Effect: Allow
+          Action: dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:699561669180:table/WhizzDrivers_staging
+            - arn:aws:dynamodb:${self:provider.region}:699561669180:table/WaveOffers_staging
+            - arn:aws:dynamodb:${self:provider.region}:699561669180:table/WizzDispatchJobs_staging
+          Condition:
+            'Null':
+              'dynamodb:Attributes': 'false'
+            'ForAllValues:StringEquals':
+              'dynamodb:Attributes': [driverId, cognitoSub, status, registrationStatus, isDeleted, deletedAt, deletionRequestId, isBanned, isSuspended, orderId, SK, offerId, driverSubjectId, dispatchCycleId, legacySourceVersion, dispatchKeyVersion, dispatchCycle, responseStatus, isWinner, expiresAt, deliveryAck]
         - Effect: Allow
           Action:
             - dynamodb:PutItem

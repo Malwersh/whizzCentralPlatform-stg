@@ -40,4 +40,23 @@ class StaffPolicyTests(unittest.TestCase):
     def test_wrong_client_or_id_token_fails(self):
         for field,value in [('client_id','other'),('token_use','id')]:
             with self.assertRaises(Exception): policy.access({**self.token,field:value},'GET','/wallet/funding/admin/wallets','pool')
+    def test_direct_operator_requires_staging_allowlist_and_live_profile(self):
+        from unittest.mock import patch
+        with patch.dict(os.environ, {'PLATFORM_ENVIRONMENT':'staging','PLATFORM_WRITE_MODE':'DIRECT','PLATFORM_DIRECT_OPERATOR_IDS':'id'}):
+            _, permissions = policy.access(self.token,'POST','/wallet/funding/admin/transfer','pool')
+            self.assertIn('finance.request', permissions)
+            os.environ['PLATFORM_DIRECT_OPERATOR_IDS']='other'
+            with self.assertRaises(Exception): policy.access(self.token,'POST','/wallet/funding/admin/transfer','pool')
+            os.environ['PLATFORM_DIRECT_OPERATOR_IDS']='id';os.environ['PLATFORM_ENVIRONMENT']='production'
+            with self.assertRaises(Exception): policy.access(self.token,'POST','/wallet/funding/admin/transfer','pool')
+            os.environ['PLATFORM_ENVIRONMENT']='staging';employee['status']='SUSPENDED'
+            with self.assertRaises(Exception): policy.access(self.token,'POST','/wallet/funding/admin/transfer','pool')
+    def test_direct_operator_cannot_bypass_mfa_or_scope(self):
+        global enrolled
+        from unittest.mock import patch
+        with patch.dict(os.environ, {'PLATFORM_ENVIRONMENT':'staging','PLATFORM_WRITE_MODE':'DIRECT','PLATFORM_DIRECT_OPERATOR_IDS':'id'}):
+            enrolled=False
+            with self.assertRaises(Exception): policy.access(self.token,'POST','/wallet/funding/admin/transfer','pool')
+            enrolled=True;employee['scope']['allRegions']=False
+            with self.assertRaises(Exception): policy.access(self.token,'POST','/wallet/funding/admin/transfer','pool')
 if __name__=='__main__': unittest.main()

@@ -14,13 +14,15 @@ const PERSONAL=[
  ['chat-sessions-staging',['sessionId'],['driverId','userId','customerId']],
 ];
 const ORDER_PII=['userId','userSub','customerId','userId_gsi','customerName','customerPhone','customerEmail','customerInfo','customer','deliveryAddress','deliveryInstructions','specialInstructions','notes','guestToken','customerLatitude','customerLongitude','deliveryLatitude','deliveryLongitude','customerLocation','orderTimeline'];
-const TERMINAL=new Set(['delivered','completed','rejected','refunded','cancelled','canceled','canceled_by_user','canceled_by_customer','canceled_by_store','canceled_by_restaurant','canceled_by_driver','canceled_by_system']);
+const TERMINAL=new Set(['returned','delivered','completed','rejected','refunded','cancelled','canceled','canceled_by_user','canceled_by_customer','canceled_by_store','canceled_by_restaurant','canceled_by_driver','canceled_by_system']);
 function financialRecord(row,kind,job,now){
  if(!Number.isInteger(job.financialYears)||job.financialYears<1||job.financialYears>30)throw error('RETENTION_POLICY_INVALID');
  const fields=kind==='order'?['orderId','storeId','businessId','status','paymentMethod','paymentStatus','totalAmount','subtotal','total','deliveryFee','tax','discount','currency','pricing','createdAt','deliveredAt','completedAt','canceledAt']:
- ['transactionId','walletId','orderId','type','category','amount','currency','balanceBefore','balanceAfter','status','createdAt','timestamp','relatedEntityId','transferId','sourceWalletId','recipientWalletId','requestedBy','approvedBy','action','reference','payTabsRef','acquirerRRN','respCode','completedAt','topupId','method','transferReference','evidenceRef','createdById','approvedById','rejectedById','provider','state','paymentId','requestId','confirmedAt','balance'];
+ ['transactionId','walletId','orderId','type','category','amount','currency','balanceBefore','balanceAfter','status','createdAt','timestamp','relatedEntityId','transferId','sourceWalletId','recipientWalletId','requestedBy','approvedBy','action','reference','payTabsRef','acquirerRRN','respCode','completedAt','topupId','method','transferReference','evidenceRef','createdById','approvedById','rejectedById','provider','state','paymentId','requestId','confirmedAt','balance','financialOperationId','operationId','branchId','offerId','eventKind'];
  const data={};for(const field of fields)if(row[field]!==undefined)data[field]=row[field];
  if(data.pricing){const pricing={};for(const k of ['subtotal','total','deliveryFee','tax','discount','currency'])if(data.pricing[k]!==undefined)pricing[k]=data.pricing[k];data.pricing=pricing;}
+ if(kind==='order'&&(row.financialAcceptance||row.financialSnapshot||row.codFinancialEvidence)){data.codFinancialEvidence={...(row.codFinancialEvidence||require('./cod-retention').codEvidence(row))};delete data.codFinancialEvidence.driverId;delete data.codFinancialEvidence.subjectId;}
+ if(row.financialSchemaVersion===2||row.metadata?.financialSchemaVersion===2){data.financialSchemaVersion=2;if(typeof row.metadata?.orderId==='string')data.orderId=row.metadata.orderId;}
  if(kind.startsWith('sandbox_'))data.environment='sandbox';
  if(kind==='sandbox_balance'&&!Number.isSafeInteger(data.balance))throw error('FINANCIAL_RECORD_INVALID');
  if(!['order','audit','sandbox_reference','sandbox_balance'].includes(kind)&&!Number.isSafeInteger(data.amount))throw error('FINANCIAL_RECORD_INVALID');
@@ -45,16 +47,21 @@ function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock
  async function rows(table){let all=[],cursor,count=0;do{const r=await db.send(new ScanCommand({TableName:table,ConsistentRead:true,ExclusiveStartKey:cursor}));all.push(...r.Items||[]);cursor=r.LastEvaluatedKey;if(++count>=maxPages&&cursor)throw error('INVENTORY_INCOMPLETE');}while(cursor);return all;}
  async function get(table,key){return (await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;}
  function fence(r){return {ConditionCheck:{TableName:requestTable,Key:{pk:r.pk,sk:r.sk},ConditionExpression:'leaseOwner = :owner AND leaseUntil > :now AND #v = :v AND #s = :processing',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':owner':r.leaseOwner,':now':Math.floor(new Date(clock()).getTime()/1000),':v':r.version,':processing':'PROCESSING'}}};}
- function condition(row,fields){const names={},values={},parts=[];for(const [i,field] of [...new Set([...fields,'legalHold','retentionHold'])].entries()){if(row[field]!==undefined){names['#c'+i]=field;values[':c'+i]=row[field];parts.push('#c'+i+' = :c'+i);}else if(['legalHold','retentionHold','financialRetainUntil','financialArchiveConfirmed','accountDeletionRequestId'].includes(field)){names['#c'+i]=field;parts.push('attribute_not_exists(#c'+i+')');}}if(!Object.keys(values).length)throw error('OWNERSHIP_GUARD_REQUIRED');return {ConditionExpression:parts.join(' AND '),ExpressionAttributeNames:names,ExpressionAttributeValues:values};}
+ function condition(row,fields){const names={},values={},parts=[];for(const [i,field] of [...new Set([...fields,'legalHold','retentionHold'])].entries()){if(row[field]!==undefined){names['#c'+i]=field;values[':c'+i]=row[field];parts.push('#c'+i+' = :c'+i);}else if(['legalHold','retentionHold','financialRetainUntil','financialArchiveConfirmed','accountDeletionRequestId','leaseOwner','leaseUntil'].includes(field)){names['#c'+i]=field;parts.push('attribute_not_exists(#c'+i+')');}}if(!Object.keys(values).length)throw error('OWNERSHIP_GUARD_REQUIRED');return {ConditionExpression:parts.join(' AND '),ExpressionAttributeNames:names,ExpressionAttributeValues:values};}
  async function remove(r,table,key,row,ownerFields){
-  await db.send(new TransactWriteCommand({TransactItems:[fence(r),{Delete:{TableName:table,Key:key,...condition(row,[...Object.keys(key),...ownerFields,...['createdAt','expiresAt','sessionId','sub','cognitoSub','deletionRequestId'].filter(k=>row[k]!==undefined)])}}]}));
+  await db.send(new TransactWriteCommand({TransactItems:[fence(r),{Delete:{TableName:table,Key:key,...condition(row,[...Object.keys(key),...ownerFields,...(table==='staging-WalletNotifications'?['leaseOwner','leaseUntil']:[]),...['createdAt','expiresAt','sessionId','sub','cognitoSub','deletionRequestId','leaseOwner','leaseUntil'].filter(k=>row[k]!==undefined)])}}]}));
  }
  const ids=job=>job.ownedIds||[job.subjectId,...job.profileIds];
  async function personal(r,job){
+  const ownOrders=(await rows('WizzOrders')).filter(o=>actorType==='DRIVER'?ids(job).includes(o.driverId):actorType==='MERCHANT'?ids(job).includes(o.businessId)||ids(job).includes(o.storeId):ids(job).includes(o.userId)||ids(job).includes(o.userSub)||ids(job).includes(o.customerId));
+  if((await require('./cod-retention').pendingCod({db,maxPages,driverIds:actorType==='DRIVER'?ids(job):[],branchId:actorType==='MERCHANT'?job.businessId:undefined,orderIds:ownOrders.map(o=>o.orderId)})).length)throw error('COD_INTEGRATION_PENDING');
   for(const [table,keys,owners,appField] of personalTables){
    for(const row of await rows(table)){
-    const owner=owners.find(k=>ids(job).includes(row[k]));if(!owner||(appField&&row[appField]!==({CUSTOMER:'user',DRIVER:'driver',MERCHANT:'merchant'})[actorType]))continue;
+    const branchNotice=actorType==='MERCHANT'&&table==='staging-WalletNotifications'&&row.recipientApp==='driver'&&['wallet_cod_lifecycle','dispatch_offer_closed'].includes(row.type)&&ids(job).includes(row.branchId);
+    const owner=branchNotice?'branchId':owners.find(k=>ids(job).includes(row[k]));if(!owner||(!branchNotice&&appField&&row[appField]!==({CUSTOMER:'user',DRIVER:'driver',MERCHANT:'merchant'})[actorType]))continue;
     if(row.legalHold===true||row.retentionHold===true)throw error('DOCUMENTED_RETENTION_HOLD');
+    if(table==='WaveOffers_staging'&&require('./cod-retention').isAccepted(row))continue;
+    if(table==='staging-WalletNotifications'&&Number.isFinite(row.leaseUntil)&&row.leaseUntil>=Math.floor(Date.parse(clock())/1000))throw error('EXTERNAL_WRITES_IN_PROGRESS');
     if(table==='WizzUser_websocket_connections_staging'){
      if(!connections)throw error('CONNECTION_REVOCATION_REQUIRED');
      await identityLease(r);
@@ -64,7 +71,7 @@ function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock
      for(const message of await rows('chat-messages-staging'))if(message.sessionId===row.sessionId)await remove(r,'chat-messages-staging',{sessionId:message.sessionId,messageKey:message.messageKey},message,['sessionId']);
     }
     const key=Object.fromEntries(keys.map(k=>[k,row[k]]));if(Object.values(key).some(v=>typeof v!=='string'||!v))throw error('INVENTORY_INVALID');
-    await remove(r,table,key,row,[owner,...(appField?[appField]:[])]);
+    await remove(r,table,key,row,[owner,...(appField?[appField]:[]),...(branchNotice?['type']:[])]);
    }
   }
   // Phone-only counters shared by all accounts are deliberately excluded. Scoped
@@ -98,16 +105,23 @@ function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock
    if(row.legalHold===true||row.retentionHold===true)throw error('DOCUMENTED_RETENTION_HOLD');
    if(spec.kind==='order'&&!TERMINAL.has(String(row.status||'').toLowerCase()))throw error('ACTIVE_ORDER_AFTER_LOCK');
    const kind=spec.kind==='sandbox'?(row.sk==='BALANCE'?'sandbox_balance':row.sk.startsWith('PAYMENT#')?'sandbox_payment':row.sk.startsWith('LEDGER#')?'sandbox_ledger':'sandbox_reference'):spec.kind;
-   const now=clock(),archive=financialRecord(row,kind,job,now);
    const key=Object.fromEntries(spec.keys.map(k=>[k,row[k]]));
+   let financialSource=row;
+   if(spec.kind==='order'&&row.financialOutcome&&!row.financialSnapshot&&!row.financialAcceptance&&!row.codFinancialEvidence){
+    const priorKey={pk:'REQUEST#'+row.accountDeletionRequestId,sk:'ORDER#'+JSON.stringify(key)};
+    const previousArchive=await get(archiveTable,priorKey);
+    if(!previousArchive||previousArchive.sourceTable!==table||!require('node:util').isDeepStrictEqual(previousArchive.sourceKey,key)||!previousArchive.data?.codFinancialEvidence)throw error('FINANCIAL_ARCHIVE_SOURCE_REQUIRED');
+    financialSource={...row,codFinancialEvidence:previousArchive.data.codFinancialEvidence};
+   }
+   const now=clock(),archive=financialRecord(financialSource,kind,job,now);
    archive.sourceTable=table;archive.sourceKey=key;
    const archiveKey={pk:'REQUEST#'+job.requestId,sk:kind.toUpperCase()+'#'+JSON.stringify(key)};
    const previous=await get(archiveTable,archiveKey);
-   if(previous&&JSON.stringify(previous.data)!==JSON.stringify(archive.data))throw error('ARCHIVE_CONFLICT');
-   const removeFields=spec.kind==='order'?orderPii.filter(k=>row[k]!==undefined):['description','metadata','reason','note','fundingSnapshot','rejectionReason','checkoutUrl','userId','name','phone','email','customerName','customerPhone','customerEmail','respMessage','failureReason'].filter(k=>row[k]!==undefined);
+   if(previous&&!require('node:util').isDeepStrictEqual(previous.data,archive.data))throw error('ARCHIVE_CONFLICT');
+   const removeFields=spec.kind==='order'?[...orderPii,'financialSnapshot','financialAcceptance','commercialPricing','codFinancialEvidence'].filter(k=>row[k]!==undefined):['description','metadata','reason','note','fundingSnapshot','rejectionReason','checkoutUrl','userId','name','phone','email','customerName','customerPhone','customerEmail','respMessage','failureReason'].filter(k=>row[k]!==undefined);
    const names={'#request':'accountDeletionRequestId','#until':'financialRetainUntil','#confirmed':'financialArchiveConfirmed'},values={':request':job.requestId,':until':Math.max(archive.expiresAt,Number.isSafeInteger(row.financialRetainUntil)?row.financialRetainUntil:0),':confirmed':true};
    removeFields.forEach((field,i)=>names['#p'+i]=field);
-   const guard=condition(row,[...spec.keys,owner,'financialRetainUntil','financialArchiveConfirmed','accountDeletionRequestId',...['status','amount','updatedAt'].filter(k=>row[k]!==undefined)]);
+   const guard=condition(row,[...spec.keys,owner,'financialRetainUntil','financialArchiveConfirmed','accountDeletionRequestId',...['status','amount','updatedAt','financialSnapshot','financialAcceptance','commercialPricing','codFinancialEvidence'].filter(k=>row[k]!==undefined)]);
    const write={Update:{TableName:table,Key:key,UpdateExpression:'SET #request = :request, #until = :until, #confirmed = :confirmed'+(removeFields.length?' REMOVE '+removeFields.map((_,i)=>'#p'+i).join(', '):''),ConditionExpression:guard.ConditionExpression,ExpressionAttributeNames:{...guard.ExpressionAttributeNames,...names},ExpressionAttributeValues:{...guard.ExpressionAttributeValues,...values}}};
    await db.send(new TransactWriteCommand({TransactItems:[fence(r),...(previous?[]:[{Put:{TableName:archiveTable,Item:{...archiveKey,...archive},ConditionExpression:'attribute_not_exists(pk)'}}]),write]}));
   }
@@ -131,7 +145,7 @@ function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock
   if(r.actorType!==actorType||!r.leaseOwner||!Number.isSafeInteger(r.version)||job.subjectId!==r.subjectId||job.requestId!==r.requestId||job.pool!==pool)throw error('INVALID_CLEANUP_SCOPE');
   if(step==='disableIdentity'){await identity(AdminDisableUserCommand,r,job);await identity(AdminUserGlobalSignOutCommand,r,job);return;}
   if(step==='personalData'){if(actorType==='CUSTOMER'&&deliveryQuotesEnabled)await require('./customer-delivery-quotes').purge({db,r,job,requestTable,clock,maxPages});return personal(r,job);}
-  if(step==='financialArchive')return financial(r,job);
+  if(step==='financialArchive'){await require('./cod-retention').codRetention({db,requestTable,archiveTable,clock,maxPages})(r,job,{actorType,ids:ids(job)});return financial(r,job);}
   if(step==='walletClosure')return wallets(r,job);
   if(step==='profileClosure'){for(const id of job.profileIds){const row=await get(profileTable,{[profileKey]:id});if(!row)continue;if(row.deletionRequestId!==job.requestId)throw error('PROFILE_GENERATION_CHANGED');if(actorType==='CUSTOMER'&&['profileImage','profileImageUrl','photoUrl','avatarUrl'].some(k=>row[k]))throw error('ASSET_INVENTORY_REQUIRED');await remove(r,profileTable,{[profileKey]:id},row,['deletionRequestId','cognitoSub','cognitoUsername']);}return;}
   if(step==='identityClosure'){await identity(AdminDeleteUserCommand,r,job);return;}

@@ -12,7 +12,7 @@ function setup(earning='3000',transform=()=>{}){
  transform(source);
  const keys=(table,r)=> table==='WizzOrders'?{PK:r.PK,SK:r.SK}:table==='WizzDispatchJobs_staging'||table==='WaveOffers_staging'?{orderId:r.orderId,SK:r.SK}:
   table==='staging-Wallets'||table==='staging-LedgerEntries'?{walletId:r.walletId,sk:r.sk}:table==='staging-Holds'?{orderId:r.orderId,sk:r.sk}:
-  table==='staging-AuditLog'?{datePartition:r.datePartition,sk:r.sk}:table==='staging-WalletLifecycle'?{operationId:r.operationId}:
+  table==='staging-WalletNotifications'?{eventId:r.eventId}:table==='WizzDriverPerformanceMetrics_staging'?{PK:r.PK,SK:r.SK}:table==='staging-AuditLog'?{datePartition:r.datePartition,sk:r.sk}:table==='staging-WalletLifecycle'?{operationId:r.operationId}:
   table==='WhizzMerchants_Businesses'?{businessId:r.businessId}:['WhizzDrivers_staging','WizzDriverLiveState_staging'].includes(table)?{driverId:r.driverId}:{pk:r.pk,sk:r.sk};
  const k=(t,key)=>t+'|'+quoteCanonical(key),put=(t,r)=>rows.set(k(t,keys(t,r)),clone(r)),get=(t,key)=>rows.get(k(t,key));
  put('WizzOrders',{PK:'ORDER#order1',SK:'META',orderId:'order1',storeId:'branch1',merchantId:'merchant1',status:'ready_for_pickup',financialSnapshot:envelope(source.order)});
@@ -47,7 +47,9 @@ function setup(earning='3000',transform=()=>{}){
   for(const op of tx){if(op.Put)put(op.Put.TableName,op.Put.Item);
    if(op.Update){const q=op.Update,row=clone(get(q.TableName,q.Key)??q.Key);
     assert.ok(q.UpdateExpression.startsWith('SET '));
-    for(const term of q.UpdateExpression.slice(4).split(',')){const [name,value]=term.trim().split('=');row[q.ExpressionAttributeNames[name.trim()]??name.trim()]=clone(q.ExpressionAttributeValues[value.trim()]);}
+    const [sets,removes]=q.UpdateExpression.slice(4).split(/ REMOVE /);
+    for(const term of sets.split(',')){const [name,value]=term.trim().split('=');row[q.ExpressionAttributeNames[name.trim()]??name.trim()]=clone(q.ExpressionAttributeValues[value.trim()]);}
+    for(const field of (removes??'').split(',').map(v=>v.trim()).filter(Boolean))delete row[q.ExpressionAttributeNames[field]??field];
     put(q.TableName,row);
    }}
   if(f.loseReturnConfirmation&&tx.some(o=>o.Put?.Item.action==='COD_RETURN_CONFIRMED'))throw Error('return response lost');

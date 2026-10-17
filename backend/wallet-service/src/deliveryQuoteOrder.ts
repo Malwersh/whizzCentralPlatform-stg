@@ -17,7 +17,7 @@ export class QuoteOrderError extends Error {
 }
 const fail = (code: QuoteOrderError['code']): never => { throw new QuoteOrderError(code); };
 const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v));
-function orderIdFor(userId: string, requestId: string): string {
+export function orderIdFor(userId: string, requestId: string): string {
   const h = quoteHash(['DELIVERY_QUOTE_ORDER_V1', userId, requestId]);
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-8${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
@@ -30,7 +30,8 @@ function composeOperations(items: NonNullable<TransactWriteCommandInput['Transac
     const key = op.Key ?? (op.TableName === 'WizzOrders' ? {PK: op.Item.PK, SK: op.Item.SK} :
       op.TableName === 'staging-Holds' ? {orderId: op.Item.orderId, sk: op.Item.sk} :
       op.TableName === 'staging-LedgerEntries' ? {walletId: op.Item.walletId, sk: op.Item.sk} :
-      op.TableName === 'staging-AuditLog' ? {datePartition: op.Item.datePartition, sk: op.Item.sk} : null);
+      op.TableName === 'staging-AuditLog' ? {datePartition: op.Item.datePartition, sk: op.Item.sk} :
+      op.TableName === 'staging-WizzOfferJourney' ? {pk: op.Item.pk, sk: op.Item.sk} : null);
     if (!key) return fail('INVALID_QUOTE_ORDER');
     const identity = quoteCanonical([op.TableName, key]), previous = seen.get(identity);
     if (previous === undefined) { seen.set(identity, result.length); result.push(copy(item)); continue; }
@@ -156,6 +157,11 @@ export function createStagingQuoteOrder(options: { db: DB; authenticateCustomer:
         if (items.length > 100 || Buffer.byteLength(JSON.stringify(items)) > 3500000 || Buffer.byteLength(JSON.stringify(order)) > 300000) return fail('INVALID_QUOTE_ORDER');
         try { await db.send(new TransactWriteCommand({ TransactItems: items })); }
         catch (e: any) {
+          // A cohort refusal happens before the guarded client sends a write.
+          // Preserve the actionable closed-scope result instead of reporting
+          // storage failure or attempting a legacy creation path.
+          if (['FINANCE_ROLLOUT_OUT_OF_SCOPE', 'FINANCE_ROLLOUT_ADMISSION_CLOSED',
+              'FINANCE_ROLLOUT_NOT_CONFIGURED'].includes(e?.code)) throw e;
           const latest = await get(QUOTE_TABLE, quoteKey);
           if (latest && validDeliveryQuoteRecord(latest) && latest.digest === row!.digest) {
             const recovered = await replay(latest);

@@ -22,19 +22,13 @@ function fakeLive(){return `const { v4: uuidv4 } = require('uuid');
             statusCode: 500,
                 errorName: error.name,
 `;}
-test('live source patch is pinned, reversible and preserves discount bytes outside explicit edits',()=>{
- const source=fakeLive(),result=patchLiveOrder(source,local,sha256(source));
- assert.equal(result.originalSha256,sha256(source));assert.notEqual(result.candidateSha256,result.originalSha256);
- assert.ok(result.source.includes("const unchangedDiscount = 'discount engine and counters preserved';"));
- assert.ok(result.source.includes('quoteCognito.send(new GetUserCommand'));
- assert.ok(result.source.includes('saved.replayed'));assert.ok(result.source.includes('guardedAccount.condition'));
- let reverted=result.source;for(const {before,after} of [...result.edits].reverse())reverted=replaceOnce(reverted,after,before);
- assert.equal(reverted,source);
+test('historical quote-only patch cannot bypass the adopted live audience and redemption contract',()=>{
+ const source=fakeLive();assert.throws(()=>patchLiveOrder(source,local,sha256(source)),/LEGACY_QUOTE_PATCH_RETIRED/);
 });
 test('source drift and ambiguous anchors block preparation instead of guessing a patch',()=>{
  const source=fakeLive();assert.throws(()=>patchLiveOrder(source+'drift',local,sha256(source)),/LIVE_SOURCE_DIGEST_CHANGED/);
  const changed=source.replace('const orderId = uuidv4();','const orderId = changed();');
- assert.throws(()=>patchLiveOrder(changed,local,sha256(changed)),/LIVE_SOURCE_ANCHOR_CHANGED/);
+ assert.throws(()=>patchLiveOrder(changed,local,sha256(changed)),/LEGACY_QUOTE_PATCH_RETIRED/);
  assert.throws(()=>replaceOnce('a a','a','b'),/LIVE_SOURCE_ANCHOR_CHANGED/);
 });
 test('template rejects duplicate YAML keys and keeps the effective preexisting favorites schema',()=>{
@@ -57,8 +51,11 @@ test('new consumer policy cannot delete/create quotes or mutate pricing referenc
  assert.equal(cleanup.Parameters.DeliveryQuotesEnabled.Default,'false');
  assert.deepEqual(cleanup.Resources.Worker.Properties.Policies[0].Statement[0].Action,['dynamodb:Query','dynamodb:DeleteItem']);
  assert.equal(app.Resources.CreateOrderFunction.Properties.Environment.Variables.DELIVERY_QUOTE_MODE,'OFF');
- assert.equal(app.Resources.DeliveryQuotesFunction.Properties.Environment.Variables.DELIVERY_QUOTE_MAX_PER_MINUTE,'');
- const quotaPolicy=app.Resources.DeliveryQuotesFunction.Properties.Policies[0].Statement.find(s=>String(s.Resource).endsWith('staging-DeliveryQuotes'));
+ const dedicated=readTemplate(path.join(central,'backend/wallet-service/delivery-quotes.staging.json'));
+ assert.equal(app.Resources.DeliveryQuotesFunction,undefined);
+ assert.equal(dedicated.Resources.DeliveryQuotesFunction.Properties.Environment.Variables.DELIVERY_QUOTES_ENABLED,'false');
+ assert.equal(dedicated.Resources.DeliveryQuotesFunction.Properties.Environment.Variables.DELIVERY_QUOTE_MAX_PER_MINUTE,'5');
+ const quotaPolicy=dedicated.Resources.DeliveryQuoteRole.Properties.Policies[0].PolicyDocument.Statement.find(s=>s.Resource?.['Fn::GetAtt']?.[0]==='DeliveryQuotes');
  assert.ok(quotaPolicy.Action.includes('dynamodb:PutItem'));assert.ok(!quotaPolicy.Action.includes('dynamodb:DeleteItem'));
  assert.deepEqual(quotaPolicy.Condition['ForAllValues:StringLike']['dynamodb:LeadingKeys'],['CUSTOMER#*']);
 });
@@ -107,7 +104,11 @@ test('commercial writer is opt-in with a separate authenticated preview and rest
  assert.deepEqual(wallet.Action,['dynamodb:GetItem','dynamodb:UpdateItem']);
  assert.deepEqual(wallet.Condition['ForAllValues:StringEquals']['dynamodb:LeadingKeys'],['WALLET#PLATFORM']);
  assert.ok(statements.every(p=>!p.Action.includes('dynamodb:DeleteItem')));
- const preview=app.Resources.WizzUserFoodAppApi.Properties.DefinitionBody.paths['/orders/commercial-preview'];
- assert.deepEqual(preview.post.security,[{CognitoAuthorizer:['aws.cognito.signin.user.admin']}]);
- assert.ok(preview.post['x-amazon-apigateway-integration'].uri['Fn::Sub'].includes('CreateOrderFunction.Arn'));
+ const dedicated=readTemplate(path.join(central,'backend/wallet-service/delivery-quotes.staging.json'));
+ assert.equal(app.Resources.WizzUserFoodAppApi.Properties.Mode,'merge');
+ assert.equal(app.Resources.WizzUserFoodAppApi.Properties.DefinitionBody.paths['/orders/commercial-preview'],undefined);
+ const preview=dedicated.Resources.PreviewPostMethod.Properties;
+ assert.equal(preview.AuthorizationType,'COGNITO_USER_POOLS');
+ assert.deepEqual(preview.AuthorizationScopes,['aws.cognito.signin.user.admin']);
+ assert.ok(JSON.stringify(preview.Integration.Uri).includes('WizzUser-CreateOrder-staging'));
 });

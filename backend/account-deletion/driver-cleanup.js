@@ -19,7 +19,7 @@ const FINANCIAL=[
  ['staging-LedgerEntries',{keys:['walletId','sk'],owners:['walletId'],kind:'ledger'}],
  ['staging-TopupRequests',{keys:['topupId','sk'],owners:['walletId','driverId'],kind:'topup'}],
  ['staging-IdempotencyKeys',{keys:['idempotencyKey','sk'],owners:['sourceWalletId','recipientWalletId','requestedBy'],kind:'transfer'}],
- ['staging-AuditLog',{keys:['datePartition','sk'],owners:['sourceWalletId','recipientWalletId','walletId','actorId'],kind:'audit'}],
+ ['staging-AuditLog',{keys:['datePartition','sk'],owners:['sourceWalletId','recipientWalletId','walletId','actorId','driverId','subjectId'],kind:'audit'}],
  ['staging-SandboxPayments',{keys:['pk','sk'],owners:['driverId'],ownerPrefix:'DRIVER#',kind:'sandbox'}],
 ];
 const ORDER_PII=['driverId','assignedDriverId','driverName','driverPhone','driverEmail','driverInfo','driver','driverLocation','driverLatitude','driverLongitude','driverAssignmentHistory','orderTimeline'];

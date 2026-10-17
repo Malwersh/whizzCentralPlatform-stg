@@ -75,3 +75,28 @@ test('live account is revalidated for retries and commit; loss cannot return cac
  const f=await setup(),s=await f.prepare();await s.commit(f.order(s));f.profile.isActive=false;await reject(f.prepare(),'QUOTE_ORDER_UNAVAILABLE');
  const g=await setup(),p=await g.prepare();g.authenticate=async()=>{throw Error('revoked');};await reject(p.commit(g.order(p)),'CUSTOMER_UNAVAILABLE');assert.equal(g.orders.size,0);
 });
+
+test('offer journey order/redemption counters compose atomically with the quote and replay without recounting',async()=>{
+ const f=await setup(),journey=new Map();
+ f.extraLookup=(table,key)=>table==='staging-WizzOfferJourney'?journey.get(key.pk+'|'+key.sk):undefined;
+ f.extraPut=op=>{if(op.TableName!=='staging-WizzOfferJourney')return false;journey.set(op.Item.pk+'|'+op.Item.sk,structuredClone(op.Item));return true;};
+ const s=await f.prepare();
+ const counts=['ORDERS','OFFER#merchant#campaign'].map(sk=>({Put:{TableName:'staging-WizzOfferJourney',Item:{pk:'USER#sub1',sk,count:1,version:1},ConditionExpression:'attribute_not_exists(pk)'}}));
+ await s.commit(f.order(s),counts);
+ assert.equal(journey.size,2);assert.equal(f.orders.size,1);
+ assert.equal(f.transactions.at(-1).TransactItems.filter(x=>x.Put?.TableName==='staging-WizzOfferJourney').length,2);
+ const replay=await f.prepare();assert.equal(replay.replayedOrder.orderId,s.orderId);
+ assert.equal(f.transactions.flatMap(t=>t.TransactItems).filter(x=>x.Put?.TableName==='staging-WizzOfferJourney').length,2); // replay cannot write either counter again
+});
+test('a concurrent per-customer redemption rejects the complete order transaction',async()=>{
+ const f=await setup();f.extraLookup=(table,key)=>table==='staging-WizzOfferJourney'?{pk:key.pk,sk:key.sk,count:1,version:1}:undefined;
+ const s=await f.prepare();
+ await reject(s.commit(f.order(s),[{Put:{TableName:'staging-WizzOfferJourney',Item:{pk:'USER#sub1',sk:'OFFER#merchant#campaign',count:1,version:1},ConditionExpression:'attribute_not_exists(pk)'}}]),'QUOTE_INVALIDATED');
+ assert.equal(f.orders.size,0);assert.equal([...f.saved.values()][0].consumption,undefined);
+});
+test('two operations on one offer counter are rejected before any write',async()=>{
+ const f=await setup(),s=await f.prepare(),put={Put:{TableName:'staging-WizzOfferJourney',Item:{pk:'USER#sub1',sk:'ORDERS',count:1,version:1},ConditionExpression:'attribute_not_exists(pk)'}};
+ const before=f.transactions.length;
+ await reject(s.commit(f.order(s),[put,put]),'INVALID_QUOTE_ORDER');
+ assert.equal(f.transactions.length,before);assert.equal(f.orders.size,0);
+});

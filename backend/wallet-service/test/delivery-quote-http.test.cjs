@@ -10,7 +10,7 @@ const { createStagingDeliveryRouting } = require('../dist/regionCoverage');
 const file = path.resolve(__dirname, '../../../../wizzuser-stg/backend/src/functions/delivery-quotes/index.js');
 const { accountGuard } = require(path.resolve(path.dirname(file), '../create-order/account-guard'));
 function setup() {
- const f = fixture(), exports = {}, env = { DELIVERY_QUOTES_ENABLED: 'true', AWS_REGION: 'us-east-1', ENVIRONMENT: 'staging',
+ const f = fixture(), exports = {}, env = { ...require('./helpers/finance-rollout-fixture.cjs').scopeEnv({orders:[{orderId:'order',branchId:'b1',customerSubjectId:'sub1'}]}), DELIVERY_QUOTES_ENABLED: 'true', AWS_REGION: 'us-east-1', ENVIRONMENT: 'staging',
   USERS_TABLE: 'WizzUser_users_staging', USER_POOL_ID: 'us-east-1_TpyyrVkEE', USER_POOL_CLIENT_ID: 'client',
   DELIVERY_QUOTE_MAX_PER_MINUTE: '2',
   MAPBOX_SECRET_ARN: 'arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/maps/mapbox-ABCdef' };
@@ -29,7 +29,7 @@ function setup() {
     if (f.badToken) throw Object.assign(Error('bad'), { code: 'NotAuthorizedException' });
     return { Username: 'username', UserAttributes: [{ Name: 'sub', Value: 'sub1' }] };
   } }; } } },
-  './runtime': { createStagingDeliveryQuoteRateLimiter: o => createStagingDeliveryQuoteRateLimiter({ ...o, db: rateDb, now: () => f.time }), DynamoDBClient: class {}, DynamoDBDocumentClient: { from: () => f.db }, GetCommand: sdk.GetCommand,
+  './runtime': { createFinanceRollout:o=>require('../dist/financeRollout').createFinanceRollout({...o,env,now:()=>f.time}), readDeliveryOperations:require('../dist/deliveryOperations').readDeliveryOperations, createStagingDeliveryQuoteRateLimiter: o => createStagingDeliveryQuoteRateLimiter({ ...o, db: rateDb, now: () => f.time }), DynamoDBClient: class {}, DynamoDBDocumentClient: { from: () => f.db }, GetCommand: sdk.GetCommand,
    SecretsManagerClient: class {}, GetUserCommand: class {},
    CognitoIdentityProviderClient: class { async send() {
      if (f.badToken) throw Object.assign(Error('bad'), { code: 'NotAuthorizedException' });

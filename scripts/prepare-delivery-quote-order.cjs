@@ -13,6 +13,9 @@ function between(source, start, end) {
 }
 function patchLiveOrder(live, local, expectedSha256) {
  if (sha256(live) !== expectedSha256) throw Error('LIVE_SOURCE_DIGEST_CHANGED');
+ // The historical patch cannot compose the live offer journey/audience fences.
+ // Keep it fail-closed after source adoption; use a fresh commercial-runtime overlay.
+ if (local.includes("require('../shared/offer-context')")) throw Error('LEGACY_QUOTE_PATCH_RETIRED');
  const edits = [];
  const edit = (before, after) => { live = replaceOnce(live, before, after); edits.push({before, after}); };
  edit("const { v4: uuidv4 } = require('uuid');", "const { accountGuard } = require('./account-guard');\nconst { createStagingQuoteOrder, QuoteOrderError } = require('./quote-runtime/deliveryQuoteOrder');\nconst { CognitoIdentityProviderClient, GetUserCommand } = require('../delivery-quotes/runtime');\nconst quoteCognito = new CognitoIdentityProviderClient({});\nconst { v4: uuidv4 } = require('uuid');");

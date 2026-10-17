@@ -1,3 +1,4 @@
+import { codIntegrationEvent } from './codIntegrationEvent';
 import { randomUUID } from 'crypto';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { createCodFlowContext, ReturnActor } from './codFlowContext';
@@ -103,6 +104,7 @@ export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'
    ops.push(h.guard,set(orderFence(c),{returnStatus:'REVIEW_REQUIRED',updatedAt:c.timestamp}));
   }else{
    const operationId='CR:'+quoteHash({returnId:c.returnId,attempt:v.attempt,offerDigest:c.offer.digest}).slice(0,48);
+   Object.assign(result,{operationId});
    const release=await prepareCodRelease(db,c.order,c.offer,c.timestamp,operationId,true);
    const journal=release.journalLines;
    ops.push(...release.operations);
@@ -112,9 +114,9 @@ export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'
    ops.push(set(orderFence(c),{status:'returned',orderStatus:'returned',returnStatus:'CONFIRMED',returnedAt:c.timestamp,holdStatus:h.H?'RELEASED':'NOT_REQUIRED',walletFinancialStatus:'RETURNED',financialOutcome:operationId,updatedAt:c.timestamp}),
     set(exactCheck(T.live,liveKey,live),{currentOrderId:null,activeOrdersCount:0,isSearching:false,status:live.isActive===true?'available':'offline'}),
     set(exactCheck(T.jobs,jobKey,job),{status:'returned',completedAt:c.timestamp}),
-    {Put:{TableName:T.holds,Item:{orderId:v.orderId,sk:'FINANCIAL_OUTCOME',kind:'COD_RETURN_JOURNAL',operationId,outcome:'RETURNED',returnId:c.returnId,driverId:c.order.driverId,branchId:c.offer.branchId,
+    {Put:{TableName:T.holds,Item:{orderId:v.orderId,sk:'FINANCIAL_OUTCOME',kind:'COD_RETURN_JOURNAL',operationId,outcome:'RETURNED',returnId:c.returnId,driverId:c.order.driverId,subjectId:c.subject,branchId:c.offer.branchId,
      offerId:v.offerId,attempt:v.attempt,journalLines:journal,receipt:result,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
-    {Put:{TableName:T.lifecycle,Item:{operationId:operationId+':EVENT',kind:'COD_RETURN_OUTBOX',orderId:v.orderId,returnId:c.returnId,status:'PENDING_INTEGRATION',driverCompensationStatus:'PENDING_POLICY_REVIEW',createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(operationId)'}});
+    codIntegrationEvent({kind:'COD_RETURN_OUTBOX',financialOperationId:operationId,orderId:v.orderId,driverId:c.order.driverId,subjectId:c.subject,branchId:c.offer.branchId,offerId:v.offerId,attempt:v.attempt,waveNumber:c.order.assignmentWaveNumber,createdAt:c.timestamp}));
   }
   ops.push(set(exactCheck(T.holds,c.returnKey,savedCase),{status:result.status,version:savedCase.version+1,confirmationDigest:fingerprint,confirmedBy:c.actor.subjectId,confirmedAt:c.timestamp,
    allItemsReceived:v.allItemsReceived,condition:v.condition,driverResponsibility:v.driverResponsibility,receipt:result,updatedAt:c.timestamp}),

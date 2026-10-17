@@ -13,7 +13,7 @@
     <!-- Security: DOMPurify for XSS Protection -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
-    <link rel="stylesheet" href="../styles/merchants-table.css">
+    <link rel="stylesheet" href="../styles/merchants-table.css?v=20261017-branch-view">
     <script src="../styles/wizz-theme-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -827,6 +827,7 @@
     <div class="main-content" id="mainContent">
         <!-- Page Content -->
         <div class="page-content">
+<details data-commercial-kind="AGREEMENT" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px"><summary>الاتفاقيات التجارية وعمولة كل تاجر</summary><p>إدارة عمولة كل فرع ورسوم الخدمة. تسري الاتفاقية بعد موافقة المالك على شروطها.</p></details>
             <details id="merchant-types-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
                 <summary>أنواع الأنشطة المتاحة للتسجيل</summary>
                 <p>تظهر الأنواع المتاحة في قائمة نوع النشاط في تطبيق البزنز بعد حفظ التعديل. إزالة نوع من الخيارات تحفظ مراجعه للأنشطة القائمة.</p>
@@ -908,21 +909,8 @@
                 <!-- Merchants Table -->
                 <div class="table-container">
                     <div id="merchants-table-status"></div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Business</th>
-                                <th>Owner</th>
-                                <th>Status</th>
-                                <!-- changed: reflect rendered value -->
-                                <th>Accepting Orders</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Address</th>
-                                <th>Last Update</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                    <table class="data-table" id="merchantBranchesTable" dir="rtl">
+                        <thead><tr><th>النشاط والفرع</th><th>المالك عند التسجيل</th><th>اعتماد البيانات</th><th>التجهيز والظهور</th><th>إعداد استقبال الطلبات</th><th>هاتف الفرع</th><th>الموقع المسجل</th><th>آخر تحديث</th><th>الإجراءات</th></tr></thead>
                         <tbody id="merchantsTableBody"><!-- rows injected by JS using delegated events --></tbody>
                     </table>
                 </div>
@@ -1235,7 +1223,8 @@
         <script src="../merchant-types.js?v=20261014"></script>
         <script src="../merchant-staff-policy.js?v=20261015"></script>
         <!-- Page-specific scripts -->
-        <script src="../merchants.js?v=20261011-central-data"></script>
+        <script src="../merchant-branch-view.js?v=20261017-branch-view"></script>
+<script src="../merchants.js?v=20261017-branch-view"></script>
         <script>
             console.log('Merchants page script loaded');
 
@@ -1262,6 +1251,8 @@
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     })();
 </script>
-    </body>
+    <script src="../finance-sample.js?v=64"></script>
+    <script src="../commercial-funding-picker.js?v=74"></script><script src="../commercial-management.js?v=73"></script>
+</body>
 
     </html>

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
+<script src="./assets/js/wizz-locale.js?v=20261017-ar1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Management - WizzCentral Platform</title>
+    <title>ويز سنترال — الإدارة المالية</title>
     <link rel="stylesheet" href="styles/material-3-design-system.css">
     <script src="styles/wizz-theme-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -322,7 +323,7 @@
             }
         }
     </style>
-</head>
+<link rel="stylesheet" href="./styles/arabic-ui.css?v=20261017-ar1"></head>
 <body data-page="financial">
     <!-- Sidebar include placeholder -->
     <div id="sidebar-placeholder"></div>
@@ -336,58 +337,57 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <!-- Removed page title per request -->
-                <!-- <h1 class="page-title">Financial Management</h1> -->
+                <!-- <h1 class="page-title">الإدارة المالية</h1> -->
             </div>
         </div>
         
         <div class="financial-container">
         <div class="financial-header">
-            <h1>💰 WizzCentral Financial Center</h1>
-            <p>Comprehensive financial management and reporting for the platform</p>
+            <h1>الإدارة المالية</h1>
+            <p>متابعة العمليات المالية وإعداد تقارير المنصة.</p>
         </div>
 
         <div class="tabs-container">
             <div class="tab-navigation">
-                <button class="tab-button active" data-tab="overview">📊 Overview</button>
-                <button class="tab-button" data-tab="commissions">💸 Commissions</button>
-                <button class="tab-button" data-tab="delivery-fees">🚚 Delivery Fees</button>
-                <button class="tab-button" data-tab="reports">📈 Reports</button>
-                <button class="tab-button" data-tab="settings">⚙️ Settings</button>
+                <button class="tab-button active" data-tab="overview">📊 نظرة عامة</button>
+                <button class="tab-button" data-tab="commissions">💸 العمولات</button>
+                <button class="tab-button" data-tab="delivery-fees">🚚 رسوم التوصيل</button>
+                <button class="tab-button" data-tab="reports">📈 التقارير</button>
+                <button class="tab-button" data-tab="settings">⚙️ الإعدادات</button>
             </div>
 
             <!-- Overview Tab -->
             <div class="tab-content active" id="overview-tab">
                 <div class="section-card" style="margin-bottom:20px;">
-                    <div class="section-title"><span class="icon">🏪</span> Merchant Financial Explorer</div>
+                    <div class="section-title"><span class="icon">🏪</span> الأداء المالي للمتاجر</div>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="overview-merchant-search">Search Merchant</label>
-                            <input type="text" id="overview-merchant-search" placeholder="Type at least 2 characters...">
+                            <label for="overview-merchant-search">البحث عن متجر</label>
+                            <input type="text" id="overview-merchant-search" placeholder="أدخل حرفين على الأقل..." dir="auto">
                             <div id="overview-merchant-results"
                                 style="position:relative;border:1px solid #e2e8f0;border-radius:6px;margin-top:6px;display:none;background:#fff;max-height:220px;overflow:auto;font-size:0.75rem;">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="overview-start-date">Start Date</label>
-                            <input type="date" id="overview-start-date">
+                            <label for="overview-start-date">تاريخ البدء</label>
+                            <input type="date" id="overview-start-date" dir="ltr">
                         </div>
                         <div class="form-group">
-                            <label for="overview-end-date">End Date</label>
-                            <input type="date" id="overview-end-date">
+                            <label for="overview-end-date">تاريخ الانتهاء</label>
+                            <input type="date" id="overview-end-date" dir="ltr">
                         </div>
                         <div class="form-group" style="display:flex;align-items:flex-end;gap:10px;">
-                            <button class="button-primary" id="overview-load-btn" disabled>Load Performance</button>
-                            <button class="button-secondary" id="overview-reset-btn">Reset</button>
+                            <button class="button-primary" id="overview-load-btn" disabled>عرض الأداء</button>
+                            <button class="button-secondary" id="overview-reset-btn">إعادة تعيين</button>
                         </div>
                         </div>
-                    <p style="font-size:0.75rem;color:#6c757d;margin-top:-10px;">Select a merchant and timeframe to view orders, revenue,
-                        commissions, delivery contribution and net payout.</p>
+                    <p style="font-size:0.75rem;color:#6c757d;margin-top:-10px;">اختر متجرًا وفترة زمنية لعرض الطلبات والإيرادات والعمولات ومساهمة التوصيل وصافي المستحقات.</p>
                     </div>
                 <div id="merchant-kpi-cards" class="metrics-grid" style="display:none;"></div>
                 <div id="merchant-financial-details" class="section-card" style="display:none;margin-top:20px;"></div>
                 <div class="section-card" id="recent-activity">
-                    <div class="section-title"><span class="icon">📋</span> Recent Activity</div>
-                    <p style="color:#6c757d;text-align:center;padding:20px;">Select a merchant to load activity...</p>
+                    <div class="section-title"><span class="icon">📋</span> النشاط الأخير</div>
+                    <p style="color:#6c757d;text-align:center;padding:20px;">اختر متجرًا لعرض نشاطه.</p>
                 </div>
             </div>
 
@@ -396,233 +396,137 @@
                 <div class="section-card">
                     <div class="section-title">
                         <span class="icon">💰</span>
-                        Create Commission Rule
+                        إنشاء قاعدة عمولة
                     </div>
                     <form id="commission-form">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="commission-name">Rule Name</label>
-                                <input type="text" id="commission-name" placeholder="e.g., سنونو Commission" required>
+                                <label for="commission-name">اسم القاعدة</label>
+                                <input type="text" id="commission-name" placeholder="مثال: عمولة سنونو" required dir="auto">
                                 </div>
                                 <div class="form-group">
-                                    <label for="commission-merchant-id">Merchant ID</label>
-                                    <input type="text" id="commission-merchant-id" placeholder="business_..." required>
+                                    <label for="commission-merchant-id">معرّف المتجر</label>
+                                    <input type="text" id="commission-merchant-id" placeholder="business_..." required dir="auto">
                                     <div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
-                                        <input type="text" id="merchant-search" placeholder="Search merchant by name/email/id"
-                                            style="flex:1; padding:8px 12px; border:1px solid #e2e8f0; border-radius:8px;">
-                                        <button type="button" id="merchant-search-btn" class="button-secondary">Search</button>
+                                        <input type="text" id="merchant-search" placeholder="ابحث باسم المتجر أو بريده الإلكتروني أو معرّفه"
+                                            style="flex:1; padding:8px 12px; border:1px solid #e2e8f0; border-radius:8px;" dir="auto">
+                                        <button type="button" id="merchant-search-btn" class="button-secondary">بحث</button>
                                     </div>
                                     <div id="merchant-search-results"
                                         style="margin-top:8px; border:1px solid #e2e8f0; border-radius:8px; max-height:220px; overflow:auto; display:none;">
                                     </div>
                             </div>
                             <div class="form-group">
-                                <label for="commission-type">Commission Type</label>
+                                <label for="commission-type">نوع العمولة</label>
                                 <select id="commission-type" required>
-                                    <option value="">Select Type</option>
-                                    <option value="percentage">Percentage</option>
-                                    <option value="flat_fee">Flat Fee</option>
-                                    <option value="tiered">Tiered</option>
-                                    <option value="hybrid">Hybrid (Percentage + Flat)</option>
+                                    <option value="">اختر النوع</option>
+                                    <option value="percentage">نسبة مئوية</option>
+                                    <option value="flat_fee">مبلغ ثابت</option>
+                                    <option value="tiered">شرائح متدرجة</option>
+                                    <option value="hybrid">نسبة مئوية مع مبلغ ثابت</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="commission-priority">Priority</label>
+                                <label for="commission-priority">الأولوية</label>
                                 <input type="number" id="commission-priority" min="1" max="100" value="1"
-                                    placeholder="Lower number = higher priority">
+                                    placeholder="الرقم الأقل يعني أولوية أعلى." dir="ltr">
                             </div>
                         </div>
 
                         <div id="commission-rates" class="form-grid">
                             <div class="form-group">
-                                <label for="commission-percentage">Percentage (%)</label>
-                                <input type="number" id="commission-percentage" min="0" max="100" step="0.1" placeholder="12.0">
+                                <label for="commission-percentage">نسبة مئوية (%)</label>
+                                <input type="number" id="commission-percentage" min="0" max="100" step="0.1" placeholder="12.0" dir="ltr">
                             </div>
                             <div class="form-group">
-                                <label for="commission-flat-fee">Flat Fee (IQD)</label>
-                                <input type="number" id="commission-flat-fee" min="0" step="50" placeholder="250">
+                                <label for="commission-flat-fee">المبلغ الثابت (د.ع)</label>
+                                <input type="number" id="commission-flat-fee" min="0" step="50" placeholder="250" dir="ltr">
                             </div>
                         </div>
 
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="commission-effective-from">Effective From</label>
-                                <input type="date" id="commission-effective-from" required>
+                                <label for="commission-effective-from">تاريخ بدء السريان</label>
+                                <input type="date" id="commission-effective-from" required dir="ltr">
                             </div>
                             <div class="form-group">
-                                <label for="commission-effective-to">Effective To (optional)</label>
-                                <input type="date" id="commission-effective-to">
+                                <label for="commission-effective-to">تاريخ انتهاء السريان (اختياري)</label>
+                                <input type="date" id="commission-effective-to" dir="ltr">
                             </div>
                             <div class="form-group">
                                 <label>
-                                    <input type="checkbox" id="commission-active" checked>
-                                    Active Rule
+                                    <input type="checkbox" id="commission-active" checked dir="auto">
+                                    قاعدة مفعّلة
                                 </label>
                             </div>
                         </div>
 
-                        <button type="submit" class="button-primary">Create Commission Rule</button>
-                        <p style="font-size:0.75rem;color:#6c757d;margin-top:8px;">Merchant-specific only. A merchant can have multiple future
-                            rules (non-overlapping windows).</p>
+                        <button type="submit" class="button-primary">إنشاء قاعدة عمولة</button>
+                        <p style="font-size:0.75rem;color:#6c757d;margin-top:8px;">تُطبّق القاعدة على المتجر المحدد فقط. يمكن جدولة عدة قواعد للمتجر بشرط عدم تداخل فترات سريانها.</p>
                     </form>
                 </div>
 
                 <div class="section-card">
                     <div class="section-title">
                         <span class="icon">📋</span>
-                        Existing Commission Rules (Merchant)
+                        قواعد العمولة الحالية للمتجر
                         </div>
                         <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                            <input type="text" id="commission-rules-merchant" placeholder="Enter Merchant ID to load rules"
-                                style="flex:1;min-width:260px;padding:10px 14px;border:2px solid #e2e8f0;border-radius:8px;">
-                            <button type="button" id="loadMerchantRulesBtn" class="button-secondary" style="white-space:nowrap;">Load
-                                Rules</button>
+                            <input type="text" id="commission-rules-merchant" placeholder="أدخل معرّف المتجر لعرض قواعده"
+                                style="flex:1;min-width:260px;padding:10px 14px;border:2px solid #e2e8f0;border-radius:8px;" dir="auto">
+                            <button type="button" id="loadMerchantRulesBtn" class="button-secondary" style="white-space:nowrap;">عرض القواعد</button>
                     </div>
                     <div class="rules-list" id="commission-rules-list">
-                        <div class="loading-spinner">Loading commission rules...</div>
+                        <div class="loading-spinner">جارٍ تحميل قواعد العمولة...</div>
                     </div>
                 </div>
             </div>
 
             <!-- Delivery Fees Tab -->
-            <div class="tab-content" id="delivery-fees-tab">
-                <div class="section-card">
-                    <div class="section-title">
-                        <span class="icon">🚚</span>
-                        Create Delivery Fee Rule
-                    </div>
-                    <form id="delivery-fee-form">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="delivery-rule-name">Rule Name</label>
-                                <input type="text" id="delivery-rule-name" placeholder="e.g., Baghdad Standard Delivery" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="delivery-fee-type">Fee Type</label>
-                                <select id="delivery-fee-type" required>
-                                    <option value="">Select Type</option>
-                                    <option value="flat">Flat Fee</option>
-                                    <option value="distance_based">Distance Based</option>
-                                    <option value="zone_based">Zone Based</option>
-                                    <option value="time_based">Time Based</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="delivery-region">Region</label>
-                                <select id="delivery-region">
-                                    <option value="all">All Regions</option>
-                                    <option value="REG_IQ_BGD">Baghdad</option>
-                                    <option value="REG_IQ_BSR">Basra</option>
-                                    <option value="REG_IQ_ERB">Erbil</option>
-                                    <option value="REG_IQ_NJF">Najaf</option>
-                                    <option value="REG_IQ_KRB">Karbala</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="delivery-service-type">Service Type</label>
-                                <select id="delivery-service-type">
-                                    <option value="standard">Standard Delivery</option>
-                                    <option value="express">Express Delivery</option>
-                                    <option value="scheduled">Scheduled Delivery</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="delivery-rates" class="form-grid">
-                            <div class="form-group">
-                                <label for="delivery-base-fee">Base Fee (IQD)</label>
-                                <input type="number" id="delivery-base-fee" min="0" step="100" placeholder="2000">
-                            </div>
-                            <div class="form-group">
-                                <label for="delivery-per-km">Per KM Rate (IQD)</label>
-                                <input type="number" id="delivery-per-km" min="0" step="50" placeholder="250">
-                            </div>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="delivery-min-fee">Minimum Fee (IQD)</label>
-                                <input type="number" id="delivery-min-fee" min="0" step="100" placeholder="1500">
-                            </div>
-                            <div class="form-group">
-                                <label for="delivery-max-fee">Maximum Fee (IQD)</label>
-                                <input type="number" id="delivery-max-fee" min="0" step="100" placeholder="8000">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="free-delivery-threshold">Free Delivery Threshold (IQD)</label>
-                            <input type="number" id="free-delivery-threshold" min="0" step="1000" placeholder="25000">
-                        </div>
-
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="delivery-fee-active" checked>
-                                Active Rule
-                            </label>
-                        </div>
-
-                        <button type="submit" class="button-primary">Create Delivery Fee Rule</button>
-                    </form>
-                </div>
-
-                <div class="section-card">
-                    <div class="section-title">
-                        <span class="icon">📋</span>
-                        Existing Delivery Fee Rules
-                    </div>
-                    <div class="rules-list" id="delivery-rules-list">
-                        <div class="loading-spinner">Loading delivery fee rules...</div>
-                    </div>
-                </div>
-            </div>
-
+            <div id="delivery-fees-tab" class="tab-content"><h2>تسعير التوصيل وأجرة السائق</h2><p>إدارة القواعد ذات الإصدارات والمحاكاة والاعتماد من شاشة التسعير المركزية.</p><a href="/pages/delivery-pricing.html">فتح Pricing &amp; Commissions</a></div>
             <!-- Reports Tab -->
             <div class="tab-content" id="reports-tab">
                 <div class="section-card">
                     <div class="section-title">
                         <span class="icon">📊</span>
-                        Generate Financial Reports
+                        إعداد التقارير المالية
                     </div>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="report-scope">Scope</label>
+                            <label for="report-scope">النطاق</label>
                             <select id="report-scope">
-                                <option value="merchant">Merchant</option>
-                                <option value="region">Region</option>
+                                <option value="merchant">المتجر</option>
+                                <option value="region">المنطقة</option>
                             </select>
                             </div>
                             <div class="form-group" id="report-merchant-group">
-                                <label for="report-merchant-id">Merchant ID (optional)</label>
-                                <input type="text" id="report-merchant-id" placeholder="business_...">
+                                <label for="report-merchant-id">معرّف المتجر (اختياري)</label>
+                                <input type="text" id="report-merchant-id" placeholder="business_..." dir="auto">
                             </div>
                             <div class="form-group" id="report-region-group" style="display:none;">
-                                <label for="report-region">Region</label>
+                                <label for="report-region">المنطقة</label>
                                 <select id="report-region">
-                                    <option value="">Loading regions...</option>
+                                    <option value="">جارٍ تحميل المناطق...</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="report-start-date">Start Date</label>
-                            <input type="date" id="report-start-date">
+                            <label for="report-start-date">تاريخ البدء</label>
+                            <input type="date" id="report-start-date" dir="ltr">
                         </div>
                         <div class="form-group">
-                            <label for="report-end-date">End Date</label>
-                            <input type="date" id="report-end-date">
+                            <label for="report-end-date">تاريخ الانتهاء</label>
+                            <input type="date" id="report-end-date" dir="ltr">
                         </div>
                         <div class="form-group">
-                            <label for="report-type">Report Type</label>
+                            <label for="report-type">نوع التقرير</label>
                             <select id="report-type">
-                                <option value="summary">Financial Summary</option>
-                                <option value="commission">Commission Report</option>
-                                <option value="delivery-fees">Delivery Fees Report</option>
+                                <option value="summary">ملخص مالي</option>
+                                <option value="commission">تقرير العمولات</option>
+                                <option value="delivery-fees">تقرير رسوم التوصيل</option>
                             </select>
                             </div>
                             <div class="form-group">
-                                <button class="button-primary" id="run-report-btn" style="margin-top: 32px;">Run Report</button>
+                                <button class="button-primary" id="run-report-btn" style="margin-top: 32px;">عرض التقرير</button>
                         </div>
                     </div>
                 </div>
@@ -630,11 +534,11 @@
                 <div class="section-card">
                     <div class="section-title">
                         <span class="icon">📈</span>
-                        Report Results
+                        نتائج التقرير
                     </div>
                     <div id="report-results">
                         <p style="color: #6c757d; text-align: center; padding: 40px;">
-                            Select parameters above and click "Run Report" to view financial data
+                            حدّد معايير التقرير أعلاه، ثم اضغط «عرض التقرير» للاطلاع على البيانات المالية.
                         </p>
                     </div>
                 </div>
@@ -645,60 +549,60 @@
                 <div class="section-card">
                     <div class="section-title">
                         <span class="icon">⚙️</span>
-                        Financial Settings
+                        الإعدادات المالية
                     </div>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="default-currency">Default Currency</label>
+                            <label for="default-currency">العملة الافتراضية</label>
                             <select id="default-currency">
-                                <option value="IQD">Iraqi Dinar (IQD)</option>
-                                <option value="USD">US Dollar (USD)</option>
-                                <option value="EUR">Euro (EUR)</option>
+                                <option value="IQD">الدينار العراقي (IQD)</option>
+                                <option value="USD">الدولار الأمريكي (USD)</option>
+                                <option value="EUR">اليورو (EUR)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="tax-rate">Default Tax Rate (%)</label>
-                            <input type="number" id="tax-rate" min="0" max="100" step="0.1" value="0" placeholder="0.0">
+                            <label for="tax-rate">نسبة الضريبة الافتراضية (%)</label>
+                            <input type="number" id="tax-rate" min="0" max="100" step="0.1" value="0" placeholder="0.0" dir="ltr">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" id="auto-calculate-commission" checked>
-                            Automatically calculate commissions for new orders
+                            <input type="checkbox" id="auto-calculate-commission" checked dir="auto">
+                            احتساب العمولات تلقائيًا للطلبات الجديدة
                         </label>
                     </div>
 
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" id="dynamic-delivery-fees" checked>
-                            Enable dynamic delivery fee adjustments
+                            <input type="checkbox" id="dynamic-delivery-fees" checked dir="auto">
+                            تفعيل تعديل رسوم التوصيل تلقائيًا
                         </label>
                     </div>
 
-                    <button class="button-primary" onclick="saveSettings()">Save Settings</button>
+                    <button class="button-primary" onclick="saveSettings()">حفظ الإعدادات</button>
                 </div>
 
                 <div class="section-card">
                     <div class="section-title">
                         <span class="icon">🔄</span>
-                        System Actions
+                        إجراءات النظام
                     </div>
                     <div class="form-grid">
                         <div>
                             <button class="button-secondary" onclick="recalculateAllCommissions()">
-                                Recalculate All Commissions
+                                إعادة احتساب جميع العمولات
                             </button>
                             <p style="font-size: 0.9rem; color: #6c757d; margin-top: 10px;">
-                                Recalculates commissions for all historical orders
+                                إعادة احتساب عمولات جميع الطلبات السابقة
                             </p>
                         </div>
                         <div>
                             <button class="button-secondary" onclick="exportFinancialData()">
-                                Export Financial Data
+                                تصدير البيانات المالية
                             </button>
                             <p style="font-size: 0.9rem; color: #6c757d; margin-top: 10px;">
-                                Download all financial rules and reports as CSV
+                                تنزيل جميع القواعد والتقارير المالية بصيغة CSV
                             </p>
                         </div>
                     </div>
@@ -710,8 +614,8 @@
     <!-- Navigation and Sidebar Scripts -->
     <script src="aggressive-sidebar-fix.js"></script>
     <script src="immediate-sidebar-fix.js"></script>
-    <script src="assets/js/navigation.js"></script>
-    <script src="financial-management.js"></script>
+    <script src="assets/js/navigation.js?v=20261017-ar1"></script>
+    <script src="financial-management.js?v=20261017-ar1"></script>
     
     <!-- Sidebar Loading Script -->
     <script>
@@ -773,8 +677,8 @@
                     // Update sidebar user info if present
                     const userNameEl = document.querySelector('.user-info .user-name');
                     const userRoleEl = document.querySelector('.user-info .user-role');
-                    if (userNameEl) userNameEl.textContent = (json?.data?.email) || 'User';
-                    if (userRoleEl) userRoleEl.textContent = roles.join(', ') || 'guest';
+                    if (userNameEl) userNameEl.textContent = (json?.data?.email) || "المستخدم";
+                    if (userRoleEl) userRoleEl.textContent = roles.join(', ') || "زائر";
                 } catch (e) {
                     console.warn('RBAC sidebar gating failed:', e);
                 }
@@ -814,7 +718,7 @@
                 const canWrite = has('admin') || has('financial_admin');
                 const canRead = canWrite || has('reporting_view');
                 if (!canRead) {
-                    document.body.innerHTML = '<div style="padding:60px;font-family:Roboto,Arial,sans-serif;text-align:center;max-width:640px;margin:0 auto;"><h2 style="margin-bottom:12px;">Access Denied</h2><p style="color:#666;">You do not have permission to view the Financial Center.</p><button onclick=\'window.location.href=&quot;./index.html&quot;\' style="margin-top:25px;padding:10px 18px;border:0;border-radius:6px;background:#222;color:#fff;cursor:pointer;">Return to Login</button></div>';
+                    document.body.innerHTML = "<div style=\"padding:60px;font-family:Roboto,Arial,sans-serif;text-align:center;max-width:640px;margin:0 auto;\"><h2 style=\"margin-bottom:12px;\">الوصول مرفوض</h2><p style=\"color:#666;\">لا تملك صلاحية الاطلاع على الإدارة المالية.</p><button onclick='window.location.href=&quot;./index.html&quot;' style=\"margin-top:25px;padding:10px 18px;border:0;border-radius:6px;background:#222;color:#fff;cursor:pointer;\">العودة إلى تسجيل الدخول</button></div>";
                     return;
                 }
                 if (!canWrite) {
@@ -836,7 +740,7 @@
                         const badge = document.createElement('div');
                         badge.id = 'readOnlyBadge';
                         badge.style.cssText = 'margin-top:10px;font-size:0.70rem;background:#ffffff;color:#444;padding:6px 10px;border-radius:6px;display:inline-block;border:1px solid #e2e8f0;';
-                        badge.textContent = 'Read-only financial reporting access';
+                        badge.textContent = "صلاحية الاطلاع على التقارير المالية فقط";
                         header.appendChild(badge);
                     }
                     // Prevent submission just in case

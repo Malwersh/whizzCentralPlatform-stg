@@ -1,4 +1,17 @@
 {
+  "commercial_viewer": [
+    "commercial.read"
+  ],
+  "commercial_editor": [
+    "commercial.read",
+    "commercial.request",
+    "commercial.funding.request"
+  ],
+  "commercial_approver": [
+    "commercial.read",
+    "commercial.approve",
+    "commercial.funding.approve"
+  ],
   "pricing_viewer": [
     "pricing.read",
     "pricing.simulate"
@@ -133,6 +146,11 @@
     "staff.read"
   ],
   "bootstrap_admin": [
+    "commercial.read",
+    "commercial.request",
+    "commercial.funding.request",
+    "commercial.approve",
+    "commercial.funding.approve",
     "pricing.read",
     "pricing.simulate",
     "pricing.request",

@@ -5,9 +5,9 @@
             <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: var(--md-sys-shape-corner-medium); display: flex; align-items: center; justify-content: center;">
                 <i class="fas fa-rocket" style="color: var(--md-sys-color-on-primary);"></i>
             </div>
-            <span>WizzCentral</span>
+            <span>ويز سنترال</span>
         </div>
-        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="تبديل عرض القائمة الجانبية">
             <i class="fas fa-bars"></i>
         </button>
     </div>
@@ -16,28 +16,29 @@
             <li class="nav-item" data-page="home">
                 <a href="dashboard.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-home md-navigation-item__icon"></i>
-                    <span>Home</span>
+                    <span>الرئيسية</span>
                 </a>
             </li>
             <li class="nav-item" data-page="dashboard">
                 <a href="dashboard.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-tachometer-alt md-navigation-item__icon"></i>
-                    <span>Dashboard</span>
+                    <span>لوحة التحكم</span>
                 </a>
             </li>
             <li class="nav-item" data-page="drivers">
                 <a href="drivers.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-motorcycle md-navigation-item__icon"></i>
-                    <span>Drivers</span>
+                    <span>السائقون</span>
                 </a>
             </li>
             <li class="nav-item" data-page="customers">
                 <a href="customers.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-users md-navigation-item__icon"></i>
-                    <span>Customers</span>
+                    <span>العملاء</span>
                 </a>
             </li>
-            <li class="nav-item" data-page="finance">
+            <li class="nav-item" data-page="pricing"><a href="delivery-pricing.html" class="nav-link" data-nav="page"><i class="fas fa-route"></i><span>Pricing &amp; Commissions</span></a></li>
+<li class="nav-item" data-page="finance">
                 <a href="finance.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-wallet"></i><span>إدارة شحن المحافظ</span>
                 </a>
@@ -45,32 +46,31 @@
             <li class="nav-item" data-page="merchants">
                 <a href="merchants.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-store md-navigation-item__icon"></i>
-                    <span>Merchants</span>
+                    <span>المتاجر</span>
                 </a>
             </li>
             <li class="nav-item" data-page="orders">
                 <a href="orders.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-shopping-bag md-navigation-item__icon"></i>
-                    <span>Orders</span>
+                    <span>الطلبات</span>
                 </a>
             </li>
             <li class="nav-item" data-page="promotions">
                 <a href="promotions.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-tags md-navigation-item__icon"></i>
-                    <span>Promotions</span>
+                    <span>العروض والحملات</span>
                 </a>
             </li>
             <li class="nav-item" data-page="regions">
                 <a href="regions.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-map-marked-alt md-navigation-item__icon"></i>
-                    <span>Regions</span>
+                    <span>المناطق</span>
                 </a>
             </li>
-            <li class="nav-item" data-page="pricing"><a href="delivery-pricing.html" class="md-navigation-item" data-nav="page"><i class="fas fa-route"></i><span>Pricing &amp; Commissions</span></a></li>
             <li class="nav-item" data-page="financial">
                 <a href="financial-management.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-coins md-navigation-item__icon"></i>
-                    <span>Financial</span>
+                    <span>الإدارة المالية</span>
                 </a>
             </li>
             <li class="nav-item" data-page="settings"><a href="settings.html" class="md-navigation-item" data-nav="page"><i class="fas fa-cog"></i><span>الإعدادات</span></a></li>
@@ -82,7 +82,7 @@
             <li class="nav-item" data-page="support">
                 <a href="support.html" class="md-navigation-item" data-nav="page" rel="noopener">
                     <i class="fas fa-headset md-navigation-item__icon"></i>
-                    <span>Support</span>
+                    <span>الدعم المباشر</span>
                 </a>
             </li>
         </ul>
@@ -93,13 +93,13 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="user-info">
-                <span class="user-name">Admin User</span>
-                <span class="user-role">Administrator</span>
+                <span class="user-name">مستخدم مسؤول</span>
+                <span class="user-role">مدير النظام</span>
             </div>
         </div>
         <button class="logout-btn" type="button" onclick="try{(window.Auth&&typeof window.Auth.logout==='function')?window.Auth.logout():((typeof window.logout==='function')?window.logout():null);}catch(e){console.warn('Logout failed',e);}">
             <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
+            <span>تسجيل الخروج</span>
         </button>
     </div>
 </div>

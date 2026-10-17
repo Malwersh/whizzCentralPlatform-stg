@@ -11,7 +11,7 @@ test('handler retry bypasses active-order rejection and returns the saved order 
 });
 test('handler required mode refuses missing/expired quotes, changed address and unknown request data',async()=>{
  const f=await setup();assert.equal((await f.invoke({quoteId:undefined})).statusCode,400);assert.equal((await f.invoke({idempotencyKey:undefined})).statusCode,400);
- const bad=await f.invoke({deliveryAddress:{id:'a1',latitude:32,longitude:44.457}});assert.equal(bad.json.code,'INVALID_QUOTE_ORDER');
+ const bad=await f.invoke({deliveryAddress:{id:'a1',latitude:32,longitude:44.457}});assert.equal(bad.json.code,'OFFER_ADDRESS_UNAVAILABLE');
  f.time+=120000;const expired=await f.invoke();assert.equal(expired.statusCode,409);assert.equal(expired.json.code,'QUOTE_EXPIRED');assert.equal(f.orders.size,0);
 });
 test('OFF and invalid configuration refuse quoted requests without falling back to client fee',async()=>{
@@ -20,7 +20,7 @@ test('OFF and invalid configuration refuse quoted requests without falling back 
 });
 test('required mode enforces staging tables/pool and rejects guests before writing',async()=>{
  const f=await setup();f.env.USER_POOL_ID='other-pool';const wrong=await f.invoke();assert.ok([401,503].includes(wrong.statusCode));assert.equal(f.orders.size,0);
- const g=await setup();const guest=await g.invoke({userId:null});assert.equal(guest.json.code,'CUSTOMER_UNAVAILABLE');assert.equal(g.orders.size,0);
+ const g=await setup();const guest=await g.invoke({userId:null});assert.equal(guest.json.code,'OFFER_ACCOUNT_REQUIRED');assert.equal(g.orders.size,0);
 });
 test('OFF mode preserves the existing unquoted path and does not consume a quote',async()=>{
  const f=await setup('OFF');const r=await f.invoke({quoteId:undefined});assert.equal(r.statusCode,201,JSON.stringify(r.json));assert.equal(r.json.order.pricing.deliveryFee,999999000);assert.equal(f.orders.size,1);assert.equal([...f.saved.values()][0].consumption,undefined);
@@ -97,4 +97,25 @@ test('wallet or approval changed between read and commit aborts all funding and 
  assert.equal(f.extraLookup('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,0);
  assert.equal([...f.commercialRecords.values()].filter(x=>x.sk==='PROMOTION_FUNDING').length,0);
  }
+});
+
+test('completed and returned orders permit another quoted order while returning remains active',async()=>{
+ for(const status of ['completed','returned','returning','return_arrived']){
+  const f=await setup();f.orders.set('ORDER#previous|META',{orderId:'previous',userId:'u1',status,createdAt:'2026-10-15T11:00:00.000Z'});
+  const result=await f.invoke();assert.equal(result.statusCode,['completed','returned'].includes(status)?201:409,JSON.stringify(result.json));
+ }
+});
+
+test('canonical commercial writer cannot use the shared legacy pool/client defaults when configuration is missing',async()=>{
+ for(const key of ['USER_POOL_ID','USER_POOL_CLIENT_ID']){
+  const f=await setup();delete f.env[key];const r=await f.invoke();assert.equal(r.statusCode,500);assert.equal(f.orders.size,0);assert.equal(f.journey.size,0);
+ }
+});
+
+test('closing the cohort preserves confirmation replay but cannot consume another uncommitted quote',async()=>{
+ const {quoteHash}=require('../dist/deliveryQuoteRecord');
+ function drain(f){const c=JSON.parse(f.env.FINANCE_ROLLOUT_CONFIG);c.scopes[0].mode='DRAIN';f.env.FINANCE_ROLLOUT_CONFIG=JSON.stringify(c);f.env.FINANCE_ROLLOUT_SHA256=quoteHash(c);}
+ const f=await setup(),first=await f.invoke();assert.equal(first.statusCode,201);const journey=[...f.journey.values()].map(x=>x.count);drain(f);
+ const replay=await f.invoke();assert.equal(replay.statusCode,200,JSON.stringify(replay.json));assert.equal(replay.json.replayed,true);assert.equal(replay.json.orderId,first.json.orderId);assert.deepEqual([...f.journey.values()].map(x=>x.count),journey);
+ const fresh=await setup();drain(fresh);const denied=await fresh.invoke();assert.equal(denied.json.code,'FINANCE_ROLLOUT_ADMISSION_CLOSED');assert.equal(fresh.orders.size,0);assert.equal(fresh.journey.size,0);assert.equal([...fresh.saved.values()][0].consumption,undefined);
 });

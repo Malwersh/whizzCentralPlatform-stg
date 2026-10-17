@@ -1,0 +1,65 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Staging commercial option metadata reads only",
+  "Parameters": {
+    "StaffRoleName": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "CommercialOptionsReadPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "staging-commercial-options-read-74",
+        "Roles": [
+          {
+            "Ref": "StaffRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:Scan"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "discountId",
+                    "businessId",
+                    "title",
+                    "name",
+                    "code",
+                    "version",
+                    "status",
+                    "isActive",
+                    "isDeleted",
+                    "deletedAt",
+                    "deletionRequestId",
+                    "validFrom",
+                    "validTo",
+                    "valid_from",
+                    "valid_to",
+                    "startDate",
+                    "endDate",
+                    "fundingPolicyId",
+                    "fundingPolicyVersion"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

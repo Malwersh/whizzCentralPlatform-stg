@@ -137,9 +137,16 @@ const handleRequest = async (event) => {
     console.log(`✅ Extracted orderId: ${extractedOrderId}, waveNumber: ${waveNumber}`);
     
     const financialOrder = await dynamoDB.send(new GetCommand({TableName: ORDERS_TABLE,
-      Key:{PK:`ORDER#${extractedOrderId}`,SK:'META'},ConsistentRead:true,ProjectionExpression:'financialSnapshot'}));
-    if (financialOrder.Item && Object.prototype.hasOwnProperty.call(financialOrder.Item, 'financialSnapshot')) {
+      Key:{PK:`ORDER#${extractedOrderId}`,SK:'META'},ConsistentRead:true,ProjectionExpression:'financialSnapshot, commercialPricing, financialAcceptance, financialOutcome, codFinancialEvidence'}));
+    if (financialOrder.Item && ['financialSnapshot','commercialPricing','financialAcceptance','financialOutcome','codFinancialEvidence'].some(k=>Object.prototype.hasOwnProperty.call(financialOrder.Item,k))) {
       return {statusCode:409,body:JSON.stringify({success:false,code:'FINANCIAL_OFFER_REQUIRED'})};
+    }
+    const cycleJob=await dynamoDB.send(new GetCommand({TableName:DISPATCH_JOBS_TABLE,Key:{orderId:extractedOrderId,SK:'METADATA'},ConsistentRead:true}));
+    if(cycleJob.Item&&Object.prototype.hasOwnProperty.call(cycleJob.Item,'dispatchCycle')){
+      if(process.env.DISPATCH_CYCLE_MODE!=='LEGACY_RESPONSES')return {statusCode:409,body:JSON.stringify({success:false,code:'UNIFIED_LEGACY_ACCEPTANCE_NOT_READY'})};
+      const token=String(event.headers?.Authorization??event.headers?.authorization??'').replace(/^Bearer /i,'');
+      const result=await require('./dispatch-cycle-runtime').respondPinnedLegacyOffer('ACCEPT',{orderId:extractedOrderId,offerId,waveNumber},token,body.acceptanceAttemptId);
+      return {statusCode:200,body:JSON.stringify(result)};
     }
     const now = new Date().toISOString();
     const timestamp = Date.now();
@@ -327,7 +334,7 @@ const handleRequest = async (event) => {
               pricingFrozen = :pricingFrozen
           ADD assignmentAttemptCounter :one
         `,
-          ConditionExpression: 'orderStatus <> :assignedStatus AND attribute_not_exists(financialSnapshot)',
+          ConditionExpression: 'orderStatus <> :assignedStatus AND attribute_not_exists(financialSnapshot) AND attribute_not_exists(commercialPricing) AND attribute_not_exists(financialAcceptance) AND attribute_not_exists(financialOutcome) AND attribute_not_exists(codFinancialEvidence)',
           ExpressionAttributeNames: {
             '#status': 'status',
           },

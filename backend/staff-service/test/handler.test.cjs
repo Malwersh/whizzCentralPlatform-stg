@@ -2,10 +2,10 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),Module=re
 const original=Module._load,A='11111111-1111-4111-8111-111111111111',B='22222222-2222-4222-8222-222222222222',C='33333333-3333-4333-8333-333333333333',D='44444444-4444-4444-8444-444444444444';
 let claims,items,writes,enabled,invalid,race,enrolled,confirmed,liveSubOverride;
 class Command{constructor(input){this.input=input;}}
-class GetCommand extends Command{};class ScanCommand extends Command{};class DeleteCommand extends Command{};class TransactWriteCommand extends Command{};
+class GetCommand extends Command{};class ScanCommand extends Command{};class QueryCommand extends Command{};class DeleteCommand extends Command{};class TransactWriteCommand extends Command{};
 Module._load=function(n,p,i){
  if(n==='@aws-sdk/client-dynamodb')return {DynamoDBClient:class{}};
- if(n==='@aws-sdk/lib-dynamodb')return {GetCommand,ScanCommand,DeleteCommand,TransactWriteCommand,DynamoDBDocumentClient:{from:()=>({send:async c=>{if(c instanceof GetCommand)return {Item:c.input.Key.regionId?{regionId:c.input.Key.regionId}:items[c.input.Key.pk]};if(c instanceof TransactWriteCommand){if(race)throw Object.assign(Error(),{name:'TransactionCanceledException'});writes.push(c.input);return {};}return {Items:[]};}})}};
+ if(n==='@aws-sdk/lib-dynamodb')return {GetCommand,ScanCommand,QueryCommand,DeleteCommand,TransactWriteCommand,DynamoDBDocumentClient:{from:()=>({send:async c=>{if(c instanceof GetCommand)return {Item:c.input.Key.regionId?{regionId:c.input.Key.regionId}:items[c.input.Key.pk]};if(c instanceof TransactWriteCommand){if(race)throw Object.assign(Error(),{name:'TransactionCanceledException'});writes.push(c.input);return {};}return {Items:[]};}})}};
  if(n==='@aws-sdk/client-cognito-identity-provider')return {CognitoIdentityProviderClient:class{async send(){return {Enabled:enabled,UserAttributes:[{Name:'sub',Value:liveSubOverride||claims.sub}],UserMFASettingList:enrolled?['SOFTWARE_TOKEN_MFA']:[],UserStatus:confirmed?'CONFIRMED':'FORCE_CHANGE_PASSWORD'};}},AdminGetUserCommand:Command,AdminUserGlobalSignOutCommand:Command};
  if(n==='aws-jwt-verify')return {CognitoJwtVerifier:{create:()=>({verify:async()=>{if(invalid)throw Error();return claims;}})}};
  return original(n,p,i);
@@ -41,3 +41,8 @@ test('deleted and deleting profiles reject a still-valid JWT without reactivatio
 
 test('provider username reused by another identity cannot authorize old token',async()=>{reset();liveSubOverride=B;const r=await handler({httpMethod:'GET',path:'/staff/me',headers:{}});assert.equal(r.statusCode,403);assert.equal(writes.length,0);});
 test('stored employee identity must match verified token subject',async()=>{reset();items['EMPLOYEE#'+A].employeeId=B;const r=await handler({httpMethod:'GET',path:'/staff/me',headers:{}});assert.equal(r.statusCode,403);assert.equal(writes.length,0);});
+
+test('staff deletions list reaches the authenticated route handler',async()=>{reset();const result=await handler({httpMethod:'GET',path:'/staff/deletions',headers:{authorization:'Bearer test'}});assert.equal(result.statusCode,200);assert.deepEqual(JSON.parse(result.body),{items:[]});assert.equal(writes.length,0);});
+
+test('valid-session policy allows old authentication while JWT remains valid',async()=>{reset();process.env.PLATFORM_ENVIRONMENT='staging';process.env.PLATFORM_SESSION_POLICY='VALID_SESSION';try{claims.auth_time-=7200;assert.equal((await request('/staff/changes',assignment())).statusCode,201);invalid=true;assert.equal((await request('/staff/changes',assignment())).statusCode,401);invalid=false;items['EMPLOYEE#'+A].minimumAuthTime=claims.auth_time+1;assert.equal((await request('/staff/changes',assignment())).statusCode,403);}finally{delete process.env.PLATFORM_ENVIRONMENT;delete process.env.PLATFORM_SESSION_POLICY;}});
+test('valid-session policy rejects missing or future authentication',async()=>{reset();process.env.PLATFORM_ENVIRONMENT='staging';process.env.PLATFORM_SESSION_POLICY='VALID_SESSION';try{delete claims.auth_time;assert.equal((await request('/staff/changes',assignment())).statusCode,403);claims.auth_time=Math.floor(Date.now()/1000)+120;assert.equal((await request('/staff/changes',assignment())).statusCode,403);}finally{delete process.env.PLATFORM_ENVIRONMENT;delete process.env.PLATFORM_SESSION_POLICY;}});

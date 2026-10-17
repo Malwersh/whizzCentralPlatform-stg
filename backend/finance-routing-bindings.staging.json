@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "accountId": "699561669180",
+  "region": "us-east-1",
+  "secretArn": "arn:aws:secretsmanager:us-east-1:699561669180:secret:staging/finance/mapbox/server-routing-IZJNcs",
+  "secretOwnerStack": "staging-finance-routing-secret-56",
+  "accessOwnerStack": "staging-finance-routing-access-57",
+  "bindings": [
+    {
+      "functionName": "WizzUser-DeliveryQuotes-staging",
+      "environmentKey": "MAPBOX_SECRET_ARN"
+    },
+    {
+      "functionName": "WaveSystem_StartWave",
+      "environmentKey": "FINANCIAL_ROUTING_SECRET_ARN"
+    }
+  ],
+  "mustNotReprice": [
+    "staging-driver-financial-accept",
+    "WaveSystem_HandleWaveTimeout"
+  ],
+  "activation": false
+}

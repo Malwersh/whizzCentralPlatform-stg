@@ -1,0 +1,14 @@
+{
+  "function": "staging-wizz-staff-service",
+  "beforeSha256": "FjXg7kX9yKFs7hSE8OoPCLKWvV2cH2fCC+DXPTVmxic=",
+  "afterSha256": "g1TEoRTkFu7o9UxgyeHFCuu1sYqYEZrtlCI1HvI/Yy0=",
+  "changedFiles": [
+    "index.js"
+  ],
+  "sessionPolicy": "VALID_SESSION",
+  "testsPassed": 186,
+  "otherPackageFilesPreserved": true,
+  "otherEnvironmentPreserved": true,
+  "applicationDataWrites": false,
+  "scope": "Central platform staff service only; merchant owner consent and wallet verification unchanged"
+}

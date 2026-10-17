@@ -1,4 +1,4 @@
-import { Money, MoneyRounding, readMoney, moneyFromMinor, addMoney, subtractMoney, multiplyMoney } from './money';
+import { Money, MoneyRounding, WholeIqdRounding, readWholeIqdRounding, quantizeWholeIqd, readMoney, moneyFromMinor, addMoney, subtractMoney, multiplyMoney } from './money';
 
 /** Pure server calculation. Callers must authenticate rules, routes and scope before calling. */
 export class PricingError extends Error {
@@ -14,6 +14,16 @@ function row(value: unknown, keys: string[]): Row {
   const r = value as Row;
   if (Object.keys(r).some(k => !keys.includes(k)) || keys.some(k => !Object.prototype.hasOwnProperty.call(r, k))) return fail();
   return r;
+}
+function ruleRow(value: unknown, keys: string[]): Row {
+  return row(value, [...keys, ...(value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'finalRounding') ? ['finalRounding'] : [])]);
+}
+function roundingPolicy(r: Row): WholeIqdRounding | undefined {
+  if (!Object.prototype.hasOwnProperty.call(r, 'finalRounding')) return undefined;
+  try { return readWholeIqdRounding(r.finalRounding); } catch { return fail(); }
+}
+function roundingLimits(policy: WholeIqdRounding | undefined, minimum: Money, maximum: Money) {
+  if (policy && [minimum, maximum].some(m => BigInt(m.minorAmount) % (BigInt(policy.incrementIqd) * 1000n) !== 0n)) return fail();
 }
 function text(value: unknown): string {
   if (typeof value !== 'string' || !/^[A-Za-z0-9_.:-]{1,150}$/.test(value)) return fail();
@@ -57,7 +67,7 @@ function common(r: Row) {
   const rounding = r.rounding as MoneyRounding;
   if (!['EXACT', 'TOWARD_ZERO', 'HALF_AWAY_FROM_ZERO'].includes(rounding)) return fail();
   if (r.vehicleType !== null) text(r.vehicleType);
-  return { id: text(r.id), version, scope: s, priority, status: r.status, start, end, rounding, vehicleType: r.vehicleType };
+  return { id: text(r.id), version, scope: s, priority, status: r.status, start, end, rounding, vehicleType: r.vehicleType, finalRounding: roundingPolicy(r) };
 }
 const commonKeys = ['id', 'version', 'scope', 'priority', 'status', 'effectiveFrom', 'effectiveTo', 'rounding', 'vehicleType'];
 function surcharge(value: unknown) {
@@ -76,7 +86,7 @@ function peaks(value: unknown) {
   return list;
 }
 function deliveryRule(value: unknown) {
-  const r = row(value, [...commonKeys, 'base', 'perKm', 'tiers', 'longDistance', 'peaks', 'minimum', 'maximum', 'coverage', 'fallbackPolicyId']);
+  const r = ruleRow(value, [...commonKeys, 'base', 'perKm', 'tiers', 'longDistance', 'peaks', 'minimum', 'maximum', 'coverage', 'fallbackPolicyId']);
   const c = common(r), base = amount(r.base), perKm = amount(r.perKm);
   if (c.vehicleType !== null || !Array.isArray(r.tiers) || r.tiers.length > 100) return fail();
   let previous = 0;
@@ -91,6 +101,7 @@ function deliveryRule(value: unknown) {
   if (tiers.length && perKm.minorAmount !== 0) return fail();
   const minimum = amount(r.minimum), maximum = amount(r.maximum);
   if (maximum.minorAmount < minimum.minorAmount) return fail();
+  roundingLimits(c.finalRounding, minimum, maximum);
   const cov = row(r.coverage, ['enabled', 'maxRoadMeters', 'maxDurationSeconds', 'supportedZoneIds']);
   if (!Array.isArray(cov.supportedZoneIds) || !cov.supportedZoneIds.length || cov.supportedZoneIds.length > 1000) return fail();
   const zones = cov.supportedZoneIds.map(text);
@@ -100,9 +111,10 @@ function deliveryRule(value: unknown) {
     coverage: { enabled: bool(cov.enabled), maxRoadMeters: integer(cov.maxRoadMeters, 1), maxDurationSeconds: integer(cov.maxDurationSeconds, 1), zones }, fallbackPolicyId: r.fallbackPolicyId };
 }
 function compensationRule(value: unknown) {
-  const r = row(value, [...commonKeys, 'base', 'pickupPerKm', 'pickupIncludedMeters', 'deliveryPerKm', 'perMinute', 'longDistance', 'peaks', 'minimum', 'maximum', 'fallbackPolicyId']);
+  const r = ruleRow(value, [...commonKeys, 'base', 'pickupPerKm', 'pickupIncludedMeters', 'deliveryPerKm', 'perMinute', 'longDistance', 'peaks', 'minimum', 'maximum', 'fallbackPolicyId']);
   const c = common(r), minimum = amount(r.minimum), maximum = amount(r.maximum);
   if (maximum.minorAmount < minimum.minorAmount) return fail();
+  roundingLimits(c.finalRounding, minimum, maximum);
   if (r.fallbackPolicyId !== null) text(r.fallbackPolicyId);
   return { ...c, base: amount(r.base), pickupPerKm: amount(r.pickupPerKm), pickupIncludedMeters: integer(r.pickupIncludedMeters),
     deliveryPerKm: amount(r.deliveryPerKm), perMinute: amount(r.perMinute), longDistance: surcharge(r.longDistance), peaks: peaks(r.peaks), minimum, maximum, fallbackPolicyId: r.fallbackPolicyId };
@@ -154,17 +166,20 @@ export function calculateDeliveryFee(value: unknown) {
   const distance = tier?.fee ?? scaled(r.perKm, leg.distanceMeters, 1000, r.rounding);
   const longDistance = longPay(r.longDistance, leg.distanceMeters, r.rounding), peak = peakPay(r.peaks, at);
   const beforeLimits = addMoney(r.base, distance, longDistance, peak);
-  const beforeDiscount = clamp(beforeLimits, r.minimum, r.maximum);
+  const boundedFee = clamp(beforeLimits, r.minimum, r.maximum);
+  const beforeDiscount = r.finalRounding ? quantizeWholeIqd(boundedFee, r.finalRounding) : boundedFee;
   let discount = zero, funding: Readonly<{ id: string; party: string }> | null = null;
   if (input.discount !== null) {
     const d = row(input.discount, ['id', 'fundingParty', 'amount']);
     const requested = amount(d.amount);
+    // Preserve discount funding exactly. A sub-quantum delivery discount needs an explicit compatible rule.
+    if (r.finalRounding && requested.minorAmount < beforeDiscount.minorAmount && BigInt(requested.minorAmount) % (BigInt(r.finalRounding.incrementIqd) * 1000n) !== 0n) return fail();
     if (!['PLATFORM', 'MERCHANT', 'THIRD_PARTY'].includes(d.fundingParty as string)) return fail();
     funding = Object.freeze({ id: text(d.id), party: d.fundingParty as string });
     discount = requested.minorAmount > beforeDiscount.minorAmount ? beforeDiscount : requested;
   }
   return Object.freeze({ engineVersion: 'DELIVERY_PRICING_V1' as const, basis: 'CALCULATION_PROPOSAL' as const, rule: reference(r), deliveryRoute: leg,
-    components: Object.freeze({ base: r.base, distance, longDistance, peak, beforeLimits, limitAdjustment: subtractMoney(beforeDiscount, beforeLimits), beforeDiscount, discount }),
+    components: Object.freeze({ base: r.base, distance, longDistance, peak, beforeLimits, limitAdjustment: subtractMoney(boundedFee, beforeLimits), ...(r.finalRounding ? { finalRounding: r.finalRounding, finalRoundingAdjustment: subtractMoney(beforeDiscount, boundedFee) } : {}), beforeDiscount, discount }),
     customerDeliveryFee: subtractMoney(beforeDiscount, discount), discountFunding: funding, discountFundingAmount: discount });
 }
 
@@ -183,10 +198,11 @@ export function calculateDriverEarning(value: unknown) {
   // Long-distance incentive uses delivery distance only; pickup is compensated separately.
   const longDistance = longPay(r.longDistance, deliveryRoute.distanceMeters, r.rounding), peak = peakPay(r.peaks, at);
   const beforeLimits = addMoney(r.base, pickup, delivery, time, longDistance, peak);
-  const driverEarning = clamp(beforeLimits, r.minimum, r.maximum);
+  const boundedEarning = clamp(beforeLimits, r.minimum, r.maximum);
+  const driverEarning = r.finalRounding ? quantizeWholeIqd(boundedEarning, r.finalRounding) : boundedEarning;
   return Object.freeze({ engineVersion: 'DRIVER_COMPENSATION_V1' as const, basis: 'CALCULATION_PROPOSAL' as const, rule: reference(r), pickupRoute, deliveryRoute,
     totalDistanceMeters: Number(meters), totalDurationSeconds: Number(seconds),
-    components: Object.freeze({ base: r.base, pickup, delivery, time, longDistance, peak, beforeLimits, limitAdjustment: subtractMoney(driverEarning, beforeLimits) }), driverEarning });
+    components: Object.freeze({ base: r.base, pickup, delivery, time, longDistance, peak, beforeLimits, limitAdjustment: subtractMoney(boundedEarning, beforeLimits), ...(r.finalRounding ? { finalRounding: r.finalRounding, finalRoundingAdjustment: subtractMoney(driverEarning, boundedEarning) } : {}) }), driverEarning });
 }
 
 /** Validate an entire centrally managed rule set without requiring a route or a matching rule. */

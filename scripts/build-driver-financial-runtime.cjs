@@ -13,9 +13,9 @@ const file=path.join(out,'financial-runtime.js');fs.writeFileSync(file,result.ou
 const manifest={schemaVersion:1,stage:'staging',file:'financial-runtime.js',sha256:crypto.createHash('sha256').update(result.outputFiles[0].contents).digest('hex'),
  destinations:['lambda/WaveSystem_StartWave/financial-runtime.js','lambda/WaveSystem_HandleWaveTimeout/financial-runtime.js',
   'staging-driver-financial-accept/index.js'],activation:'OFF',completionActivation:'OFF',returnsActivation:'OFF',assignmentsActivation:'OFF',requiresCoordinatedDeployment:true,
- blockers:['Live package comparison and IAM/Gateway verification','Policy-backed compensation, outbox and retention integration','Human device return/cancellation UX, adjudication and Gateway verification','Completion outbox consumer and retention integration','Deletion and retention integration','Real Staging synthetic acceptance test']};
+ blockers:['Live package comparison and IAM/Gateway verification','Policy-backed compensation/adjudication and merchant payouts remain pending','Human device return/cancellation UX, adjudication and Gateway verification','Coordinated deployment of acceptance, integration, notification and deletion/retention contracts with flags OFF','Gateway, live authentication, production-role IAM and device verification remain pending']};
 const completionReview={schemaVersion:1,stage:'staging',activation:'OFF',notApplied:true,
- functionName:'staging-driver-financial-accept',additionalEnvironment:{FINANCIAL_COD_COMPLETION_MODE:'OFF',FINANCIAL_COD_RETURNS_MODE:'OFF',FINANCIAL_COD_ASSIGNMENTS_MODE:'OFF',FINANCIAL_REASSIGNMENT_WINDOW_SECONDS:'UNCONFIGURED'},
+ functionName:'staging-driver-financial-accept',additionalEnvironment:{FINANCIAL_COD_COMPLETION_MODE:'OFF',FINANCIAL_COD_RETURNS_MODE:'OFF',FINANCIAL_COD_ASSIGNMENTS_MODE:'OFF',FINANCIAL_REASSIGNMENT_WINDOW_SECONDS:'300'},
  scope:'Review delta to acceptance role; not a deployable policy or approval to apply it',
  permissions:[
   {table:'staging-Wallets',actions:['GetItem','ConditionCheckItem','UpdateItem'],leadingKeys:['WALLET#DRIVER#*','WALLET#MERCHANT#*','WALLET#PLATFORM']},
@@ -32,6 +32,7 @@ const completionReview={schemaVersion:1,stage:'staging',activation:'OFF',notAppl
   {table:'staging-AccountDeletion',actions:['ConditionCheckItem']}],
  constraints:['Issuer/acceptance now require GetItem/ConditionCheckItem on assignment release archives in staging-Holds',
  'Timeout worker must preserve and resume financialRedispatch intents; worker frequency must be verified',
+ 'Schema-1 financial integration events require the disabled integration worker and upgraded notification worker; do not activate writers alone',
  'Return owner routes require AdminGetUser on merchant pool us-east-1_gtCR3ndzT in addition to driver pool',
  'Merchant auth invokes only the fixed writer ARN; no wallet/ledger mutation grant',
  'us-east-1 / account 699561669180 only','No DeleteItem, wallet creation, payout or Cognito changes',

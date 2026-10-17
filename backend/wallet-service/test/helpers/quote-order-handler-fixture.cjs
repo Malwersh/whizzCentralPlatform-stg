@@ -9,12 +9,16 @@ async function setup(mode='REQUIRED',free=false){
  const quote=await f.create();f.orderQueries=0;f.externalCalls=0;
  f.products=new Map([['p1',{productId:'p1',businessId:'b1',name:'Test',price:3500,categoryId:'cat1',isAvailable:true}]]);
  f.category={categoryId:'cat1',isActive:true};
- f.extraLookup=(table,key)=>table==='WhizzMerchants_Products'?f.products.get(key.productId):table==='WhizzMerchants_Categories'?f.category:
+ f.journey=new Map();
+ f.extraPut=p=>{if(p.TableName!=='staging-WizzOfferJourney')return false;f.journey.set(p.Item.pk+'|'+p.Item.sk,structuredClone(p.Item));return true;};
+ f.extraLookup=(table,key)=>table==='staging-WizzOfferJourney'?f.journey.get(key.pk+'|'+key.sk):table==='WhizzMerchants_Products'?f.products.get(key.productId):table==='WhizzMerchants_Categories'?f.category:
   table==='WhizzMerchants_Discounts'?f.discountRow:table==='WizzCentral_Platform_Discounts'?f.promoRow:f.commercialRecords?.get(table+'|'+JSON.stringify(key));
  f.extraUpdate=u=>{const row=f.extraLookup(u.TableName,u.Key);for(const field of u.UpdateExpression.slice(4).split(', ')){
   const [n,v]=field.split('=');const name=n.trim(),value=v.trim();row[u.ExpressionAttributeNames[name]||name]=u.ExpressionAttributeValues[value];}
   f.discountUpdates=(f.discountUpdates||0)+1;};
  const db={send:async c=>{
+  if(c.input.TableName==='staging-WizzOfferJourney')return {Item:f.extraLookup(c.input.TableName,c.input.Key)};
+  if(c.input.TableName==='WizzOrders'&&!c.input.Key&&c.constructor.name==='ScanCommand')return {Items:[...f.orders.values()]};
   if(f.commercialRecords?.has(c.input.TableName+'|'+JSON.stringify(c.input.Key)))return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
   if(['WhizzMerchants_Products','WhizzMerchants_Categories'].includes(c.input.TableName))return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
   if(c.input.TableName==='WhizzMerchants_Discounts'){
@@ -25,15 +29,32 @@ async function setup(mode='REQUIRED',free=false){
    return {Item:f.promoRow};
   }
 if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueries++;return {Items:[...f.orders.values()]};}return f.db.send(c);}};
- const env={USERS_TABLE:'WizzUser_users_staging',USER_POOL_ID:'us-east-1_TpyyrVkEE',USER_POOL_CLIENT_ID:'staging-client',AWS_REGION:'us-east-1',DELIVERY_QUOTE_MODE:mode};
+ const env={...require('./finance-rollout-fixture.cjs').scopeEnv({orders:[{orderId:require('./finance-rollout-fixture.cjs').orderId(),branchId:'b1',customerSubjectId:'sub1'}]}),USERS_TABLE:'WizzUser_users_staging',USER_POOL_ID:'us-east-1_TpyyrVkEE',USER_POOL_CLIENT_ID:'staging-client',AWS_REGION:'us-east-1',DELIVERY_QUOTE_MODE:mode};
  const exports={};
+ const shared={};
+ const FakeDate=class extends Date{constructor(...args){super(...(args.length?args:[f.time]));}static now(){return f.time;}};
+ function loadShared(name){
+  if(shared[name])return shared[name];
+  const module={exports:{}};
+  vm.runInNewContext(fs.readFileSync(path.resolve(path.dirname(handlerPath),'../shared',name+'.js'),'utf8'),{
+   module,exports:module.exports,Buffer,Date:FakeDate,process:{env},AbortSignal,
+   fetch:async()=>({ok:true,json:async()=>({Username:'username',UserAttributes:[{Name:'sub',Value:'sub1'}]})}),
+   require:n=>n==='@aws-sdk/lib-dynamodb'?sdk:n==='../create-order/account-guard'?{accountGuard}:n.startsWith('./')?loadShared(n.slice(2)):require(n)
+  });
+  return shared[name]=module.exports;
+ }
  const modules={
+  '../shared/offer-context':loadShared('offer-context'),
+  '../shared/offer-eligibility':loadShared('offer-eligibility'),
+  '../shared/offer-attribution':loadShared('offer-attribution'),
+  '../shared/legacy-order-policy':require('../../../../../wizzuser-stg/backend/src/functions/shared/legacy-order-policy'),
   '@aws-sdk/client-dynamodb':{DynamoDBClient:class{}},'@aws-sdk/lib-dynamodb':{...sdk,DynamoDBDocumentClient:{from:()=>db}},
+  './quote-runtime/financeRollout':{createFinanceRollout:o=>require('../../dist/financeRollout').createFinanceRollout({...o,env,now:()=>f.time})},
   './account-guard':{accountGuard},'./quote-runtime/deliveryQuoteOrder':{...runtime,createStagingQuoteOrder:o=>runtime.createStagingQuoteOrder({...o,now:()=>f.time})},
   'aws-sdk':{CognitoIdentityServiceProvider:class{getUser(){return {promise:async()=>({Username:'username',UserAttributes:[{Name:'sub',Value:'sub1'}]})};}}},
   '../delivery-quotes/runtime':{GetUserCommand:class{},CognitoIdentityProviderClient:class{async send(){return {Username:'username',UserAttributes:[{Name:'sub',Value:'sub1'}]};}}},
   '../shared/customer-order-view':require('../../../../../wizzuser-stg/backend/src/functions/shared/customer-order-view'),
-  '../shared/discount-reservation':require('../../../../../wizzuser-stg/backend/src/functions/shared/discount-reservation'),
+  '../shared/discount-reservation':loadShared('discount-reservation'),
   './quote-runtime/orderCommercialSource':{...require('../../dist/orderCommercialSource'),createStagingCommercialSource:o=>require('../../dist/orderCommercialSource').createStagingCommercialSource({...o,now:()=>f.time})},
   './quote-runtime/money':require('../../dist/money'),
   './quote-runtime/orderGoodsPricing':require('../../dist/orderGoodsPricing'),
@@ -50,7 +71,8 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   f.commercialRecords=source.records;
   for(const key of [...f.commercialRecords.keys()])if(key.startsWith('WhizzMerchants_')||key.includes('PERSON#')||key.startsWith('WizzCentral_Regions'))f.commercialRecords.delete(key);
   f.branch.commercialAgreementId='a1';f.branch.commercialAgreementVersion=1;
-  f.extraPut=p=>{if(['staging-Holds','staging-LedgerEntries','staging-AuditLog'].includes(p.TableName)){
+  const offerPut=f.extraPut;
+  f.extraPut=p=>{if(offerPut(p))return true;if(['staging-Holds','staging-LedgerEntries','staging-AuditLog'].includes(p.TableName)){
    const r=p.Item,key=p.TableName==='staging-Holds'?{orderId:r.orderId,sk:r.sk}:p.TableName==='staging-LedgerEntries'?{walletId:r.walletId,sk:r.sk}:{datePartition:r.datePartition,sk:r.sk};
    f.commercialRecords.set(p.TableName+'|'+JSON.stringify(key),structuredClone(r));return true;
   }return false;};

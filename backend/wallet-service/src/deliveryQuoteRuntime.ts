@@ -8,3 +8,7 @@ export { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 export { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 export { SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 export { CognitoIdentityProviderClient, GetUserCommand } from '@aws-sdk/client-cognito-identity-provider';
+
+export {readDeliveryOperations} from './deliveryOperations';
+
+export {createFinanceRollout} from './financeRollout';

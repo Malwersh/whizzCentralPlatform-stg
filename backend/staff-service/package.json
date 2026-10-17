@@ -30,7 +30,19 @@
     "staff-permission-policy.js",
     "staff-capabilities.js",
     "delivery-pricing.js",
-    "pricing-runtime"
+    "pricing-runtime",
+    "dispatch-settings.js",
+    "dispatch-settings-contract.js",
+    "home-slideshow.js",
+    "offer-eligibility.js",
+    "dispatch-reviews.js",
+    "commercial-management.js",
+    "commercial-owner.js",
+    "promotions.js",
+    "campaign-version.js",
+    "write-workflow.js",
+    "commercial-reference.js",
+    "commercial-options.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",

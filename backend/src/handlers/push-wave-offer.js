@@ -46,6 +46,11 @@ exports.sendWaveOffer = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
 
+    if (Object.prototype.hasOwnProperty.call(body,'legacySourceVersion') || Object.prototype.hasOwnProperty.call(body,'moneyUnit')) {
+      try { return await require('../utils/pinned-wave-push-handler').createPinnedWavePushHandler({db:dynamodb,getMessaging})(body); }
+      catch (_) { return badRequest('PINNED_WAVE_PUSH_NOT_ALLOWED'); }
+    }
+
     const driverId = String(body.driverId || body.subjectId || '').trim();
     const orderId = String(body.orderId || '').trim();
     const offerId = String(body.offerId || '').trim();
