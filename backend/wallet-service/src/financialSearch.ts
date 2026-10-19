@@ -7,7 +7,7 @@ export function unavailableDispatchSearch(reason:string,observedAt:string) {
  return {status:'no_driver_available',reason,reviewStatus:'REQUIRED',observedAt};
 }
 /** Exhaustion is an operational review state. No cancellation, wallet, hold, ledger or financial-outcome write. */
-export function createStagingFinancialSearch(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number}) {
+export function createStagingFinancialSearch(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean}) {
  const {db}=options,now=options.now??Date.now;
  return {async exhaust(orderId:string){
   if(!quoteEntityIdValid(orderId))throw Error('INVALID_FINANCIAL_SEARCH');
@@ -21,7 +21,7 @@ export function createStagingFinancialSearch(options:{db:Pick<DynamoDBDocumentCl
   const maxWaves=job.financialSearchMaxWave??job.maxWaves??4;
   if(!Number.isSafeInteger(maxWaves)||maxWaves<1||maxWaves>1000)throw Error('FINANCIAL_SEARCH_CONFLICT');
   if(!timedOut&&!(waveNumber>=maxWaves&&wave?.state==='EXPIRED'))return {exhausted:false,assigned:false};
-  const order=await createStagingDriverOfferOrderReader({db}).read({orderId,branchId:job.restaurantId});
+  const order=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding}).read({orderId,branchId:job.restaurantId});
   const search=unavailableDispatchSearch(timedOut?'SEARCH_WINDOW_EXPIRED':'MAX_WAVES_REACHED',new Date(now()).toISOString());
   const checks:any[]=[updateChecked(exactCheck('WizzDispatchJobs_staging',key,job),'SET #s=:s, #r=:r, #at=:at, #sv=:sv',{'#s':'status','#r':'noDriverReason','#at':'updatedAt','#sv':'financialSearchVersion'},{':s':search.status,':r':search.reason,':at':search.observedAt,':sv':1}),
    updateChecked(order.condition,'SET #ds=:ds, #fs=:fs',{'#ds':'dispatchStatus','#fs':'financialSearch'},{':ds':search.status,':fs':search})];

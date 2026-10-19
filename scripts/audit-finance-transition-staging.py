@@ -30,6 +30,13 @@ RELEASES = [
     'finance-approved-sample-workflow-staging-64.json',
     'finance-direct-platform-workflow-staging-65.json',
     'finance-staff-page-load-fix-staging-66.json',
+    'finance-wave-continuation-93.json',
+    'finance-cod-integration-pricing-97.json',
+    'finance-reception-notification-staging-99.json',
+    'finance-uploaded-sounds-android-tracking-100.json',
+    'finance-merchant-identity-import-104.json',
+    'finance-merchant-settlement-staging-release-113.json',
+    'otp-telegram-fallback-staging-116.json',
 ]
 EXTRA_FUNCTIONS = ['WizzUser-DeliveryQuotes-staging']
 MODES = {'OFF', 'REQUIRED', 'REQUESTS_ONLY', 'SAFE_INITIAL_LEGACY',

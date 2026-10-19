@@ -1,6 +1,7 @@
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { AdminGetUserCommand, CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { createStagingDriverOfferOrderReader } from './driverOfferOrderReader';
+import { buildDeliveryFundedOffer } from './deliveryFundedOffer';
 import { buildDriverOffer } from './driverOffer';
 import { validatePricingRules } from './deliveryPricing';
 import { BoundRoadRoute } from './roadRouting';
@@ -50,12 +51,13 @@ export function createStagingDriverOfferContext(options: {
   positionMaxAgeSeconds: number;
   offerTtlSeconds: number;
   offerDeadline?: string;
+  enableDeliveryFunding?: boolean;
   now?: () => number;
 }) {
   const { db, cognito, router, positionMaxAgeSeconds, offerTtlSeconds } = options, now = options.now ?? Date.now;
   if (![positionMaxAgeSeconds, offerTtlSeconds].every(n => Number.isSafeInteger(n) && n >= 1 && n <= 900)) return fail('INVALID_DRIVER_OFFER_CONTEXT');
   if(options.offerDeadline!==undefined&&!Number.isFinite(date(options.offerDeadline)))return fail('INVALID_DRIVER_OFFER_CONTEXT');
-  const orderReader = createStagingDriverOfferOrderReader({ db });
+  const orderReader = createStagingDriverOfferOrderReader({ db,enableDeliveryFunding:options.enableDeliveryFunding });
   async function get(table: string, key: Row, selected: string[]): Promise<Row> {
     const names = Object.fromEntries(selected.map((f,i) => ['#f'+i,f]));
     try { return copy((await db.send(new GetCommand({ TableName: table, Key: key, ConsistentRead: true,
@@ -136,7 +138,7 @@ export function createStagingDriverOfferContext(options: {
           observedAt:position.locationUpdatedAt,expiresAt:new Date(observed+positionMaxAgeSeconds*1000).toISOString()},
         order:order.snapshot,policy:{version:policy.version,rules:bundle.driverRules},pickupRoute,deliveryRoute,
         at:new Date(now()).toISOString(),ttlSeconds:offerTtlSeconds});
-      return copy({offer,waveNumber:request.waveNumber,guards:r.guards});
+      return copy({offer:order.deliveryFunding?buildDeliveryFundedOffer({schemaVersion:2,base:offer.source,deliveryFunding:order.deliveryFunding}):offer,waveNumber:request.waveNumber,guards:r.guards});
     }
   });
 }

@@ -1,7 +1,7 @@
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {readDeliveryOperations} from './deliveryOperations';
 import {createDispatchCycle,validateDispatchCycle} from './dispatchCycle';
-import {createStagingDriverOfferOrderReader,prepareDriverOfferFinancialSnapshot} from './driverOfferOrderReader';
+import {createStagingDriverOfferOrderReader,financialSnapshotFromOrderRead} from './driverOfferOrderReader';
 import {strongGet,exactCheck,updateChecked,detach,equal,FinancialRow as Row} from './driverFinancialTransaction';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
 const {isFinancialOrder,FINANCIAL_FIELDS}=require('../../order-service/legacy-order-policy');
@@ -11,7 +11,7 @@ const fail=(code='DISPATCH_CYCLE_CONFLICT'):never=>{throw Object.assign(Error(co
  * No live entry point calls it until Creator's old Put/Update/Invoke are replaced
  * together. Existing jobs are never migrated. No wallet, ledger or offer writes.
  */
-export function createStagingDispatchCycleStore(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number}) {
+export function createStagingDispatchCycleStore(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean}) {
   const {db}=options,now=options.now??Date.now;
   return {async create(input:{requestId:string;job:Row}) {
     if(!input||Object.keys(input).sort().join(',')!=='job,requestId'||!quoteEntityIdValid(input.requestId)||!input.job||typeof input.job!=='object'||Array.isArray(input.job))return fail();
@@ -34,8 +34,8 @@ export function createStagingDispatchCycleStore(options:{db:Pick<DynamoDBDocumen
     if(engine==='FINANCIAL') {
       // Reuse the authoritative snapshot reader; malformed/archived evidence must
       // not downgrade to legacy or be repriced by this creation primitive.
-      const financial=await createStagingDriverOfferOrderReader({db}).read({orderId,branchId:job.restaurantId});
-      if(financial.nextAssignmentAttempt!==1||financial.priorRelease||(order.assignmentAttemptCounter??0)!==0||order.financialRelease!=null||!equal(order.financialSnapshot,prepareDriverOfferFinancialSnapshot(financial.snapshot)))return fail();
+      const financial=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding}).read({orderId,branchId:job.restaurantId});
+      if(financial.nextAssignmentAttempt!==1||financial.priorRelease||(order.assignmentAttemptCounter??0)!==0||order.financialRelease!=null||!equal(order.financialSnapshot,financialSnapshotFromOrderRead(financial)))return fail();
     }
     const branchKey={businessId:job.restaurantId},branch=await strongGet(db,T.branches,branchKey);
     if(!branch||branch.status!=='approved'||!quoteEntityIdValid(branch.ownerId)||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)return fail();

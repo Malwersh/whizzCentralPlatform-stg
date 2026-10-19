@@ -5,6 +5,7 @@
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.896.0",
     "@aws-sdk/client-dynamodb": "^3.896.0",
+    "@aws-sdk/client-lambda": "^3.958.0",
     "@aws-sdk/client-s3": "^3.1152.0",
     "@aws-sdk/lib-dynamodb": "^3.896.0",
     "@aws-sdk/s3-request-presigner": "^3.1152.0",
@@ -37,6 +38,9 @@
     "offer-eligibility.js",
     "dispatch-reviews.js",
     "commercial-management.js",
+    "commercial-notices.js",
+    "commercial-events.js",
+    "commercial-party.js",
     "commercial-owner.js",
     "promotions.js",
     "campaign-version.js",

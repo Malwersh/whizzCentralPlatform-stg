@@ -74,7 +74,7 @@ test('commercial order requires explicit consent and changes to agreement invali
  assert.equal(r.statusCode,409);assert.equal(f.orders.size,0);
 });
 test('funding, ledger, usage and order share a transaction; replay after response loss does not reserve twice',async()=>{
- const f=await setup();f.enableCommercial();f.discountRow={discountId:'d1',businessId:'b1',version:1,status:'active',type:'fixedAmount',value:1000,
+ const f=await setup();f.enableCommercial();f.discountRow={valid_from:'2026-10-01T00:00:00.000Z',valid_to:'2026-11-01T00:00:00.000Z',discountId:'d1',businessId:'b1',version:1,status:'active',type:'fixedAmount',value:1000,
   usage_count:0,usage_limit:1,fundingPolicyId:'fp1',fundingPolicyVersion:1};
  const patch={discountId:'d1',discount:1000};
  const p=await f.invoke({...patch,action:'preview_commercial'});assert.equal(p.statusCode,200,JSON.stringify(p.json));
@@ -88,7 +88,7 @@ test('funding, ledger, usage and order share a transaction; replay after respons
 });
 test('wallet or approval changed between read and commit aborts all funding and order writes',async()=>{
  for(const kind of ['wallet','approval']){
- const f=await setup();f.enableCommercial();f.discountRow={discountId:'d1',businessId:'b1',version:1,status:'active',type:'fixedAmount',value:1000,usage_count:0,fundingPolicyId:'fp1',fundingPolicyVersion:1};
+ const f=await setup();f.enableCommercial();f.discountRow={valid_from:'2026-10-01T00:00:00.000Z',valid_to:'2026-11-01T00:00:00.000Z',discountId:'d1',businessId:'b1',version:1,status:'active',type:'fixedAmount',value:1000,usage_count:0,fundingPolicyId:'fp1',fundingPolicyVersion:1};
  const patch={discountId:'d1',discount:1000};const p=await f.invoke({...patch,action:'preview_commercial'});
  f.beforeTransaction=()=>{if(kind==='wallet')f.extraLookup('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).version++;
  else [...f.commercialRecords.values()].find(x=>x.sk==='APPROVAL#1').status='REVOKED';};

@@ -47,7 +47,8 @@
                 "ForAllValues:StringLike": {
                   "dynamodb:LeadingKeys": [
                     "COMMERCIAL_AGREEMENT#*",
-                    "PERSON#*"
+                    "PERSON#*",
+                    "BRANCH#*"
                   ]
                 }
               }

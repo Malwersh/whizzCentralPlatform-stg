@@ -20,7 +20,7 @@ const digest = (row: Row) => quoteHash({ pk: row.pk, sk: row.sk, schemaVersion: 
  * spend quota but never authorize routing: cost protection fails closed, with no compensating writes.
  */
 export function createStagingDeliveryQuoteRateLimiter(options: {
-  db: Pick<DynamoDBDocumentClient, 'send'>; maxPerMinute: number; policyCondition?: Row|null; now?: () => number;
+  db: Pick<DynamoDBDocumentClient, 'send'>; maxPerMinute: number; policyCondition?: Row|null; now?: () => number; preview?: boolean;
 }) {
   if (!Number.isSafeInteger(options.maxPerMinute) || options.maxPerMinute < 1 || options.maxPerMinute > 120) return unavailable();
   if(options.policyCondition&&(options.policyCondition.ConditionCheck?.TableName!=='staging-PlatformStaff'||options.policyCondition.ConditionCheck?.Key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS'||options.policyCondition.ConditionCheck?.Key?.sk!=='CURRENT'))return unavailable();
@@ -31,7 +31,7 @@ export function createStagingDeliveryQuoteRateLimiter(options: {
         !/^[A-Za-z0-9_.:-]{1,150}$/.test(customer.subjectId) || condition?.TableName !== 'WizzUser_users_staging' ||
         Object.keys(condition.Key ?? {}).join(',') !== 'userId' || condition.Key?.userId !== customer.userId ||
         !condition.ConditionExpression) return unavailable();
-    const key = { pk: 'CUSTOMER#' + customer.userId, sk: SK };
+    const key = { pk: 'CUSTOMER#' + customer.userId, sk: options.preview ? 'RATE#STOREFRONT_PREVIEW' : SK };
     for (let attempt = 0; attempt < 3; attempt++) {
       const ms = now();
       if (!Number.isSafeInteger(ms) || ms < 0) return unavailable();
@@ -39,7 +39,7 @@ export function createStagingDeliveryQuoteRateLimiter(options: {
       let old: Row | undefined;
       try { old = (await options.db.send(new GetCommand({ TableName: TABLE, Key: key, ConsistentRead: true }))).Item; }
       catch { return unavailable(); }
-      if (old && (old.pk !== key.pk || old.sk !== SK || old.subjectId !== customer.subjectId || old.schemaVersion !== 1 ||
+      if (old && (old.pk !== key.pk || old.sk !== key.sk || old.subjectId !== customer.subjectId || old.schemaVersion !== 1 ||
           !Number.isSafeInteger(old.windowStart) || old.windowStart < 0 || old.windowStart % WINDOW_MS !== 0 || old.windowStart > windowStart ||
           !Number.isSafeInteger(old.count) || old.count < 1 || old.count > 120 || !Number.isSafeInteger(old.version) || old.version < 1 ||
           old.version >= Number.MAX_SAFE_INTEGER || old.digest !== digest(old) || old.legalHold || old.retentionHold)) return unavailable();

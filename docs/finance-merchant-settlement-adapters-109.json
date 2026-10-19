@@ -1,0 +1,42 @@
+{
+  "part": 109,
+  "status": "LOCAL_TESTED_NOT_DEPLOYED",
+  "recordedAt": "2026-10-18T05:07:15.642528+00:00",
+  "implemented": [
+    "Live strongly consistent employee permission adapter reusing existing platform catalog",
+    "READ requires finance.read; CREATE also requires finance.request and fresh authentication; neither authorizes payout",
+    "Global financial scope, MFA/session revocation, employee state, branch ownership and owner/business deletion checks",
+    "Exact employee authority fields pinned in freeze transaction",
+    "Read-only approved schedule envelope validator with explicit owner consent/approval metadata, agreement binding and full calendar-period coverage",
+    "Batch rejects schedule agreement mismatch before any writes"
+  ],
+  "verification": {
+    "typescriptBuildPassed": true,
+    "settlementTestsPassed": 58,
+    "liveAuthorityIntegratedWithActualCodFreezeFixture": true,
+    "liveAwsVerificationPerformed": false
+  },
+  "limitations": [
+    "Principal must come from existing verified JWT/live Cognito route, never request JSON; route integration not implemented",
+    "Schedule reader validates persisted approval envelope; authenticated approval/consent publisher is not implemented",
+    "Only current schedule is read; periods outside coverage fail closed and require a historical version reader",
+    "No default schedule or historical merchant consent is inferred",
+    "Schedule retention review, package/IAM inventory, real transaction verification and admin UI remain required"
+  ],
+  "permissionGrantsChanged": false,
+  "publicationPerformed": false,
+  "walletOrLedgerChanged": false,
+  "sourceSha256": {
+    "backend/wallet-service/src/merchantSettlementAuthority.ts": "4334a1c294681d7039e59da8e88158becb9a7d7ae901db8b29f90db17449593c",
+    "backend/wallet-service/src/merchantSettlementScheduleReader.ts": "a6e889bf3abc15f7259061a744d4e38146855142a35e002bea2fba0863f5c2ef",
+    "backend/wallet-service/src/merchantSettlementBatch.ts": "10a5feb612e673a286f625708115475ebc0135fda41ef4194eed0d93c2b950c2",
+    "backend/wallet-service/test/merchant-settlement-authority.test.cjs": "3aaf8a91a7b60a7c34309abd70e5a90a50034668f4b06ca2e78b280dec473b93",
+    "backend/wallet-service/test/merchant-settlement-schedule-reader.test.cjs": "ec96b12f8567e3014372d3dd47672d3f2d5f5841fd3f7269a65aa3428cf4aa04",
+    "backend/wallet-service/test/merchant-settlement-batch.test.cjs": "3b5ae8f9f5f3dbfd46e67ef5e3e939cde1420d11e42460ef733c7f80e99ffb8c"
+  },
+  "continuedBy": {
+    "part": 110,
+    "evidence": "finance-merchant-settlement-schedule-workflow-110.json",
+    "scope": "Internal proposal/owner-consent/independent-approval publisher and historical schedule reader; not routed or deployed"
+  }
+}

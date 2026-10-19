@@ -66,7 +66,7 @@ export function createStagingDeliveryPricingContext(options: {
       get(tables.branches, { businessId: branchId }, ['businessId', 'branchId', 'ownerId', 'cognitoUserId', 'organizationId',
         'latitude', 'longitude', 'address.latitude', 'address.longitude', 'regionId', 'regionPath', 'status', 'isActive',
         'onboardingSchemaVersion', 'onboardingComplete', 'acceptingOrders', 'platformSuspended', 'ordersBlocked',
-        'deletionRequestId', 'version', 'updatedAt']),
+        'deletionRequestId', 'version', 'updatedAt', 'orderReceptionSettings', 'minimum_order']),
       get(tables.addresses, { addressId }, ['addressId', 'userId', 'latitude', 'longitude', 'deletionRequestId', 'updatedAt', 'version']),
       get(tables.policy, { pk: 'OPERATIONAL_SETTINGS#DELIVERY_PRICING', sk: 'CURRENT' }, ['pk', 'sk', 'version', 'values'])
     ]);
@@ -134,7 +134,7 @@ export function createStagingDeliveryPricingContext(options: {
       const calculation = calculateDeliveryFee({ schemaVersion: 1, at, context, rules: first.rules,
         deliveryRoute: binding.route, discount: null });
       return Object.freeze({ schemaVersion: 1, at, branchId, addressId, policyVersion: first.policy.version,
-        context, binding, calculation, referenceVersion: first.referenceVersion });
+        context, binding, calculation, minimumOrderAmountIqd:first.branch.minimum_order??null, preparationMinutes: first.branch.orderReceptionSettings?.defaultPreparationMinutes ?? null, pricingRequest:{schemaVersion:1,at,context,rules:first.rules,deliveryRoute:binding.route,discount:null}, referenceVersion: first.referenceVersion });
     }
   });
 }

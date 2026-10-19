@@ -2,7 +2,7 @@ import {DeliveryOperationsValues} from './deliveryOperationsPolicy';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { createStagingDriverOfferContext } from './driverOfferContext';
 import { createStagingDriverOfferStore } from './driverOfferStore';
-import { driverOfferView, buildDriverOffer } from './driverOffer';
+import { resolveFinancialOffer,versionedFinancialOfferView } from './financialOfferVersion';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { detach, equal, strongGet, exactCheck, updateChecked, FinancialRow as Row } from './driverFinancialTransaction';
 const jobs='WizzDispatchJobs_staging',offers='WaveOffers_staging';
@@ -11,10 +11,10 @@ const conflict=():never=>{throw Object.assign(Error('FINANCIAL_WAVE_CONFLICT'),{
  * A READY wave is required by acceptance. Notifications carry the allowlisted financial view only.
  */
 export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocumentClient,'send'>;
-  pinnedTransitionId?:string;
+  pinnedTransitionId?:string;enableDeliveryFunding?:boolean;
   operating?:{version:number;values:DeliveryOperationsValues;condition:Row|null};
   context:ReturnType<typeof createStagingDriverOfferContext>;sendOffer:(driverId:string,message:Row)=>Promise<void>;now?:()=>number}) {
- const {db,context,sendOffer}=options,now=options.now??Date.now,store=createStagingDriverOfferStore({db,now});
+ const {db,context,sendOffer}=options,now=options.now??Date.now,store=createStagingDriverOfferStore({db,now,enableDeliveryFunding:options.enableDeliveryFunding});
  return Object.freeze({async run(value:unknown){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='branchId,driverIds,orderId,waveNumber')return conflict();
   const r=detach(value as Row),{orderId,branchId,waveNumber}=r;
@@ -44,10 +44,10 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
     const key={orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`},saved=await strongGet(db,offers,key);
     if(saved){
      if(saved.offerId!==offerId||saved.financialOffer?.assignmentId!==wave.assignmentId||saved.responseStatus!=='financial_pending')return conflict();
-     driverOfferView(saved.financialOffer,driverId,saved.financialOffer.driverSubjectId,new Date(now()).toISOString());
+     versionedFinancialOfferView(saved.financialOffer,driverId,resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding).driverSubjectId,new Date(now()).toISOString(),options.enableDeliveryFunding);
     }else{
      const prepared=await context.prepare({orderId,branchId,driverId,waveNumber,offerId});
-     if(prepared.offer.assignmentId!==wave.assignmentId)return conflict();
+     if(resolveFinancialOffer(prepared.offer,options.enableDeliveryFunding).assignmentId!==wave.assignmentId)return conflict();
      await store.save(prepared);
     }
    }
@@ -70,16 +70,16 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
    // The durable response is authoritative; skip it without inventing a delivery ACK.
    if(options.pinnedTransitionId&&saved&&(['financial_declined','financial_expired'].includes(saved.responseStatus)||(saved.responseStatus==='financial_pending'&&Date.parse(saved.expiresAt)<=now())))continue;
    if(!saved||saved.responseStatus!=='financial_pending')return conflict();
-   const offer=buildDriverOffer(saved.financialOffer?.source);
-   if(!equal(offer,saved.financialOffer)||offer.assignmentId!==wave.assignmentId)return conflict();
+   const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding);
+   if(!equal(offer.versionedOffer,saved.financialOffer)||offer.assignmentId!==wave.assignmentId)return conflict();
    const live=await context.checkAcceptance({orderId,branchId,driverId,waveNumber,offerId:offer.offerId});
    if(live.subjectId!==offer.driverSubjectId||live.assignment.dispatchJobId!==wave.assignmentId)return conflict();
    // Revalidate all DynamoDB references before an external send. A winner racing AFTER this check
    // can still cause a stale notification; acceptance's atomic conditions remain authoritative.
    await db.send(new TransactWriteCommand({TransactItems:[live.order.condition,...(live.order.releaseCondition?[live.order.releaseCondition]:[]),...Object.values(live.guards).filter(v=>!Array.isArray(v)),
     ...live.guards.deletions,exactCheck(jobs,waveKey,wave),exactCheck(offers,{orderId,SK:saved.SK},saved)] as any}));
-   const view=driverOfferView(offer,driverId,live.subjectId,new Date(now()).toISOString());
-   await sendOffer(driverId,{type:'financial_wave_offer',eventId:offer.offerId,waveNumber,offer:view});
+   const view=versionedFinancialOfferView(offer,driverId,live.subjectId,new Date(now()).toISOString(),options.enableDeliveryFunding);
+   await sendOffer(driverId,{type:'financial_wave_offer',eventId:offer.offerId,waveNumber,offer:{...view,...(live.order.display?{display:live.order.display}:{})}});
    try{await db.send(new TransactWriteCommand({TransactItems:[updateChecked(exactCheck(jobs,waveKey,wave),
      'SET #uDelivered=:uDelivered, #uVersion=:uVersion',{'#uDelivered':'delivered','#uVersion':'version'},
      {':uDelivered':[...wave.delivered,driverId],':uVersion':wave.version+1})] as any}));}

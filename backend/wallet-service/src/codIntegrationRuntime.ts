@@ -16,7 +16,9 @@ async function codAndDispatch(event: Record<string, unknown>) {
   const rawDb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: 'us-east-1' }), { marshallOptions: { removeUndefinedValues: true } });const db=createFinanceRollout({db:rawDb}).db;
   const delivery = process.env.FINANCIAL_COD_NOTICE_DELIVERY ?? 'HELD';
   if (delivery !== 'HELD' && delivery !== 'PENDING') throw Error('INVALID_COD_NOTICE_DELIVERY');
-  const result=cod?await createStagingCodIntegration({ db, notificationDelivery: delivery }).run():{disabled:true,processed:0};
+  const deliveryFundingMode=process.env.FINANCIAL_DELIVERY_FUNDING_MODE??'OFF';
+  if(!['OFF','REQUIRED'].includes(deliveryFundingMode))throw Error('DELIVERY_FUNDING_NOT_CONFIGURED');
+  const result=cod?await createStagingCodIntegration({ db, notificationDelivery: delivery,enableDeliveryFunding:deliveryFundingMode==='REQUIRED' }).run():{disabled:true,processed:0};
   if(!dispatch)return result;
   const notice=process.env.DISPATCH_RESPONSE_NOTICE_DELIVERY??'HELD';if(notice!=='HELD'&&notice!=='PENDING')throw Error('INVALID_DISPATCH_NOTICE_DELIVERY');
   return {...result,dispatch:await createStagingDispatchResponseIntegration({db,notificationDelivery:notice}).run()};

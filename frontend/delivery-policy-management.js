@@ -1,0 +1,81 @@
+'use strict';
+(()=>{
+ const root=document.querySelector('[data-delivery-policies]');if(!root)return;
+ const el=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
+ const design=el('style');design.textContent=`
+ [data-delivery-policies]{--offer-blue:#12366d;--offer-line:#dce4ef;--offer-muted:#526176;}
+ [data-delivery-policies] [hidden]{display:none!important}
+ [data-delivery-policies] form{margin-top:20px;color:#182b47}
+ [data-delivery-policies] .offer-section{border:1px solid var(--offer-line);border-radius:16px;padding:20px;margin:16px 0;background:#fff;min-width:0}
+ [data-delivery-policies] .offer-section legend{font-weight:700;color:var(--offer-blue);padding:0 8px;font-size:17px}
+ [data-delivery-policies] .offer-note{color:var(--offer-muted);font-size:14px;line-height:1.8;margin:0 0 14px}
+ [data-delivery-policies] .offer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ [data-delivery-policies] .offer-field{display:flex;flex-direction:column;gap:8px;min-width:0;font-weight:600;font-size:14px}
+ [data-delivery-policies] .offer-field input,[data-delivery-policies] .offer-field select{box-sizing:border-box;width:100%;border:1px solid #b9c7da;border-radius:10px;padding:12px;background:#fff;color:#182b47;font:inherit;min-width:0}
+ [data-delivery-policies] .offer-field small{font-weight:400;color:var(--offer-muted);line-height:1.6}
+ [data-delivery-policies] .offer-field input:focus,[data-delivery-policies] .offer-field select:focus{outline:2px solid #6c9fea;outline-offset:2px}
+ [data-delivery-policies] .offer-wide{grid-column:1/-1}
+ [data-delivery-policies] .offer-example{background:#edf4ff;border-radius:12px;padding:14px;margin-top:16px;line-height:1.9}
+ [data-delivery-policies] .offer-submit{padding:13px 24px;border:0;border-radius:10px;background:var(--offer-blue);color:white;font:inherit;font-weight:700;cursor:pointer}
+ [data-delivery-policies] button:disabled{opacity:.55;cursor:wait}
+ @media(max-width:650px){[data-delivery-policies] .offer-grid{grid-template-columns:minmax(0,1fr)}[data-delivery-policies] .offer-section{padding:14px}}
+ `;root.append(design);
+ const status=el('p'),branch=el('select'),load=el('button','تحميل سياسات الفرع'),list=el('div'),form=el('form');status.setAttribute('role','status');load.type='button';
+ root.append(branch,load,status,list,form);form.hidden=true;
+ let state=null,regions=[],selected=null,epoch=0,busy=false,pending=null;
+ const label={MERCHANT:'المطعم',PLATFORM:'المنصة',SHARED:'المطعم والمنصة'};
+ const iqd=m=>Number.isSafeInteger(m?.minorAmount)?m.minorAmount/1000:undefined;
+ const fundingText=f=>f.kind==='SHARED_RATIO'?'حصة المطعم من الفرق '+(f.merchantNumerator/f.denominator*100)+'% والباقي للمنصة':f.kind==='CONTRIBUTION_THEN_REMAINDER'?'مساهمة '+label[f.contributor]+' حتى '+iqd(f.contribution)+' د.ع والباقي للطرف الآخر':label[f.kind]+' يتحمل فرق التوصيل كاملًا';
+ function source(){const previous=branch.value,data=window.commercialMerchantSource;epoch++;state=null;list.replaceChildren();form.hidden=true;pending=null;branch.replaceChildren();const empty=el('option','اختر المتجر / الفرع');empty.value='';branch.append(empty);
+  for(const row of data?.status==='READY'?data.items||[]:[]){if(row.isDeleted||row.deletedAt||row.deletionRequestId)continue;const id=row.businessId||row.id,name=row.businessName||row.name||row.title;if(!id||!name)continue;const o=el('option',name+(row.branchName?' — '+row.branchName:''));o.value=id;branch.append(o);}
+  branch.value=[...branch.options].some(o=>o.value===previous)?previous:'';load.disabled=!branch.value;status.textContent=data?.status==='ERROR'?'تعذر تحميل المتاجر؛ أعد تحميل قائمة المتاجر.':'اختر الفرع ثم حمّل سياساته.';
+ }
+ async function api(body,view){await window.Auth.ensureSession();const response=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/commercial'+(body?'':'?businessId='+encodeURIComponent(branch.value)+(view?'&view='+view:'')),{method:body?'POST':'GET',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});let data;try{data=await response.json();}catch{throw Error('تعذر قراءة استجابة الخادم. أعد المحاولة.');}if(!response.ok)throw Error(response.status===503?'إدارة عروض التوصيل غير مفعلة أو غير متاحة حاليًا.':response.status===409?'تغيرت نسخة السياسة؛ أعد تحميلها ومراجعتها.':'تعذر تنفيذ الإجراء. تحقق من صلاحيتك واتصالك.');return data.result||data;}
+ async function run(action){if(busy)return;busy=true;branch.disabled=true;load.disabled=true;for(const b of root.querySelectorAll('button'))b.disabled=true;try{await action();}catch(e){status.textContent=e.message;}finally{busy=false;branch.disabled=false;load.disabled=!branch.value;for(const b of root.querySelectorAll('button'))b.disabled=false;}}
+ async function refresh(){const version=++epoch;form.hidden=true;list.replaceChildren();state=null;pending=null;if(!branch.value)return;status.textContent='جارٍ تحميل السياسات…';const data=await api();if(version!==epoch)return;state=data;if(!state.can?.deliveryEnabled){status.textContent='إدارة عروض التوصيل غير مفعّلة لهذا الخادم بعد.';return;}
+  regions=(await api(null,'delivery-options')).regions;if(version!==epoch)return;
+  for(const item of state.items.filter(i=>i.draft.kind==='DELIVERY')){const d=item.draft,v=d.values,card=el('article');card.style.cssText='padding:18px;border:1px solid #ddd;border-radius:12px;margin:12px 0';card.append(el('h4',v.customerRule.kind==='FREE'?'توصيل مجاني':v.customerRule.kind==='CAPPED_PRICE'?'توصيل حتى '+iqd(v.customerRule.amount)+' د.ع':v.customerRule.kind==='AMOUNT_OFF'?'خصم توصيل '+iqd(v.customerRule.amount)+' د.ع':'خصم على التوصيل'),el('p','التمويل: '+label[v.origin]),el('p',fundingText(v.funding)),el('p','الحد الأدنى للسلة: '+iqd(v.eligibility.minimumGoods)+' د.ع — أقصى مسافة: '+v.eligibility.maximumRoadMeters+' متر — الاستخدام لكل زبون: '+v.limits.perCustomerUses),el('p','المناطق: '+v.eligibility.regionIds.map(id=>regions.find(r=>r.id===id)?.label||'منطقة سابقة غير متاحة').join('، ')),el('p',d.publishedVersion?'تمت موافقة المتجر وتفعيل النسخة':item.ownerAccepted?'وافق المتجر':'بانتظار موافقة المالك أو المدير'),el('p','سقف المطعم للطلب: '+iqd(v.limits.merchantPerOrder)+' د.ع — سقف المنصة: '+iqd(v.limits.platformPerOrder)+' د.ع'),el('p','ميزانية المطعم: '+iqd(v.limits.merchantBudget)+' د.ع — ميزانية المنصة: '+iqd(v.limits.platformBudget)+' د.ع'),el('p','السريان: '+v.effectiveFrom+' ← '+v.effectiveTo));if(state.can.deliveryRequest){const edit=el('button','تعديل وإرسال نسخة جديدة');edit.type='button';edit.onclick=()=>run(()=>editor(item));card.append(edit);}list.append(card);}
+  if(state.can.deliveryRequest){const add=el('button','إعداد عرض توصيل وإرساله للمتجر');add.type='button';add.onclick=()=>run(()=>editor(null));list.append(add);}status.textContent='تسري السياسة بعد موافقة المالك أو المدير. أجرة السائق مستقلة عن سعر التوصيل للزبون.';
+ }
+ function editor(item){selected=item;pending=null;delete form.dataset.policyId;form.replaceChildren();form.hidden=false;const v=item?.draft.values,c=v?.customerRule,l=v?.limits,e=v?.eligibility,f=v?.funding;const fields={};
+  let current;
+  function section(title,note){const box=el('fieldset'),grid=el('div');box.className='offer-section';box.append(el('legend',title));if(note){const p=el('p',note);p.className='offer-note';box.append(p);}grid.className='offer-grid';box.append(grid);form.append(box);current=grid;return box;}
+  function field(key,title,value='',options){const wrap=el('label',title),input=el(options?'select':'input');wrap.className='offer-field';input.name=key;input.required=true;input.value=value;if(options){for(const [id,name]of options){const o=el('option',name);o.value=id;input.append(o);}input.value=value;}else if(!['from','to','reason'].includes(key)){input.type='number';input.min='0';input.step='1';input.inputMode='numeric';}wrap.append(input);current.append(wrap);fields[key]=input;return input;}
+  function help(key,text){const small=el('small',text);small.id='delivery-help-'+key;fields[key].setAttribute('aria-describedby',small.id);fields[key].parentElement.append(small);}
+  const intro=el('p','حدد ما يدفعه الزبون، ثم من يتحمل فرق السعر وشروط الاستفادة. يسري العرض بعد موافقة المالك أو المدير.');intro.className='offer-note';form.append(intro);
+  const priceSection=section('١. سعر التوصيل للزبون','يُخصم العرض من تعرفة التوصيل العادية. أجرة السائق مستقلة ولا تتغير بهذه الخيارات.');
+  field('rule','سعر التوصيل للزبون',c?.kind||'FREE',[['FREE','مجاني'],['CAPPED_PRICE','مبلغ أقصى — الأقل منه أو التعرفة العادية'],['AMOUNT_OFF','خصم مبلغ من التوصيل'],['PERCENT_OFF','خصم نسبة من التوصيل']]);
+  field('amount','المبلغ بالدينار',iqd(c?.amount)??'0');field('percent','نسبة خصم التوصيل %',c?.numerator?c.numerator/c.denominator*100:10);field('maximumDiscount','سقف خصم النسبة بالدينار',iqd(c?.maximumDiscount)??0);
+  const priceExample=el('p');priceExample.className='offer-example';priceSection.append(priceExample);
+  section('٢. تمويل فرق التوصيل','فرق التمويل هو التعرفة العادية ناقص ما يدفعه الزبون.');
+  field('funder','من يمول فرق التوصيل؟',f?.kind==='CONTRIBUTION_THEN_REMAINDER'?f.contributor+'_THEN_'+(f.contributor==='MERCHANT'?'PLATFORM':'MERCHANT'):v?.origin||'MERCHANT',[['MERCHANT','المطعم كامل الفرق'],['PLATFORM','المنصة كامل الفرق'],['SHARED','تقاسم الفرق بنسبة'],['MERCHANT_THEN_PLATFORM','مساهمة المطعم بمبلغ والمنصة بالباقي'],['PLATFORM_THEN_MERCHANT','مساهمة المنصة بمبلغ والمطعم بالباقي']]);
+  field('merchantPercent','نسبة المطعم من فرق التوصيل %',f?.kind==='SHARED_RATIO'?f.merchantNumerator/f.denominator*100:50);field('contribution','مساهمة الطرف الأول بالدينار',iqd(f?.contribution)??0);
+  help('merchantPercent','النسبة من فرق التوصيل، والباقي تتحمله المنصة.');help('contribution','تُغطّى المساهمة المحددة أولًا، والباقي على الطرف الآخر ضمن سقفه.');
+  const fundingExample=el('p');fundingExample.className='offer-example offer-wide';current.append(fundingExample);
+  for(const [key,title]of [['merchantPerOrder','أقصى مساهمة للمطعم لكل طلب'],['platformPerOrder','أقصى مساهمة للمنصة لكل طلب'],['merchantBudget','ميزانية المطعم للحملة'],['platformBudget','ميزانية المنصة للحملة']])field(key,title+' — دينار',iqd(l?.[key])??0);
+  for(const party of ['merchant','platform']){help(party+'PerOrder','أكبر دعم لهذا الطرف في الطلب الواحد؛ صفر يعني لا يوجد تمويل.');help(party+'Budget','إجمالي دعم هذا الطرف طوال العرض، وليس مبلغًا لكل طلب. عند نفاده تعود التعرفة العادية.');}
+  section('٣. شروط الاستفادة','هذه شروط عرض التوصيل؛ الحد الأدنى لقبول الطلب في إعدادات المطعم يبقى مستقلًا.');
+  field('perCustomerUses','أقصى استخدام لكل زبون',l?.perCustomerUses??1);field('minimumGoods','الحد الأدنى للسلة بالدينار',iqd(e?.minimumGoods)??0);field('basis','أساس الحد الأدنى',e?.minimumGoodsBasis||'AFTER_GOODS_DISCOUNTS',[['AFTER_GOODS_DISCOUNTS','بعد خصومات الأصناف'],['GOODS_GROSS','قبل خصومات الأصناف']]);
+  field('audience','الزبائن المشمولون',e?.audience||'ALL',[['ALL','الجميع'],['NEW_CUSTOMER','أول طلب للزبون فقط']]);field('stacking','الجمع مع خصم الأصناف',e?.goodsDiscountStacking||'ALLOW',[['ALLOW','مسموح'],['DENY','غير مسموح']]);field('maximumRoadMeters','أقصى مسافة طريق — متر',e?.maximumRoadMeters??5000);
+  help('minimumGoods','قيمة الأصناف فقط، دون رسوم التوصيل والخدمة.');help('basis','قبل الخصم: سلة ٧٬٠٠٠ تبقى مؤهلة لحد ٧٬٠٠٠ حتى لو أصبحت ٦٬٣٠٠ بعد الخصم.');help('perCustomerUses','عدد الطلبات التي يستفيد فيها الزبون من هذا العرض.');fields.perCustomerUses.min='1';
+  section('٤. نطاق العرض ومدته','اختر المناطق التي يشملها العرض وحدد البداية والنهاية بتوقيت UTC.');current.append(fields.maximumRoadMeters.parentElement);
+  const areas=field('regions','مناطق التوصيل المشمولة','',regions.map(r=>[r.id,r.label]));areas.multiple=true;areas.size=6;areas.parentElement.classList.add('offer-wide');help('regions','يمكن اختيار أكثر من منطقة؛ على الكمبيوتر استخدم ⌘ أو Ctrl أثناء النقر.');for(const option of areas.options)option.selected=e?.regionIds.includes(option.value)||false;
+  for(const [key,title,value]of [['from','بداية السريان — UTC',v?.effectiveFrom],['to','نهاية السريان — UTC',v?.effectiveTo]]){const input=field(key,title,value?.replace(/Z$/,'')||'');input.type='datetime-local';input.step='0.001';}
+  section('٥. إرسال العرض للموافقة','إرسال المنصة ثم موافقة المالك أو المدير؛ لا توجد خطوة اعتماد إضافية.');
+  const reason=field('reason','سبب إرسال العرض');reason.minLength=5;reason.maxLength=300;reason.parentElement.classList.add('offer-wide');reason.placeholder='مثال: عرض توصيل ممول من المنصة خلال الفترة المحددة';const save=el('button','إرسال السياسة للمالك أو المدير للموافقة');save.type='submit';save.className='offer-submit';form.append(save);
+  const show=(key,visible)=>{fields[key].parentElement.hidden=!visible;fields[key].required=visible;};
+  function visibility(){
+   const rule=fields.rule.value,funder=fields.funder.value;
+   document.getElementById('delivery-help-basis').textContent=fields.basis.value==='GOODS_GROSS'?'مثال: سلة ٧٬٠٠٠ قبل الخصم تستوفي حد ٧٬٠٠٠ حتى لو أصبحت ٦٬٣٠٠ بعده.':'مثال: إذا أصبحت السلة ٦٬٣٠٠ بعد الخصم، فلن تستوفي حد العرض ٧٬٠٠٠.';
+   show('amount',['CAPPED_PRICE','AMOUNT_OFF'].includes(rule));show('percent',rule==='PERCENT_OFF');show('maximumDiscount',rule==='PERCENT_OFF');show('merchantPercent',funder==='SHARED');show('contribution',funder.includes('_THEN_'));
+   for(const party of ['merchant','platform']){const active=funder!==(party==='merchant'?'PLATFORM':'MERCHANT');show(party+'PerOrder',active);show(party+'Budget',active);}
+   fields.amount.parentElement.firstChild.textContent=rule==='AMOUNT_OFF'?'مبلغ الخصم من التوصيل — دينار':'أعلى رسم توصيل يدفعه الزبون — دينار';
+   fields.contribution.parentElement.firstChild.textContent=funder==='PLATFORM_THEN_MERCHANT'?'مساهمة المنصة أولًا — دينار':'مساهمة المطعم أولًا — دينار';
+   priceExample.textContent=rule==='FREE'?'مثال: تعرفة عادية ٢٬٠٠٠ ← الزبون يدفع صفرًا، وفرق التمويل ٢٬٠٠٠.':rule==='CAPPED_PRICE'?'مثال: حد أقصى ١٬٥٠٠ مع تعرفة ٢٬٠٠٠ ← الزبون يدفع ١٬٥٠٠. إذا كانت التعرفة ١٬٠٠٠ يدفع ١٬٠٠٠.':rule==='AMOUNT_OFF'?'مثال: خصم ٥٠٠ من تعرفة ٢٬٠٠٠ ← الزبون يدفع ١٬٥٠٠.':'مثال: خصم ١٠٪ من تعرفة ٢٬٠٠٠ ← الزبون يدفع ١٬٨٠٠، ضمن سقف الخصم المحدد. هذه أمثلة وليست سعر الطلب الفعلي.';
+   fundingExample.textContent=funder==='MERCHANT'?'المطعم يتحمل فرق التوصيل كاملًا. تظهر أدناه حدود المطعم فقط.':funder==='PLATFORM'?'المنصة تتحمل فرق التوصيل كاملًا. تظهر أدناه حدود المنصة فقط.':funder==='SHARED'?'مثال: فرق ٥٠٠ وحصة مطعم ٥٠٪ ← المطعم ٢٥٠ والمنصة ٢٥٠.':funder==='MERCHANT_THEN_PLATFORM'?'مثال: فرق ٥٠٠ ومساهمة مطعم ٢٠٠ ← المطعم ٢٠٠ والمنصة ٣٠٠.':'مثال: فرق ٥٠٠ ومساهمة منصة ٢٠٠ ← المنصة ٢٠٠ والمطعم ٣٠٠.';
+  }
+  fields.rule.onchange=visibility;fields.funder.onchange=visibility;fields.basis.onchange=visibility;visibility();form.scrollIntoView({block:'nearest'});
+ }
+ form.onsubmit=event=>{event.preventDefault();run(async()=>{if(!state?.can.deliveryRequest)throw Error('أعد تحميل الصلاحيات.');const d=new FormData(form),values=Object.fromEntries(d);values.regions=d.getAll('regions');if(values.funder==='PLATFORM'){values.merchantPerOrder='0';values.merchantBudget='0';}if(values.funder==='MERCHANT'){values.platformPerOrder='0';values.platformBudget='0';}const id=selected?.draft.id||form.dataset.policyId||(form.dataset.policyId='DLV-'+crypto.randomUUID());const policy=window.DeliveryPolicyForm.build(values,{id,businessId:state.businessId,merchantId:state.merchantId,version:(selected?.current?.version||0)+1,regions});const body={businessId:state.businessId,action:'SAVE_DELIVERY',id,draftVersion:selected?.draft.version||0,baseVersion:selected?.current?.version||0,businessIds:[state.businessId],values:policy,reason:values.reason};const signature=JSON.stringify(body);if(pending?.signature!==signature)pending={signature,requestId:crypto.randomUUID()};await api({...body,requestId:pending.requestId});await refresh();status.textContent='أُرسلت السياسة للموافقة. يبدأ تطبيقها بعد موافقة المالك أو المدير.';});};
+ branch.onchange=()=>{epoch++;pending=null;state=null;form.hidden=true;list.replaceChildren();delete form.dataset.policyId;load.disabled=!branch.value;};load.onclick=()=>run(refresh);window.addEventListener('commercial-merchants-updated',source);source();
+})();

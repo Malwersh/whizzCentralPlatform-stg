@@ -11,12 +11,14 @@ const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(v);
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
 const dataOf=row=>Object.fromEntries(Object.entries(row).filter(([k])=>!['legalHold','retentionHold'].includes(k)));
 const contractKey=key=>/^COMMERCIAL_AGREEMENT#[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(key.pk||'')&&/^(?:DRAFT(?:_VERSION#\d+)?|CURRENT|VERSION#\d+|CONSENT#\d+|ACCEPTANCE#\d+|DISCLOSURE#\d+)$/.test(key.sk||'');
-const fundingKey=key=>/^DISCOUNT_FUNDING#[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(key.pk||'')&&/^(?:DRAFT(?:_VERSION#\d+)?|CURRENT|VERSION#\d+)$/.test(key.sk||'');
-const kindFor=(table,key)=>table===P&&contractKey(key)?'commercial_agreement':table===S&&fundingKey(key)?'commercial_funding':table===S&&/^COMMERCIAL_AGREEMENT#[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(key.pk||'')&&/^APPROVAL#\d+$/.test(key.sk||'')?'commercial_approval':table===S&&key.pk==='AUDIT'&&/^\d{4}-\d{2}-\d{2}T[^#]+#[a-f0-9-]{36}$/i.test(key.sk||'')?'commercial_audit':null;
+const fundingKey=key=>/^DISCOUNT_FUNDING#[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(key.pk||'')&&/^(?:DRAFT(?:_VERSION#\d+)?|CURRENT|VERSION#\d+|CONSENT#\d+|NOTICE#\d+)$/.test(key.sk||'');
+const sharingKey=key=>/^BRANCH#[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(key.pk||'')&&/^COMMERCIAL_SHARING#(?:MERCHANT|PLATFORM)#[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(key.sk||'');
+const kindFor=(table,key)=>table===P&&sharingKey(key)?'commercial_sharing':table===P&&contractKey(key)?'commercial_agreement':table===S&&fundingKey(key)?'commercial_funding':table===S&&/^COMMERCIAL_AGREEMENT#[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(key.pk||'')&&/^APPROVAL#\d+$/.test(key.sk||'')?'commercial_approval':table===S&&key.pk==='AUDIT'&&/^\d{4}-\d{2}-\d{2}T[^#]+#[a-f0-9-]{36}$/i.test(key.sk||'')?'commercial_audit':null;
 function validateRecord(table,row){
  const kind=kindFor(table,row);if(!kind)throw error('COMMERCIAL_RECORD_SCOPE_INVALID');
  let allowed;
- if(['commercial_agreement','commercial_funding'].includes(kind)&&/^DRAFT(?:_VERSION#\d+)?$/.test(row.sk))allowed=['pk','sk','id','kind','version','baseVersion','ownerId','organizationId','businessIds','requestedBy','values','fundingPolicies','hash','createdAt','reason','publishedVersion'];
+ if(kind==='commercial_sharing')allowed=['pk','sk','ownerId','businessId','policyId','policyVersion','policyDigest'];
+ else if(['commercial_agreement','commercial_funding'].includes(kind)&&/^DRAFT(?:_VERSION#\d+)?$/.test(row.sk))allowed=['pk','sk','id','kind','version','baseVersion','ownerId','organizationId','businessIds','requestedBy','values','fundingPolicies','hash','createdAt','reason','publishedVersion','directPublicationAuthorized','authorizedStaffVersion'];
  else if(kind==='commercial_agreement'){
   if(row.sk==='CURRENT')allowed=['pk','sk','version','termsHash','status'];
   else if(/^VERSION#\d+$/.test(row.sk))allowed=['pk','sk','schemaVersion','terms','otherCharges','allowedFundingPolicyIds','fundingPolicySnapshots','termsHash'];
@@ -24,7 +26,9 @@ function validateRecord(table,row){
   else if(/^ACCEPTANCE#\d+$/.test(row.sk))allowed=['pk','sk','subjectId','termsHash','acceptedAt','status'];
   else if(/^DISCLOSURE#\d+$/.test(row.sk))allowed=['pk','sk','termsHash','values','businessIds','fundingPolicies'];
  }else if(kind==='commercial_approval')allowed=['pk','sk','staffId','termsHash','approvedAt','status'];
- else if(kind==='commercial_funding'&&(row.sk==='CURRENT'||/^VERSION#\d+$/.test(row.sk)))allowed=['pk','sk','schemaVersion','id','version','status','campaignId','campaignVersion','source','merchantId','branchId','target','effectiveFrom','effectiveTo','merchantNumerator','denominator','rounding','merchantShareFinalRounding','approvedBy','approvedAt'];
+ else if(kind==='commercial_funding'&&/^NOTICE#\d+$/.test(row.sk))allowed=['pk','sk','ownerId','businessId','draftVersion','draftHash','eventId','status','createdAt','expiresAt','attempts','nextAttemptAt','leaseUntil','sentTokenHashes'];
+ else if(kind==='commercial_funding'&&/^CONSENT#\d+$/.test(row.sk))allowed=['pk','sk','subjectId','hash','acceptedAt','businessIds','acceptedRole','ownerId'];
+ else if(kind==='commercial_funding'&&(row.sk==='CURRENT'||/^VERSION#\d+$/.test(row.sk)))allowed=['pk','sk','schemaVersion','id','version','status','campaignId','campaignVersion','source','merchantId','branchId','target','effectiveFrom','effectiveTo','merchantNumerator','denominator','rounding','merchantShareFinalRounding','approvedBy','approvedAt','acceptedBy','acceptedAt'];
  else if(kind==='commercial_audit'&&/^\d{4}-\d{2}-\d{2}T[^#]+#[a-f0-9-]{36}$/i.test(row.sk)&&String(row.action||'').startsWith('COMMERCIAL_'))allowed=['pk','sk','actorId','action','before','after'];
  if(!allowed||Object.keys(row).some(k=>!allowed.includes(k)&&!['legalHold','retentionHold'].includes(k)))throw error('COMMERCIAL_RECORD_SCOPE_INVALID');
  if(Buffer.byteLength(JSON.stringify(row))>250000)throw error('COMMERCIAL_RECORD_TOO_LARGE');return kind;
@@ -37,7 +41,7 @@ async function commercialRetention({db,r,job,requestTable=L,archiveTable='stagin
  if(held(r))throw error('DOCUMENTED_RETENTION_HOLD');
  const get=async(table,key)=>(await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;
  async function query(table,pk,prefix=''){const rows=[];let cursor,pages=0;do{if(++pages>maxPages)throw error('COMMERCIAL_INVENTORY_INCOMPLETE');const p=await db.send(new QueryCommand({TableName:table,KeyConditionExpression:'pk=:pk'+(prefix?' AND begins_with(sk,:prefix)':''),ExpressionAttributeValues:{':pk':pk,...(prefix?{':prefix':prefix}:{})},ConsistentRead:true,Limit:100,...(cursor?{ExclusiveStartKey:cursor}:{})}));rows.push(...p.Items||[]);cursor=p.LastEvaluatedKey;}while(cursor);return rows;}
- const branch=await get(B,{businessId:job.businessId}),rows=(await query(P,'BRANCH#'+job.businessId,'COMMERCIAL')).filter(x=>x.sk.startsWith('COMMERCIAL#')||x.sk.startsWith('COMMERCIAL_REQUEST#'));
+ const branch=await get(B,{businessId:job.businessId}),rows=(await query(P,'BRANCH#'+job.businessId,'COMMERCIAL')).filter(x=>x.sk.startsWith('COMMERCIAL#')||x.sk.startsWith('COMMERCIAL_REQUEST#')||x.sk.startsWith('COMMERCIAL_SHARING#'));
  const refs=new Map();for(const row of rows){if(row.ownerId!==r.subjectId||row.businessId!==job.businessId)throw error('COMMERCIAL_RECORD_SCOPE_INVALID');if(row.sk.startsWith('COMMERCIAL#')){if(!['AGREEMENT','FUNDING'].includes(row.kind)||row.recordPk!==(row.kind==='AGREEMENT'?'COMMERCIAL_AGREEMENT#':'DISCOUNT_FUNDING#')+row.sk.split('#').slice(2).join('#'))throw error('COMMERCIAL_RECORD_SCOPE_INVALID');refs.set(row.recordPk,{kind:row.kind,pk:row.recordPk});}}
  if(branch?.commercialAgreementId){if(!id(branch.commercialAgreementId))throw error('COMMERCIAL_RECORD_SCOPE_INVALID');refs.set('COMMERCIAL_AGREEMENT#'+branch.commercialAgreementId,{kind:'AGREEMENT',pk:'COMMERCIAL_AGREEMENT#'+branch.commercialAgreementId});}
  if(!rows.length&&!refs.size)return {archived:0,auditsMoved:0};
@@ -45,6 +49,7 @@ async function commercialRetention({db,r,job,requestTable=L,archiveTable='stagin
  if(held(branch))throw error('DOCUMENTED_RETENTION_HOLD');
  const lifeKey={pk:'BUSINESS_LIFECYCLE#MERCHANT#'+job.businessId,sk:'META'},life=await get(requestTable,lifeKey);if(!life||life.requestId!==r.requestId||life.subjectId!==r.subjectId)throw error('COMMERCIAL_CLOSURE_REQUIRED');if(held(life))throw error('DOCUMENTED_RETENTION_HOLD');
  const items=[],scopes=new Map();
+ for(const row of rows.filter(x=>x.sk.startsWith('COMMERCIAL_SHARING#'))){if(held(row))throw error('DOCUMENTED_RETENTION_HOLD');validateRecord(P,row);if(!id(row.policyId))throw error('COMMERCIAL_RECORD_SCOPE_INVALID');refs.set('DISCOUNT_FUNDING#'+row.policyId,{kind:'FUNDING',pk:'DISCOUNT_FUNDING#'+row.policyId});items.push({table:P,row,kind:'commercial_sharing',businessIds:[job.businessId]});}
  for(const ref of refs.values()){
   const table=ref.kind==='AGREEMENT'?P:S,canonical=await query(table,ref.pk),draft=canonical.find(x=>x.sk==='DRAFT');
   if(!draft||draft.ownerId!==r.subjectId||!scopeValid(draft.ownerId,draft.businessIds)||!draft.businessIds.includes(job.businessId)||draft.organizationId!==branch.organizationId)throw error('COMMERCIAL_SCOPE_INVENTORY_REQUIRED');

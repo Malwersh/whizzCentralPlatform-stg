@@ -4,7 +4,7 @@ const {quoteHash}=require('../../dist/deliveryQuoteRecord');
 const {parseIqd:m}=require('../../dist/money');
 const at='2026-10-15T12:00:00.000Z';
 const zero=()=>({kind:'NONE',basis:null,fixed:null,rate:null,rounding:'EXACT'});
-function fixture(merchantId='org',ownerId='owner'){
+function fixture(merchantId='org',ownerId='owner',creator=create){
  const records=new Map(),put=(t,key,row)=>records.set(t+'|'+JSON.stringify(key),{...key,...row});
  const branch={businessId:'b1',ownerId,cognitoUserId:ownerId,organizationId:merchantId,status:'approved',isActive:true,
   commercialAgreementId:'a1',commercialAgreementVersion:1,regionPath:['country','gov','city','zone']};
@@ -21,15 +21,16 @@ function fixture(merchantId='org',ownerId='owner'){
  put('WhizzMerchants_Products',{productId:'p1'},{businessId:'b1',name:'Test',categoryId:'cat1',price:3500,isAvailable:true});
  put('WhizzMerchants_Categories',{categoryId:'cat1'},{isActive:true});
  for(const [regionId,parent_id,level] of [['zone','city',3],['city','gov',2],['gov','country',1]])put('WizzCentral_Regions',{regionId},{parent_id,level,is_active:1});
- put('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'},{schemaVersion:1,id:'fp1',version:1,status:'ACTIVE',campaignId:'d1',campaignVersion:1,
+ put('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'},{schemaVersion:3,id:'fp1',version:1,status:'ACTIVE',campaignId:'d1',campaignVersion:1,
   source:'MERCHANT',merchantId,branchId:'b1',target:'GOODS',effectiveFrom:'2026-10-01T00:00:00.000Z',effectiveTo:'2026-11-01T00:00:00.000Z',
-  merchantNumerator:1,denominator:2,rounding:'MERCHANT_TOWARD_ZERO_PLATFORM_REMAINDER',approvedBy:'staff',approvedAt:'2026-10-01T00:00:00.000Z'});
+  acceptedBy:ownerId,acceptedAt:'2026-10-01T00:00:00.000Z',merchantShareFinalRounding:{incrementIqd:1,mode:'TOWARD_ZERO'},merchantNumerator:1,denominator:2,rounding:'MERCHANT_TOWARD_ZERO_PLATFORM_REMAINDER',approvedBy:'staff',approvedAt:'2026-10-01T00:00:00.000Z'});
  put('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'},{ownerType:'PLATFORM',ownerId:'platform',currency:'IQD',status:'ACTIVE',availableBalance:10000,lockedBalance:0,version:1});
  const input={orderId:'o1',branchId:'b1',items:[{productId:'p1',quantity:1}],quote:{createdAt:at,expiresAt:'2026-10-15T12:02:00.000Z',deliveryFeeMinor:1000000,
   origin:{latitude:31.92,longitude:44.45},destination:{latitude:31.93,longitude:44.46},destinationRegionId:'zone'},tip:m('0'),discount:null};
  const calls=[],db={async send(c){calls.push(c);assert.equal(c.input.ConsistentRead,true);return {Item:structuredClone(records.get(c.input.TableName+'|'+JSON.stringify(c.input.Key)))};}};
  const change=(t,k)=>records.get(t+'|'+JSON.stringify(k));
- const funded=()=>{input.discount={snapshot:{discountId:'d1',version:1,source:'MERCHANT',target:'GOODS',amount:1000000},campaign:{discountId:'d1',version:1,fundingPolicyId:'fp1',fundingPolicyVersion:1}};return input;};
- return {records,put,change,input,calls,funded,prepare:()=>create({db,now:()=>Date.parse(at)+1000}).prepare(input)};
+ const bind=()=>{const policy=change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'});put('staging-MerchantPlatform',{pk:'BRANCH#b1',sk:'COMMERCIAL_SHARING#MERCHANT#d1'},{ownerId,businessId:'b1',policyId:'fp1',policyVersion:policy.version,policyDigest:quoteHash(policy)});};
+ const funded=()=>{bind();input.discount={snapshot:{discountId:'d1',version:1,source:'MERCHANT',target:'GOODS',amount:1000000},campaign:{discountId:'d1',businessId:'b1',valid_from:'2026-10-01T00:00:00.000Z',valid_to:'2026-11-01T00:00:00.000Z',version:1,fundingPolicyId:'fp1',fundingPolicyVersion:1}};return input;};
+ return {records,put,change,input,calls,funded,bind,prepare:()=>creator({db,now:()=>Date.parse(at)+1000}).prepare(input)};
 }
 module.exports={fixture};

@@ -1,0 +1,44 @@
+{
+  "part": 103,
+  "environment": "staging",
+  "status": "RESUMED_AS_PART118_AFTER_USER_CONFIRMED_LOGIN",
+  "case": "COD_MERCHANT_FUNDED_DISCOUNT",
+  "discountPercent": 10,
+  "merchantSharingBindingPresent": false,
+  "agreementAndPricingReadinessVerified": true,
+  "scope": {
+    "coordinatedHosts": 15,
+    "newOrders": 1,
+    "admissionMinutes": 45,
+    "preservedDeliveredOrderPin": true,
+    "preservedDeletedOrderPinWithStaleDispatch": true,
+    "retiredCancelledUnfundedPinAfterSeparateAudit": true,
+    "retirementDeletedApplicationData": false
+  },
+  "deployment": {
+    "configurationOnly": true,
+    "backendCodeOrIamChanged": false,
+    "customerSimulatorBuildInstalledAndLaunched": true,
+    "canonicalFreshCheckoutSelector": true,
+    "testsPassed": 32
+  },
+  "expectedOnly": {
+    "goodsIqd": 7000,
+    "merchantDiscountIqd": 700,
+    "platformDiscountIqd": 0,
+    "commissionIqd": 630,
+    "serviceFeeIqd": 500,
+    "deliveryAssumptionIqd": 2000,
+    "customerTotalIfRouteUnchangedIqd": 8800,
+    "merchantNetPendingIqd": 5670,
+    "platformRevenueIqd": 1130
+  },
+  "orderCreatedByMaintenance": false,
+  "walletOrLedgerWrites": false,
+  "actualDiscountSettlementVerified": false,
+  "next": "Follow the fresh Part118 selector; original Part103 attempt retired after proving order/hold/offer/job absent. Do not use the old build.",
+  "pauseReason": "User explicitly deferred the phone-authenticated canary until OTP delivery is restored.",
+  "pauseConfigurationUpdate": "NOT_APPLIED_AWS_SESSION_EXPIRED; original 45-minute admission expiry remains unchanged",
+  "recordedAdmissionDeadlinePassed": true,
+  "currentRemoteConfigurationRecaptured": false
+}

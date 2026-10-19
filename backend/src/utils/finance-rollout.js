@@ -241,7 +241,7 @@ function createFinanceRollout(options) {
       ExpressionAttributeValues: values
     };
   }
-  const cursor = (op) => op.TableName === "WizzDispatchJobs_staging" && (op.Item ?? op.Key)?.orderId === "SYSTEM#DISPATCH_HOST" && (op.Item ?? op.Key)?.SK === "CURSOR#LEGACY" || op.TableName === "staging-PlatformStaff" && (op.Item ?? op.Key)?.pk === "CONTROL#DISPATCH_REVIEW_HOST" && (op.Item ?? op.Key)?.sk === "CURSOR";
+  const cursor = (op) => op.TableName === "WizzDispatchJobs_staging" && (op.Item ?? op.Key)?.orderId === "SYSTEM#DISPATCH_HOST" && ((op.Item ?? op.Key)?.SK === "CURSOR#LEGACY" || (options.env ?? process.env).DISPATCH_FINANCIAL_HOST_MODE === "REQUIRED" && (op.Item ?? op.Key)?.SK === "CURSOR#FINANCIAL") || op.TableName === "staging-PlatformStaff" && (op.Item ?? op.Key)?.pk === "CONTROL#DISPATCH_REVIEW_HOST" && (op.Item ?? op.Key)?.sk === "CURSOR";
   const scoped = {
     send: (async (command) => {
       const q = command.input;

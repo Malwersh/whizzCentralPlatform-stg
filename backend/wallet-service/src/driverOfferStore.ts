@@ -1,5 +1,5 @@
 import { DynamoDBDocumentClient, GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
-import { buildDriverOffer, driverOfferView } from './driverOffer';
+import { resolveFinancialOffer, versionedFinancialOfferView } from './financialOfferVersion';
 import { createStagingDriverOfferOrderReader } from './driverOfferOrderReader';
 import { quoteCanonical, quoteHash } from './deliveryQuoteRecord';
 
@@ -52,10 +52,10 @@ function guard(value: unknown, table: string, keys: string[]): Check {
  * an HTTP endpoint, notifications, legacy acceptance or a wallet writer. No default/omitted guards.
  */
 export function createStagingDriverOfferStore(options: {
-  db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number;
+  db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number;enableDeliveryFunding?:boolean;
 }) {
   const { db } = options, now = options.now ?? Date.now;
-  const reader = createStagingDriverOfferOrderReader({ db });
+  const reader = createStagingDriverOfferOrderReader({ db,enableDeliveryFunding:options.enableDeliveryFunding });
   async function load(k: Row): Promise<Row | undefined> {
     try { return (await db.send(new GetCommand({ TableName: TABLE, Key: k, ConsistentRead: true }))).Item; }
     catch { return fail('DRIVER_OFFER_SAVE_UNAVAILABLE'); }
@@ -68,8 +68,8 @@ export function createStagingDriverOfferStore(options: {
   return Object.freeze({
     async save(value: unknown) {
       const input = copy(exact(value, ['offer', 'waveNumber', 'guards']));
-      const offer = buildDriverOffer(input.offer?.source);
-      if (!same(offer, input.offer)) return fail('INVALID_DRIVER_OFFER_SAVE');
+      const offer = resolveFinancialOffer(input.offer,options.enableDeliveryFunding);
+      if (!same(offer.versionedOffer, input.offer)) return fail('INVALID_DRIVER_OFFER_SAVE');
       const waveNumber = wave(input.waveNumber), k = key(offer.orderId, offer.driverId, waveNumber);
       const g = exact(input.guards, ['assignment', 'driver', 'position', 'policy', 'branch', 'deletions']);
       const checks = [guard(g.assignment, 'WizzDispatchJobs_staging', ['orderId', 'SK']),
@@ -84,7 +84,7 @@ export function createStagingDriverOfferStore(options: {
       const proposed = { ...k, schemaVersion: 2, kind: 'FINANCIAL_DRIVER_OFFER', offerId: offer.offerId,
         driverId: offer.driverId, waveNumber, dispatchJobId: offer.assignmentId,
         responseStatus: 'financial_pending', isWinner: false, sentAt: offer.createdAt,
-        expiresAt: offer.expiresAt, financialOffer: offer };
+        expiresAt: offer.expiresAt, financialOffer: offer.versionedOffer };
       if (Buffer.byteLength(JSON.stringify(proposed)) > 300000) return fail('INVALID_DRIVER_OFFER_SAVE');
       // Never recreate an existing row, including one accepted/expired/declined by a future writer.
       const existing = await load(k);
@@ -99,11 +99,12 @@ export function createStagingDriverOfferStore(options: {
       });
       if (new Set(identities).size !== identities.length || Buffer.byteLength(JSON.stringify(transaction)) > 3500000) return fail('INVALID_DRIVER_OFFER_SAVE');
       // Guard external reads/routing latency as well as the proposal's own timestamp.
-      driverOfferView(offer, offer.driverId, offer.driverSubjectId, timestamp(now));
+      versionedFinancialOfferView(offer, offer.driverId, offer.driverSubjectId, timestamp(now),options.enableDeliveryFunding);
       try {
         await db.send(new TransactWriteCommand({ TransactItems: transaction as any,
           ClientRequestToken: quoteHash({ k, digest: offer.digest, guards: transaction }).slice(0, 36) }));
       } catch (error: any) {
+        console.error('DRIVER_OFFER_STORE_TRANSACTION_FAILED', {code:error?.name??'Unknown',message:['ValidationException','AccessDeniedException'].includes(error?.name)?String(error.message).slice(0,1800):undefined,reasons:(error?.CancellationReasons??[]).map((r:any)=>r.Code??'None')});
         // A lost response can follow a committed write. Exact immutable receipt wins over expiry/retry.
         const saved = await load(k);
         if (saved) return receipt(saved, proposed, true);
@@ -120,12 +121,13 @@ export function createStagingDriverOfferStore(options: {
       }
       const selected = copy(input), k = key(selected.orderId, selected.driverId, wave(selected.waveNumber));
       const saved = await load(k);
+      const currentOffer=saved?resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding):null;
       if (!saved || saved.kind !== 'FINANCIAL_DRIVER_OFFER' || saved.schemaVersion !== 2 ||
           saved.responseStatus !== 'financial_pending' || saved.isWinner !== false ||
           !same({ orderId: saved.orderId, SK: saved.SK }, k) || saved.waveNumber !== selected.waveNumber ||
-          saved.driverId !== selected.driverId || saved.offerId !== saved.financialOffer?.offerId ||
-          saved.financialOffer?.orderId !== selected.orderId || saved.expiresAt !== saved.financialOffer?.expiresAt) return fail('DRIVER_OFFER_NOT_AVAILABLE');
-      return driverOfferView(saved.financialOffer, selected.driverId, selected.subjectId, timestamp(now));
+          saved.driverId !== selected.driverId || saved.offerId !== currentOffer?.offerId ||
+          currentOffer?.orderId !== selected.orderId || saved.expiresAt !== currentOffer?.expiresAt) return fail('DRIVER_OFFER_NOT_AVAILABLE');
+      return versionedFinancialOfferView(saved.financialOffer, selected.driverId, selected.subjectId, timestamp(now),options.enableDeliveryFunding);
     }
   });
 }

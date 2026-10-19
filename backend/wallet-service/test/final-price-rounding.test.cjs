@@ -44,9 +44,9 @@ test('per-merchant agreement rounds commission before commercial digest/snapshot
  const sourcePlan=await f.prepare();assert.equal(toWholeIqdExact(sourcePlan.calculation.merchantPayableOnSuccessfulDelivery),3149);
  assert(sourcePlan.operations.some(op=>op.ConditionCheck?.ExpressionAttributeValues&&Object.values(op.ConditionCheck.ExpressionAttributeValues).some(v=>v?.commission?.finalRounding?.incrementIqd===1)));
 });
-test('schema-2 funding rounds merchant share toward zero in whole IQD and assigns the exact remainder to the platform',async()=>{
- const f=fixture();f.funded();const p=f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'});p.schemaVersion=2;p.merchantNumerator=1;p.denominator=3;p.merchantShareFinalRounding={incrementIqd:1,mode:'TOWARD_ZERO'};
- const result=await f.prepare();assert.equal(formatIqd(result.calculation.goodsDiscounts[0].merchantShare),'333');assert.equal(formatIqd(result.calculation.goodsDiscounts[0].platformShare),'667');assert.equal(result.funding.amount.minorAmount,667000);
+test('separately consented sharing rounds merchant share toward zero in whole IQD and assigns the exact remainder to the platform',async()=>{
+ const f=fixture();f.funded();const p=f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'});p.schemaVersion=3;p.merchantNumerator=1;p.denominator=3;p.merchantShareFinalRounding={incrementIqd:1,mode:'TOWARD_ZERO'};
+ f.bind();const result=await f.prepare();assert.equal(formatIqd(result.calculation.goodsDiscounts[0].merchantShare),'333');assert.equal(formatIqd(result.calculation.goodsDiscounts[0].platformShare),'667');assert.equal(result.funding.amount.minorAmount,667000);
  p.merchantShareFinalRounding.mode='HALF_AWAY_FROM_ZERO';await assert.rejects(f.prepare());
 });
 test('an accepted driver offer retains its quantized wage after a later centrally configured increment changes',()=>{

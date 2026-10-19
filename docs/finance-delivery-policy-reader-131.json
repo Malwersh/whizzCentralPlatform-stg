@@ -1,0 +1,12 @@
+{
+  "status": "LOCAL_READER_IMPLEMENTED_NOT_INTEGRATED_OR_DEPLOYED",
+  "module": "backend/wallet-service/src/deliveryFundingReader.ts",
+  "consistentReads": true,
+  "authorityReuse": ["staff-service/catalog.allowed", "staff-service/commercial-party.resolve"],
+  "checks": ["branch and organization", "exact current policy pin", "immutable history equality", "effective and activation dates", "sender and manager live authority", "lifecycle fences"],
+  "returns": ["policy", "policyPin", "referenceDigest", "validUntil", "transaction condition operations"],
+  "verification": {"typescriptCompile": "PASS", "runtimeSync": "PASS", "newReaderTests": 6, "targetedTestsPassed": 49},
+  "remaining": ["trusted discovery and customer/cart facts", "quote/order integration", "condition deduplication", "budget and usage lifecycle", "allocation/journal/accrual", "UI and staging verification"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

@@ -97,7 +97,8 @@
             "FINANCIAL_OFFER_TTL_SECONDS": "60",
             "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120",
             "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "300",
-            "DELIVERY_OPERATIONS_MODE": "CENTRAL"
+            "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+            "FINANCIAL_DELIVERY_FUNDING_MODE": "OFF"
           }
         },
         "Policies": [
@@ -256,7 +257,8 @@
             "DISPATCH_RESPONSE_NOTICE_DELIVERY": "HELD",
             "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
             "DISPATCH_REVIEW_HOST_ACCOUNT_ID": "699561669180",
-            "DISPATCH_REVIEW_HOST_RULE_ARN": "arn:aws:events:us-east-1:699561669180:rule/staging-cod-lifecycle-CodIntegrationWorkerRetryInte-LlysduSg9yRo"
+            "DISPATCH_REVIEW_HOST_RULE_ARN": "arn:aws:events:us-east-1:699561669180:rule/staging-cod-lifecycle-CodIntegrationWorkerRetryInte-LlysduSg9yRo",
+            "FINANCIAL_DELIVERY_FUNDING_MODE": "OFF"
           }
         },
         "Policies": [

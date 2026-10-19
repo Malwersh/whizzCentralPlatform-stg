@@ -27,12 +27,7 @@ test('replay is stable; changed contents with same request id rejected and stale
  await assert.rejects(call(f,editor(),{...body,reason:'سبب مختلف'}),/REQUEST_ID_CONFLICT/);
  await assert.rejects(call(f,owner,{...decision(r,'ACCEPT_AGREEMENT'),draftVersion:99}),/VERSION_OR_STATE/);
 });
-test('funding terms are disclosed and pinned; changed funding requires a new draft and consent',async()=>{
- const f=fixture(),policy={pk:'DISCOUNT_FUNDING#promo',sk:'CURRENT',id:'promo',status:'ACTIVE',version:1,merchantId:'merchant',branchId:'branch',merchantNumerator:1,denominator:2};f.put(S,policy);
- const v=values();v.allowedFundingPolicyIds=['promo'];const r=await call(f,editor(),save(v));
- const list=await service(f.ctx,owner,'GET',{businessId:'branch'});assert.equal(list.items[0].draft.fundingPolicies[0].denominator,2);
- f.put(S,{...policy,version:2,merchantNumerator:0});await assert.rejects(call(f,owner,decision(r,'ACCEPT_AGREEMENT')),/FUNDING_TERMS_CHANGED/);
-});
+test('new agreements cannot embed discount participation policies',async()=>{const f=fixture(),v=values();v.allowedFundingPolicyIds=['promo'];await assert.rejects(call(f,editor(),save(v)),/FUNDING_SEPARATE_FROM_AGREEMENT/);});
 test('multi-branch owner consent fences sibling ownership and closing lifecycle',async()=>{
  const f=fixture(),v=values();v.scope='MERCHANT';const body=save(v);body.businessIds=['branch','sibling'];const r=await call(f,editor(),body);
  f.put(B,{...f.get(B,{businessId:'sibling'}),ownerId:'other'});await assert.rejects(call(f,owner,decision(r,'ACCEPT_AGREEMENT')),/SCOPE_MISMATCH/);

@@ -1,4 +1,5 @@
 import { GetCommand, TransactWriteCommand, DynamoDBDocumentClient, TransactWriteCommandInput } from '@aws-sdk/lib-dynamodb';
+import { prepareDeliveryFundedFinancialSnapshot } from './deliveryFundedOffer';
 import { readMoney } from './money';
 import { QUOTE_TABLE, CUSTOMER_PROFILE_TABLE, quoteCanonical, quoteHash, quoteIdValid,
   quoteEntityIdValid, validDeliveryQuoteRecord } from './deliveryQuoteRecord';
@@ -23,20 +24,23 @@ export function orderIdFor(userId: string, requestId: string): string {
 }
 // Coalesce additional checks for a reference already fenced by the delivery quote.
 // DynamoDB forbids two operations on one item, even two ConditionChecks.
-function composeOperations(items: NonNullable<TransactWriteCommandInput['TransactItems']>) {
+export function composeQuoteOrderOperations(items: NonNullable<TransactWriteCommandInput['TransactItems']>) {
   const result: typeof items = [], seen = new Map<string, number>();
   for (const [index, item] of items.entries()) {
     const op: any = item.ConditionCheck ?? item.Update ?? item.Put ?? item.Delete;
     const key = op.Key ?? (op.TableName === 'WizzOrders' ? {PK: op.Item.PK, SK: op.Item.SK} :
+      op.TableName === 'staging-WalletLifecycle' ? {operationId: op.Item.operationId} :
       op.TableName === 'staging-Holds' ? {orderId: op.Item.orderId, sk: op.Item.sk} :
       op.TableName === 'staging-LedgerEntries' ? {walletId: op.Item.walletId, sk: op.Item.sk} :
       op.TableName === 'staging-AuditLog' ? {datePartition: op.Item.datePartition, sk: op.Item.sk} :
+      ['staging-PlatformStaff','staging-MerchantPlatform'].includes(op.TableName) ? {pk:op.Item.pk,sk:op.Item.sk} :
       op.TableName === 'staging-WizzOfferJourney' ? {pk: op.Item.pk, sk: op.Item.sk} : null);
     if (!key) return fail('INVALID_QUOTE_ORDER');
     const identity = quoteCanonical([op.TableName, key]), previous = seen.get(identity);
     if (previous === undefined) { seen.set(identity, result.length); result.push(copy(item)); continue; }
     const prior = result[previous].ConditionCheck, check = item.ConditionCheck;
     if (!prior || !check) return fail('INVALID_QUOTE_ORDER');
+    if (quoteCanonical(prior) === quoteCanonical(check)) continue;
     const names: Row = {}, values: Row = {}, aliases: Row = {};
     for (const [n, v] of Object.entries(check.ExpressionAttributeNames ?? {})) { const next = '#merge' + index + n.slice(1); aliases[n] = next; names[next] = v; }
     for (const [n, v] of Object.entries(check.ExpressionAttributeValues ?? {})) { const next = ':merge' + index + n.slice(1); aliases[n] = next; values[next] = v; }
@@ -46,12 +50,13 @@ function composeOperations(items: NonNullable<TransactWriteCommandInput['Transac
     prior.ExpressionAttributeValues = {...prior.ExpressionAttributeValues, ...values};
     if (Buffer.byteLength(prior.ConditionExpression) > 3900) return fail('INVALID_QUOTE_ORDER');
   }
+  if (result.length > 100) return fail('INVALID_QUOTE_ORDER');
   return result;
 }
 /** Internal create-order adapter, deployed only with its own live account guard and quoted checkout contract.
  * It writes the existing WizzOrders item and consumes the quote in ONE transaction. No ledger or notifications.
  */
-export function createStagingQuoteOrder(options: { db: DB; authenticateCustomer: () => Promise<Customer>; now?: () => number }) {
+export function createStagingQuoteOrder(options: { db: DB; authenticateCustomer: () => Promise<Customer>; now?: () => number;enableDeliveryFunding?:boolean }) {
   const { db } = options, now = options.now ?? Date.now;
   async function customer(): Promise<Customer> {
     try {
@@ -132,20 +137,46 @@ export function createStagingQuoteOrder(options: { db: DB; authenticateCustomer:
       distanceMeters: row.calculation.deliveryRoute.distanceMeters,
       createdAt: row.createdAt, expiresAt: row.expiresAt,
       destinationRegionId: row.binding.destinationCoverage.regionId,
-      async commit(inputOrder: Row, financialOperations: NonNullable<TransactWriteCommandInput['TransactItems']> = []): Promise<{ order: Row; replayed: boolean }> {
+      deliveryPromotionPricingRequest() {
+        if(options.enableDeliveryFunding!==true||!row!.pricingContext||!row!.pricingAt)return fail('QUOTE_INVALIDATED');
+        const policyFence=row!.fences.find((f:Row)=>f.TableName==='staging-PlatformStaff'&&f.Key?.pk==='OPERATIONAL_SETTINGS#DELIVERY_PRICING');
+        const bundle=Object.values(policyFence?.ExpressionAttributeValues??{}).find((v:any)=>v?.deliveryRules) as Row|undefined;
+        if(!bundle)return fail('QUOTE_INVALIDATED');
+        return copy({schemaVersion:1,at:row!.pricingAt,context:row!.pricingContext,rules:bundle.deliveryRules,deliveryRoute:row!.calculation.deliveryRoute,discount:null});
+      },
+      async commit(inputOrder: Row, financialOperations: NonNullable<TransactWriteCommandInput['TransactItems']> = [], deliveryFunding?:Row): Promise<{ order: Row; replayed: boolean }> {
         if (replayedOrder) return { order: copy(replayedOrder), replayed: true };
         const order = copy(inputOrder), operations = copy(financialOperations);
+        let finalFee=fee;
+        if(deliveryFunding){
+          if(options.enableDeliveryFunding!==true||order.financialSnapshot?.schemaVersion!==2)return fail('INVALID_QUOTE_ORDER');
+          const rebuilt=prepareDeliveryFundedFinancialSnapshot({order:order.financialSnapshot.order,deliveryFunding});
+          if(quoteCanonical(rebuilt)!==quoteCanonical(order.financialSnapshot)||rebuilt.order.orderId!==orderId||rebuilt.order.branchId!==row!.branchId||rebuilt.order.merchantId!==order.merchantId||rebuilt.order.confirmedCustomerTotal.minorAmount!==order.pricing?.total||readMoney(deliveryFunding.allocation.referenceFee).minorAmount!==fee.minorAmount)return fail('INVALID_QUOTE_ORDER');
+          const a=rebuilt.order.allocation;
+          if(quoteCanonical(rebuilt.order.branchPoint)!==quoteCanonical(row!.binding.origin)||quoteCanonical(rebuilt.order.customerPoint)!==quoteCanonical(row!.binding.destination)||
+             order.pricing.goodsSubtotal!==a.goodsGross.minorAmount||order.pricing.serviceFee!==a.serviceFee.minorAmount||order.pricing.tip!==a.driverTip.minorAmount||
+             order.pricing.discount!==a.merchantGoodsDiscount.minorAmount+a.platformGoodsDiscount.minorAmount||order.pricing.packagingFee!==0||order.pricing.tax!==0||order.pricing.rounding!==0)return fail('INVALID_QUOTE_ORDER');
+          finalFee=readMoney(deliveryFunding.allocation.customerFee);
+          const writes=operations.filter(o=>o.Put).map(o=>o.Put!);
+          const reservation=writes.find(o=>o.TableName==='staging-PlatformStaff'&&o.Item?.pk==='DELIVERY_RESERVATION#'+orderId&&o.Item?.sk==='META')?.Item;
+          const policyPin=deliveryFunding.policyPin;
+          if(!reservation||reservation.status!=='RESERVED'||reservation.customerId!==c.userId||quoteCanonical({policyPin:reservation.policyPin,allocation:reservation.allocation})!==quoteCanonical(deliveryFunding)||
+            !writes.some(o=>o.TableName==='staging-PlatformStaff'&&o.Item?.pk==='DELIVERY_BUDGET#'+policyPin.policyId&&o.Item?.sk==='VERSION#'+policyPin.version)||
+            !writes.some(o=>o.TableName==='staging-PlatformStaff'&&o.Item?.pk==='DELIVERY_USAGE#'+policyPin.policyId&&o.Item?.sk==='CUSTOMER#'+c.userId))return fail('INVALID_QUOTE_ORDER');
+          const platformMinor=readMoney(deliveryFunding.allocation.platformShare).minorAmount;
+          if(platformMinor&&(!writes.some(o=>o.TableName==='staging-Holds'&&o.Item?.orderId===orderId&&o.Item?.sk==='DELIVERY_PROMOTION_FUNDING'&&o.Item?.amount===platformMinor/1000&&quoteCanonical(o.Item?.metadata?.policyPin)===quoteCanonical(policyPin))||!operations.some(o=>o.Update?.TableName==='staging-Wallets'&&o.Update.Key?.walletId==='WALLET#PLATFORM')))return fail('INVALID_QUOTE_ORDER');
+        }else if(order.financialSnapshot?.schemaVersion===2)return fail('INVALID_QUOTE_ORDER');
         if (order.PK !== orderKey.PK || order.SK !== 'META' || order.orderId !== orderId || order.userId !== c.userId ||
             order.userSub !== c.subjectId || order.storeId !== row!.branchId || order.isGuestOrder !== false ||
-            order.deliveryType !== 'delivery' || order.currency !== 'IQD' || order.pricing?.deliveryFee !== fee.minorAmount ||
+            order.deliveryType !== 'delivery' || order.currency !== 'IQD' || order.pricing?.deliveryFee !== finalFee.minorAmount ||
             !Object.values(order.pricing).every(v => typeof v === 'number' && Number.isSafeInteger(v)) ||
             order.deliveryAddress?.lat !== row!.binding.destination.latitude || order.deliveryAddress?.lng !== row!.binding.destination.longitude ||
             order.restaurantLat !== row!.binding.origin.latitude || order.restaurantLng !== row!.binding.origin.longitude) return fail('INVALID_QUOTE_ORDER');
-        order.deliveryQuote = { schemaVersion: 1, kind: 'DELIVERY_FEE_ONLY', quoteId, requestId, requestHash,
-          policyVersion: row!.policyVersion, rule: row!.calculation.rule, deliveryFee: fee, route: row!.calculation.deliveryRoute };
+        order.deliveryQuote = { schemaVersion: deliveryFunding?2:1, kind: deliveryFunding?'DELIVERY_PROMOTION_BOUND':'DELIVERY_FEE_ONLY',...(deliveryFunding?{referenceDeliveryFee:fee,deliveryFundingPin:deliveryFunding.policyPin}:{}), quoteId, requestId, requestHash,
+          policyVersion: row!.policyVersion, rule: row!.calculation.rule, deliveryFee: finalFee, route: row!.calculation.deliveryRoute };
         const fresh = await freshCustomer(), at = assertOpen();
         const consumption = { orderId, requestId, requestHash, consumedAt: at };
-        const items = composeOperations([fresh.condition,
+        const items = composeQuoteOrderOperations([fresh.condition,
           ...row!.fences.map((ConditionCheck: Check) => ({ ConditionCheck })),
           { Update: { TableName: QUOTE_TABLE, Key: quoteKey, UpdateExpression: 'SET consumption=:used',
             ConditionExpression: '#digest=:digest AND attribute_not_exists(consumption) AND expiresAt>:now AND createdAt<=:now',

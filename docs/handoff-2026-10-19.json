@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-19",
+  "project": "whizzCentralPlatform-stg",
+  "branch": "feature/malwersh/bootstrap",
+  "repositories": {
+    "wizzuser-stg": "https://github.com/Malwersh/wizzuser-stg",
+    "whizzDrivers-stg": "https://github.com/Malwersh/whizzDrivers-stg",
+    "whizzMerchants-stg": "https://github.com/Malwersh/whizzMerchants-stg",
+    "whizzCentralPlatform-stg": "https://github.com/Malwersh/whizzCentralPlatform-stg"
+  },
+  "checkoutLayout": "Clone the four repositories as siblings using their exact repository names; CentralPlatform generation scripts reference sibling repositories.",
+  "pull": [
+    "git fetch origin",
+    "git checkout feature/malwersh/bootstrap",
+    "git pull --ff-only origin feature/malwersh/bootstrap"
+  ],
+  "mobileSetup": [],
+  "customerPricingBuildFlags": [],
+  "driverLocation": null,
+  "signing": "Use your own local signing configuration and authorized Apple development profile; signing keys and private build defines are not included.",
+  "pausedAt": {
+    "completed": "Baseline cash order delivered; financial reconciliation verified in CentralPlatform docs/cod-device-completion-168.json. Storefront delivery fee, preparation, minimum order, and delivery policy form redesign published to staging.",
+    "next": "Create/send a Fattoush delivery offer with customer fee capped at 1500 IQD and platform support capped at 500 IQD, obtain real owner/authorized-manager consent, prepare a fresh one-order financial scope, then test delivery and reconcile.",
+    "policyAlreadySent": false,
+    "newFinancialOrderScopeActivated": false,
+    "expectedExample": "For normal delivery 2000, goods 7000 and service 500: customer pays 9000, driver entitlement 2000 (cash retained 1500 plus wallet credit 500), driver hold 7500, merchant payable 6300, platform net contribution 700. This funded example is not a completed live test.",
+    "stillUnverified": [
+      "Funded delivery end-to-end",
+      "Physical iOS Live Activity background lifecycle",
+      "Original-share refunds and partial returns"
+    ],
+    "latestPhysicalCustomerLaunch": "Latest install succeeded but automatic launch was rejected by iOS signing/trust checks; local codesign verified. Recheck on the actual device."
+  },
+  "credentials": "Use your own GitHub/AWS access. Runtime secrets and /private/tmp deployment evidence are intentionally outside the repository.",
+  "deployment": "A push is a source handoff. Do not rerun historical numbered publish/activation scripts blindly: many require private captured live artifacts and exact revision checks.",
+  "setup": [
+    "npm ci",
+    "npm --prefix backend ci",
+    "npm --prefix backend/staff-service ci",
+    "npm --prefix backend/wallet-service ci",
+    "node scripts/sync-merchant-wallet-runtime.cjs --check",
+    "npm --prefix backend/wallet-service run build",
+    "node scripts/sync-delivery-quote-order-runtime.cjs --check",
+    "node scripts/sync-finance-rollout-runtime.cjs --check",
+    "node scripts/sync-delivery-pricing-runtime.cjs --check"
+  ],
+  "evidence": [
+    "docs/delivery-policy-design-publication-176.json",
+    "docs/funded-delivery-test-draft-175.json",
+    "docs/delivery-policy-management-activation-175.json",
+    "docs/minimum-order-publication-173.json"
+  ],
+  "handoffVerification": {
+    "nodePassed": 74,
+    "walletTypescriptBuildPassed": true,
+    "runtimeSyncChecksPassed": 4,
+    "browserDesignPassed": true
+  }
+}

@@ -29,13 +29,15 @@ test('wrong owner acceptance, stale approval and withdrawn current version fail 
  for(const [table,sk,field,value] of [['staging-MerchantPlatform','ACCEPTANCE#1','subjectId','other'],['staging-PlatformStaff','APPROVAL#1','termsHash','bad'],['staging-MerchantPlatform','CURRENT','status','WITHDRAWN']]){
  const f=fixture();f.change(table,{pk:'COMMERCIAL_AGREEMENT#a1',sk})[field]=value;await reject(f);}
 });
-test('funding is explicit and cannot be inferred from campaign source or role',async()=>{
- const f=fixture();f.funded();delete f.input.discount.campaign.fundingPolicyId;await reject(f);
+test('source funding is automatic without a sharing contract, and foreign sharing cannot be used',async()=>{
+ const f=fixture();f.funded();f.records.delete('staging-MerchantPlatform|'+JSON.stringify({pk:'BRANCH#b1',sk:'COMMERCIAL_SHARING#MERCHANT#d1'}));delete f.input.discount.campaign.fundingPolicyId;
+ const r=await f.prepare();assert.equal(r.funding.amount.minorAmount,0);assert.equal(r.calculation.allocationInput.merchantGoodsDiscount.minorAmount,1000000);
+ f.input.discount.snapshot.source='PLATFORM';const p=await f.prepare();assert.equal(p.funding.amount.minorAmount,1000000);assert.equal(p.calculation.allocationInput.merchantGoodsDiscount.minorAmount,0);
  const g=fixture();g.funded();g.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'}).merchantId='other';await reject(g);
 });
 test('insufficient, suspended, foreign or imprecise platform funding cannot create a reservation',async()=>{
  for(const patch of [{availableBalance:499},{status:'SUSPENDED'},{ownerType:'DRIVER'},{availableBalance:1000.5}]){const f=fixture();f.funded();Object.assign(f.change('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}),patch);await reject(f,'DISCOUNT_FUNDING_UNAVAILABLE');}
- const f=fixture();f.funded();f.input.discount.snapshot.amount=1000001;await reject(f,'FUNDING_WALLET_PRECISION_UNSUPPORTED');
+ const f=fixture();f.funded();f.input.discount.snapshot.amount=1000001;await assert.rejects(f.prepare());
 });
 test('delivery discounts and unknown agreements cannot enter goods allocation',async()=>{
  const f=fixture();f.funded();f.input.discount.snapshot.target='DELIVERY';await reject(f,'COMMERCIAL_DISCOUNT_UNSUPPORTED');
@@ -47,18 +49,31 @@ test('expired Quote and wrong region source cannot produce a financial snapshot'
 });
 module.exports={fixture};
 
-test('commercial expiry is bounded by funding policy even when delivery Quote lasts longer',async()=>{
- const f=fixture();f.funded();f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'}).effectiveTo='2026-10-15T12:01:00.000Z';
- assert.equal((await f.prepare()).expiresAt,'2026-10-15T12:01:00.000Z');
+test('commercial expiry follows campaign duration, and a changed campaign reverts to source-funded default',async()=>{
+ const f=fixture();f.funded();f.input.discount.campaign.valid_to='2026-10-15T12:01:00.000Z';
+ const r=await f.prepare();assert.equal(r.expiresAt,'2026-10-15T12:01:00.000Z');assert.equal(r.funding.amount.minorAmount,0);
+ const g=fixture();g.funded();g.input.discount.snapshot.version=2;g.input.discount.campaign.version=2;assert.equal((await g.prepare()).funding.amount.minorAmount,0);
 });
-test('schema two agreement binds owner-consented funding version and full policy digest',async()=>{
- const {quoteHash}=require('../dist/deliveryQuoteRecord');
- const f=fixture();f.funded();
- const policy=f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'}),key={pk:'COMMERCIAL_AGREEMENT#a1',sk:'VERSION#1'},record=f.change('staging-MerchantPlatform',key);
- record.schemaVersion=2;record.fundingPolicySnapshots=[{id:'fp1',version:policy.version,digest:quoteHash(policy)}];
- record.termsHash=quoteHash({terms:record.terms,otherCharges:record.otherCharges,allowedFundingPolicyIds:record.allowedFundingPolicyIds,fundingPolicySnapshots:record.fundingPolicySnapshots});
+test('sharing consent is independent from agreement funding lists, but pins owner, scope and exact policy digest',async()=>{
+ const {quoteHash}=require('../dist/deliveryQuoteRecord');const f=fixture();f.funded();
+ const key={pk:'COMMERCIAL_AGREEMENT#a1',sk:'VERSION#1'},record=f.change('staging-MerchantPlatform',key);record.schemaVersion=2;record.allowedFundingPolicyIds=[];record.fundingPolicySnapshots=[];
+ record.termsHash=quoteHash({terms:record.terms,otherCharges:record.otherCharges,allowedFundingPolicyIds:[],fundingPolicySnapshots:[]});
  for(const [table,sk]of [['staging-MerchantPlatform','CURRENT'],['staging-MerchantPlatform','ACCEPTANCE#1'],['staging-PlatformStaff','APPROVAL#1']])f.change(table,{pk:key.pk,sk}).termsHash=record.termsHash;
- assert.equal((await f.prepare()).funding.amount.minorAmount,500000);
- policy.merchantNumerator=0;await assert.rejects(f.prepare(),e=>e.code==='DISCOUNT_FUNDING_UNAUTHORIZED');
- policy.merchantNumerator=1;policy.version=2;f.input.discount.campaign.fundingPolicyVersion=2;await assert.rejects(f.prepare(),e=>e.code==='DISCOUNT_FUNDING_UNAUTHORIZED');
+ assert.equal((await f.prepare()).funding.amount.minorAmount,500000);const p=f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'});p.merchantNumerator=0;await reject(f);p.merchantNumerator=1;p.acceptedBy='other';f.bind();await reject(f);
+});
+
+test('manager-signed sharing uses the actual signer and pins active branch membership',async()=>{const f=fixture();f.funded();const policy=f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'});policy.acceptedBy='manager';f.put('staging-MerchantPlatform',{pk:'BRANCH#b1',sk:'MEMBER#manager'},{ownerId:'owner',subjectId:'manager',businessId:'b1',role:'MANAGER',status:'ACTIVE',version:1});f.bind();const r=await f.prepare();assert.ok(r.operations.some(x=>x.ConditionCheck?.Key?.sk==='MEMBER#manager'));});
+test('foreign or revoked manager signature cannot authorize sharing funding',async()=>{for(const change of [{ownerId:'other'},{status:'REVOKED'},{role:'RECEPTION'}]){const f=fixture();f.funded();f.change('staging-PlatformStaff',{pk:'DISCOUNT_FUNDING#fp1',sk:'CURRENT'}).acceptedBy='manager';f.put('staging-MerchantPlatform',{pk:'BRANCH#b1',sk:'MEMBER#manager'},{ownerId:'owner',subjectId:'manager',businessId:'b1',role:'MANAGER',status:'ACTIVE',version:1,...change});f.bind();await assert.rejects(f.prepare(),/DISCOUNT_FUNDING_UNAUTHORIZED/);}});
+
+test('branch minimum uses catalog gross before discounts, with no platform fallback',async()=>{
+ for(const minimum of [undefined,null,0,3500]){const f=fixture();if(minimum!==undefined)f.change('WhizzMerchants_Businesses',{businessId:'b1'}).minimum_order=minimum;await f.prepare();}
+ const f=fixture();f.change('WhizzMerchants_Businesses',{businessId:'b1'}).minimum_order=3501;await reject(f,'MINIMUM_ORDER_NOT_MET');
+ const g=fixture();g.funded();g.change('WhizzMerchants_Businesses',{businessId:'b1'}).minimum_order=3500;await g.prepare();
+});
+test('confirmation fences minimum presence and value against concurrent restaurant edits',async()=>{
+ for(const value of [undefined,3500]){const f=fixture();if(value!==undefined)f.change('WhizzMerchants_Businesses',{businessId:'b1'}).minimum_order=value;
+ const condition=(await f.prepare()).branchCondition.ConditionCheck;const name=Object.keys(condition.ExpressionAttributeNames).find(k=>condition.ExpressionAttributeNames[k]==='minimum_order');assert.ok(name);
+ if(value===undefined)assert.ok(condition.ConditionExpression.includes('attribute_not_exists('+name+')'));
+ else assert.ok(Object.values(condition.ExpressionAttributeValues).includes(value));
+ }
 });

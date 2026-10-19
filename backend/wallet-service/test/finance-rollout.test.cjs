@@ -9,6 +9,12 @@ function fixture({env=scopeEnv(),missing=false}={}){
  const rollout=createFinanceRollout({db:raw,env,now:()=>Date.parse('2026-10-17T00:00:00.000Z')});return {row,raw,calls,transactions,rollout};
 }
 const rejection=(p,code='FINANCE_ROLLOUT_OUT_OF_SCOPE')=>assert.rejects(p,e=>e.code===code);
+test('financial host cursor requires its own enabled server gate and cannot authorize another cursor',async()=>{
+ const tx=sk=>new TransactWriteCommand({TransactItems:[{Put:{TableName:'WizzDispatchJobs_staging',Item:{orderId:'SYSTEM#DISPATCH_HOST',SK:sk,kind:'DISPATCH_HOST_CURSOR',version:1}}}]});
+ const off=fixture();await rejection(off.rollout.db.send(tx('CURSOR#FINANCIAL')));assert.equal(off.transactions.length,0);
+ const on=fixture({env:{...scopeEnv(),DISPATCH_FINANCIAL_HOST_MODE:'REQUIRED'}});await on.rollout.db.send(tx('CURSOR#FINANCIAL'));assert.equal(on.transactions.length,1);
+ await rejection(on.rollout.db.send(tx('CURSOR#OTHER')));assert.equal(on.transactions.length,1);
+});
 test('missing, corrupt, global, wildcard and cross-account configs are rejected before I/O',()=>{
  for(const env of [{}, {...scopeEnv(),FINANCE_ROLLOUT_CONFIG:'invalid'},{...scopeEnv(),AWS_REGION:'other'},{...scopeEnv(),STAGE:'production'},{...scopeEnv(),FINANCE_ROLLOUT_SHA256:'bad'}])assert.throws(()=>createFinanceRollout({db:{send:()=>assert.fail('I/O')},env}),/NOT_CONFIGURED/);
  for(const change of [c=>c.scopes[0].mode='ALL',c=>c.scopes[0].orders[0].orderId='*',c=>c.scopes[0].orders.push(c.scopes[0].orders[0]),c=>c.scopes[0].drivers[0].subjectId='*',c=>c.accountId='other']){

@@ -1,5 +1,8 @@
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { codIntegrationEvent } from './codIntegrationEvent';
+import { verifyDeliveryFundedAssignment } from './deliveryFundedOffer';
+import { createStagingDeliveryCampaignBudget } from './deliveryCampaignBudget';
+import { createStagingPlatformPromotionResolution } from './platformPromotionResolution';
 import { verifyFinancialAssignment } from './financialAssignment';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { readMoney, toWholeIqdExact } from './money';
@@ -23,12 +26,21 @@ function wallet(row:Row|null,id:string,type:string,owner?:string):Row {
  ![row.availableBalance,row.lockedBalance,row.version].every(Number.isSafeInteger)||row.availableBalance<0||row.lockedBalance<0||row.version<1||row.version>=Number.MAX_SAFE_INTEGER)return fail('COD_WALLET_UNAVAILABLE');
  safe(row.availableBalance+row.lockedBalance);return row;
 }
+/** Projection only; called inside the verified COD completion transaction. */
+export function codCollectedPaymentFields(order:Row,at:string) {
+ const fields:Row={paymentStatus:'captured',codCollectedAt:at};
+ if(order.paymentStatus_gsi!==undefined){
+  if(typeof order.paymentStatus_gsi!=='string'||!order.paymentStatus_gsi.startsWith('pending#')||order.paymentStatus_gsi.length<=8)throw Error('COD_PAYMENT_INDEX_INVALID');
+  fields.paymentStatus_gsi='captured#'+order.paymentStatus_gsi.slice('pending#'.length);
+ }
+ return fields;
+}
 /** Verified current-assignment COD only. No client amounts, no generic capture/settle service, no payout.
  * Merchant entitlement is funded in its existing wallet LOCKED bucket and linked to an order line.
  * Authentication must validate the original live driver credential, not invocation/Gateway context.
  */
 export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClient,'send'>;
- authenticateDriver:()=>Promise<{driverId:string;subjectId:string}>;now?:()=>number}) {
+ authenticateDriver:()=>Promise<{driverId:string;subjectId:string}>;now?:()=>number;enableDeliveryFunding?:boolean}) {
  const {db,authenticateDriver}=options,now=options.now??Date.now;
  return Object.freeze({async complete(value:unknown){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='cashCollected,orderId'||(value as Row).cashCollected!==true||!quoteEntityIdValid((value as Row).orderId))return fail('INVALID_COD_COMPLETION');
@@ -49,9 +61,13 @@ export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClie
     order.deletionStatus!=null||order.deletedAt!=null||order.isDeleted===true||order.financialOutcome!=null||
     ['returnStatus','cancellationStatus','returnCaseId','cancellationRequestId'].some(k=>order[k]!=null))return fail();
   const terms=order.financialAcceptance;
-  if(!terms||terms.schemaVersion!==1||terms.paymentMethod!=='COD'||!Number.isSafeInteger(order.assignmentWaveNumber))return fail();
+  const deliveryFunded=terms?.schemaVersion===2;
+  if(deliveryFunded&&options.enableDeliveryFunding!==true)return fail('DELIVERY_FUNDED_COMPLETION_DISABLED');
+  if(!terms||![1,2].includes(terms.schemaVersion)||terms.paymentMethod!=='COD'||!Number.isSafeInteger(order.assignmentWaveNumber))return fail();
   const offerKey={orderId,SK:`FINANCIAL#${actor.driverId}#WAVE#${order.assignmentWaveNumber}`},saved=await strongGet(db,T.offers,offerKey);
-  const offer=verifyFinancialAssignment(order,saved,actor.subjectId);
+  let offer:Row;
+  if(deliveryFunded){const verified=verifyDeliveryFundedAssignment(order,saved!,actor.subjectId);offer={...verified.baseOffer,digest:verified.digest,allocation:verified.allocation};}
+  else offer=verifyFinancialAssignment(order,saved,actor.subjectId);
   const a=offer.allocation,branchId=offer.branchId;
   if(order.deletionRequestId!=null)return fail();
   const agreement=order.commercialPricing?.agreement;
@@ -87,6 +103,20 @@ export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClie
    if(order.holdId!==null||hold&&(hold.status!=='NOT_REQUIRED'||hold.amount!==0||hold.financialSchemaVersion!==2||hold.metadata?.assignmentAttempt!==order.assignmentAttemptCounter||hold.metadata?.offerDigest!==offer.digest))return fail();
    ops.push(hold?exactCheck(T.holds,holdKey,hold):{ConditionCheck:{TableName:T.holds,Key:holdKey,ConditionExpression:'attribute_not_exists(orderId)'}});
   }
+  const deliveryFundingAmount=deliveryFunded?whole(a.platformDeliveryPromotionFunding):0;
+  if(deliveryFunded){
+   const funding=order.commercialPricing?.funding;
+   if(PD&&(funding?.holdId!=='PROMO#'+orderId||funding?.state!=='RESERVED_WITH_ORDER'||whole(funding.amount)!==PD))return fail('COD_FUNDING_UNAVAILABLE');
+   const resolution=await createStagingPlatformPromotionResolution({db}).prepare({orderId,operationId,outcome:'CAPTURED',at:timestamp,expected:[
+    {kind:'GOODS',amount:a.platformGoodsDiscountFunding,metadata:{agreementId:agreement.id,agreementVersion:agreement.version,fundingPolicy:funding?.policy??null}},
+    {kind:'DELIVERY',amount:a.platformDeliveryPromotionFunding,metadata:{policyPin:terms.deliveryFunding.policyPin}}]});
+   if(resolution.replayed||resolution.walletDelta.available!==safe(PD+deliveryFundingAmount)||resolution.walletDelta.locked!==-safe(PD+deliveryFundingAmount))return fail();
+   if(resolution.walletCheck&&!equal(resolution.walletCheck,exactCheck(T.wallets,{walletId:pw.walletId,sk:'META'},pw,[...new Set([...Object.keys(pw),'deletionRequestId'])])))return fail();
+   ops.push(...resolution.operations);
+   const campaign=await createStagingDeliveryCampaignBudget({db,now}).settle({orderId,outcome:'CAPTURED',expectedFunding:terms.deliveryFunding});
+   if(campaign.replayed)return fail();
+   ops.push(...campaign.operations);
+  }else{
   const promoKey={orderId,sk:'PROMOTION_FUNDING'},promo=await strongGet(db,T.holds,promoKey);
   if(PD){
    const funding=order.commercialPricing?.funding;
@@ -98,33 +128,35 @@ export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClie
    if(promo)return fail();
    ops.push({ConditionCheck:{TableName:T.holds,Key:promoKey,ConditionExpression:'attribute_not_exists(orderId)'}});
   }
-  const deltaPlatform=safe(H+PD-M-A);
+  }
+  const cashFunding=safe(PD+deliveryFundingAmount);
+  const deltaPlatform=safe(H+cashFunding-M-A);
   // Each funding pool remains nonnegative; a negative margin uses actual available platform funds.
   if(safe(pw.availableBalance+deltaPlatform)<0)return fail('COD_FUNDING_UNAVAILABLE');
-  const changes=[{w:dw,available:A,locked:-H},{w:mw,available:0,locked:M},{w:pw,available:deltaPlatform,locked:-PD}];
+  const changes=[{w:dw,available:A,locked:-H},{w:mw,available:0,locked:M},{w:pw,available:deltaPlatform,locked:-cashFunding}];
   const journalLines:Row[]=[];
   for(const {w,available,locked} of changes){
    const nextAvailable=safe(w.availableBalance+available),nextLocked=safe(w.lockedBalance+locked);safe(nextAvailable+nextLocked);
    if(nextAvailable<0||nextLocked<0)return fail('COD_FUNDING_UNAVAILABLE');
-   const fence=exactCheck(T.wallets,{walletId:w.walletId,sk:'META'},w);
+   const fence=exactCheck(T.wallets,{walletId:w.walletId,sk:'META'},w,[...new Set([...Object.keys(w),'deletionRequestId'])]);
    ops.push(available||locked?set(fence,{availableBalance:nextAvailable,lockedBalance:nextLocked,version:w.version+1,updatedAt:timestamp}):fence);
    for(const [bucket,delta,before] of [['AVAILABLE',available,w.availableBalance],['LOCKED',locked,w.lockedBalance]] as [string,number,number][]){
     if(!delta)continue;
     const line={walletId:w.walletId,balanceType:bucket,delta,unit:'IQD_WHOLE',balanceBefore:before,balanceAfter:safe(before+delta)};journalLines.push(line);
     ops.push({Put:{TableName:T.ledger,Item:{walletId:w.walletId,sk:`ts#${timestamp}#${bucket}#${operationId}`,transactionId:operationId,
      type:delta>0?'CREDIT':'DEBIT',category:'COD_COMPLETED',amount:delta,balanceBefore:before,balanceAfter:line.balanceAfter,
-     relatedEntityId:orderId,relatedEntityType:'ORDER',createdAt:timestamp,metadata:{orderId,operationId,balanceType:bucket,financialSchemaVersion:2}},ConditionExpression:'attribute_not_exists(sk)'}});
+     relatedEntityId:orderId,relatedEntityType:'ORDER',createdAt:timestamp,metadata:{orderId,operationId,balanceType:bucket,financialSchemaVersion:deliveryFunded?3:2}},ConditionExpression:'attribute_not_exists(sk)'}});
    }
   }
   if(journalLines.reduce((s,r)=>s+BigInt(r.delta),0n)!==0n)return fail();
   const receipt={success:true,kind:'COD_COMPLETION',orderId,operationId,deliveredAt:timestamp,holdCaptured:H>0,capturedAmount:H,cashCollected:true,cashCollectedAmount:C,replayed:false};
   // Single terminal outcome key is shared by completion, return and cancellation writers.
-  ops.push({Put:{TableName:T.holds,Item:{...outcomeKey,kind:'COD_COMPLETION_JOURNAL',schemaVersion:1,operationId,outcome:'COMPLETED',driverId:actor.driverId,subjectId:actor.subjectId,
+  ops.push({Put:{TableName:T.holds,Item:{...outcomeKey,kind:'COD_COMPLETION_JOURNAL',schemaVersion:deliveryFunded?2:1,operationId,outcome:'COMPLETED',driverId:actor.driverId,subjectId:actor.subjectId,
    branchId,attempt:order.assignmentAttemptCounter,offerId:offer.offerId,offerDigest:offer.digest,allocation:a,journalLines,receipt,createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
-   {Put:{TableName:T.holds,Item:{orderId,sk:'MERCHANT_PAYABLE',kind:'MERCHANT_ORDER_PAYABLE',financialSchemaVersion:2,walletId:mw.walletId,branchId,
-    amount:M,status:'LOCKED_PENDING_SETTLEMENT',operationId,agreement:order.commercialPricing?.agreement??null,createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
+   {Put:{TableName:T.holds,Item:{orderId,sk:'MERCHANT_PAYABLE',kind:'MERCHANT_ORDER_PAYABLE',financialSchemaVersion:deliveryFunded?3:2,walletId:mw.walletId,branchId,
+    amount:M,status:'LOCKED_PENDING_SETTLEMENT',operationId,agreement:order.commercialPricing?.agreement??null,...(deliveryFunded?{deliveryFunding:terms.deliveryFunding,merchantDeliverySupport:a.merchantDeliverySupport}:{}),createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
    set(exactCheck(T.orders,key,order,[...new Set([...Object.keys(order),'financialOutcome','returnStatus','cancellationStatus','returnCaseId','cancellationRequestId','deletionStatus','deletionRequestId','deletedAt','isDeleted'])]),
-    {status:'delivered',orderStatus:'delivered',deliveredAt:timestamp,updatedAt:timestamp,cashCollected:true,cashCollectedAmount:C,holdStatus:H?'SETTLED':'NOT_REQUIRED',walletFinancialStatus:'SETTLED',financialOutcome:operationId}),
+    {status:'delivered',orderStatus:'delivered',deliveredAt:timestamp,updatedAt:timestamp,cashCollected:true,cashCollectedAmount:C,...codCollectedPaymentFields(order,timestamp),holdStatus:H?'SETTLED':'NOT_REQUIRED',walletFinancialStatus:'SETTLED',financialOutcome:operationId}),
    set(exactCheck(T.jobs,jobKey,job),{status:'completed',completedAt:timestamp}),
    set(exactCheck(T.live,liveKey,live),{status:live.isActive===true?'available':'offline',currentOrderId:null,activeOrdersCount:0,isSearching:false}),
    {Put:{TableName:T.audit,Item:{datePartition:'date#'+timestamp.slice(0,10).replace(/-/g,''),sk:timestamp+'#'+operationId,logId:operationId,

@@ -95,3 +95,16 @@ test('changed live actor at commit and an opposing terminal outcome cannot compl
  f.put('staging-Holds',{orderId:'order1',sk:'FINANCIAL_OUTCOME',outcome:'CANCELLED'});
  await assert.rejects(f.complete());assert.equal(w(f,'WALLET#MERCHANT#branch1').lockedBalance,10);
 });
+
+test('fully platform-funded discount settles from its reservation without requiring a sharing policy or double settlement',async()=>{
+ const f=await ready('4000',2000,1000),order=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}),hold=f.get('staging-Holds',{orderId:'order1',sk:'PROMOTION_FUNDING'});
+ order.commercialPricing.funding.policy=null;hold.metadata.fundingPolicy=null;
+ await f.complete();const balance=w(f,'WALLET#MERCHANT#branch1').lockedBalance;assert.equal(hold.status,'ACTIVE'); // fixture commits detached rows
+ assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'PROMOTION_FUNDING'}).status,'SETTLED');assert.equal((await f.complete()).replayed,true);assert.equal(w(f,'WALLET#MERCHANT#branch1').lockedBalance,balance);
+});
+
+test('verified COD completion atomically records captured payment and preserves payment index bucket',async()=>{
+ const f=await ready();const order=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});order.paymentStatus='pending';order.paymentStatus_gsi='pending#bucket17';
+ const result=await f.complete();const saved=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});assert.equal(saved.paymentStatus,'captured');assert.equal(saved.paymentStatus_gsi,'captured#bucket17');assert.equal(saved.codCollectedAt,result.deliveredAt);
+ const version=w(f,'WALLET#DRIVER#driver1').version;assert.equal((await f.complete()).replayed,true);assert.equal(w(f,'WALLET#DRIVER#driver1').version,version);
+});

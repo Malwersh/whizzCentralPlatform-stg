@@ -7,7 +7,7 @@ import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
  * recover an invocation failure without recapturing mutable order/policy fields.
  * The existing cycle store supplies strong authorization/lifecycle write fences.
  */
-export function createStagingDispatchCreator(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;invokeStart:(input:{orderId:string;dispatchJobId:string;cycleId:string})=>Promise<void>}) {
+export function createStagingDispatchCreator(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;invokeStart:(input:{orderId:string;dispatchJobId:string;cycleId:string})=>Promise<void>}) {
  const store=createStagingDispatchCycleStore(options);
  return {async process(record:Row){
   if(!record||record.eventSource!=='aws:dynamodb'||typeof record.eventSourceARN!=='string'||!/^arn:aws:dynamodb:us-east-1:699561669180:table\/WizzOrders\/stream\/[A-Za-z0-9_.:-]+$/.test(record.eventSourceARN))throw Error('INVALID_DISPATCH_STREAM_SOURCE');

@@ -1,0 +1,22 @@
+{
+  "function": "order-receiver-business-staging-status-v1-sam",
+  "addedFiles": [
+    "branch_device_discounts.js",
+    "merchant-platform/branch-device-security.js",
+    "merchant-platform/branch-profile-policy.js",
+    "merchant-platform/domain.js",
+    "merchant-platform/staff-capabilities.js",
+    "merchant-platform/staff-legacy-grants.js",
+    "merchant-platform/staff-permission-policy.js",
+    "shared/branch-device-hours-audit.js",
+    "shared/campaign-version.js",
+    "shared/legacy-order-policy.js",
+    "staff_policy_access.js"
+  ],
+  "existingCodeUnchanged": true,
+  "newIam": false,
+  "configurationUnchanged": true,
+  "liveColdStartAndAuthCheckPassed": true,
+  "authenticatedSettingsRead": "USER_CONFIRMED_SAVED_AND_CUSTOMER_UPDATED",
+  "codeSha256": "4ZVr84+zLMy4W/2aGZrhwekI/dqbWWONfi9qYX1kV+E="
+}

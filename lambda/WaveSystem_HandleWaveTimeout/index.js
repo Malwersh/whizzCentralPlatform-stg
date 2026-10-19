@@ -80,6 +80,7 @@ exports.handler = async (event, context) => {
       const result=JSON.parse(response.Payload||'{}');if(result.statusCode!==200)throw Error('DISPATCH_HOST_START_UNKNOWN');
       return result;
     });
+    if(process.env.DISPATCH_FINANCIAL_HOST_MODE==='REQUIRED'){const financial=await require('./dispatch-cycle-runtime').runHostedFinancialTick(event,context,async selectors=>{const response=await lambda.invoke({FunctionName:START_WAVE_LAMBDA,InvocationType:'RequestResponse',Payload:JSON.stringify({orderId:selectors.orderId,dispatchJobId:selectors.assignmentId,cycleId:selectors.cycleId})}).promise();if(response.FunctionError)throw Error('DISPATCH_HOST_START_UNKNOWN');const result=JSON.parse(response.Payload||'{}');if(result.statusCode!==200)throw Error('DISPATCH_HOST_START_UNKNOWN');return result;});hostSummary={...(hostSummary?{legacy:hostSummary}:{}),financial};}
     const now = new Date().toISOString();
     
     // Step 1: جلب العروض المنتهية + الطلبات العالقة
@@ -275,13 +276,18 @@ async function processExpiredWave(orderId, offers, now) {
   try {
     const financialJob = await getDispatchJob(orderId);
     if (financialJob && Object.prototype.hasOwnProperty.call(financialJob,'dispatchCycle')) {
-      if(process.env.DISPATCH_LEGACY_HOST_MODE==='REQUIRED'&&financialJob.dispatchCycle?.engine==='LEGACY'){result.dispatchAction='HOST_MANAGED';return result;}
+      if((process.env.DISPATCH_FINANCIAL_HOST_MODE==='REQUIRED'&&financialJob.dispatchCycle?.engine==='FINANCIAL')||(process.env.DISPATCH_LEGACY_HOST_MODE==='REQUIRED'&&financialJob.dispatchCycle?.engine==='LEGACY')){result.dispatchAction='HOST_MANAGED';return result;}
       const plan=await require('./dispatch-cycle-runtime').coordinateUnifiedDispatch({orderId,assignmentId:financialJob.dispatchJobId,source:'TIMEOUT'});
       result.transitionClaimed=plan.claimed===true;
       result.dispatchAction=plan.action;
       return result;
     }
     if (financialJob?.financialDispatch === true) {
+      const scopes=require('./finance-rollout').readFinanceRollout().scopes;
+      if(!scopes.some(scope=>scope.orders.some(o=>o.orderId===orderId&&o.branchId===financialJob.restaurantId))){result.skipped='OUT_OF_FINANCIAL_SCOPE';return result;}
+      const source=await dynamodb.get({TableName:'WizzOrders',Key:{PK:'ORDER#'+orderId,SK:'META'},ConsistentRead:true,ProjectionExpression:'orderId'}).promise();
+      if(!source.Item){result.skipped='CANONICAL_ORDER_MISSING';return result;}
+
       const {exhaustFinancialSearch}=require('./financial-runtime');
       const search=await exhaustFinancialSearch(orderId);
       if(search.exhausted||search.assigned){result.noDriverAvailable=search.exhausted;return result;}
@@ -305,7 +311,9 @@ async function processExpiredWave(orderId, offers, now) {
         if(!closed.exhausted)throw Error('FINANCIAL_SEARCH_EXHAUSTION_PENDING');
         result.noDriverAvailable = true;
       } else {
-        await invokeStartWave(financialJob.dispatchJobId,orderId,wave+1,expired.driverIds,[],false,false);
+        const policy=await require('./financial-wave-policy').createFinancialWavePolicy({db:dynamodb,jobsTable:DISPATCH_JOBS_TABLE}).read(financialJob,wave+1);
+        const started=await invokeStartWave(financialJob.dispatchJobId,orderId,wave+1,policy.permanent,policy.previous,policy.isFinalWave,false);
+        if(!started.success)throw Error('FINANCIAL_NEXT_WAVE_PENDING');
         result.nextWaveStarted = true;
       }
       return result;

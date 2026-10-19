@@ -1,5 +1,5 @@
 const {dispatchWaveSK}=require('../../src/utils/dispatch-cycle-keys');
-import {DynamoDBDocumentClient,QueryCommand,ScanCommand} from '@aws-sdk/lib-dynamodb';
+import {DynamoDBDocumentClient,ScanCommand} from '@aws-sdk/lib-dynamodb';
 import {validateDispatchCycle} from './dispatchCycle';
 import {createStagingDriverOfferOrderReader} from './driverOfferOrderReader';
 import {strongGet,equal,FinancialRow as Row} from './driverFinancialTransaction';
@@ -12,13 +12,13 @@ const fail=():never=>{throw Error('DISPATCH_CANDIDATES_UNAVAILABLE');};
  * New-cycle readers finish all bounded pages, fail closed, then strongly hydrate
  * current state/profile before applying the captured rule. No offers or money.
  */
-export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number}) {
+export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean}) {
  const {db}=options,now=options.now??Date.now;
  return async(input:{job:Row;intent:Row})=>{
   const {job,intent}=input,c=validateDispatchCycle(job.dispatchCycle),profile=c.policy.values.dispatch!.profiles[c.engine],rule=profile.normalWaves[intent.waveNumber-1];
   if(job.dispatchJobId!==c.assignmentId||job.orderId!==c.orderId||job.status!=='searching'||intent.cycleDigest!==c.digest||intent.cycleId!==c.id||job.dispatchTransition?.id!==intent.intentId||!equal(intent.rule,rule)||!rule||Date.parse(intent.waveDeadline)<=now()||!['LEASED','APPLIED'].includes(intent.state))return fail();
   let point:Row,regionId:string;
-  if(c.engine==='FINANCIAL'){const order=await createStagingDriverOfferOrderReader({db}).read({orderId:c.orderId,branchId:job.restaurantId});point=order.snapshot.branchPoint;regionId=order.snapshot.zoneId;}
+  if(c.engine==='FINANCIAL'){const order=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding}).read({orderId:c.orderId,branchId:job.restaurantId});point=order.snapshot.branchPoint;regionId=order.snapshot.zoneId;}
   else{const branch=await strongGet(db,'WhizzMerchants_Businesses',{businessId:job.restaurantId});if(!branch||branch.status!=='approved')return fail();point={latitude:job.restaurantLat??branch.latitude,longitude:job.restaurantLng??branch.longitude};regionId=job.restaurantRegionId??branch.regionId;}
   if(!quoteEntityIdValid(regionId)||!Number.isFinite(point.latitude)||Math.abs(point.latitude)>90||!Number.isFinite(point.longitude)||Math.abs(point.longitude)>180)return fail();
   const excluded=new Set<string>();for(const list of [job.excludedDrivers??[],job.financialExcludedDriverIds??[]]){if(!Array.isArray(list)||!list.every(quoteEntityIdValid))return fail();for(const id of list)excluded.add(id);}
@@ -29,7 +29,9 @@ export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumen
    do{
     if(++pages>8)return fail();
     const q={TableName:LIVE,Limit:250,ExclusiveStartKey:cursor,ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':available':'available',...(!all?{':region':regionId}:{})}};
-    const result:any=all?await db.send(new ScanCommand({...q,FilterExpression:'#s=:available'})):await db.send(new QueryCommand({...q,IndexName:'RegionStatusIndex',KeyConditionExpression:'current_work_region_id=:region AND #s=:available'}));
+    // Live-state staging has no region GSI. Use its existing bounded scan access,
+    // retaining the region predicate and strongly hydrating every result below.
+    const result:any=await db.send(new ScanCommand({...q,FilterExpression:all?'#s=:available':'current_work_region_id=:region AND #s=:available'}));
     if(!Array.isArray(result.Items??[])||(result.Items?.length??0)>250)return fail();rows.push(...(result.Items??[]));if(rows.length>2000)return fail();cursor=result.LastEvaluatedKey;
     if(cursor){const k=quoteCanonical(cursor);if(seen.has(k))return fail();seen.add(k);}
    }while(cursor);

@@ -7,16 +7,16 @@ const {prepareDriverOfferFinancialSnapshot:envelope}=require('../../dist/driverO
 const {input,at,route}=require('./driver-offer-fixture.cjs');
 const {quoteCanonical}=require('../../dist/deliveryQuoteRecord');
 const clone=structuredClone;
-function setup(earning='3000',transform=()=>{}){
+function setup(earning='3000',transform=()=>{},orderId='order1',flowOptions={}){
  const rows=new Map(),calls=[],sent=[],source=input(earning);let time=Date.parse(at);
- transform(source);
+ source.order.orderId=orderId;transform(source);
  const keys=(table,r)=> table==='WizzOrders'?{PK:r.PK,SK:r.SK}:table==='WizzDispatchJobs_staging'||table==='WaveOffers_staging'?{orderId:r.orderId,SK:r.SK}:
   table==='staging-Wallets'||table==='staging-LedgerEntries'?{walletId:r.walletId,sk:r.sk}:table==='staging-Holds'?{orderId:r.orderId,sk:r.sk}:
   table==='staging-WalletNotifications'?{eventId:r.eventId}:table==='WizzDriverPerformanceMetrics_staging'?{PK:r.PK,SK:r.SK}:table==='staging-AuditLog'?{datePartition:r.datePartition,sk:r.sk}:table==='staging-WalletLifecycle'?{operationId:r.operationId}:
   table==='WhizzMerchants_Businesses'?{businessId:r.businessId}:['WhizzDrivers_staging','WizzDriverLiveState_staging'].includes(table)?{driverId:r.driverId}:{pk:r.pk,sk:r.sk};
  const k=(t,key)=>t+'|'+quoteCanonical(key),put=(t,r)=>rows.set(k(t,keys(t,r)),clone(r)),get=(t,key)=>rows.get(k(t,key));
- put('WizzOrders',{PK:'ORDER#order1',SK:'META',orderId:'order1',storeId:'branch1',merchantId:'merchant1',status:'ready_for_pickup',financialSnapshot:envelope(source.order)});
- put('WizzDispatchJobs_staging',{orderId:'order1',SK:'METADATA',dispatchJobId:'dispatch1',restaurantId:'branch1',status:'searching',currentWaveNumber:0,expiresAt:source.assignment.expiresAt});
+ put('WizzOrders',{PK:'ORDER#'+orderId,SK:'META',orderId,storeId:'branch1',merchantId:'merchant1',status:'ready_for_pickup',financialSnapshot:flowOptions.deliveryFunding?require('../../dist/deliveryFundedOffer').prepareDeliveryFundedFinancialSnapshot({order:source.order,deliveryFunding:flowOptions.deliveryFunding}):envelope(source.order)});
+ put('WizzDispatchJobs_staging',{orderId,SK:'METADATA',dispatchJobId:'dispatch1',restaurantId:'branch1',status:'searching',currentWaveNumber:0,expiresAt:source.assignment.expiresAt});
  put('WhizzMerchants_Businesses',{businessId:'branch1',ownerId:'owner1',cognitoUserId:'owner1',organizationId:'merchant1',status:'approved'});
  put('staging-PlatformStaff',{pk:'OPERATIONAL_SETTINGS#DELIVERY_PRICING',sk:'CURRENT',version:1,values:{deliveryRules:[],driverRules:source.policy.rules}});
  for(const driverId of ['driver1','driver2']){
@@ -59,14 +59,14 @@ function setup(earning='3000',transform=()=>{}){
  }};
  f.db=db;
  const context=createStagingDriverOfferContext({db,cognito:{async send(c){return {Enabled:true,Username:c.input.Username,UserStatus:'CONFIRMED',UserAttributes:[{Name:'sub',Value:c.input.Username}]};}},
-  router:{async getRoute(a,b){return route('route',a,b);}},positionMaxAgeSeconds:120,offerTtlSeconds:60,now:()=>time});
+  router:{async getRoute(a,b){return route('route',a,b);}},positionMaxAgeSeconds:120,offerTtlSeconds:60,now:()=>time,enableDeliveryFunding:flowOptions.enableDeliveryFunding});
  f.context=context;
- f.wave=createStagingDriverFinancialWave({db,context,now:()=>time,sendOffer:async(driverId,message)=>{if(f.failSend)throw Error('network');sent.push({driverId,message});}});
- f.run=(ids=['driver1','driver2'])=>f.wave.run({orderId:'order1',branchId:'branch1',waveNumber:1,driverIds:ids});
- f.decline=(driverId='driver1')=>createStagingDriverOfferAcceptance({db,context,now:()=>time,authenticateDriver:async()=>({driverId,subjectId:driverId})})
-  .decline({orderId:'order1',waveNumber:1,offerId:sent.find(v=>v.driverId===driverId).message.offer.offerId});
- f.accept=(driverId='driver1',extra={})=>createStagingDriverOfferAcceptance({db,context,now:()=>time,authenticateDriver:async()=>({driverId,subjectId:driverId})})
-  .accept({orderId:'order1',waveNumber:1,offerId:sent.find(v=>v.driverId===driverId).message.offer.offerId,...extra});
+ f.wave=createStagingDriverFinancialWave({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,now:()=>time,sendOffer:async(driverId,message)=>{if(f.failSend)throw Error('network');sent.push({driverId,message});}});
+ f.run=(ids=['driver1','driver2'])=>f.wave.run({orderId,branchId:'branch1',waveNumber:1,driverIds:ids});
+ f.decline=(driverId='driver1')=>createStagingDriverOfferAcceptance({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,now:()=>time,authenticateDriver:async()=>({driverId,subjectId:driverId})})
+  .decline({orderId,waveNumber:1,offerId:sent.find(v=>v.driverId===driverId).message.offer.offerId});
+ f.accept=(driverId='driver1',extra={})=>createStagingDriverOfferAcceptance({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,now:()=>time,authenticateDriver:async()=>({driverId,subjectId:driverId})})
+  .accept({orderId,waveNumber:1,offerId:sent.find(v=>v.driverId===driverId).message.offer.offerId,...extra});
  return f;
 }
 

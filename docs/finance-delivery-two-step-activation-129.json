@@ -1,0 +1,12 @@
+{
+  "status": "LOCAL_IMPLEMENTED_NOT_DEPLOYED",
+  "supersedes": "Part128 delivery independent staff approval",
+  "flow": ["authorized platform employee sends terms", "owner or authorized manager accepts and activation commits atomically"],
+  "actions": ["SAVE_DELIVERY", "ACCEPT_DELIVERY"],
+  "requiresSecondStaffApproval": false,
+  "senderAuthorization": "Recorded sender version plus live active permission/scope read and conditional fence",
+  "atomicWrite": ["merchant consent", "active policy", "immutable version", "published draft", "audit", "idempotency marker"],
+  "tests": {"deliveryWorkflow": 9, "existingCommercialAndSharing": 45, "totalPassed": 54},
+  "deploymentPerformed": false,
+  "financialWrites": 0
+}

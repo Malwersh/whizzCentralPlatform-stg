@@ -3,8 +3,8 @@ import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb
 import {validateDispatchCycle,decideDispatchTransition,DispatchProgress} from './dispatchCycle';
 import {strongGet,exactCheck,updateChecked,detach,equal,FinancialRow as Row} from './driverFinancialTransaction';
 import {quoteEntityIdValid,quoteHash} from './deliveryQuoteRecord';
-import {buildDriverOffer} from './driverOffer';
-import {createStagingDriverOfferOrderReader,prepareDriverOfferFinancialSnapshot} from './driverOfferOrderReader';
+import {resolveFinancialOffer} from './financialOfferVersion';
+import {createStagingDriverOfferOrderReader,financialSnapshotFromOrderRead} from './driverOfferOrderReader';
 import {unavailableDispatchSearch} from './financialSearch';
 const {isFinancialOrder,isTerminalOrderStatus,FINANCIAL_FIELDS}=require('../../order-service/legacy-order-policy');
 const T={jobs:'WizzDispatchJobs_staging',orders:'WizzOrders',offers:'WaveOffers_staging',branches:'WhizzMerchants_Businesses',deletions:'staging-AccountDeletion'};
@@ -19,7 +19,7 @@ const ms=(value:any)=>{
  * A future executor must fence every write with the current intent lease token;
  * external invocation is at least once, not exactly once.
  */
-export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number}) {
+export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean}) {
  const {db}=options,now=options.now??Date.now;
  async function bound(orderId:string,assignmentId:string){
   if(![orderId,assignmentId].every(quoteEntityIdValid))return fail();
@@ -34,7 +34,7 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
   if(stop)return {stop,job,cycle,order,jobKey,orderKey,guards:[] as Row[]};
   if([order.deletionRequestId,order.deletionStatus,order.deletedAt,order.cancellationRequestId,order.cancellationStatus,order.returnCaseId,order.returnStatus].some(v=>v!=null)||order.isDeleted===true)return fail();
   let releaseGuard:Row|null=null;
-  if(cycle.engine==='FINANCIAL'){const verified=await createStagingDriverOfferOrderReader({db}).read({orderId,branchId:job.restaurantId});if(!equal(order.financialSnapshot,prepareDriverOfferFinancialSnapshot(verified.snapshot)))return fail();releaseGuard=verified.releaseCondition;}
+  if(cycle.engine==='FINANCIAL'){const verified=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding}).read({orderId,branchId:job.restaurantId});if(!equal(order.financialSnapshot,financialSnapshotFromOrderRead(verified)))return fail();releaseGuard=verified.releaseCondition;}
   else if(![order.status,order.orderStatus].some(s=>s==='ready_for_pickup')||[order.status,order.orderStatus].some(s=>s!==undefined&&s!=='ready_for_pickup'))return fail();
   const branchKey={businessId:job.restaurantId},branch=await strongGet(db,T.branches,branchKey);
   if(!branch||branch.status!=='approved'||branch.isActive===false||branch.ordersBlocked===true||branch.platformSuspended===true||!quoteEntityIdValid(branch.ownerId)||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)return fail();
@@ -69,7 +69,7 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
   for(const driverId of wave.driverIds){
    const key={orderId:c.cycle.orderId,SK:dispatchOfferSK(c.cycle,driverId,n)},offer=await strongGet(db,T.offers,key);
    if(!offer||offer.orderId!==c.cycle.orderId||offer.driverId!==driverId||offer.waveNumber!==n)return fail();
-   if(financial){const rebuilt=buildDriverOffer(offer.financialOffer?.source);if(!equal(rebuilt,offer.financialOffer)||rebuilt.assignmentId!==c.cycle.assignmentId||rebuilt.driverId!==driverId||rebuilt.assignmentVersion!==n)return fail();}
+   if(financial){const rebuilt=resolveFinancialOffer(offer.financialOffer,options.enableDeliveryFunding);if(!equal(rebuilt.versionedOffer,offer.financialOffer)||rebuilt.assignmentId!==c.cycle.assignmentId||rebuilt.driverId!==driverId||rebuilt.assignmentVersion!==n)return fail();}
    else if(offer.dispatchJobId!==c.cycle.assignmentId||offer.dispatchCycleId!==c.cycle.id)return fail();
    const pending=financial?'financial_pending':'pending',declined=financial?'financial_declined':'rejected',expired=financial?'financial_expired':'expired',winner=financial?'financial_accepted':'accepted';
    if(![pending,declined,expired,winner].includes(offer.responseStatus))return fail();
@@ -112,7 +112,8 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
    if(search){const orderGuard=guards.shift()!;tx.push(updateChecked(orderGuard,'SET #ds=:ds, #fs=:fs',{'#ds':'dispatchStatus','#fs':'financialSearch'},{':ds':search.status,':fs':search}));}
    tx.push(...guards);
    if(prior){if(['PENDING','LEASED'].includes(prior.record.state)&&search)tx.push(updateChecked(exactCheck(T.jobs,prior.key,prior.record),'SET #state=:state',{'#state':'state'},{':state':'CANCELLED'}));else tx.push(exactCheck(T.jobs,prior.key,prior.record));}
-   try{await commit(tx);}catch{
+   try{await commit(tx);}catch(error:any){
+    console.error('DISPATCH_TRANSITION_COMMIT_FAILED',{code:error?.name??'Unknown',reasons:(error?.CancellationReasons??[]).map((r:any)=>r.Code??'None')});
     const fresh=await bound(input.orderId,input.assignmentId);if(fresh.stop)return {handled:true,action:'STOP',reason:fresh.stop};
     const existing=await intentFor(fresh);if(existing?.record.intentId===intentId)return receipt(existing.record,false);return fail('DISPATCH_TRANSITION_UNAVAILABLE');
    }

@@ -61,9 +61,9 @@ async function runtime(db,event,input){
   if(typeof input.pushToken!=='string'||input.pushToken.length<20||input.pushToken.length>4096||!['ios','android'].includes(input.platform))sec.fail('INVALID_PUSH_TOKEN',400);
   const key={pk,sk:'DEVICE_PUSH#'+d.deviceId},old=await get(db,T,key);
   const binding={...key,businessId:b.businessId,ownerId:b.ownerId,deviceId:d.deviceId,deviceVersion:d.version,tokenHash:sec.hash(input.pushToken),version:(old?.version||0)+1};
-  const item={token:'BRANCH_DEVICE#'+d.deviceId,fcmToken:input.pushToken,subjectId:'BRANCH_DEVICE#'+d.deviceId,app:'merchant',platform:input.platform,businessId:b.businessId,branchDeviceId:d.deviceId,branchDeviceVersion:d.version,env:'staging',updatedAt:new Date().toISOString(),ttl:d.expiresAt};
+  const item={token:'BRANCH_DEVICE#'+d.deviceId,fcmToken:input.pushToken,soundEnabled:input.soundEnabled!==false,soundReady:Array.isArray(input.soundReady)?input.soundReady.filter(v=>typeof v==='string'&&/^(custom_[a-f0-9]{64}|[a-z_]{1,40})$/.test(v)).slice(0,30):[],subjectId:'BRANCH_DEVICE#'+d.deviceId,app:'merchant',platform:input.platform,businessId:b.businessId,branchDeviceId:d.deviceId,branchDeviceVersion:d.version,env:'staging',updatedAt:new Date().toISOString(),ttl:d.expiresAt};
   await tx(db,[...common,put(binding,old),{Put:{TableName:'WizzCentral_PushDeviceTokens_staging',Item:item}}]);
-  return {success:true};
+  return {success:true,notificationPolicy:await require('../shared/notification-sound-policy').read(db)};
  }
  if(input.action==='disconnect'){
   const next={...d,status:'REVOKED',version:d.version+1};
@@ -89,6 +89,7 @@ async function runtime(db,event,input){
  const {s,m,authorization,common:staffGuards}=await employeeAccess(db,event,{b,d});
  common.push(...staffGuards);
  if(['discounts_list','discounts_create','discounts_update','discounts_status','discounts_delete'].includes(input.action))return require('./branch_device_discounts').execute(db,{b,d,s,m,authorization,common},input);
+ if(['read_order_reception','set_order_reception','pause_orders'].includes(input.action))return require('../shared/order-reception').execute(db,b,{subjectId:s.subjectId,ownerId:b.ownerId,name:m.displayName,role:m.role},common,input,authorization?.permissions.includes('branch.status.write')===true);
  if(['read_status','set_status'].includes(input.action))return require('./branch_device_status').execute(db,{b,d,s,m,authorization,common},input);
  if(input.action==='touch'){
   const next={...s,expiresAt:Math.min(now()+120,s.maxExpiresAt||s.expiresAt),version:s.version+1};

@@ -1,0 +1,14 @@
+{
+  "status": "LOCAL_OPT_IN_LIFECYCLE_IMPLEMENTED_NOT_DEPLOYED",
+  "reused": ["codFlowContext", "financialRelease", "codReassignment", "codReturn"],
+  "beforePickupCancellation": "atomic driver hold, cash promotion and campaign allowance/usage release",
+  "unassignment": "driver release only; order promotion funding and use preserved",
+  "cleanReturn": "owner receipt authorizes atomic release; no payable or invented driver earning",
+  "disputedReturn": "review required; holds retained",
+  "postDeliveryRefundImplemented": false,
+  "internalCapabilityDefaultsDisabled": true,
+  "verification": {"typescriptCompile": "PASS", "newV2ReleaseTests": 8, "targetedTestsPassed": 63, "realDynamoDBTested": false},
+  "remaining": ["V2 issuance/acceptance and redispatch", "trusted quote/order admission", "multi-version integrations/reporting", "post-delivery refund reversals", "UI, deployment and app tests"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

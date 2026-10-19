@@ -107,6 +107,14 @@ functions:
           method: options
           cors: true
 
+  pushSoundSettings:
+    handler: src/handlers/push-tokens.soundSettings
+    events:
+      - http:
+          path: push/sounds
+          method: get
+          cors: true
+
   pushTokensUnregister:
     handler: src/handlers/push-tokens.unregister
     timeout: 15

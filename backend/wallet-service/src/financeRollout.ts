@@ -319,7 +319,9 @@ export function createFinanceRollout(options: {
   const cursor = (op: Row) =>
     (op.TableName === "WizzDispatchJobs_staging" &&
       (op.Item ?? op.Key)?.orderId === "SYSTEM#DISPATCH_HOST" &&
-      (op.Item ?? op.Key)?.SK === "CURSOR#LEGACY") ||
+      ((op.Item ?? op.Key)?.SK === "CURSOR#LEGACY" ||
+        ((options.env ?? process.env).DISPATCH_FINANCIAL_HOST_MODE === "REQUIRED" &&
+          (op.Item ?? op.Key)?.SK === "CURSOR#FINANCIAL"))) ||
     (op.TableName === "staging-PlatformStaff" &&
       (op.Item ?? op.Key)?.pk === "CONTROL#DISPATCH_REVIEW_HOST" &&
       (op.Item ?? op.Key)?.sk === "CURSOR");

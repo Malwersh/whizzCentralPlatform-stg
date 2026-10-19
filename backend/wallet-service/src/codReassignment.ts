@@ -9,11 +9,11 @@ const fail=(code='COD_ASSIGNMENT_CONFLICT'):never=>{throw Object.assign(Error(co
 /** No automatic cancellation fee or return earning. Both remain subject to an explicit policy review.
  * Unassignment preserves order funds and frozen customer price, cancels only this driver assignment.
  */
-export function createStagingCodReassignment(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;reassignmentWindowSeconds:number;maximumWaves?:number;operatingCondition?:Row|null;operatingVersion?:number;now?:()=>number}){
+export function createStagingCodReassignment(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;reassignmentWindowSeconds:number;maximumWaves?:number;operatingCondition?:Row|null;operatingVersion?:number;now?:()=>number;enableDeliveryFunding?:boolean}){
  const {db,authenticate,reassignmentWindowSeconds}=options,now=options.now??Date.now;
  if(!Number.isSafeInteger(reassignmentWindowSeconds)||reassignmentWindowSeconds<30||reassignmentWindowSeconds>900)return fail('COD_REASSIGNMENT_NOT_CONFIGURED');
  const maximumWaves=options.maximumWaves??4;if(!Number.isSafeInteger(maximumWaves)||maximumWaves<1||maximumWaves>10)return fail('COD_REASSIGNMENT_NOT_CONFIGURED');
- const context=createCodFlowContext({db,authenticate,now});
+ const context=createCodFlowContext({db,authenticate,now,enableDeliveryFunding:options.enableDeliveryFunding});
  async function run(value:unknown,cancel:boolean){
   const fields=cancel?['orderId','offerId','attempt','branchId','goodsRetainedByBranch','cashCollected']:['orderId','offerId','attempt','cashCollected','reason'];
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!==fields.sort().join(','))return fail('INVALID_COD_ASSIGNMENT');
@@ -30,11 +30,11 @@ export function createStagingCodReassignment(options:{db:Pick<DynamoDBDocumentCl
   const jobKey={orderId:v.orderId,SK:'METADATA'},job=await strongGet(db,T.jobs,jobKey),liveKey={driverId:o.driverId},live=await strongGet(db,T.live,liveKey);
   if(!job||job.status!=='assigned'||job.assignedDriverId!==o.driverId||job.dispatchJobId!==c.offer.assignmentId||!Number.isSafeInteger(job.currentWaveNumber)||job.currentWaveNumber<1||job.currentWaveNumber>=1000||!live||live.currentOrderId!==v.orderId||live.activeOrdersCount!==1)return fail();
   const operationId='CA:'+quoteHash({orderId:v.orderId,attempt:v.attempt,offerId:v.offerId,mode:cancel?'CANCEL':'UNASSIGN'}).slice(0,48);
-  const release=await prepareCodRelease(db,o,c.offer,c.timestamp,operationId,cancel);
+  const release=await prepareCodRelease(db,o,c.offer,c.timestamp,operationId,cancel,options.enableDeliveryFunding===true);
   const receipt={success:true,kind:cancel?'COD_CANCELLED':'COD_UNASSIGNED',orderId:v.orderId,offerId:v.offerId,attempt:v.attempt,operationId,holdReleased:release.H>0,replayed:false,compensationStatus:'PENDING_POLICY_REVIEW'};
   const fieldsToFence=[...new Set([...Object.keys(o),'financialOutcome','returnStatus','returnCaseId','cancellationStatus','cancellationRequestId','pickedUpAt','cashCollected','cashCollectedAmount','financialRelease'])];
   const ops:Row[]=[...c.guards,...release.operations,
-   {Put:{TableName:T.holds,Item:{...archiveKey,kind:'COD_ASSIGNMENT_RELEASE',outcome:cancel?'CANCELLED':'UNASSIGNED',operationId,requestDigest:digest,actorId:actor.subjectId,actorKind:kind,
+   {Put:{TableName:T.holds,Item:{...archiveKey,kind:'COD_ASSIGNMENT_RELEASE',...(o.financialAcceptance.schemaVersion===2?{schemaVersion:2,deliveryFunding:o.financialAcceptance.deliveryFunding}:{}),outcome:cancel?'CANCELLED':'UNASSIGNED',operationId,requestDigest:digest,actorId:actor.subjectId,actorKind:kind,
     orderId:v.orderId,offerId:v.offerId,attempt:v.attempt,branchId:c.offer.branchId,driverId:o.driverId,subjectId:c.subject,offerDigest:c.offer.digest,snapshotDigest:quoteHash(o.financialSnapshot),
     acceptedTerms:o.financialAcceptance,releasedHold:release.hold?{...release.hold,status:'RELEASED',statusCreatedAt:'RELEASED#'+c.timestamp,updatedAt:c.timestamp,releaseOperationId:operationId}:null,journalLines:release.journalLines,receipt,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
    set(exactCheck(T.live,liveKey,live),{currentOrderId:null,activeOrdersCount:0,isSearching:false,status:live.isActive===true?'available':'offline'}),
@@ -43,7 +43,7 @@ export function createStagingCodReassignment(options:{db:Pick<DynamoDBDocumentCl
   if(cancel){
    ops.push(set(exactCheck(T.orders,c.key,o,fieldsToFence),{status:'cancelled',orderStatus:'cancelled',cancelledAt:c.timestamp,cancelledBy:actor.subjectId,holdStatus:release.H?'RELEASED':'NOT_REQUIRED',walletFinancialStatus:'CANCELLED',financialOutcome:operationId,updatedAt:c.timestamp}),
     set(exactCheck(T.jobs,jobKey,job),{status:'cancelled',completedAt:c.timestamp}),
-    {Put:{TableName:T.holds,Item:{orderId:v.orderId,sk:'FINANCIAL_OUTCOME',kind:'COD_CANCEL_JOURNAL',outcome:'CANCELLED',operationId,offerId:v.offerId,attempt:v.attempt,driverId:o.driverId,subjectId:c.subject,branchId:c.offer.branchId,journalLines:release.journalLines,receipt,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(orderId)'}});
+    {Put:{TableName:T.holds,Item:{orderId:v.orderId,sk:'FINANCIAL_OUTCOME',kind:'COD_CANCEL_JOURNAL',...(o.financialAcceptance.schemaVersion===2?{schemaVersion:2,deliveryFunding:o.financialAcceptance.deliveryFunding}:{}),outcome:'CANCELLED',operationId,offerId:v.offerId,attempt:v.attempt,driverId:o.driverId,subjectId:c.subject,branchId:c.offer.branchId,journalLines:release.journalLines,receipt,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(orderId)'}});
   }else{
    const excluded=[...new Set([...(job.financialExcludedDriverIds??[]),o.driverId])];
    if(excluded.length>1000||!excluded.every(quoteEntityIdValid))return fail();

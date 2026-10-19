@@ -100,3 +100,11 @@ test('two operations on one offer counter are rejected before any write',async()
  await reject(s.commit(f.order(s),[put,put]),'INVALID_QUOTE_ORDER');
  assert.equal(f.transactions.length,before);assert.equal(f.orders.size,0);
 });
+
+test('merchant response deadline queue composes with quote order while preserving duplicate-write rejection',()=>{
+ const {composeQuoteOrderOperations}=require('../dist/deliveryQuoteOrder');
+ const put={Put:{TableName:'staging-WalletLifecycle',Item:{operationId:'MERCHANT_RESPONSE#order1',kind:'MERCHANT_RESPONSE',status:'PENDING'},ConditionExpression:'attribute_not_exists(operationId)'}};
+ assert.deepEqual(composeQuoteOrderOperations([put]),[put]);
+ assert.throws(()=>composeQuoteOrderOperations([put,put]),e=>e.code==='INVALID_QUOTE_ORDER');
+ assert.throws(()=>composeQuoteOrderOperations([{Put:{TableName:'unrecognized',Item:{operationId:'x'}}}]),e=>e.code==='INVALID_QUOTE_ORDER');
+});

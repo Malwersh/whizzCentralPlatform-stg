@@ -12,10 +12,10 @@ fs.mkdirSync(out,{recursive:true});
 const file=path.join(out,'financial-runtime.js');fs.writeFileSync(file,result.outputFiles[0].contents);
 const manifest={schemaVersion:1,stage:'staging',file:'financial-runtime.js',sha256:crypto.createHash('sha256').update(result.outputFiles[0].contents).digest('hex'),
  destinations:['lambda/WaveSystem_StartWave/financial-runtime.js','lambda/WaveSystem_HandleWaveTimeout/financial-runtime.js',
-  'staging-driver-financial-accept/index.js'],activation:'OFF',completionActivation:'OFF',returnsActivation:'OFF',assignmentsActivation:'OFF',requiresCoordinatedDeployment:true,
+  'staging-driver-financial-accept/index.js'],activation:'OFF',completionActivation:'OFF',returnsActivation:'OFF',assignmentsActivation:'OFF',deliveryFundingActivation:'OFF',requiresCoordinatedDeployment:true,
  blockers:['Live package comparison and IAM/Gateway verification','Policy-backed compensation/adjudication and merchant payouts remain pending','Human device return/cancellation UX, adjudication and Gateway verification','Coordinated deployment of acceptance, integration, notification and deletion/retention contracts with flags OFF','Gateway, live authentication, production-role IAM and device verification remain pending']};
 const completionReview={schemaVersion:1,stage:'staging',activation:'OFF',notApplied:true,
- functionName:'staging-driver-financial-accept',additionalEnvironment:{FINANCIAL_COD_COMPLETION_MODE:'OFF',FINANCIAL_COD_RETURNS_MODE:'OFF',FINANCIAL_COD_ASSIGNMENTS_MODE:'OFF',FINANCIAL_REASSIGNMENT_WINDOW_SECONDS:'300'},
+ functionName:'staging-driver-financial-accept',additionalEnvironment:{FINANCIAL_DELIVERY_FUNDING_MODE:'OFF',FINANCIAL_COD_COMPLETION_MODE:'OFF',FINANCIAL_COD_RETURNS_MODE:'OFF',FINANCIAL_COD_ASSIGNMENTS_MODE:'OFF',FINANCIAL_REASSIGNMENT_WINDOW_SECONDS:'300'},
  scope:'Review delta to acceptance role; not a deployable policy or approval to apply it',
  permissions:[
   {table:'staging-Wallets',actions:['GetItem','ConditionCheckItem','UpdateItem'],leadingKeys:['WALLET#DRIVER#*','WALLET#MERCHANT#*','WALLET#PLATFORM']},

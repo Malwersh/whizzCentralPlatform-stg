@@ -11,11 +11,11 @@ import {quoteEntityIdValid,quoteHash} from './deliveryQuoteRecord';
  * in storage, not notification delivery. delivered[] resumes fixed-event-ID sends.
  * Selection and route/identity dependencies must be trusted, never HTTP data.
  */
-export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;
+export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;
  selectDrivers:(input:{job:Row;intent:Row})=>Promise<string[]>;
- context:(input:{db:Pick<DynamoDBDocumentClient,'send'>;offerDeadline:string;offerTtlSeconds:number;positionMaxAgeSeconds:number})=>ReturnType<typeof createStagingDriverOfferContext>;
+ context:(input:{db:Pick<DynamoDBDocumentClient,'send'>;offerDeadline:string;offerTtlSeconds:number;positionMaxAgeSeconds:number;enableDeliveryFunding?:boolean})=>ReturnType<typeof createStagingDriverOfferContext>;
  sendOffer:(driverId:string,message:Row)=>Promise<void>}) {
- const {db}=options,now=options.now??Date.now,coordinator=createStagingDispatchCoordinator({db,now});
+ const {db}=options,now=options.now??Date.now,coordinator=createStagingDispatchCoordinator({db,now,enableDeliveryFunding:options.enableDeliveryFunding});
  return {async run(input:{orderId:string;assignmentId:string;owner:string;leaseSeconds:number}) {
   if(!input||Object.keys(input).sort().join(',')!=='assignmentId,leaseSeconds,orderId,owner'||![input.orderId,input.assignmentId,input.owner].every(quoteEntityIdValid)||!Number.isSafeInteger(input.leaseSeconds)||input.leaseSeconds<1||input.leaseSeconds>120)throw Error('INVALID_DISPATCH_EXECUTOR');
   const planned=await coordinator.plan({orderId:input.orderId,assignmentId:input.assignmentId,source:'START'});
@@ -46,8 +46,8 @@ export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocum
    const operations=composeDispatchTransaction(tx,guards);
    return db.send(new TransactWriteCommand({TransactItems:operations as any,ClientRequestToken:quoteHash(operations).slice(0,36)}));
   }} as Pick<DynamoDBDocumentClient,'send'>;
-  const context=options.context({db:fencedDb,offerDeadline:intent.waveDeadline,offerTtlSeconds:profile.offerTtlSeconds,positionMaxAgeSeconds:profile.positionMaxAgeSeconds!});
-  const producer=createStagingDriverFinancialWave({db:fencedDb,context,pinnedTransitionId:intentId,operating:{...cycle.policy,condition:null},now,sendOffer:async(driverId,message)=>{
+  const context=options.context({db:fencedDb,enableDeliveryFunding:options.enableDeliveryFunding,offerDeadline:intent.waveDeadline,offerTtlSeconds:profile.offerTtlSeconds,positionMaxAgeSeconds:profile.positionMaxAgeSeconds!});
+  const producer=createStagingDriverFinancialWave({db:fencedDb,context,enableDeliveryFunding:options.enableDeliveryFunding,pinnedTransitionId:intentId,operating:{...cycle.policy,condition:null},now,sendOffer:async(driverId,message)=>{
    await coordinator.executionFence(selector);await options.sendOffer(driverId,message);
   }});
   try{return await producer.run({orderId:input.orderId,branchId:job!.restaurantId,waveNumber:intent.waveNumber,driverIds});}
@@ -63,7 +63,7 @@ export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocum
  * Candidate selection uses the shared Legacy algorithm with captured policy.
  */
 export function createStagingPinnedFinancialRunner(options:Omit<Parameters<typeof createStagingDriverOfferContext>[0],'positionMaxAgeSeconds'|'offerTtlSeconds'|'offerDeadline'> & {sendOffer:(driverId:string,message:Row)=>Promise<void>}) {
- const selectDrivers=createStagingDispatchCandidates({db:options.db,now:options.now});
- return createStagingDispatchWaveExecutor({db:options.db,now:options.now,selectDrivers,sendOffer:options.sendOffer,
+ const selectDrivers=createStagingDispatchCandidates({db:options.db,now:options.now,enableDeliveryFunding:options.enableDeliveryFunding});
+ return createStagingDispatchWaveExecutor({db:options.db,now:options.now,enableDeliveryFunding:options.enableDeliveryFunding,selectDrivers,sendOffer:options.sendOffer,
   context:input=>createStagingDriverOfferContext({...input,cognito:options.cognito,router:options.router,now:options.now})});
 }

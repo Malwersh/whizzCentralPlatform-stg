@@ -240,6 +240,8 @@ exports.handler = async (event) => {
     }
 
     if (Object.prototype.hasOwnProperty.call(dispatchJob,'dispatchCycle')) {
+      if(process.env.DISPATCH_FINANCIAL_HOST_MODE==='REQUIRED'&&dispatchJob.dispatchCycle?.engine==='FINANCIAL'){if(event.cycleId!==dispatchJob.dispatchCycle.id)throw Error('DISPATCH_HOST_SOURCE_INVALID');const result=await require('./dispatch-cycle-runtime').runHostedFinancialWave({orderId:dispatchJob.orderId,assignmentId:dispatchJobId,cycleId:dispatchJob.dispatchCycle.id},apigateway,'start:'+require('crypto').randomUUID());return {statusCode:200,body:JSON.stringify(result)};}
+
       if(process.env.DISPATCH_LEGACY_HOST_MODE==='REQUIRED'&&dispatchJob.dispatchCycle?.engine==='LEGACY'){if(event.cycleId!==dispatchJob.dispatchCycle.id)throw Error('DISPATCH_HOST_SOURCE_INVALID');const result=await require('./dispatch-cycle-runtime').runHostedLegacyWave({orderId:dispatchJob.orderId,assignmentId:dispatchJobId,cycleId:dispatchJob.dispatchCycle.id},apigateway,'start:'+require('crypto').randomUUID());return {statusCode:200,body:JSON.stringify(result)};}
       const plan=await require('./dispatch-cycle-runtime').coordinateUnifiedDispatch({orderId:dispatchJob.orderId,assignmentId:dispatchJobId,source:'START'});
       return {statusCode:200,body:JSON.stringify({planningOnly:true,...plan})};
@@ -267,9 +269,10 @@ exports.handler = async (event) => {
     console.log(`💱 Order currency: ${orderCurrency}`);
 
     // Step 2: البحث عن السائقين المؤهلين
-    const waveThresholds = getWaveThresholds(waveNumber, isEmergencyWave);
+    const financialPolicy=dispatchJob.financialDispatch===true?await require('./financial-wave-policy').createFinancialWavePolicy({db:dynamodb,jobsTable:DISPATCH_JOBS_TABLE}).read(dispatchJob,waveNumber):null;
+    const waveThresholds = financialPolicy?.thresholds ?? getWaveThresholds(waveNumber, isEmergencyWave);
     console.log(`📊 Wave ${waveNumber} thresholds:`, waveThresholds);
-    let qualifiedDrivers = await getQualifiedDrivers(dispatchJob, excludeDriverIds, excludeDriverIds, rejectedDriverIds, isFinalWave, isEmergencyWave, waveNumber, waveThresholds);
+    let qualifiedDrivers = await getQualifiedDrivers(dispatchJob, financialPolicy?.permanent ?? excludeDriverIds, financialPolicy?.permanent ?? excludeDriverIds, financialPolicy?.previous ?? rejectedDriverIds, financialPolicy?.isFinalWave ?? isFinalWave, isEmergencyWave, waveNumber, waveThresholds);
 
     const approvedDrivers = [];
     for (const candidate of qualifiedDrivers) {
@@ -316,7 +319,7 @@ exports.handler = async (event) => {
 
     if (dispatchJob.financialDispatch === true) {
       if (process.env.FINANCIAL_DISPATCH_MODE !== 'REQUIRED') throw new Error('FINANCIAL_DISPATCH_DISABLED');
-      return await runFinancialDispatch(dispatchJob,qualifiedDrivers.slice(0,Math.min(25,WAVE_SIZE)).map(d=>d.driverId),waveNumber);
+      return await runFinancialDispatch(dispatchJob,qualifiedDrivers.slice(0,financialPolicy.recipients==='ALL'?25:financialPolicy.recipients).map(d=>d.driverId),waveNumber,financialPolicy.operating);
     }
 
     // Step 3: اختيار السائقين حسب نوع الموجة
@@ -844,14 +847,14 @@ async function calculateEstimatedDuration(originLat, originLng, destLat, destLng
   return fallbackDuration;
 }
 
-async function runFinancialDispatch(dispatchJob,driverIds,waveNumber) {
+async function runFinancialDispatch(dispatchJob,driverIds,waveNumber,selectionPolicy) {
   if (process.env.FINANCIAL_DISPATCH_MODE !== 'REQUIRED') throw new Error('FINANCIAL_DISPATCH_DISABLED');
   const {runFinancialWave} = require('./financial-runtime');
   const result = await runFinancialWave({orderId:dispatchJob.orderId,branchId:dispatchJob.restaurantId,waveNumber,driverIds},async(driverId,message)=>{
     const state = await dynamodb.get({TableName:DRIVER_LIVE_STATE_TABLE,Key:{driverId},ConsistentRead:true}).promise();
     if (!state.Item?.connectionId) throw new Error('FINANCIAL_DRIVER_CONNECTION_UNAVAILABLE');
     await sendWebSocketMessage(state.Item.connectionId,message);
-  });
+  },selectionPolicy);
   // Persist the actual offer deadline; the existing periodic timeout worker consumes it.
   await dynamodb.update({TableName:DISPATCH_JOBS_TABLE,Key:{orderId:dispatchJob.orderId,SK:'METADATA'},
     UpdateExpression:'SET financialWaveDeadline=:deadline',ConditionExpression:'#s=:searching AND currentWaveNumber=:wave AND financialDispatch=:yes',

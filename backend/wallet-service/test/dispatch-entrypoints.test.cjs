@@ -1,5 +1,20 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.resolve(__dirname,'../../../lambda'),quiet={log(){},error(){},warn(){}};
+test('financial StartWave forwards selectors to the pinned runtime and propagates socket failure without legacy fallback',async()=>{
+ const s=source('WaveSystem_StartWave'),start=s.indexOf("    if (Object.prototype.hasOwnProperty.call(dispatchJob,'dispatchCycle'))"),end=s.indexOf("    if (dispatchJob.status === 'assigned')",start),calls=[],messages=[];
+ let socketFail=false;
+ const ctx={process:{env:{DISPATCH_FINANCIAL_HOST_MODE:'REQUIRED'}},JSON,Error,apigateway:{transport:'original'},DRIVER_LIVE_STATE_TABLE:'positions',dynamodb:{get:q=>({promise:async()=>({Item:{connectionId:'connection'}})})},offerTransport:{postSocket:async(id,message)=>{if(socketFail)throw Error('socket failure');messages.push({id,message});}},require:n=>n==='crypto'?{randomUUID:()=> 'worker'}:{runHostedFinancialWave:async(input,api)=>{calls.push(input);assert.equal(api.transport,'original');if(socketFail)throw Error('socket failure');messages.push({eventId:'same-id'});return {kind:'FINANCIAL_WAVE_READY'};},coordinateUnifiedDispatch:()=>{throw Error('old planner');}}};
+ vm.runInNewContext('this.run=async function(dispatchJob,dispatchJobId,event){'+s.slice(start,end)+'};',ctx);
+ const job={orderId:'order',dispatchCycle:{id:'cycle',engine:'FINANCIAL'}};
+ assert.equal((await ctx.run(job,'assignment',{cycleId:'cycle'})).statusCode,200);assert.equal(calls[0].assignmentId,'assignment');assert.equal(messages.length,1);
+ await assert.rejects(ctx.run(job,'assignment',{cycleId:'stale'}),/SOURCE_INVALID/);assert.equal(calls.length,1);
+ socketFail=true;await assert.rejects(ctx.run(job,'assignment',{cycleId:'cycle'}),/socket failure/);
+});
+test('financial timeout stays host-managed and cannot re-enter old expiration or planning',async()=>{
+ const ctx={console:quiet,process:{env:{DISPATCH_FINANCIAL_HOST_MODE:'REQUIRED'}},getDispatchJob:async()=>({dispatchJobId:'a',dispatchCycle:{engine:'FINANCIAL'}}),require:()=>{throw Error('old planner');}};
+ vm.runInNewContext(fn(source('WaveSystem_HandleWaveTimeout'),'processExpiredWave')+'\nthis.run=processExpiredWave;',ctx);
+ assert.equal((await ctx.run('order',[],new Date().toISOString())).dispatchAction,'HOST_MANAGED');
+});
 function source(name){return fs.readFileSync(path.join(root,name,'index.js'),'utf8');}
 function fn(s,name){const start=s.indexOf('async function '+name+'('),end=s.indexOf('\nasync function ',start+20);assert(start>=0);return s.slice(start,end<0?undefined:end);}
 test('timeout includes pinned empty final waves and routes them without legacy queries or writes',async()=>{

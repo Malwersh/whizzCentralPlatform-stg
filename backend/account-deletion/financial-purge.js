@@ -2,7 +2,7 @@
 const {ScanCommand,GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {error}=require('./policy');
 const ARCHIVE='staging-AccountDeletionFinancialArchive';
-const TABLES=[['staging-MerchantPlatform',['pk','sk'],'commercial_agreement'],['staging-PlatformStaff',['pk','sk'],'commercial_approval'],['staging-PlatformStaff',['pk','sk'],'commercial_funding'],['staging-PlatformStaff',['pk','sk'],'commercial_audit'],['staging-PlatformStaff',['pk','sk'],'cod_review'],['WizzDispatchJobs_staging',['orderId','SK'],'cod_dispatch'],['staging-Holds',['orderId','sk'],'cod_hold'],['staging-WalletLifecycle',['operationId'],'cod_event'],['WaveOffers_staging',['orderId','SK'],'cod_offer'],['staging-LedgerEntries',['walletId','sk'],'ledger'],['WizzUser_transactions_staging',['transactionId'],'payment'],['WizzOrders',['PK','SK'],'order'],['staging-IdempotencyKeys',['idempotencyKey','sk'],'transfer'],['staging-AuditLog',['datePartition','sk'],'audit'],['staging-TopupRequests',['topupId','sk'],'topup'],['staging-SandboxPayments',['pk','sk'],'sandbox']];
+const TABLES=[['staging-MerchantPlatform',['pk','sk'],'commercial_sharing'],['staging-MerchantPlatform',['pk','sk'],'commercial_agreement'],['staging-PlatformStaff',['pk','sk'],'commercial_approval'],['staging-PlatformStaff',['pk','sk'],'commercial_funding'],['staging-PlatformStaff',['pk','sk'],'commercial_audit'],['staging-PlatformStaff',['pk','sk'],'cod_review'],['WizzDispatchJobs_staging',['orderId','SK'],'cod_dispatch'],['staging-Holds',['orderId','sk'],'cod_hold'],['staging-WalletLifecycle',['operationId'],'cod_event'],['WaveOffers_staging',['orderId','SK'],'cod_offer'],['staging-LedgerEntries',['walletId','sk'],'ledger'],['WizzUser_transactions_staging',['transactionId'],'payment'],['WizzOrders',['PK','SK'],'order'],['staging-IdempotencyKeys',['idempotencyKey','sk'],'transfer'],['staging-AuditLog',['datePartition','sk'],'audit'],['staging-TopupRequests',['topupId','sk'],'topup'],['staging-SandboxPayments',['pk','sk'],'sandbox']];
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
 function sourceOf(row){
  if(!uuid(row.requestId)||row.pk!=='REQUEST#'+row.requestId||typeof row.sk!=='string'||!Number.isSafeInteger(row.expiresAt))throw error('PURGE_SCOPE_INVALID');
@@ -28,7 +28,7 @@ function financialPurge({db,clock=()=>Math.floor(Date.now()/1000),dryRun=true,ma
   do{
    if(pages++>=maxPages)return {removed,archivesRemoved,eligible,blocked,dryRun,incomplete:true};
    const res=await db.send(new ScanCommand({TableName:ARCHIVE,ConsistentRead:true,ExclusiveStartKey:cursor,Limit:100}));
-   for(const a of res.Items||[]){const source=sourceOf(a);if(!groups.has(source.id))groups.set(source.id,{...source,archives:[]});groups.get(source.id).archives.push(a);}
+   for(const a of res.Items||[]){if(a.kind==='merchant_settlement'){if(a.purgeBlocked!==true||a.expiresAt!==undefined)throw error('SETTLEMENT_PURGE_ADAPTER_REQUIRED');blocked++;continue;}const source=sourceOf(a);if(!groups.has(source.id))groups.set(source.id,{...source,archives:[]});groups.get(source.id).archives.push(a);}
    cursor=res.LastEvaluatedKey;
   }while(cursor);
   const now=clock();

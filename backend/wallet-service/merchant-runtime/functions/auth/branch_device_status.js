@@ -2,7 +2,7 @@
 const {createHash,randomUUID}=require('node:crypto');
 const devices=require('./branch_devices');
 const B='WhizzMerchants_Businesses',T='staging-MerchantPlatform';
-const fields=['acceptingOrders','onlineStatus','operatingStatus','lastStatusUpdate'];
+const fields=['acceptingOrders','onlineStatus','operatingStatus','lastStatusUpdate','ordersPausedUntil','orderPauseId'];
 const project=b=>Object.fromEntries(fields.filter(k=>b[k]!==undefined).map(k=>[k,b[k]]));
 const revision=b=>createHash('sha256').update(JSON.stringify(project(b))).digest('hex');
 const fail=(code,status=403)=>{throw Object.assign(Error(code),{status});};
@@ -32,7 +32,7 @@ async function execute(db,{b,d,s,m,authorization,common},input){
  // DynamoDB forbids checking and updating the same item. Merge branch ownership,
  // readiness and status fences into the update; keep all other canonical fences.
  const guards=common.filter(op=>!(op.ConditionCheck?.TableName===B&&op.ConditionCheck?.Key.businessId===b.businessId));
- await devices.tx(db,[...guards,{Update:{TableName:B,Key:{businessId:b.businessId},UpdateExpression:'SET acceptingOrders=:accepting, onlineStatus=:online, operatingStatus=:operating, lastStatusUpdate=:now, statusUpdatedBy=:actor, statusSource=:source',ConditionExpression:condition,ExpressionAttributeNames:names,ExpressionAttributeValues:values}},{Put:{TableName:T,Item:audit,ConditionExpression:'attribute_not_exists(pk)'}}]);
+ await devices.tx(db,[...guards,{Update:{TableName:B,Key:{businessId:b.businessId},UpdateExpression:'SET acceptingOrders=:accepting, onlineStatus=:online, operatingStatus=:operating, lastStatusUpdate=:now, statusUpdatedBy=:actor, statusSource=:source REMOVE ordersPausedUntil, orderPauseId',ConditionExpression:condition,ExpressionAttributeNames:names,ExpressionAttributeValues:values}},{Put:{TableName:T,Item:audit,ConditionExpression:'attribute_not_exists(pk)'}}]);
  return {businessId:b.businessId,...after,revision:revision(after)};
 }
 module.exports={execute,revision};

@@ -61,6 +61,17 @@ test('purger deletes contracts and expired copies together; races and newer arch
  }
 });
 test('commercial source keys cannot target person profiles, staff or unrelated audit keys',()=>{
- for(const [kind,table,key] of [['commercial_agreement',P,{pk:'PERSON#owner',sk:'PROFILE'}],['commercial_approval',S,{pk:'EMPLOYEE#s',sk:'PROFILE'}],['commercial_audit',S,{pk:'AUDIT',sk:'DRAFT'}],['commercial_funding',S,{pk:'DISCOUNT_FUNDING#x',sk:'CONSENT#1'}]])assert.throws(()=>sourceOf({pk:'REQUEST#'+rid,requestId:rid,kind,sk:kind.toUpperCase()+'#'+JSON.stringify(key),sourceTable:table,sourceKey:key,expiresAt:1}),/PURGE_SCOPE_INVALID/);
+ for(const [kind,table,key] of [['commercial_agreement',P,{pk:'PERSON#owner',sk:'PROFILE'}],['commercial_approval',S,{pk:'EMPLOYEE#s',sk:'PROFILE'}],['commercial_audit',S,{pk:'AUDIT',sk:'DRAFT'}],['commercial_funding',S,{pk:'DISCOUNT_FUNDING#x',sk:'CONSENT#bad'}]])assert.throws(()=>sourceOf({pk:'REQUEST#'+rid,requestId:rid,kind,sk:kind.toUpperCase()+'#'+JSON.stringify(key),sourceTable:table,sourceKey:key,expiresAt:1}),/PURGE_SCOPE_INVALID/);
  assert.throws(()=>validateRecord(S,{pk:'AUDIT',sk:'DRAFT',ownerId:'owner'}),/SCOPE_INVALID/);
+});
+
+test('independent sharing consent and branch binding are retained and cannot purge while the branch is live',async()=>{
+ const f=await fixture();
+ const policy={pk:'DISCOUNT_FUNDING#share',sk:'CURRENT',schemaVersion:3,id:'share',version:1,status:'ACTIVE',campaignId:'offer',campaignVersion:1,source:'MERCHANT',merchantId:'merchant',branchId:'branch',target:'GOODS',effectiveFrom:'2026-10-01T00:00:00.000Z',effectiveTo:'2026-11-01T00:00:00.000Z',merchantNumerator:30,denominator:100,rounding:'MERCHANT_TOWARD_ZERO_PLATFORM_REMAINDER',merchantShareFinalRounding:{incrementIqd:1,mode:'TOWARD_ZERO'},acceptedBy:'owner',acceptedAt:when,approvedBy:'editor',approvedAt:when};
+ f.put(S,policy);f.put(S,{pk:policy.pk,sk:'DRAFT',id:'share',kind:'FUNDING',version:2,ownerId:'owner',organizationId:'merchant',businessIds:['branch'],values:{},fundingPolicies:[],directPublicationAuthorized:true,authorizedStaffVersion:1});
+ f.put(S,{pk:policy.pk,sk:'CONSENT#1',subjectId:'owner',hash:'h',acceptedAt:when,businessIds:['branch']});
+ f.put(S,require('../../staff-service/commercial-notices').notice({pk:policy.pk,id:'share',version:1,ownerId:'owner',businessIds:['branch'],hash:'h',createdAt:when,values:{effectiveTo:'2026-11-01T00:00:00.000Z'}}));
+ const binding={pk:'BRANCH#branch',sk:'COMMERCIAL_SHARING#MERCHANT#offer',ownerId:'owner',businessId:'branch',policyId:'share',policyVersion:1,policyDigest:'digest'};f.put(P,binding);
+ await f.run();assert(f.all(A).some(a=>a.kind==='commercial_sharing'));assert(f.all(A).some(a=>a.kind==='commercial_funding'&&a.sourceKey.sk==='CONSENT#1'));assert(f.all(A).some(a=>a.kind==='commercial_funding'&&a.sourceKey.sk==='NOTICE#1'));assert.deepEqual(f.get(P,{pk:binding.pk,sk:binding.sk}),binding);
+ const result=await financialPurge({db:f.db,clock:()=>3000000000,dryRun:false})();assert(result.blocked>0);assert(f.get(P,{pk:binding.pk,sk:binding.sk}));
 });

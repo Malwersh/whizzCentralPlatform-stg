@@ -46,6 +46,11 @@ exports.sendWaveOffer = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
 
+    if (Object.prototype.hasOwnProperty.call(body,'financialPushVersion')) {
+      try { return await require('../utils/financial-offer-notification-runtime').createStagingFinancialPushHandler({db:dynamodb,getMessaging})(body); }
+      catch (_) { return badRequest('FINANCIAL_PUSH_NOT_ALLOWED'); }
+    }
+
     if (Object.prototype.hasOwnProperty.call(body,'legacySourceVersion') || Object.prototype.hasOwnProperty.call(body,'moneyUnit')) {
       try { return await require('../utils/pinned-wave-push-handler').createPinnedWavePushHandler({db:dynamodb,getMessaging})(body); }
       catch (_) { return badRequest('PINNED_WAVE_PUSH_NOT_ALLOWED'); }
@@ -183,12 +188,14 @@ exports.sendWaveOffer = async (event) => {
       }
     };
 
-    const result = await messaging.sendEachForMulticast(multicastMessage);
+    const soundPolicy=await require('./notification-sound-policy').readPolicy(dynamodb);
+    const groups=new Map();for(const token of tokens){const row=(tokensResp.Items||[]).find(it=>it.token===token),file=require('./notification-sound-policy').soundFile(soundPolicy,'driverNewOffer',row?.soundEnabled!==false,row?.soundReady??[]),key=file??'';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(token);}
+    const ordered=[],result={responses:[],successCount:0,failureCount:0};for(const [file,chosen] of groups){const message=require('../utils/notification-sound-message').applySound({...multicastMessage,tokens:chosen},file||null,'driver_offers');const sent=await messaging.sendEachForMulticast(message);ordered.push(...chosen);result.responses.push(...sent.responses);result.successCount+=sent.successCount;result.failureCount+=sent.failureCount;}
 
     const failures = [];
     result.responses.forEach((r, i) => {
       if (!r.success) {
-        failures.push({ token: tokens[i], error: r.error?.message || String(r.error) });
+        failures.push({ token: ordered[i], error: r.error?.message || String(r.error) });
       }
     });
 

@@ -1,11 +1,12 @@
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { verifyDeliveryFundedAssignment } from './deliveryFundedOffer';
 import { verifyFinancialAssignment } from './financialAssignment';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { detach, strongGet, exactCheck, FinancialRow as Row } from './driverFinancialTransaction';
 export type ReturnActor={kind:'DRIVER'|'MERCHANT_OWNER';subjectId:string};
 const T={orders:'WizzOrders',offers:'WaveOffers_staging',holds:'staging-Holds',driver:'WhizzDrivers_staging',branch:'WhizzMerchants_Businesses',deletion:'staging-AccountDeletion'};
 const fail=(code='COD_RETURN_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
-export function createCodFlowContext(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;now:()=>number}){
+export function createCodFlowContext(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;now:()=>number;enableDeliveryFunding?:boolean}){
  const {db,authenticate,now}=options;
  async function context(v:Row,kind:ReturnActor['kind']){
   const actor=detach(await authenticate());if(actor.kind!==kind||!quoteEntityIdValid(actor.subjectId))return fail('UNAUTHORIZED');
@@ -15,7 +16,10 @@ export function createCodFlowContext(options:{db:Pick<DynamoDBDocumentClient,'se
   const driverKey={driverId:order.driverId},driver=await strongGet(db,T.driver,driverKey),subject=driver?.cognitoSub??driver?.driverId;
   if(!driver||!quoteEntityIdValid(subject)||driver.deletionRequestId!=null||driver.deletedAt!=null||driver.isDeleted===true)return fail();
   const offerKey={orderId:v.orderId,SK:`FINANCIAL#${order.driverId}#WAVE#${order.assignmentWaveNumber}`},saved=await strongGet(db,T.offers,offerKey);
-  const offer=verifyFinancialAssignment(order,saved,subject),branchKey={businessId:offer.branchId},branch=await strongGet(db,T.branch,branchKey);
+  let offer:Row;
+  if(order.financialAcceptance?.schemaVersion===2){if(options.enableDeliveryFunding!==true)return fail('DELIVERY_FUNDED_RELEASE_DISABLED');const verified=verifyDeliveryFundedAssignment(order,saved!,subject);offer={...verified.baseOffer,digest:verified.digest,allocation:verified.allocation};}
+  else offer=verifyFinancialAssignment(order,saved,subject);
+  const branchKey={businessId:offer.branchId},branch=await strongGet(db,T.branch,branchKey);
   if(!branch||!quoteEntityIdValid(branch.ownerId)||branch.cognitoUserId!==branch.ownerId||branch.organizationId!==offer.source.order.merchantId||
    branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)return fail();
   if(v.branchId!==undefined&&v.branchId!==offer.branchId)return fail('FORBIDDEN');

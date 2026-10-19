@@ -12,3 +12,5 @@ export { CognitoIdentityProviderClient, GetUserCommand } from '@aws-sdk/client-c
 export {readDeliveryOperations} from './deliveryOperations';
 
 export {createFinanceRollout} from './financeRollout';
+
+export {createStagingStorefrontPreview} from './storefrontPreview';

@@ -115,3 +115,20 @@ test('pending or review restart blocks scoped deletion; a started restart and ar
  const f=fixture({'WizzDispatchJobs_staging':[{...restart,state:'STARTED'},history]});await f.run();const kept=f.tables.WizzDispatchJobs_staging;assert.equal(kept[0].restartId,'DRS:test');assert.equal(kept[0].attempts,1);assert.equal(kept[0].nextAttemptAt,123);assert.equal(kept[1].replacementCycleId,'new');assert.equal(kept[1].cycleDigest,'oldhash');assert.equal(kept[1].source,undefined);await f.run();assert.equal(f.tables['staging-AccountDeletionFinancialArchive'].filter(r=>r.kind==='cod_dispatch').length,2);
 });
 test('restart receipt keeps new-cycle and assignment references after reason/actor redaction',()=>{const r=codEvidence({receipt:{status:'EXECUTED',caseId:'c',requestId:'r',restartId:'DRS:x',cycleId:'new',assignmentId:'job',startStatus:'PENDING',reason:'PRIVATE',actorId:'PRIVATE'}});assert.equal(r.receipt.restartId,'DRS:x');assert.equal(r.receipt.assignmentId,'job');assert.equal(r.receipt.startStatus,'PENDING');assert(!JSON.stringify(r).includes('PRIVATE'));});
+
+test('merchant deadline queues block cleanup until done and expired promotion-release proof survives redaction',async()=>{
+ const response={operationId:'MERCHANT_RESPONSE#o',kind:'MERCHANT_RESPONSE',merchantResponseSchemaVersion:1,orderId:'o',branchId:'b',status:'PENDING',createdAt:order.createdAt,responseActorId:'PRIVATE'};
+ const journal={orderId:'o',sk:'FINANCIAL_OUTCOME',kind:'MERCHANT_PENDING_CANCEL_JOURNAL',financialSchemaVersion:2,branchId:'b',operationId:'MRC:test',outcome:'CANCELLED',createdAt:order.createdAt,actorId:'PRIVATE',reason:'PRIVATE',receipt:{success:true,kind:'MERCHANT_PENDING_CANCELLED',orderId:'o',status:'expired'},journalLines:[]};
+ const f=fixture({'WaveOffers_staging':[],'staging-WalletLifecycle':[response],'staging-Holds':[journal]});f.tables.WizzOrders[0].status='expired';f.r.scope={kind:'BUSINESS',id:'b'};
+ const run=()=>codRetention({db:f.db,clock:()=> '2026-10-16T12:00:00.000Z'})(f.r,f.job,{actorType:'MERCHANT',ids:['b']});
+ await assert.rejects(run(),/COD_INTEGRATION_PENDING/);assert.equal(f.writes.length,0);
+ response.status='DONE';await run();const archive=f.tables['staging-AccountDeletionFinancialArchive'];assert.equal(archive.length,2);assert(!JSON.stringify(archive).includes('PRIVATE'));assert(archive.some(x=>x.data.kind==='MERCHANT_PENDING_CANCEL_JOURNAL'));assert(archive.some(x=>x.data.kind==='MERCHANT_RESPONSE'));
+});
+
+test('statement membership remains on merchant payable source and archive after COD redaction and retry',async()=>{
+ const membership={settlementBatchId:'MSB:'+'a'.repeat(48),settlementLineDigest:'b'.repeat(64),settlementClaimedAt:'2026-10-16T10:00:00.000Z'};
+ const f=fixture({'staging-Holds':[{orderId:'o',sk:'MERCHANT_PAYABLE',financialSchemaVersion:2,branchId:'b',driverId:'d',amount:6300,status:'LOCKED_PENDING_SETTLEMENT',...membership,customerPhone:'PRIVATE'}]});
+ await f.run();await f.run();const row=f.tables['staging-Holds'][0],a=f.tables['staging-AccountDeletionFinancialArchive'].find(x=>x.kind==='cod_hold');
+ for(const [k,v]of Object.entries(membership)){assert.equal(row[k],v);assert.equal(row.codFinancialEvidence[k],v);assert.equal(a.data[k],v);}
+ assert.equal(row.amount,6300);assert.equal(row.status,'LOCKED_PENDING_SETTLEMENT');assert.equal(row.customerPhone,undefined);
+});

@@ -1,0 +1,12 @@
+{
+  "existingRoles": [
+    "wizzcentral-notifications-staging-us-east-1-lambdaRole",
+    "WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+    "Wizz-Merchants-staging-MerchantOrderFunctionRole-AZ12ipBY0zyt",
+    "Wizz-Merchants-staging-BusinessOnlineStatusFunction-71V5xvrqEOhM",
+    "Wizz-Merchants-staging-UnifiedAuthFunctionRole-5TqBUPbFZ9wo",
+    "staging-merchant-response-99"
+  ],
+  "scope": "Explicit staging tables only; wallet and ledger leading key WALLET#PLATFORM only. No driver or merchant wallet writes. Existing rollout guards retained.",
+  "awsMutations": 0
+}

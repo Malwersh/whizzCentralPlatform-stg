@@ -88,3 +88,15 @@ test('declining a financial offer never touches the wallet and cannot later win;
  await assert.rejects(f.accept());assert.equal(f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}).version,1);
  f.time+=61000;assert.equal((await f.wave.expire('order1',1)).expired,true);
 });
+
+test('deployed older context still includes canonical preparation in assigned ETA and fences its race',async()=>{
+ const {createStagingDriverOfferAcceptance:create}=require('../dist/driverOfferAcceptance');
+ for(const race of [false,true]){
+  const f=setup();const o=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});o.estimatedReadyAt=new Date(f.time+20*60000).toISOString();await f.run();
+  const legacy={...f.context,async checkAcceptance(input){const r=await f.context.checkAcceptance(input);delete r.order.estimatedReadyAt;return r;}};
+  const engine=create({db:f.db,context:legacy,now:()=>f.time,authenticateDriver:async()=>({driverId:'driver1',subjectId:'driver1'})});
+  const input={orderId:'order1',waveNumber:1,offerId:f.sent[0].message.offer.offerId};
+  if(race){f.beforeCommit=()=>{o.estimatedReadyAt=new Date(f.time+30*60000).toISOString();};await assert.rejects(engine.accept(input));assert.equal(f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}).lockedBalance,0);}
+  else {await engine.accept(input);const assigned=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});assert(Date.parse(assigned.estimatedDeliveryTime)>Date.parse(o.estimatedReadyAt));assert.equal(assigned.deliveryEstimate.driverWaitIncluded,true);}
+ }
+});

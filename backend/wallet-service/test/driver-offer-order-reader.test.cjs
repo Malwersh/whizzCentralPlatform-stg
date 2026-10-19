@@ -61,3 +61,11 @@ test('returned values and prepared envelope are detached from their input/storag
  const s=saved(),out=await setup(s).read();s.financialSnapshot.snapshot.revision++;assert.equal(out.snapshot.revision,1);
  out.snapshot.revision++;assert.equal(out.condition.ConditionCheck.ExpressionAttributeValues[Object.keys(out.condition.ConditionCheck.ExpressionAttributeNames).find(a=>out.condition.ConditionCheck.ExpressionAttributeNames[a]==='financialSnapshot').replace('#f',':v')].snapshot.revision,1);
 });
+test('canonical item display fences source fields, converts no amounts and exposes only recipient name/address',async()=>{
+ const s=saved();s.storeName='مطعم فتوش';s.storeAddress={fullAddress:'المناذرة'};s.items=[{itemId:'i1',name:'كباب',quantity:2,unitPrice:3500000,imageUrl:'https://example.com/i.png',notes:'بدون بصل',customerPhone:'SECRET'}];
+ s.customerName='Mohammed Ali';s.deliveryAddress={fullAddress:'عنوان التوصيل',phoneNumber:'SECRET'};s.customerPhone='SECRET';
+ const result=await setup(s).read();assert.equal(result.display.customer.name,'Mohammed Ali');assert.equal(result.display.customer.address,'عنوان التوصيل');assert.ok(Object.values(result.condition.ConditionCheck.ExpressionAttributeNames).includes('deliveryAddress'));assert.equal(result.display.totalQuantity,2);assert.equal(result.display.lineCount,1);
+ assert.equal(result.display.items[0].unitPrice.minorAmount,3500000);assert.equal(result.display.restaurant.name,'مطعم فتوش');
+ assert.ok(!JSON.stringify(result.display).includes('SECRET'));assert.ok(Object.values(result.condition.ConditionCheck.ExpressionAttributeNames).includes('items'));
+ for(const bad of [-1,3.5,'3500000']){s.items[0].unitPrice=bad;await assert.rejects(setup(s).read(),/DRIVER_OFFER_DISPLAY_INVALID/);}
+});

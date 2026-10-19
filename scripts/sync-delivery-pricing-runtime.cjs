@@ -4,8 +4,12 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const ts=require('../backend/wallet-service/node_modules/typescript');
 const destination=path.resolve(__dirname,'../backend/staff-service/pricing-runtime');
 const check=process.argv.includes('--check');
-for(const name of ['money','deliveryPricing','orderAllocation','deliveryQuoteRecord','orderCommercialPricing']){
+const pending=['money','deliveryPricing','orderAllocation','deliveryQuoteRecord','orderCommercialPricing','deliveryFunding','deliveryFundingPolicy','deliveryPromotion','deliveryCampaignBudget'];
+const visited=new Set();
+for(const name of pending){
+ if(visited.has(name))continue;visited.add(name);
  const source=fs.readFileSync(path.resolve(__dirname,'../backend/wallet-service/src/'+name+'.ts'),'utf8');
+ for(const match of source.matchAll(/(?:from\s*|require\s*\(\s*)['"]\.\/([A-Za-z0-9]+)['"]/g))pending.push(match[1]);
  const hash=crypto.createHash('sha256').update(source).digest('hex');
  const result=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,strict:true},reportDiagnostics:true});
  if(result.diagnostics?.some(d=>d.category===ts.DiagnosticCategory.Error))throw Error('PRICING_COMPILE_FAILED');

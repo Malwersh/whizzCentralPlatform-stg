@@ -6,6 +6,10 @@ const reject=(p,code)=>assert.rejects(p,e=>e.code===code&&e.message===code);
 test('persists delivery fee evidence with atomic profile/reference checks and allowlisted reply',async()=>{
  const f=fixture(),q=await f.create();assert.equal(q.kind,'DELIVERY_FEE_ONLY');assert.equal(q.customerDeliveryFee.minorAmount,3100000);
  assert.equal(q.expiresAt,new Date(at+120000).toISOString());assert.equal(f.saved.size,1);
+ const stored=[...f.saved.values()][0];
+ assert.equal(stored.pricingAt,new Date(at).toISOString());
+ assert.equal(stored.pricingContext.branchId,'b1');
+ assert.ok(!Object.hasOwn(q,'pricingContext'));
  const tx=f.transactions.find(t=>t.TransactItems.some(a=>a.Put));
  const checks=tx.TransactItems.filter(a=>a.ConditionCheck).map(a=>a.ConditionCheck);
  assert.ok(checks.some(c=>c.TableName==='WizzUser_users_staging'));

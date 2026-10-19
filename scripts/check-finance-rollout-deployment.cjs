@@ -3,7 +3,7 @@
 const fs=require('node:fs');
 const {readFinanceRollout}=require('../backend/wallet-service/dist/financeRollout');
 const {quoteHash}=require('../backend/wallet-service/dist/deliveryQuoteRecord');
-const FUNCTIONS=['WizzUser-DeliveryQuotes-staging','WizzUser-CreateOrder-staging','WaveSystem_CreateDispatchJob','WaveSystem_StartWave','WaveSystem_HandleWaveTimeout','WaveSystem_HandleDriverAccept','WaveSystem_HandleDriverReject','DriversApi-staging','staging-driver-financial-accept','staging-cod-integration','staging-wizz-staff-service','staging-wizz-wallet-notification-worker','wizzcentral-notifications-staging-pushSendWaveOffer'];
+const FUNCTIONS=['order-receiver-merchant-orders-staging-v1','staging-merchant-response-99','WizzUser-DeliveryQuotes-staging','WizzUser-CreateOrder-staging','WaveSystem_CreateDispatchJob','WaveSystem_StartWave','WaveSystem_HandleWaveTimeout','WaveSystem_HandleDriverAccept','WaveSystem_HandleDriverReject','DriversApi-staging','staging-driver-financial-accept','staging-cod-integration','staging-wizz-staff-service','staging-wizz-wallet-notification-worker','wizzcentral-notifications-staging-pushSendWaveOffer'];
 function preserveDrainingScopes(beforeEnv,afterEnv){
  const old=readFinanceRollout(beforeEnv),next=readFinanceRollout(afterEnv);
  const members=s=>quoteHash({id:s.id,version:s.version,orders:s.orders,drivers:s.drivers});

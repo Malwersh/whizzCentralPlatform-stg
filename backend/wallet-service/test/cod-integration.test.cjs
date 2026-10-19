@@ -119,3 +119,13 @@ test('exhausted integration retries enter explicit review without financial roll
  f.db.send=async c=>{if(c instanceof TransactWriteCommand&&c.input.TransactItems.some(x=>x.Put?.TableName==='staging-WalletNotifications'))throw Error('unavailable');return send(c);};
  const result=await worker(f).processEvent(r.operationId+':EVENT');assert.equal(result.status,'INTEGRATION_REVIEW_REQUIRED');assert.equal(event(f,r).integrationAttempts,20);assert.equal(event(f,r).queuePartition,undefined);assert.equal(event(f,r).integrationError,'COD_INTEGRATION_ATTEMPTS_EXHAUSTED');assert.equal(notifications(f).length,0);assert.equal(metrics(f).totalCompleted,2);assert.equal(f.get('WizzOrders',orderKey).status,'delivered');
 });
+test('acceptance integration verifies saved whole-IQD rounding terms without changing money',async()=>{
+ const {setup}=require('./helpers/driver-financial-fixture.cjs');
+ const f=setup('2022.45',source=>{source.policy.rules[0].finalRounding={incrementIqd:250,mode:'HALF_AWAY_FROM_ZERO'};});
+ await f.run();await f.accept();
+ const a=acceptance(f),before=[...f.rows.entries()].filter(([k])=>/^(staging-Wallets|staging-LedgerEntries)\|/.test(k)).map(([k,v])=>[k,structuredClone(v)]);
+ assert.equal((await worker(f).processEvent(a.operationId)).status,'INTEGRATED');
+ assert.equal(metrics(f).financialAcceptedCount,1);
+ assert.equal((await worker(f).processEvent(a.operationId)).replayed,true);
+ assert.deepEqual([...f.rows.entries()].filter(([k])=>/^(staging-Wallets|staging-LedgerEntries)\|/.test(k)),before);
+});

@@ -1,7 +1,7 @@
 import { DynamoDBDocumentClient, QueryCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { COD_EVENT_KINDS, COD_INTEGRATION_QUEUE, codIntegrationEvent, codAcceptanceOperation, CodIntegrationInput } from './codIntegrationEvent';
 import { equal, exactCheck, strongGet, updateChecked, FinancialRow as Row } from './driverFinancialTransaction';
-import { buildDriverOffer } from './driverOffer';
+import { resolveFinancialOffer } from './financialOfferVersion';
 import { quoteHash } from './deliveryQuoteRecord';
 
 const T = { events: 'staging-WalletLifecycle', holds: 'staging-Holds', orders: 'WizzOrders',
@@ -19,7 +19,9 @@ function checkedEvent(row: Row) {
   return row;
 }
 
-function checkedProof(event: Row, journal: Row | null, order: Row | null) {
+function checkedProof(event: Row, journal: Row | null, order: Row | null, enableDeliveryFunding=false) {
+  const funded=order?.financialSnapshot?.schemaVersion===2||journal?.acceptedTerms?.schemaVersion===2;
+  if((journal?.schemaVersion===2&&!enableDeliveryFunding)||(funded&&journal?.schemaVersion!==2))return fail();
   if (!journal || !order || journal.orderId !== event.orderId || journal.driverId !== event.driverId ||
       journal.subjectId !== event.subjectId || journal.branchId !== event.branchId || journal.offerId !== event.offerId ||
       journal.attempt !== event.attempt || journal.operationId !== event.financialOperationId || journal.createdAt !== event.createdAt ||
@@ -79,7 +81,7 @@ function metricPlan(event: Row, previous: Row | null, at: string) {
     { ConditionCheck: { TableName: T.metrics, Key: key, ConditionExpression: 'attribute_not_exists(PK)' } };
   return updateChecked(fence, expression, names, values);
 }
-function acceptanceProof(event: Row, record: Row | null, order: Row | null) {
+function acceptanceProof(event: Row, record: Row | null, order: Row | null, enableDeliveryFunding=false) {
   if (!record || !order || record.kind !== 'FINANCIAL_DRIVER_OFFER' || record.schemaVersion !== 2 || record.orderId !== event.orderId ||
       record.offerId !== event.offerId || record.driverId !== event.driverId || record.waveNumber !== event.waveNumber ||
       record.responseStatus !== 'financial_accepted' || record.isWinner !== true || record.financialReceipt?.success !== true ||
@@ -90,13 +92,18 @@ function acceptanceProof(event: Row, record: Row | null, order: Row | null) {
       order.orderId !== event.orderId || order.assignmentAttemptCounter < event.attempt ||
       ![order.storeId, order.businessId].some(v => v === event.branchId) ||
       [order.storeId, order.businessId].some(v => v != null && v !== event.branchId)) return fail();
-  const offer = buildDriverOffer(record.financialOffer?.source);
-  if (!equal(offer, record.financialOffer) || offer.driverId !== event.driverId || offer.driverSubjectId !== event.subjectId ||
+  let offer:Row;
+  try{offer=resolveFinancialOffer(record.financialOffer,enableDeliveryFunding);}catch{return fail();}
+  if (!equal(offer.versionedOffer, record.financialOffer) || offer.driverId !== event.driverId || offer.driverSubjectId !== event.subjectId ||
       offer.branchId !== event.branchId || offer.offerId !== event.offerId || record.acceptedTerms.offerDigest !== offer.digest) return fail();
+  if(offer.versionedOffer.schemaVersion===2&&(record.acceptedTerms.schemaVersion!==2||
+    !equal(record.acceptedTerms.allocation,offer.allocation)||
+    !equal(record.acceptedTerms.deliveryFunding,offer.versionedOffer.financialSnapshot.deliveryFunding)||
+    record.acceptedTerms.financialSnapshotDigest!==offer.snapshotHash))return fail();
 }
 
 /** Internal DynamoDB-only integration. No wallet/ledger writes, hold operations, dispatch, HTTP or push sends. */
-export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number; notificationDelivery?: 'HELD' | 'PENDING' }) {
+export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number; notificationDelivery?: 'HELD' | 'PENDING';enableDeliveryFunding?:boolean }) {
   const { db } = options, now = options.now ?? Date.now;
   const notificationDelivery = options.notificationDelivery ?? 'HELD';
   if (!['HELD','PENDING'].includes(notificationDelivery)) throw Error('INVALID_COD_NOTICE_DELIVERY');
@@ -138,7 +145,7 @@ export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocument
       if (!driver || !order || driver.isDeleted === true || driver.deletedAt != null || driver.deletionRequestId != null ||
           order.isDeleted === true || order.deletedAt != null || order.deletionRequestId != null || order.deletionStatus != null) return fail('COD_INTEGRATION_PARTY_UNAVAILABLE');
       if ((driver.cognitoSub ?? driver.driverId) !== saved.subjectId) return fail();
-      if (acceptance) acceptanceProof(saved, journal, order); else checkedProof(saved, journal, order);
+      if (acceptance) acceptanceProof(saved, journal, order,options.enableDeliveryFunding===true); else checkedProof(saved, journal, order,options.enableDeliveryFunding===true);
       const notificationEventId = 'COD_EVENT:' + quoteHash({ operationId }).slice(0, 48), at = timestamp(now());
       const wording: Record<string, [string, string]> = {
         COD_COMPLETION_OUTBOX: ['تمت تسوية طلب التوصيل', 'افتح المحفظة لمراجعة حركة التسوية. الأجرة والإكرامية النقديتان لا تضافان مرة أخرى.'],
@@ -173,6 +180,12 @@ export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocument
       await db.send(new TransactWriteCommand({ TransactItems: ops as any, ClientRequestToken: quoteHash(ops).slice(0, 36) }));
       return { status: 'INTEGRATED', ...(!acceptance ? { notificationEventId } : {}) };
     } catch (error: any) {
+      // Codes only: never log request items, customer data, or cancellation messages.
+      console.error('COD_INTEGRATION_FAILURE', JSON.stringify({
+        name: String(error?.name ?? 'Unknown').replace(/[^A-Za-z0-9_]/g, '').slice(0, 80),
+        code: String(error?.code ?? '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 80),
+        reasons: Array.isArray(error?.CancellationReasons) ? error.CancellationReasons.map((r: any) => String(r?.Code ?? 'None').replace(/[^A-Za-z0-9_]/g, '').slice(0, 80)) : []
+      }));
       const fresh = await strongGet(db, T.events, { operationId });
       if (fresh?.status === 'INTEGRATED') { checkedEvent(fresh); return { status: 'INTEGRATED', replayed: true }; }
       if (!equal(fresh, saved)) return { retry: true };

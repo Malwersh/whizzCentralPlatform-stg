@@ -18,3 +18,19 @@ export function updateChecked(check:FinancialRow,UpdateExpression:string,names:F
   return {Update:{...c,UpdateExpression,ExpressionAttributeNames:{...c.ExpressionAttributeNames,...names},
     ExpressionAttributeValues:{...c.ExpressionAttributeValues,...values}}};
 }
+
+/** Retain a planner's original conditions without executing proposed writes.
+ * Caller selects evidence operations only (never audit/event puts). Aliases that
+ * belonged only to the discarded update are removed to keep DynamoDB valid.
+ */
+export function retainPlannedEvidence(operations:FinancialRow[]):FinancialRow[] {
+ return operations.map(op=>{
+  if(op.ConditionCheck)return detach(op);
+  const w=op.Update??op.Put;if(!w||typeof w.ConditionExpression!=='string')throw Error('INVALID_FINANCIAL_EVIDENCE');
+  const used:string[]=w.ConditionExpression.match(/#[A-Za-z0-9_]+|:[A-Za-z0-9_]+/g)??[];
+  const names=Object.fromEntries(Object.entries(w.ExpressionAttributeNames??{}).filter(([k])=>used.includes(k)));
+  const values=Object.fromEntries(Object.entries(w.ExpressionAttributeValues??{}).filter(([k])=>used.includes(k)));
+  const key=w.Key??{pk:w.Item?.pk,sk:w.Item?.sk};if(Object.values(key).some(v=>typeof v!=='string'||!v))throw Error('INVALID_FINANCIAL_EVIDENCE');
+  return {ConditionCheck:{TableName:w.TableName,Key:key,ConditionExpression:w.ConditionExpression,...(Object.keys(names).length?{ExpressionAttributeNames:names}:{}),...(Object.keys(values).length?{ExpressionAttributeValues:values}:{})}};
+ });
+}

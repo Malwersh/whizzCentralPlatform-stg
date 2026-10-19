@@ -1202,3 +1202,41 @@ CSV يستخدم UTF-8 مع BOM وفواصل أسطر واقتباسًا صحي�
 
 
 متابعة إصلاح خيارات التمويل — الجزء74، 2026-10-17: أصلح فشل قراءة العروض بنقل خيارات التمويل من القراءة المتصفحية المباشرة إلى خدمة الموظفين القائمة بصلاحية الفرع وحواجز حية، مع إذن Scan خادمي محدود بالجدولين والخصائص. نجح اختبار بدور Lambda الفعلي وحذفت وظيفة الاختبار، ونُشرت الواجهة في Amplify90 دون تعديل خصومات أو أموال أو موافقات. [بيان الإصلاح](finance-funding-options-reader-fix-74.json).
+
+
+### تحديث مشاركة تمويل الخصومات — 2026-10-17
+
+صُححت القاعدة: صاحب الخصم يتحمل تكلفته كاملة تلقائيًا، والمشاركة فقط تتطلب نسبة واتفاقًا مستقلًا مع المالك ولمدة الخصم نفسها. فصلت عن اتفاقية العمولة والخدمة وعن ربط الحملة العام، وأضيفت موافقتها لشاشة المطعم. نُشرت الدفعة مع بقاء بوابات التشغيل المالي مغلقة ودون تغيير بيانات بشرية؛ راجع القسم 93 من الخطة الموحدة و[بيان المشاركة 76](finance-discount-sharing-source-defaults-76.json).
+
+
+### إشعار مشاركة الخصم والتنبيه الداخلي — 2026-10-17
+
+أضيف إشعار موجّه للمالك فقط مع صندوق إرسال يعاد تلقائيًا، وتنبيه في «مطاعمي» ولوحة الفرع وصندوق الإشعارات، وفتح المشاركة بعد التحقق من الحساب والخادم، وطي بطاقات المنصة. أُنشئ إشعار للطلبين المعلقين دون موافقة أو تغيير للشروط. Push الفعلي ما زال يفشل باعتماد APNs في Firebase؛ راجع القسم 95 من الخطة الموحدة و[بيان الإشعارات 78](finance-sharing-notifications-and-accordion-78.json).
+
+### 2026-10-17 — Device notification permission and registration follow-up
+
+- Existing notification settings page was unreachable and stored local-only switches; replaced it with actual OS permission status, permission request when undetermined, system-settings link, resume refresh, device-registration status and retry. Linked from owner business list and notification inbox. Categories are descriptive; no unsupported per-category delivery toggles.
+- Register the authenticated phone before branch selection, on bootstrap and resume. Wait briefly for APNs registration before requesting FCM token; report failure separately from permission. Successful registration is not proof of delivery.
+- Focused Flutter checks: permission denied/settings navigation, explicit consent/register, permission changes on resume, existing commercial notices/inbox/acceptance (16 passed). Analyzer no errors/warnings (style infos remain).
+- Live recheck still blocked: existing owner registry entries dated October 15; no new merchant registration at initial check. Latest provider retry reported third-party-auth-error; a prior diagnostic reported invalid APNs device token. Neither physical-device delivery nor APNs credential repair is confirmed. No commercial consent or financial activation performed.
+
+- Follow-up diagnosis: live pushTokensRegister and pushTokensUnregister had empty MERCHANTS_USER_POOL_ID / MERCHANTS_CLIENT_ID. Verified existing Staging phone client through Cognito; repaired these two environment values only in both functions with RevisionId checks. Code, role and every other environment value preserved. Replay script: scripts/repair-merchant-push-auth-79.py; private rollback snapshots under /private/tmp/merchant-push-auth79. Phone restart was blocked by device lock; real registration and delivery still require verification.
+
+- Owner approval list: agreements and discount-sharing requests are collapsed by default, named with campaign label and consent status. Only an explicitly notification-targeted sharing request starts expanded. Version/hash/branch keys preserve retry state across error banners and prevent carrying acceptance to another revision. All consent controls remain inside expanded terms; expansion never submits consent. Focused approval/navigation tests: 12 passed, including independent multi-request expansion and failed-save idempotent retry.
+
+- Physical-phone recheck 2026-10-17 18:40 UTC: existing owner merchant iOS registration updated at 18:39:34 UTC after Cognito configuration repair. Worker attempted both pending notices; sent=0, messaging/third-party-auth-error. Temporary exact-role diagnostic confirmed Firebase message "Invalid APNs credential."; diagnostic function/log group removed. Device registration now verified; notification delivery remains blocked on Firebase APNs configuration, not OS consent. Private evidence: /private/tmp/sharing78/physical-device-recheck-final.json and apns-provider-recheck-detail.json. No financial changes or owner consent submitted.
+
+- APNs follow-up resolved at provider level (2026-10-17 19:02:49 UTC): signed phone build entitlement is aps-environment=development; user added development APNs key in Firebase. Replayed both existing pending notices through deployed worker: scanned=2, sent=2, providerCodes=[]; both durable records transitioned RETRY→SENT. No further resends of SENT records. Evidence: /private/tmp/sharing78/development-apns-recheck.json. Physical banner receipt and notification-tap navigation still await user confirmation; provider acceptance is not proof of on-screen delivery. No consent or financial terms changed.
+
+- User confirmed physical iPhone notification receipt after successful APNs development-key recheck. Device registration, provider acceptance and on-device receipt verified. Notification-tap routing to the correct sharing request remains unconfirmed on physical phone (covered locally by focused navigation tests).
+
+### 2026-10-17 — Platform approval feedback (80)
+
+Protected existing commercial API reads committed consent audits and actual consent records; platform polls every two seconds while active, shows acceptor name/role and links to the request. Selected branch state refresh preserves unsaved forms/open details. No human approval generated by reader or verification. Valid live owner session no longer requires a second phone login after five minutes; expired/revoked/foreign identities and branch/version checks remain enforced. Manager acceptance/delegation remains incomplete. Tests: 202 staff checks and both browser suites passed; read-only exact-role live probe confirmed user acceptance of ytyututy; removed probe. Amplify96 SUCCEED and hosted JS verified. See docs/finance-platform-approval-notifications-80.json.
+
+
+### 2026-10-17 — Either owner or assigned manager sharing consent (83)
+
+One authenticated personal-phone acceptance by either the owner or the active assigned branch manager is sufficient. Branch membership/role and transaction fences enforce scope; manager consent does not enable fee-agreement acceptance, other employees, paired devices, or the unfinished broad manager preset. Actual signer and role persist in consent, funding and platform notices. Future request notices target eligible owner and manager personal tokens, with no replay of existing SENT notices. Employee home now links managers to the existing sharing consent screen and notification settings.
+
+Tests: 451 server/retention, 685 wallet, 19 Flutter checks passed. Disposable real Dynamo tests cover sole manager publication, simultaneous consent, retry stability and revocation; table removed. Five scoped Lambda overlays deployed with financial gates/configuration preserved. Amplify98 successful and hosted bytes checked. Signed release installed on physical iPhone; automatic launch was blocked by locked device. No real manager consent or new phone-delivery claim was fabricated. Financial reader requires manager membership to remain valid for future quotes; previously pinned orders remain unchanged.

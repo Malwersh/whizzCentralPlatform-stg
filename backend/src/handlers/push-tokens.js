@@ -99,6 +99,9 @@ exports.register = async (event) => {
           app,
           platform,
           deviceId,
+          soundEnabled: body.soundEnabled !== false,
+          soundReady: Array.isArray(body.soundReady)?body.soundReady.filter(v=>typeof v==='string'&&/^(custom_[a-f0-9]{64}|[a-z_]{1,40})$/.test(v)).slice(0,30):[],
+          orderTrackingVersion: body.orderTrackingVersion===1?1:0,
           // For merchant app we optionally bind the token to a businessId.
           // This enables sending merchant order pushes by businessId (storeId) without relying on cross-system subjectId mapping.
           businessId: app === 'merchant' && businessId ? businessId : undefined,
@@ -177,4 +180,12 @@ exports.unregister = async (event) => {
     console.error('push-tokens.unregister error', e);
     return serverError('Failed to unregister token', { details: msg });
   }
+};
+
+// Authenticated device policy refresh; contains only shared operational settings.
+exports.soundSettings = async event => {
+ if(event.httpMethod==='OPTIONS')return {statusCode:200,headers:corsHeaders,body:''};
+ try{await verifyJwtMulti(event);}catch(_){return unauthorized('Invalid or missing token');}
+ try{return ok({success:true,notificationPolicy:await require('./notification-sound-policy').readPolicy(dynamodb)});}
+ catch(_){return serverError('Notification settings unavailable');}
 };

@@ -23,9 +23,9 @@ function input(value:unknown,fields:string[]){
  * No refunds, driver earnings, automatic responsibility allocation, or implicit timers.
  * The injected authenticator MUST validate original credentials, never a caller's role/subject fields.
  */
-export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;now?:()=>number}){
+export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;now?:()=>number;enableDeliveryFunding?:boolean}){
  const {db,authenticate}=options,now=options.now??Date.now;
- const context=createCodFlowContext({db,authenticate,now});
+ const context=createCodFlowContext({db,authenticate,now,enableDeliveryFunding:options.enableDeliveryFunding});
  const orderFence=(c:Awaited<ReturnType<typeof context>>)=>exactCheck(T.orders,c.key,c.order,[...new Set([...Object.keys(c.order),'financialOutcome','returnStatus','returnCaseId','cancellationStatus','cancellationRequestId','deletionRequestId','deletedAt','deletionStatus','isDeleted','cashCollected','cashCollectedAmount'])]);
  function audit(c:Awaited<ReturnType<typeof context>>,action:string,eventId:string){return {Put:{TableName:T.audit,Item:{datePartition:'date#'+c.timestamp.slice(0,10).replace(/-/g,''),sk:c.timestamp+'#'+eventId,
   logId:eventId,action,orderId:c.order.orderId,branchId:c.offer.branchId,returnId:c.returnId,actorId:c.actor.subjectId,actorKind:c.actor.kind,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(sk)'}};}
@@ -105,7 +105,7 @@ export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'
   }else{
    const operationId='CR:'+quoteHash({returnId:c.returnId,attempt:v.attempt,offerDigest:c.offer.digest}).slice(0,48);
    Object.assign(result,{operationId});
-   const release=await prepareCodRelease(db,c.order,c.offer,c.timestamp,operationId,true);
+   const release=await prepareCodRelease(db,c.order,c.offer,c.timestamp,operationId,true,options.enableDeliveryFunding===true);
    const journal=release.journalLines;
    ops.push(...release.operations);
    const liveKey={driverId:c.order.driverId},live=await strongGet(db,T.live,liveKey),jobKey={orderId:v.orderId,SK:'METADATA'},job=await strongGet(db,T.jobs,jobKey);
@@ -114,7 +114,7 @@ export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'
    ops.push(set(orderFence(c),{status:'returned',orderStatus:'returned',returnStatus:'CONFIRMED',returnedAt:c.timestamp,holdStatus:h.H?'RELEASED':'NOT_REQUIRED',walletFinancialStatus:'RETURNED',financialOutcome:operationId,updatedAt:c.timestamp}),
     set(exactCheck(T.live,liveKey,live),{currentOrderId:null,activeOrdersCount:0,isSearching:false,status:live.isActive===true?'available':'offline'}),
     set(exactCheck(T.jobs,jobKey,job),{status:'returned',completedAt:c.timestamp}),
-    {Put:{TableName:T.holds,Item:{orderId:v.orderId,sk:'FINANCIAL_OUTCOME',kind:'COD_RETURN_JOURNAL',operationId,outcome:'RETURNED',returnId:c.returnId,driverId:c.order.driverId,subjectId:c.subject,branchId:c.offer.branchId,
+    {Put:{TableName:T.holds,Item:{orderId:v.orderId,sk:'FINANCIAL_OUTCOME',kind:'COD_RETURN_JOURNAL',...(c.order.financialAcceptance.schemaVersion===2?{schemaVersion:2,deliveryFunding:c.order.financialAcceptance.deliveryFunding}:{}),operationId,outcome:'RETURNED',returnId:c.returnId,driverId:c.order.driverId,subjectId:c.subject,branchId:c.offer.branchId,
      offerId:v.offerId,attempt:v.attempt,journalLines:journal,receipt:result,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
     codIntegrationEvent({kind:'COD_RETURN_OUTBOX',financialOperationId:operationId,orderId:v.orderId,driverId:c.order.driverId,subjectId:c.subject,branchId:c.offer.branchId,offerId:v.offerId,attempt:v.attempt,waveNumber:c.order.assignmentWaveNumber,createdAt:c.timestamp}));
   }

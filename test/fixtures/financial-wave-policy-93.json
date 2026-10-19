@@ -1,0 +1,137 @@
+{
+  "version": 2,
+  "values": {
+    "driverPositionMaxAgeSeconds": 120,
+    "reassignmentWindowSeconds": 300,
+    "maximumWaves": 4,
+    "dispatch": {
+      "profiles": {
+        "LEGACY": {
+          "reassignmentWindowSeconds": 900,
+          "newDriverExemption": {
+            "missingHistory": "LEGACY_COMPAT",
+            "belowCompletedTrips": 5
+          },
+          "totalDispatchSeconds": 900,
+          "positionMaxAgeSeconds": null,
+          "normalWaves": [
+            {
+              "number": 1,
+              "radiusMeters": 5000,
+              "maximumConsecutiveDeclines": 2,
+              "minimumAcceptancePercent": 70,
+              "recipients": 5,
+              "minimumCompletionPercent": 85
+            },
+            {
+              "number": 2,
+              "radiusMeters": 10000,
+              "maximumConsecutiveDeclines": 3,
+              "minimumAcceptancePercent": 60,
+              "recipients": 5,
+              "minimumCompletionPercent": 75
+            },
+            {
+              "number": 3,
+              "radiusMeters": 15000,
+              "maximumConsecutiveDeclines": 5,
+              "minimumAcceptancePercent": 50,
+              "recipients": 5,
+              "minimumCompletionPercent": 60
+            },
+            {
+              "number": 4,
+              "radiusMeters": 20000,
+              "maximumConsecutiveDeclines": 999,
+              "minimumAcceptancePercent": 0,
+              "recipients": "ALL",
+              "minimumCompletionPercent": 0
+            }
+          ],
+          "waveDurationSeconds": 90,
+          "repeatOffers": {
+            "excludeUnassignedDrivers": true,
+            "reofferFromWave": 4,
+            "policy": "LEGACY_COMPAT"
+          },
+          "offerTtlSeconds": 90,
+          "recovery": {
+            "maximumPickupEtaSeconds": null,
+            "durationSeconds": null,
+            "budgetMinor": null,
+            "radiusMeters": null,
+            "enabled": false,
+            "boostBasisPoints": null,
+            "legacyReference": {
+              "radiusMeters": 30000,
+              "boostBasisPoints": 2500
+            }
+          }
+        },
+        "FINANCIAL": {
+          "reassignmentWindowSeconds": 300,
+          "newDriverExemption": {
+            "missingHistory": "LEGACY_COMPAT",
+            "belowCompletedTrips": 5
+          },
+          "totalDispatchSeconds": 900,
+          "positionMaxAgeSeconds": 120,
+          "normalWaves": [
+            {
+              "number": 1,
+              "radiusMeters": 5000,
+              "maximumConsecutiveDeclines": 2,
+              "minimumAcceptancePercent": 70,
+              "recipients": 5,
+              "minimumCompletionPercent": 85
+            },
+            {
+              "number": 2,
+              "radiusMeters": 10000,
+              "maximumConsecutiveDeclines": 3,
+              "minimumAcceptancePercent": 60,
+              "recipients": 5,
+              "minimumCompletionPercent": 75
+            },
+            {
+              "number": 3,
+              "radiusMeters": 15000,
+              "maximumConsecutiveDeclines": 5,
+              "minimumAcceptancePercent": 50,
+              "recipients": 5,
+              "minimumCompletionPercent": 60
+            },
+            {
+              "number": 4,
+              "radiusMeters": 20000,
+              "maximumConsecutiveDeclines": 999,
+              "minimumAcceptancePercent": 0,
+              "recipients": 5,
+              "minimumCompletionPercent": 0
+            }
+          ],
+          "waveDurationSeconds": 60,
+          "repeatOffers": {
+            "excludeUnassignedDrivers": true,
+            "reofferFromWave": 4,
+            "policy": "LEGACY_COMPAT"
+          },
+          "offerTtlSeconds": 60,
+          "recovery": {
+            "maximumPickupEtaSeconds": null,
+            "durationSeconds": null,
+            "budgetMinor": null,
+            "radiusMeters": null,
+            "enabled": false,
+            "boostBasisPoints": null,
+            "legacyReference": null
+          }
+        }
+      },
+      "schemaVersion": 2,
+      "performanceMode": "LEGACY_METRICS"
+    },
+    "quoteMaxPerCustomerPerMinute": 5,
+    "driverOfferTtlSeconds": 60
+  }
+}

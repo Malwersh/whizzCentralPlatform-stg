@@ -174,7 +174,7 @@ export function calculateDeliveryFee(value: unknown) {
     const requested = amount(d.amount);
     // Preserve discount funding exactly. A sub-quantum delivery discount needs an explicit compatible rule.
     if (r.finalRounding && requested.minorAmount < beforeDiscount.minorAmount && BigInt(requested.minorAmount) % (BigInt(r.finalRounding.incrementIqd) * 1000n) !== 0n) return fail();
-    if (!['PLATFORM', 'MERCHANT', 'THIRD_PARTY'].includes(d.fundingParty as string)) return fail();
+    if (!['PLATFORM', 'MERCHANT', 'THIRD_PARTY', 'SHARED'].includes(d.fundingParty as string)) return fail();
     funding = Object.freeze({ id: text(d.id), party: d.fundingParty as string });
     discount = requested.minorAmount > beforeDiscount.minorAmount ? beforeDiscount : requested;
   }

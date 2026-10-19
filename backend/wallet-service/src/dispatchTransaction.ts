@@ -15,7 +15,7 @@ export function composeDispatchTransaction(operations:Row[],guards:Row[]):Row[] 
   let expression=g.ConditionExpression;const names:Row={},values:Row={};let n=0;
   const used=new Set([...Object.keys(q.ExpressionAttributeNames??{}),...Object.keys(q.ExpressionAttributeValues??{})]);
   const replacements:Row={};
-  for(const [map,prefix,out]of [[g.ExpressionAttributeNames,'#',names],[g.ExpressionAttributeValues,':',values]] as any){for(const [token,value]of Object.entries(map??{})){let next:string;do{next=prefix+'dispatchFence'+n++;}while(used.has(next));used.add(next);replacements[token]=next;out[next]=value;}}
+  for(const [map,prefix,out]of [[g.ExpressionAttributeNames,'#',names],[g.ExpressionAttributeValues,':',values]] as any){for(const [token,value]of Object.entries(map??{})){let next:string;do{next=prefix+'d'+n++;}while(used.has(next));used.add(next);replacements[token]=next;out[next]=value;}}
   expression=expression.replace(/#[A-Za-z0-9_]+|:[A-Za-z0-9_]+/g,(t:string)=>replacements[t]??t);
   q.ConditionExpression=[q.ConditionExpression,expression].filter(Boolean).map(e=>/\bOR\b/.test(e)?'('+e+')':e).join(' AND ');
   q.ExpressionAttributeNames={...q.ExpressionAttributeNames,...names};q.ExpressionAttributeValues={...q.ExpressionAttributeValues,...values};

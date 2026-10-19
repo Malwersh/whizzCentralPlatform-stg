@@ -17,6 +17,8 @@ async function setup(mode='REQUIRED',free=false){
   const [n,v]=field.split('=');const name=n.trim(),value=v.trim();row[u.ExpressionAttributeNames[name]||name]=u.ExpressionAttributeValues[value];}
   f.discountUpdates=(f.discountUpdates||0)+1;};
  const db={send:async c=>{
+  if(f.deliveryIndexes&&c instanceof sdk.QueryCommand&&c.input.TableName==='staging-MerchantPlatform')return {Items:structuredClone(f.deliveryIndexes)};
+  if(f.deliveryIndexes&&c.input.TableName==='staging-PlatformStaff'&&c.input.Key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_PRICING')return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
   if(c.input.TableName==='staging-WizzOfferJourney')return {Item:f.extraLookup(c.input.TableName,c.input.Key)};
   if(c.input.TableName==='WizzOrders'&&!c.input.Key&&c.constructor.name==='ScanCommand')return {Items:[...f.orders.values()]};
   if(f.commercialRecords?.has(c.input.TableName+'|'+JSON.stringify(c.input.Key)))return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
@@ -56,6 +58,8 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   '../shared/customer-order-view':require('../../../../../wizzuser-stg/backend/src/functions/shared/customer-order-view'),
   '../shared/discount-reservation':loadShared('discount-reservation'),
   './quote-runtime/orderCommercialSource':{...require('../../dist/orderCommercialSource'),createStagingCommercialSource:o=>require('../../dist/orderCommercialSource').createStagingCommercialSource({...o,now:()=>f.time})},
+  './quote-runtime/deliveryPromotionSelection':{createStagingDeliveryPromotionSelection:o=>require('../../dist/deliveryPromotionSelection').createStagingDeliveryPromotionSelection({...o,now:()=>f.time})},
+  './quote-runtime/deliveryPromotionCustomer':require('../../dist/deliveryPromotionCustomer'),
   './quote-runtime/money':require('../../dist/money'),
   './quote-runtime/orderGoodsPricing':require('../../dist/orderGoodsPricing'),
   '../shared/discount-engine':fs.existsSync(path.resolve(path.dirname(handlerPath),'../shared/discount-engine.js'))?require(path.resolve(path.dirname(handlerPath),'../shared/discount-engine.js')):{},
@@ -67,7 +71,7 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
  f.body={userId:'u1',storeId:'b1',storeName:'Synthetic',storeAddress:'Test',deliveryAddress:{id:'a1',latitude:31.925,longitude:44.457,fullAddress:'Test'},paymentMethod:'cod',items:[{id:'p1',name:'Test',price:3500,quantity:1}],quoteId:quote.quoteId,idempotencyKey:'abcdefab-1234-4123-8123-123456789abc',deliveryFee:999999};
  f.invoke=async (patch={})=>{const r=await exports.handler({httpMethod:'POST',resource:patch.action==='preview_commercial'?'/orders/commercial-preview':'/orders',headers:{Authorization:'Bearer '+token},body:JSON.stringify({...f.body,...patch})});return {...r,json:JSON.parse(r.body)};};
  f.enableCommercial=()=>{
-  const source=require('./commercial-source-fixture.cjs').fixture('org1','owner1');
+  const source=require('./commercial-source-fixture.cjs').fixture('org1','owner1');source.funded();
   f.commercialRecords=source.records;
   for(const key of [...f.commercialRecords.keys()])if(key.startsWith('WhizzMerchants_')||key.includes('PERSON#')||key.startsWith('WizzCentral_Regions'))f.commercialRecords.delete(key);
   f.branch.commercialAgreementId='a1';f.branch.commercialAgreementVersion=1;
@@ -77,6 +81,28 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
    f.commercialRecords.set(p.TableName+'|'+JSON.stringify(key),structuredClone(r));return true;
   }return false;};
   f.env.COMMERCIAL_PRICING_MODE='REQUIRED';
+ };
+ f.enableDeliveryPromotions=(funding='MERCHANT',audience='ALL')=>{
+  f.enableCommercial();
+  const {parseIqd:m}=require('../../dist/money');
+  const policy=structuredClone(require('./delivery-promotion-fixture.cjs').fixture().policy);
+  Object.assign(policy,{id:'delivery',merchantId:'org1',branchId:'b1',origin:funding,funding:{kind:funding},effectiveFrom:'2026-10-01T00:00:00.000Z'});
+  policy.eligibility.minimumGoods=m('0');policy.eligibility.audience=audience;
+  Object.assign(policy.limits,{merchantPerOrder:m(funding==='MERCHANT'?'5000':'0'),merchantBudget:m(funding==='MERCHANT'?'100000':'0'),platformPerOrder:m(funding==='PLATFORM'?'5000':'0'),platformBudget:m(funding==='PLATFORM'?'100000':'0')});
+  const hash=require('../../dist/deliveryFundingPolicy').readDeliveryFundingPolicy(policy).termsHash;
+  const put=(table,key,row)=>f.commercialRecords.set(table+'|'+JSON.stringify(key),structuredClone({...key,...row}));
+  const record={schemaVersion:1,id:policy.id,version:1,status:'ACTIVE',policy,termsHash:hash,approvedBy:'editor',approvedAt:'2026-10-01T01:00:00.000Z',acceptedBy:'owner1',acceptedAt:'2026-10-01T02:00:00.000Z',activatedAt:'2026-10-01T02:00:00.000Z',activationMode:'STAFF_SEND_MERCHANT_ACCEPT'};
+  for(const sk of ['CURRENT','VERSION#1'])put('staging-PlatformStaff',{pk:'DELIVERY_FUNDING#delivery',sk},record);
+  const budget=require('../../dist/deliveryCampaignBudget').deliveryCampaignBudgetInitialization(policy).Put.Item;
+  put('staging-PlatformStaff',{pk:budget.pk,sk:budget.sk},budget);
+  put('staging-PlatformStaff',{pk:'EMPLOYEE#editor',sk:'PROFILE'},{employeeId:'editor',status:'ACTIVE',version:1,roles:['commercial_editor'],scope:{allRegions:true}});
+  f.branch.deliveryOfferRevision=1;
+  f.deliveryIndexes=[{pk:'BRANCH#b1',sk:'COMMERCIAL#DELIVERY#delivery',recordPk:'DELIVERY_FUNDING#delivery',kind:'DELIVERY',ownerId:'owner1',businessId:'b1'}];
+  const lookup=f.extraLookup;
+  f.extraLookup=(t,k)=>lookup(t,k)??(t==='staging-PlatformStaff'&&k?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_PRICING'?null:undefined);
+  const priorPut=f.extraPut;
+  f.extraPut=p=>{if(p.TableName==='staging-PlatformStaff'){put(p.TableName,{pk:p.Item.pk,sk:p.Item.sk},p.Item);return true;}return priorPut(p);};
+  f.env.DELIVERY_PROMOTION_MODE='REQUIRED';return policy;
  };
  f.env=env;return f;
 }

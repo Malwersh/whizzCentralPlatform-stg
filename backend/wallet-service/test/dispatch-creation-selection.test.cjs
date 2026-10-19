@@ -31,8 +31,8 @@ async function selection(mutate=()=>{}){
  f.db.send=async cmd=>{if(cmd instanceof QueryCommand||cmd instanceof ScanCommand){f.queries.push(cmd.input);return f.pages(cmd);}return send(cmd);};
  f.select=()=>createStagingDispatchCandidates({db:f.db,now:()=>f.time})({job:f.job(),intent:f.intent()});return f;
 }
-test('candidate reads continue after empty indexed pages, hydrate live profiles, and break ties deterministically',async()=>{
- const f=await selection();let page=0;f.pages=async()=>++page===1?{Items:[],LastEvaluatedKey:{driverId:'cursor'}}:{Items:[{driverId:'driver2'},{driverId:'driver1'}]};assert.deepEqual(await f.select(),['driver1','driver2']);assert.equal(page,2);assert.equal(f.queries[0].IndexName,'RegionStatusIndex');assert.equal(f.queries[1].ExclusiveStartKey.driverId,'cursor');
+test('candidate reads continue after empty filtered scan pages, hydrate live profiles, and break ties deterministically',async()=>{
+ const f=await selection();let page=0;f.pages=async()=>++page===1?{Items:[],LastEvaluatedKey:{driverId:'cursor'}}:{Items:[{driverId:'driver2'},{driverId:'driver1'}]};assert.deepEqual(await f.select(),['driver1','driver2']);assert.equal(page,2);assert.equal(f.queries[0].IndexName,undefined);assert.equal(f.queries[0].FilterExpression,'current_work_region_id=:region AND #s=:available');assert.equal(f.queries[0].ExpressionAttributeValues[':region'],'zone1');assert.equal(f.queries[1].ExclusiveStartKey.driverId,'cursor');
 });
 test('read failure or pagination limit cannot look like an empty successful search',async()=>{
  const f=await selection();f.pages=async()=>{throw Error('read unavailable');};await assert.rejects(f.select(),/read unavailable/);assert.equal(f.queries.length,1);

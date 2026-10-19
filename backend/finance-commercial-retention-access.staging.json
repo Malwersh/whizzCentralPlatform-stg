@@ -94,7 +94,8 @@
               "Condition": {
                 "ForAllValues:StringLike": {
                   "dynamodb:LeadingKeys": [
-                    "COMMERCIAL_AGREEMENT#*"
+                    "COMMERCIAL_AGREEMENT#*",
+                    "BRANCH#*"
                   ]
                 }
               }

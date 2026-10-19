@@ -72,3 +72,15 @@ test('failure advancing a committed decline returns a pending transition and ret
 test('a decline after lost send acknowledgement does not block delivery to remaining recipients',async()=>{
  const f=await setup();let once=true;f.send=async(id,m)=>{f.out.push({id,message:m});if(once){once=false;throw Error('lost send ACK');}};await assert.rejects(f.run());await f.service('driver1').decline(f.selector('driver1'));f.time+=10000;await f.run('worker2');assert.equal(f.out.length,2);assert.equal(f.out[1].id,'driver2');assert.deepEqual(f.wave().delivered,['driver2']);assert.equal(f.get('WaveOffers_staging',{orderId:'order1',SK:'FINANCIAL#driver1#WAVE#1'}).responseStatus,'financial_declined');
 });
+test('large checkout records preserve complete atomic offer fences without exceeding expression limits',async()=>{
+ const f=await setup();const order=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ for(let n=0;Object.keys(order).length<93;n++)order['receiptField'+n]='display '+n;
+ await f.run();assert.equal(f.wave().state,'READY');assert.equal(f.out.length,2);
+ const g=await setup();const guarded=g.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ for(let n=0;Object.keys(guarded).length<93;n++)guarded['receiptField'+n]='display '+n;
+ let changed=false;const send=g.db.send;g.db.send=async command=>{
+  if(!changed&&command.input.TransactItems?.some(op=>op.Put?.TableName==='WaveOffers_staging')){changed=true;guarded.receiptField0='changed concurrently';}
+  return send(command);
+ };
+ await assert.rejects(g.run());assert.equal(changed,true);assert.equal(g.out.length,0);assert.equal(g.get('WaveOffers_staging',{orderId:'order1',SK:'FINANCIAL#driver1#WAVE#1'}),undefined);
+});

@@ -155,7 +155,7 @@ export function createStagingDeliveryQuotes(options: {
       if (!Number.isFinite(created) || created < calculated || created >= expires) return fail('QUOTE_EXPIRED');
       const row: Row = { ...key(c, requestId), schemaVersion: 1, requestId, requestHash, subjectId: c.subjectId,
         branchId, addressId, createdAt: new Date(created).toISOString(), expiresAt: new Date(expires).toISOString(),
-        policyVersion: result.policyVersion, referenceVersion: result.referenceVersion, binding: result.binding,
+        pricingContext:result.context, pricingAt:result.at, policyVersion: result.policyVersion, referenceVersion: result.referenceVersion, binding: result.binding,
         calculation: result.calculation, fences };
       row.digest = hash(row);
       // One item, no TTL: expired IDs remain reserved until account deletion. No expiry-based resurrection.

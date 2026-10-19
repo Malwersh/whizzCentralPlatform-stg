@@ -14,6 +14,11 @@ Parameters:
     Type: String
     Default: ''
 
+  DeliveryFundingManagementEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+
   CommercialAdminEnabled:
     Type: String
     Default: 'false'
@@ -63,7 +68,9 @@ Resources:
           PLATFORM_SESSION_POLICY: !Ref PlatformSessionPolicy
           PLATFORM_WRITE_MODE: !Ref PlatformWriteMode
           PLATFORM_DIRECT_OPERATOR_IDS: !Ref PlatformDirectOperatorIds
+          SETTLEMENT_SCHEDULE_ADMIN_ENABLED: 'true'
           COMMERCIAL_ADMIN_ENABLED: !Ref CommercialAdminEnabled
+          DELIVERY_FUNDING_MANAGEMENT_ENABLED: !Ref DeliveryFundingManagementEnabled
           DISPATCH_REVIEW_MODE: 'OFF'
           DISPATCH_REVIEW_EXECUTION_MODE: 'OFF'
           DISPATCH_RESTART_START_MODE: 'OFF'
