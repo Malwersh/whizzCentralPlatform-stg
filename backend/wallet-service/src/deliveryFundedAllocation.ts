@@ -1,3 +1,4 @@
+import {verifyDeliveryFundingComposition} from './deliveryFundingComposition';
 import { allocateOrder } from './orderAllocation';
 import { Money, readMoney, moneyFromMinor, addMoney, subtractMoney } from './money';
 import { quoteEntityIdValid } from './deliveryQuoteRecord';
@@ -19,16 +20,18 @@ const positive=(m:Money)=>m.minorAmount>0?m:moneyFromMinor(0);
 export function allocateDeliveryFundedOrder(value:unknown) {
  try {
   const r=exact(value,['allocationSchemaVersion','base','deliveryFunding']);if(r.allocationSchemaVersion!==2)return fail();
-  const funding=exact(r.deliveryFunding,['policyPin','allocation']),pin=exact(funding.policyPin,['policyId','version','termsHash']);
+  const composite=r.deliveryFunding?.allocation?.schemaVersion===3;
+  if(composite)verifyDeliveryFundingComposition(r.deliveryFunding);
+  const funding=exact(r.deliveryFunding,['policyPin','allocation',...(composite?['components']:[])]),pin=exact(funding.policyPin,['policyId','version','termsHash']);
   if(!(quoteEntityIdValid(pin.policyId)||typeof pin.policyId==='string'&&pin.policyId.startsWith('PLATFORM_BENEFIT#')&&quoteEntityIdValid(pin.policyId.slice('PLATFORM_BENEFIT#'.length)))||!Number.isSafeInteger(pin.version)||pin.version<1||typeof pin.termsHash!=='string'||!/^[a-f0-9]{64}$/.test(pin.termsHash))return fail();
-  const a=exact(funding.allocation,['schemaVersion','referenceFee','customerFee','subsidy','merchantShare','platformShare']);if(![1,2].includes(a.schemaVersion))return fail();
+  const a=exact(funding.allocation,['schemaVersion','referenceFee','customerFee','subsidy','merchantShare','platformShare']);if(![1,2,3].includes(a.schemaVersion))return fail();
   const referenceFee=amount(a.referenceFee),customerFee=amount(a.customerFee),subsidy=amount(a.subsidy),merchantShare=amount(a.merchantShare),platformShare=amount(a.platformShare);
-  if((a.schemaVersion===2?Math.max(0,referenceFee.minorAmount-customerFee.minorAmount):subtractMoney(referenceFee,customerFee).minorAmount)!==subsidy.minorAmount||addMoney(merchantShare,platformShare).minorAmount!==subsidy.minorAmount)return fail('DELIVERY_FUNDING_MISMATCH');
+  if((a.schemaVersion===3?subsidy.minorAmount:a.schemaVersion===2?Math.max(0,referenceFee.minorAmount-customerFee.minorAmount):subtractMoney(referenceFee,customerFee).minorAmount)!==subsidy.minorAmount||addMoney(merchantShare,platformShare).minorAmount!==subsidy.minorAmount)return fail('DELIVERY_FUNDING_MISMATCH');
   const base=allocateOrder(r.base);
   if(readMoney(r.base.customerDeliveryFee).minorAmount!==customerFee.minorAmount)return fail('DELIVERY_FUNDING_MISMATCH');
   const merchantPayable=subtractMoney(base.merchantPayable,merchantShare);
   if(merchantPayable.minorAmount<0)return fail('MERCHANT_DELIVERY_SUPPORT_EXCEEDS_PAYABLE');
-  const baselineDeliveryMargin=subtractMoney(a.schemaVersion===2?addMoney(customerFee,subsidy):referenceFee,base.driverEarningEntitlement);
+  const baselineDeliveryMargin=subtractMoney([2,3].includes(a.schemaVersion)?addMoney(customerFee,subsidy):referenceFee,base.driverEarningEntitlement);
   const deliveryNetContribution=subtractMoney(baselineDeliveryMargin,platformShare);
   const platformNetContribution=addMoney(base.platformNetContribution,merchantShare);
   // Customer cash is allocated exactly once. Platform contribution is signed and
