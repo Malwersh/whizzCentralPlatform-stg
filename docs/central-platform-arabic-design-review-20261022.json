@@ -159,7 +159,7 @@
   ],
   "financialLogicChanged": false,
   "liveDataWritten": false,
-  "frontendPublished": false,
+  "frontendPublished": true,
   "loginVerification": [
     {
       "page": "login",
@@ -210,5 +210,7 @@
     "hostedPageContentAndLayoutFixesPreserved": true,
     "hostedFormContractDocumentsVerified": 19,
     "note": "Before publishing, reconcile with the current hosted artifact, whose full Arabic catalog and presentation fixes were absent from the local source baseline."
-  }
+  },
+  "hostingJobId": "161",
+  "liveUrl": "https://staging.d2vmebm1e1n95m.amplifyapp.com/"
 }
