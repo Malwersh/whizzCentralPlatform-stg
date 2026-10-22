@@ -58,7 +58,7 @@
   function showStatus(message, type = 'info') {
     const status = document.getElementById('status');
     if (!status) return;
-    status.textContent = message;
+    status.textContent = type === 'error' ? window.WizzLocale.error(message) : window.WizzLocale.t(message);
     status.className = `status ${type}`;
     if (message) status.classList.add('is-visible'); else status.classList.remove('is-visible');
   }
@@ -68,7 +68,7 @@
   if (!window.AmazonCognitoIdentity) {
     console.error('Cognito library not loaded - check CSP or network');
     try { document.body.style.visibility = 'visible'; } catch (_) {}
-    showStatus('تعذر تحميل خدمة تسجيل الدخول', 'error');
+    showStatus("تعذّر تحميل خدمة تسجيل الدخول.", 'error');
     return; // Abort further auth setup
   }
 
@@ -81,7 +81,7 @@
   };
   if (!COGNITO_CONFIG.region || !COGNITO_CONFIG.userPoolId || !COGNITO_CONFIG.clientId) {
     console.error('Missing Cognito config. Ensure env.js + config.js are loaded and Amplify env vars are set.');
-    showStatus('إعدادات تسجيل الدخول غير مكتملة', 'error');
+    showStatus("خدمة تسجيل الدخول غير مهيّأة. يرجى التواصل مع مسؤول النظام.", 'error');
     return;
   }
 
@@ -117,7 +117,7 @@
     document.getElementById('mfaSubmit').disabled = false;
     document.getElementById('mfaForm').classList.add('hidden');
     document.getElementById('loginForm').classList.remove('hidden');
-    const button = document.getElementById('loginBtn'); button.disabled = false; button.textContent = 'تسجيل الدخول';
+    const button = document.getElementById('loginBtn'); button.disabled = false; button.textContent = "تسجيل الدخول";
     delete window.pendingPasswordChange;
     showStatus('', 'info');
   });
@@ -134,10 +134,10 @@
 
       const email = emailEl.value.trim();
       const password = passwordEl.value;
-      if (!email || !password) { showStatus('أدخل البريد الإلكتروني وكلمة المرور', 'error'); return; }
+      if (!email || !password) { showStatus("أدخل البريد الإلكتروني وكلمة المرور.", 'error'); return; }
 
-      loginBtn.disabled = true; loginBtn.textContent = 'جاري تسجيل الدخول...';
-      showStatus('جاري التحقق من الحساب...', 'info');
+      loginBtn.disabled = true; loginBtn.textContent = "جارٍ تسجيل الدخول...";
+      showStatus("جارٍ التحقق من بيانات الدخول...", 'info');
       log(`Starting authentication for: ${email}`, 'info');
 
       try {
@@ -155,9 +155,9 @@
             writeStorageItem('userEmail', email);
             writeStorageItem('isAuthenticated', 'true');
             writeStorageItem('lastLoginTime', Date.now().toString());
-            showStatus('تم تسجيل الدخول، جاري فتح المنصة...', 'success');
+            showStatus("✅ تم تسجيل الدخول بنجاح. جارٍ الانتقال...", 'success');
             setTimeout(async () => {
-              let landing;try{landing=await landingUrl();}catch(error){showStatus(error.message,'error');loginBtn.disabled=false;return;}
+              let landing;try{landing=await landingUrl();}catch(error){showStatus(window.WizzLocale.error(error.message),'error');loginBtn.disabled=false;return;}
               const returnUrl = readStorageItem('returnUrl');
               if (returnUrl && !landing.endsWith('/account-security.html')) { removeStorageItem('returnUrl'); window.location.href = returnUrl; }
               else { window.location.href = landing; }
@@ -166,31 +166,31 @@
           onFailure: function(err) {
             log(`❌ Authentication failed: ${err.code || err.name}`, 'error');
             log(`Error message: ${err.message}`, 'error');
-            let errorMessage = 'تعذر تسجيل الدخول';
-            if (err.code === 'NotAuthorizedException') errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            else if (err.code === 'UserNotConfirmedException') errorMessage = 'يرجى تأكيد البريد الإلكتروني';
-            else if (err.code === 'UserNotFoundException') errorMessage = 'الحساب غير موجود';
+            let errorMessage = "تعذّر تسجيل الدخول.";
+            if (err.code === 'NotAuthorizedException') errorMessage = 'Invalid email or password';
+            else if (err.code === 'UserNotConfirmedException') errorMessage = 'Please verify your email address';
+            else if (err.code === 'UserNotFoundException') errorMessage = 'User not found';
             else if (err.message) errorMessage = err.message;
             showStatus(`❌ ${errorMessage}`, 'error');
-            loginBtn.disabled = false; loginBtn.textContent = 'تسجيل الدخول';
+            loginBtn.disabled = false; loginBtn.textContent = "تسجيل الدخول";
           },
           totpRequired: function() { mfaChallenge(cognitoUser, this); },
           newPasswordRequired: function(userAttributes, requiredAttributes) {
             log('⚠️ New password required', 'warning');
-            showStatus('عيّن كلمة مرور جديدة للمتابعة', 'info');
+            showStatus("يرجى تعيين كلمة مرور جديدة للمتابعة.", 'info');
             loginForm.classList.add('hidden');
             const npForm = document.getElementById('newPasswordForm');
             if (npForm) npForm.classList.remove('hidden');
             const subtitle = document.querySelector('.subtitle');
-            if (subtitle) subtitle.textContent = 'عيّن كلمة المرور الجديدة';
-            loginBtn.disabled = false; loginBtn.textContent = 'تسجيل الدخول';
+            if (subtitle) subtitle.textContent = "تعيين كلمة المرور الجديدة";
+            loginBtn.disabled = false; loginBtn.textContent = "تسجيل الدخول";
             window.pendingPasswordChange = { cognitoUser, userAttributes, requiredAttributes };
           }
         });
       } catch (error) {
         log(`❌ Unexpected error: ${error}`, 'error');
-        showStatus('حدث خطأ غير متوقع. أعد المحاولة.', 'error');
-        loginBtn.disabled = false; loginBtn.textContent = 'تسجيل الدخول';
+        showStatus("❌ حدث خطأ غير متوقع.", 'error');
+        loginBtn.disabled = false; loginBtn.textContent = "تسجيل الدخول";
       }
     });
   }
@@ -206,13 +206,13 @@
       if (!newPasswordEl || !confirmPasswordEl || !btn) return;
       const newPassword = newPasswordEl.value;
       const confirmPassword = confirmPasswordEl.value;
-      if (newPassword !== confirmPassword) { showStatus('كلمتا المرور غير متطابقتين', 'error'); return; }
+      if (newPassword !== confirmPassword) { showStatus("كلمتا المرور غير متطابقتين.", 'error'); return; }
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-      if (!passwordRegex.test(newPassword)) { showStatus('كلمة المرور لا تستوفي المتطلبات الموضحة', 'error'); return; }
-      btn.disabled = true; btn.textContent = 'جاري تغيير كلمة المرور...'; showStatus('جاري تغيير كلمة المرور...', 'info');
+      if (!passwordRegex.test(newPassword)) { showStatus("يجب أن تستوفي كلمة المرور متطلبات الأمان الموضّحة.", 'error'); return; }
+      btn.disabled = true; btn.textContent = "جارٍ تغيير كلمة المرور..."; showStatus("جارٍ تغيير كلمة المرور...", 'info');
       try {
         const pending = window.pendingPasswordChange;
-        if (!pending) { showStatus('انتهت جلسة تغيير كلمة المرور. سجّل الدخول مجدداً.', 'error'); btn.disabled = false; btn.textContent = 'تغيير كلمة المرور'; return; }
+        if (!pending) { showStatus("انتهت جلسة تغيير كلمة المرور. يرجى تسجيل الدخول مجددًا.", 'error'); btn.disabled = false; btn.textContent = "تغيير كلمة المرور"; return; }
         const { cognitoUser, userAttributes } = pending;
         const userEmail = userAttributes.email;
         delete userAttributes.email_verified; delete userAttributes.email;
@@ -226,20 +226,20 @@
             writeStorageItem('userEmail', userEmail);
             writeStorageItem('isAuthenticated', 'true');
             writeStorageItem('lastLoginTime', Date.now().toString());
-            showStatus('تم تغيير كلمة المرور، جاري فتح المنصة...', 'success');
+            showStatus("تغيّرت كلمة المرور بنجاح. جارٍ الانتقال إلى لوحة التحكم...", 'success');
             delete window.pendingPasswordChange;
-            setTimeout(async () => {try{window.location.href=await landingUrl();}catch(error){showStatus(error.message,'error');}}, 1500);
+            setTimeout(async () => {try{window.location.href=await landingUrl();}catch(error){showStatus(window.WizzLocale.error(error.message),'error');}}, 1500);
           },
           onFailure: function(err) {
             log(`❌ Password change failed: ${err.code || err.name}`, 'error');
             log(`Error message: ${err.message}`, 'error');
-            const msg = err.message || 'تعذر تغيير كلمة المرور';
-            showStatus(`❌ ${msg}`, 'error'); btn.disabled = false; btn.textContent = 'تغيير كلمة المرور';
+            const msg = err.message || 'Failed to change password';
+            showStatus(`❌ ${msg}`, 'error'); btn.disabled = false; btn.textContent = "تغيير كلمة المرور";
           }
         });
       } catch (error) {
         log(`❌ Unexpected error during password change: ${error}`, 'error');
-        showStatus('حدث خطأ غير متوقع. أعد المحاولة.', 'error'); btn.disabled = false; btn.textContent = 'تغيير كلمة المرور';
+        showStatus("❌ حدث خطأ غير متوقع.", 'error'); btn.disabled = false; btn.textContent = "تغيير كلمة المرور";
       }
     });
   }
@@ -253,7 +253,7 @@
       if (npForm) npForm.classList.add('hidden');
       if (loginForm) loginForm.classList.remove('hidden');
       const subtitle = document.querySelector('.subtitle');
-      if (subtitle) subtitle.textContent = 'سجّل الدخول إلى حسابك';
+      if (subtitle) subtitle.textContent = "تسجيل الدخول إلى حسابك";
       const np = document.getElementById('newPassword');
       const cp = document.getElementById('confirmPassword');
       if (np) np.value=''; if (cp) cp.value='';

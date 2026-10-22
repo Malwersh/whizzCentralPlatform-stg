@@ -1,677 +1,2642 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
+
+<head>
 <script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>ويز سنترال — العروض والحملات</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة ويز سنترال - إدارة العروض</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
-    <link rel="stylesheet" href="../styles/material-3-design-system.css" />
+    <link rel="stylesheet" href="../styles/material-3-design-system.css">
     <script src="../styles/wizz-theme-config.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="../styles/promotions-workspace.css?v=20261016-workspace1"
-    />
-    <link
-      rel="stylesheet"
-      href="../styles/home-slideshow.css?v=20261016-workspace1"
-    />
-    <script src="../assets/js/auth-utils.js?v=20261011-session-fix2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <!-- Security utilities -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <script src="../assets/js/security-utils.js"></script>
     <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
-  <link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"><link rel="stylesheet" href="../styles/campaign-form-clarity.css?v=20261018-clarity2"></head>
-  <body data-page="promotions">
-    <div id="sidebar-placeholder"></div>
-    <main class="main-content" id="mainContent">
-      <div class="promo-workspace">
-        <header class="workspace-header">
-          <div>
-            <p class="eyebrow">التسويق / العروض والحملات</p>
-            <h1>عروض تستحق الاهتمام.<br /><span>وأسباب أكثر للطلب.</span></h1>
-            <p class="lede">
-              أنشئ العرض، وحدّد جمهوره، واعرضه على الشاشة الرئيسية لتطبيق ويز يوزر.
-            </p>
-          </div>
-          <div class="header-actions">
-            <button type="button" class="btn-secondary" id="offers-refresh">
-              تحديث الصفحة</button
-            ><button
-              type="button"
-              class="btn-primary"
-              id="offer-create"
-              disabled
-            >
-              <i class="fas fa-plus" aria-hidden="true"></i> إنشاء عرض
-            </button>
-          </div>
-        </header>
-        <div
-          class="workspace-notice"
-          id="workspace-notice"
-          role="status"
-          aria-live="polite"
-          hidden
-        ></div>
-        <section class="workspace-metrics" aria-label="ملخص العروض">
-          <article>
-            <span>العروض السارية</span><strong id="metric-live">—</strong
-            ><small>متاحة خلال فترة سريانها</small>
-          </article>
-          <article>
-            <span>العروض القادمة</span><strong id="metric-scheduled">—</strong
-            ><small>منشورة ومجدولة</small>
-          </article>
-          <article>
-            <span>المسودات</span><strong id="metric-draft">—</strong
-            ><small>جاهزة لاستكمال الإعداد</small>
-          </article>
-          <article>
-            <span>الشرائح المعروضة حاليًا</span><strong id="metric-slides">—</strong
-            ><small>ضمن فترة العرض المحددة</small>
-          </article>
-        </section>
-        <nav class="workspace-nav" aria-label="أقسام العروض">
-          <a href="#offers-workspace" class="selected">مكتبة العروض</a
-          ><a href="#home-slideshow">شرائح الشاشة الرئيسية</a
-          ><a href="#promotion-performance">الأداء</a
-          ><span>جميع الأوقات بتوقيت بغداد (UTC+3)</span>
-        </nav>
-        <section
-          class="workspace-panel"
-          id="offers-workspace"
-          aria-labelledby="offers-heading"
-        >
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">عروض المنصة</p>
-              <h2 id="offers-heading">مكتبة العروض</h2>
-              <p>
-                عروض المنصة وخصومات المتاجر وشروطها في مكان واحد.
-              </p>
-            </div>
-            <span id="offers-count" class="count-pill">جارٍ التحميل</span>
-          </div>
-          <div class="offer-toolbar">
-            <label class="search-field"
-              ><i class="fas fa-search" aria-hidden="true"></i
-              ><input
-                id="offer-search"
-                type="search"
-                placeholder="ابحث بالعنوان أو الرمز أو اسم المتجر"
-                aria-label="البحث في العروض" dir="auto"></label
-            ><label class="compact-field"
-              ><span>المصدر</span
-              ><select id="offer-source-filter">
-                <option value="all">جميع العروض</option>
-                <option value="platform">عروض المنصة</option>
-                <option value="merchant">خصومات المتاجر</option>
-              </select></label
-            ><label class="compact-field"
-              ><span>الحالة</span
-              ><select id="offer-status-filter">
-                <option value="all">جميع الحالات</option>
-                <option value="live">سارٍ</option>
-                <option value="scheduled">مجدولة</option>
-                <option value="draft">مسودة</option>
-                <option value="paused">متوقف مؤقتًا</option>
-                <option value="expired">منتهية الصلاحية</option>
-                <option value="exhausted">مستنفد</option>
-                <option value="attention">يتطلب المراجعة</option>
-              </select></label
-            >
-          </div>
-          <div id="offers-load-status" role="status">جارٍ تحميل العروض…</div>
-          <div id="offers-list" class="offer-list"></div>
-        </section>
-        <section
-          class="content-card slideshow-panel"
-          id="home-slideshow"
-          aria-labelledby="slideshow-heading"
-        >
-          <div class="card-header">
-            <div class="promotion-section-heading">
-              <span class="section-icon"
-                ><i class="fas fa-images" aria-hidden="true"></i
-              ></span>
-              <div>
-                <h2 id="slideshow-heading">شرائح الشاشة الرئيسية</h2>
-                <p>حدّد ما يظهر للعملاء في الشاشة الرئيسية لتطبيق ويز يوزر.</p>
-              </div>
-            </div>
-            <div class="header-actions">
-              <button type="button" class="btn-secondary" id="slides-refresh">
-                تحديث الصفحة</button
-              ><button
-                type="button"
-                class="btn-primary"
-                id="slides-add"
-                disabled
-              >
-                إضافة شريحة
-              </button>
-            </div>
-          </div>
-          <p id="slides-message" class="slides-message" role="status">
-            جارٍ تحميل الشرائح…
-          </p>
-          <div id="slides-list" class="slides-grid"></div>
-          <dialog id="slide-dialog" aria-labelledby="slide-editor-heading">
-            <form id="slide-form">
-              <header class="slide-editor-header">
-                <div>
-                  <span class="promotions-eyebrow">ويز يوزر / الشاشة الرئيسية</span>
-                  <h2 id="slide-editor-heading">إضافة شريحة</h2>
-                </div>
-                <button
-                  type="button"
-                  id="slide-close"
-                  class="btn-secondary"
-                  aria-label="إغلاق محرر الشريحة"
-                >
-                  ×
-                </button>
-              </header>
-              <div class="slide-editor-body">
-                <div class="slide-preview">
-                  <img
-                    id="slide-preview"
-                    alt="معاينة صورة الشريحة"
-                    hidden
-                  /><span id="slide-preview-empty">معاينة الشريحة</span>
-                </div>
-                <label class="slide-field"
-                  >الصورة<input
-                    type="file"
-                    id="slide-image"
-                    accept="image/jpeg,image/png,image/webp" dir="auto"><small
-                    >صيغ JPG أو PNG أو WebP، بحجم لا يتجاوز ١٠ ميغابايت. يُفضّل استخدام صورة أفقية بنسبة ٢:١. تُحسّن الصور تلقائيًا.</small
-                  ></label
-                >
-                <p id="slide-upload-message" role="status"></p>
-                <label class="slide-field"
-                  >عنوان الشريحة<input
-                    id="slide-title"
-                    required
-                    maxlength="100"
-                    placeholder="مثال: اكتشف متاجرك المفضلة" dir="auto"></label>
-                <div class="slide-fields">
-                  <label class="slide-field"
-                    >الإجراء عند الضغط<select id="slide-action">
-                      <option value="merchant">فتح المتجر</option>
-                      <option value="campaign">فتح الحملة أو العرض</option>
-                      <option value="discount">فتح خصم المتجر</option>
-                      <option value="platform">فتح خصم المنصة</option>
-                      <option value="category">فتح فئة في المتجر</option>
-                    </select></label
-                  ><label class="slide-field"
-                    >ترتيب العرض<input
-                      id="slide-order"
-                      type="number"
-                      min="0"
-                      max="999"
-                      step="1"
-                      value="0"
-                      required dir="ltr"><small>تظهر الأرقام الأقل أولًا.</small></label
-                  >
-                </div>
-                <label class="slide-field" id="slide-merchant-field" hidden
-                  >متجر الفئة<select id="slide-merchant"></select
-                ></label>
-                <label class="slide-field"
-                  >البحث عن الوجهة<input
-                    id="slide-destination-search"
-                    type="search"
-                    placeholder="ابحث بالاسم" dir="auto"></label>
-                <label class="slide-field"
-                  >الوجهة<select
-                    id="slide-destination"
-                    size="4"
-                    required
-                  ></select
-                ></label>
-                <div id="slide-offer-details" hidden>
-                  <p id="slide-offer-summary"></p>
-                  <button
-                    type="button"
-                    class="btn-secondary"
-                    id="slide-use-offer"
-                  >
-                    استخدام عنوان العرض وتواريخه
-                  </button>
-                  <p>
-                    تُخفى الشرائح المرتبطة عندما يكون العرض غير مفعّل أو خارج فترة سريانه أو مستنفدًا. تُراجع أهلية الخصم عند إتمام الطلب.
-                  </p>
-                </div>
-                <div class="slide-fields">
-                  <label class="slide-field"
-                    >تاريخ ووقت البدء<input
-                      id="slide-start"
-                      type="datetime-local"
-                      required dir="ltr"></label
-                  ><label class="slide-field"
-                    >تاريخ ووقت الانتهاء<input
-                      id="slide-end"
-                      type="datetime-local"
-                      required dir="ltr"></label>
-                </div>
-                <small id="slide-timezone"
-                  >تُعرض الأوقات وفق المنطقة الزمنية للمتصفح.</small
-                >
-                <div class="slide-fields">
-                  <label class="slide-field"
-                    >الجمهور<select id="slide-audience">
-                      <option value="all">جميع العملاء</option>
-                      <option value="registered">العملاء المسجّلون</option>
-                      <option value="guests">الزوار</option>
-                    </select></label
-                  ><label class="slide-field"
-                    >حالة النشر<select id="slide-status">
-                      <option value="draft">مسودة</option>
-                      <option value="published">نشر</option>
-                      <option value="paused">إيقاف مؤقت</option>
-                    </select></label
-                  >
-                </div>
-                <fieldset class="slide-regions">
-                  <legend>المناطق</legend>
-                  <label
-                    ><input type="checkbox" id="slide-all-regions" checked dir="auto">
-                    جميع المناطق</label
-                  ><input
-                    type="search"
-                    id="slide-region-search"
-                    aria-label="البحث في المناطق"
-                    placeholder="ابحث باسم المنطقة بالعربية أو الإنجليزية" dir="auto">
-                  <div id="slide-regions-list"></div>
-                  <small id="slide-regions-summary"
-                    >جميع المناطق محددة.</small
-                  >
-                </fieldset>
-                <p class="slide-note">
-                  تظهر الشرائح المنشورة خلال فترة عرضها وللجمهور والمناطق المحددة فقط. تبقى المسودات والشرائح المتوقفة مخفية.
-                </p>
-                <p id="slide-error" role="alert"></p>
-              </div>
-              <footer class="slide-editor-footer">
-                <button type="button" class="btn-secondary" id="slide-cancel">
-                  إلغاء</button
-                ><button type="submit" class="btn-primary" id="slide-save">
-                  حفظ الشريحة
-                </button>
-              </footer>
-            </form>
-          </dialog>
-        </section>
+    <style>
+        /* Modal dialog styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
-        <section
-          class="workspace-panel performance-panel"
-          id="promotion-performance"
-          aria-labelledby="performance-heading"
-        >
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">من مشاهدة العرض إلى إتمام الطلب</p>
-              <h2 id="performance-heading">أداء الشرائح</h2>
-              <p>الإجماليات التراكمية للعروض المرتبطة بشرائح الشاشة الرئيسية.</p>
+        .modal-content {
+            background: var(--md-sys-color-surface);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Enhanced datetime input styling to ensure calendar and time icons visibility */
+        input[type="datetime-local"] {
+            position: relative;
+            padding-right: 50px !important;
+            background: var(--md-sys-color-surface);
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        /* Enhanced datetime input container */
+        .datetime-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Material 3 Design System Styles for Campaign Form */
+        .material-3-modal {
+            max-width: 800px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--md-sys-color-surface);
+            border-radius: 16px;
+            padding: 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .material-3-header {
+            padding: 24px 24px 16px 24px;
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border-radius: 16px 16px 0 0;
+            margin: 0;
+        }
+
+        .material-3-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .material-3-icon {
+            font-size: 1.25rem;
+        }
+
+        .material-3-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--md-sys-color-surface-variant);
+            border: none;
+            color: var(--md-sys-color-on-surface-variant);
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .material-3-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .material-3-form {
+            padding: 24px;
+        }
+
+        .material-3-section {
+            margin-bottom: 24px;
+            background: var(--md-sys-color-surface-container-low);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--md-sys-color-primary);
+        }
+
+        .section-title {
+            margin: 0 0 20px 0;
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--md-sys-color-primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .material-3-field {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .material-3-input,
+        .material-3-select,
+        .material-3-textarea {
+            width: 100%;
+            padding: 16px 12px 8px 12px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 8px;
+            background: var (--md-sys-color-surface);
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .material-3-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .material-3-input:focus,
+        .material-3-select:focus,
+        .material-3-textarea:focus {
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px rgba(253, 197, 0, 0.1);
+        }
+
+        .material-3-input:not(:placeholder-shown),
+        .material-3-select:not([value=""]),
+        .material-3-textarea:not(:placeholder-shown) {
+            padding-top: 20px;
+            padding-bottom: 4px;
+        }
+
+        .material-3-label {
+            position: absolute;
+            left: 12px;
+            top: 16px;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 16px;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            background: var(--md-sys-color-surface);
+            padding: 0 4px;
+        }
+
+        .material-3-input:focus + .material-3-label,
+        .material-3-input:not(:placeholder-shown) + .material-3-label,
+        .material-3-select:focus + .material-3-label,
+        .material-3-select:not([value=""]) + .material-3-label,
+        .material-3-textarea:focus + .material-3-label,
+        .material-3-textarea:not(:placeholder-shown) + .material-3-label {
+            top: -8px;
+            font-size: 12px;
+            color: var(--md-sys-color-primary);
+            font-weight: 500;
+        }
+
+        .material-3-underline {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--md-sys-color-primary);
+            transform: scaleX(0);
+            transition: transform 0.2s ease;
+        }
+
+        .material-3-input:focus ~ .material-3-underline,
+        .material-3-select:focus ~ .material-3-underline,
+        .material-3-textarea:focus ~ .material-3-underline {
+            transform: scaleX(1);
+        }
+
+        .material-3-helper {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .material-3-checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .material-3-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .material-3-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+        .material-3-checkmark {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--md-sys-color-outline);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.2s ease;
+            background: var(--md-sys-color-surface);
+        }
+
+        .material-3-checkbox input[type="checkbox"]:checked + .material-3-checkmark {
+            background: var(--md-sys-color-primary);
+            border-color: var(--md-sys-color-primary);
+        }
+
+        .material-3-checkbox input[type="checkbox"]:checked + .material-3-checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--md-sys-color-on-primary);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkbox-text {
+            font-weight: 400;
+        }
+
+        .material-3-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .material-3-btn-primary,
+        .material-3-btn-secondary {
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: none;
+        }
+
+        .material-3-btn-primary {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            box-shadow: 0 2px 8px rgba(253, 197, 0, 0.3);
+        }
+
+        .material-3-btn-primary:hover {
+            background: var(--wizz-primary-dark);
+            box-shadow: 0 4px 12px rgba(253, 197, 0, 0.4);
+        }
+
+        .material-3-btn-secondary {
+            background: transparent;
+            color: var(--md-sys-color-secondary);
+            border: 1px solid var(--md-sys-color-secondary);
+        }
+
+        .material-3-btn-secondary:hover {
+            background: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .material-3-loader {
+            display: none;
+            text-align: center;
+            padding: 32px;
+            background: var(--md-sys-color-surface-container-low);
+            margin: 24px;
+            border-radius: 12px;
+        }
+
+        .material-3-loader .loader-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--md-sys-color-primary);
+            font-weight: 500;
+        }
+
+        .material-3-loader .fa-spinner {
+            font-size: 1.25rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .material-3-modal {
+                width: 98%;
+                margin: 1%;
+                max-height: 95vh;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .material-3-actions {
+                flex-direction: column;
+            }
+
+            .material-3-btn-primary,
+            .material-3-btn-secondary {
+                justify-content: center;
+            }
+        }
+
+        /* Enhanced campaign type cards */
+        .campaign-type-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Animation for smooth transitions */
+        .material-3-input,
+        .material-3-select,
+        .material-3-textarea,
+        .material-3-checkmark,
+        .material-3-btn-primary,
+        .material-3-btn-secondary {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== ENHANCED CAMPAIGNS TABLE STYLES ===== */
+
+        /* Table Container */
+        .table-container {
+            background: var(--md-sys-color-surface);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-top: 24px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table thead {
+            background: var(--md-sys-color-surface-variant);
+        }
+
+        .data-table th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--md-sys-color-on-surface-variant);
+            border-bottom: 2px solid var(--md-sys-color-outline-variant);
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--md-sys-color-surface-container-low);
+        }
+
+        .data-table tbody tr:not(:last-child) {
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            vertical-align: middle;
+        }
+
+        /* Campaign Name Cell */
+        .campaign-name-cell {
+            min-width: 220px;
+        }
+
+        .campaign-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .campaign-description {
+            font-size: 13px;
+            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.4;
+            opacity: 0.8;
+        }
+
+        /* Type Badge */
+        .campaign-type-cell {
+            min-width: 140px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: capitalize;
+            white-space: nowrap;
+        }
+
+        .type-first-order {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .type-special-occasion, .type-special-event {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .type-restaurant-first, .type-restaurant-launch {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .type-seasonal {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .type-loyalty {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .type-general {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        /* Target Audience */
+        .campaign-target-cell {
+            min-width: 140px;
+        }
+
+        .target-text {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+            font-weight: 500;
+        }
+
+        /* Discount Cell */
+        .campaign-discount-cell {
+            min-width: 120px;
+        }
+
+        .discount-value {
+            margin-bottom: 4px;
+        }
+
+        .discount-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--md-sys-color-primary);
+            background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-tertiary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .min-order {
+            font-size: 11px;
+            color: var(--md-sys-color-on-surface-variant);
+            opacity: 0.7;
+        }
+
+        /* Status Badge */
+        .campaign-status-cell {
+            min-width: 120px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .status-badge i {
+            font-size: 8px;
+        }
+
+        .status-active {
+            background: rgba(76, 175, 80, 0.15);
+            color: #2e7d32;
+            border: 1.5px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status-active i {
+            color: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-inactive {
+            background: rgba(158, 158, 158, 0.15);
+            color: #616161;
+            border: 1.5px solid rgba(158, 158, 158, 0.3);
+        }
+
+        .status-scheduled {
+            background: rgba(33, 150, 243, 0.15);
+            color: #1565c0;
+            border: 1.5px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .status-expired {
+            background: rgba(244, 67, 54, 0.15);
+            color: #c62828;
+            border: 1.5px solid rgba(244, 67, 54, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Usage Cell */
+        .campaign-usage-cell {
+            min-width: 120px;
+        }
+
+        .usage-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .usage-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .usage-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--md-sys-color-surface-variant);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-tertiary) 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Period Cell */
+        .campaign-period-cell {
+            min-width: 160px;
+        }
+
+        .period-dates {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .date-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .date-line i {
+            font-size: 11px;
+            color: var(--md-sys-color-on-surface-variant);
+            width: 12px;
+        }
+
+        .date-line:first-child {
+            color: #4caf50;
+        }
+
+        .date-line:last-child {
+            color: #f44336;
+        }
+
+        /* Actions Cell */
+        .campaign-actions-cell {
+            min-width: 100px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .edit-btn {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+        }
+
+        .edit-btn:hover {
+            background: rgba(33, 150, 243, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        .delete-btn {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+        }
+
+        .delete-btn:hover {
+            background: rgba(244, 67, 54, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .data-table {
+                font-size: 13px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 12px 16px;
+            }
+
+            .campaign-name {
+                font-size: 14px;
+            }
+
+            .campaign-description {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .data-table {
+                min-width: 1000px;
+            }
+        }
+
+        /* Empty State */
+        .data-table tbody tr td[colspan] {
+            padding: 3rem 2rem;
+        }
+
+        /* Loading State */
+        .loading-row td {
+            text-align: center;
+            padding: 2rem;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* ===== END ENHANCED TABLE STYLES ===== */
+
+        /* ===== MERCHANT DISCOUNTS TABLE STYLES ===== */
+
+        .discount-row {
+            transition: background-color 0.2s ease;
+        }
+
+        .discount-row:hover {
+            background: var(--md-sys-color-surface-container-low);
+        }
+
+        /* Discount Name/Code Cell */
+        .discount-name-cell {
+            min-width: 180px;
+        }
+
+        .discount-code {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--md-sys-color-primary);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .discount-description {
+            font-size: 13px;
+            color: var (--md-sys-color-on-surface-variant);
+            line-height: 1.4;
+            opacity: 0.8;
+        }
+
+        /* Merchant Name Cell */
+        .merchant-name-cell {
+            min-width: 200px;
+        }
+
+        .merchant-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 4px;
+        }
+
+        .merchant-id {
+            font-size: 11px;
+            color: var (--md-sys-color-on-surface-variant);
+            font-family: 'Courier New', monospace;
+            opacity: 0.6;
+        }
+
+        /* Discount Type Badge */
+        .discount-type-cell {
+            min-width: 130px;
+        }
+
+        .type-percentage {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .type-fixed {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        /* Discount Value Cell */
+        .discount-value-cell {
+            min-width: 120px;
+        }
+
+        /* Discount Validity Cell */
+        .discount-validity-cell {
+            min-width: 140px;
+        }
+
+        .validity-date {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--md-sys-color-error);
+        }
+
+        .validity-date i {
+            font-size: 11px;
+            color: var (--md-sys-color-error);
+        }
+
+        /* ===== END MERCHANT DISCOUNTS TABLE STYLES ===== */
+
+        /* Modal dialog styles */
+    </style>
+    <link rel="stylesheet" href="../styles/promotions-page.css?v=20261016-campaign2">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link rel="stylesheet" href="../styles/home-slideshow.css?v=20261016-journey4">
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"><link rel="stylesheet" href="../styles/campaign-form-clarity.css?v=20261018-clarity2"></head>
+
+<body data-page="promotions">
+    <!-- Sidebar include placeholder -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Content -->
+        <div class="page-content">
+<details data-commercial-kind="FUNDING" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px"><summary>مشاركة تمويل الخصومات</summary><p>إدارة الشروط المالية لكل فرع. تسري المشاركة بعد موافقة المالك، ولمدة الخصم نفسها.</p></details>
+            <!-- Create Promotion Modal Dialog -->
+            <div id="addPromotionModal" class="modal">
+                <div class="modal-content">
+                    <button id="closeAddPromotionModalBtn" class="modal-close">&times;</button>
+                    <h2 style="margin-top: 0;"><i class="fas fa-tags"></i> عرض جديد</h2>
+                    <form id="addPromotionForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="title">عنوان العرض *</label>
+                                <input type="text" id="title" name="title" required
+                                    placeholder="مثال: تخفيضات الصيف" dir="auto">
+                            </div>
+                            <div class="form-group">
+                                <label for="code">رمز العرض *</label>
+                                <input type="text" id="code" name="code" required placeholder="مثال: SUMMER25"
+                                    style="text-transform: uppercase;" dir="auto">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="type">نوع الخصم *</label>
+                                <select id="type" name="type" required>
+                                    <option value="">اختر النوع</option>
+                                    <option value="percentage">خصم بنسبة مئوية</option>
+                                    <option value="fixed_amount">خصم بمبلغ ثابت (د.ع)</option>
+                                    <option value="free_delivery">توصيل مجاني</option>
+                                    <option value="bogo" disabled>اشترِ منتجًا واحصل على آخر مجانًا (داخل المتجر — قريبًا)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="value">قيمة الخصم *</label>
+                                <input type="number" id="value" name="value" required min="0" step="1"
+                                    placeholder="مثال: 20٪ أو 5000 دينار عراقي" dir="ltr">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">الوصف *</label>
+                            <textarea id="description" name="description" required
+                                placeholder="وصف مختصر للعرض"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="startDate">تاريخ ووقت البدء *</label>
+                                <div class="datetime-input-wrapper">
+                                    <input type="datetime-local" id="startDate" name="startDate" required dir="ltr">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="endDate">تاريخ ووقت الانتهاء *</label>
+                                <div class="datetime-input-wrapper">
+                                    <input type="datetime-local" id="endDate" name="endDate" required dir="ltr">
+                                </div>
+                                </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="limit">حد الاستخدام (اختياري)</label>
+                                <input type="number" id="limit" name="limit" min="1" placeholder="e.g., 100" dir="ltr">
+                            </div>
+                            <div class="form-group">
+                                <label for="minOrder">الحد الأدنى لقيمة الطلب بالدينار العراقي (اختياري)</label>
+                                <input type="number" id="minOrder" name="minOrder" min="0" step="100"
+                                    placeholder="مثال: 10000 دينار عراقي" dir="ltr">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="btn-secondary">مسح النموذج</button>
+                            <button type="submit" class="btn-primary">إنشاء عرض</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <button type="button" id="report-refresh" class="btn-secondary">
-              تحديث التقرير
-            </button>
-          </div>
-          <div class="workspace-metrics report-metrics">
-            <article>
-              <span>المشاهدات</span><strong id="report-views">—</strong
-              ><small>جلسات التطبيق التقديرية</small>
-            </article>
-            <article>
-              <span>الضغطات</span><strong id="report-taps">—</strong
-              ><small>جلسات التطبيق التقديرية</small>
-            </article>
-            <article>
-              <span>الطلبات المرتبطة</span><strong id="report-orders">—</strong
-              ><small>الطلبات المسجّلة بنجاح</small>
-            </article>
-            <article>
-              <span>وفورات العملاء</span><strong id="report-savings">—</strong
-              ><small>إجمالي التوفير في الطلبات المرتبطة (د.ع)</small>
-            </article>
-          </div>
-          <p id="report-status" class="muted" role="status"></p>
-        </section>
-      </div>
-    </main>
-    <dialog id="offer-dialog" aria-labelledby="offer-editor-title">
-      <form id="offer-form">
-        <header class="offer-editor-header">
-          <div>
-            <p class="eyebrow">إعداد العروض</p>
-            <h2 id="offer-editor-title">إنشاء عرض</h2>
-          </div>
-          <button
-            type="button"
-            id="offer-close"
-            class="icon-button"
-            aria-label="إغلاق محرر العرض"
-          >
-            ×
-          </button>
-        </header>
-        <div class="editor-body">
-          <div class="editor-fields">
-            <nav class="editor-sections" aria-label="أقسام محرر العرض">
-              <a href="#offer-basics">١. المعلومات الأساسية</a
-              ><a href="#offer-discount">٢. الخصم</a
-              ><a href="#offer-targeting">٣. الأهلية</a
-              ><a href="#offer-schedule">٤. الجدول الزمني</a
-              ><a href="#offer-placement">٥. موضع العرض</a>
-            </nav>
-            <section id="offer-basics">
-              <p class="eyebrow">١ / فكرة العرض</p>
-              <h3>ابدأ بتفاصيل العرض</h3>
-              <div class="form-grid">
-                <label
-                  >مصدر العرض<select id="edit-source">
-                    <option value="campaign">حملة المنصة</option>
-                    <option value="platform">خصم المنصة</option>
-                    <option value="merchant">خصم المتجر</option>
-                  </select></label
-                ><label
-                  >العنوان<input
-                    id="edit-title"
-                    required
-                    maxlength="100"
-                    placeholder="مثال: غداؤك المقبل بسعر أقل"
-                    dir="auto" /></label
-                ><label
-                  >رمز العرض <small>اختياري</small
-                  ><input
-                    id="edit-code"
-                    maxlength="40"
-                    pattern="[A-Z0-9_-]*"
-                    placeholder="مثال: LUNCH20" dir="auto"><small
-                    >يمكن تطبيق عروض الشرائح دون إدخال رمز.</small
-                  ></label
-                ><label
-                  >هدف الحملة<select id="edit-purpose">
-                    <option value="promotional">عرض عام</option>
-                    <option value="first-order">الطلب الأول</option>
-                    <option value="new-customer">ترحيب بالعملاء الجدد</option>
-                    <option value="loyalty">الولاء</option>
-                    <option value="seasonal">موسمي</option>
-                  </select></label
-                ><label class="full-width"
-                  >الوصف<textarea
-                    id="edit-description"
-                    maxlength="2000"
-                    rows="3"
-                    placeholder="اشرح تفاصيل العرض للعملاء"
-                    dir="auto"
-                  ></textarea>
-                </label>
-              </div>
-            </section>
-            <section id="offer-image-section">
-              <h3>صورة الحملة</h3>
-              <label>ارفع صورة العرض<input id="offer-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
-              <small>JPG / PNG / WebP، حتى 10 MB. تظهر الصورة في نافذة العرض داخل التطبيق.</small>
-              <p id="offer-image-status" role="status"></p>
-              <img id="offer-image-preview" hidden alt="معاينة صورة الحملة" style="max-width:100%;max-height:260px;object-fit:contain;border-radius:20px">
-              <button id="offer-image-remove" type="button" class="btn-secondary">إزالة الصورة</button>
-            </section>
-            <section id="offer-discount">
-              <p class="eyebrow">٢ / قيمة الخصم</p>
-              <h3>وضّح قيمة التوفير</h3>
-              <div class="form-grid">
-                <label
-                  >نوع الخصم<select id="edit-type">
-                    <option value="percentage">خصم بنسبة مئوية</option>
-                    <option value="fixed">مبلغ ثابت بالدينار العراقي</option>
-                    <option value="freeDelivery">توصيل مجاني</option>
-                  </select></label
-                ><label id="value-field"
-                  >قيمة الخصم<input
-                    id="edit-value"
-                    type="number"
-                    min="0.001"
-                    step="0.001"
-                    required
-                    placeholder="20" dir="ltr"></label
-                ><label
-                  >الحد الأدنى للطلب (د.ع)<input
-                    id="edit-minimum"
-                    type="number"
-                    min="0"
-                    max="1000000000"
-                    step="0.001"
-                    value="0"
-                    required dir="ltr"></label
-                ><label
-                  >الحد الأعلى للتوفير (د.ع) <small>اختياري</small
-                  ><input
-                    id="edit-maximum"
-                    type="number"
-                    min="0.001"
-                    max="1000000000"
-                    step="0.001"
-                    placeholder="دون حد أعلى" dir="ltr"></label>
-              </div>
-              <div class="form-grid">
-                <label
-                  >المتاجر المشمولة<select id="edit-merchant-mode">
-                    <option value="all">جميع المتاجر</option>
-                    <option value="selected">متاجر محددة</option>
-                  </select></label
-                >
-                <div id="merchant-picker" hidden>
-                  <label
-                    >البحث عن المتاجر<input
-                      id="merchant-search"
-                      type="search"
-                      placeholder="ابحث عن متجر" dir="auto"></label>
-                  <div class="choice-list" id="merchant-choices"></div>
-                  <small id="merchant-summary"></small>
+
+            <!-- Enhanced Campaign Modal Dialog with Material 3 Design -->
+            <div id="simplifiedCampaignModal" class="modal" style="display: none;">
+                <div class="modal-content material-3-modal">
+                    <button id="closeCampaignModal" class="modal-close material-3-close">&times;</button>
+                    <div class="modal-header material-3-header">
+                        <h2>
+                            <i class="fas fa-rocket material-3-icon"></i> إنشاء حملة
+                        </h2>
+                    </div>
+
+                    <div id="campaignLoader" class="material-3-loader" style="display: none;">
+                        <div class="loader-content">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>جارٍ معالجة الحملة...</span>
+                        </div>
+                    </div>
+                    <form id="simplifiedCampaignForm" class="material-3-form">
+<div id="campaign_saveStatus" role="status" aria-live="polite" hidden></div>
+                        <!-- Basic Campaign Information -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-info-circle"></i> المعلومات الأساسية
+                            </h3>
+<div class="form-row">
+            <div class="material-3-field">
+                <input type="text" name="title" id="campaign_title" required placeholder=" " class="material-3-input" dir="auto">
+                <label for="campaign_title" class="material-3-label">عنوان الحملة *</label>
+                <div class="material-3-underline"></div>
+            </div>
+                                <div class="material-3-field">
+                                    <input type="text" name="code" id="campaign_code" required placeholder=" " class="material-3-input"
+                                        style="text-transform: uppercase;" dir="auto">
+                                    <label for="campaign_code" class="material-3-label">رمز الحملة *</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">يجب أن يكون الرمز فريدًا، مثل FIRST25</small>
+                                </div>
+                                </div>
+
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <select name="type" id="campaign_type" required class="material-3-select">
+                                        <option value="">اختر النوع</option>
+                                        <option value="first-order">خصم الطلب الأول</option>
+                                        <option value="new-customer">ترحيب بالعملاء الجدد</option>
+                                        <option value="loyalty">مكافأة ولاء</option>
+                                        <option value="promotional">حملة ترويجية</option>
+                                        <option value="seasonal">عرض موسمي</option>
+                                    </select>
+                                    <label for="campaign_type" class="material-3-label">نوع الحملة *</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1">
+<label for="campaign_image">صورة الحملة</label>
+<input type="hidden" id="campaign_imageKey" name="imageKey" value="">
+<input id="campaign_image" type="file" accept="image/jpeg,image/png,image/webp">
+<p>ارفع صورة حتى 10 MB. تظهر في نافذة العرض داخل تطبيق المستخدم. نشر شريحة الشاشة الرئيسية يتم بشكل منفصل.</p>
+<p id="campaign_imageStatus" role="status"></p>
+<img id="campaign_imagePreview" hidden alt="صورة الحملة" style="max-width:100%;max-height:260px;object-fit:contain;border-radius:20px">
+<button id="campaign_imageRemove" type="button">إزالة الصورة</button>
+</div><div class="material-3-field">
+                                    <textarea name="description" id="campaign_description" placeholder=" " class="material-3-textarea"></textarea>
+                                    <label for="campaign_description" class="material-3-label">الوصف</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discount Configuration -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-percent"></i> تفاصيل الخصم
+                            </h3>
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <select name="discountType" id="campaign_discountType" required class="material-3-select">
+                                        <option value="">اختر النوع</option>
+                                        <option value="percentage">خصم بنسبة مئوية</option>
+                                        <option value="fixed">خصم بمبلغ ثابت (د.ع)</option>
+                                        <option value="free-delivery">توصيل مجاني</option>
+                                        <option value="bogo" disabled>اشترِ منتجًا واحصل على آخر مجانًا (داخل المتجر — قريبًا)</option>
+                                    </select>
+                                    <label for="campaign_discountType" class="material-3-label">نوع الخصم *</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                                <div class="material-3-field">
+                                    <input type="number" name="discountValue" id="campaign_discountValue" required min="0" step="1" placeholder=" "
+                                        class="material-3-input" dir="ltr">
+                                    <label for="campaign_discountValue" class="material-3-label">قيمة الخصم *</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">نسبة مئوية، مثل 20، أو مبلغ بالدينار العراقي، مثل 5000</small>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <input type="number" name="minOrderValue" id="campaign_minOrderValue" min="0" step="100" placeholder=" "
+                                        class="material-3-input" dir="ltr">
+                                    <label for="campaign_minOrderValue" class="material-3-label">الحد الأدنى لقيمة الطلب (د.ع)</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">حد أدنى اختياري لقيمة الطلب بالدينار العراقي، مثل 10000</small>
+                                </div>
+                                <div class="material-3-field">
+                                    <input type="number" name="usageLimit" id="campaign_usageLimit" min="1" placeholder=" " class="material-3-input" dir="ltr">
+                                    <label for="campaign_usageLimit" class="material-3-label">حد الاستخدام</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">اتركه فارغًا للاستخدام غير المحدود</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campaign Schedule -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-calendar"></i> الجدول الزمني
+                            </h3>
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <input type="date" name="startDate" id="campaign_startDate" required placeholder=" " class="material-3-input" dir="ltr">
+                                    <label for="campaign_startDate" class="material-3-label">تاريخ البدء *</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                                <div class="material-3-field">
+                                    <input type="date" name="endDate" id="campaign_endDate" required placeholder=" " class="material-3-input" dir="ltr">
+                                    <label for="campaign_endDate" class="material-3-label">تاريخ الانتهاء *</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Simplified Targeting -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-bullseye"></i> الاستهداف
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="material-3-field">
+                                    <select name="customerSegment" id="campaign_customerSegment" class="material-3-select">
+                                        <option value="all">جميع العملاء</option>
+                                        <option value="new">العملاء الجدد (خلال أول ٧ أيام)</option>
+                                        <option value="returning">العملاء العائدون</option>
+                                        <option value="vip">العملاء المميزون</option>
+                                        <option value="inactive">العملاء غير النشطين منذ ٣٠ يومًا فأكثر</option>
+                                    </select>
+                                    <label for="campaign_customerSegment" class="material-3-label">فئة العميل</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                                <div class="material-3-field">
+                                    <div class="campaign-region-picker">
+                                        <label for="campaign_regionSearch">ابحث في المناطق المسجّلة</label>
+                                        <input type="search" id="campaign_regionSearch" placeholder="ابحث بالاسم العربي أو الإنجليزي" autocomplete="off" dir="auto">
+                                        <label for="campaign_targetRegionId">المناطق المستهدفة</label>
+                                        <select name="targetRegionId" id="campaign_targetRegionId" size="5" aria-describedby="campaign_regionStatus">
+                                            <option value="">جميع المناطق</option>
+                                        </select>
+                                        <small id="campaign_regionStatus" role="status">اختر منطقة مسجّلة، أو اترك خيار «جميع المناطق» محددًا.</small>
+                                        <button type="button" id="campaign_retryRegions" hidden>إعادة تحميل المناطق</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campaign Settings -->
+                        <div class="form-section material-3-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-cog"></i> الإعدادات
+                            </h3>
+
+                            <div class="material-3-checkboxes">
+                                <label class="material-3-checkbox">
+                                    <input type="checkbox" name="isActive" checked dir="auto">
+                                    <span class="material-3-checkmark"></span>
+                                    <span class="checkbox-text">التفعيل فورًا</span>
+                                </label>
+                                <label class="material-3-checkbox">
+                                    <input type="checkbox" name="singleUse" dir="auto">
+                                    <span class="material-3-checkmark"></span>
+                                    <span class="checkbox-text">استخدام واحد لكل عميل</span>
+                                </label>
+                                <label class="material-3-checkbox">
+                                    <input type="checkbox" name="stackable" dir="auto">
+                                    <span class="material-3-checkmark"></span>
+                                    <span class="checkbox-text">إمكانية الجمع مع عروض أخرى</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Push Notification Settings -->
+                        <div class="form-section material-3-section"
+                            style="background: var(--md-sys-color-tertiary-container); border-left-color: var(--md-sys-color-tertiary);">
+                            <h3 class="section-title">
+                                <i class="fas fa-bell"></i> الإشعارات
+                            </h3>
+
+                            <div class="material-3-checkboxes">
+                                <label class="material-3-checkbox">
+                                    <input type="checkbox" name="sendPushNotification" id="sendPushNotification" dir="auto">
+                                    <span class="material-3-checkmark"></span>
+                                    <span class="checkbox-text" style="font-weight: 500;">إرسال إشعار إلى الزبائن</span>
+                                </label>
+                                <small class="material-3-helper"
+                                    style="margin-left: 32px; display: block; margin-top: 8px; color: var(--md-sys-color-on-surface-variant);">
+                                    <i class="fas fa-info-circle"></i> سيتلقى الزبائن المؤهلون إشعارًا بهذا العرض في تطبيق ويز يوزر بعد نجاح الحفظ. يُرسل الإشعار للحملة المفعّلة خلال فترة سريانها، مرة واحدة لكل إصدار.
+                                </small>
+                            </div>
+
+                            <div id="pushNotificationOptions" class="push-notification-options" hidden
+                                style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--md-sys-color-outline-variant);">
+                                <div class="material-3-field">
+                                    <input type="text" name="notificationTitle" id="notificationTitle" placeholder=" " class="material-3-input"
+                                        maxlength="100" dir="auto">
+                                    <label for="notificationTitle" class="material-3-label">عنوان الإشعار</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">اتركه فارغًا لاستخدام اسم الحملة</small>
+                                </div>
+                                <div class="material-3-field" style="margin-top: 16px;">
+                                    <textarea name="notificationMessage" id="notificationMessage" placeholder=" " class="material-3-textarea"
+                                        rows="3" maxlength="150"></textarea>
+                                    <label for="notificationMessage" class="material-3-label">نص الإشعار</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">رسالة مخصصة (١٥٠ حرفًا كحد أقصى)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions material-3-actions">
+                            <button type="button" class="btn-secondary material-3-btn-secondary"
+                                onclick="window.campaignManager && window.campaignManager.resetForm()">
+                                <i class="fas fa-undo"></i> إعادة تعيين
+                            </button>
+                            <button type="submit" class="btn-primary material-3-btn-primary">
+                                <i class="fas fa-rocket"></i> إنشاء حملة
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <label
-                  >المنتجات المشمولة<select id="edit-applicability">
-                    <option value="allItems">جميع المنتجات</option>
-                    <option value="specificCategories">
-                      فئات محددة
-                    </option>
-                    <option value="specificItems">منتجات محددة</option>
-                  </select></label
-                >
-                <div id="product-picker" hidden>
-                  <label
-                    >البحث في المنتجات والفئات<input
-                      id="product-search"
-                      type="search"
-                      placeholder="ابحث عن فئة أو منتج" dir="auto"></label>
-                  <p id="catalog-status" role="status"></p>
-                  <button
-                    type="button"
-                    id="catalog-retry"
-                    class="text-button"
-                    hidden
-                  >
-                    إعادة تحميل المنتجات
-                  </button>
-                  <div class="choice-list" id="product-choices"></div>
-                  <small id="product-summary"></small>
+            </div>
+
+            <!-- Push Notification Modal -->
+            <div id="pushNotificationModal" class="modal" style="display: none;">
+                <div class="modal-content material-3-modal" style="max-width: 600px;">
+                    <button class="modal-close" onclick="closePushModal()">×</button>
+                    <div class="material-3-header">
+                        <h2><i class="fas fa-bell"></i> إرسال إشعار</h2>
+                    </div>
+                    <div style="padding: 24px;">
+                        <div
+                            style="background: var(--md-sys-color-surface-variant); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 8px 0; color: var(--md-sys-color-on-surface-variant);">معاينة الخصم</h3>
+                            <div id="discountPreview" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+
+                        <form id="pushNotificationForm" onsubmit="return sendPushNotification(event)">
+                            <input type="hidden" id="push_discountId" name="discountId" dir="auto">
+
+                            <!-- Target Audience -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">الجمهور المستهدف <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <select id="push_targetAudience" name="targetAudience" required class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="all">جميع العملاء</option>
+                                    <option value="nearby">العملاء القريبون (ضمن ٥ كم)</option>
+                                    <option value="loyal">العملاء الدائمون (٥ طلبات فأكثر)</option>
+                                    <option value="new">العملاء الجدد (آخر ٣٠ يومًا)</option>
+                                </select>
+                            </div>
+
+                            <!-- Notification Title (Optional Override) -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <input type="text" id="push_notificationTitle" name="notificationTitle" placeholder=" "
+                                    class="material-3-input" dir="auto">
+                                <label for="push_notificationTitle" class="material-3-label">عنوان إشعار مخصص (اختياري)</label>
+                                <div class="material-3-underline"></div>
+                                <small class="material-3-helper">اتركه فارغًا لاستخدام العنوان المُعدّ تلقائيًا</small>
+                            </div>
+
+                            <!-- Notification Body (Optional Override) -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <textarea id="push_notificationBody" name="notificationBody" placeholder=" " class="material-3-textarea"
+                                    rows="3"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;"></textarea>
+                                <label for="push_notificationBody" class="material-3-label">نص إشعار مخصص (اختياري)</label>
+                                <small class="material-3-helper">اتركه فارغًا لاستخدام الرسالة المُعدّة تلقائيًا</small>
+                            </div>
+
+                            <!-- Schedule Options -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">موعد الإرسال</label>
+                                <select id="push_sendTime" name="sendTime" class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="now">إرسال فوري</option>
+                                    <option value="scheduled">جدولة الإرسال لاحقًا</option>
+                                </select>
+                            </div>
+
+                            <div id="scheduledTimeSection" style="display: none; margin-bottom: 20px;">
+                                <div class="material-3-field">
+                                    <input type="datetime-local" id="push_scheduledTime" name="scheduledTime" class="material-3-input" dir="ltr">
+                                    <label for="push_scheduledTime" class="material-3-label">موعد الإرسال</label>
+                                    <div class="material-3-underline"></div>
+                                </div>
+                            </div>
+
+                            <!-- Estimated Reach -->
+                            <div
+                                style="background: var(--md-sys-color-tertiary-container); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-users" style="font-size: 24px; color: var(--md-sys-color-on-tertiary-container);"></i>
+                                    <div>
+                                        <div style="font-weight: 500; color: var(--md-sys-color-on-tertiary-container);">الوصول التقديري
+                                        </div>
+                                        <div id="estimatedReach"
+                                            style="font-size: 0.9rem; color: var(--md-sys-color-on-tertiary-container); opacity: 0.8;">
+                                            جارٍ الاحتساب...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="form-actions material-3-actions">
+                                <button type="button" class="btn-secondary material-3-btn-secondary" onclick="closePushModal()">
+                                    إلغاء
+                                </button>
+                                <button type="submit" class="btn-primary material-3-btn-primary">
+                                    <i class="fas fa-paper-plane"></i> إرسال إشعار
+                                </button>
+                                </div>
+                                </form>
+                                </div>
                 </div>
-              </div>
-              <p class="inline-note">
-                تُطبّق خصومات المنتجات والفئات على المنتجات المشمولة فقط. يطبّق ويز يوزر خصومات المتجر المؤهلة تلقائيًا، ويعرض التوفير بجانب كل منتج.
-              </p>
-            </section>
-            <section id="offer-targeting">
-              <p class="eyebrow">٣ / الجمهور المستهدف</p>
-              <h3>الجمهور والمناطق</h3>
-              <div class="form-grid">
-                <label
-                  >فئة العملاء<select id="edit-audience">
-                    <option value="all">جميع العملاء</option>
-                    <option value="registered">العملاء المسجّلون</option>
-                    <option value="guests">الزوار</option>
-                    <option value="new">جدد — مسجّلون خلال آخر ٧ أيام</option>
-                    <option value="returning">
-                      عائدون — لديهم طلب سابق
-                    </option>
-                    <option value="inactive">
-                      غير نشطين — دون طلب خلال ٣٠ يومًا
-                    </option>
-                    <option value="vip">عملاء مميزون موثّقون</option>
-                  </select></label
-                ><label
-                  >مرات الاستخدام لكل عميل <small>اختياري</small
-                  ><input
-                    id="edit-customer-limit"
-                    type="number"
-                    min="1"
-                    max="1000000"
-                    step="1"
-                    placeholder="غير محدود" dir="ltr"></label
-                ><label class="check-field"
-                  ><input id="edit-first-order" type="checkbox" dir="auto"> للطلب الأول فقط</label
-                ><label class="check-field"
-                  ><input id="edit-single-use" type="checkbox" dir="auto"> استخدام واحد لكل عميل</label
-                >
-              </div>
-              <p class="inline-note" id="audience-note">
-                تتطلب شروط سجل العميل وحدود الاستخدام تسجيل الدخول. يُطبّق عرض واحد لكل طلب.
-              </p>
-              <label class="check-field"
-                ><input id="edit-all-regions" type="checkbox" checked dir="auto"> جميع المناطق</label
-              ><label
-                >البحث في المناطق المسجّلة<input
-                  id="region-search"
-                  type="search"
-                  placeholder="ابحث باسم المنطقة بالعربية أو الإنجليزية" dir="auto"></label>
-              <div id="region-choices" class="choice-list"></div>
-              <small id="region-summary"></small>
-            </section>
-            <section id="offer-schedule">
-              <p class="eyebrow">٤ / موعد العرض</p>
-              <h3>الجدول الزمني وحالة النشر</h3>
-              <p class="inline-note">
-                أدخل الأوقات بتوقيت بغداد (UTC+3). تُحفظ الأوقات بالتوقيت العالمي المنسّق UTC.
-              </p>
-              <div class="form-grid">
-                <label
-                  >يبدأ في<input
-                    id="edit-start"
-                    type="datetime-local"
-                    required dir="ltr"></label
-                ><label
-                  >ينتهي في<input
-                    id="edit-end"
-                    type="datetime-local"
-                    required dir="ltr"></label
-                ><label
-                  >الحد الإجمالي للاستخدام<input
-                    id="edit-limit"
-                    type="number"
-                    min="0"
-                    max="1000000000"
-                    step="1"
-                    value="0"
-                    required dir="ltr"><small
-                    >تعني القيمة صفر استخدامًا غير محدود. يُحتفظ بعدد الاستخدامات السابقة.</small
-                  ></label
-                ><label
-                  >حالة نشر العرض<select id="edit-status">
-                    <option value="draft">مسودة — مخفي</option>
-                    <option value="active">مفعّل — وفق الجدول الزمني</option>
-                    <option value="paused">متوقف مؤقتًا — مخفي</option></select
-                  ><small id="permission-note"></small
-                ></label>
-              </div>
-            </section>
-            <section id="offer-placement">
-              <p class="eyebrow">٥ / الشاشة الرئيسية</p>
-              <h3>اختر موضعًا لعرض الحملة</h3>
-              <label class="check-field placement-check"
-                ><input id="edit-slideshow" type="checkbox" dir="auto"><span
-                  >إضافة شريحة اختيارية للسلايد شو<small
-                    >الحملة تستخدم صورتها الخاصة في نافذة العروض. هذا الخيار يضيف لها شريحة منفصلة في السلايد شو.</small
-                  ></span
-                ></label
-              >
-              <p class="inline-note">
-                نافذة الحملة مستقلة عن السلايد شو، وتعرض صورة الحملة وشروطها والمتاجر المشمولة. إرسال الإشعار متاح من تفاصيل الحملة.
-              </p>
-            </section>
-          </div>
-          <aside class="offer-preview-column">
-            <p class="eyebrow">معاينة العرض للعميل</p>
-            <div class="phone-offer">
-              <div class="phone-offer-art">
-                <span id="preview-benefit">عرضك المميز التالي</span
-                ><small>ويز يوزر / العروض</small>
-              </div>
-              <div class="phone-offer-body">
-                <span class="preview-source" id="preview-source"
-                  >حملة المنصة</span
-                >
-                <h3 id="preview-title">عنوان العرض</h3>
-                <p id="preview-description"></p>
-                <div id="preview-terms"></div>
-                <button type="button" disabled>
-                  استخدم العرض وتسوق <span aria-hidden="true">↗</span>
+                </div>
+
+            <!-- Merchant Information Notification Modal -->
+            <div id="merchantInfoNotificationModal" class="modal" style="display: none;">
+                <div class="modal-content material-3-modal" style="max-width: 700px;">
+                    <button class="modal-close" onclick="closeMerchantInfoModal()">×</button>
+                    <div class="material-3-header" style="background: var(--md-sys-color-tertiary);">
+                        <h2><i class="fas fa-megaphone"></i> إرسال تحديث إلى المتاجر</h2>
+                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 0.9rem;">إرسال التحديثات والسياسات والإعلانات المهمة إلى المتاجر.</p>
+                    </div>
+                    <div style="padding: 24px;">
+                        <form id="merchantInfoNotificationForm">
+
+                            <!-- Notification Type -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">نوع الإشعار <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <select id="merchant_notificationType" name="notificationType" required class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="info">معلومات</option>
+                                    <option value="warning">تنبيه</option>
+                                    <option value="urgent">تنبيه عاجل</option>
+                                    <option value="feature">ميزة جديدة</option>
+                                    <option value="policy">تحديث سياسة</option>
+                                </select>
+                            </div>
+
+                            <!-- Notification Title -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <input type="text" id="merchant_notificationTitle" name="notificationTitle" placeholder=" " required
+                                    class="material-3-input" dir="auto">
+                                <label for="merchant_notificationTitle" class="material-3-label">عنوان الإشعار <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <div class="material-3-underline"></div>
+                                <small class="material-3-helper">مثال: سياسة العمولات الجديدة تسري اعتبارًا من ١ ديسمبر</small>
+                            </div>
+
+                            <!-- Notification Body -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <textarea id="merchant_notificationBody" name="notificationBody" placeholder=" " required
+                                    class="material-3-textarea" rows="4"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;"></textarea>
+                                <label for="merchant_notificationBody" class="material-3-label">نص الإشعار <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <small class="material-3-helper">رسالة واضحة ومختصرة تشرح التحديث</small>
+                            </div>
+
+                            <!-- Target Audience -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">المتاجر المستهدفة <span
+                                        style="color: var(--md-sys-color-error);">*</span></label>
+                                <select id="merchant_targetAudience" name="targetAudience" required class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="all">كل المتاجر</option>
+                                    <option value="active">المتاجر النشطة (طلبات خلال آخر ٣٠ يومًا)</option>
+                                    <option value="inactive">المتاجر غير النشطة (دون طلبات حديثة)</option>
+                                    <option value="new">المتاجر الجديدة (انضمت خلال آخر ١٤ يومًا)</option>
+                                    <option value="by_city">بحسب المدينة</option>
+                                    <option value="by_category">بحسب الفئة</option>
+                                </select>
+                            </div>
+
+                            <!-- City Filter (shown when by_city selected) -->
+                            <div id="cityFilterSection" style="display: none; margin-bottom: 20px;">
+                                <div class="material-3-field">
+                                    <input type="text" id="merchant_city" name="city" placeholder=" " class="material-3-input" dir="auto">
+                                    <label for="merchant_city" class="material-3-label">المدينة</label>
+                                    <div class="material-3-underline"></div>
+                                    <small class="material-3-helper">مثال: بغداد، النجف، البصرة</small>
+                                </div>
+                            </div>
+
+                            <!-- Category Filter (shown when by_category selected) -->
+                            <div id="categoryFilterSection" style="display: none; margin-bottom: 20px;">
+                                <div class="material-3-field">
+                                    <select id="merchant_businessCategory" name="businessCategory" class="material-3-select"
+                                        style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                        <option value="">اختر الفئة</option>
+                                        <option value="restaurant">مطعم</option>
+                                        <option value="grocery">بقالة</option>
+                                        <option value="pharmacy">صيدلية</option>
+                                        <option value="retail">تجارة التجزئة</option>
+                                        <option value="other">آخر</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Priority -->
+                            <div class="material-3-field" style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">الأولوية</label>
+                                <select id="merchant_priority" name="priority" class="material-3-select"
+                                    style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                    <option value="normal">اعتيادية</option>
+                                    <option value="high">أولوية مرتفعة</option>
+                                </select>
+                            </div>
+
+                            <!-- Optional Fields -->
+                            <details
+                                style="margin-bottom: 20px; padding: 16px; background: var(--md-sys-color-surface-variant); border-radius: 8px;">
+                                <summary style="cursor: pointer; font-weight: 500; padding: 8px;">خيارات متقدمة</summary>
+                                <div style="margin-top: 16px;">
+                                    <!-- Action URL -->
+                                    <div class="material-3-field" style="margin-bottom: 16px;">
+                                        <input type="url" id="merchant_actionUrl" name="actionUrl" placeholder=" "
+                                            class="material-3-input" dir="ltr">
+                                        <label for="merchant_actionUrl" class="material-3-label">رابط الإجراء (اختياري)</label>
+                                        <div class="material-3-underline"></div>
+                                        <small class="material-3-helper">رابط داخل التطبيق أو رابط ويب لعرض المزيد</small>
+                                    </div>
+
+                                    <!-- Image URL -->
+                                    <div class="material-3-field" style="margin-bottom: 16px;">
+                                        <input type="url" id="merchant_imageUrl" name="imageUrl" placeholder=" "
+                                            class="material-3-input" dir="ltr">
+                                        <label for="merchant_imageUrl" class="material-3-label">رابط الصورة (اختياري)</label>
+                                        <div class="material-3-underline"></div>
+                                        <small class="material-3-helper">صورة العرض أو الرسم التوضيحي</small>
+                                    </div>
+
+                                    <!-- Schedule -->
+                                    <div class="material-3-field">
+                                        <label style="display: block; margin-bottom: 8px;">موعد الإرسال</label>
+                                        <select id="merchant_sendTime" name="sendTime" class="material-3-select"
+                                            style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
+                                            <option value="now">إرسال فوري</option>
+                                            <option value="scheduled">جدولة الإرسال لاحقًا</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="merchantScheduledTimeSection" style="display: none; margin-top: 16px;">
+                                        <div class="material-3-field">
+                                            <input type="datetime-local" id="merchant_scheduledTime" name="scheduledTime"
+                                                class="material-3-input" dir="ltr">
+                                            <label for="merchant_scheduledTime" class="material-3-label">موعد الإرسال</label>
+                                            <div class="material-3-underline"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <!-- Estimated Reach -->
+                            <div
+                                style="background: var(--md-sys-color-tertiary-container); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-store"
+                                        style="font-size: 24px; color: var(--md-sys-color-on-tertiary-container);"></i>
+                                    <div>
+                                        <div style="font-weight: 500; color: var(--md-sys-color-on-tertiary-container);">الوصول التقديري</div>
+                                        <div id="merchantEstimatedReach"
+                                            style="font-size: 0.9rem; color: var(--md-sys-color-on-tertiary-container); opacity: 0.8;">
+                                            جارٍ الاحتساب...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Box -->
+                            <div
+                                style="background: var(--md-sys-color-surface-variant); padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid var(--md-sys-color-tertiary);">
+                                <div style="font-weight: 500; margin-bottom: 12px; color: var(--md-sys-color-on-surface-variant);">
+                                    معاينة الإشعار</div>
+                                <div id="merchantNotificationPreview"
+                                    style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="font-weight: 600; font-size: 1rem; margin-bottom: 4px;">سيظهر العنوان هنا</div>
+                                    <div style="font-size: 0.9rem; color: #666;">ستظهر الرسالة هنا</div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="form-actions material-3-actions">
+                                <button type="button" class="btn-secondary material-3-btn-secondary"
+                                    onclick="closeMerchantInfoModal()">
+                                    إلغاء
+                                </button>
+                                <button type="submit" class="btn-primary material-3-btn-primary"
+                                    style="background: var(--md-sys-color-tertiary);">
+                                    <i class="fas fa-paper-plane"></i> إرسال إلى المتاجر
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Promotions overview -->
+            <header class="page-header promotions-header">
+                <div>
+                    <div class="promotions-eyebrow">التسويق / نظرة عامة</div>
+                    <h1>العروض والحملات<span class="promotions-heading-dot" aria-hidden="true">.</span></h1>
+                    <p>عروض تشجّع العملاء على العودة والطلب مجددًا.</p>
+                </div>
+                <button id="sendToMerchantsBtn" class="btn-secondary promotions-message" onclick="openMerchantInfoModal()" data-permission="campaigns_admin:write">
+                    <i class="fas fa-paper-plane" aria-hidden="true"></i> إرسال إلى المتاجر
                 </button>
-              </div>
+            </header>
+
+            <section class="promotions-overview" aria-label="نظرة عامة على العروض">
+                <article class="promotion-metric">
+                    <div class="metric-top"><span>خصومات المتاجر</span><span class="metric-icon"><i class="fas fa-tags" aria-hidden="true"></i></span></div>
+                    <strong id="discounts-total">0</strong><p>لدى المتاجر المسجّلة</p>
+                </article>
+                <article class="promotion-metric metric-active">
+                    <div class="metric-top"><span>الخصومات السارية</span><span class="metric-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></span></div>
+                    <strong id="discounts-active">0</strong><p><span class="metric-status-dot" aria-hidden="true"></span> عروض المتاجر السارية</p>
+                </article>
+                <article class="promotion-metric">
+                    <div class="metric-top"><span>الحملات الخاصة</span><span class="metric-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span></div>
+                    <strong id="campaigns-total">0</strong><p>حملات المنصة</p>
+                </article>
+                <article class="promotion-metric metric-active">
+                    <div class="metric-top"><span>الحملات السارية</span><span class="metric-icon"><i class="fas fa-bolt" aria-hidden="true"></i></span></div>
+                    <strong id="campaigns-active">0</strong><p><span class="metric-status-dot" aria-hidden="true"></span> عروض المنصة السارية</p>
+                </article>
+            </section>
+
+            <section class="content-card slideshow-panel" id="home-slideshow" aria-labelledby="slideshow-heading">
+                <div class="card-header">
+                    <div class="promotion-section-heading"><span class="section-icon"><i class="fas fa-images" aria-hidden="true"></i></span><div><h2 id="slideshow-heading">شرائح الشاشة الرئيسية</h2><p>حدّد ما يظهر للعملاء في الشاشة الرئيسية لتطبيق ويز يوزر.</p></div></div>
+                    <div class="header-actions"><button type="button" class="btn-secondary" id="slides-refresh">تحديث الصفحة</button><button type="button" class="btn-primary" id="slides-add" disabled>إضافة شريحة</button></div>
+                </div>
+                <p id="slides-message" class="slides-message" role="status">جارٍ تحميل الشرائح…</p>
+                <div id="slides-list" class="slides-grid"></div>
+                <dialog id="slide-dialog" aria-labelledby="slide-editor-heading">
+                    <form id="slide-form">
+                        <header class="slide-editor-header"><div><span class="promotions-eyebrow">ويز يوزر / الشاشة الرئيسية</span><h2 id="slide-editor-heading">إضافة شريحة</h2></div><button type="button" id="slide-close" class="btn-secondary" aria-label="إغلاق محرر الشريحة">×</button></header>
+                        <div class="slide-editor-body">
+                            <div class="slide-preview"><img id="slide-preview" alt="معاينة صورة الشريحة" hidden><span id="slide-preview-empty">معاينة الشريحة</span></div>
+                            <label class="slide-field">الصورة<input type="file" id="slide-image" accept="image/jpeg,image/png,image/webp" dir="auto"><small>صيغ JPG أو PNG أو WebP، بحجم لا يتجاوز ١٠ ميغابايت. يُفضّل استخدام صورة أفقية بنسبة ٢:١. تُحسّن الصور تلقائيًا.</small></label>
+                            <p id="slide-upload-message" role="status"></p>
+                            <label class="slide-field">عنوان الشريحة<input id="slide-title" required maxlength="100" placeholder="مثال: اكتشف متاجرك المفضلة" dir="auto"></label>
+                            <div class="slide-fields"><label class="slide-field">الإجراء عند الضغط<select id="slide-action"><option value="merchant">فتح المتجر</option><option value="campaign">فتح الحملة أو العرض</option><option value="discount">فتح خصم المتجر</option><option value="platform">فتح خصم المنصة</option><option value="category">فتح فئة في المتجر</option></select></label><label class="slide-field">ترتيب العرض<input id="slide-order" type="number" min="0" max="999" step="1" value="0" required dir="ltr"><small>تظهر الأرقام الأقل أولًا.</small></label></div>
+                            <label class="slide-field" id="slide-merchant-field" hidden>متجر الفئة<select id="slide-merchant"></select></label>
+                            <label class="slide-field">البحث عن الوجهة<input id="slide-destination-search" type="search" placeholder="ابحث بالاسم" dir="auto"></label>
+                            <label class="slide-field">الوجهة<select id="slide-destination" size="4" required></select></label>
+                            <div id="slide-offer-details" hidden><p id="slide-offer-summary"></p><button type="button" class="btn-secondary" id="slide-use-offer">استخدام عنوان العرض وتواريخه</button><p>تُخفى الشرائح المرتبطة عندما يكون العرض غير مفعّل أو خارج فترة سريانه أو مستنفدًا. تُراجع أهلية الخصم عند إتمام الطلب.</p></div>
+                            <div class="slide-fields"><label class="slide-field">تاريخ ووقت البدء<input id="slide-start" type="datetime-local" required dir="ltr"></label><label class="slide-field">تاريخ ووقت الانتهاء<input id="slide-end" type="datetime-local" required dir="ltr"></label></div>
+                            <small id="slide-timezone">تُعرض الأوقات وفق المنطقة الزمنية للمتصفح.</small>
+                            <div class="slide-fields"><label class="slide-field">الجمهور<select id="slide-audience"><option value="all">جميع العملاء</option><option value="registered">العملاء المسجّلون</option><option value="guests">الزوار</option></select></label><label class="slide-field">حالة النشر<select id="slide-status"><option value="draft">مسودة</option><option value="published">نشر</option><option value="paused">إيقاف مؤقت</option></select></label></div>
+                            <fieldset class="slide-regions"><legend>المناطق</legend><label><input type="checkbox" id="slide-all-regions" checked dir="auto"> جميع المناطق</label><input type="search" id="slide-region-search" aria-label="البحث في المناطق" placeholder="ابحث باسم المنطقة بالعربية أو الإنجليزية" dir="auto"><div id="slide-regions-list"></div><small id="slide-regions-summary">جميع المناطق محددة.</small></fieldset>
+                            <p class="slide-note">تظهر الشرائح المنشورة خلال فترة عرضها وللجمهور والمناطق المحددة فقط. تبقى المسودات والشرائح المتوقفة مخفية.</p>
+                            <p id="slide-error" role="alert"></p>
+                        </div>
+                        <footer class="slide-editor-footer"><button type="button" class="btn-secondary" id="slide-cancel">إلغاء</button><button type="submit" class="btn-primary" id="slide-save">حفظ الشريحة</button></footer>
+                    </form>
+                </dialog>
+            </section>
+
+            <!-- Merchant Discounts Section -->
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="promotion-section-heading"><span class="section-icon"><i class="fas fa-tags" aria-hidden="true"></i></span><div><h2>خصومات المتاجر</h2><p>عروض مخصصة لكل متجر.</p></div></div>
+                    <div class="header-actions">
+
+                        <button class="btn-secondary" id="refreshDiscountsBtn"><i class="fas fa-sync-alt"></i> تحديث الصفحة</button>
+                        <button class="btn-primary" id="addPromotionBtn" data-permission="campaigns_admin:write"><i
+                                class="fas fa-plus"></i>
+                            إنشاء خصم</button>
+                    </div>
+                </div>
+                <div class="table-container" tabindex="0" role="region" aria-label="جدول العروض القابل للتمرير">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الخصم</th>
+                                <th>المتجر</th>
+                                <th>النوع</th>
+                                <th>القيمة</th>
+                                <th>الحالة</th>
+                                <th>الاستخدام</th>
+                                <th>سارٍ حتى</th>
+                                <th data-permission="campaigns_admin:write">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="merchant-discounts-tbody">
+                            <!-- Real data will be populated here by JavaScript -->
+                            <tr id="discounts-loading-row">
+                                <td colspan="8" class="loading-row">
+                                    <i class="fas fa-spinner fa-spin"></i> جارٍ تحميل خصومات المتاجر...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div
-              id="offer-checks"
-              class="offer-checks"
-              aria-live="polite"
-            ></div>
-          </aside>
+
+            <!-- Special Campaigns Section -->
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="promotion-section-heading"><span class="section-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span><div><h2>الحملات الخاصة</h2><p>حملات تستهدف جمهورًا محددًا على المنصة.</p></div></div>
+                    <div class="header-actions">
+
+                        <button class="btn-primary" id="createCampaignBtn" data-permission="campaigns_admin:write"><i class="fas fa-plus"></i>
+                            إنشاء حملة</button>
+                    </div>
+                </div>
+                <div class="table-container" tabindex="0" role="region" aria-label="جدول العروض القابل للتمرير">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>الحملة</th>
+                                <th>النوع</th>
+                                <th>الاستهداف</th>
+                                <th>الخصم</th>
+                                <th>الحالة</th>
+                                <th>الاستخدام</th>
+                                <th>فترة السريان</th>
+                                <th data-permission="campaigns_admin:write">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="special-campaigns-tbody">
+                            <!-- Real data will be populated here by JavaScript -->
+                            <tr id="campaigns-loading-row">
+                                <td colspan="8" class="loading-row">
+                                    <i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الحملات...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <footer class="offer-editor-footer">
-          <aside id="offer-funding-disclosure" class="detail-warning" aria-label="مسؤولية تمويل العرض">
-            <strong>من يتحمل تكلفة العرض؟</strong>
-            <p id="offer-funding-summary"></p>
-            <p id="offer-funding-change"></p>
-          </aside>
-          <p id="offer-save-status" role="alert" tabindex="-1"></p>
-          <div>
-            <button type="button" id="offer-cancel" class="btn-secondary">
-              إلغاء</button
-            ><button type="submit" id="offer-save" class="btn-primary">
-              حفظ العرض
-            </button>
-          </div>
-        </footer>
-      </form>
-    </dialog>
-    <dialog id="offer-detail-dialog" aria-labelledby="offer-detail-title">
-      <header class="offer-editor-header">
-        <div>
-          <p class="eyebrow">تفاصيل العرض</p>
-          <h2 id="offer-detail-title"></h2>
-        </div>
-        <button
-          type="button"
-          id="offer-detail-close"
-          class="icon-button"
-          aria-label="إغلاق تفاصيل العرض"
-        >
-          ×
-        </button>
-      </header>
-      <div id="offer-detail-content" class="detail-content"></div>
-    </dialog>
+    </div>
+
+    <!-- AWS SDK -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
+
+    <!-- Configuration -->
+    <script src="../config.js"></script>
+
+    <!-- Centralized utilities -->
+    <script src="../assets/js/auth-utils.js?v=20261011-session-fix2"></script>
+    <script src="../assets/js/aws-utils.js?v=20261011-session-fix2"></script>
+
+    <!-- Campaigns API -->
+    <script src="../js/campaigns-api.js"></script>
+
+    <!-- Merchant Discounts API -->
+    <script src="../js/merchant-discounts-api.js"></script>
+
+    <!-- Data service (depends on aws-utils) -->
+    <script src="../data-service.js?v=20261020-benefits"></script>
+
+    <!-- Page-specific scripts -->
     <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
-    <script src="../home-slideshow.js?v=image-20261018-20261017-ar1"></script>
-    <script src="../campaign-funding-disclosure.js?v=20261020"></script>
-    <section id="platform-benefits-admin" dir="rtl" style="margin:24px;padding:24px;background:white;border-radius:18px"></section>
-    <script src="../platform-benefits-admin.js?v=20261020-benefits2"></script>
-    <script src="../promotions-workspace.js?v=funding-disclosure-20261020"></script>
-    <script src="../merchant-promotion-message.js?v=20261017-ar1"></script>
-  <script src="../commercial-platform-notices.js?v=81"></script>
+    <!-- Initialize Navigation Manager -->
+    <script>
+        // Initialize navigation manager when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('🧭 Promotions: Initializing navigation manager...');
+                if (window.navigationManager) {
+                    window.navigationManager.init().catch(err => {
+                        console.error('❌ Navigation init failed:', err);
+                    });
+                }
+            });
+        } else {
+            console.log('🧭 Promotions: Initializing navigation manager (DOM already loaded)...');
+            if (window.navigationManager) {
+                window.navigationManager.init().catch(err => {
+                    console.error('❌ Navigation init failed:', err);
+                });
+            }
+        }
+
+        // Listen for navigation ready event
+        document.addEventListener('navigation:ready', () => {
+            console.log('✅ Promotions: Navigation is ready');
+        });
+    </script>
+    <!-- Include centralized ModalManager for modals/toasts -->
+    <script src="../js/core/ModalManager.js"></script>
+    <!-- Simplified Campaign Management -->
+    <script src="../promotions-feedback.js?v=20261017-ar1"></script>
+    <script src="../campaign-region-picker.js?v=20261017-ar1"></script>
+    <script src="../campaign-image.js?v=20261018-image1"></script>
+<script src="../simplified-campaign-manager.js?v=independent-campaign-20261020"></script>
+
+    <!-- Modal script -->
+    <script>
+        (function () {
+            function pad(n) { return String(n).padStart(2, '0'); }
+            function formatDateTimeLocal(date) {
+                const d = new Date(date);
+                const y = d.getFullYear();
+                const m = pad(d.getMonth() + 1);
+                const da = pad(d.getDate());
+                const hh = pad(d.getHours());
+                const mm = pad(d.getMinutes());
+                return `${y}-${m}-${da}T${hh}:${mm}`;
+            }
+
+            function initDateTimeInputs() {
+                const startEl = document.getElementById('startDate');
+                const endEl = document.getElementById('endDate');
+                if (!startEl || !endEl) return;
+
+                // Ensure minute precision
+                startEl.setAttribute('step', '60');
+                endEl.setAttribute('step', '60');
+
+                // Defaults: now and +7 days
+                const now = new Date();
+                const in7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                if (!startEl.value) startEl.value = formatDateTimeLocal(now);
+                if (!endEl.value) endEl.value = formatDateTimeLocal(in7days);
+
+                // Keep end >= start
+                const ensureEndAfterStart = () => {
+                    if (startEl.value && endEl.value && endEl.value < startEl.value) {
+                        endEl.value = startEl.value;
+                    }
+                };
+
+                // Bind once
+                if (!startEl.dataset.boundEnsure) {
+                    startEl.addEventListener('change', ensureEndAfterStart);
+                    startEl.dataset.boundEnsure = '1';
+                }
+
+                ensureEndAfterStart();
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const modal = document.getElementById('addPromotionModal');
+                const openBtn = document.getElementById('openAddPromotionModalBtn') || document.getElementById('addPromotionBtn');
+                const closeBtn = document.getElementById('closeAddPromotionModalBtn');
+
+                if (openBtn && modal) {
+                    openBtn.addEventListener('click', () => {
+                        initDateTimeInputs();
+                        modal.style.display = 'flex';
+                    });
+                }
+
+                if (closeBtn && modal) {
+                    closeBtn.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+                }
+
+                window.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
+                });
+
+                // Initialize defaults on first load as well
+                initDateTimeInputs();
+
+                // Setup Material 3 form interactions
+                setupMaterial3Form();
+
+                console.log('✅ Campaign form initialized');
+            });
+
+            function setupMaterial3Form() {
+                // Handle Material 3 label animations
+                const inputs = document.querySelectorAll('.material-3-input, .material-3-select, .material-3-textarea');
+
+                inputs.forEach(input => {
+                    // Handle focus/blur for label positioning
+                    input.addEventListener('input', () => {
+                        updateLabelPosition(input);
+                    });
+
+                    input.addEventListener('change', () => {
+                        updateLabelPosition(input);
+                    });
+
+                    // Initialize label position
+                    updateLabelPosition(input);
+                });
+
+                // Setup push notification toggle
+                setupPushNotificationToggle();
+            }
+
+            function setupPushNotificationToggle() {
+                const pushCheckbox = document.getElementById('sendPushNotification');
+                const pushOptions = document.getElementById('pushNotificationOptions');
+
+                if (pushCheckbox && pushOptions) {
+                    // Initial state
+                    pushOptions.style.display = pushCheckbox.checked ? 'block' : 'none';
+
+                    // Toggle visibility when checkbox changes
+                    pushCheckbox.addEventListener('change', () => {
+                        pushOptions.style.display = pushCheckbox.checked ? 'block' : 'none';
+                        console.log('📱 Push notification:', pushCheckbox.checked ? 'enabled' : 'disabled');
+                    });
+
+                    console.log('✅ Push notification toggle initialized');
+                }
+            }
+
+            function updateLabelPosition(input) {
+                const label = input.nextElementSibling;
+                if (label && label.classList.contains('material-3-label')) {
+                    if (input.value || input.type === 'date') {
+                        label.style.top = '-8px';
+                        label.style.fontSize = '12px';
+                        label.style.color = 'var(--md-sys-color-primary)';
+                        label.style.fontWeight = '500';
+                    } else {
+                        label.style.top = '16px';
+                        label.style.fontSize = '16px';
+                        label.style.color = 'var(--md-sys-color-on-surface-variant)';
+                        label.style.fontWeight = '400';
+                    }
+                }
+            }
+
+        })();
+</script>
+
+<!-- Merchant Discounts Management Script -->
+<script>
+    // Global HTML Escape Utility
+    function escapeHtml(str) {
+        if (typeof str !== 'string') return String(str ?? '');
+        return str.replace(/[&<>"']/g, function (match) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[match];
+        });
+    }
+    window.escapeHtml = escapeHtml;
+
+    // =========================================================================
+    // MERCHANT DISCOUNTS MANAGEMENT
+    // =========================================================================
+    let merchantDiscounts = [];
+    let editingDiscountId = null;
+
+    // Load merchant discounts from DynamoDB or API
+    async function refreshMerchantDiscounts() {
+        try {
+            console.log('🔄 Loading merchant discounts...');
+            const loadingRow = document.getElementById('discounts-loading-row');
+            if (loadingRow) loadingRow.style.display = '';
+
+            if (!window.dataService || typeof window.dataService.getMerchantDiscounts !== 'function') {
+                throw new Error('Promotion data service is unavailable. Please reload the page.');
+            }
+            const items = await window.dataService.getMerchantDiscounts();
+            if (!Array.isArray(items)) throw new Error('Invalid merchant discount response');
+
+            merchantDiscounts = items.map(d => {
+                const isFixed = d.type === 'Fixed Amount' || d.discountType === 'fixed' || d.discountType === 'fixed_amount';
+                const isFree = d.type === 'Free Delivery' || d.discountType === 'free_delivery' || d.discountType === 'free-delivery';
+                return {
+                    id: d.id || d.discountId || d.promotionId || `disc_${Math.random()}`,
+                    discountId: d.discountId || d.id || d.promotionId,
+                    promotionId: d.promotionId || d.discountId || d.id,
+                    discountCode: d.discountCode || d.code || d.title || 'DISCOUNT',
+                    merchantName: d.merchantName || d.businessName || 'Central Platform',
+                    merchantId: d.merchantId || d.businessId || 'CENTRAL',
+                    type: isFree ? 'Free Delivery' : (isFixed ? 'Fixed Amount' : 'Percentage'),
+                    discountType: isFree ? 'free_delivery' : (isFixed ? 'fixed_amount' : 'percentage'),
+                    value: isFree ? 0 : (d.value ?? d.discountValue ?? 0),
+                    status: (d.status || (d.isActive ? 'active' : 'inactive')).toLowerCase(),
+                    usageCount: d.usageCount ?? d.usage ?? d.currentUsage ?? 0,
+                    usageLimit: d.usageLimit ?? d.maxUsage ?? d.limit ?? '∞',
+                    validUntil: d.validUntil || d.endDate || d.validTo || null,
+                    description: d.description || ''
+                };
+            });
+
+            renderMerchantDiscounts();
+            updateMerchantDiscountStats();
+
+        } catch (error) {
+            console.error('❌ Error loading merchant discounts:', error);
+            showMerchantDiscountsError(error.message);
+        } finally {
+            const loadingRow = document.getElementById('discounts-loading-row');
+            if (loadingRow) loadingRow.style.display = 'none';
+        }
+    }
+
+    // Render merchant discounts table matching 8 columns of HTML
+    function renderMerchantDiscounts() {
+        const tbody = document.getElementById('merchant-discounts-tbody') || document.getElementById('merchantDiscountsTableBody');
+        if (!tbody) return;
+
+        if (merchantDiscounts.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--md-sys-color-on-surface-variant);">
+                        <i class="fas fa-tags" style="font-size: 3rem; margin-bottom: 1rem; color: var(--md-sys-color-outline);"></i>
+                        <div style="font-size: 1.1rem; font-weight: 500;">لا توجد خصومات للمتاجر.</div>
+                        <div style="margin-top: 0.5rem; font-size: 0.9rem;">اضغط «إنشاء خصم» أعلاه لإضافة خصم جديد.</div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const rows = merchantDiscounts.map(promo => {
+            const safeCode = escapeHtml(promo.discountCode || 'N/A');
+            const safeMerchant = escapeHtml(promo.merchantName || 'Unknown');
+            const safeMerchantId = escapeHtml(promo.merchantId || 'N/A');
+            const safeType = escapeHtml(promo.type || 'Percentage');
+            const valDisplay = promo.type === 'Free Delivery' ? 'Free Delivery' : (promo.type === 'Fixed Amount' ? `${Number(promo.value).toLocaleString()} IQD` : `${promo.value}%`);
+            const safeStatus = escapeHtml((promo.status || 'inactive').toLowerCase());
+            const usage = `${promo.usageCount || 0} / ${promo.usageLimit || '∞'}`;
+            const validUntil = promo.validUntil ? new Date(promo.validUntil).toLocaleDateString() : 'N/A';
+            const promoId = escapeHtml(promo.promotionId || promo.discountId || promo.id || '');
+            const promoJson = escapeHtml(JSON.stringify(promo));
+
+            return `
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--md-sys-color-primary);">${safeCode}</div>
+                        ${promo.description ? `<div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${escapeHtml(promo.description)}</div>` : ''}
+                    </td>
+                    <td>
+                        <div>${safeMerchant}</div>
+                        <div style="font-size: 0.8rem; color: var(--md-sys-color-on-surface-variant);">ID: ${safeMerchantId}</div>
+                    </td>
+                    <td><span class="badge badge-${promo.type === 'Fixed Amount' ? 'fixed' : 'percentage'}">${safeType}</span></td>
+                    <td><strong>${valDisplay}</strong></td>
+                    <td><span class="status status-${safeStatus}">${safeStatus}</span></td>
+                    <td>${usage}</td>
+                    <td>${validUntil}</td>
+                    <td data-permission="campaigns_admin:write">
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn-icon" onclick="sendDiscountNotification('${promoId}', ${promoJson})" title="إرسال إشعار" style="background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary);">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                            <button class="btn-icon" onclick="editMerchantDiscount('${promoId}')" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon" onclick="deleteMerchantDiscount('${promoId}')" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        tbody.innerHTML = rows;
+    }
+
+    // Update merchant discount statistics
+    function updateMerchantDiscountStats() {
+        const total = merchantDiscounts.length;
+        const active = merchantDiscounts.filter(d => (d.status || '').toLowerCase() === 'active').length;
+
+        const totalEl = document.getElementById('discounts-total') || document.getElementById('totalMerchantDiscounts');
+        const activeEl = document.getElementById('discounts-active') || document.getElementById('activeMerchantDiscounts');
+
+        if (totalEl) totalEl.textContent = total;
+        if (activeEl) activeEl.textContent = active;
+    }
+
+    // Show error in table
+    function showMerchantDiscountsError(message) {
+        window.PromotionsUI.showLoadError('discounts', message, refreshMerchantDiscounts);
+    }
+
+    // Edit merchant discount
+    function editMerchantDiscount(discountId) {
+        const discount = merchantDiscounts.find(d => (d.id === discountId || d.discountId === discountId || d.promotionId === discountId));
+        if (!discount) return;
+
+        editingDiscountId = discountId;
+        const modal = document.getElementById('addPromotionModal');
+        if (!modal) return;
+
+        // Populate fields
+        const titleEl = document.getElementById('title');
+        const codeEl = document.getElementById('code');
+        const typeEl = document.getElementById('type');
+        const valEl = document.getElementById('value');
+        const descEl = document.getElementById('description');
+        const limitEl = document.getElementById('limit');
+        const minOrderEl = document.getElementById('minOrder');
+
+        if (titleEl) titleEl.value = discount.description || discount.discountCode || '';
+        if (codeEl) codeEl.value = discount.discountCode || '';
+        if (typeEl) typeEl.value = discount.discountType || 'percentage';
+        if (valEl) valEl.value = discount.value || 0;
+        if (descEl) descEl.value = discount.description || '';
+        if (limitEl) limitEl.value = discount.usageLimit && discount.usageLimit !== '∞' ? discount.usageLimit : '';
+
+        const submitBtn = document.querySelector('#addPromotionForm button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = "تحديث العرض";
+
+        const headerTitle = modal.querySelector('h2');
+        if (headerTitle) headerTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Promotion';
+
+        modal.style.display = 'flex';
+    }
+    window.editDiscount = editMerchantDiscount;
+
+    // Delete merchant discount
+    async function deleteMerchantDiscount(discountId) {
+        const discount = merchantDiscounts.find(d => (d.id === discountId || d.discountId === discountId || d.promotionId === discountId));
+        const name = discount ? discount.discountCode : discountId;
+
+        if (!confirm(`Are you sure you want to delete discount "${name}"?`)) {
+            return;
+        }
+
+        try {
+            if (window.dataService && typeof window.dataService.deleteMerchantDiscount === 'function') {
+                await window.dataService.deleteMerchantDiscount(discountId);
+            } else if (window.dataService && typeof window.dataService.deletePlatformDiscount === 'function') {
+                await window.dataService.deletePlatformDiscount(discountId);
+            }
+
+            merchantDiscounts = merchantDiscounts.filter(d => (d.id !== discountId && d.discountId !== discountId && d.promotionId !== discountId));
+            renderMerchantDiscounts();
+            updateMerchantDiscountStats();
+            alert(`الخصم «${name}" deleted successfully.`);
+        } catch (err) {
+            console.error('Error deleting discount:', err);
+            // Remove locally anyway for immediate UI responsiveness
+            merchantDiscounts = merchantDiscounts.filter(d => (d.id !== discountId && d.discountId !== discountId && d.promotionId !== discountId));
+            renderMerchantDiscounts();
+            updateMerchantDiscountStats();
+        }
+    }
+    window.deleteDiscount = deleteMerchantDiscount;
+
+    // Setup Create Discount Form Submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('addPromotionForm');
+        if (form) {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const origText = submitBtn ? submitBtn.innerHTML : "إنشاء عرض";
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                }
+
+                try {
+                    const formData = new FormData(form);
+                    const isEdit = !!editingDiscountId;
+                    const id = editingDiscountId || `MDIS_${Date.now()}`;
+                    const rawType = formData.get('type') || 'percentage';
+                    const isFixed = rawType === 'fixed_amount';
+                    const isFree = rawType === 'free_delivery';
+
+                    const newDiscount = {
+                        id: id,
+                        discountId: id,
+                        promotionId: id,
+                        discountCode: (formData.get('code') || '').trim().toUpperCase(),
+                        merchantName: 'Central Platform',
+                        merchantId: 'CENTRAL',
+                        type: isFree ? 'Free Delivery' : (isFixed ? 'Fixed Amount' : 'Percentage'),
+                        discountType: rawType,
+                        value: isFree ? 0 : (parseFloat(formData.get('value')) || 0),
+                        discountValue: isFree ? 0 : (parseFloat(formData.get('value')) || 0),
+                        status: 'active',
+                        description: (formData.get('description') || '').trim(),
+                        startDate: formData.get('startDate') || new Date().toISOString(),
+                        endDate: formData.get('endDate') || null,
+                        validUntil: formData.get('endDate') || null,
+                        usageCount: 0,
+                        usageLimit: parseInt(formData.get('limit')) || '∞',
+                        minOrderValue: parseFloat(formData.get('minOrder')) || 0
+                    };
+
+                    // Persist to unified table if dataService is available
+                    if (window.dataService && typeof window.dataService.createCampaign === 'function') {
+                        try {
+                            await window.dataService.createCampaign({
+                                ...newDiscount,
+                                title: formData.get('title') || newDiscount.discountCode,
+                                code: newDiscount.discountCode,
+                                discountSource: 'merchant'
+                            });
+                        } catch (saveErr) {
+                            console.warn('Could not save to DynamoDB, updating local state:', saveErr);
+                        }
+                    }
+
+                    if (isEdit) {
+                        const idx = merchantDiscounts.findIndex(d => (d.id === editingDiscountId || d.discountId === editingDiscountId));
+                        if (idx >= 0) merchantDiscounts[idx] = newDiscount;
+                    } else {
+                        merchantDiscounts.unshift(newDiscount);
+                    }
+
+                    renderMerchantDiscounts();
+                    updateMerchantDiscountStats();
+
+                    // Close modal and reset
+                    const modal = document.getElementById('addPromotionModal');
+                    if (modal) modal.style.display = 'none';
+                    form.reset();
+                    editingDiscountId = null;
+
+                    if (submitBtn) submitBtn.textContent = "إنشاء عرض";
+                    const headerTitle = modal ? modal.querySelector('h2') : null;
+                    if (headerTitle) headerTitle.innerHTML = '<i class="fas fa-tags"></i> New Promotion';
+
+                    alert(isEdit ? "حُدّث الخصم بنجاح." : "أُنشئ الخصم بنجاح.");
+
+                } catch (err) {
+                    console.error('Failed to create discount:', err);
+                    alert("تعذّر حفظ الخصم: " + window.WizzLocale.error(err.message));
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origText;
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+<!-- Navigation Manager will handle sidebar loading automatically -->
+<script>
+                (async function () {
+                    try {
+                                        await RBAC.ensure();
+                                        // Enforce RBAC - New system auto-detects page name
+                                        window.RBAC.enforcePage();
+                                        if (!RBAC.can('campaigns', 'write')) {
+                                            RBAC.applyReadOnly('body', 'campaigns');
+                                            document.querySelectorAll('[data-write-only]').forEach(el => el.style.display = 'none');
+                                        }
+                                    } catch (e) { console.warn('RBAC init failed', e); }
+                                })();
+                            </script>
+                <script>
+                    console.log('🚀 Promotions & Campaigns coordinator loading...');
+
+                    // Global aliases for campaign table action buttons
+                    window.editCampaign = function(id) {
+                        if (window.campaignManager && typeof window.campaignManager.editCampaign === 'function') {
+                            window.campaignManager.editCampaign(id);
+                        } else {
+                            console.warn('campaignManager not available for editCampaign');
+                        }
+                    };
+
+                    window.deleteCampaign = function(id) {
+                        if (window.campaignManager && typeof window.campaignManager.deleteCampaign === 'function') {
+                            window.campaignManager.deleteCampaign(id);
+                        } else {
+                            console.warn('campaignManager not available for deleteCampaign');
+                        }
+                    };
+
+                    /**
+                     * Orchestrates loading of both Merchant Discounts and Special Campaigns
+                     */
+                    async function loadPromotionsData() {
+                        console.log('🔄 Loading all promotions and campaigns data...');
+                        try {
+                            // 1. Load merchant discounts
+                            if (typeof refreshMerchantDiscounts === 'function') {
+                                await refreshMerchantDiscounts();
+                            }
+                            // 2. Load special campaigns
+                            if (window.campaignManager && typeof window.campaignManager.loadCampaigns === 'function') {
+                                await window.campaignManager.loadCampaigns();
+                            }
+                        } catch (err) {
+                            console.error('Error in loadPromotionsData:', err);
+                        }
+                    }
+
+                    // Load data when page is ready
+                    document.addEventListener('DOMContentLoaded', () => {
+                        setTimeout(() => {
+                            loadPromotionsData();
+                        }, 300);
+
+                        // Connect refresh button
+                        const refreshBtn = document.getElementById('refreshDiscountsBtn');
+                        if (refreshBtn) {
+                            refreshBtn.addEventListener('click', () => {
+                                console.log('🔄 Refreshing all promotions and campaigns data...');
+                                loadPromotionsData();
+                            });
+                        }
+                    });
+                </script>
+<script>
+    // =========================================================================
+    // PUSH NOTIFICATION FUNCTIONS
+    // =========================================================================
+
+    let currentDiscountForPush = null;
+
+    /**
+     * Open push notification modal for a discount
+     */
+    function sendDiscountNotification(discountId, discountData) {
+        console.log('📱 Opening push notification modal for discount:', discountId);
+        currentDiscountForPush = typeof discountData === 'string' ? JSON.parse(discountData) : discountData;
+
+        // Set discount ID
+        document.getElementById('push_discountId').value = discountId;
+
+        // Update discount preview
+        const preview = document.getElementById('discountPreview');
+        preview.innerHTML = `
+            <div style="display: flex; justify-content: space-between;">
+                <strong>رمز الخصم:</strong>
+                <span>${escapeHtml(currentDiscountForPush.discountCode || 'N/A')}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <strong>النوع:</strong>
+                <span>${escapeHtml(currentDiscountForPush.type || 'N/A')}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <strong>القيمة:</strong>
+                <span>${currentDiscountForPush.value || 0}${currentDiscountForPush.type === 'Percentage' ? '%' : ' IQD'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <strong>المتجر:</strong>
+                <span>${escapeHtml(currentDiscountForPush.merchantName || 'Unknown')}</span>
+            </div>
+        `;
+
+        // Show modal
+        const modal = document.getElementById('pushNotificationModal');
+        modal.style.display = 'flex';
+
+        // Update estimated reach
+        updateEstimatedReach();
+    }
+
+    /**
+     * Close push notification modal
+     */
+    function closePushModal() {
+        const modal = document.getElementById('pushNotificationModal');
+        modal.style.display = 'none';
+        document.getElementById('pushNotificationForm').reset();
+        currentDiscountForPush = null;
+    }
+
+    /**
+     * Update estimated reach based on target audience
+     */
+    async function updateEstimatedReach() {
+        const targetAudience = document.getElementById('push_targetAudience').value;
+        const estimatedReachEl = document.getElementById('estimatedReach');
+
+        estimatedReachEl.textContent = "جارٍ الاحتساب...";
+
+        // Simulate API call to get estimated reach
+        // In production, this would query the actual customer database
+        const estimates = {
+            all: '~500-1000 customers',
+            nearby: '~50-100 customers nearby',
+            loyal: '~100-200 loyal customers',
+            new: '~30-50 new customers'
+        };
+
+        setTimeout(() => {
+            estimatedReachEl.textContent = estimates[targetAudience] || "غير معروف";
+        }, 500);
+    }
+
+        /**
+         * Send push notification
+         */
+        async function sendPushNotification(event) {
+            event.preventDefault();
+
+            // Check if backend is available
+            if (!window.WIZZCENTRAL_CONFIG?.PUSH_NOTIFICATION_API_URL) {
+                alert("خدمة الإشعارات غير مهيّأة في هذه البيئة. يرجى التواصل مع مسؤول النظام.");
+                return false;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                targetAudience: formData.get('targetAudience'),
+                notificationTitle: formData.get('notificationTitle') || undefined,
+                notificationBody: formData.get('notificationBody') || undefined,
+                scheduledTime: formData.get('sendTime') === 'scheduled' ? formData.get('scheduledTime') : undefined
+            };
+
+            console.log('📤 Sending push notification:', data);
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                const discountId = formData.get('discountId');
+
+                // Get authentication token
+                const idToken = window.Auth?.getIdToken();
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                if (idToken) {
+                    headers['Authorization'] = `Bearer ${idToken}`;
+                }
+
+                const response = await fetch(`${window.WIZZCENTRAL_CONFIG.PUSH_NOTIFICATION_API_URL.replace(/\/$/, '')}/api/discounts/${discountId}/send-notification`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert(`✅ Push notification sent successfully!\n\nTargeted: ${result.targeted} customers\nSent: ${result.sent}\nFailed: ${result.failed}`);
+                    closePushModal();
+                } else {
+                                throw new Error(result.message || 'Failed to send notification');
+                            }
+                        } catch (error) {
+                            console.error('❌ Error sending push notification:', error);
+                            alert(`❌ Error: ${window.WizzLocale.error(error.message)}`);
+                        } finally {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+
+                        return false;
+                    }
+
+                    // Setup event listeners for push notification modal
+                    document.addEventListener('DOMContentLoaded', () => {
+                        // Target audience change listener
+                        const targetAudienceSelect = document.getElementById('push_targetAudience');
+                        if (targetAudienceSelect) {
+                            targetAudienceSelect.addEventListener('change', updateEstimatedReach);
+                        }
+
+                        // Send time change listener
+                        const sendTimeSelect = document.getElementById('push_sendTime');
+                        const scheduledSection = document.getElementById('scheduledTimeSection');
+                        if (sendTimeSelect && scheduledSection) {
+                            sendTimeSelect.addEventListener('change', () => {
+                                scheduledSection.style.display = sendTimeSelect.value === 'scheduled' ? 'block' : 'none';
+                            });
+                        }
+    });
+</script>
+
+<script>
+        // =========================================================================
+        // MERCHANT INFORMATION NOTIFICATION FUNCTIONS
+        // =========================================================================
+
+        /**
+         * Open merchant information notification modal
+         */
+        function openMerchantInfoModal() {
+            console.log('📢 Opening merchant information notification modal');
+            const modal = document.getElementById('merchantInfoNotificationModal');
+
+            if (!modal) {
+                console.error('❌ Modal element not found! ID: merchantInfoNotificationModal');
+                return;
+            }
+
+            console.log('✅ Modal element found:', modal);
+            modal.style.display = 'flex';
+            console.log('✅ Modal display set to flex');
+
+            // Setup event listeners for dynamic fields
+            setupMerchantModalListeners();
+
+            // Update estimated reach
+            updateMerchantEstimatedReach();
+        }
+
+        // Expose to window for inline onclick handlers
+        window.openMerchantInfoModal = openMerchantInfoModal;
+
+        /**
+         * Close merchant information notification modal
+         */
+        function closeMerchantInfoModal() {
+            const modal = document.getElementById('merchantInfoNotificationModal');
+            modal.style.display = 'none';
+            document.getElementById('merchantInfoNotificationForm').reset();
+
+            // Hide conditional sections
+            document.getElementById('cityFilterSection').style.display = 'none';
+            document.getElementById('categoryFilterSection').style.display = 'none';
+            document.getElementById('merchantScheduledTimeSection').style.display = 'none';
+        }
+
+        // Expose to window for inline onclick handlers
+        window.closeMerchantInfoModal = closeMerchantInfoModal;
+
+        /**
+         * Setup event listeners for merchant notification modal
+         */
+        function setupMerchantModalListeners() {
+            // Target audience change listener
+            const targetAudienceSelect = document.getElementById('merchant_targetAudience');
+            const cityFilterSection = document.getElementById('cityFilterSection');
+            const categoryFilterSection = document.getElementById('categoryFilterSection');
+
+            if (targetAudienceSelect) {
+                targetAudienceSelect.addEventListener('change', () => {
+                    const value = targetAudienceSelect.value;
+                    cityFilterSection.style.display = value === 'by_city' ? 'block' : 'none';
+                    categoryFilterSection.style.display = value === 'by_category' ? 'block' : 'none';
+                    updateMerchantEstimatedReach();
+                });
+            }
+
+            // Send time change listener
+            const sendTimeSelect = document.getElementById('merchant_sendTime');
+            const scheduledSection = document.getElementById('merchantScheduledTimeSection');
+            if (sendTimeSelect && scheduledSection) {
+                sendTimeSelect.addEventListener('change', () => {
+                    scheduledSection.style.display = sendTimeSelect.value === 'scheduled' ? 'block' : 'none';
+                });
+            }
+
+            // Notification preview update listeners
+            const titleInput = document.getElementById('merchant_notificationTitle');
+            const bodyInput = document.getElementById('merchant_notificationBody');
+            const typeSelect = document.getElementById('merchant_notificationType');
+
+            [titleInput, bodyInput, typeSelect].forEach(el => {
+                if (el) {
+                    el.addEventListener('input', updateMerchantNotificationPreview);
+                }
+            });
+        }
+
+        /**
+         * Update merchant estimated reach based on target audience
+         */
+        async function updateMerchantEstimatedReach() {
+            const targetAudience = document.getElementById('merchant_targetAudience').value;
+            const estimatedReachEl = document.getElementById('merchantEstimatedReach');
+
+            estimatedReachEl.textContent = "جارٍ الاحتساب...";
+
+            // Simulate API call to get estimated reach
+            // In production, this would query the actual merchant database
+            const estimates = {
+                all: '~200-300 merchants',
+                active: '~150-200 active merchants',
+                inactive: '~50-100 inactive merchants',
+                new: '~10-20 new merchants',
+                by_city: '~30-50 merchants in selected city',
+                by_category: '~40-80 merchants in selected category'
+            };
+
+            setTimeout(() => {
+                estimatedReachEl.textContent = estimates[targetAudience] || "غير معروف";
+            }, 500);
+        }
+
+        /**
+         * Update notification preview
+         */
+        function updateMerchantNotificationPreview() {
+            const title = document.getElementById('merchant_notificationTitle').value;
+            const body = document.getElementById('merchant_notificationBody').value;
+            const type = document.getElementById('merchant_notificationType').value;
+
+            const previewEl = document.getElementById('merchantNotificationPreview');
+
+            const typeEmojis = {
+                info: 'ℹ️',
+                warning: '⚠️',
+                urgent: '🚨',
+                feature: '✨',
+                policy: '📋'
+            };
+
+            const emoji = typeEmojis[type] || 'ℹ️';
+            const previewTitle = title || "سيظهر العنوان هنا";
+            const previewBody = body || 'Message will appear here';
+
+            previewEl.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="font-size: 1.5rem;">${emoji}</span>
+                <div style="font-weight: 600; font-size: 1rem;">${escapeHtml(previewTitle)}</div>
+            </div>
+            <div style="font-size: 0.9rem; color: #666; margin-left: 40px;">${escapeHtml(previewBody)}</div>
+        `;
+        }
+
+        /**
+         * Send merchant information notification
+         */
+        async function sendMerchantInfoNotification(event) {
+            console.log('🔥 sendMerchantInfoNotification called!', event);
+            event.preventDefault();
+
+            // Check if backend is available
+            if (!window.WIZZCENTRAL_CONFIG?.PUSH_NOTIFICATION_API_URL) {
+                alert("خدمة الإشعارات غير مهيّأة في هذه البيئة. يرجى التواصل مع مسؤول النظام.");
+                return false;
+            }
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                notificationType: formData.get('notificationType'),
+                notificationTitle: formData.get('notificationTitle'),
+                notificationBody: formData.get('notificationBody'),
+                targetAudience: formData.get('targetAudience'),
+                city: formData.get('city') || undefined,
+                businessCategory: formData.get('businessCategory') || undefined,
+                priority: formData.get('priority') || 'normal',
+                actionUrl: formData.get('actionUrl') || undefined,
+                imageUrl: formData.get('imageUrl') || undefined,
+                scheduledTime: formData.get('sendTime') === 'scheduled' ? formData.get('scheduledTime') : undefined
+            };
+
+            console.log('📤 Sending merchant information notification:', data);
+
+            // Validation
+            if (!data.notificationTitle || !data.notificationBody) {
+                alert("يرجى إكمال جميع الحقول المطلوبة.");
+                return false;
+            }
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                        // Get authentication token from localStorage via Auth utility
+                        const idToken = window.Auth?.getIdToken();
+
+                        console.log('🔐 Auth check:', window.Auth ? 'Auth object found' : 'Auth object missing');
+                        console.log('🎫 ID Token:', idToken ? 'Present (' + idToken.substring(0, 20) + '...)' : 'Missing');
+
+                        if (!idToken) {
+                            console.error('❌ No ID token available - user may not be authenticated');
+                            alert("يلزم تسجيل الدخول لإرسال الإشعارات. سجّل الدخول ثم أعد المحاولة.");
+                            return false;
+                        }
+
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        };
+
+                        console.log('🌐 Sending request to:', `${window.WIZZCENTRAL_CONFIG.PUSH_NOTIFICATION_API_URL.replace(/\/$/, '')}/api/merchants/send-info-notification`);
+                        console.log('📦 Request data:', data);
+                        console.log('🔑 Auth header set:', headers.Authorization ? 'Yes (Bearer ***)' : 'No');
+
+                        const response = await fetch(`${window.WIZZCENTRAL_CONFIG.PUSH_NOTIFICATION_API_URL.replace(/\/$/, '')}/api/merchants/send-info-notification`, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(data)
+                        });
+
+                        console.log('📡 Response status:', response.status, response.statusText);
+                        const result = await response.json();
+                        console.log('📥 Response data:', result);
+
+                        if (response.ok && result.success) {
+                            console.log('✅ SUCCESS! About to show alert...');
+                            alert(`✅ Notification sent successfully!\n\nTargeted: ${result.targeted} merchants\nSent: ${result.sent}\nFailed: ${result.failed}`);
+                            console.log('✅ Alert shown, closing modal...');
+                            closeMerchantInfoModal();
+                        } else {
+                            console.log('❌ Request failed:', result.message);
+                            throw new Error(result.message || 'Failed to send notification');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error sending merchant notification:', error);
+                        console.error('❌ Error stack:', error.stack);
+
+                        // Show friendly message for network errors (backend not available)
+                        if (error.message.includes('Failed to fetch') || error.name === 'TypeError' || error.message.includes('NetworkError')) {
+                            alert("تعذّر إرسال الإشعار. تحقّق من الاتصال ثم أعد المحاولة.");
+                        } else {
+                            alert(`❌ Error: ${window.WizzLocale.error(error.message)}`);
+                        }
+                    } finally {
+                        console.log('🔄 Resetting button...');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+
+                    return false;
+                }
+
+                // Expose to window for inline onsubmit handler
+                window.sendMerchantInfoNotification = sendMerchantInfoNotification;
+                console.log('✅ sendMerchantInfoNotification exposed to window');
+
+                // Attach event listener to form (no inline handlers due to CSP)
+                const merchantForm = document.getElementById('merchantInfoNotificationForm');
+                if (merchantForm) {
+                    merchantForm.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        sendMerchantInfoNotification(event);
+                    });
+                    console.log('✅ Merchant form event listener attached');
+                }
+
+                // Setup merchant notification modal on page load
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Add "Send to Merchants" button to page header if it doesn't exist
+                    const pageHeader = document.querySelector('.page-header');
+                    if (pageHeader && !document.getElementById('sendToMerchantsBtn')) {
+                        const headerActions = document.createElement('div');
+                        headerActions.style.cssText = 'display: flex; gap: 12px; align-items: center; margin-top: 16px;';
+                        headerActions.innerHTML = `
+                <button id="sendToMerchantsBtn" class="btn-primary" style="background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary);">
+                    <i class="fas fa-paper-plane"></i> إرسال إلى المتاجر
+                </button>
+            `;
+                        pageHeader.appendChild(headerActions);
+
+                        // Add event listener to the button
+                        const btn = document.getElementById('sendToMerchantsBtn');
+                        if (btn) {
+                            btn.addEventListener('click', openMerchantInfoModal);
+                            console.log('✅ "Send to Merchants" button event listener added');
+                        }
+                    }
+
+        // Setup initial preview
+        updateMerchantNotificationPreview();
+    });
+
+            // Placeholder functions for edit/delete actions
+        </script>
+<script src="../home-slideshow.js?v=20261017-ar1"></script>
+<script src="../commercial-funding-picker.js?v=76"></script><script src="../commercial-management.js?v=83"></script>
+<script src="../commercial-platform-notices.js?v=81"></script>
+<section id="platform-benefits-admin" class="card" dir="rtl" style="margin:24px 0;padding:24px" aria-label="مزايا الزبائن من المنصة"></section>
+<script src="../platform-benefits-admin.js?v=20261020-benefits2"></script>
 </body>
 </html>

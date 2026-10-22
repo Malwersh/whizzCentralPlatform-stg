@@ -202,7 +202,7 @@ body.wizz-shell details.admin-configuration > summary small { font-size: 12px; f
 body.wizz-shell #mainContent details.admin-configuration > .admin-configuration-body { padding: 0 20px 20px; }
 body.wizz-shell #mainContent .admin-configuration-body > details { border: 1px solid var(--admin-line); border-radius: 8px !important; margin-bottom: 10px !important; padding: 14px 16px !important; }
 body.wizz-shell #mainContent details summary { cursor: pointer; }
-body.wizz-shell .finance-content section { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; box-shadow: none; padding: 24px; margin: 0 0 20px; }
+body.wizz-shell .finance-content section { background: #fff; border: 1px solid var(--admin-line); box-shadow: none; }
 body.wizz-shell[data-page="support"] #mainContent .support-container { border: 1px solid var(--admin-line); border-radius: 14px; overflow: hidden; box-shadow: none; }
 body.wizz-shell[data-page="support"] #mainContent .sessions-panel { background: #fff; }
 body.wizz-shell[data-page="support"] #mainContent .chat-panel { background: #fff; }
@@ -236,27 +236,14 @@ body.wizz-shell[data-page="financial"] #mainContent .section-title > .icon { dis
 }
 body.wizz-shell #mainContent :is(.button-primary,.btn-add-region,.primary-btn) { background: #233f69; color: #fff; border: 1px solid #233f69; border-radius: 8px; padding: 10px 16px; font-size: 12px; }
 body.wizz-shell #mainContent :is(.button-secondary,.secondary-btn) { background: #fff; color: #334d70; border: 1px solid #d6deea; border-radius: 8px; padding: 10px 16px; font-size: 12px; }
-body.wizz-shell #mainContent :is(.settings-content,.staff-content) section { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; padding: 24px; margin: 0 0 20px; }
+body.wizz-shell #mainContent :is(.settings-content,.staff-content) section { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; }
 body.wizz-shell #mainContent .staff-content { max-width: 1440px; padding: 0; margin: auto; }
 body.wizz-shell #mainContent .staff-content :is(input,select,textarea) { max-width: 100%; }
-body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content,.pricing-content) button:not(#menuToggle) { font: 600 12px/1.5 var(--admin-font); border: 1px solid #233f69; border-radius: 8px; background: #233f69; color: #fff; padding: 10px 16px; min-height: 40px; cursor: pointer; }
-body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content,.pricing-content) button:disabled { opacity: .5; cursor: not-allowed; }
+body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content) button:not(#menuToggle) { font: 600 12px/1.5 var(--admin-font); border: 1px solid #233f69; border-radius: 8px; background: #233f69; color: #fff; padding: 10px 16px; min-height: 40px; cursor: pointer; }
+body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content) button:disabled { opacity: .5; cursor: not-allowed; }
 body.wizz-shell #mainContent :is(.staff-content,.settings-content) > a { display: inline-block; font-size: 12px; color: #3d587c; margin-inline-end: 16px; margin-block: 8px; }
-body.wizz-shell #mainContent .pricing-content section { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; box-shadow: none; padding: 24px; margin: 0 0 20px; }
-body.wizz-shell #mainContent .pricing-content h2,
-body.wizz-shell #mainContent .finance-content h2,
-body.wizz-shell #mainContent .settings-content h2,
-body.wizz-shell #mainContent .staff-content h2 { margin: 0 0 8px; }
-body.wizz-shell #mainContent .settings-content nav { margin: 0 0 16px; font-size: 12px; }
-body.wizz-shell #mainContent .settings-content nav a { color: #3d587c; text-decoration: none; margin-inline-end: 16px; }
-body.wizz-shell #mainContent .settings-content nav a:hover { text-decoration: underline; }
-body.wizz-shell #mainContent .finance-content label,
-body.wizz-shell #mainContent .staff-content label,
-body.wizz-shell #mainContent .settings-content label { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-block: 14px; }
-body.wizz-shell #mainContent .finance-content label:has(>input[type="checkbox"]),
-body.wizz-shell #mainContent .staff-content label:has(>input[type="checkbox"]),
-body.wizz-shell #mainContent .settings-content label:has(>input[type="checkbox"]) { flex-direction: row; align-items: center; }
-body.wizz-shell #mainContent .staff-content fieldset label { flex-direction: row; align-items: center; gap: 8px; margin: 10px 0; }
+body.wizz-shell #mainContent .finance-content label { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-block: 14px; }
+body.wizz-shell #mainContent .finance-content label:has(>input[type="checkbox"]) { flex-direction: row; align-items: center; }
 body.wizz-shell #mainContent .finance-content label > :is(input,select,textarea):not([type="checkbox"]) { margin: 0; width: min(100%,360px); }
 body.wizz-shell #mainContent .finance-content label > input[type="checkbox"] { margin: 0; width: auto; }
 body.wizz-shell #mainContent .finance-content section > :is(button,select) { margin: 4px 0 4px 8px; }

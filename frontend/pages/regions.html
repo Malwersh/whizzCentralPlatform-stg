@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
 <script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ويز سنترال — إدارة المناطق</title>
     <script src="../env.js"></script>
@@ -25,7 +25,7 @@
     <!-- Security utilities -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="../assets/js/security-utils.js"></script>
-    <script src="../assets/js/rbac.js"></script>
+    <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
     <style>
         /* Regions Management Styles */
         /* Search and Filters */
@@ -392,7 +392,7 @@
 
         .action-btn.edit {
             background: var(--md-sys-color-secondary-container);
-            color: var (--md-sys-color-on-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
         }
 
         .action-btn.toggle {
@@ -620,7 +620,7 @@
         }
 
         .region-status.inactive {
-            background: var (--md-sys-color-error);
+            background: var(--md-sys-color-error);
             box-shadow: 0 0 0 2px var(--md-sys-color-error-container);
         }
 
@@ -738,7 +738,7 @@
             color: var(--md-sys-color-on-surface-variant);
             cursor: pointer;
             padding: 0.25rem;
-            border-radius: var (--md-sys-shape-corner-small);
+            border-radius: var(--md-sys-shape-corner-small);
             transition: background-color 0.2s ease;
         }
 
@@ -1019,7 +1019,7 @@
         .leaflet-bar a:hover { background: var(--wizz-primary-light) !important; }
         .button-primary, .primary-btn { background: var(--wizz-primary); color:#1C1B1F; border:none; }
         .button-primary:hover, .primary-btn:hover { background: var(--wizz-primary-light); }
-        .button-secondary { background:#fff; color: var (--wizz-secondary); border:2px solid var(--wizz-secondary); }
+        .button-secondary { background:#fff; color: var(--wizz-secondary); border:2px solid var(--wizz-secondary); }
         .button-secondary:hover { background: var(--wizz-secondary); color:#fff; }
         /* Remove any gradient classes if present */
         .header-gradient, .gradient-bg { background:#fff !important; }
@@ -1027,7 +1027,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-</head>
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
 
 <body data-page="regions">
     <!-- Sidebar include placeholder -->
@@ -1041,18 +1041,18 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">إدارة المناطق</h1>
+                <h1 class="page-title">المناطق</h1>
                 <span id="version-badge"
                     style="font-size: 0.7rem; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); padding: 2px 6px; border-radius: 8px; margin-left: 10px; font-weight: 500;"></span>
             </div>
             <div class="top-bar-actions">
                 <button class="btn-primary" onclick="refreshRegionsData()">
                     <i class="fas fa-sync"></i>
-                    تحديث
+                    تحديث الصفحة
                 </button>
                 <button class="btn-secondary" onclick="window.location.reload(true)" style="margin-left: 0.5rem;">
                     <i class="fas fa-redo"></i>
-                    إعادة تحميل البيانات
+                    إعادة تحميل الصفحة
                 </button>
             </div>
         </div>
@@ -1069,7 +1069,7 @@
                 <div class="search-input-container">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="regionSearch" class="form-input search-input" 
-                           placeholder="بحث عن منطقة بالعربية أو الإنكليزية...">
+                           placeholder="ابحث عن منطقة بالعربية أو الإنجليزية..." dir="auto">
                 </div>
                 <div class="filters-container">
                     <select id="levelFilter" class="form-select">
@@ -1115,8 +1115,8 @@
                     <div class="regions-cards" id="regionsCards" style="display: none;">
                         <div class="empty-state">
                             <i class="fas fa-map"></i>
-                            <h3>جاري تحميل المناطق...</h3>
-                            <p>يرجى الانتظار لحين تحميل مناطق الخدمة</p>
+                            <h3>جارٍ تحميل المناطق...</h3>
+                            <p>يرجى الانتظار حتى يكتمل تحميل مناطق الخدمة.</p>
                         </div>
                     </div>
                     
@@ -1152,7 +1152,7 @@
                                         <td colspan="4" class="loading-cell">
                                             <div class="loading-state">
                                                 <i class="fas fa-spinner fa-spin"></i>
-                                                جاري تحميل بيانات المناطق...
+                                                جارٍ تحميل بيانات المناطق...
                                             </div>
                                         </td>
                                     </tr>
@@ -1163,7 +1163,7 @@
                         <!-- Pagination -->
                         <div class="table-pagination" id="tablePagination">
                             <div class="pagination-info">
-                                عرض <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalCount">0</span> مناطق
+                                عرض <span id="showingStart">0</span> إلى <span id="showingEnd">0</span> من <span id="totalCount">0</span> منطقة
                             </div>
                             <div class="pagination-controls">
                                 <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
@@ -1196,12 +1196,12 @@
                 <form id="regionForm">
                     <div class="form-group">
                         <label class="form-label">اسم المنطقة</label>
-                        <input type="text" class="form-input" id="regionName" placeholder="مثال: مركز بغداد" required>
+                        <input type="text" class="form-input" id="regionName" placeholder="مثال: وسط بغداد" required dir="auto">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">اسم المنطقة بالعربية</label>
-                        <input type="text" class="form-input" id="regionNameArabic" placeholder="e.g., بغداد المركز" required>
+                        <input type="text" class="form-input" id="regionNameArabic" placeholder="e.g., بغداد المركز" required dir="auto">
                     </div>
 
                     <div class="form-row">
@@ -1211,49 +1211,49 @@
                                 <option value="3" selected>الحي</option>
                                 <option value="2">القضاء</option>
                                 <option value="1">المحافظة</option>
-                                <option value="0">البلد</option>
+                                <option value="0">الدولة</option>
                             </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">المنطقة الأم</label>
                                 <select class="form-select" id="parentRegion">
-                                    <option value="">بدون</option>
+                                    <option value="">لا يوجد</option>
                                 </select>
                                 <div style="font-size: 0.75rem; color: var(--md-sys-color-on-surface-variant); margin-top: 0.25rem;">
-                                    اختر المنطقة الأم من المستوى السابق
+                                    يجب أن تنتمي المنطقة الأم إلى المستوى الأعلى مباشرةً.
                                 </div>
                             </div>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label">اسم المحافظة</label>
+                                <label class="form-label">المحافظة (للعرض فقط)</label>
                                 <select class="form-select" id="governorate">
                             <option value="">اختر المحافظة</option>
-                            <option value="Baghdad">Baghdad / بغداد</option>
-                            <option value="Basra">Basra / البصرة</option>
-                            <option value="Erbil">Erbil / أربيل</option>
-                            <option value="Najaf">Najaf / النجف</option>
-                            <option value="Karbala">Karbala / كربلاء</option>
-                            <option value="Mosul">Mosul / الموصل</option>
-                            <option value="Sulaymaniyah">Sulaymaniyah / السليمانية</option>
-                            <option value="Kirkuk">Kirkuk / كركوك</option>
+                            <option value="Baghdad">بغداد</option>
+                            <option value="Basra">البصرة</option>
+                            <option value="Erbil">أربيل</option>
+                            <option value="Najaf">النجف</option>
+                            <option value="Karbala">كربلاء</option>
+                            <option value="Mosul">الموصل</option>
+                            <option value="Sulaymaniyah">السليمانية</option>
+                            <option value="Kirkuk">كركوك</option>
                         </select>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">خط العرض</label>
-                            <input type="number" step="0.000001" class="form-input" id="coordLat" placeholder="33.3152">
+                            <input type="number" step="0.000001" class="form-input" id="coordLat" placeholder="33.3152" dir="ltr">
                         </div>
                         <div class="form-group">
                             <label class="form-label">خط الطول</label>
-                            <input type="number" step="0.000001" class="form-input" id="coordLng" placeholder="44.3661">
+                            <input type="number" step="0.000001" class="form-input" id="coordLng" placeholder="44.3661" dir="ltr">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">نصف القطر بالمتر</label>
-                            <input type="number" class="form-input" id="coordRadius" placeholder="3000">
+                            <label class="form-label">نطاق التغطية (متر)</label>
+                            <input type="number" class="form-input" id="coordRadius" placeholder="3000" dir="ltr">
                         </div>
                         <div class="form-group">
                             <label class="form-label">أدوات الخريطة</label>
@@ -1265,7 +1265,7 @@
                                     <i class="fas fa-crosshairs"></i> استخدام مركز الخريطة
                                 </button>
                                 <button type="button" class="btn-secondary" id="drawAreaBtn">
-                                    <i class="fas fa-draw-polygon"></i> رسم المنطقة
+                                    <i class="fas fa-draw-polygon"></i> رسم منطقة
                                 </button>
                             </div>
                             <div id="drawSummary" style="margin-top:.5rem; font-size:.8rem; color:var(--md-sys-color-on-surface-variant); display:none;"></div>
@@ -1274,20 +1274,20 @@
 
                     <div class="form-row">
                         <div class="form-group" id="estimatedDeliveryWrapper">
-                            <label class="form-label">مدة التوصيل التقديرية بالدقائق</label>
-                            <input type="number" class="form-input" id="estimatedDelivery" placeholder="30" required>
+                            <label class="form-label">مدة التوصيل التقديرية (دقائق)</label>
+                            <input type="number" class="form-input" id="estimatedDelivery" placeholder="30" required dir="ltr">
                         </div>
                         <!-- New: Base Delivery Fee -->
                         <div class="form-group" id="deliveryBaseFeeWrapper">
-                            <label class="form-label">أجرة التوصيل الأساسية</label>
-                            <input type="number" step="0.01" min="0" class="form-input" id="deliveryBaseFee" placeholder="0.00">
-                            <div style="font-size:0.65rem; margin-top:4px; color:var(--md-sys-color-on-surface-variant);">اختياري. اتركه فارغاً للاحتفاظ بالأجرة الحالية.</div>
+                            <label class="form-label">رسوم التوصيل الأساسية</label>
+                            <input type="number" step="0.01" min="0" class="form-input" id="deliveryBaseFee" placeholder="0.00" dir="ltr">
+                            <div style="font-size:0.65rem; margin-top:4px; color:var(--md-sys-color-on-surface-variant);">اختياري. اتركه فارغًا عند التعديل للإبقاء على الرسوم الحالية.</div>
                         </div>
                         <!-- New: Minimum Order -->
                         <div class="form-group" id="deliveryMinimumOrderWrapper">
                             <label class="form-label">الحد الأدنى للطلب</label>
-                            <input type="number" step="0.01" min="0" class="form-input" id="deliveryMinimumOrder" placeholder="0.00">
-                            <div style="font-size:0.65rem; margin-top:4px; color:var(--md-sys-color-on-surface-variant);">اختياري. اتركه فارغاً للاحتفاظ بالحد الأدنى الحالي.</div>
+                            <input type="number" step="0.01" min="0" class="form-input" id="deliveryMinimumOrder" placeholder="0.00" dir="ltr">
+                            <div style="font-size:0.65rem; margin-top:4px; color:var(--md-sys-color-on-surface-variant);">اختياري. اتركه فارغًا عند التعديل للإبقاء على الحد الأدنى الحالي.</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">الحالة</label>
@@ -1300,19 +1300,19 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">أنواع الخدمة</label>
+                        <label class="form-label">أنواع الخدمات</label>
                         <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="checkbox" id="serviceDelivery" checked>
+                                <input type="checkbox" id="serviceDelivery" checked dir="auto">
                                 <span>توصيل</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="checkbox" id="servicePickup" checked>
+                                <input type="checkbox" id="servicePickup" checked dir="auto">
                                 <span>استلام من المتجر</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="checkbox" id="serviceDineIn">
-                                <span>داخل المطعم</span>
+                                <input type="checkbox" id="serviceDineIn" dir="auto">
+                                <span>تناول داخل المتجر</span>
                             </label>
                         </div>
                     </div>
@@ -1340,7 +1340,7 @@
             <div class="modal-body" style="padding: 0;">
                 <div id="regionDrawMap" style="height: 70vh; width: 100%;"></div>
                 <div style="padding: .75rem 1rem; display:flex; gap:.5rem; align-items:center; border-top:1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface-container-lowest);">
-                    <span style="font-size:.85rem; color: var(--md-sys-color-on-surface-variant);" id="drawHint">استخدم أدوات الرسم لتحديد الحدود، وشريط الأدوات لتعديلها أو حذفها.</span>
+                    <span style="font-size:.85rem; color: var(--md-sys-color-on-surface-variant);" id="drawHint">استخدم أدوات الرسم لتحديد حدود المنطقة، وشريط الأدوات لتعديلها أو حذفها.</span>
                     <div style="flex:1 1 auto"></div>
                     <button class="btn-secondary" id="clearDrawnShapeBtn" type="button"><i class="fas fa-eraser"></i> مسح</button>
                     <button class="btn-primary" id="useDrawnShapeBtn" type="button"><i class="fas fa-check"></i> اعتماد هذا الشكل</button>
@@ -1357,7 +1357,7 @@
     <script src="../assets/js/aws-utils.js?v=20261011-session-fix2"></script>
     
     <!-- Regions Management Script - Loads comprehensive Najaf regions from API -->
-    <script src="../regions.js?v=20261011-central-data"></script>
+    <script src="../regions.js?v=20261017-ar1"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function () {

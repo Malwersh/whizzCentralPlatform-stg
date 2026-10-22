@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<script src="./assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta charset="UTF-8">
-    <script src="./assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <link rel="stylesheet" href="./styles/arabic-font.css?v=20261022-rtl1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ويز سنترال — تسجيل الدخول</title>
@@ -133,7 +133,6 @@
             display: block; 
         }
         .hidden { display: none !important; }
-
         body { font-family: "Wizz Arabic", Tahoma, Arial, sans-serif; background: #f5f7fa; color: #19273d; line-height: 1.75; }
         .login-container { border: 1px solid #dfe5ed; border-top: 4px solid #f0c448; border-radius: 18px; box-shadow: 0 8px 32px #18273d0a; }
         h1 { color: #19273d; }
@@ -144,40 +143,40 @@
         .btn-secondary { background: #fff; color: #233f69; border: 1px solid #dfe5ed; }
         :is(button,input):focus-visible { outline: 3px solid #718fb8; outline-offset: 3px; }
     </style>
-</head>
+<link rel="stylesheet" href="./styles/arabic-ui.css?v=20261017-ar1"></head>
 <body>
     <div class="login-container">
         <h1>ويز سنترال</h1>
-        <p class="subtitle">سجّل الدخول إلى حسابك</p>
+        <p class="subtitle">تسجيل الدخول إلى حسابك</p>
         
         <form id="loginForm">
             <div class="form-group">
                 <label for="email">البريد الإلكتروني</label>
-                <input type="email" id="email" required autocomplete="username" autofocus>
+                <input type="email" id="email" required autocomplete="username" autofocus dir="ltr">
             </div>
             
             <div class="form-group">
                 <label for="password">كلمة المرور</label>
-                <input type="password" id="password" required autocomplete="current-password">
+                <input type="password" id="password" required autocomplete="current-password" dir="ltr">
             </div>
             
             <button type="submit" id="loginBtn">تسجيل الدخول</button>
         </form>
         
-        <!-- كلمة المرور الجديدة Form (hidden by default) -->
+        <!-- New Password Form (hidden by default) -->
         <form id="newPasswordForm" class="hidden">
             <div class="form-group">
                 <label for="newPassword">كلمة المرور الجديدة</label>
-                <input type="password" id="newPassword" required placeholder="٨ أحرف على الأقل" autocomplete="new-password">
+                <input type="password" id="newPassword" required placeholder="8 أحرف على الأقل" autocomplete="new-password" dir="ltr">
                 <small class="help-text">
-                    يجب أن تتضمن حرفاً كبيراً وحرفاً صغيراً ورقماً ورمزاً خاصاً
+                    يجب أن تحتوي على حرف كبير وصغير ورقم ورمز خاص
                 </small>
             </div>
         
             <div class="form-group">
-                <label for="confirmPassword">تأكيد كلمة المرور الجديدة</label>
-                <input type="password" id="confirmPassword" required placeholder="أعد إدخال كلمة المرور الجديدة"
-                    autocomplete="new-password">
+                <label for="confirmPassword">تأكيد كلمة المرور</label>
+                <input type="password" id="confirmPassword" required placeholder="أعد إدخال كلمة المرور"
+                    autocomplete="new-password" dir="ltr">
             </div>
         
             <button type="submit" id="changePasswordBtn">تغيير كلمة المرور</button>
@@ -185,7 +184,7 @@
         </form>
         <form id="mfaForm" class="hidden" dir="rtl">
             <label for="mfaCode">رمز تطبيق التحقق</label>
-            <input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+            <input id="mfaCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required dir="auto">
             <button id="mfaSubmit" type="submit">التحقق وتسجيل الدخول</button>
             <button id="mfaCancel" type="button" class="btn-secondary">إلغاء</button>
         </form>

@@ -2,10 +2,10 @@
 <html lang="ar" dir="rtl">
 
 <head>
-    <meta charset="UTF-8">
 <script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ويز سنترال — لوحة التحكم</title>
+    <title>منصة ويز سنترال - لوحة التحكم</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <!-- Security: DOMPurify for XSS Protection -->
@@ -23,10 +23,14 @@
         /* Material 3 Dashboard Enhancements */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: var(--md-sys-motion-duration-medium1);
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+            gap: 24px;
             margin-bottom: 2rem;
         }
+        .dashboard-page-header { margin-block-end: 24px; }
+        .dashboard-page-header h1 { margin: 0; font-size: 28px; line-height: 1.25; }
+        .dashboard-page-header p { margin: 8px 0 0; color: var(--md-sys-color-on-surface-variant); }
+        a.stat-card { color: inherit; text-decoration: none; }
         
         .stat-card {
             background-color: var(--md-sys-color-surface-container-low);
@@ -65,7 +69,7 @@
         .stat-icon {
             width: 56px;
             height: 56px;
-            border-radius: var (--md-sys-shape-corner-medium);
+            border-radius: var(--md-sys-shape-corner-medium);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -155,7 +159,7 @@
             align-items: center;
             padding: 16px 24px;
             border-bottom: 1px solid var(--md-sys-color-outline-variant);
-            transition: background-color var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            transition: background-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
         }
         
         .activity-item:hover {
@@ -291,7 +295,7 @@
         
         .metric-label {
             font-size: var(--md-sys-typescale-body-small-font-size);
-            color: var (--md-sys-color-on-surface-variant);
+            color: var(--md-sys-color-on-surface-variant);
             text-transform: none;
             letter-spacing: 0.25px;
         }
@@ -440,8 +444,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <script src="../assets/js/rbac.js"></script>
-</head>
+    <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
 
 <body data-page="dashboard">
     <!-- Sidebar include placeholder -->
@@ -451,12 +455,16 @@
     <div class="main-content" id="mainContent">
         <!-- Dashboard Content -->
         <div class="container mx-auto px-6">
+            <header class="dashboard-page-header">
+                <h1>لوحة التحكم</h1>
+                <p>نظرة عامة على نشاط المنصة وعملياتها اليومية.</p>
+            </header>
             <!-- Data Source Indicator -->
             <div id="dataSourceIndicator" class="data-source-indicator hidden">
                 <div class="indicator-content">
                     <i id="dataSourceIcon" class="indicator-icon fas fa-circle-info"></i>
                     <div>
-                        <div id="dataSourceText" class="indicator-text">جاري تحميل البيانات...</div>
+                        <div id="dataSourceText" class="indicator-text">جارٍ تحميل البيانات...</div>
                         <div id="dataSourceDetails" class="indicator-details"></div>
                     </div>
                 </div>
@@ -469,6 +477,7 @@
                     </div>
                     <div class="stat-value" id="customersCount">—</div>
                     <div class="stat-label">إجمالي العملاء</div>
+
                 </div>
             
                 <div class="stat-card merchants">
@@ -477,6 +486,7 @@
                     </div>
                     <div class="stat-value" id="merchantsCount">—</div>
                     <div class="stat-label">المتاجر النشطة</div>
+
                 </div>
             
                 <div class="stat-card drivers">
@@ -484,7 +494,8 @@
                         <i class="fas fa-motorcycle"></i>
                     </div>
                     <div class="stat-value" id="driversCount">—</div>
-                    <div class="stat-label">السائقون المتصلون</div>
+                    <div class="stat-label">السائقون المتاحون</div>
+
                 </div>
             
                 <div class="stat-card orders">
@@ -493,6 +504,7 @@
                     </div>
                     <div class="stat-value" id="ordersCount">—</div>
                     <div class="stat-label">طلبات اليوم</div>
+
                 </div>
                 <div class="stat-card revenue">
                     <div class="stat-icon revenue">
@@ -500,23 +512,36 @@
                     </div>
                     <div class="stat-value" id="revenueCount">—</div>
                     <div class="stat-label">إيرادات اليوم</div>
+
                 </div>
                 <div class="stat-card support">
                     <div class="stat-icon support">
                         <i class="fas fa-headset"></i>
                     </div>
                     <div class="stat-value" id="ticketsCount">—</div>
-                    <div class="stat-label">طلبات الدعم</div>
+                    <div class="stat-label">تذاكر الدعم</div>
+
                 </div>
-                <div class="stat-card promotions clickable" data-href="promotions.html">
+                <a class="stat-card promotions clickable" href="promotions.html">
                     <div class="stat-icon promotions">
                         <i class="fas fa-tags"></i>
                     </div>
                     <div class="stat-value" id="promotionsCount">—</div>
                     <div class="stat-label">العروض النشطة</div>
-                </div>
+
+                </a>
             </div>
+            <section aria-labelledby="workspace-shortcuts">
+                <header class="admin-section-heading"><div><h2 id="workspace-shortcuts">إدارة المنصة</h2><p>انتقل مباشرةً إلى مهامك الأساسية.</p></div></header>
+                <div class="admin-shortcuts">
+                    <a class="admin-shortcut" href="orders.html"><strong>الطلبات والتوصيل ←</strong><span>متابعة الطلبات حتى اكتمالها.</span></a>
+                    <a class="admin-shortcut" href="merchants.html"><strong>دليل المتاجر ←</strong><span>مراجعة الأنشطة التجارية وإدارة حساباتها.</span></a>
+                    <a class="admin-shortcut" href="drivers.html"><strong>إدارة السائقين ←</strong><span>تنظيم شبكة التوصيل ومتابعة السائقين.</span></a>
+                    <a class="admin-shortcut" href="promotions.html"><strong>العروض والحملات ←</strong><span>إدارة العروض وشرائح الشاشة الرئيسية.</span></a>
+                </div>
+            </section>
     </div>
+    </div><!-- end mainContent -->
 
     <!-- AWS SDK -->
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
@@ -537,7 +562,7 @@
     
     <!-- Authentication check (moved to external) -->
     <!-- Initialize navigation manager (moved to external) -->
-    <script src="../dashboard.js?v=20261011-session-fix2"></script>
+    <script src="../dashboard.js?v=20261017-ar1"></script>
     <script src="../assets/js/dashboard-init.js" defer></script>
     <script src="../assets/js/dashboard-actions.js" defer></script>
     <script src="../assets/js/dashboard-rbac-init.js" defer></script>

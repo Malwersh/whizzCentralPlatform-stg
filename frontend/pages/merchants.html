@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 
 <head>
-    <meta charset="UTF-8">
 <script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     <!-- Security Utilities -->
     <script src="../assets/js/security-utils.js"></script>
-    <script src="../assets/js/rbac.js"></script>
+    <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
 
     <!-- Material 3 Merchants Page Styles -->
     <style>
@@ -363,7 +363,7 @@
             gap: 16px;
             padding: 20px 24px;
             background-color: var(--md-sys-color-surface-container);
-            border-radius: var (--md-sys-shape-corner-large);
+            border-radius: var(--md-sys-shape-corner-large);
             border-bottom: none;
         }
 
@@ -372,7 +372,7 @@
             color: var(--md-sys-color-on-surface);
             font-size: var(--md-sys-typescale-headline-small-font-size);
             font-weight: var(--md-sys-typescale-headline-small-font-weight);
-            line-height: var (--md-sys-typescale-headline-small-line-height);
+            line-height: var(--md-sys-typescale-headline-small-line-height);
         }
 
         .merchant-info p {
@@ -427,7 +427,7 @@
 
         .btn-toggle-status.pending {
             background: var(--md-sys-color-secondary-container);
-            color: var (--md-sys-color-on-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
             border: 1px solid var(--md-sys-color-secondary);
         }
 
@@ -561,7 +561,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            transition: all var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
         }
 
         .btn-view-products:hover {
@@ -580,7 +580,7 @@
             justify-content: center;
             width: 40px;
             height: 40px;
-            transition: all var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
             margin-left: 4px;
         }
 
@@ -660,7 +660,7 @@
             cursor: pointer;
             padding: 8px;
             border-radius: var(--md-sys-shape-corner-full);
-            transition: all var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
         }
 
         .close-button:hover {
@@ -691,7 +691,7 @@
             font-size: var(--md-sys-typescale-body-medium-font-size);
             background-color: var(--md-sys-color-surface);
             color: var(--md-sys-color-on-surface);
-            transition: border-color var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            transition: border-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
             box-sizing: border-box;
         }
 
@@ -743,7 +743,7 @@
 
         .merchant-logo:hover {
             transform: scale(1.1);
-            transition: transform var(--md-sys-motion-duration-short2) var (--md-sys-motion-easing-standard);
+            transition: transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
             box-shadow: var(--md-sys-elevation-level2);
         }
 
@@ -764,7 +764,7 @@
             border-radius: var(--md-sys-shape-corner-medium);
             object-fit: cover;
             border: 1px solid var(--md-sys-color-outline-variant);
-            background-color: var (--md-sys-color-surface-container);
+            background-color: var(--md-sys-color-surface-container);
         }
 
         /* General image constraints for any uncontrolled images in data table */
@@ -818,7 +818,7 @@
         /* Keep minimal overrides only when needed */
         .status-badge { white-space: nowrap; }
     </style>
-</head>
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
 
 <body data-page="merchants">
     <!-- Sidebar include placeholder -->
@@ -829,7 +829,31 @@
         <!-- Page Content -->
         <div class="page-content">
 <details data-delivery-policies dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px"><summary>اتفاقيات التوصيل والحملات</summary><p>اتفاقيات أسعار وتوصيل محددة المدة، وحملات ترويجية مستقلة بميزانية، تُرسل إلى مالك المتجر أو مديره للموافقة.</p></details>
-<details data-commercial-kind="AGREEMENT" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px"><summary>الاتفاقيات التجارية وعمولة كل تاجر</summary><p>إدارة عمولة كل فرع ورسوم الخدمة. تسري الاتفاقية بعد موافقة المالك على شروطها.</p></details>
+<details data-commercial-kind="AGREEMENT" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px"><summary>الاتفاقيات التجارية وعمولة كل تاجر</summary><p>إدارة الشروط المالية لكل فرع. تسري الاتفاقية بعد موافقة المالك على شروطها.</p></details>
+            <header class="admin-section-heading"><div><h2>دليل المتاجر</h2><p>حسابات المتاجر وحالات الاعتماد واستقبال الطلبات.</p></div><a href="#merchant-management-settings">إعدادات المتاجر ↓</a></header>
+            <!-- Auth and Data Status -->
+            <div id="dataStatus" class="status-banner">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>حالة البيانات:</strong> <span id="dataSourceIndicator">جارٍ تحميل المتاجر...</span>
+                </div>
+            </div>
+
+            <!-- Merchants List View (default) -->
+            <div id="merchantsListView" class="view-container">
+                <!-- Merchants Table -->
+                <div class="table-container">
+                    <div id="merchants-table-status"></div>
+                    <table class="data-table" id="merchantBranchesTable" dir="rtl">
+                        <thead><tr><th>النشاط والفرع</th><th>المالك عند التسجيل</th><th>اعتماد البيانات</th><th>التجهيز والظهور</th><th>إعداد استقبال الطلبات</th><th>هاتف الفرع</th><th>الموقع المسجل</th><th>آخر تحديث</th><th>الإجراءات</th></tr></thead>
+                        <tbody id="merchantsTableBody"><!-- rows injected by JS using delegated events --></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <details class="admin-configuration" id="merchant-management-settings">
+                <summary>إعدادات المتاجر <small>أنواع الأنشطة والاتفاقيات وسياسات الصلاحيات</small></summary>
+                <div class="admin-configuration-body">
             <p><a href="finance.html#merchant-settlement-schedules">إدارة جداول تسوية مستحقات المتاجر في القسم المالي</a></p>
             <details id="merchant-types-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
                 <summary>أنواع الأنشطة المتاحة للتسجيل</summary>
@@ -837,11 +861,11 @@
                 <a href="regions.html">إدارة مناطق العمل</a>
                 <p id="merchant-types-message" role="status"></p><button id="merchant-types-reload" type="button">تحديث الأنواع</button>
                 <form id="merchant-types-form" hidden>
-                  <label>اسم النوع بالعربية <input id="merchant-type-ar" required maxlength="150"></label>
-                  <label>الاسم بالإنجليزية <input id="merchant-type-en" required maxlength="150"></label>
+                  <label>اسم النوع بالعربية <input id="merchant-type-ar" required maxlength="150" dir="auto"></label>
+                  <label>الاسم بالإنجليزية <input id="merchant-type-en" required maxlength="150" dir="auto"></label>
                   <label>طبيعة المنتجات <select id="merchant-type-model"><option value="FOOD">قائمة طعام</option><option value="RETAIL">سلع متجر</option></select></label>
-                  <label><input id="merchant-type-open" type="checkbox">إتاحته في قائمة التسجيل</label>
-                  <label>سبب الإضافة <input id="merchant-type-reason" required minlength="5" maxlength="300"></label>
+                  <label><input id="merchant-type-open" type="checkbox" dir="auto">إتاحته في قائمة التسجيل</label>
+                  <label>سبب الإضافة <input id="merchant-type-reason" required minlength="5" maxlength="300" dir="auto"></label>
                   <button type="submit">إضافة نوع نشاط</button>
                 </form>
                 <table style="width:100%"><thead><tr><th>النوع</th><th>الاسم الإنجليزي</th><th>المنتجات</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="merchant-types-list"></tbody></table>
@@ -850,10 +874,10 @@
               <summary>اتفاقية الشراكة</summary>
               <p>تسري النسخة الجديدة على طلبات التقديم الجديدة. الطلبات المقدمة تحتفظ بالنص الذي وافق عليه صاحب النشاط.</p>
               <form id="merchant-agreement-form" hidden>
-                <label>إصدار الاتفاقية <input id="merchant-agreement-version" maxlength="150" required></label>
+                <label>إصدار الاتفاقية <input id="merchant-agreement-version" maxlength="150" required dir="auto"></label>
                 <label>النص العربي <textarea id="merchant-agreement-text" rows="8" style="width:100%" minlength="10" maxlength="20000" required></textarea></label>
-                <label><input id="merchant-agreement-ready" type="checkbox">النص النهائي جاهز لقبول أصحاب الأنشطة</label>
-                <label>سبب التعديل <input id="merchant-agreement-reason" minlength="5" maxlength="300" required></label>
+                <label><input id="merchant-agreement-ready" type="checkbox" dir="auto">النص النهائي جاهز لقبول أصحاب الأنشطة</label>
+                <label>سبب التعديل <input id="merchant-agreement-reason" minlength="5" maxlength="300" required dir="auto"></label>
                 <button type="submit">حفظ الاتفاقية</button>
               </form><p id="merchant-agreement-message" role="status"></p>
             </details>
@@ -878,20 +902,20 @@
                     <fieldset><legend>إتاحة الصلاحيات على المنصة</legend>
                         <p>حجب صلاحية يمنع استعمالها ضمن السياسة الجديدة. إعادة إتاحتها تعيدها فقط لمن يحتفظ بمنح صريح لها؛ لا تضيفها لبقية الموظفين.</p>
                         <div id="staff-policy-global-capabilities"></div>
-                        <label>سبب تعديل الإتاحة <input id="staff-policy-global-reason" minlength="5" maxlength="300"></label>
+                        <label>سبب تعديل الإتاحة <input id="staff-policy-global-reason" minlength="5" maxlength="300" dir="auto"></label>
                         <button id="staff-policy-global-save" type="button">حفظ إتاحة الصلاحيات</button>
                     </fieldset>
                     <label>نوع الموظف <select id="staff-policy-types"></select></label>
                     <button id="staff-policy-new" type="button">إضافة نوع موظف</button>
                     <div id="staff-policy-presets"></div>
                     <form id="staff-policy-form">
-                        <label>الاسم العربي <input id="staff-policy-ar" required maxlength="100"></label>
-                        <label>الاسم الإنجليزي <input id="staff-policy-en" required maxlength="100"></label>
-                        <label>الوصف <input id="staff-policy-description" maxlength="1000"></label>
-                        <label>الترتيب <input id="staff-policy-order" type="number" min="0" max="1000" value="0" required></label>
-                        <label><input id="staff-policy-enabled" type="checkbox" checked>متاح للاختيار عند التفويض</label>
+                        <label>الاسم العربي <input id="staff-policy-ar" required maxlength="100" dir="auto"></label>
+                        <label>الاسم الإنجليزي <input id="staff-policy-en" required maxlength="100" dir="auto"></label>
+                        <label>الوصف <input id="staff-policy-description" maxlength="1000" dir="auto"></label>
+                        <label>الترتيب <input id="staff-policy-order" type="number" min="0" max="1000" value="0" required dir="ltr"></label>
+                        <label><input id="staff-policy-enabled" type="checkbox" checked dir="auto">متاح للاختيار عند التفويض</label>
                         <fieldset><legend>صلاحيات القالب</legend><div id="staff-policy-capabilities"></div></fieldset>
-                        <label>سبب التغيير <input id="staff-policy-reason" required minlength="5" maxlength="300"></label>
+                        <label>سبب التغيير <input id="staff-policy-reason" required minlength="5" maxlength="300" dir="auto"></label>
                         <button type="submit">حفظ نوع الموظف</button>
                     </form>
                 </div>
@@ -899,25 +923,8 @@
                 <div id="staff-policy-history"></div>
             </details>
 
-            <!-- Auth and Data Status -->
-            <div id="dataStatus" class="status-banner">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                    <strong>مصدر البيانات:</strong> <span id="dataSourceIndicator">جاري تحميل المتاجر...</span>
                 </div>
-            </div>
-
-            <!-- Merchants List View (default) -->
-            <div id="merchantsListView" class="view-container">
-                <!-- Merchants Table -->
-                <div class="table-container">
-                    <div id="merchants-table-status"></div>
-                    <table class="data-table" id="merchantBranchesTable" dir="rtl">
-                        <thead><tr><th>النشاط والفرع</th><th>المالك عند التسجيل</th><th>اعتماد البيانات</th><th>التجهيز والظهور</th><th>إعداد استقبال الطلبات</th><th>هاتف الفرع</th><th>الموقع المسجل</th><th>آخر تحديث</th><th>الإجراءات</th></tr></thead>
-                        <tbody id="merchantsTableBody"><!-- rows injected by JS using delegated events --></tbody>
-                    </table>
-                </div>
-            </div>
+            </details>
 
             <!-- Merchant Products View (hidden by default) -->
             <div id="merchantProductsView" class="view-container" style="display: none;">
@@ -937,7 +944,7 @@
                     <button id="refreshProductsBtn" class="btn-primary"
                         style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-sync"></i>
-                        تحديث
+                        تحديث الصفحة
                     </button>
                 </div>
 
@@ -962,17 +969,17 @@
                     </div>
                     <div class="modal-body">
                         <form id="editProductForm">
-                            <input type="hidden" id="editProductId">
+                            <input type="hidden" id="editProductId" dir="auto">
                             <div class="form-group">
-                                <label for="editProductName">اسم المنتج بالإنكليزية</label>
-                                <input type="text" id="editProductName" required>
+                                <label for="editProductName">اسم المنتج بالإنجليزية</label>
+                                <input type="text" id="editProductName" required dir="auto">
                             </div>
                             <div class="form-group">
                                 <label for="editProductNameAr">اسم المنتج بالعربية</label>
-                                <input type="text" id="editProductNameAr">
+                                <input type="text" id="editProductNameAr" dir="auto">
                             </div>
                             <div class="form-group">
-                                <label for="editProductDescription">الوصف بالإنكليزية</label>
+                                <label for="editProductDescription">الوصف بالإنجليزية</label>
                                 <textarea id="editProductDescription" rows="3"></textarea>
                             </div>
                             <div class="form-group">
@@ -980,34 +987,34 @@
                                 <textarea id="editProductDescriptionAr" rows="3"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="editProductAllergens">مسببات الحساسية، مفصولة بفواصل</label>
+                                <label for="editProductAllergens">مسببات الحساسية (مفصولة بفواصل)</label>
                                 <textarea id="editProductAllergens" rows="2"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="editProductIngredients">المكونات، مفصولة بفواصل</label>
+                                <label for="editProductIngredients">المكونات (مفصولة بفواصل)</label>
                                 <textarea id="editProductIngredients" rows="2"></textarea>
                             </div>
                             <div class="form-group">
                                 <label for="editProductPrice">السعر</label>
-                                <input type="number" id="editProductPrice" step="0.01" required>
+                                <input type="number" id="editProductPrice" step="0.01" required dir="ltr">
                             </div>
                             <div class="form-group">
                                 <label for="editProductCategory">الفئة</label>
                                 <select id="editProductCategory" required></select>
                             </div>
                             <div class="form-group">
-                                <label for="editProductPreparationTime">مدة التحضير بالدقائق</label>
-                                <input type="number" id="editProductPreparationTime" min="0">
+                                <label for="editProductPreparationTime">مدة التحضير (دقائق)</label>
+                                <input type="number" id="editProductPreparationTime" min="0" dir="ltr">
                             </div>
                             <div class="form-group">
                                 <label for="editProductIsAvailable">
-                                    <input type="checkbox" id="editProductIsAvailable">
+                                    <input type="checkbox" id="editProductIsAvailable" dir="auto">
                                     متاح للطلب
                                 </label>
                             </div>
                             <div class="form-group">
                                 <label for="editProductImageUrl">رابط الصورة</label>
-                                <input type="text" id="editProductImageUrl">
+                                <input type="text" id="editProductImageUrl" dir="auto">
                             </div>
                             <div class="form-actions">
                                 <button type="submit" class="btn-primary">حفظ التغييرات</button>
@@ -1060,7 +1067,7 @@
                 <button data-action="close-edit-merchant"
                     style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#6b7280; padding:4px;">&times;</button>
 
-                <h3 style="margin-bottom: 1.5rem; color: var(--md-sys-color-on-surface); font-size: 1.5rem;">تعديل المتجر</h3>
+                <h3 style="margin-bottom: 1.5rem; color: var(--md-sys-color-on-surface); font-size: 1.5rem;">تعديل بيانات المتجر</h3>
 
                 <form id="editMerchantForm" style="display: grid; gap: 1rem;">
                     <!-- Basic Information -->
@@ -1069,13 +1076,13 @@
                             <label for="editBusinessName"
                                 style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">اسم النشاط التجاري</label>
                             <input type="text" id="editBusinessName" name="businessName" required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" dir="auto">
                         </div>
                         <div>
                             <label for="editOwnerName"
                                 style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">اسم المالك</label>
                             <input type="text" id="editOwnerName" name="ownerName"
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" dir="auto">
                         </div>
                     </div>
 
@@ -1085,13 +1092,13 @@
                             <label for="editEmail"
                                 style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">البريد الإلكتروني</label>
                             <input type="email" id="editEmail" name="email" required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" dir="ltr">
                         </div>
                         <div>
                             <label for="editPhoneNumber"
                                 style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">رقم الهاتف</label>
                             <input type="tel" id="editPhoneNumber" name="phoneNumber" required
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" dir="ltr">
                         </div>
                     </div>
 
@@ -1099,7 +1106,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
                             <label for="editBusinessType"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">نوع النشاط</label>
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">نوع النشاط التجاري</label>
                             <select id="editBusinessType" name="businessType"
                                 style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                                 <option value="restaurant">مطعم</option>
@@ -1107,7 +1114,7 @@
                                 <option value="cafe">مقهى</option>
                                 <option value="cloudkitchen">مطبخ سحابي</option>
                                 <option value="pharmacy">صيدلية</option>
-                                <option value="retail">بيع بالتجزئة</option>
+                                <option value="retail">تجارة التجزئة</option>
                             </select>
                         </div>
                         <div>
@@ -1115,8 +1122,8 @@
                                 style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">الحالة</label>
                             <select id="editStatus" name="status"
                                 style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
-                                <option value="pending">بانتظار المراجعة</option>
-                                <option value="approved">معتمد</option>
+                                <option value="pending">قيد الانتظار</option>
+                                <option value="approved">موافق عليه</option>
                                 <option value="under_review">قيد المراجعة</option>
                                 <option value="rejected">مرفوض</option>
                             </select>
@@ -1130,9 +1137,9 @@
                             سبب تغيير الحالة <span style="color: #ef4444;">*</span>
                         </label>
                         <textarea id="editStatusReason" name="statusReason" rows="2" minlength="10" maxlength="500"
-                            placeholder="اكتب سبب تغيير الحالة..."
+                            placeholder="أدخل سبب تغيير الحالة..."
                             style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem; resize: vertical;"></textarea>
-                        <small style="color: #6b7280; font-size: 0.75rem;">يُدرج السبب ضمن الإشعار المرسل إلى المتجر.</small>
+                        <small style="color: #6b7280; font-size: 0.75rem;">سيُدرج هذا السبب في إشعار البريد الإلكتروني المرسل إلى المتجر.</small>
                     </div>
 
                     <!-- Address - Match DynamoDB structure -->
@@ -1142,21 +1149,21 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                             <div>
                                 <input type="text" id="editStreet" name="street" placeholder="عنوان الشارع"
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" dir="auto">
                             </div>
                             <div>
                                 <input type="text" id="editCity" name="city" placeholder="المدينة"
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" dir="auto">
                             </div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
                                 <input type="text" id="editDistrict" name="district" placeholder="القضاء"
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" dir="auto">
                             </div>
                             <div>
-                                <input type="text" id="editCountry" name="country" placeholder="البلد" value="Iraq"
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                <input type="text" id="editCountry" name="country" placeholder="الدولة" value="Iraq"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" dir="auto">
                             </div>
                         </div>
                     </div>
@@ -1249,10 +1256,10 @@
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
     })();
 </script>
-    <script src="../finance-sample.js?v=64"></script>
-    <script src="../delivery-policy-form.js?v=182"></script><script src="../delivery-policy-management.js?v=182"></script>
-    <script src="../commercial-funding-picker.js?v=76"></script><script src="../commercial-management.js?v=80"></script>
+    <script src="../finance-sample.js?v=120"></script>
+    <script src="../commercial-funding-picker.js?v=76"></script><script src="../commercial-management.js?v=120"></script>
 <script src="../commercial-platform-notices.js?v=81"></script>
+<script src="../delivery-policy-form.js?v=182"></script><script src="../delivery-policy-management.js?v=182"></script>
 </body>
 
     </html>

@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 
 <head>
-    <meta charset="UTF-8">
 <script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>ويز سنترال — إدارة العملاء</title>
@@ -21,7 +21,7 @@
 
     <!-- Security Utilities -->
     <script src="../assets/js/security-utils.js"></script>
-    <script src="../assets/js/rbac.js"></script>
+    <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
 
     <style>
         .customer-stat-card {
@@ -430,7 +430,7 @@
         .pagination button.active {
             background: var(--md-sys-color-primary);
             color: var(--md-sys-color-on-primary);
-            border-color: var (--md-sys-color-primary);
+            border-color: var(--md-sys-color-primary);
         }
     
         .pagination button:disabled {
@@ -562,7 +562,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Build: 2025-11-03-22:30 - Sidebar layout fix -->
-</head>
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
 
 <body data-page="customers">
     <!-- Sidebar include placeholder -->
@@ -576,14 +576,14 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">إدارة العملاء</h1>
+                <h1 class="page-title">العملاء</h1>
                 <span id="version-badge"
                     style="font-size: 0.7rem; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); padding: 2px 6px; border-radius: 8px; margin-left: 10px; font-weight: 500;"></span>
             </div>
             <div class="top-bar-actions">
                 <button class="btn-primary" data-action="refresh-customer-data">
                     <i class="fas fa-sync"></i>
-                    تحديث
+                    تحديث الصفحة
                 </button>
             </div>
         </div>
@@ -621,9 +621,9 @@
     <div style="display: flex; align-items: center; gap: 12px;">
         <i class="fas fa-info-circle" style="color: #1976d2; font-size: 1.2rem;"></i>
         <div>
-            <h4 style="margin: 0; color: #1976d2; font-size: 1rem;">معلومات مصدر البيانات</h4>
+            <h4 style="margin: 0; color: #1976d2; font-size: 1rem;">معلومات البيانات</h4>
             <p id="dataSourceMessage" style="margin: 4px 0 0 0; color: #424242; font-size: 0.9rem;">
-                تُجلب بيانات العملاء مباشرة من قاعدة بيانات المنصة.
+                تعرض هذه الصفحة بيانات العملاء الفعلية والمحدّثة من النظام.
             </p>
         </div>
     </div>
@@ -634,7 +634,7 @@
                 <div class="table-controls">
                     <div class="search-container">
                         <i class="fas fa-search"></i>
-                        <input type="text" placeholder="بحث عن عميل بالاسم أو البريد أو الهاتف..." id="searchInput">
+                        <input type="text" placeholder="ابحث باسم العميل أو بريده الإلكتروني أو رقم هاتفه..." id="searchInput" dir="auto">
                         </div>
                         <div class="filter-container">
                             <select id="statusFilter">
@@ -651,7 +651,7 @@
                             </select>
                     </div>
                     <button class="btn-secondary" data-action="refresh-customer-points"
-                        title="تحديث نقاط العميل من آخر بيانات الطلبات">
+                        title="تحديث نقاط العملاء وفق أحدث بيانات الطلبات">
                         <i class="fas fa-sync-alt"></i>
                         تحديث النقاط
                     </button>
@@ -668,13 +668,13 @@
                     <thead>
                         <tr>
                             <th>العميل</th>
-                            <th>التواصل</th>
+                            <th>بيانات التواصل</th>
                             <th>الحالة</th>
                             <th>إجمالي الطلبات</th>
                             <th>إجمالي الإنفاق</th>
                             <th>النقاط</th>
                             <th>آخر طلب</th>
-                            <th>الفئة</th>
+                            <th>فئة العميل</th>
                             <th>الإجراءات</th>
                         </tr>
                     </thead>
@@ -683,7 +683,7 @@
                         <tr>
                             <td colspan="9" style="text-align: center; padding: 40px; color: var(--md-sys-color-on-surface-variant);">
                                 <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
-                                <div>جاري تحميل العملاء...</div>
+                                <div>جارٍ تحميل العملاء...</div>
                             </td>
                         </tr>
                     </tbody>
@@ -700,7 +700,7 @@
     <div class="modal" id="editCustomerModal">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h2><i class="fas fa-edit" style="color: var(--md-sys-color-primary);"></i> تعديل العميل</h2>
+                <h2><i class="fas fa-edit" style="color: var(--md-sys-color-primary);"></i> تعديل بيانات العميل</h2>
                 <button class="modal-close" data-action="close-edit-customer-modal">
                     <i class="fas fa-times"></i>
                 </button>
@@ -710,7 +710,7 @@
                 <div class="driver-info-section" style="background: rgba(3, 169, 244, 0.08); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); padding: 16px; margin-bottom: 24px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                         <i class="fas fa-info-circle" style="color: var(--md-sys-color-primary);"></i>
-                        <strong style="color: var(--md-sys-color-on-surface);">معلومات للقراءة فقط</strong>
+                        <strong style="color: var(--md-sys-color-on-surface);">معلومات للعرض فقط</strong>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.875rem;">
                         <div>
@@ -729,7 +729,7 @@
                 </div>
 
                 <form id="editCustomerForm">
-                    <input type="hidden" id="editCustomerId" name="userId">
+                    <input type="hidden" id="editCustomerId" name="userId" dir="auto">
                     
                     <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 0 0 16px 0;">المعلومات الأساسية</h3>
                     
@@ -737,19 +737,19 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editCustomerName">الاسم الكامل *</label>
-                            <input type="text" id="editCustomerName" name="name" required placeholder="أدخل الاسم الكامل">
+                            <input type="text" id="editCustomerName" name="name" required placeholder="أدخل الاسم الكامل" dir="auto">
                         </div>
                         <div class="form-group">
                             <label for="editCustomerEmail">البريد الإلكتروني *</label>
-                            <input type="email" id="editCustomerEmail" name="email" required placeholder="customer@example.com">
+                            <input type="email" id="editCustomerEmail" name="email" required placeholder="customer@example.com" dir="ltr">
                         </div>
                     </div>
                     
                     <!-- Row 2: Phone & Gender -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editCustomerPhone">الهاتف</label>
-                            <input type="tel" id="editCustomerPhone" name="countryCode" placeholder="+964 770 123 4567">
+                            <label for="editCustomerPhone">رقم الهاتف</label>
+                            <input type="tel" id="editCustomerPhone" name="countryCode" placeholder="+964 770 123 4567" dir="ltr">
                         </div>
                         <div class="form-group">
                             <label for="editCustomerGender">الجنس</label>
@@ -767,14 +767,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editCustomerBirthDate">تاريخ الميلاد</label>
-                            <input type="date" id="editCustomerBirthDate" name="birth_date">
+                            <input type="date" id="editCustomerBirthDate" name="birth_date" dir="ltr">
                         </div>
                         <div class="form-group">
                             <label for="editCustomerLanguage">اللغة المفضلة</label>
                             <select id="editCustomerLanguage" name="preferredLanguage">
-                                <option value="en">الإنكليزية</option>
-                                <option value="ar">Arabic (العربية)</option>
-                                <option value="ku">Kurdish (کوردی)</option>
+                                <option value="en">الإنجليزية</option>
+                                <option value="ar">العربية</option>
+                                <option value="ku">الكردية</option>
                             </select>
                         </div>
                     </div>
@@ -792,12 +792,12 @@
                         </div>
                         <div class="form-group" style="display: flex; flex-direction: column; gap: 8px; padding-top: 28px;">
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="checkbox" id="editMarketingConsent" name="marketingConsent" style="cursor: pointer;">
+                                <input type="checkbox" id="editMarketingConsent" name="marketingConsent" style="cursor: pointer;" dir="auto">
                                 <span>الموافقة على الرسائل التسويقية</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="checkbox" id="editNewsletterSubscription" name="newsletter_subscription" style="cursor: pointer;">
-                                <span>الاشتراك بالتحديثات</span>
+                                <input type="checkbox" id="editNewsletterSubscription" name="newsletter_subscription" style="cursor: pointer;" dir="auto">
+                                <span>الاشتراك في النشرة الإخبارية</span>
                             </label>
                         </div>
                     </div>
@@ -836,7 +836,7 @@
                 <!-- Quick Action Buttons -->
                 <div style="display: flex; gap: 12px; margin-bottom: 24px;">
                     <button class="btn-primary" data-action="edit-customer-from-view" style="flex: 1;">
-                        <i class="fas fa-edit"></i> تعديل العميل
+                        <i class="fas fa-edit"></i> تعديل بيانات العميل
                     </button>
                     <button class="btn-secondary" data-action="print-view" style="flex: 1;">
                         <i class="fas fa-print"></i> طباعة الملف
@@ -896,7 +896,7 @@
                 <!-- Order & Points Statistics Card -->
                 <div class="view-info-card">
                     <div class="view-info-card-header">
-                        <i class="fas fa-chart-line"></i> إحصائيات الطلبات والنقاط
+                        <i class="fas fa-chart-line"></i> إحصاءات الطلبات والنقاط
                     </div>
                     <div class="view-info-grid">
                         <div class="view-info-item">
@@ -925,7 +925,7 @@
                     </div>
                     <div class="view-info-grid">
                         <div class="view-info-item" style="grid-column: 1 / -1;">
-                            <div class="view-info-label">معرّف العميل</div>
+                            <div class="view-info-label">رقم العميل</div>
                             <div class="view-info-value" id="viewSysCustomerId" style="font-family: monospace; font-size: 11px; word-break: break-all;"></div>
                         </div>
                         <div class="view-info-item">
@@ -1162,7 +1162,7 @@
         });
     </script>
     <script src="../customer-points-service.js"></script>
-    <script src="../customers.js?v=20261011-session-fix2"></script>
+    <script src="../customers.js?v=20261017-ar1"></script>
 
 
 <script>

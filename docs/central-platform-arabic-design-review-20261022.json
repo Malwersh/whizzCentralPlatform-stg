@@ -69,7 +69,7 @@
       "width": 390,
       "overflow": 0,
       "bodyDirection": "rtl",
-      "h1": "إدارة العملاء",
+      "h1": "العملاء",
       "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
     },
     {
@@ -79,7 +79,7 @@
       "width": 1440,
       "overflow": 0,
       "bodyDirection": "rtl",
-      "h1": "إدارة العملاء",
+      "h1": "العملاء",
       "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
     },
     {
@@ -129,7 +129,7 @@
       "width": 390,
       "overflow": 0,
       "bodyDirection": "rtl",
-      "h1": "عروض تستحق الاهتمام.\nوأسباب أكثر للطلب.",
+      "h1": "العروض والحملات.",
       "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
     },
     {
@@ -139,7 +139,7 @@
       "width": 1440,
       "overflow": 0,
       "bodyDirection": "rtl",
-      "h1": "عروض تستحق الاهتمام.\nوأسباب أكثر للطلب.",
+      "h1": "العروض والحملات.",
       "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
     }
   ],
@@ -203,5 +203,12 @@
       "h1": "لوحة التحكم",
       "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
     }
-  ]
+  ],
+  "deploymentPreparation": {
+    "hostedLocalizationCatalogPreserved": true,
+    "hostedAuthenticationTranslationsPreserved": true,
+    "hostedPageContentAndLayoutFixesPreserved": true,
+    "hostedFormContractDocumentsVerified": 19,
+    "note": "Before publishing, reconcile with the current hosted artifact, whose full Arabic catalog and presentation fixes were absent from the local source baseline."
+  }
 }

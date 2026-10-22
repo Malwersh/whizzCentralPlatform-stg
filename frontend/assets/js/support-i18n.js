@@ -261,7 +261,7 @@ const SupportI18n = {
      * Initialize i18n system
      */
     init() {
-        // Platform language is Arabic, including accounts with an old English preference.
+        // Arabic is the default on every page load; in-session switching is optional.
         this.currentLanguage = 'ar';
 
         // Update page title
