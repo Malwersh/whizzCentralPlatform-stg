@@ -67,3 +67,9 @@ test('283 a free agreement consumes no additional free-delivery campaign usage',
  const f=fixture(),p=addAgreement(f);p.customerRule={kind:'FREE'};for(const sk of ['CURRENT','VERSION#1']){const row=f.change(S,{pk:'DELIVERY_FUNDING#contract',sk});row.policy=p;row.termsHash=read(p).termsHash;}
  f.add('free','0','FREE');const r=await f.prepare();assert.equal(r.customerFee.minorAmount,0);assert.equal(r.deliveryFunding.allocation.schemaVersion,2);assert.ok(!r.operations.some(x=>x.Put?.Item.pk.startsWith('DELIVERY_USAGE#')));
 });
+
+test('283 exhausted extra campaign funding falls back to the agreement without reserving campaign usage',async()=>{
+ const f=fixture();addAgreement(f);f.add('extra','0','FREE');const row=f.change(S,{pk:'DELIVERY_BUDGET#extra',sk:'VERSION#1'});row.platformSpent=row.platformTotal;row.platformAvailable=0;
+ const {quoteHash}=require('../dist/deliveryQuoteRecord'),{digest,...content}=row;row.digest=quoteHash(content);
+ const r=await f.prepare();assert.equal(r.agreement,true);assert.equal(r.customerFee.minorAmount,1500000);assert.equal(r.deliveryFunding.allocation.schemaVersion,2);assert.ok(!r.operations.some(x=>x.Put?.Item.pk.startsWith('DELIVERY_USAGE#')));assert.deepEqual(r.operations.filter(x=>x.Put?.Item.pk.startsWith('DELIVERY_RESERVATION#')).map(x=>x.Put.Item.pk),['DELIVERY_RESERVATION#order']);
+});

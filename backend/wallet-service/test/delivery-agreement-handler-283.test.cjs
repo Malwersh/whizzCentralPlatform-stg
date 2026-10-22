@@ -24,3 +24,36 @@ test('283 free agreement refuses an extra entitlement with no real saving and re
  const f=await fixed();for(const sk of ['CURRENT','VERSION#1']){const r=get(f,'DELIVERY_FUNDING#delivery',sk);r.policy.customerRule={kind:'FREE'};r.termsHash=read(r.policy).termsHash;}f.promoRow=benefit('FREE_DELIVERIES');
  const result=await f.invoke({platformDiscountId:'benefit',action:'preview_commercial'});assert.equal(result.statusCode,409);assert.match(result.json.message,/BENEFIT_NO_SAVINGS/);assert.equal(f.orders.size,0);assert.ok(![...f.journey.values()].some(r=>r.pk.startsWith('BENEFIT_ORDER#')));
 });
+
+// Coordinated integration review: customer consent remains bound to composed pricing.
+test('283 explicit deliveryBenefitId keeps agreement, driver tip and a single reservation on retry',async()=>{
+ const f=await fixed();f.promoRow=benefit('DELIVERY_AMOUNT');const patch={deliveryBenefitId:'benefit',tip:500};
+ const preview=await f.invoke({...patch,action:'preview_commercial'});assert.equal(preview.statusCode,200,JSON.stringify(preview.json));const c=preview.json.commercial;
+ assert.equal(c.customerTotal.minorAmount,9000000);assert.equal(c.deliveryFee.minorAmount,1000000);assert.equal(c.driverTip.minorAmount,500000);
+ const consent={digest:c.digest,customerTotalMinor:c.customerTotal.minorAmount};assert.equal((await f.invoke({...patch,commercialConsent:consent})).statusCode,201);
+ const order=[...f.orders.values()][0];assert.equal(order.pricing.tip,500000);assert.equal(order.commercialPricing.calculation.commission.amount.minorAmount,1050000);assert.equal(order.financialSnapshot.deliveryFunding.allocation.schemaVersion,3);
+ const counters=JSON.stringify([...f.journey]);assert.equal((await f.invoke({...patch,commercialConsent:consent})).statusCode,200);assert.equal(JSON.stringify([...f.journey]),counters);assert.equal(f.orders.size,1);
+});
+for(const changed of ['tip','basket','address'])test('283 composed preview cannot authorize changed '+changed,async()=>{
+ const f=await fixed();f.promoRow=benefit('DELIVERY_AMOUNT');const patch={deliveryBenefitId:'benefit'};
+ const preview=await f.invoke({...patch,action:'preview_commercial'});assert.equal(preview.statusCode,200);const c=preview.json.commercial;
+ const changes=changed==='tip'?{tip:500}:changed==='basket'?{items:[{id:'p1',price:3500,quantity:3}]}:{deliveryAddress:{...f.body.deliveryAddress,latitude:31.926}};
+ const r=await f.invoke({...patch,...changes,commercialConsent:{digest:c.digest,customerTotalMinor:c.customerTotal.minorAmount}});
+ assert.equal(r.statusCode,409,JSON.stringify(r.json));assert.equal(f.orders.size,0);assert.equal(f.journey.size,0);assert.ok(![...f.commercialRecords.values()].some(x=>x.pk?.startsWith('DELIVERY_RESERVATION#')));
+});
+test('283 expired agreement invalidates earlier composed consent without reserving either component',async()=>{
+ const f=await fixed();f.promoRow=benefit('DELIVERY_AMOUNT');const patch={deliveryBenefitId:'benefit'};const preview=await f.invoke({...patch,action:'preview_commercial'});assert.equal(preview.statusCode,200);const c=preview.json.commercial;
+ for(const sk of ['CURRENT','VERSION#1']){const r=get(f,'DELIVERY_FUNDING#delivery',sk);r.policy.effectiveTo='2026-10-10T00:00:00.000Z';r.termsHash=read(r.policy).termsHash;}
+ const r=await f.invoke({...patch,commercialConsent:{digest:c.digest,customerTotalMinor:c.customerTotal.minorAmount}});assert.equal(r.statusCode,409,JSON.stringify(r.json));assert.equal(f.orders.size,0);assert.equal(f.journey.size,0);
+});
+test('283 absent agreement preserves ordinary benefit pricing against the reference tariff',async()=>{
+ const f=await fixed();f.promoRow=benefit('DELIVERY_AMOUNT');f.deliveryIndexes=[];
+ const r=await f.invoke({deliveryBenefitId:'benefit',action:'preview_commercial'});assert.equal(r.statusCode,200,JSON.stringify(r.json));assert.equal(r.json.commercial.deliveryAgreement,undefined);assert.equal(r.json.commercial.deliveryFee.minorAmount,2500000);assert.equal(r.json.commercial.customerTotal.minorAmount,10000000);assert.equal(f.journey.size,0);
+});
+for(const change of ['ineligible','exhausted'])test('283 '+change+' benefit cannot commit an earlier composed consent',async()=>{
+ const f=await fixed();f.promoRow=benefit('DELIVERY_AMOUNT');const patch={deliveryBenefitId:'benefit'};const preview=await f.invoke({...patch,action:'preview_commercial'});assert.equal(preview.statusCode,200);const c=preview.json.commercial;
+ if(change==='ineligible')f.promoRow.benefit.customerIds=['another-customer'];
+ else f.journey.set('USER#sub1|BENEFIT#benefit',{pk:'USER#sub1',sk:'BENEFIT#benefit',version:1,grantedUses:3,reservedUses:0,usedUses:3,revoked:false});
+ const before=JSON.stringify([...f.journey]),r=await f.invoke({...patch,commercialConsent:{digest:c.digest,customerTotalMinor:c.customerTotal.minorAmount}});
+ assert.equal(r.statusCode,409,JSON.stringify(r.json));assert.match(r.json.message,new RegExp(change==='ineligible'?'BENEFIT_NOT_ELIGIBLE':'BENEFIT_EXHAUSTED'));assert.equal(f.orders.size,0);assert.equal(JSON.stringify([...f.journey]),before);
+});
