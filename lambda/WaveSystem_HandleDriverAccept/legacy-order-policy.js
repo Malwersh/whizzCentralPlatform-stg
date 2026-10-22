@@ -17,7 +17,13 @@ function preparationAllowed(record,target){
 // Caller provides an already branch-scoped strongly consistent record. Applied to Update itself, never a separate ConditionCheck.
 function fenceMerchantOrderOperation(item,record){
  const op=item.Update||item.Put||item.Delete||item.ConditionCheck;
- if(!isFinancialOrder(record))return addCondition(op,LEGACY_ONLY);
+ if(!isFinancialOrder(record)){
+  const target=item.Put?.Item?.status||op.ExpressionAttributeValues?.[':status']||op.ExpressionAttributeValues?.[':newStatus'];
+  if(record.offerUsageReservation&&record.status==='pending'&&typeof target==='string'&&
+   (['cancelled','canceled','rejected','expired','failed'].includes(target)||/^(canceled|cancelled)_by_/.test(target)))
+   throw Object.assign(Error('OFFER_CANCELLATION_WORKFLOW_REQUIRED'),{code:'OFFER_CANCELLATION_WORKFLOW_REQUIRED',statusCode:409,status:409});
+  return addCondition(op,LEGACY_ONLY);
+ }
  const target=op.ExpressionAttributeValues?.[':status'];
  if(!item.Update||!preparationAllowed(record,target))throw workflowRequired();
  // Prevent a concurrent accept/return/completion or reassignment from turning this into a stale preparation write.

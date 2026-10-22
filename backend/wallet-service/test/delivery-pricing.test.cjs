@@ -131,3 +131,14 @@ test('engine results feed allocation with balanced COD and prepaid obligations',
     assert.equal(minor(a.customerTotal),minor(a.merchantPayable)+minor(a.driverTotalEntitlement)+minor(a.platformNetContribution));
   }
 });
+
+test('customer fee ceiling uses 250 IQD and leaves driver earnings unchanged',()=>{
+ const rule={...delivery(),base:m('1100'),perKm:m('0'),finalRounding:{incrementIqd:250,mode:'CEILING'}};
+ const original=earning(ei());
+ const result=fee({...fi(),rules:[rule]});
+ assert.deepEqual(result.customerDeliveryFee,m('1250'));
+ assert.deepEqual(result.components.finalRoundingAdjustment,m('150'));
+ assert.deepEqual(fee({...fi(),rules:[{...rule,base:m('1250')}]}).customerDeliveryFee,m('1250'));
+ assert.deepEqual(earning(ei()),original);
+ assert.deepEqual(rule.base,m('1100'));
+});

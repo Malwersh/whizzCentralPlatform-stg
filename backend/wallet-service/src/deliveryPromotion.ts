@@ -51,14 +51,15 @@ export function calculateDeliveryPromotionCandidate(value: unknown) {
       // Existing whole-IQD tariff quantum governs the customer-visible discount.
       const raw = multiplyMoney(referenceFee, c.numerator, c.denominator, 'TOWARD_ZERO');
       const bounded = moneyFromMinor(Math.min(raw.minorAmount, c.maximumDiscount.minorAmount));
-      discount = base.components.finalRounding ? quantizeWholeIqd(bounded, {incrementIqd: base.components.finalRounding.incrementIqd, mode: 'TOWARD_ZERO'}) : bounded; break;
+      discount = base.components.finalRounding && base.components.finalRounding.mode !== 'CEILING' ? quantizeWholeIqd(bounded, {incrementIqd: base.components.finalRounding.incrementIqd, mode: 'TOWARD_ZERO'}) : bounded; break;
     }
     default: return fail();
   }
   if (discount.minorAmount === 0) return fallback('NO_DISCOUNT');
-  let funding;
-  try { funding = calculatePolicyDeliveryFunding(policy, referenceFee, subtractMoney(referenceFee, discount)); }
-  catch (error) { if ((error as any)?.code === 'DELIVERY_FUNDING_CAP_EXCEEDED') return fallback('FUNDING_CAP_EXCEEDED'); throw error; }
   const calculation = calculateDeliveryFee({...request, discount: {id: policy.id, fundingParty: policy.origin, amount: discount}});
+  if (calculation.discountFundingAmount.minorAmount === 0) return fallback('NO_DISCOUNT');
+  let funding;
+  try { funding = calculatePolicyDeliveryFunding(policy, referenceFee, calculation.customerDeliveryFee); }
+  catch (error) { if ((error as any)?.code === 'DELIVERY_FUNDING_CAP_EXCEEDED') return fallback('FUNDING_CAP_EXCEEDED'); throw error; }
   return Object.freeze({applied: true as const, reason: 'APPLIED', policyPin: pin, calculation, funding});
 }

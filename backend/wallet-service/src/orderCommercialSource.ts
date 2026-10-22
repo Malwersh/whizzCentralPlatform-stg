@@ -1,5 +1,5 @@
-import {prepareGoodsPromotionExposure} from './goodsPromotionExposure';
 import {prepareFullCashOrderSnapshot} from './fullCashOffer';
+import {prepareGoodsPromotionExposure} from './goodsPromotionExposure';
 import {assertMinimumOrder} from './branchMinimumOrder';
 import {DynamoDBDocumentClient, GetCommand} from '@aws-sdk/lib-dynamodb';
 import {prepareDeliveryFundedFinancialSnapshot} from './deliveryFundedOffer';
@@ -168,7 +168,7 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
   const branchFields=['businessId','ownerId','cognitoUserId','organizationId','commercialAgreementId','commercialAgreementVersion','regionPath',
    'status','isActive','onboardingSchemaVersion','onboardingComplete','acceptingOrders','platformSuspended','ordersBlocked','deletionRequestId','minimum_order'];
   const branchCondition=pin('WhizzMerchants_Businesses',{businessId:branchId},branch,branchFields);
-  const preview={...(promotion?.agreement===true?{deliveryAgreement:{...promotion.deliveryFunding.policyPin,kind:promotion.customerRule}}:{}),schemaVersion:deliveryFunding?2:1,...(options.enableFullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),...(deliveryFunding?{deliveryFunding}:{}),kind:'COMMERCIAL_CHECKOUT',orderId,branchId,merchantId,expiresAt:new Date(validUntil).toISOString(),
+  const preview={...(promotion?.agreement===true?{deliveryAgreement:{...promotion.deliveryFunding.policyPin,kind:promotion.customerRule}}:{}),...(options.enableFullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),...(promotion?.benefitReceipt?{platformBenefitReceipt:copy(promotion.benefitReceipt)}:{}),schemaVersion:deliveryFunding?2:1,...(promotion?.cashRoundingEvidence?{deliveryCashRounding:copy(promotion.cashRoundingEvidence)}:{}),...(deliveryFunding?{deliveryFunding}:{}),kind:'COMMERCIAL_CHECKOUT',orderId,branchId,merchantId,expiresAt:new Date(validUntil).toISOString(),
    goodsFingerprint:goods.fingerprint,agreement:{id:agreementId,version,termsHash:record.termsHash},funding,
    calculation,financialSnapshot,branchCondition};
   return copy({...preview,digest:quoteHash(preview),goodsLines:goods.lines,operations,requiresAtomicCommit:true});

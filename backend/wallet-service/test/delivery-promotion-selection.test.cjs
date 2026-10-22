@@ -11,7 +11,7 @@ function fixture(){
  const calls=[],db={send:async c=>{calls.push(c);assert.equal(c.input.ConsistentRead,true);if(c.constructor.name==='QueryCommand')return {Items:structuredClone(indexes)};assert.equal(c.constructor.name,'GetCommand');return {Item:structuredClone(rows.get(key(c.input.TableName,c.input.Key)))};}};
  const facts={orderId:'order',branchId:'branch',merchantId:'merchant',goodsGross:m('12000'),goodsAfterDiscounts:m('11000'),hasGoodsDiscount:true,referenceFee:m('4000')};
  const prepare=(previewOnly=false)=>create({db,previewOnly,pricingRequest:source.pricingRequest,now:()=>Date.parse('2026-10-18T12:00:00.000Z'),customerFacts:async()=>({customerId:'customer',isNewCustomer:false,conditions:[{ConditionCheck:{TableName:'WizzUser_users_staging',Key:{userId:'customer'},ConditionExpression:'attribute_exists(userId)'}}]})}).prepare(facts);
- return {add,change,put,prepare,facts,indexes,calls};
+ return {add,change,put,prepare,facts,indexes,calls,source};
 }
 test('server selects best eligible customer price and prepares one budget reservation without writes',async()=>{const f=fixture();f.add('expensive','2000');f.add('best','1500');const r=await f.prepare();assert.equal(r.applied,true);assert.equal(r.deliveryFunding.policyPin.policyId,'best');assert.equal(r.customerFee.minorAmount,1500000);assert.equal(r.operations.filter(o=>o.Put?.Item.pk.startsWith('DELIVERY_RESERVATION#')).length,1);assert.ok(r.operations.some(o=>Object.values(o.ConditionCheck?.ExpressionAttributeNames??{}).includes('deliveryOfferRevision')));});
 test('ties use deterministic policy identity and exhausted best budget falls back to next',async()=>{const f=fixture();f.add('b','1500');f.add('a','1500');assert.equal((await f.prepare()).deliveryFunding.policyPin.policyId,'a');const b=f.change(S,{pk:'DELIVERY_BUDGET#a',sk:'VERSION#1'});b.platformSpent=b.platformTotal;b.platformAvailable=0;const {quoteHash}=require('../dist/deliveryQuoteRecord');const {digest,...content}=b;b.digest=quoteHash(content);assert.equal((await f.prepare()).deliveryFunding.policyPin.policyId,'b');});
@@ -35,4 +35,13 @@ test('agreement price and minimum apply to empty basket before promotion eligibi
 test('agreement respects region, expiry, approval integrity and overlapping agreements fail closed',async()=>{
  const f=fixture();addAgreement(f);addAgreement(f,'second');await assert.rejects(f.prepare(),/DELIVERY_AGREEMENT_OVERLAP/);
  for(const edit of [p=>p.eligibility.regionIds=['elsewhere'],p=>p.effectiveTo='2026-10-18T11:00:00.000Z']){const g=fixture();const p=addAgreement(g);edit(p);for(const sk of ['CURRENT','VERSION#1']){const row=g.change(S,{pk:'DELIVERY_FUNDING#contract',sk});row.policy=p;row.termsHash=read(p).termsHash;}assert.equal((await g.prepare()).applied,false);}
+});
+test('preview and reservation retain identical platform cash-rounding evidence',async()=>{
+ const f=fixture();f.source.pricingRequest.rules[0].finalRounding={incrementIqd:250,mode:'CEILING'};f.add('cash','1100');
+ const preview=await f.prepare(true),confirmation=await f.prepare();
+ assert.deepEqual(preview.cashRoundingEvidence,confirmation.cashRoundingEvidence);
+ const e=confirmation.cashRoundingEvidence;
+ assert.equal(e.beneficiary,'PLATFORM');assert.equal(e.chargedFee.minorAmount,1250000);
+ assert.equal(e.customerFeeBeforeRounding.minorAmount,1100000);assert.equal(e.roundingAdjustment.minorAmount,150000);
+ assert.equal(confirmation.deliveryFunding.allocation.platformShare.minorAmount,2750000);
 });

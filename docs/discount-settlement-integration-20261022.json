@@ -1,0 +1,801 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "baseline": "Colleague GitHub commits from 2026-10-22",
+    "settlements": "COLLEAGUE",
+    "discountsAndBenefits": "LOCAL_USER_WORK",
+    "sharedFiles": "Preserve settlement calculations; add atomic benefit usage hooks only",
+    "deploymentPerformed": false
+  },
+  "repositories": {
+    "whizzCentralPlatform-stg": "30388bd61706f00a3ce27157bf4c5364989b020b",
+    "whizzMerchants-stg": "07f2a43966390ed55b4c688d2634625994877744",
+    "wizzuser-stg": "d36e34af416264bc9db0b094d0dbf2e7c6e10175",
+    "whizzDrivers-stg": "af5fb27549079bc13bf3057d9e75e36753390531"
+  },
+  "protectedFiles": [
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/account-deletion/payout-retention.js",
+      "sha256": "5248e4fcc5c3922a3de96524c63dd96363935e9f9561c9537c762fbc1ee5e1d7"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/account-deletion/settlement-collection-inventory.js",
+      "sha256": "878078a104978c635f9553c941f2e6a6aa1f72f8cbeed789c4107a5b08a95921"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/account-deletion/settlement-retention.js",
+      "sha256": "b130c7ef436b0ccdaeced39e5a49b736c8d0328640ec47540b5c9f8607d67469"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/account-deletion/settlement-schedule-inventory.js",
+      "sha256": "6a0c312f395e1bcc963df76c2f8d23cd1ace39328c371da62ecacfd017ba5805"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/account-deletion/test/settlement-retention.test.cjs",
+      "sha256": "b3d112b9b63ed3ddb9b2f074b06378f4365df0438484cc0632da37a3a9861cfc"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/account-deletion/test/settlement-schedule-retention.test.cjs",
+      "sha256": "508e33296dbe5d67430af2265c4aa3e2cbcd09ea644fe9068824a74d38d192e4"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/finance-settlement-retention-access.staging.json",
+      "sha256": "dacfd70bc6d22a87d89eb800cfefd0999fa4812d5644db813c0722f88dbcfb72"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/merchant-device-payouts.js",
+      "sha256": "4f7b6ac7a30723ce925460f3c2b5c20697bc47db6d922a1c3846135b5bae3777"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/merchant-payouts.js",
+      "sha256": "c3d558a7701939db0d0a464ed9ea8a7efd28298bae12e63c350cec4e421cfd62"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/payout-otp-provider.js",
+      "sha256": "3a2e3203ab9246030b131788bcf2c35831f17232fc1882f5ebe599425bd10d9e"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/settlement-evidence-fields.json",
+      "sha256": "ff63f088ccd34e29b1754b2a1d8b4db700bbf9df3884040506a0204424d9e666"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/settlement-orders.js",
+      "sha256": "4443a6392bc3cd38cf31ee98e8867fafe56b68c55bb42e1537930a9282d685ab"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/settlement-runtime.js",
+      "sha256": "e96a5fad1ec16cd4b27b246c9d5695da04fc561d0fb8d5ba283fe247e423c044"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/settlement-schedules.js",
+      "sha256": "c399ed5178029f360b149b578903bf766f4553b3ec5b617ae412eea600ff6dc1"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/test/settlement-orders-204.test.cjs",
+      "sha256": "e42044556708140b7c252607c65d3ea007ff77a3675bc95b20ebc449bab16260"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/test/settlement-schedules.test.cjs",
+      "sha256": "1de78f999c26b07ecca2c63f5b1192ee75d6dada3d3fdcdeb2d9e8949267415e"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/merchant-runtime/functions/auth/branch_device_settlements.js",
+      "sha256": "b4be431f78c12bda55a044abd000bfe32243251e7c90e9b5fceddf0be0db0ff4"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/cashAdjudication.ts",
+      "sha256": "e7ec5ba284e43deea23299f62ae81afc88ecfeef2cdda8da51c688c28bfaef4b"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/cashAdjudicationReadRuntime278.ts",
+      "sha256": "3217c0eee5d0e031285f1f4849adbdd463b6783d47f363d5280ae4b94f87285f"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/exceptionMerchantAccrual.ts",
+      "sha256": "98f0a741e893d8dbb15651a2980579fc957d6a660e032e82afcde85a3e0622a6"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/fullCashSettlement.ts",
+      "sha256": "701515d475ace4ed09773377cdae7600917de19ced09aa4fac6c157ac52763ae"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantAccrualIndex.ts",
+      "sha256": "c0532231ea8a27bda3fe67c6dcbb31dda5cda643cfc8b17239ef23a4b565691d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantPayout.ts",
+      "sha256": "9b42e246fd9805dff12de31786c7dd6021ee094631f176ee9b56036b9879f6a5"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantPayoutApi.ts",
+      "sha256": "d7da3a9f9e6fdec912ba4174f0d1c501019ebb3c8fb24b8248766300be40ec10"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantPayoutDeviceAuthority.ts",
+      "sha256": "a5da0af5dbb6a015a5c6a4adb646780b1f55b4a5148ce4fcc9033cde0017977d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementAccrual.ts",
+      "sha256": "41ac1c3250c98a0aeec09ee342e0e97792b5d7cbbbf7628b93bdb41131f0986d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementAdminRuntime.ts",
+      "sha256": "ce09663566b77ed452b3b1f0b8d89c0001ef95927f2a3b92b26f42d630ac99c0"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementAuthority.ts",
+      "sha256": "35d286a8bbff5a4a747940555ff08c08e6431293aa87d9e0476d4dcb082c18c2"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementBatch.ts",
+      "sha256": "c5e99f3e809575d49dde99f4c117f28268151cfccb5b90fd44076dfc080acb17"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementPeriod.ts",
+      "sha256": "8db3dd6e3469a0949f10a4f2dc370e05435d0500fa8740abf7e7696d682a0072"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementPreview.ts",
+      "sha256": "881be123198a19dd86710489a02bf3fd8632c40893decd5d295f007e98024fd3"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementScheduleHistory.ts",
+      "sha256": "041c7d8835f738a8235a84203fddca59053f07bb2bd65d06c1632a9fe5270b3e"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementScheduleReader.ts",
+      "sha256": "a6e889bf3abc15f7259061a744d4e38146855142a35e002bea2fba0863f5c2ef"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/merchantSettlementScheduleWorkflow.ts",
+      "sha256": "98af0ab7ad8b99c9f5dee2d9f3299f323fdcbc091e4b100c07bf7cae20f2627c"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/settlementService.ts",
+      "sha256": "2561907d831f95e12da17210586b61b76ebc5381f6d240940f96e0b93329ca03"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/customer-cash-review-266.test.cjs",
+      "sha256": "9db144211e42b4bcda32c8a980dcb318f986509de07eb402022515ce7f3191c6"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/full-cash-settlement.test.cjs",
+      "sha256": "7fd7694daa04f47a3c40e9ec57d988bf299bb37cc3011a050a1bc0098c7cdafd"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/helpers/merchant-settlement-batch-fixture.cjs",
+      "sha256": "c26aa6ef3a2fc6374b89e91cceda3085d561f87a60269b575bd90320f601a69d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/helpers/merchant-settlement-schedule-fixture.cjs",
+      "sha256": "7aa8adc49d2c29cbdf4ccb49e1720dd70105b4b9cf2ddff9b11c71e429d3c26c"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-payout-209.test.cjs",
+      "sha256": "69391f44aa55c28d4b2efce9b4b2bf74c67ba91014fdc98309ce45bf9ea9e1a6"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-payout-api-209.test.cjs",
+      "sha256": "36a2554df015f7bf093c93209e2b1847d58cb916ccdc7a57f81cfbcf9cb10e3d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-settlement-accrual.test.cjs",
+      "sha256": "74785c9d3735c2aa52ef32983314eed83dd804ed04ea3eec6ac9f50f4d5f31f2"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-settlement-authority.test.cjs",
+      "sha256": "8fc1512be02cabc563a9102ea2fde943bd6fe65f7775341bb1ab5e0b43e0980c"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-settlement-batch.test.cjs",
+      "sha256": "9044cd10564e31dfac3d558f7df19e9efd37c5c343dcfd9fa7b890fe73eb0fdc"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-settlement-period.test.cjs",
+      "sha256": "6d583d6279ebfadc8c036c6c6311e8e7fe207543825b37b00f7c174f9b1a3e3a"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-settlement-preview.test.cjs",
+      "sha256": "431c50c9833ad6a22be77f200f14d40341ab3dc462e6a9e821c7c86fded46e33"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-settlement-schedule-reader.test.cjs",
+      "sha256": "ec96b12f8567e3014372d3dd47672d3f2d5f5841fd3f7269a65aa3428cf4aa04"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-settlement-schedule-workflow.test.cjs",
+      "sha256": "dbd8dcf3cd1626594a18f38d0f475b43a381b36065321b1ea769a64e7ededc55"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-settlement-single-admin.test.cjs",
+      "sha256": "903669966811a33b9861854a682e8a758fded60359bedde2cd58dcd33073deb9"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/merchant-staff-settlements-259.test.cjs",
+      "sha256": "64075b15dcde8ed20a03b10a8ffae3559ad8f036d065e42b5e2bbab8d6baca6e"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/test/mixed-merchant-settlement.test.cjs",
+      "sha256": "090167fecacbf0ee145829c3ae35378f4be5837acf5f90d8a21915b5eddb887a"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/current-payout-verification-255.json",
+      "sha256": "a787faa469dff58f8f4a55d78c1555e170c8b27dca630347cae3d66c32d3ba78"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/current-payout-verification-259.json",
+      "sha256": "7335ddfd43f2a8bdef0639c747b107d3dcc4f390ec8c5689138244f65bd5890b"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/customer-cash-review-266.md",
+      "sha256": "f55c9f6aeefaa01ac218bb0a95be9690e8d7b83053b1b77deb151445020b4278"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/delivery-mixed-settlement-validation-145.json",
+      "sha256": "c0a14e0b7e1a73ef52699ef894365156272d566598dcb007ad131f3c4fe9131c"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-live-settlement-and-wallet-history-96.json",
+      "sha256": "0432bc3ef05387c3bd7dc6a124a89e65e999173cef684459123e10d83f412603"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-merchant-settlement-adapters-109.json",
+      "sha256": "7086f8f22ecfc29c15b4cb95a8e73f90b0a979feb099fbbc62cd227b1dcb8d90"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-merchant-settlement-admin-ui-112.json",
+      "sha256": "cb952ba91d49d38f547aea46c6740dfcda40fcf7d26cd3219d19a20f26fc9fd1"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-merchant-settlement-batches-107.json",
+      "sha256": "c4fe60a26d680dd829afcb0df571e0a81f2282c40974cf673e5c039e40a88183"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-merchant-settlement-foundation-106.json",
+      "sha256": "7c1921ec05fc9e8826ef2d989c0d7a56ef378085fc10d51efeb1a4d3f0c79889"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-merchant-settlement-retention-108.json",
+      "sha256": "9bf8bf2e7bf24343f9d762b621670d56e0ce26e86204e596e548fd1f8b436bbb"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-merchant-settlement-schedule-retention-111.json",
+      "sha256": "e8dc37815c7c6a640c7878f3776e3181373c000de5d50b9172ba3f9485644873"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-merchant-settlement-schedule-workflow-110.json",
+      "sha256": "7fdd44ccace0a44a30bc5fd261c92975e1edd1a49e49658142d15d8c582d85f9"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-merchant-settlement-staging-release-113.json",
+      "sha256": "7993c709d9573f5945b7d3ac6ef9b2196a06c5179f3f6716fd1bf7b3f45af063"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "sha256": "b9cb5362507bad6aba8984194eff460612eaa5580c8070d83cf1266096e0fdff"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/finance-settlement-schedule-activation-114.json",
+      "sha256": "56d24bf62dd51b132a25a20f15e4889be5b3bbf27830ef02205fef48de49b23c"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/full-cash-settlement-foundation-208.json",
+      "sha256": "91223885f8bf6c988aff5c8fa07144f7075e40f5bf122960b1cbdf0ecb89a1f6"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/merchant-payout-page-publication-209.json",
+      "sha256": "2cc4b4516df77cec931eecb1bfc91fddd0aa4c446a6f4c28114d22baba1158f5"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/merchant-payout-publication-209.json",
+      "sha256": "140c3e19eb5e47e7b8a88ad41ca218976c36e9800211ca5c705fa5749c8b4167"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/merchant-payout-verification-209.json",
+      "sha256": "24f5617cab80b24dab3f7b65133a3fc23fa5ea8cbb00f6ea6667f71b5fc1561d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/merchant-staff-settlements-259.md",
+      "sha256": "4c4d3e70d8bafa3dc20988b4d9a7598bb05d222de96112fcd1360c63bf026ab9"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/merchant-staff-settlements-access-259.json",
+      "sha256": "87bf8ac70b9db8d54cf548a2b1451b6187ae1def65e2786dcff1c06a29738b4b"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/merchant-staff-settlements-policy-259.json",
+      "sha256": "653d081ead615a127553ef2eb5325bfced9ca92659374e22cbe06f335dc431c2"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/merchant-staff-settlements-publication-259.json",
+      "sha256": "d0694a940197836dd3b76dbd888231372848954654a8a318775d24eb81f1488f"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/merchant-staff-settlements-verification-259.json",
+      "sha256": "ffc7dd42bfbee3d74c0a33465b8363425149b57c746720e308d3e5c8d6017c60"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/payout-cycle-preparation-218.json",
+      "sha256": "5b0d31361f2a0d5d4e50ee057b58fc57a4ea3111b33b81791c9e25a913f71393"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/payout-recipient-access-258.json",
+      "sha256": "687da8c7b2fdb20766adb09c447811aa8c191457b7ab4e3420de9cdd7fecb062"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/payout-recipient-publication-258.json",
+      "sha256": "19e2427291f50ab7e834c67cecfeb3c68faefb117cc03724b3e84e3d99ceea2b"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/payout-report-access-256.json",
+      "sha256": "cf4850477a90b29eedb23d0b4cceb830e1f7e96c004d11d523692c681220a647"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/payout-report-publication-256.json",
+      "sha256": "9502e8fc21363acca45ef69e30029e8c3e02bf4b6d2da9a4407c5175a7209db0"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/payout-report-verification-256.json",
+      "sha256": "efcd91b6f85712e91713d0c8f77d087526dca8e35aa62972687dd72bc22b608e"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/settlement-deployment-permissions-113.md",
+      "sha256": "60eba001c3e6965313d59bf836d0b0328b0ab8096e2f1bc12ca2c120f717e6dc"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/settlement-offer-guard-fix-247.json",
+      "sha256": "6cd91a35db21da78e9263d04b1262b91e778a1053d33e718fa8c14e3db1c3c0a"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/settlement-presentation-publication-206.json",
+      "sha256": "ede5153b99928b9b6baa017e253016a663ab1ed3725fbc08685e2e3881f4d6ae"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/settlement-release-review-113.md",
+      "sha256": "efe7e79d8c72a14e76c466c783d0a1f67f1d6e8847a54dacd78876a0d64dc7eb"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "docs/settlement-session-publication-247.json",
+      "sha256": "a3400519945190974515f3f9e43f317c8f928d2e77e286b08a3519616e4ac12b"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/customer-cash-review.js",
+      "sha256": "3bd164f3eede2c840743a6d0f5f185b91784ca00ae27c94eef91a3f0e1fd75d0"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/merchant-payout-print.js",
+      "sha256": "21110d536ead0db8b9682cef2a9ca0354a9cbc9eb3e6cd4618affdce00f36240"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/merchant-payouts.js",
+      "sha256": "7476f4e3f142f475adb71d0d14d6e06c7c89b37a09897ad71da2df2d5037ec63"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/pages/customer-cash-review.html",
+      "sha256": "b06443f449bae53a5a0ccb89107ce3b22d2c3fb867ed6c8cfe9de37e6118b2a1"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/settlement-orders.js",
+      "sha256": "6328f1125788806ac1a9e5ab863a8d09c076706eea5c9cbf79c3e5db6e6deee2"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/settlement-schedules.js",
+      "sha256": "e5e18ce812685c0260f56f74d5295819e1be517ceabadea0005d7c902ee18247"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/settlement-statement-details.js",
+      "sha256": "068aa2b32a671a21cbdb8b84a6e6979f4ca1265d10a0763d746c8cff547e439d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/settlement-statements.js",
+      "sha256": "ed8202f24611fe7352953be170c3c7dfba9986dcfe3304ed22fbf6dadc8317fb"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/activate-settlement-schedules-114.py",
+      "sha256": "81a2b960a865ffc9e9921730db900aa9599da7dd8682bdc15e1b77459f8663bb"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/apply-settlement-retention-access-113.py",
+      "sha256": "e456525312e25782792c7b755dacb466cd744d9ff7217896826ce56738b384e7"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/build-settlement-runtime-112.cjs",
+      "sha256": "403d7a8bc0b1457b64623568f33b2c732343a68feeee84140b0d5578d12f4bc8"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/capture-settlement-deployment-113.py",
+      "sha256": "73e456554d6d51d0a9ef2ec8bb300392e6f5e574065c889c31c02a23494727d8"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/capture-settlement-frontend-113.py",
+      "sha256": "b2c0d2a3102eef50cb348cc82ca5647f7c9d8e1b6b97bf771b4819df76028f8d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/check-payout-report-access-256.py",
+      "sha256": "4182888ca15337df601b41f3323f92982dd2573a6d0c80292ed0c51fdf7581f3"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/diagnose-settlement-save-247.cjs",
+      "sha256": "7f16b68f37852fc316aae8d8adc3dc7deddbcffeb0bbbb7a335638d506f8a9b8"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/finalize-settlement-release-113.py",
+      "sha256": "87bba3b56ea309594dd437f3193b0c615bfdfeb251a79abb16a825e61c434397"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/fix-settlement-offer-guard-247.py",
+      "sha256": "53adac8095b7f0919af0092bfa0b351f1c811aaea7c1b582df56817aaede6566"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/prepare-merchant-staff-settlements-259.cjs",
+      "sha256": "492fa771aacd9c3aa8d6333a1eab765b6898a96b4b781d1ac0884f29f99cb165"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/prepare-payout-access-209.py",
+      "sha256": "3638728812d97d4d3f96a41e9d6ea8e25587f7e252182f561f58f4546211b28f"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/prepare-payout-packages-209.py",
+      "sha256": "2fce093f5952436444292a8aca6d95212bf25351b0fd0817e9ac5cb1839417aa"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/prepare-settlement-api-route-113.py",
+      "sha256": "b4008a31c27484c1c62b4e029ba473603f91eecd4ee5462ba2ea106d71ba51c0"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/prepare-settlement-deployment-113.py",
+      "sha256": "5787081b92086bcec2c306637dfc0cdef075bc6dc373a9877172f421fdc467b8"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/preview-payout-report-256.cjs",
+      "sha256": "3486f50961f7197f9dfc8917f571ef53a129f728fc25982a409af01269532dd7"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-merchant-staff-settlements-259.py",
+      "sha256": "de2965874f3a0a2dd07f420bb6279fdc888134127997affaf6c0b141ae9e9e01"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-payout-209.py",
+      "sha256": "7d0c3de2988b9f7f5abb2e10bd61f3404cfc7284e099a33030a8c3fc058518c5"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-payout-page-209.py",
+      "sha256": "a48c2267c575bf522177377f8e475e1d295cefb6d42116b3e0adeb65614fe8fd"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-payout-recipient-258.py",
+      "sha256": "29cdd2f70d9e1d5cc2e8abb93e4e76acc0d603560bded0a665be2ea2ec0c2222"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-payout-report-256.py",
+      "sha256": "586aa213afd6679be160f0c6d4425859849ec412861a81379bbed37b4645076e"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-settlement-api-route-113.py",
+      "sha256": "484eb6ea7ae3a4f0cb9314e58dc42ca139de56b36a71df07a16c17443eb59da5"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-settlement-code-113.py",
+      "sha256": "991932ffc17c3dce792a51d398b4ae5775380a0309ca13c069615f205cadff3e"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-settlement-frontend-113.py",
+      "sha256": "a0fc7994af830ad476b643baf065e6e43a01050e8b1d0ea59ddbc5a84f831da3"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-settlement-presentation-206.py",
+      "sha256": "e1c6102539874c2f5dcb7ce67780a00b58b4b2719a523ae158d8d500d0a07177"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/publish-settlement-session-247.py",
+      "sha256": "625f6fa7ddc8d59b848e1ff5a533ea0bcd56654e9283c5a90a9fa620d3b0dd3d"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/read-payout-report-256.cjs",
+      "sha256": "e1039c4b18363662d474b79f56e0c76bc7bfdb55951e231d80f362a179dd3e29"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/read-payout-report-256.py",
+      "sha256": "0d1b86afc15865bf93538be785547486176524ff90add5d685b81b165ce200fc"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/repair-settlement-cors-113.py",
+      "sha256": "a1a7e34ee97ee5898d6b36393d2a853d7410709ec067e9f871148740ea96755e"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/simulate-payout-access-209.py",
+      "sha256": "34de1286dd518d5d63ac65b2275aca3ff1bb637116068db6a38a3d56251b6267"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/simulate-settlement-access-113.py",
+      "sha256": "8206105859009c6b8bf060571b62ef2d056cb7a9c7794c6e32141ebffaa7783f"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/test-company-payout-print-215.cjs",
+      "sha256": "48d69eae102e2cbc99eca413e804674281405470baa0edd212c02e82ae713cc4"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/test-merchant-payouts-209.cjs",
+      "sha256": "eec4cbb4aba59d25afc057f632c7db31516c1f9c9b4f1e3299af9a0f75237571"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/test-settlement-dynamodb-113.cjs",
+      "sha256": "1cc0448901894ca7b79ff8f0009cfb343fe4b26a161b476e03fb6600a72c1e9c"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/test-settlement-presentation-206.cjs",
+      "sha256": "0bcd8345898cfd102d3e48f0c38bd3c5d86a7ee965b4c0fa2114571b9d4f5207"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/test-settlement-schedules-browser-112.cjs",
+      "sha256": "704af8b9e1f90887ddd73570f89c4e02aaf05046a5643df1ac2ff89a45a500cb"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/verify-current-payout-255.cjs",
+      "sha256": "8732ba75f4fae3cf66b6162019fb12af6392aaee3aa55a8f54d4e325a43b1853"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/verify-current-payout-255.py",
+      "sha256": "0c399a5938c50b435271d56b95470682bcc13fe3bdaff8710a85a1e33de26e97"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/verify-current-payout-259.cjs",
+      "sha256": "2b2fa922753fb5ae1c889dbe52126ed52ae3d3c34e0b8e99419db36d3ea50ec3"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/verify-payout-209.py",
+      "sha256": "ce77a55f0cd878bc9b21ace6dc05a5abb91dfc521d083b1b4adddbfa643b7590"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "scripts/verify-settlement-release-113.py",
+      "sha256": "fc6d5c64c5ac7c18382f59602b859226e903234dbf2c2de179f50fbb929c936a"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "backend/functions/auth/branch_device_settlements.js",
+      "sha256": "b4be431f78c12bda55a044abd000bfe32243251e7c90e9b5fceddf0be0db0ff4"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "backend/functions/auth/settlement_schedules.js",
+      "sha256": "047b145fb654d2f3783e6b1538b8a8593bd9ef2e81ec9695a935773a03e320e3"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "backend/test/branch-device-settlements.test.cjs",
+      "sha256": "c6f7cde71a7a2610143e60cf0b1d2158749bc9059565a3fc366910e0871dec5b"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "backend/test/settlement-schedules.test.cjs",
+      "sha256": "381c0aa30d1edd17c7631c479ac99f6d3d6770c07407edbd2ba40df9448a3307"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "frontend/lib/screens/merchant_payouts_screen.dart",
+      "sha256": "86fa1cbbe6a7ac4d89759f0762bd865a02dc3f4823b16c5584935d47b7d26aaf"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "frontend/lib/screens/settlement_schedules_screen.dart",
+      "sha256": "468405a00062a6a75717783421c3400016d1ae10ccd706b14ccda8fa01a2e5bf"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "frontend/lib/services/branch_settlement_service.dart",
+      "sha256": "84aabe4f3b7129137b1abd232b29d9461eb7bf174ba1eba2ec34b32430bdc7f2"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "frontend/test/branch_settlement_screen_test.dart",
+      "sha256": "791d284e1e799b69e18372f9b731b7d76fd747e9a4f5c2ce81b712cc8ad4e76b"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "frontend/test/merchant_payouts_screen_test.dart",
+      "sha256": "58d6a0e6d5a6e24d1782fa8138c527ecf2aa8c7081c8e5ea635a3f9b9625f37f"
+    },
+    {
+      "repository": "whizzMerchants-stg",
+      "path": "frontend/test/settlement_schedules_screen_test.dart",
+      "sha256": "5f44401d0fd8eb6092314f003e8b4bd21f15f428359afe87a1fa8ce172174659"
+    },
+    {
+      "repository": "wizzuser-stg",
+      "path": "backend/src/functions/create-order/quote-runtime/fullCashSettlement.js",
+      "sha256": "6894b9cc9d8fcdd2bd9592d489c7a2b8f6b9703fdcc3ef5b67daa590b810a5f5"
+    },
+    {
+      "repository": "wizzuser-stg",
+      "path": "docs/cash-review-confirmation-276.md",
+      "sha256": "0c5bea7974558beec53e7a9aa7fd8a3501647a83dde1c0d5f12a819424da1f04"
+    },
+    {
+      "repository": "wizzuser-stg",
+      "path": "frontend/lib/screens/customer_cash_review_screen.dart",
+      "sha256": "b8b78982b143aff9b560e079bef5e782217e7bb64070b89a38832fe5d309bf12"
+    },
+    {
+      "repository": "wizzuser-stg",
+      "path": "frontend/lib/services/customer_cash_review_service.dart",
+      "sha256": "39ba249281e36c1151be90dcd58dbb56a6cbe80032df0c704500b3375e41c4ed"
+    },
+    {
+      "repository": "wizzuser-stg",
+      "path": "frontend/test/customer_cash_review_266_test.dart",
+      "sha256": "970e0ba59255109e8390d2d8d0ad5050fc7b39c85205f60bbba94e1565fb5a66"
+    },
+    {
+      "repository": "whizzDrivers-stg",
+      "path": "frontend/lib/features/active_order/screens/customer_cash_review_screen.dart",
+      "sha256": "449f0e4cb8cb0c4a53a2e089dd5f8a30d9ba99d344de68dc8a3036b606bdcbc0"
+    },
+    {
+      "repository": "whizzDrivers-stg",
+      "path": "frontend/lib/features/active_order/services/customer_cash_review_service.dart",
+      "sha256": "9d49195fccd38077a5d8cc0e0def13b1ae651f6268bf3fca9b10d62bba8a89d0"
+    },
+    {
+      "repository": "whizzDrivers-stg",
+      "path": "frontend/test/customer_cash_review_266_test.dart",
+      "sha256": "871eb0362de4d7a0641f969d94f9eb9f6994480bcb94a9c2eed025c2f58bbbe3"
+    }
+  ],
+  "benefitLifecycleAdapters": [
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/codCompletion.ts",
+      "settlementSourceSha256": "a8920e2b856a64e986a20d90d74f912308f220a39f9817b242d8e6053b5aa74c"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/financialRelease.ts",
+      "settlementSourceSha256": "2604d401c564880f4e891cbcf6214510b31ffaffce5c5e1fa3973beb1b031f18"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/fullCashCompletion.ts",
+      "settlementSourceSha256": "22d589006ab093ff919f0a9ecbcb09f557bcb2dea14280f1a9ebf882d22d0264"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/wallet-service/src/fullCashRelease.ts",
+      "settlementSourceSha256": "ebc0007cf3236ea7fdf532db094ee402228c1e489c850c2f062e9f98e2d858cd"
+    }
+  ],
+  "validationLogs": "/private/tmp/wizz-github-sync-20261022"
+}

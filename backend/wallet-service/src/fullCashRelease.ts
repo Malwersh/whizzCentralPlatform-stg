@@ -1,3 +1,4 @@
+import {settlePlatformBenefit} from './platformBenefits';
 import {DynamoDBDocumentClient} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal,updateChecked} from './driverFinancialTransaction';
 import {toWholeIqdExact} from './money';
@@ -30,5 +31,6 @@ export async function prepareFullCashRelease(db:Pick<DynamoDBDocumentClient,'sen
  if(!budget||budget.status!=='COMMITTED'||budget.kind!=='FULL_CASH_FUNDING_COMMITMENT'||budget.snapshotDigest!==order.financialSnapshot.digest||!equal(budget.deliveryFunding,funding)||!equal(budget.platformGoodsFunding,offer.allocation.platformGoodsDiscountFunding))return fail();
  operations.push(terminal?set(exactCheck('staging-Holds',key,budget),{status:'RELEASED',operationId,releasedAt:at}):exactCheck('staging-Holds',key,budget));
  if(terminal&&funding){const campaign=await createStagingDeliveryCampaignBudget({db}).settle({orderId,outcome:'RELEASED',expectedFunding:funding});if(campaign.replayed)return fail();operations.push(...campaign.operations);}
+ if(terminal&&order.platformBenefitReceipt?.target==='GOODS'){const benefit=await settlePlatformBenefit(db,{orderId,target:'GOODS',outcome:'RELEASED',keepUse:order.status!=='pending'||['confirmedAt','merchantAcceptedAt','acceptedAt','financialAcceptance'].some(k=>order[k]!=null)});if(benefit.replayed)return fail();operations.push(...benefit.operations);}
  return {operations,journalLines,H,F:0,DF:0,hold};
 }

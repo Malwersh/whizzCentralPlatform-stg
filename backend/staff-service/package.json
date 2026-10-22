@@ -57,7 +57,13 @@
     "payout-otp-provider.js",
     "merchant-account.js",
     "merchant-account-index-runtime.js",
-    "merchant-device-payouts.js"
+    "merchant-device-payouts.js",
+    "offers.js",
+    "discount-contract.js",
+    "discount-engine.js",
+    "campaign-notifications.js",
+    "platform-benefits.js",
+    "platform-benefits-runtime.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",

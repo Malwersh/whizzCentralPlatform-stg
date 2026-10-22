@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
+<script src="./assets/js/wizz-locale.js?v=20261017-ar1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campaign Creator</title>
+    <title>إعداد الحملة</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,73 +58,76 @@
             gap: 15px;
         }
     </style>
-</head>
+<link rel="stylesheet" href="./styles/arabic-ui.css?v=20261017-ar1"></head>
 <body>
-    <h1>🎯 Campaign Creator</h1>
-    <p>Simple tool to create marketing campaigns and discounts for WizzCentral.</p>
+    <h1>🎯 إعداد الحملة</h1>
+    <p>إنشاء الحملات التسويقية والخصومات وإدارتها على ويز سنترال.</p>
 
     <!-- Status Card -->
     <div id="statusCard" class="card info">
-        <h3>📊 System Status</h3>
-        <div id="statusText">Initializing...</div>
+        <h3>📊 حالة النظام</h3>
+        <div id="statusText">جارٍ التهيئة...</div>
         <button onclick="checkSystemStatus()">🔄 Check Status</button>
     </div>
 
     <!-- Quick Create Form -->
     <div class="card">
-        <h3>🆕 Create Campaign</h3>
+        <h3>🆕 إنشاء حملة</h3>
         <form id="discountForm">
             <div class="form-row">
                 <div>
-                    <label>Campaign Title:</label>
-                    <input type="text" id="title" value="Flash Sale 2025" required>
+                    <label>عنوان الحملة:</label>
+                    <input type="text" id="title" value="Flash Sale 2025" required dir="auto">
                 </div>
                 <div>
-                    <label>Discount Type:</label>
+                    <label>نوع الخصم:</label>
                     <select id="type">
-                        <option value="percentage">Percentage</option>
-                        <option value="fixed">Fixed Amount</option>
+                        <option value="percentage">نسبة مئوية (%)</option>
+                        <option value="fixed">مبلغ ثابت (IQD)</option>
+                        <option value="free_delivery">توصيل مجاني</option>
                     </select>
                 </div>
             </div>
             
             <div class="form-row">
                 <div>
-                    <label>Discount Value:</label>
-                    <input type="number" id="value" value="25" min="1" required>
+                    <label>قيمة الخصم:</label>
+                    <input type="number" id="value" value="25" min="0" required dir="ltr">
                 </div>
                 <div>
-                    <label>Promo Code:</label>
-                    <input type="text" id="code" value="FLASH25" required>
+                    <label>كود الخصم:</label>
+                    <input type="text" id="code" value="FLASH25" required style="text-transform: uppercase;" dir="auto">
                 </div>
             </div>
             
             <div class="form-row">
                 <div>
-                    <label>Min Order Value:</label>
-                    <input type="number" id="minOrder" value="50" min="0">
+                    <label>الحد الأدنى للطلب (د.ع):</label>
+                    <input type="number" id="minOrder" value="10000" min="0" step="500" dir="ltr">
+          <div class="error" id="minOrderError" style="color: #dc2626; font-size: 0.9rem; margin-top: 4px; display:none;"></div>
                 </div>
                 <div>
-                    <label>Usage Limit:</label>
-                    <input type="number" id="limit" value="100" min="1">
+                    <label>حد الاستخدام:</label>
+                    <input type="number" id="limit" value="100" min="1" dir="ltr">
+          <div class="error" id="limitError" style="color: #dc2626; font-size: 0.9rem; margin-top: 4px; display:none;"></div>
                 </div>
             </div>
             
-            <label>Description:</label>
-            <textarea id="description" rows="3">Limited time flash sale campaign</textarea>
+            <label>الوصف:</label>
+            <textarea id="description" rows="3">حملة تخفيضات لفترة محدودة</textarea>
             
             <div class="form-row">
                 <div>
-                    <label>Start Date:</label>
-                    <input type="date" id="startDate" required>
+                    <label>تاريخ البدء:</label>
+                    <input type="date" id="startDate" required dir="ltr">
                 </div>
                 <div>
-                    <label>End Date:</label>
-                    <input type="date" id="endDate" required>
+                    <label>تاريخ الانتهاء:</label>
+                    <input type="date" id="endDate" required dir="ltr">
                 </div>
             </div>
             
-            <button type="submit" class="create-btn">🚀 Create Campaign</button>
+            <button type="submit" class="create-btn">🚀 إنشاء حملة</button>
         </form>
     </div>
 
@@ -136,8 +140,8 @@
 
     <!-- Debug Log -->
     <div class="card">
-        <h3>🐛 Debug Log</h3>
-        <button onclick="clearLog()">🗑️ Clear</button>
+        <h3>🐛 سجل التشخيص</h3>
+        <button onclick="clearLog()">🗑️ مسح</button>
         <div id="debugLog" class="log">Initializing platform discount creator...\n</div>
     </div>
 
@@ -152,7 +156,7 @@
         }
 
         function clearLog() {
-            document.getElementById('debugLog').textContent = 'Log cleared.\n';
+            document.getElementById('debugLog').textContent = "مُسح السجل.\n";
         }
 
         function setStatus(message, type = 'info') {
@@ -247,11 +251,34 @@
 
         // Create campaign using unified function
         async function createPlatformDiscount(formData) {
+            // Client‑side validation
+            const limitVal = Number(formData.get('limit'));
+            const minOrderVal = Number(formData.get('minOrder'));
+            let hasError = false;
+            const minOrderErrorEl = document.getElementById('minOrderError');
+            const limitErrorEl = document.getElementById('limitError');
+            minOrderErrorEl.style.display = 'none';
+            limitErrorEl.style.display = 'none';
+            if (isNaN(minOrderVal) || minOrderVal < 0) {
+                minOrderErrorEl.textContent = "يجب ألا يقل الحد الأدنى للطلب عن صفر.";
+                minOrderErrorEl.style.display = 'block';
+                hasError = true;
+            }
+            if (!Number.isInteger(limitVal) || limitVal <= 0) {
+                limitErrorEl.textContent = "يجب أن يكون حد الاستخدام عددًا صحيحًا أكبر من صفر.";
+                limitErrorEl.style.display = 'block';
+                hasError = true;
+            }
+            if (hasError) {
+                log('❌ Validation failed on client side');
+                return; // abort submission
+            }
             log('Creating campaign...');
             
             try {
                 // Ensure dataService is available
-                if (!window.dataService) {
+                // Fields already validated above
+            if (!window.dataService) {
                     await waitForDataService();
                 }
                 
@@ -282,7 +309,10 @@
                     createdBy: 'campaign-creator'
                 };
                 
-                log(`Campaign details: ${campaign.title} (${campaign.code}) - ${campaign.value}${campaign.type === 'percentage' ? '%' : '$'} off`);
+                const discountText = campaign.type === 'free_delivery' ? "توصيل مجاني" :
+                                     campaign.type === 'percentage' ? `${campaign.value}٪ خصم` :
+                                     `${Number(campaign.value).toLocaleString()} د.ع خصم`;
+                log(`Campaign details: ${campaign.title} (${campaign.code}) - ${discountText}`);
                 
                 // Use unified createCampaign function
                 const startTime = Date.now();
@@ -292,13 +322,13 @@
                 if (result.success) {
                     log(`✅ Campaign created successfully in ${duration}ms`);
                     showResult(`
-                        🎉 <strong>Campaign created successfully!</strong><br><br>
-                        📝 <strong>Details:</strong><br>
+                        🎉 <strong>أُنشئت الحملة بنجاح.</strong><br><br>
+                        📝 <strong>التفاصيل:</strong><br>
                         • Title: ${campaign.title}<br>
-                        • Code: ${campaign.code}<br>
-                        • Discount: ${campaign.value}${campaign.type === 'percentage' ? '%' : '$'} off<br>
-                        • Min Order: $${campaign.minOrderValue}<br>
-                        • Usage Limit: ${campaign.limit}<br>
+                        • الرمز: <code>${campaign.code}</code><br>
+                        • Discount: ${discountText}<br>
+                        • Min Order: ${Number(campaign.minOrderValue).toLocaleString()} IQD<br>
+                        • Usage Limit: ${campaign.limit || "غير محدود"}<br>
                         • ID: ${result.discountId}<br><br>
                         ⚡ Created in ${duration}ms
                     `);
@@ -313,7 +343,7 @@
                 
             } catch (error) {
                 log(`❌ Creation failed: ${error.message}`);
-                showResult(`❌ <strong>Failed to create campaign:</strong><br>${error.message}`, 'error');
+                showResult(`❌ <strong>تعذّر إنشاء الحملة:</strong><br>${window.WizzLocale.error(error.message)}`, 'error');
             }
         }
 

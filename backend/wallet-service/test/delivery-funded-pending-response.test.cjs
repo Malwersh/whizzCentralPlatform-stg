@@ -11,6 +11,22 @@ async function fixture(split='SHARED',goods=0){
 }
 const reserve=f=>f.get('staging-PlatformStaff',{pk:'DELIVERY_RESERVATION#order1',sk:'META'});
 const driver=f=>JSON.stringify([...f.rows].filter(([k])=>k.startsWith('staging-Wallets|')&&k.includes('DRIVER')));
+test('customer cancellation releases combined goods/delivery reservations without touching driver or merchant wallets',async()=>{
+ for(const split of ['MERCHANT','PLATFORM','SHARED']){
+  const f=await fixture(split,700),o=f.get('WizzOrders',orderKey);
+  Object.assign(o,{userId:'customer',userSub:'subject',isGuestOrder:false});
+  f.put('WizzUser_users_staging',{userId:'customer',version:1});
+  const before=driver(f),merchant=JSON.stringify(f.get('staging-Wallets',{walletId:'WALLET#MERCHANT#branch1',sk:'META'}));
+  const engine=create({db:f.db,now:()=>f.time,enableDeliveryFunding:true,authenticate:async()=>({kind:'CUSTOMER',subjectId:'subject',customerId:'customer',businessId:'branch1',ownerId:'owner1',
+   guards:[{ConditionCheck:{TableName:'WizzUser_users_staging',Key:{userId:'customer'},ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':1}}}]})});
+  await engine.run('order1','CUSTOMER_CANCEL','reason');
+  assert.equal(reserve(f).status,'RELEASED');assert.equal(driver(f),before);
+  assert.equal(JSON.stringify(f.get('staging-Wallets',{walletId:'WALLET#MERCHANT#branch1',sk:'META'})),merchant);
+  const wallet=f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'});
+  assert.equal(wallet.availableBalance,10000);assert.equal(wallet.lockedBalance,0);
+  assert.equal((await engine.run('order1','CUSTOMER_CANCEL','reason')).replayed,true);
+ }
+});
 test('pending V2 expiry or merchant rejection releases original campaign and platform cash once',async()=>{
  for(const split of ['MERCHANT','PLATFORM','SHARED'])for(const mode of ['EXPIRE','REJECT']){
   const f=await fixture(split),before=driver(f);if(mode==='EXPIRE')f.time+=300000;

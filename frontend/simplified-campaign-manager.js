@@ -6,6 +6,7 @@ class SimplifiedCampaignManager {
         this.campaigns = [];
         this.isLoading = false;
         this.editingCampaignId = null;
+        window.CampaignImage?.reset();
     }
 
     // UI Loading utilities
@@ -137,6 +138,10 @@ class SimplifiedCampaignManager {
                                 title="${status === 'active' ? "تعطيل" : "تفعيل"}">
                             <i class="fas ${status === 'active' ? 'fa-pause' : 'fa-play'}"></i>
                         </button>
+                        <button onclick="campaignManager.notifyCampaign(decodeURIComponent('${encodeURIComponent(id).replace(/'/g, '%27')}'))"
+                                class="btn-icon" title="إرسال إشعار الحملة ومتابعة النتيجة">
+                            <i class="fas fa-bell"></i>
+                        </button>
                         <button onclick="campaignManager.deleteCampaign(decodeURIComponent('${encodeURIComponent(id).replace(/'/g, '%27')}'))"
                                 class="btn-icon" title="حذف">
                             <i class="fas fa-trash"></i>
@@ -148,9 +153,34 @@ class SimplifiedCampaignManager {
         }).join('');
     }
 
+    async notifyCampaign(id) {
+        if (this.notifyingCampaign) return;
+        this.notifyingCampaign = true;
+        try {
+            let result = await window.dataService.campaignNotificationStatus(id);
+            if ((result.notificationStatus === 'NOT_REQUESTED' || result.retryable === true) &&
+                confirm('هل تريد إرسال إشعار هذه الحملة إلى أجهزة المستخدمين المؤهلة؟')) {
+                result = await window.dataService.sendCampaignNotification(id);
+            }
+            const labels = {
+                NOT_REQUESTED:'لم يُطلب إرسال إشعار لهذه الحملة.',
+                QUEUED:'الإشعار في قائمة الإرسال. اضغط زر الجرس لاحقاً لمتابعة النتيجة.',
+                PROCESSING:'جارٍ إرسال الإشعار.', SENDING:'جارٍ إرسال الإشعار.',
+                SENT:'اكتمل إرسال الإشعار.', NO_RECIPIENTS:'لا توجد أجهزة مؤهلة لاستلام الإشعار.',
+                PARTIAL:'أُرسل الإشعار إلى بعض الأجهزة وفشل لدى أجهزة أخرى.',
+                FAILED:'فشل إرسال الإشعار.',
+            };
+            const c=result.counts;
+            this.showNotification((labels[result.notificationStatus] || result.notificationStatus) +
+                (c ? ` المستهدف: ${c.targeted || 0}، المرسل: ${c.sent || 0}، المتعذر: ${c.failed || 0}.` : ''),
+                result.notificationStatus==='FAILED'?'error':'info');
+        } catch (e) { this.showError(e.message); }
+        finally { this.notifyingCampaign = false; }
+    }
+
     // Save or update campaign in DynamoDB
     async createCampaign(formData) {
-        if (this.isSaving) return;
+        if (this.isSaving || window.CampaignImage?.uploading) return;
         this.isSaving = true;
         const form = document.getElementById('simplifiedCampaignForm');
         const submit = form?.querySelector('button[type="submit"]');
@@ -221,6 +251,7 @@ class SimplifiedCampaignManager {
                 name: title,
                 code: code,
                 description: description,
+                imageKey: field('imageKey') || '',
                 type: normalizedType,
                 discountType: normalizedType,
                 campaignType: campaignType,
@@ -244,7 +275,7 @@ class SimplifiedCampaignManager {
                 singleUse: checked('singleUse'),
                 stackable: checked('stackable'),
                 applicableToAll: !region && segment === 'all',
-                discountSource: 'campaign'
+                ...(this.editingCampaignId ? {} : { discountSource: 'campaign' })
             };
 
             if (!window.dataService) {
@@ -261,6 +292,28 @@ class SimplifiedCampaignManager {
                 : await window.dataService.createCampaign({ ...campaignData, campaignId: 'campaign_' + this.saveRequestId, requestId: this.saveRequestId });
 
             if (!result || result.success === false) throw new Error(result?.error || 'Campaign was not saved. Please try again.');
+            let pushMessage = '';
+            if (checked('sendPushNotification')) {
+                try {
+                    const push = await window.dataService.notifyCampaignCustomers(result.discountId || result.campaignId || this.editingCampaignId, {
+                        title: String(field('notificationTitle') || '').trim(),
+                        body: String(field('notificationMessage') || '').trim(),
+                    });
+                    if(push.notificationStatus==='NO_RECIPIENTS'){
+                        pushMessage=' لم يُرسل إشعار: لا توجد أجهزة زبائن مؤهلة لهذا العرض.'+(push.firstOrderOnly?' الحملة للطلب الأول فقط وتستبعد من لديهم طلب سابق.':'');
+                    }else if(push.counts?.failuresByCode?.['messaging/third-party-auth-error']||push.counts?.failuresByCode?.['messaging/invalid-apns-credentials']){
+                        pushMessage=' تعذر إرسال إشعارات iOS: مفتاح Apple APNs في Firebase غير صالح أو غير مكتمل. بعد تصحيح الإعدادات يمكنك إعادة الحفظ مع تفعيل الإشعارات للمحاولة مجددًا.';
+                    }else if(push.notificationStatus==='SENT'){
+                        pushMessage=' قبلت خدمة الإشعارات الإرسال إلى '+(push.counts?.sent??0)+' جهاز زبون.';
+                    }else{
+                        pushMessage=' حالة إشعار الزبائن: '+({QUEUED:'في انتظار الإرسال',SENDING:'جارٍ الإرسال',PARTIAL:'إرسال جزئي',FAILED:'فشل الإرسال',CANCELLED:'ملغى',NOT_REQUESTED:'لم يُطلب الإرسال'}[push.notificationStatus]||push.notificationStatus);
+                    }
+                } catch (pushError) {
+                    pushMessage = ' حُفظت الحملة، لكن لم يُطلب الإشعار: ' + pushError.message;
+                }
+            }
+
+
             this.isSaving = false;
             this.closeCampaignModal();
             this.showSuccess(`الحملة «${title}» بنجاح.`);
@@ -313,6 +366,7 @@ class SimplifiedCampaignManager {
             await this.regionPicker.load();
             this.regionPicker.select(campaign.targetRegionIds?.[0] || '');
             setVal('campaign_description', campaign.description || '');
+            await window.CampaignImage?.load(campaignId);
 
             const rawType = campaign.discountType || campaign.type;
             const typeVal = (rawType === 'freeDelivery' || rawType === 'free_delivery') ? 'free-delivery' :
@@ -488,7 +542,7 @@ class SimplifiedCampaignManager {
     openCampaignModal(reset = true) {
         const modal = document.getElementById('simplifiedCampaignModal');
         if (modal) {
-            if (this.isSaving) return;
+            if (this.isSaving || window.CampaignImage?.uploading) return;
             this.regionPicker?.load();
             if (reset) {
                 this.resetForm();
@@ -498,7 +552,7 @@ class SimplifiedCampaignManager {
     }
 
     closeCampaignModal() {
-        if (this.isSaving) return;
+        if (this.isSaving || window.CampaignImage?.uploading) return;
         const modal = document.getElementById('simplifiedCampaignModal');
         if (modal) {
             modal.style.display = 'none';
@@ -507,11 +561,12 @@ class SimplifiedCampaignManager {
     }
 
     resetForm() {
-        if (this.isSaving) return;
+        if (this.isSaving || window.CampaignImage?.uploading) return;
         this.regionPicker?.reset();
         const saveStatus = document.getElementById('campaign_saveStatus');
         if (saveStatus) saveStatus.hidden = true;
         this.editingCampaignId = null;
+        window.CampaignImage?.reset();
         this.saveFingerprint = null;
         this.saveRequestId = null;
         const form = document.getElementById('simplifiedCampaignForm');

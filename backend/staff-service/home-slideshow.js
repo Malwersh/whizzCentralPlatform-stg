@@ -39,15 +39,16 @@ function assets(ctx){
 }
 
 
-function offerInfo(row){return {title:row.title||row.name||'',description:row.description||'',status:row.status||(row.isActive===true?'active':'inactive'),value:row.value??row.discountValue,type:row.type||row.discountType,startAt:row.validFrom||row.startDate||row.valid_from||null,endAt:row.validTo||row.endDate||row.valid_to||null};}
+function offerInfo(row){return {...require('./offers').normalize(row),status:row.isActive===false?'inactive':row.status||(row.isActive===true?'active':'inactive')};}
 function offerLive(row){
+ const engine=require('./discount-engine');try{const d=row.businessId?engine.normalizeDiscount(row):engine.normalizePlatformPromo(row);if(!(row.businessId?engine.validateDiscount(d,Number.MAX_SAFE_INTEGER):engine.validatePlatformPromo(d,Number.MAX_SAFE_INTEGER)).valid)return false;}catch{return false;}
  const o=offerInfo(row),now=Date.now(),limit=row.usageLimit??row.usage_limit??null,used=row.usageCount??row.usage_count??row.usage??row.currentUsage??0;
  return row.isActive!==false&&o.status==='active'&&(!o.startAt||(Number.isFinite(Date.parse(o.startAt))&&Date.parse(o.startAt)<=now))&&(!o.endAt||(Number.isFinite(Date.parse(o.endAt))&&now<Date.parse(o.endAt)))&&(!limit||used<limit);
 }
 async function target(ctx,s){
  const key=s.action.type==='merchant'?{businessId:s.action.id}:['campaign','discount','platform'].includes(s.action.type)?{discountId:s.action.id}:{categoryId:s.action.id};
  const row=await get(ctx,s.action.type==='platform'?TABLES.campaign:TABLES[s.action.type],key);
- if(!row||row.isDeleted||row.deletedAt)throw fail('Selected destination is no longer available.');
+ if(!row||row.benefit||row.isDeleted||row.deletedAt)throw fail('Selected destination is no longer available.');
  if(s.action.type==='platform'&&row.discountSource==='campaign')throw fail('Choose this offer from Campaign / promo.');
  if(s.action.type==='category'&&(row.businessId||row.business_id)!==s.action.merchantId)throw fail('Category does not belong to this merchant.');
  return row;
@@ -57,14 +58,14 @@ async function route(ctx,actor,method,path,input){
  const current=await state(ctx);
  if(method==='GET'&&path==='/staff/slideshow'){
   const slides=await Promise.all(current.slides.filter(s=>inScope(actor,s)).map(async s=>({...s,imageUrl:await assets(ctx).url(s.imageKey)})));
-  return {version:current.version,slides,canEdit:allowed(actor,'promotions.edit')||allowed(actor,'promotions.create'),canPublish:allowed(actor,'promotions.approve')};
+  return {version:current.version,slides,canCreate:allowed(actor,'promotions.create'),canEdit:allowed(actor,'promotions.edit'),canPublish:allowed(actor,'promotions.approve'),allRegions:actor.scope?.allRegions===true};
  }
  if(method==='GET'&&path==='/staff/slideshow/report')return {slides:await Promise.all(current.slides.filter(s=>inScope(actor,s)).map(async s=>({slideId:s.id,title:s.title,...(await journey.read(ctx.db,{pk:'STATS#'+s.id,sk:'TOTAL'})||{})}))),note:'Views and taps are estimates. Orders and savings are recorded with successful order placement; cancellations are not subtracted.'};
  if(method==='GET'&&path==='/staff/slideshow/options'){
   const [merchants,campaigns,categories,regions,discounts]=await Promise.all(Object.values(TABLES).map(t=>scan(ctx,t)));
   const visible=merchants.filter(m=>!m.isDeleted&&!m.deletedAt&&(actor.scope?.allRegions===true||actor.scope?.regionIds?.includes(m.regionId)));
   const ids=new Set(visible.map(m=>m.businessId));
-  return {platformDiscounts:campaigns.filter(c=>c.discountSource!=='campaign'&&!c.isDeleted&&!c.deletedAt).map(c=>({...offerInfo(c),id:c.discountId,label:(c.title||c.name||c.code||c.discountId)+(c.code?' ('+c.code+')':'')})),discounts:discounts.filter(d=>ids.has(d.businessId)&&!d.isDeleted&&!d.deletedAt).map(d=>({...offerInfo(d),id:d.discountId,merchantId:d.businessId,label:(d.title||d.name||d.discountId)+' — '+(visible.find(m=>m.businessId===d.businessId)?.businessName||d.businessId)})),merchants:visible.map(m=>({id:m.businessId,label:m.businessName||m.businessNameArabic||m.name||m.businessId})),campaigns:campaigns.filter(c=>c.discountSource==='campaign'&&!c.isDeleted).map(c=>({...offerInfo(c),id:c.discountId,label:(c.title||c.name||c.code)+' ('+c.code+')'})),categories:categories.filter(c=>ids.has(c.businessId||c.business_id)&&c.isActive!==false&&c.is_active!==false).map(c=>({id:c.categoryId,merchantId:c.businessId||c.business_id,label:c.name_ar||c.categoryName||c.category_name||c.name||c.categoryId})),regions:regions.filter(r=>actor.scope?.allRegions===true||actor.scope?.regionIds?.includes(r.regionId)).map(r=>({id:r.regionId,parentId:r.parent_id,label:[r.name_ar,r.name_en||r.name].filter(Boolean).join(' / ')||r.regionId}))};
+  return {platformDiscounts:campaigns.filter(c=>!c.benefit&&c.discountSource!=='campaign'&&!c.isDeleted&&!c.deletedAt).map(c=>({...offerInfo(c),id:c.discountId,label:(c.title||c.name||c.code||c.discountId)+(c.code?' ('+c.code+')':'')})),discounts:discounts.filter(d=>ids.has(d.businessId)&&!d.isDeleted&&!d.deletedAt).map(d=>({...offerInfo(d),id:d.discountId,merchantId:d.businessId,label:(d.title||d.name||d.discountId)+' — '+(visible.find(m=>m.businessId===d.businessId)?.businessName||d.businessId)})),merchants:visible.map(m=>({id:m.businessId,label:m.businessName||m.businessNameArabic||m.name||m.businessId})),campaigns:campaigns.filter(c=>!c.benefit&&c.discountSource==='campaign'&&!c.isDeleted).map(c=>({...offerInfo(c),id:c.discountId,label:(c.title||c.name||c.code)+' ('+c.code+')'})),categories:categories.filter(c=>ids.has(c.businessId||c.business_id)&&c.isActive!==false&&c.is_active!==false).map(c=>({id:c.categoryId,merchantId:c.businessId||c.business_id,label:c.name_ar||c.categoryName||c.category_name||c.name||c.categoryId})),regions:regions.filter(r=>actor.scope?.allRegions===true||actor.scope?.regionIds?.includes(r.regionId)).map(r=>({id:r.regionId,parentId:r.parent_id,label:[r.name_ar,r.name_en||r.name].filter(Boolean).join(' / ')||r.regionId}))};
  }
  if(method==='POST'&&path==='/staff/slideshow/upload'){
   if(!allowed(actor,'promotions.create')&&!allowed(actor,'promotions.edit'))throw fail('You do not have permission to upload images.',403);
@@ -73,9 +74,11 @@ async function route(ctx,actor,method,path,input){
   const imageKey=`home-slideshow/${actor.employeeId}/${randomUUID()}.jpg`;
   await assets(ctx).put(imageKey,body);return {imageKey,imageUrl:await assets(ctx).url(imageKey)};
  }
- if(method!=='POST'||path!=='/staff/slideshow/save')throw fail('NOT_FOUND',404);
- const s=validate(input.slide),before=current.slides.find(x=>x.id===s.id);
- if(!allowed(actor,before?'promotions.edit':'promotions.create'))throw fail('You do not have permission to save this slide.',403);
+ if(method!=='POST'||!['/staff/slideshow/save','/staff/slideshow/status'].includes(path))throw fail('NOT_FOUND',404);
+ const statusOnly=path.endsWith('/status'),previous=statusOnly?current.slides.find(x=>x.id===input.id):null;
+ if(statusOnly&&(!previous||!allowed(actor,'promotions.approve')))throw fail('Publishing or pausing requires promotion approval permission.',403);
+ const s=validate(statusOnly?{...previous,status:input.status}:input.slide),before=current.slides.find(x=>x.id===s.id);
+ if(!statusOnly&&!allowed(actor,before?'promotions.edit':'promotions.create'))throw fail('You do not have permission to save this slide.',403);
  if(!inScope(actor,s)||(before&&!inScope(actor,before)))throw fail('Choose regions within your assigned scope.',403);
  if((s.status==='published'||before?.status==='published')&&!allowed(actor,'promotions.approve'))throw fail('Publishing or changing a published slide requires promotion approval permission.',403);
  if(input.baseVersion!==current.version)throw fail('Slides changed in another window. Refresh before saving.',409);
@@ -83,6 +86,8 @@ async function route(ctx,actor,method,path,input){
  if(s.imageKey!==before?.imageKey&&!s.imageKey.startsWith(`home-slideshow/${actor.employeeId}/`))throw fail('Upload an image using your own account.',403);
  const head=await assets(ctx).head(s.imageKey);if(head.ContentType!=='image/jpeg'||head.ContentLength>600000)throw fail('Uploaded image is unavailable.');
  const destination=await target(ctx,s);
+
+ if(['campaign','platform'].includes(s.action.type)&&!require('./offers').inScope(actor,destination,[]))throw fail('Offer is outside your assigned region scope.',403);
 
  if(s.action.type==='discount'){const merchant=await get(ctx,TABLES.merchant,{businessId:destination.businessId});if(!merchant||(actor.scope?.allRegions!==true&&!actor.scope?.regionIds?.includes(merchant.regionId)))throw fail('Merchant is outside your region scope.',403);}
  if(s.action.type==='category'){const merchant=await get(ctx,TABLES.merchant,{businessId:s.action.merchantId});if(!merchant||(actor.scope?.allRegions!==true&&!actor.scope?.regionIds?.includes(merchant.regionId)))throw fail('Merchant is outside your region scope.',403);}
@@ -101,24 +106,31 @@ async function publicFeed(ctx,event){
  if(regionId&&!id(regionId))throw fail('Invalid region.');
  for(let n=0;regionId&&n<8&&!ancestors.includes(regionId);n++){const r=await get(ctx,TABLES.region,{regionId});if(!r)break;ancestors.push(regionId);regionId=r.parent_id;}
  const customer=await journey.customerState(ctx.db,identity);
- const current=await state(ctx),slides=[];
+ // Campaign discovery reads campaign records directly, without requiring slideshow placement.
+ const campaignId=event.queryStringParameters?.campaignId;
+ const standalone=event.queryStringParameters?.campaigns==='1'||campaignId!==undefined;
+ if(campaignId!==undefined&&!id(campaignId))throw fail('Invalid campaign.');
+ const rows=standalone?(campaignId?[await get(ctx,TABLES.campaign,{discountId:campaignId})]:(await scan(ctx,TABLES.campaign))):[];
+ const current=standalone?{version:1,slides:rows.filter(r=>r&&!r.benefit&&!r.isDeleted&&!r.deletedAt&&offerLive(r)).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(r=>{
+  const info=offerInfo(r);return {id:r.discountId,title:info.title,imageKey:r.imageKey||'',updatedAt:r.updatedAt||String(r.version||''),status:'published',audience:'all',regionIds:[],displayOrder:0,startAt:info.startAt||'1970-01-01T00:00:00.000Z',endAt:info.endAt||'9999-01-01T00:00:00.000Z',action:{type:r.discountSource==='campaign'?'campaign':'platform',id:r.discountId}};
+ })}:await state(ctx),slides=[];
  for(const s of current.slides.filter(s=>eligible(s,{signedIn,regionIds:ancestors})).sort((a,b)=>a.displayOrder-b.displayOrder||a.id.localeCompare(b.id))){
   let row;try{row=await target(ctx,s);}catch(e){if(e.status===400)continue;throw e;}
   if(['campaign','discount','platform'].includes(s.action.type)&&!offerLive(row))continue;
   if(s.action.type==='discount'){const merchant=await get(ctx,TABLES.merchant,{businessId:row.businessId});if(!merchant||merchant.isDeleted||merchant.deletedAt||merchant.isActive===false||merchant.platformSuspended===true)continue;}
   let merchants=[];
   if(['platform','campaign','discount'].includes(s.action.type)){
-   try{await journey.eligibility(ctx.db,row,{identity,customer,regionIds:ancestors,source:s.action.type==='discount'?'merchant':'platform'});}catch(e){if(e.status===409)continue;throw e;}
+   try{await journey.eligibility(ctx.db,row,{identity,customer,regionIds:ancestors,source:s.action.type==='discount'?'merchant':'platform',preview:true});}catch(e){if(e.status===409)continue;throw e;}
    const merchantIds=row.targetRestaurants?.length?row.targetRestaurants:row.allowedBusinessIds?.length?row.allowedBusinessIds:row.businessIds?.length?row.businessIds:row.businessId?[row.businessId]:[];
    for(const businessId of merchantIds){const m=await get(ctx,TABLES.merchant,{businessId});if(m&&!m.isDeleted&&!m.deletedAt&&m.isActive!==false&&!m.platformSuspended)merchants.push({id:businessId,name:m.businessName||m.businessNameArabic||m.name||businessId});}
    if(merchantIds.length&&!merchants.length)continue;
   }
   if(s.action.type==='merchant'&&(row.isActive===false||row.platformSuspended===true))continue;
   if(s.action.type==='category'&&(row.isActive===false||row.is_active===false))continue;
-  slides.push({id:s.id,title:s.title,imageUrl:await assets(ctx).url(s.imageKey),imageVersion:s.updatedAt,endAt:['campaign','discount','platform'].includes(s.action.type)&&offerInfo(row).endAt?new Date(Math.min(Date.parse(s.endAt),Date.parse(offerInfo(row).endAt))).toISOString():s.endAt,action:{...(['platform','campaign','discount'].includes(s.action.type)?{type:'campaign',id:row.discountId,offerSource:s.action.type==='discount'?'merchant':'platform',merchants,allMerchants:!row.targetRestaurants?.length&&!row.allowedBusinessIds?.length&&!row.businessIds?.length&&!row.businessId}:s.action),...(['campaign','platform','discount'].includes(s.action.type)?{code:row.code,description:row.description||''}:{})}});
+  slides.push({id:s.id,title:s.title,imageUrl:s.imageKey?await assets(ctx).url(s.imageKey):'',...(standalone?{standalone:true}:{}),imageVersion:s.updatedAt,endAt:['campaign','discount','platform'].includes(s.action.type)&&offerInfo(row).endAt?new Date(Math.min(Date.parse(s.endAt),Date.parse(offerInfo(row).endAt))).toISOString():s.endAt,action:{...(['platform','campaign','discount'].includes(s.action.type)?{type:'campaign',id:row.discountId,offerSource:s.action.type==='discount'?'merchant':'platform',merchants,allMerchants:!row.targetRestaurants?.length&&!row.allowedBusinessIds?.length&&!row.businessIds?.length&&!row.businessId}:s.action),...(['campaign','platform','discount'].includes(s.action.type)?{code:row.code,description:row.description||''}:{})}});
  }
  if(event.path==='/staff/public/home-offer'){
-  const selected=slides.find(s=>s.id===event.queryStringParameters?.slideId);if(!selected)throw fail('Offer unavailable for this account or location.',404);
+  const selected=slides.find(s=>s.id===(campaignId||event.queryStringParameters?.slideId));if(!selected)throw fail('Offer unavailable for this account or location.',404);
   const original=current.slides.find(s=>s.id===selected.id),offer=await target(ctx,original);
   if(!['campaign','platform','discount'].includes(original.action.type))throw fail('This slide is not an offer.',400);
   const all=selected.action.allMerchants;
@@ -129,7 +141,7 @@ async function publicFeed(ctx,event){
   if(merchantId){const categories=new Set((await scan(ctx,TABLES.category)).filter(c=>(!c.businessId||c.businessId===merchantId)&&[undefined,true].includes(c.isActive)&&[undefined,true].includes(c.is_active)).map(c=>c.categoryId));products=(await scan(ctx,'WhizzMerchants_Products')).filter(p=>p.businessId===merchantId&&p.isAvailable===true&&categories.has(p.categoryId)&&
    (offer.applicability!=='specificItems'||offer.applicable_item_ids?.includes(p.productId))&&
    (offer.applicability!=='specificCategories'||offer.applicable_category_ids?.includes(p.categoryId))).map(p=>({id:p.productId,name:p.name_ar||p.name||p.productName||p.productId,price:p.price,imageUrl:p.imageUrl||p.image||'',categoryId:p.categoryId}));}
-  return {slide:selected,offer:{id:offer.discountId,source:selected.action.offerSource,title:offer.title||offer.name||selected.title,description:offer.description||'',code:offer.code||null,type:offer.type||offer.discountType,value:offer.value??offer.discountValue,minimumOrder:offer.minimumOrderAmount??offer.minimum_order_amount??offer.minOrderAmount??offer.minOrderValue??0,maximumSavings:offer.maxDiscountAmount??offer.maxDiscount??null,firstOrderOnly:offer.firstOrderOnly===true||['first-order','first_order'].includes(offer.campaignType),conditions:(offer.customerSegments||[]).filter(s=>s!=='all').map(s=>({new:'للعملاء المسجلين خلال آخر ٧ أيام',returning:'للعملاء الذين سبق لهم الطلب',vip:'لعملاء VIP المعتمدين',inactive:'للعملاء غير النشطين منذ ٣٠ يوماً',registered:'للحسابات المسجلة',guests:'للضيوف'}[s]||s)).concat(['new-customer','new_customer'].includes(offer.campaignType)?['للعملاء المسجلين خلال آخر ٧ أيام']:[]),singleUse:!!offer.singleUse,perCustomerLimit:offer.singleUse?1:offer.perCustomerLimit??null,applicability:offer.applicability||'allItems',endAt:selected.endAt},merchants,products};
+  return {slide:selected,offer:{id:offer.discountId,source:selected.action.offerSource,title:offer.title||offer.name||selected.title,description:offer.description||'',imageUrl:offer.imageKey?await assets(ctx).url(offer.imageKey):selected.imageUrl,code:offer.code||null,type:offer.type||offer.discountType,value:offer.value??offer.discountValue,minimumOrder:offer.minimumOrderAmount??offer.minimum_order_amount??offer.minOrderAmount??offer.minOrderValue??0,maximumSavings:offer.maxDiscountAmount??offer.maxDiscount??null,firstOrderOnly:offer.firstOrderOnly===true||['first-order','first_order'].includes(offer.campaignType),conditions:(offer.customerSegments||[]).filter(s=>s!=='all').map(s=>({new:'للعملاء المسجلين خلال آخر ٧ أيام',returning:'للعملاء الذين سبق لهم الطلب',vip:'لعملاء VIP المعتمدين',inactive:'للعملاء غير النشطين منذ ٣٠ يوماً',registered:'للحسابات المسجلة',guests:'للضيوف'}[s]||s)).concat(['new-customer','new_customer'].includes(offer.campaignType)?['للعملاء المسجلين خلال آخر ٧ أيام']:[]),singleUse:!!offer.singleUse,perCustomerLimit:offer.singleUse?1:offer.perCustomerLimit??null,applicability:offer.applicability||'allItems',endAt:selected.endAt},merchants,products};
  }
  if(event.path==='/staff/public/slideshow-events'){
   const body=typeof event.body==='string'?JSON.parse(event.body):event.body;
@@ -138,6 +150,6 @@ async function publicFeed(ctx,event){
   try{await ctx.db.send(new TransactWriteCommand({TransactItems:[{Put:{TableName:journey.TABLE,Item:{pk:'EVENT#'+body.sessionId,sk:day+'#'+body.slideId+'#'+body.type,ttl},ConditionExpression:'attribute_not_exists(pk)'}},{Update:{TableName:journey.TABLE,Key:{pk:'STATS#'+body.slideId,sk:'TOTAL'},UpdateExpression:'ADD #metric :one',ExpressionAttributeNames:{'#metric':body.type==='view'?'views':'taps'},ExpressionAttributeValues:{':one':1}}}]}));}catch(e){if(e.name!=='TransactionCanceledException')throw e;}
   return {recorded:true};
  }
- return {version:current.version,slides};
+ return standalone?{campaigns:slides}:{version:current.version,slides};
 }
-module.exports={route,publicFeed,validate,eligible,KEY};
+module.exports={route,publicFeed,validate,eligible,KEY,assets};

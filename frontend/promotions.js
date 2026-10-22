@@ -1,15 +1,15 @@
 // Emergency Fix Detection and Data Loading
 (function checkEmergencyFix() {
     console.log('🔍 Checking for emergency fix...');
-    
+
     if (sessionStorage.getItem('emergencyFixActive') === 'true') {
         console.log('🚨 EMERGENCY FIX DETECTED - Loading sample data...');
-        
+
         // Apply emergency fix immediately when page loads
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(applyEmergencyFixToPage, 1000); // Small delay to ensure DOM is ready
         });
-        
+
         // Also try to apply immediately if DOM is already loaded
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
@@ -23,20 +23,20 @@
 
 function applyEmergencyFixToPage() {
     console.log('🚀 Applying emergency fix to promotions page...');
-    
+
     try {
         // Get sample data from sessionStorage
         const sampleCampaigns = JSON.parse(sessionStorage.getItem('sampleCampaigns') || '[]');
         const sampleDiscounts = JSON.parse(sessionStorage.getItem('sampleDiscounts') || '[]');
-        
+
         console.log('📊 Sample data loaded:', { campaigns: sampleCampaigns.length, discounts: sampleDiscounts.length });
-        
+
         // Clear loading states
         const loadingElements = document.querySelectorAll('[id*="loading"], .loading');
         loadingElements.forEach(el => {
             if (el) el.style.display = 'none';
         });
-        
+
         // Update campaigns table
         const campaignsTableBody = document.getElementById('campaignsTableBody');
         if (campaignsTableBody && sampleCampaigns.length > 0) {
@@ -50,13 +50,13 @@ function applyEmergencyFixToPage() {
                         </td>
                         <td>${campaign.discountType}</td>
                         <td>${campaign.discountValue}${(campaign.discountType === 'percentage') ? '%' : '$'}</td>
-                        <td><span class="badge badge-success">Active</span></td>
+                        <td><span class="badge badge-success">نشط</span></td>
                         <td>${campaign.usage}/${campaign.usageLimit}</td>
                         <td>$${campaign.minimumOrderValue}</td>
                         <td>${new Date(campaign.startDate).toLocaleDateString()}</td>
                         <td>
-                            <button class="btn btn-sm btn-primary me-1">Edit</button>
-                            <button class="btn btn-sm btn-danger">Delete</button>
+                            <button class="btn btn-sm btn-primary me-1">تعديل</button>
+                            <button class="btn btn-sm btn-danger">حذف</button>
                         </td>
                     </tr>
                 `;
@@ -64,7 +64,7 @@ function applyEmergencyFixToPage() {
             campaignsTableBody.innerHTML = campaignsHtml;
             console.log('✅ Campaigns table populated');
         }
-        
+
         // Update merchant discounts table
         const merchantDiscountsTableBody = document.getElementById('merchantDiscountsTableBody');
         if (merchantDiscountsTableBody && sampleDiscounts.length > 0) {
@@ -79,12 +79,12 @@ function applyEmergencyFixToPage() {
                         <td>Merchant ${index + 1}</td>
                         <td>${discount.type}</td>
                         <td>${discount.value}${(discount.type === 'percentage') ? '%' : '$'}</td>
-                        <td><span class="badge badge-success">Active</span></td>
+                        <td><span class="badge badge-success">نشط</span></td>
                         <td>${discount.usage_count}/${discount.usage_limit}</td>
                         <td>${new Date(discount.valid_to).toLocaleDateString()}</td>
                         <td>
-                            <button class="btn btn-sm btn-primary me-1">Edit</button>
-                            <button class="btn btn-sm btn-danger">Delete</button>
+                            <button class="btn btn-sm btn-primary me-1">تعديل</button>
+                            <button class="btn btn-sm btn-danger">حذف</button>
                         </td>
                     </tr>
                 `;
@@ -92,38 +92,38 @@ function applyEmergencyFixToPage() {
             merchantDiscountsTableBody.innerHTML = discountsHtml;
             console.log('✅ Merchant discounts table populated');
         }
-        
+
         // Update statistics
         const totalCampaigns = document.getElementById('totalCampaigns');
         if (totalCampaigns) totalCampaigns.textContent = sampleCampaigns.length;
-        
+
         const activeCampaigns = document.getElementById('activeCampaigns');
         if (activeCampaigns) {
             const activeCount = sampleCampaigns.filter(c => c.status === 'active').length;
             activeCampaigns.textContent = activeCount;
         }
-        
+
         const totalMerchantDiscounts = document.getElementById('totalMerchantDiscounts');
         if (totalMerchantDiscounts) totalMerchantDiscounts.textContent = sampleDiscounts.length;
-        
+
         const activeMerchantDiscounts = document.getElementById('activeMerchantDiscounts');
         if (activeMerchantDiscounts) {
             const activeDiscountsCount = sampleDiscounts.filter(d => d.status === 'active').length;
             activeMerchantDiscounts.textContent = activeDiscountsCount;
         }
-        
+
         // Clear any loading text
         const loadingTexts = document.querySelectorAll('*');
         loadingTexts.forEach(el => {
             if (el.textContent && el.textContent.includes('Loading')) {
                 if (el.textContent.includes('merchant discounts')) {
-                    el.textContent = `Merchant Discounts (${sampleDiscounts.length})`;
+                    el.textContent = `خصومات المتاجر (${sampleDiscounts.length})`;
                 } else if (el.textContent.includes('campaigns')) {
-                    el.textContent = `Campaigns (${sampleCampaigns.length})`;
+                    el.textContent = `الحملات (${sampleCampaigns.length})`;
                 }
             }
         });
-        
+
         // Show success notification
         const notification = document.createElement('div');
         notification.style.cssText = `
@@ -141,7 +141,7 @@ function applyEmergencyFixToPage() {
             max-width: 350px;
             line-height: 1.3;
         `;
-        
+
         notification.innerHTML = `
             <div style="font-weight: bold; margin-bottom: 5px;">
                 ✅ Emergency Fix Applied
@@ -150,17 +150,17 @@ function applyEmergencyFixToPage() {
                 Campaigns: ${sampleCampaigns.length} | Discounts: ${sampleDiscounts.length}
             </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
             }
         }, 5000);
-        
+
         console.log('🎉 Emergency fix applied successfully to promotions page!');
-        
+
     } catch (error) {
         console.error('❌ Emergency fix application failed:', error);
     }
@@ -175,7 +175,7 @@ const PROMOTIONS_TABLE = 'WhizzMerchants_Discounts';
 async function loadPromotionsData() {
     const tbody = document.getElementById('promotionsTableBody');
     if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem;">Loading promotions...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem;">جارٍ تحميل العروض...</td></tr>`;
     }
     try {
         const idToken = localStorage.getItem('idToken');
@@ -206,7 +206,7 @@ async function loadPromotionsData() {
         // Display error message on UI
         const tbody = document.getElementById('promotionsTableBody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading promotions: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading promotions: ${window.WizzLocale.error(error.message)}</td></tr>`;
         }
         return;
     }
@@ -216,21 +216,21 @@ async function loadPromotionsData() {
 // Load platform discounts data from DynamoDB
 async function loadPlatformDiscountsData() {
     console.log('INFO: Loading platform discounts from DynamoDB...');
-    
+
     try {
         // Ensure data service is available
         if (!window.dataService) {
             console.warn('WARNING: Data service not available for platform discounts');
             return;
         }
-        
+
         // Initialize data service
         await window.dataService.initialize();
-        
+
         // Load platform discounts
         const platformDiscounts = await window.dataService.getPlatformDiscounts();
         console.log(`SUCCESS: Loaded ${platformDiscounts.length} platform discounts`);
-        
+
         // Convert DynamoDB format to local format
         const convertedDiscounts = platformDiscounts.map(discount => {
             // Helper function to extract value from DynamoDB format
@@ -288,14 +288,14 @@ async function loadPlatformDiscountsData() {
         promotions = [...promotions, ...convertedDiscounts];
 
         console.log(`SUCCESS: Platform discounts integrated. Total promotions: ${promotions.length}`);
-        
+
         // Render the updated promotions table
         renderPromotionsTable();
-        
+
     } catch (error) {
         console.error('ERROR: Error loading platform discounts:', error);
         console.error('Error details:', {
-            message: error.message,
+            message: window.WizzLocale.error(error.message),
             stack: error.stack
         });
     }
@@ -304,24 +304,24 @@ async function loadPlatformDiscountsData() {
 // Enhanced promotions loading that includes both backend and platform discounts
 async function loadAllPromotionsData() {
     console.log('INFO: Loading all promotions data...');
-    
+
     const tbody = document.getElementById('promotionsTableBody');
     if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem;">Loading promotions...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem;">جارٍ تحميل العروض...</td></tr>`;
     }
 
     try {
         // Load backend promotions (existing logic)
         await loadPromotionsData();
-        
+
         // Load platform discounts from DynamoDB
         await loadPlatformDiscountsData();
-        
+
     } catch (error) {
         console.error('ERROR: Error loading all promotions:', error);
         const tbody = document.getElementById('promotionsTableBody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading promotions: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading promotions: ${window.WizzLocale.error(error.message)}</td></tr>`;
         }
     }
 }
@@ -332,22 +332,22 @@ let promotions = [];
 // Initialize promotions page - single DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Promotions page DOM loaded');
-    
+
     const tbody = document.getElementById('promotionsTableBody');
     if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem;">Loading promotions...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 2rem;">جارٍ تحميل العروض...</td></tr>`;
     }
-    
+
     // Check authentication using centralized utility
     if (!Auth.requireAuthentication()) {
         return;
     }
-    
+
     // Initialize dashboard functionality (sidebar, etc.)
     if (typeof initializeDashboard === 'function') {
         initializeDashboard();
     }
-    
+
     try {
         // Initialize AWS using centralized utility
         await AWSUtils.initialize();
@@ -356,10 +356,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('Failed to initialize promotions page:', error);
     }
-    
+
     // Load merchant discounts with better error handling and retry logic
     await loadMerchantDiscountsWithRetry();
-    
+
     // Auto-run debug after initial load attempt (for troubleshooting)
     setTimeout(() => {
         if (merchantDiscounts.length === 0) {
@@ -372,45 +372,45 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Improved merchant discounts loading with retry logic
 async function loadMerchantDiscountsWithRetry(maxRetries = 3, retryDelay = 1000) {
     console.log('INFO: Starting merchant discounts loading with retry logic...');
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
             console.log(`INFO: Attempt ${attempt}/${maxRetries} to load merchant discounts`);
-            
+
             // Wait for data service to be available
             if (!window.dataService) {
                 console.log('⏳ Waiting for data service to be available...');
-                
+
                 // Wait up to 5 seconds for data service to load
                 let waitTime = 0;
                 const maxWaitTime = 5000;
                 const checkInterval = 100;
-                
+
                 while (!window.dataService && waitTime < maxWaitTime) {
                     await new Promise(resolve => setTimeout(resolve, checkInterval));
                     waitTime += checkInterval;
                 }
-                
+
                 if (!window.dataService) {
                     throw new Error('Data service not available after waiting');
                 }
             }
-            
+
             console.log('SUCCESS: Data service is available, attempting to load merchant discounts...');
             await loadMerchantDiscounts();
-            
+
             console.log('SUCCESS: Merchant discounts loaded successfully!');
             return; // Success, exit retry loop
-            
+
         } catch (error) {
             console.error(`ERROR: Attempt ${attempt} failed:`, error);
-            
+
             if (attempt === maxRetries) {
                 console.error('💥 All retry attempts failed');
                 showMerchantDiscountError(error);
                 return;
             }
-            
+
             console.log(`⏳ Waiting ${retryDelay}ms before retry...`);
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             retryDelay *= 1.5; // Exponential backoff
@@ -433,11 +433,11 @@ function setupEventListeners() {
     // Filter functionality
     const statusFilter = document.getElementById('statusFilter');
     const typeFilter = document.getElementById('typeFilter');
-    
+
     if (statusFilter) {
         statusFilter.addEventListener('change', filterPromotions);
     }
-    
+
     if (typeFilter) {
         typeFilter.addEventListener('change', filterPromotions);
     }
@@ -462,11 +462,11 @@ function setDefaultDates() {
     const now = new Date();
     const startDate = document.getElementById('startDate');
     const endDate = document.getElementById('endDate');
-    
+
     if (startDate) {
         startDate.value = now.toISOString().slice(0, 16);
     }
-    
+
     if (endDate) {
         const nextWeek = new Date(now);
         nextWeek.setDate(nextWeek.getDate() + 7);
@@ -499,7 +499,7 @@ function renderPromotionsTable(promotionsList = promotions) {
             <td>${formatDate(promotion.endDate)}</td>
             <td>
                 <div class="actions">
-                    <button class="btn-action" onclick="viewPromotion('${promotion.id}')" title="View Details">
+                    <button class="btn-action" onclick="viewPromotion('${promotion.id}')" title="عرض التفاصيل">
                         <i class="fas fa-eye"></i>
                     </button>
                     ${getActionButtons(promotion)}
@@ -521,46 +521,49 @@ function getPromotionIcon(type) {
 }
 
 function getDiscountDisplay(promotion) {
-    switch (promotion.type) {
+    const rawType = String(promotion.type || '').toLowerCase();
+    switch (rawType) {
         case 'percentage':
             return `${promotion.value}% OFF`;
         case 'fixed':
-        case 'fixed_amount': // Handle both formats
-            return `$${promotion.value} OFF`;
+        case 'fixed_amount':
+            return `${Number(promotion.value || 0).toLocaleString()} IQD OFF`;
+        case 'freedelivery':
         case 'free_delivery':
-            return 'Free Shipping';
+        case 'free-delivery':
+            return 'Free Delivery';
         case 'bogo':
-            return 'Buy 1 Get 1';
+            return 'Buy 1 Get 1 (Store)';
         default:
-            return 'Discount';
+            return `${Number(promotion.value || 0).toLocaleString()} IQD`;
     }
 }
 
 function getActionButtons(promotion) {
     if (promotion.status === 'expired') {
         return `
-            <button class="btn-action" onclick="clonePromotion('${promotion.id}')" title="Clone">
+            <button class="btn-action" onclick="clonePromotion('${promotion.id}')" title="إنشاء نسخة">
                 <i class="fas fa-copy"></i>
             </button>
-            <button class="btn-action danger" onclick="deletePromotion('${promotion.id}')" title="Delete">
+            <button class="btn-action danger" onclick="deletePromotion('${promotion.id}')" title="حذف">
                 <i class="fas fa-trash"></i>
             </button>
         `;
     } else if (promotion.status === 'scheduled') {
         return `
-            <button class="btn-action" onclick="editPromotion('${promotion.id}')" title="Edit">
+            <button class="btn-action" onclick="editPromotion('${promotion.id}')" title="تعديل">
                 <i class="fas fa-edit"></i>
             </button>
-            <button class="btn-action" onclick="activatePromotion('${promotion.id}')" title="Activate Now">
+            <button class="btn-action" onclick="activatePromotion('${promotion.id}')" title="التفعيل الآن">
                 <i class="fas fa-play"></i>
             </button>
         `;
     } else {
         return `
-            <button class="btn-action" onclick="editPromotion('${promotion.id}')" title="Edit">
+            <button class="btn-action" onclick="editPromotion('${promotion.id}')" title="تعديل">
                 <i class="fas fa-edit"></i>
             </button>
-            <button class="btn-action danger" onclick="deactivatePromotion('${promotion.id}')" title="Deactivate">
+            <button class="btn-action danger" onclick="deactivatePromotion('${promotion.id}')" title="تعطيل">
                 <i class="fas fa-pause"></i>
             </button>
         `;
@@ -572,7 +575,7 @@ function capitalizeFirst(str) {
 }
 
 function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString("ar-IQ", {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
@@ -588,7 +591,7 @@ function filterPromotions() {
         const matchesSearch = promotion.title.toLowerCase().includes(searchTerm) ||
                             promotion.code.toLowerCase().includes(searchTerm) ||
                             promotion.id.toLowerCase().includes(searchTerm);
-        
+
         const matchesStatus = !statusFilter || promotion.status === statusFilter;
         const matchesType = !typeFilter || promotion.type === typeFilter;
 
@@ -601,20 +604,20 @@ function filterPromotions() {
 async function updatePromotionStats() {
     const activePromotions = promotions.filter(p => p.status === 'active').length;
     const totalUsage = promotions.reduce((sum, p) => sum + p.usage, 0);
-    
+
     // Get real statistics from promotions data
     const totalPromotions = promotions.length;
     const scheduledPromotions = promotions.filter(p => p.status === 'scheduled').length;
     const expiredPromotions = promotions.filter(p => p.status === 'expired').length;
-    
+
     // Calculate promotion usage statistics
     const promotionsWithUsage = promotions.filter(p => p.usage > 0);
     const totalUsageCount = promotions.reduce((sum, p) => sum + (p.usage || 0), 0);
-    
+
     // Calculate discount value - estimate based on promotion data
     let totalDiscountValue = 0;
     const today = new Date().toISOString().split('T')[0];
-    
+
     promotions.forEach(promo => {
         if (promo.status === 'active' && promo.usage > 0) {
             // Estimate daily discount value based on promotion type and usage
@@ -631,17 +634,17 @@ async function updatePromotionStats() {
             totalDiscountValue += Math.max(0, estimatedValue);
         }
     });
-    
+
     // Calculate conversion rate based on active promotions vs total promotions
-    const conversionRate = totalPromotions > 0 ? 
+    const conversionRate = totalPromotions > 0 ?
         Math.round((activePromotions / totalPromotions) * 100) : 0;
-    
+
     // Try to get real order data to improve accuracy
     let ordersWithPromos = 0;
     try {
         // Check if orders data is available from the orders page
         if (window.ordersData && Array.isArray(window.ordersData)) {
-            ordersWithPromos = window.ordersData.filter(order => 
+            ordersWithPromos = window.ordersData.filter(order =>
                 order.fullData && order.fullData.promoCode
             ).length;
         }
@@ -657,7 +660,7 @@ async function updatePromotionStats() {
                     if (response.ok) {
                         const result = await response.json();
                         const orders = result.orders || result.data?.orders || result.Items || [];
-                        ordersWithPromos = orders.filter(order => 
+                        ordersWithPromos = orders.filter(order =>
                             order.promoCode && order.promoCode.length > 0
                         ).length;
                     }
@@ -669,7 +672,7 @@ async function updatePromotionStats() {
     } catch (error) {
         console.log('Error calculating promotion order stats:', error.message);
     }
-    
+
     // Update stat cards with real data (only if they exist)
     const statCards = document.querySelectorAll('.stat-card');
     if (statCards.length >= 4) {
@@ -680,24 +683,24 @@ async function updatePromotionStats() {
         if (activeChange) {
             const previousActive = parseInt(activeChange.dataset.previous || '0');
             const change = activePromotions - previousActive;
-            activeChange.textContent = change >= 0 ? `+${change} this week` : `${change} this week`;
+            activeChange.textContent = change >= 0 ? `+${change} هذا الأسبوع` : `${change} هذا الأسبوع`;
             activeChange.className = `stat-change ${change >= 0 ? 'positive' : 'negative'}`;
             activeChange.dataset.previous = activePromotions.toString();
         }
-        
+
         // Orders with Promotions (real/estimated data)
         const ordersCount = statCards[1].querySelector('h3');
         const ordersChange = statCards[1].querySelector('.stat-change');
         if (ordersCount) {
-            const displayCount = ordersWithPromos > 0 ? ordersWithPromos : 
+            const displayCount = ordersWithPromos > 0 ? ordersWithPromos :
                 Math.max(totalUsageCount, Math.floor(activePromotions * 15)); // estimate
             ordersCount.textContent = displayCount.toLocaleString();
         }
         if (ordersChange) {
-            ordersChange.textContent = ordersWithPromos > 0 ? 'Live data' : 'Estimated';
+            ordersChange.textContent = ordersWithPromos > 0 ? "بيانات فعلية" : "تقديري";
             ordersChange.className = 'stat-change positive';
         }
-        
+
         // Discount Value Today (calculated from real data)
         const discountValue = statCards[2].querySelector('h3');
         const discountChange = statCards[2].querySelector('.stat-change');
@@ -705,10 +708,10 @@ async function updatePromotionStats() {
             discountValue.textContent = `$${Math.round(totalDiscountValue).toLocaleString()}`;
         }
         if (discountChange) {
-            discountChange.textContent = activePromotions > 0 ? 'Based on active promos' : 'No active promotions';
+            discountChange.textContent = activePromotions > 0 ? "بحسب العروض السارية" : "لا توجد عروض سارية";
             discountChange.className = `stat-change ${activePromotions > 0 ? 'positive' : 'neutral'}`;
         }
-        
+
         // Conversion Rate (real calculation)
         const conversionElement = statCards[3].querySelector('h3');
         const conversionChange = statCards[3].querySelector('.stat-change');
@@ -716,13 +719,13 @@ async function updatePromotionStats() {
             conversionElement.textContent = `${conversionRate}%`;
         }
         if (conversionChange) {
-            conversionChange.textContent = `${scheduledPromotions} scheduled, ${expiredPromotions} expired`;
+            conversionChange.textContent = `${scheduledPromotions} مجدولة، ${expiredPromotions} منتهية الصلاحية`;
             conversionChange.className = 'stat-change neutral';
         }
     } else {
         console.log('📊 Stat cards not found on page - stats not updated in UI but available in console');
     }
-    
+
     console.log('📊 Updated promotion stats:', {
         activePromotions,
         totalPromotions,
@@ -769,19 +772,19 @@ async function handleAddPromotion(e) {
 
     // --- Client-Side Validation ---
     if (!title || !code || !type || !description || !startDateValue || !endDateValue || !valueStr) {
-        window.dashboardFunctions?.showNotification('Please fill out all required fields.', 'error');
+        window.dashboardFunctions?.showNotification("يرجى إكمال جميع الحقول المطلوبة.", 'error');
         return;
     }
 
     if (new Date(endDateValue) <= new Date(startDateValue)) {
-        window.dashboardFunctions?.showNotification('End Date must be after Start Date.', 'error');
+        window.dashboardFunctions?.showNotification("يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء.", 'error');
         return;
     }
 
     // Validate and parse numeric fields
     const value = parseFloat(valueStr);
     if (isNaN(value) || value <= 0) {
-        window.dashboardFunctions?.showNotification('Discount Value must be a positive number.', 'error');
+        window.dashboardFunctions?.showNotification("يجب أن تكون قيمة الخصم أكبر من صفر.", 'error');
         return;
     }
 
@@ -789,7 +792,7 @@ async function handleAddPromotion(e) {
     if (minOrderStr) {
         minOrderAmount = parseFloat(minOrderStr);
         if (isNaN(minOrderAmount) || minOrderAmount < 0) {
-            window.dashboardFunctions?.showNotification('Min Order Value must be a valid, non-negative number.', 'error');
+            window.dashboardFunctions?.showNotification("يجب أن يكون الحد الأدنى للطلب رقمًا صحيحًا لا يقل عن صفر.", 'error');
             return;
         }
     }
@@ -798,27 +801,46 @@ async function handleAddPromotion(e) {
     if (limitStr) {
         usageLimit = parseInt(limitStr, 10);
         if (isNaN(usageLimit) || usageLimit <= 0) {
-            window.dashboardFunctions?.showNotification('Usage Limit must be a valid, positive whole number.', 'error');
+            window.dashboardFunctions?.showNotification("يجب أن يكون حد الاستخدام عددًا صحيحًا أكبر من صفر.", 'error');
             return;
         }
+    }
+
+    // Normalize type
+    let normalizedType = 'percentage';
+    const lowerType = String(type).toLowerCase();
+    if (lowerType === 'fixed' || lowerType === 'fixed_amount') {
+        normalizedType = 'fixed';
+    } else if (lowerType === 'free_delivery' || lowerType === 'free-delivery' || lowerType === 'freedelivery') {
+        normalizedType = 'freeDelivery';
+    } else if (lowerType === 'percentage') {
+        normalizedType = 'percentage';
     }
 
     const discountData = {
         name: title,
         title: title, // For backward compatibility
         description: description,
-        type: type,
+        type: normalizedType,
+        discountType: normalizedType,
         code: code,
         startDate: new Date(startDateValue).toISOString(),
         endDate: new Date(endDateValue).toISOString(),
-        value: value,
+        validFrom: new Date(startDateValue).toISOString(),
+        validTo: new Date(endDateValue).toISOString(),
+        value: normalizedType === 'freeDelivery' ? 0 : value,
+        discountValue: normalizedType === 'freeDelivery' ? 0 : value,
         isActive: true,
+        status: 'active',
         customerSegments: ['all'],
         usageLimit: usageLimit,
-        minOrderAmount: minOrderAmount
+        limit: usageLimit,
+        minOrderAmount: minOrderAmount || 0,
+        minOrderValue: minOrderAmount || 0,
+        discountSource: 'campaign'
     };
 
-    // --- Direct DynamoDB Save ---
+    // --- Direct DynamoDB Save / Update ---
     try {
         console.log('INFO: Saving platform discount to DynamoDB:', discountData);
 
@@ -830,34 +852,48 @@ async function handleAddPromotion(e) {
         // Initialize data service
         await window.dataService.initialize();
 
-        // Create platform discount directly in DynamoDB
-        const result = await window.dataService.createPlatformDiscount(discountData);
+        let result;
+        if (window.editingPromotionId) {
+            console.log('INFO: Updating existing platform discount:', window.editingPromotionId);
+            result = await window.dataService.updatePlatformDiscount(window.editingPromotionId, discountData);
+            window.editingPromotionId = null;
+            window.dashboardFunctions?.showNotification(`خصم المنصة «${title}» بنجاح.`, 'success');
+        } else {
+            result = await window.dataService.createPlatformDiscount(discountData);
+            window.dashboardFunctions?.showNotification(`خصم المنصة «${title}» بنجاح.`, 'success');
+        }
 
-        if (result.success) {
-            console.log('SUCCESS: Platform discount created successfully:', result.discountId);
-            
-            // Show success notification
-            window.dashboardFunctions?.showNotification(`Platform discount "${title}" created successfully!`, 'success');
-            
+        if (result && (result.success || result.discountId)) {
+            console.log('SUCCESS: Platform discount saved successfully');
+
             // Close modal
             document.getElementById('addPromotionModal').style.display = 'none';
-            
-            // Reset form
+            document.body.style.overflow = 'auto';
+
+            // Reset form and modal title
             const form = document.getElementById('addPromotionForm');
             if (form) {
                 form.reset();
             }
-            
-            // Refresh the promotions list to include the new platform discount
+            const modalTitle = document.querySelector('#addPromotionModal h2');
+            if (modalTitle) {
+                modalTitle.innerHTML = '<i class="fas fa-tags"></i> New Promotion';
+            }
+            const submitBtn = document.querySelector('#addPromotionForm button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.textContent = "إنشاء عرض";
+            }
+
+            // Refresh the promotions list
             await loadPlatformDiscountsData();
-            
+
         } else {
-            throw new Error('Failed to create platform discount');
+            throw new Error('Failed to save platform discount');
         }
 
     } catch (error) {
-        console.error('ERROR: Error creating platform discount:', error);
-        window.dashboardFunctions?.showNotification(`Error creating discount: ${error.message}`, 'error');
+        console.error('ERROR: Error saving platform discount:', error);
+        window.dashboardFunctions?.showNotification(`تعذّر حفظ الخصم: ${window.WizzLocale.error(error.message)}`, 'error');
     }
 }
 
@@ -865,75 +901,134 @@ async function handleAddPromotion(e) {
 function viewPromotion(promotionId) {
     const promotion = promotions.find(p => p.id === promotionId);
     if (promotion) {
-        alert(`Promotion Details:\n\nTitle: ${promotion.title}\nCode: ${promotion.code}\nType: ${promotion.type}\nValue: ${promotion.value}\nStatus: ${promotion.status}\nUsage: ${promotion.usage}/${promotion.limit}\nStart: ${promotion.startDate}\nEnd: ${promotion.endDate}\nMin Order: $${promotion.minOrderValue}\nDescription: ${promotion.description}`);
+        const valDisplay = promotion.type === 'percentage' ? `${promotion.value}%` :
+                          (promotion.type === 'freeDelivery' || promotion.type === 'free_delivery') ? 'Free Delivery' :
+                          `${Number(promotion.value || 0).toLocaleString()} IQD`;
+        const minOrder = (promotion.minOrderValue || promotion.minOrderAmount) ? `${Number(promotion.minOrderValue || promotion.minOrderAmount).toLocaleString()} IQD` : 'None';
+        alert(`تفاصيل العرض:\n\nالعنوان: ${promotion.title}\nCode: ${promotion.code}\nType: ${promotion.type}\nValue: ${valDisplay}\nStatus: ${promotion.status}\nUsage: ${promotion.usage}/${promotion.limit || '∞'}\nStart: ${promotion.startDate}\nEnd: ${promotion.endDate}\nMin Order: ${minOrder}\nDescription: ${promotion.description}`);
     }
 }
 
 function editPromotion(promotionId) {
     const promotion = promotions.find(p => p.id === promotionId);
-    if (promotion) {
-        alert(`Edit functionality for ${promotion.title} would open here.`);
+    if (!promotion) {
+        alert("لم يُعثر على العرض.");
+        return;
     }
+
+    window.editingPromotionId = promotionId;
+
+    const modal = document.getElementById('addPromotionModal');
+    if (!modal) return;
+
+    // Populate inputs
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val ?? '';
+    };
+
+    setVal('title', promotion.title || '');
+    setVal('code', promotion.code || '');
+
+    const rawType = promotion.type;
+    const typeVal = (rawType === 'freeDelivery' || rawType === 'free_delivery') ? 'free_delivery' :
+                    (rawType === 'fixed' || rawType === 'fixed_amount') ? 'fixed_amount' : 'percentage';
+    setVal('type', typeVal);
+    setVal('value', promotion.value || 0);
+    setVal('description', promotion.description || '');
+    setVal('limit', promotion.limit || promotion.usageLimit || '');
+    setVal('minOrder', promotion.minOrderValue || promotion.minOrderAmount || '');
+
+    // Format dates for datetime-local
+    const fmtDateTime = (d) => {
+        if (!d) return '';
+        try {
+            const date = new Date(d);
+            return date.toISOString().slice(0, 16);
+        } catch (_) { return ''; }
+    };
+    setVal('startDate', fmtDateTime(promotion.startDate || promotion.validFrom));
+    setVal('endDate', fmtDateTime(promotion.endDate || promotion.validTo));
+
+    const modalTitle = document.querySelector('#addPromotionModal h2');
+    if (modalTitle) {
+        modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Promotion';
+    }
+    const submitBtn = document.querySelector('#addPromotionForm button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.textContent = "تحديث العرض";
+    }
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
 }
 
-function deactivatePromotion(promotionId) {
+async function deactivatePromotion(promotionId) {
     const promotion = promotions.find(p => p.id === promotionId);
-    if (promotion && confirm(`Deactivate promotion "${promotion.title}"?`)) {
-        promotion.status = 'draft';
-        renderPromotionsTable();
-        updatePromotionStats();
-        
-        if (window.dashboardFunctions) {
-            window.dashboardFunctions.showNotification(`${promotion.title} has been deactivated.`, 'success');
+    if (!promotion) return;
+
+    if (confirm(`هل تريد إلغاء تفعيل العرض «${promotion.title}"?`)) {
+        try {
+            if (window.dataService?.updatePlatformDiscount) {
+                await window.dataService.updatePlatformDiscount(promotionId, {
+                    status: 'draft',
+                    isActive: false
+                });
+            }
+            promotion.status = 'draft';
+            renderPromotionsTable();
+            updatePromotionStats();
+            window.dashboardFunctions?.showNotification(`${promotion.title} أُلغي تفعيله.`, 'success');
+            await loadPlatformDiscountsData();
+        } catch (error) {
+            console.error('Failed to deactivate promotion:', error);
+            window.dashboardFunctions?.showNotification(`تعذّر إلغاء التفعيل: ${window.WizzLocale.error(error.message)}`, 'error');
         }
     }
 }
 
-function activatePromotion(promotionId) {
+async function activatePromotion(promotionId) {
     const promotion = promotions.find(p => p.id === promotionId);
-    if (promotion && confirm(`Activate promotion "${promotion.title}" now?`)) {
-        promotion.status = 'active';
-        renderPromotionsTable();
-        updatePromotionStats();
-        
-        if (window.dashboardFunctions) {
-            window.dashboardFunctions.showNotification(`${promotion.title} is now active!`, 'success');
+    if (!promotion) return;
+
+    if (confirm(`هل تريد تفعيل العرض «${promotion.title}» الآن؟`)) {
+        try {
+            if (window.dataService?.updatePlatformDiscount) {
+                await window.dataService.updatePlatformDiscount(promotionId, {
+                    status: 'active',
+                    isActive: true
+                });
+            }
+            promotion.status = 'active';
+            renderPromotionsTable();
+            updatePromotionStats();
+            window.dashboardFunctions?.showNotification(`${promotion.title} مفعّل الآن.`, 'success');
+            await loadPlatformDiscountsData();
+        } catch (error) {
+            console.error('Failed to activate promotion:', error);
+            window.dashboardFunctions?.showNotification(`تعذّر التفعيل: ${window.WizzLocale.error(error.message)}`, 'error');
         }
     }
 }
 
-function clonePromotion(promotionId) {
+async function deletePromotion(promotionId) {
     const promotion = promotions.find(p => p.id === promotionId);
-    if (promotion && confirm(`Clone promotion "${promotion.title}"?`)) {
-        const clonedPromotion = {
-            ...promotion,
-            id: 'PROMO' + String(promotions.length + 1).padStart(3, '0'),
-            title: promotion.title + ' (Copy)',
-            code: promotion.code + '_COPY',
-            status: 'draft',
-            usage: 0
-        };
-        
-        promotions.push(clonedPromotion);
-        renderPromotionsTable();
-        updatePromotionStats();
-        
-        if (window.dashboardFunctions) {
-            window.dashboardFunctions.showNotification(`${promotion.title} has been cloned.`, 'success');
-        }
-    }
-}
+    const title = promotion ? promotion.title : promotionId;
 
-function deletePromotion(promotionId) {
-    const promotion = promotions.find(p => p.id === promotionId);
-    if (promotion && confirm(`Delete promotion "${promotion.title}"? This action cannot be undone.`)) {
-        const index = promotions.findIndex(p => p.id === promotionId);
-        promotions.splice(index, 1);
-        renderPromotionsTable();
-        updatePromotionStats();
-        
-        if (window.dashboardFunctions) {
-            window.dashboardFunctions.showNotification(`${promotion.title} has been deleted.`, 'error');
+    if (confirm(`هل تريد حذف العرض «${title}"? لا يمكن التراجع عن هذا الإجراء.`)) {
+        try {
+            if (window.dataService?.deletePlatformDiscount) {
+                await window.dataService.deletePlatformDiscount(promotionId);
+            }
+            const index = promotions.findIndex(p => p.id === promotionId);
+            if (index !== -1) promotions.splice(index, 1);
+            renderPromotionsTable();
+            updatePromotionStats();
+            window.dashboardFunctions?.showNotification(`${title} حُذف بنجاح.`, 'success');
+            await loadPlatformDiscountsData();
+        } catch (error) {
+            console.error('Failed to delete promotion:', error);
+            window.dashboardFunctions?.showNotification(`تعذّر الحذف: ${window.WizzLocale.error(error.message)}`, 'error');
         }
     }
 }
@@ -946,27 +1041,27 @@ let businessesData = {};
 async function loadMerchantDiscounts() {
     try {
         console.log('INFO: Starting loadMerchantDiscounts...');
-        
+
         if (!window.dataService) {
             console.warn('ERROR: Data service not available for merchant discounts');
             throw new Error('Data service is not available. Please check if data-service.js is loaded properly.');
         }
-        
+
         console.log('SUCCESS: Data service available, initializing...');
         await window.dataService.initialize();
         console.log('SUCCESS: Data service initialized successfully');
-        
+
         // Load both discounts and businesses data with individual error handling
         console.log('INFO: Loading discounts and businesses data...');
-        
+
         let discounts = [];
         let businesses = [];
-        
+
         try {
             console.log('INFO: Loading merchant discounts from table: WhizzMerchants_Discounts');
             discounts = await window.dataService.getMerchantDiscounts(false); // Force fresh data
             console.log(`SUCCESS: Raw discounts loaded: ${discounts.length} items`);
-            
+
             if (discounts.length > 0) {
                 console.log('INFO: Sample discount:', discounts[0]);
                 console.log('INFO: All discount keys:', Object.keys(discounts[0]));
@@ -985,21 +1080,21 @@ async function loadMerchantDiscounts() {
                 code: discountError.code,
                 stack: discountError.stack
             });
-            
+
             // Check if it's a credentials or AWS error
             if (discountError.message.includes('credentials') || discountError.message.includes('AWS')) {
                 throw new Error(`AWS credentials error: ${discountError.message}. Please ensure you are properly authenticated.`);
             }
-            
+
             // Check if it's a table not found error
             if (discountError.message.includes('ResourceNotFoundException') || discountError.message.includes('does not exist')) {
                 console.warn('WARNING: Discounts table not found - continuing with empty discounts array');
             }
-            
+
             // Continue with empty discounts array for other errors
             discounts = [];
         }
-        
+
         try {
             console.log('INFO: Loading businesses data...');
             businesses = await window.dataService.getBusinesses(false); // Force fresh data
@@ -1011,25 +1106,25 @@ async function loadMerchantDiscounts() {
                 code: businessError.code,
                 stack: businessError.stack
             });
-            
+
             // Check if it's a credentials or AWS error
             if (businessError.message.includes('credentials') || businessError.message.includes('AWS')) {
                 throw new Error(`AWS credentials error: ${businessError.message}. Please ensure you are properly authenticated.`);
             }
-            
+
             // Continue with empty businesses array for other errors
             businesses = [];
         }
-        
+
         merchantDiscounts = discounts.map(discount => {
             // Handle DynamoDB structure - normalize the discount data
             console.log('INFO: Processing discount:', discount);
-            
+
             // Check if this is already processed data or raw DynamoDB data
             const processedDiscount = {
                 id: discount.discountId || discount.id || 'unknown-id',
                 businessId: discount.businessId || 'unknown-business',
-                title: discount.title || 'Untitled Discount',
+                title: discount.title || "خصم دون عنوان",
                 description: discount.description || '',
                 type: discount.type || 'percentage',
                 value: Number(discount.value) || 0,
@@ -1045,11 +1140,11 @@ async function loadMerchantDiscounts() {
                 conditionalRule: discount.conditional_rule,
                 conditionalParameters: discount.conditional_parameters
             };
-            
+
             console.log('SUCCESS: Processed discount:', processedDiscount);
             return processedDiscount;
         });
-        
+
         // Create a lookup map for business names
         businessesData = {};
         businesses.forEach(business => {
@@ -1065,30 +1160,30 @@ async function loadMerchantDiscounts() {
                 };
             }
         });
-        
+
         console.log('INFO: Final processing results:');
         console.log(`- Merchant discounts: ${merchantDiscounts.length}`);
         console.log(`- Businesses data: ${Object.keys(businessesData).length}`);
         console.log('- Sample businessesData keys:', Object.keys(businessesData).slice(0, 5));
-        
+
         // Update stats
         updateMerchantDiscountStats();
-        
+
         // Render table
         renderMerchantDiscountsTable();
-        
+
         console.log('SUCCESS: loadMerchantDiscounts completed successfully');
-        
+
     } catch (error) {
         console.error('ERROR: Critical error in loadMerchantDiscounts:', error);
         console.error('Error details:', {
-            message: error.message,
+            message: window.WizzLocale.error(error.message),
             stack: error.stack,
             dataServiceAvailable: !!window.dataService,
             discountsLength: merchantDiscounts.length,
             businessesDataKeys: Object.keys(businessesData)
         });
-        
+
         // Re-throw the error so it can be caught by the retry logic
         throw error;
     }
@@ -1097,11 +1192,11 @@ async function loadMerchantDiscounts() {
 // Refresh merchant discounts manually
 async function refreshMerchantDiscounts() {
     console.log('Manual refresh of merchant discounts triggered');
-    
+
     // Reset variables
     merchantDiscounts = [];
     businessesData = {};
-    
+
     // Update table to show loading state
     const tbody = document.getElementById('merchantDiscountsTableBody');
     if (tbody) {
@@ -1109,18 +1204,18 @@ async function refreshMerchantDiscounts() {
             <tr>
                 <td colspan="8" style="text-align: center; padding: 2rem; color: #666;">
                     <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem; color: #00c2e8;"></i>
-                    <div>Refreshing merchant discounts...</div>
+                    <div>جارٍ تحديث خصومات المتاجر...</div>
                 </td>
             </tr>
         `;
     }
-    
+
     // Reset stats
     const totalEl = document.getElementById('totalMerchantDiscounts');
     const activeEl = document.getElementById('activeMerchantDiscounts');
     if (totalEl) totalEl.textContent = '0';
     if (activeEl) activeEl.textContent = '0';
-    
+
     // Load fresh data with retry logic
     await loadMerchantDiscountsWithRetry();
 }
@@ -1129,10 +1224,10 @@ async function refreshMerchantDiscounts() {
 function updateMerchantDiscountStats() {
     const totalDiscounts = merchantDiscounts.length;
     const activeDiscounts = merchantDiscounts.filter(d => d.status === 'active').length;
-    
+
     const totalEl = document.getElementById('totalMerchantDiscounts');
     const activeEl = document.getElementById('activeMerchantDiscounts');
-    
+
     if (totalEl) totalEl.textContent = totalDiscounts;
     if (activeEl) activeEl.textContent = activeDiscounts;
 }
@@ -1141,16 +1236,16 @@ function updateMerchantDiscountStats() {
 function renderMerchantDiscountsTable() {
     const tbody = document.getElementById('merchantDiscountsTableBody');
     if (!tbody) return;
-    
+
     if (merchantDiscounts.length === 0) {
         // Check if we have no discounts due to an error or truly empty
         const hasError = merchantDiscounts._error || false;
-        const errorMessage = hasError ? 
+        const errorMessage = hasError ?
             'Failed to load merchant discounts. Check console for details.' :
             'No merchant discounts found. Merchants haven\'t created any discounts yet.';
         const iconClass = hasError ? 'fas fa-exclamation-triangle' : 'fas fa-tags';
         const iconColor = hasError ? '#e74c3c' : '#ccc';
-        
+
         tbody.innerHTML = `
             <tr>
                 <td colspan="8" style="text-align: center; padding: 2rem; color: ${hasError ? '#e74c3c' : '#666'};">
@@ -1159,49 +1254,69 @@ function renderMerchantDiscountsTable() {
                     ${hasError ? `
                         <div style="font-size: 0.9rem; margin-top: 0.5rem;">
                             <button onclick="refreshMerchantDiscounts()" style="padding: 0.5rem 1rem; background: #00c2e8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 1rem;">
-                                <i class="fas fa-sync-alt"></i> Retry Loading
+                                <i class="fas fa-sync-alt"></i> إعادة التحميل
                             </button>
                             <button onclick="window.debugMerchantDiscounts()" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 1rem; margin-left: 0.5rem;">
-                                <i class="fas fa-bug"></i> Debug in Console
+                                <i class="fas fa-bug"></i> عرض التشخيص في وحدة التحكم
                             </button>
                         </div>
-                    ` : `<div style="font-size: 0.9rem; margin-top: 0.5rem;">Discounts created by merchants will appear here</div>`}
+                    ` : `<div style="font-size: 0.9rem; margin-top: 0.5rem;">ستظهر هنا الخصومات التي ينشئها المتجر.</div>`}
                 </td>
             </tr>
         `;
         return;
     }
-    
+
     tbody.innerHTML = merchantDiscounts.map(discount => {
         console.log('🎨 Rendering discount:', discount);
-        
+
         const merchantName = getMerchantName(discount.businessId);
         const discountValue = formatDiscountValue(discount);
         const validUntil = discount.validTo ? new Date(discount.validTo).toLocaleDateString() : 'No expiry';
         const usage = discount.usageLimit ? `${discount.usageCount} / ${discount.usageLimit}` : (discount.usageCount || 0).toString();
-        
+
         console.log(`🎨 Rendering: ${discount.title} for ${merchantName} (${discountValue})`);
-        
+
         return `
             <tr>
                 <td>
                     <div class="promotion-info">
                         <div class="promotion-icon">
                             <i class="fas fa-tag"></i>
-    alert('Contact merchant functionality would be implemented here');
+                        </div>
+                        <div>
+                            <strong>${discount.title || "خصم دون عنوان"}</strong>
+                            <div style="font-size: 0.8rem; color: #666;">${discount.code || discount.discountCode || ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${merchantName}</td>
+                <td>${discount.type || discount.discountType || "نسبة مئوية"}</td>
+                <td>${discountValue}</td>
+                <td><span class="badge badge-${discount.status === 'active' ? 'success' : 'secondary'}">${discount.status || "مسودة"}</span></td>
+                <td>${usage}</td>
+                <td>${validUntil}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" onclick="alert('Contacting ' + encodeURIComponent('${merchantName}'))">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // Debug function for merchant discounts - can be called from browser console
 window.debugMerchantDiscounts = async function() {
     console.log('DEBUG: === MERCHANT DISCOUNTS DEBUG START ===');
-    
+
     // Clear debug panel
     const debugContent = document.getElementById('debugContent');
     if (debugContent) {
         debugContent.innerHTML = '';
     }
     showDebugInfo('DEBUG: === MERCHANT DISCOUNTS DEBUG START ===');
-    
+
     try {
         // Test 1: Check if data service exists
         console.log('STEP Checking data service availability...');
@@ -1213,14 +1328,14 @@ window.debugMerchantDiscounts = async function() {
         }
         console.log('SUCCESS: Data service is available');
         showDebugInfo('SUCCESS: Data service is available');
-        
+
         // Test 2: Initialize data service
         console.log('STEP Initializing data service...');
         showDebugInfo('STEP Initializing data service...');
         await window.dataService.initialize();
         console.log('SUCCESS: Data service initialized');
         showDebugInfo('SUCCESS: Data service initialized');
-        
+
         // Test 3: Test direct scan of discounts table
         console.log('STEP Testing direct scan of discounts table...');
         showDebugInfo('STEP Testing direct scan of discounts table...');
@@ -1234,7 +1349,7 @@ window.debugMerchantDiscounts = async function() {
             showDebugInfo(`INFO: First item businessId: ${scanResult.Items[0].businessId}`);
             showDebugInfo(`INFO: First item title: ${scanResult.Items[0].title}`);
         }
-        
+
         // Test 4: Test getMerchantDiscounts method
         console.log('STEP Testing getMerchantDiscounts method...');
         showDebugInfo('STEP Testing getMerchantDiscounts method...');
@@ -1246,7 +1361,7 @@ window.debugMerchantDiscounts = async function() {
             console.log('First mapped discount:', JSON.stringify(discounts[0], null, 2));
             showDebugInfo(`INFO: First mapped discount: ${JSON.stringify(discounts[0], null, 2)}`);
         }
-        
+
         // Test 5: Test businesses loading
         console.log('STEP Testing businesses loading...');
         showDebugInfo('STEP Testing businesses loading...');
@@ -1258,22 +1373,22 @@ window.debugMerchantDiscounts = async function() {
             console.log('First business:', JSON.stringify(businesses[0], null, 2));
             showDebugInfo(`INFO: First business: ${businesses[0].businessName || businesses[0].name || 'No name'}`);
         }
-        
+
         // Test 6: Force reload merchant discounts
         console.log('STEP Force reloading merchant discounts...');
         showDebugInfo('STEP Force reloading merchant discounts...');
         await loadMerchantDiscounts();
         console.log('SUCCESS: Force reload completed');
         showDebugInfo(`SUCCESS: Force reload completed - Final count: ${merchantDiscounts.length}`);
-        
+
         console.log('DEBUG: === MERCHANT DISCOUNTS DEBUG END ===');
         showDebugInfo('DEBUG: === MERCHANT DISCOUNTS DEBUG END ===');
-        
+
     } catch (error) {
         console.error('ERROR: Debug function error:', error);
         showDebugInfo(`ERROR: Debug function error: ${error.message}`);
         console.error('Error details:', {
-            message: error.message,
+            message: window.WizzLocale.error(error.message),
             stack: error.stack
         });
     }
@@ -1310,17 +1425,17 @@ window.testAWSConnection = async function() {
             showDebugInfo('ERROR: AWSUtils not available');
             return;
         }
-        
+
         console.log('🔐 Initializing AWS...');
         showDebugInfo('🔐 Initializing AWS...');
         await AWSUtils.initialize();
         console.log('SUCCESS: AWS initialized successfully');
         showDebugInfo('SUCCESS: AWS initialized successfully');
-        
+
         const dynamoDB = await AWSUtils.getDynamoDBClient();
         console.log('SUCCESS: DynamoDB client obtained:', !!dynamoDB);
         showDebugInfo(`SUCCESS: DynamoDB client obtained: ${!!dynamoDB}`);
-        
+
         // Try to list tables to test permissions
         console.log('INFO: Testing table access...');
         showDebugInfo('INFO: Testing table access...');
@@ -1329,7 +1444,7 @@ window.testAWSConnection = async function() {
         console.log('SUCCESS: Table scan successful:', result);
         showDebugInfo(`SUCCESS: Table scan successful: Found ${result.Items?.length || 0} items`);
         console.log(`Found ${result.Items?.length || 0} items in first scan`);
-        
+
         return result;
     } catch (error) {
         console.error('ERROR: AWS connection test failed:', error);
@@ -1347,7 +1462,7 @@ async function loadCampaignsData() {
     console.log('INFO: Loading campaigns from DynamoDB...');
     const tbody = document.getElementById('campaignsTableBody');
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding: 2rem;">Loading campaigns...</td></tr>';
+        tbody.innerHTML = "<tr><td colspan=\"8\" class=\"text-center\" style=\"padding: 2rem;\">جارٍ تحميل الحملات...</td></tr>";
     }
 
     try {
@@ -1358,7 +1473,7 @@ async function loadCampaignsData() {
     } catch (error) {
         console.error('Error loading campaigns:', error);
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading campaigns: ' + error.message + '</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading campaigns: ' + window.WizzLocale.error(error.message) + '</td></tr>';
         }
     }
 }
@@ -1373,7 +1488,7 @@ function renderCampaignsTable() {
             <tr>
                 <td colspan="8" style="text-align: center; padding: 2rem; color: #666;">
                     <i class="fas fa-rocket" style="font-size: 3rem; margin-bottom: 1rem; color: #ccc;"></i>
-                    <div>No campaigns found. Create your first campaign!</div>
+                    <div>لا توجد حملات بعد. يمكنك إنشاء حملتك الأولى.</div>
                 </td>
             </tr>
         `;
@@ -1381,14 +1496,14 @@ function renderCampaignsTable() {
     }
 
     tbody.innerHTML = campaigns.map(campaign => {
-        const statusClass = campaign.isActive ? 'status-active' : 
+        const statusClass = campaign.isActive ? 'status-active' :
                            campaign.status === 'scheduled' ? 'status-scheduled' : 'status-inactive';
-        
-        const discountDisplay = campaign.discountType === 'percentage' 
+
+        const discountDisplay = campaign.discountType === 'percentage'
             ? campaign.discountValue + '%'
             : '$' + campaign.discountValue;
 
-        const usageDisplay = campaign.usageLimit > 0 
+        const usageDisplay = campaign.usageLimit > 0
             ? campaign.usage + '/' + campaign.usageLimit
             : campaign.usage.toString();
 
@@ -1407,7 +1522,7 @@ function renderCampaignsTable() {
                 <td>${discountDisplay}</td>
                 <td>
                     <span class="status-badge ${statusClass}">
-                        ${campaign.isActive ? 'Active' : campaign.status}
+                        ${campaign.isActive ? "نشط" : campaign.status}
                     </span>
                 </td>
                 <td>${usageDisplay}</td>
@@ -1438,10 +1553,10 @@ function renderCampaignsTable() {
 function updateCampaignStats() {
     const activeCampaigns = campaigns.filter(c => c.isActive).length;
     const totalCampaigns = campaigns.length;
-    
+
     const activeElement = document.getElementById('activeCampaigns');
     const totalElement = document.getElementById('totalCampaigns');
-    
+
     if (activeElement) activeElement.textContent = activeCampaigns;
     if (totalElement) totalElement.textContent = totalCampaigns;
 }
@@ -1470,41 +1585,41 @@ function formatCampaignTarget(campaign) {
     switch (campaign.type) {
         // Business Campaign Types
         case 'marketing':
-            return campaign.targetSegments && campaign.targetSegments.length > 0 
-                ? campaign.targetSegments.join(', ') 
+            return campaign.targetSegments && campaign.targetSegments.length > 0
+                ? campaign.targetSegments.join(', ')
                 : 'All customers';
         case 'loyalty':
-            return campaign.targetSegments && campaign.targetSegments.length > 0 
-                ? campaign.targetSegments.join(', ') 
+            return campaign.targetSegments && campaign.targetSegments.length > 0
+                ? campaign.targetSegments.join(', ')
                 : 'Loyalty members';
         case 'retention':
-            return campaign.targetSegments && campaign.targetSegments.length > 0 
-                ? campaign.targetSegments.join(', ') 
+            return campaign.targetSegments && campaign.targetSegments.length > 0
+                ? campaign.targetSegments.join(', ')
                 : 'At-risk customers';
         case 'seasonal':
-            return campaign.occasions && campaign.occasions.length > 0 
-                ? campaign.occasions.join(', ') 
+            return campaign.occasions && campaign.occasions.length > 0
+                ? campaign.occasions.join(', ')
                 : 'Seasonal shoppers';
         case 'acquisition':
-            return campaign.targetSegments && campaign.targetSegments.length > 0 
-                ? campaign.targetSegments.join(', ') 
+            return campaign.targetSegments && campaign.targetSegments.length > 0
+                ? campaign.targetSegments.join(', ')
                 : 'New prospects';
         case 'flash':
-            return campaign.occasions && campaign.occasions.length > 0 
-                ? campaign.occasions.join(', ') 
+            return campaign.occasions && campaign.occasions.length > 0
+                ? campaign.occasions.join(', ')
                 : 'All customers';
         // Customer Journey Types
         case 'restaurant-first':
-            return campaign.targetRestaurants && campaign.targetRestaurants.length > 0 
-                ? `${campaign.targetRestaurants.length} restaurant(s)` 
+            return campaign.targetRestaurants && campaign.targetRestaurants.length > 0
+                ? `${campaign.targetRestaurants.length} restaurant(s)`
                 : 'All restaurants';
         case 'new-customer':
-            return campaign.targetSegments && campaign.targetSegments.length > 0 
-                ? campaign.targetSegments.join(', ') 
+            return campaign.targetSegments && campaign.targetSegments.length > 0
+                ? campaign.targetSegments.join(', ')
                 : 'All new customers';
         case 'special-occasion':
-            return campaign.occasions && campaign.occasions.length > 0 
-                ? campaign.occasions.join(', ') 
+            return campaign.occasions && campaign.occasions.length > 0
+                ? campaign.occasions.join(', ')
                 : 'All occasions';
         default:
             return 'All customers';
@@ -1551,16 +1666,16 @@ function resetCampaignForm() {
 // Update form fields based on campaign type
 function updateCampaignFormFields() {
     const campaignType = document.getElementById('campaignType')?.value;
-    
+
     // Hide all targeting sections first
     const restaurantSection = document.getElementById('restaurantTargeting');
     const segmentSection = document.getElementById('customerSegments');
     const occasionSection = document.getElementById('specialOccasions');
-    
+
     if (restaurantSection) restaurantSection.style.display = 'none';
     if (segmentSection) segmentSection.style.display = 'none';
     if (occasionSection) occasionSection.style.display = 'none';
-    
+
     // Show relevant sections based on campaign type
     switch (campaignType) {
         case 'restaurant-first':
@@ -1579,30 +1694,30 @@ function updateCampaignFormFields() {
 async function loadRestaurantsForSelection() {
     try {
         console.log('Loading restaurants for campaign targeting...');
-        
+
         // Initialize data service if needed
         if (!window.dataService) {
             console.warn('Data service not available');
             return;
         }
-        
+
         await window.dataService.initialize();
         const businesses = await window.dataService.getBusinesses();
         console.log('Found ' + businesses.length + ' total businesses from WhizzMerchants_Businesses table');
-        
+
         // Log first business for debugging
         if (businesses.length > 0) {
             console.log('Sample business data:', businesses[0]);
         }
-        
+
         // Filter for restaurants - be more inclusive with business types
         restaurantsList = businesses.filter(b => {
             const businessType = (b.businessType || '').toLowerCase();
             const category = (b.category || '').toLowerCase();
-            
+
             // Include restaurants, cafes, and food-related businesses
-            return businessType.includes('restaurant') || 
-                   businessType.includes('cafe') || 
+            return businessType.includes('restaurant') ||
+                   businessType.includes('cafe') ||
                    businessType.includes('food') ||
                    category.includes('restaurant') ||
                    category.includes('cafe') ||
@@ -1610,9 +1725,9 @@ async function loadRestaurantsForSelection() {
                    businessType === 'restaurant' ||
                    category === 'restaurant';
         });
-        
+
         console.log('Filtered ' + restaurantsList.length + ' restaurants/food businesses');
-        
+
         const select = document.getElementById('targetRestaurants');
         if (select) {
             if (restaurantsList.length > 0) {
@@ -1622,11 +1737,11 @@ async function loadRestaurantsForSelection() {
                     const name = restaurant.businessName || restaurant.name || 'Unknown Business';
                     const type = restaurant.businessType || restaurant.category || '';
                     const displayName = name + (type ? ' (' + type + ')' : '');
-                    
+
                     console.log('Adding restaurant option: ' + displayName + ' (ID: ' + id + ')');
                     return '<option value="' + id + '">' + displayName + '</option>';
                 }).join('');
-                
+
                 console.log('Successfully populated restaurant dropdown with ' + restaurantsList.length + ' options');
             } else {
                 // Show all businesses if no restaurants found (fallback)
@@ -1637,7 +1752,7 @@ async function loadRestaurantsForSelection() {
                     const type = business.businessType || business.category || 'Business';
                     return '<option value="' + id + '">' + name + ' (' + type + ')</option>';
                 }).join('');
-                
+
                 console.log('Populated with ' + businesses.length + ' total businesses as fallback');
             }
         } else {
@@ -1651,10 +1766,10 @@ async function loadRestaurantsForSelection() {
 // Handle campaign form submission
 async function handleCampaignSubmit(event) {
     event.preventDefault();
-    
+
     const form = document.getElementById('campaignForm');
     const formData = new FormData(form);
-    
+
     const campaignData = {
         title: formData.get('title'),
         code: formData.get('code'),
@@ -1682,11 +1797,11 @@ async function handleCampaignSubmit(event) {
             console.log('✅ Campaign created successfully');
             closeCampaignModal();
             await loadCampaignsData(); // Reload campaigns
-            showNotification('Campaign created successfully!', 'success');
+            showNotification("أُنشئت الحملة بنجاح.", 'success');
         }
     } catch (error) {
         console.error('Error creating campaign:', error);
-        showNotification('Error creating campaign: ' + error.message, 'error');
+        showNotification("تعذّر إنشاء الحملة: " + window.WizzLocale.error(error.message), 'error');
     }
 }
 
@@ -1697,23 +1812,23 @@ async function toggleCampaign(campaignId) {
         if (!campaign) return;
 
         const newStatus = !campaign.isActive;
-        await dataService.updateCampaign(campaignId, { 
+        await dataService.updateCampaign(campaignId, {
             isActive: newStatus,
             status: newStatus ? 'active' : 'inactive'
         });
-        
+
         console.log(`✅ Campaign ${newStatus ? 'activated' : 'deactivated'}`);
         await loadCampaignsData(); // Reload campaigns
-        showNotification(`Campaign ${newStatus ? 'activated' : 'deactivated'} successfully!`, 'success');
+        showNotification(`الحملة ${newStatus ? "مفعّل" : "غير مفعّل"} بنجاح.`, 'success');
     } catch (error) {
         console.error('Error toggling campaign:', error);
-        showNotification('Error updating campaign: ' + error.message, 'error');
+        showNotification("تعذّر تحديث الحملة: " + window.WizzLocale.error(error.message), 'error');
     }
 }
 
 // Delete campaign
 async function deleteCampaign(campaignId) {
-    if (!confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+    if (!confirm("هل تريد حذف هذه الحملة؟ لا يمكن التراجع عن هذا الإجراء.")) {
         return;
     }
 
@@ -1721,10 +1836,10 @@ async function deleteCampaign(campaignId) {
         await dataService.deleteCampaign(campaignId);
         console.log('✅ Campaign deleted successfully');
         await loadCampaignsData(); // Reload campaigns
-        showNotification('Campaign deleted successfully!', 'success');
+        showNotification("حُذفت الحملة بنجاح.", 'success');
     } catch (error) {
         console.error('Error deleting campaign:', error);
-        showNotification('Error deleting campaign: ' + error.message, 'error');
+        showNotification("تعذّر حذف الحملة: " + window.WizzLocale.error(error.message), 'error');
     }
 }
 
@@ -1732,7 +1847,7 @@ async function deleteCampaign(campaignId) {
 function editCampaign(campaignId) {
     // TODO: Implement campaign editing functionality
     console.log('Edit campaign:', campaignId);
-    showNotification('Campaign editing feature coming soon!', 'info');
+    showNotification("تعديل الحملات غير متاح حاليًا.", 'info');
 }
 
 // Show notification

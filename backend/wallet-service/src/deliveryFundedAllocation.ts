@@ -20,7 +20,7 @@ export function allocateDeliveryFundedOrder(value:unknown) {
  try {
   const r=exact(value,['allocationSchemaVersion','base','deliveryFunding']);if(r.allocationSchemaVersion!==2)return fail();
   const funding=exact(r.deliveryFunding,['policyPin','allocation']),pin=exact(funding.policyPin,['policyId','version','termsHash']);
-  if(!quoteEntityIdValid(pin.policyId)||!Number.isSafeInteger(pin.version)||pin.version<1||typeof pin.termsHash!=='string'||!/^[a-f0-9]{64}$/.test(pin.termsHash))return fail();
+  if(!(quoteEntityIdValid(pin.policyId)||typeof pin.policyId==='string'&&pin.policyId.startsWith('PLATFORM_BENEFIT#')&&quoteEntityIdValid(pin.policyId.slice('PLATFORM_BENEFIT#'.length)))||!Number.isSafeInteger(pin.version)||pin.version<1||typeof pin.termsHash!=='string'||!/^[a-f0-9]{64}$/.test(pin.termsHash))return fail();
   const a=exact(funding.allocation,['schemaVersion','referenceFee','customerFee','subsidy','merchantShare','platformShare']);if(![1,2].includes(a.schemaVersion))return fail();
   const referenceFee=amount(a.referenceFee),customerFee=amount(a.customerFee),subsidy=amount(a.subsidy),merchantShare=amount(a.merchantShare),platformShare=amount(a.platformShare);
   if((a.schemaVersion===2?Math.max(0,referenceFee.minorAmount-customerFee.minorAmount):subtractMoney(referenceFee,customerFee).minorAmount)!==subsidy.minorAmount||addMoney(merchantShare,platformShare).minorAmount!==subsidy.minorAmount)return fail('DELIVERY_FUNDING_MISMATCH');

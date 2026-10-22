@@ -1,3 +1,4 @@
+import {BENEFIT_POLICY_PREFIX,settlePlatformBenefit} from './platformBenefits';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { readDeliveryFundingPolicy, calculatePolicyDeliveryFunding } from './deliveryFundingPolicy';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
@@ -82,6 +83,13 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
   },async settle(value: unknown) {
     const hasExpected=!!value&&typeof value==='object'&&Object.prototype.hasOwnProperty.call(value,'expectedFunding');
     const r=exact(value,['orderId','outcome',...(hasExpected?['expectedFunding']:[])]);id(r.orderId);if(!['CAPTURED','RELEASED'].includes(r.outcome))return fail();
+    if(r.expectedFunding?.policyPin?.policyId?.startsWith(BENEFIT_POLICY_PREFIX)){
+      const order=(await db.send(new GetCommand({TableName:'WizzOrders',Key:{PK:'ORDER#'+r.orderId,SK:'META'},ConsistentRead:true}))).Item;
+      const receipt=order?.platformDeliveryBenefitReceipt??order?.platformBenefitReceipt;
+      if(!order||receipt?.target!=='DELIVERY'||BENEFIT_POLICY_PREFIX+receipt.campaignId!==r.expectedFunding.policyPin.policyId)return fail();
+      const keepUse=order.status!=='pending'||['confirmedAt','merchantAcceptedAt','acceptedAt','financialAcceptance'].some(k=>order[k]!=null);
+      return settlePlatformBenefit(db,{orderId:r.orderId,target:'DELIVERY',outcome:r.outcome,keepUse,expectedFunding:r.expectedFunding});
+    }
     const h=await get(holdKey(r.orderId));if(!h)return fail('DELIVERY_RESERVATION_UNAVAILABLE');verify(h);
     if(h.orderId!==r.orderId||!quoteEntityIdValid(h.customerId)||!quoteEntityIdValid(h.policyPin?.policyId)||!Number.isSafeInteger(h.policyPin?.version)||h.policyPin.version<1)return fail();
     if(hasExpected){exact(r.expectedFunding,['policyPin','allocation']);if(quoteHash(r.expectedFunding)!==quoteHash({policyPin:h.policyPin,allocation:h.allocation}))return fail('DELIVERY_RESERVATION_CONFLICT');}

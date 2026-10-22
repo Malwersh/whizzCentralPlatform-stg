@@ -1,4 +1,5 @@
 import {prepareFullCashRelease} from './fullCashRelease';
+import {settlePlatformBenefit} from './platformBenefits';
 import { createStagingPlatformPromotionResolution } from './platformPromotionResolution';
 import { createStagingDeliveryCampaignBudget } from './deliveryCampaignBudget';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
@@ -66,5 +67,6 @@ export async function prepareCodRelease(db:Pick<DynamoDBDocumentClient,'send'>,o
   }
  }
  if(journalLines.reduce((s,r)=>s+BigInt(r.delta),0n)!==0n)return fail();
+ if(releasePromotion&&order.platformBenefitReceipt?.target==='GOODS'){const benefit=await settlePlatformBenefit(db,{orderId,target:'GOODS',outcome:'RELEASED',keepUse:order.status!=='pending'||['confirmedAt','merchantAcceptedAt','acceptedAt','financialAcceptance'].some(k=>order[k]!=null)});if(benefit.replayed)return fail();ops.push(...benefit.operations);}
  return {operations:ops,journalLines,H,F,DF,hold};
 }

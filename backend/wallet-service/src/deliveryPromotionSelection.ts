@@ -66,10 +66,17 @@ export function createStagingDeliveryPromotionSelection(options:{db:Pick<DynamoD
   choices.sort((a,b)=>a.candidate.calculation.customerDeliveryFee.minorAmount-b.candidate.calculation.customerDeliveryFee.minorAmount||(a.policy.id<b.policy.id?-1:a.policy.id>b.policy.id?1:0));
   const best=choices[0];
   for(const other of choices.slice(1)){common.push(exactCheck(S,{pk:other.budget.pk,sk:other.budget.sk},other.budget));const uk={pk:'DELIVERY_USAGE#'+other.policy.id,sk:'CUSTOMER#'+customer.customerId};common.push(other.usage?exactCheck(S,uk,other.usage):{ConditionCheck:{TableName:S,Key:uk,ConditionExpression:'attribute_not_exists(pk)'}});}
-  if(!best)return {applied:false,operations:common};
-  if(options.previewOnly===true)return {applied:true,deliveryFunding:best.candidate.funding,customerFee:best.candidate.calculation.customerDeliveryFee,validUntil:best.resolved.validUntil,operations:[],customerRule:best.policy.customerRule.kind};
+  if(!best)return {applied:false as const,operations:common};
+  const c=best.candidate.calculation;
+  const cashRoundingEvidence=c.components.finalRounding?.mode==='CEILING'?{
+   schemaVersion:1,beneficiary:'PLATFORM',policy:c.components.finalRounding,
+   referenceFee:c.components.beforeDiscount,requestedDiscount:c.components.requestedDiscount,
+   customerFeeBeforeRounding:c.components.customerFeeBeforeFinalRounding,
+   roundingAdjustment:c.components.promotionRoundingAdjustment,
+   chargedFee:c.customerDeliveryFee,actualPromotionSaving:c.discountFundingAmount}:null;
+  if(options.previewOnly===true)return {applied:true as const,...(cashRoundingEvidence?{cashRoundingEvidence}:{}),deliveryFunding:best.candidate.funding,customerFee:best.candidate.calculation.customerDeliveryFee,validUntil:best.resolved.validUntil,operations:[],customerRule:best.policy.customerRule.kind};
   const reservation=await createStagingDeliveryCampaignBudget({db,now}).reserve({orderId:facts.orderId,customerId:customer.customerId,policy:best.policy,referenceFee:facts.referenceFee,customerFee:best.candidate.calculation.customerDeliveryFee});
   if(reservation.replayed)throw Error('DELIVERY_ORDER_RECOVERY_REQUIRED');
-  return {applied:true,deliveryFunding:best.candidate.funding,customerFee:best.candidate.calculation.customerDeliveryFee,validUntil:best.resolved.validUntil,operations:[...common,...reservation.operations]};
+  return {applied:true as const,...(cashRoundingEvidence?{cashRoundingEvidence}:{}),deliveryFunding:best.candidate.funding,customerFee:best.candidate.calculation.customerDeliveryFee,validUntil:best.resolved.validUntil,customerRule:best.policy.customerRule.kind,operations:[...common,...reservation.operations]};
  }});
 }

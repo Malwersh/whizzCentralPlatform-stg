@@ -8,3 +8,98 @@ test('revoked auto acceptance and assigned money never fall through to timeout',
 test('manual confirmation winning the race prevents expiration and promotion release',async()=>{const {f,engine}=fixture(true);f.time+=300000;f.beforeCommit=()=>{f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).status='confirmed';};await assert.rejects(engine.run('order1','EXPIRE'));assert.equal(f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,1000);assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'FINANCIAL_OUTCOME'}),undefined);});
 
 test('rejecting an already automatically accepted order never reports a successful rejection',async()=>{const {f,engine}=fixture();await engine.run('order1','AUTO_ACCEPT');const owner=create({db:f.db,now:()=>f.time,authenticate:async()=>({kind:'MERCHANT',subjectId:'owner1',ownerId:'owner1',businessId:'branch1',guards:[]})});await assert.rejects(owner.run('order1','REJECT','صنف غير متوفر'),{code:'ORDER_ALREADY_HANDLED'});assert.equal(f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).status,'confirmed');});
+
+function reserveOffer(f,o){
+ Object.assign(o,{userSub:'customer',offerSnapshot:{discountId:'discount',source:'MERCHANT'},offerUsageReservation:{schemaVersion:1,userSub:'customer',accountReserved:true,customerReserved:true,campaign:{id:'discount',source:'MERCHANT',createdAt:null}}});
+ f.put('staging-WizzOfferJourney',{pk:'USER#customer',sk:'ORDERS',count:1,version:1,lastAt:f.time});
+ f.put('staging-WizzOfferJourney',{pk:'USER#customer',sk:'OFFER#merchant#discount',count:1,version:1});
+ f.put('WhizzMerchants_Discounts',{discountId:'discount',businessId:'branch1',usage_count:3});
+}
+function customerEngine(f,o,patch={},db=f.db){
+ Object.assign(o,{userId:'user',userSub:'customer',isGuestOrder:false});
+ f.put('WizzUser_users_staging',{userId:'user',cognitoSub:'customer',version:1});
+ return create({db,now:()=>f.time,authenticate:async()=>({kind:'CUSTOMER',subjectId:'customer',customerId:'user',businessId:'branch1',ownerId:'owner1',
+  guards:[{ConditionCheck:{TableName:'WizzUser_users_staging',Key:{userId:'user'},ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':1}}}],...patch})});
+}
+test('financial customer cancellation releases promotion cash and coupon usage exactly once before acceptance',async()=>{
+ const {f,o}=fixture(true);reserveOffer(f,o);const engine=customerEngine(f,o);
+ assert.equal((await engine.run('order1','CUSTOMER_CANCEL','changed mind')).status,'cancelled');
+ assert.equal(f.get('WizzOrders',{PK:o.PK,SK:o.SK}).canceledBy,'customer');
+ assert.equal(f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,0);
+ assert.equal(f.get('staging-WizzOfferJourney',{pk:'USER#customer',sk:'ORDERS'}).count,0);
+ assert.equal((await engine.run('order1','CUSTOMER_CANCEL','changed mind')).replayed,true);
+ await assert.rejects(engine.run('order1','CUSTOMER_CANCEL','different reason'),{code:'ORDER_ALREADY_HANDLED'});
+ assert.equal(f.get('WhizzMerchants_Discounts',{discountId:'discount'}).usage_count,2);
+});
+test('customer cancellation drains existing finance scope and does not admit new orders',async()=>{
+ const {createFinanceRollout}=require('../dist/financeRollout'),{scopeEnv,scopePin}=require('./helpers/finance-rollout-fixture.cjs');
+ for(const subject of ['customer','foreign']){
+  const {f,o}=fixture(true);let transaction;
+  const db={send:async c=>{if(c.constructor.name==='TransactWriteCommand'){transaction=c.input;return {};}return f.db.send(c);}};
+  const env=scopeEnv({mode:'DRAIN',until:'2020-01-01T00:00:00.000Z',orders:[{orderId:'order1',branchId:'branch1',customerSubjectId:subject}],drivers:[{driverId:'driver1',subjectId:'driver1'}]});
+  o.financeRollout=scopePin(env,'order1');
+  const rollout=createFinanceRollout({db,env,now:()=>f.time}),engine=customerEngine(f,o,{},rollout.db);
+  if(subject==='foreign'){
+   await assert.rejects(engine.run('order1','CUSTOMER_CANCEL','reason'),{code:'FINANCE_ROLLOUT_OUT_OF_SCOPE'});assert.equal(transaction,undefined);
+  }else{
+   await engine.run('order1','CUSTOMER_CANCEL','reason');
+   const update=transaction.TransactItems.find(x=>x.Update?.TableName==='WizzOrders').Update;
+   assert.ok(Object.values(update.ExpressionAttributeNames).includes('userSub'));
+   assert.equal(update.ExpressionAttributeValues[':roll1'],'customer');
+   assert.ok(!transaction.TransactItems.some(x=>x.Put?.TableName==='WizzOrders'));
+  }
+ }
+});
+test('customer authority cannot cancel foreign orders or invoke merchant/system actions',async()=>{
+ for(const patch of [{subjectId:'foreign'},{customerId:'foreign'},{guards:[]}]){
+  const {f,o}=fixture(true),engine=customerEngine(f,o,patch);
+  await assert.rejects(engine.run('order1','CUSTOMER_CANCEL','reason'),{code:'MERCHANT_RESPONSE_UNAUTHORIZED'});
+  assert.equal(o.status,'pending');
+  assert.equal(f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,1000);
+ }
+ for(const mode of ['AUTO_ACCEPT','EXPIRE','REJECT']){
+  const {f,o}=fixture();await assert.rejects(customerEngine(f,o).run('order1',mode),{code:'MERCHANT_RESPONSE_UNAUTHORIZED'});
+ }
+});
+test('customer cancellation does not require automatic-accept policy but refuses recorded acceptance',async()=>{
+ const {f,o}=fixture(),engine=customerEngine(f,o);
+ delete o.merchantResponsePolicy;delete o.merchantAcceptanceDeadlineAt;
+ await engine.run('order1','CUSTOMER_CANCEL','reason');
+ const accepted=fixture(),other=customerEngine(accepted.f,accepted.o);accepted.o.confirmedAt='2026-01-01';
+ await assert.rejects(other.run('order1','CUSTOMER_CANCEL','reason'),{code:'MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED'});
+});
+test('accepted orders, profile revocation and timeout races cannot partially release customer cancellations',async()=>{
+ for(const race of ['accepted','profile','timeout']){
+  const {f,o}=fixture(true);reserveOffer(f,o);const engine=customerEngine(f,o);
+  f.beforeCommit=()=>{
+   if(race==='accepted')o.status='confirmed';
+   if(race==='profile')f.get('WizzUser_users_staging',{userId:'user'}).version++;
+   if(race==='timeout')f.get('staging-WalletLifecycle',{operationId:'MERCHANT_RESPONSE#order1'}).status='DONE';
+  };
+  await assert.rejects(engine.run('order1','CUSTOMER_CANCEL','reason'));
+  assert.equal(f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,1000);
+  assert.equal(f.get('WhizzMerchants_Discounts',{discountId:'discount'}).usage_count,3);
+ }
+ const {f,o}=fixture(),engine=customerEngine(f,o);o.status='confirmed';
+ await assert.rejects(engine.run('order1','CUSTOMER_CANCEL','reason'),{code:'ORDER_ALREADY_HANDLED'});
+});
+test('merchant rejection and timeout restore coupon usage and first-order reservation in their financial transaction exactly once',async()=>{
+ for(const mode of ['REJECT','EXPIRE']){
+  const {f,o,engine}=fixture(true);reserveOffer(f,o);f.time+=300000;
+  const actor=mode==='REJECT'?create({db:f.db,now:()=>f.time,authenticate:async()=>({kind:'MERCHANT',subjectId:'owner1',ownerId:'owner1',businessId:'branch1',guards:[]})}):engine;
+  await actor.run('order1',mode);
+  assert.equal(f.get('staging-WizzOfferJourney',{pk:'USER#customer',sk:'ORDERS'}).count,0);
+  assert.equal(f.get('staging-WizzOfferJourney',{pk:'USER#customer',sk:'OFFER#merchant#discount'}).count,0);
+  assert.equal(f.get('WhizzMerchants_Discounts',{discountId:'discount'}).usage_count,2);
+  assert.equal(f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,0);
+  assert.equal((await actor.run('order1',mode)).replayed,true);
+  assert.equal(f.get('WhizzMerchants_Discounts',{discountId:'discount'}).usage_count,2);
+ }
+});
+test('acceptance racing restoration rolls back coupon, account and promotion cash release together',async()=>{
+ const {f,o,engine}=fixture(true);reserveOffer(f,o);f.time+=300000;
+ f.beforeCommit=()=>{o.status='confirmed';};await assert.rejects(engine.run('order1','EXPIRE'));
+ assert.equal(f.get('staging-WizzOfferJourney',{pk:'USER#customer',sk:'ORDERS'}).count,1);
+ assert.equal(f.get('WhizzMerchants_Discounts',{discountId:'discount'}).usage_count,3);
+ assert.equal(f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,1000);
+});

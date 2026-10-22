@@ -1,6 +1,6 @@
-import {verifyGoodsPromotionExposure} from './goodsPromotionExposure';
-import {prepareFullCashOrderSnapshot} from './fullCashOffer';
 import {hasStoreAgreementOrderEvidence} from './storeDeliveryAgreement';
+import {prepareFullCashOrderSnapshot} from './fullCashOffer';
+import {hasBenefitOrderEvidence,verifyFullCashOrderEvidence} from './fullCashOrderEvidence';
 import { GetCommand, TransactWriteCommand, DynamoDBDocumentClient, TransactWriteCommandInput } from '@aws-sdk/lib-dynamodb';
 import { prepareDeliveryFundedFinancialSnapshot } from './deliveryFundedOffer';
 import { readMoney } from './money';
@@ -190,18 +190,15 @@ export function createStagingQuoteOrder(options: { db: DB; authenticateCustomer:
           const writes=operations.filter(o=>o.Put).map(o=>o.Put!);
           const reservation=writes.find(o=>o.TableName==='staging-PlatformStaff'&&o.Item?.pk==='DELIVERY_RESERVATION#'+orderId&&o.Item?.sk==='META')?.Item;
           const policyPin=deliveryFunding.policyPin;
-          if(deliveryFunding.allocation.schemaVersion===2?!hasStoreAgreementOrderEvidence(operations,deliveryFunding,orderId,c.userId):(!reservation||reservation.status!=='RESERVED'||reservation.customerId!==c.userId||quoteCanonical({policyPin:reservation.policyPin,allocation:reservation.allocation})!==quoteCanonical(deliveryFunding)||
+          const benefitFunding=policyPin.policyId?.startsWith('PLATFORM_BENEFIT#');
+          if(deliveryFunding.allocation.schemaVersion===2?!hasStoreAgreementOrderEvidence(operations,deliveryFunding,orderId,c.userId):benefitFunding?!hasBenefitOrderEvidence(operations as Row[],order,c.subjectId,'DELIVERY',readMoney(deliveryFunding.allocation.subsidy).minorAmount,deliveryFunding):(!reservation||reservation.status!=='RESERVED'||reservation.customerId!==c.userId||quoteCanonical({policyPin:reservation.policyPin,allocation:reservation.allocation})!==quoteCanonical(deliveryFunding)||
             !writes.some(o=>o.TableName==='staging-PlatformStaff'&&o.Item?.pk==='DELIVERY_BUDGET#'+policyPin.policyId&&o.Item?.sk==='VERSION#'+policyPin.version)||
             !writes.some(o=>o.TableName==='staging-PlatformStaff'&&o.Item?.pk==='DELIVERY_USAGE#'+policyPin.policyId&&o.Item?.sk==='CUSTOMER#'+c.userId)))return fail('INVALID_QUOTE_ORDER');
           const platformMinor=readMoney(deliveryFunding.allocation.platformShare).minorAmount;
           if(order.financialSnapshot.schemaVersion!==3&&platformMinor&&(!writes.some(o=>o.TableName==='staging-Holds'&&o.Item?.orderId===orderId&&o.Item?.sk==='DELIVERY_PROMOTION_FUNDING'&&o.Item?.amount===platformMinor/1000&&quoteCanonical(o.Item?.metadata?.policyPin)===quoteCanonical(policyPin))||!operations.some(o=>o.Update?.TableName==='staging-Wallets'&&o.Update.Key?.walletId==='WALLET#PLATFORM')))return fail('INVALID_QUOTE_ORDER');
         }else if(order.financialSnapshot?.schemaVersion===2)return fail('INVALID_QUOTE_ORDER');
-        if(order.financialSnapshot?.schemaVersion===3){
-          if(options.enableFullCash!==true)return fail('INVALID_QUOTE_ORDER');
-          const snapshot=prepareFullCashOrderSnapshot({order:order.financialSnapshot.order,deliveryFunding:deliveryFunding??null});
-          const commitment=operations.find(x=>x.Put?.TableName==='staging-Holds'&&x.Put.Item?.orderId===orderId&&x.Put.Item?.sk==='FULL_CASH_FUNDING_COMMITMENT')?.Put?.Item;
-          if(snapshot.order.orderId!==orderId||snapshot.order.branchId!==row!.branchId||snapshot.order.merchantId!==order.merchantId||snapshot.order.confirmedCustomerTotal.minorAmount!==order.pricing?.total||snapshot.order.allocation.paymentMethod!=='COD'||quoteCanonical(snapshot)!==quoteCanonical(order.financialSnapshot)||!commitment||commitment.kind!=='FULL_CASH_FUNDING_COMMITMENT'||commitment.settlementModel!=='FULL_CASH_AT_DELIVERY_V1'||commitment.branchId!==row!.branchId||commitment.merchantId!==order.merchantId||commitment.status!=='COMMITTED'||commitment.snapshotDigest!==snapshot.digest||quoteCanonical(commitment.deliveryFunding)!==quoteCanonical(deliveryFunding??null)||quoteCanonical(commitment.platformGoodsFunding)!==quoteCanonical(snapshot.order.allocation.platformGoodsDiscount)||operations.some(x=>x.Update?.TableName==='staging-Wallets'||x.Put?.TableName==='staging-Holds'&&['PROMOTION_FUNDING','DELIVERY_PROMOTION_FUNDING'].includes(x.Put.Item?.sk)))return fail('INVALID_QUOTE_ORDER');
-          if(snapshot.order.allocation.platformGoodsDiscount.minorAmount>0){verifyGoodsPromotionExposure(commitment.goodsExposure,snapshot.order.allocation.platformGoodsDiscount);if(quoteCanonical(commitment.goodsExposure)!==quoteCanonical(order.commercialPricing?.funding?.exposure))return fail('INVALID_QUOTE_ORDER');}
+        if(order.financialSnapshot?.schemaVersion===3){if(options.enableFullCash!==true)return fail('INVALID_QUOTE_ORDER');const snapshot=verifyFullCashOrderEvidence(order,operations as Row[],deliveryFunding,c.subjectId),a=snapshot.order.allocation;
+          if(quoteCanonical(snapshot.order.branchPoint)!==quoteCanonical(row!.binding.origin)||quoteCanonical(snapshot.order.customerPoint)!==quoteCanonical(row!.binding.destination)||order.pricing.goodsSubtotal!==a.goodsGross.minorAmount||order.pricing.serviceFee!==a.serviceFee.minorAmount||order.pricing.tip!==a.driverTip.minorAmount||order.pricing.discount!==a.merchantGoodsDiscount.minorAmount+a.platformGoodsDiscount.minorAmount||order.pricing.packagingFee!==0||order.pricing.tax!==0||order.pricing.rounding!==0)return fail('INVALID_QUOTE_ORDER');
         }
         if (order.PK !== orderKey.PK || order.SK !== 'META' || order.orderId !== orderId || order.userId !== c.userId ||
             order.userSub !== c.subjectId || order.storeId !== row!.branchId || order.isGuestOrder !== false ||

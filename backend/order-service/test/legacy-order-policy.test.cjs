@@ -2,6 +2,13 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const p=require('../legacy-order-policy');
 function update(target){return {Update:{UpdateExpression:'SET #status=:status',ExpressionAttributeNames:{'#status':'status'},ExpressionAttributeValues:{':status':target},ConditionExpression:'owner=:owner'}};}
+test('tracked pending orders require atomic cancellation while accepted orders keep usage consumed',()=>{
+ for(const status of ['cancelled','rejected','expired','failed','canceled_by_customer']){
+  assert.throws(()=>p.fenceMerchantOrderOperation(update(status),{status:'pending',offerUsageReservation:{schemaVersion:1}}),{code:'OFFER_CANCELLATION_WORKFLOW_REQUIRED'});
+  assert.doesNotThrow(()=>p.fenceMerchantOrderOperation(update(status),{status:'confirmed',offerUsageReservation:{schemaVersion:1}}));
+ }
+ assert.doesNotThrow(()=>p.fenceMerchantOrderOperation(update('confirmed'),{status:'pending',offerUsageReservation:{schemaVersion:1}}));
+});
 test('all current and archived financial markers, including null, block a legacy workflow',()=>{
  for(const field of p.FINANCIAL_FIELDS){assert.equal(p.isFinancialOrder({[field]:null}),true);assert.ok(p.LEGACY_ONLY.includes('attribute_not_exists('+field+')'));}
  assert.equal(p.isFinancialOrder({orderId:'legacy'}),false);
