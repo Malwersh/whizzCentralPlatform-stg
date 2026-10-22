@@ -1,0 +1,32 @@
+{
+  "part": 281,
+  "status": "PASS",
+  "readOnly": true,
+  "summary": {
+    "revenueMinor": 12825000,
+    "expenseMinor": 17750000,
+    "netMinor": -4925000,
+    "journalCount": 15,
+    "debitMinor": 108000000,
+    "creditMinor": 108000000
+  },
+  "stats": {
+    "completed": 10,
+    "returned": 2,
+    "cancelled": 1,
+    "customerTotalMinor": 96000000,
+    "collectedMinor": 95250000
+  },
+  "sourceDigest": "4294c82546ae7cc27c934f67b17f2df179abf1fd5da0188638b604c13a0dd546",
+  "verifiedOrder": "ORD1792679331051",
+  "netForVerifiedOrderMinor": -450000,
+  "issues": [],
+  "coverage": {
+    "status": "SUPPORTED_SOURCES_COMPLETE",
+    "legacyNetOnly": 4,
+    "readConsistency": "PER_ITEM_NOT_ATOMIC",
+    "scope": "POSTED_SUPPORTED_JOURNALS",
+    "statementIsPeriodLock": false
+  },
+  "verifiedAt": "2026-10-22T15:23:56.747Z"
+}

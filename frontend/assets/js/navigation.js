@@ -264,8 +264,8 @@ class NavigationManager {
             merchants: ["العمليات / المتاجر", "المتاجر", "مراجعة المتاجر وإدارة حسابات الأنشطة التجارية."],
             orders: ["العمليات / الطلبات", "الطلبات", "البحث عن الطلبات ومتابعة حالاتها وإدارة التوصيل."],
             regions: ["العمليات / التغطية", "المناطق", "تنظيم المناطق التي تغطيها خدمات المنصة."],
-            financial: ["المالية / نظرة عامة", "الإدارة المالية", "متابعة النشاط المالي على المنصة."],
-            finance: ['المالية / المحافظ', 'القسم المالي', 'متابعة المحافظ وطلبات الشحن والتسويات المالية.'],
+            financial: ["المالية / حسابات الشركة", "حسابات الشركة", "الإيرادات والمصاريف والذمم والكشوفات المالية."],
+            finance: ['المالية / المحافظ', 'المحافظ والتسويات التشغيلية', 'متابعة المحافظ وطلبات الشحن والتسويات المالية.'],
             settings: ['الإدارة / الإعدادات', 'الإعدادات', 'إدارة إعدادات المنصة وتفضيلات التشغيل.'],
             staff: ['الإدارة / الفريق', 'الموظفون والصلاحيات', 'إدارة الفريق والصلاحيات وطلبات الاعتماد.'],
             pricing: ["المالية / التسعير", "التسعير والعمولات", "إدارة تسعير التوصيل وقواعد العمولات."]
@@ -930,6 +930,7 @@ class NavigationManager {
                         </li>
                         <li class="nav-item" data-page="settings"><a href="settings.html" class="nav-link"><i class="fas fa-cog"></i><span>الإعدادات</span></a></li>
                         <li class="nav-item" data-page="pricing"><a href="delivery-pricing.html" class="nav-link" data-nav="page"><i class="fas fa-route"></i><span>Pricing &amp; Commissions</span></a></li>
+<li class="nav-item" data-page="financial"><a href="financial-management.html" class="nav-link"><i class="fas fa-chart-line"></i><span>حسابات الشركة</span></a></li>
 <li class="nav-item" data-page="finance"><a href="finance.html" class="nav-link"><i class="fas fa-wallet"></i><span>إدارة شحن المحافظ</span></a></li>
                         <li class="nav-item" data-page="merchants">
                             <a href="merchants.html" class="nav-link">

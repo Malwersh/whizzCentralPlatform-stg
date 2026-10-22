@@ -82,6 +82,7 @@ Resources:
           CLIENT_ID: 17mu2qlqis0qcs1n1n980q7e3j
           FRONTEND_ORIGIN: https://staging.d2vmebm1e1n95m.amplifyapp.com
       Policies:
+        - arn:aws:iam::699561669180:policy/staging-company-accounts-read-281
         - arn:aws:iam::699561669180:policy/staging-merchant-cashbox-register-250
         - Statement:
             - Effect: Allow

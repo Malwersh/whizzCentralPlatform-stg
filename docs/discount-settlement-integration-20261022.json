@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "policy": {
-    "baseline": "Colleague GitHub commits from 2026-10-22",
+    "baseline": "Colleague GitHub central-platform commit 4905124d6fd2d48b87ed59a963e35fe98ff826a0; other repositories as recorded",
     "settlements": "COLLEAGUE",
     "discountsAndBenefits": "LOCAL_USER_WORK",
     "sharedFiles": "Preserve settlement calculations; add atomic benefit usage hooks only",
     "deploymentPerformed": false
   },
   "repositories": {
-    "whizzCentralPlatform-stg": "30388bd61706f00a3ce27157bf4c5364989b020b",
+    "whizzCentralPlatform-stg": "4905124d6fd2d48b87ed59a963e35fe98ff826a0",
     "whizzMerchants-stg": "07f2a43966390ed55b4c688d2634625994877744",
     "wizzuser-stg": "d36e34af416264bc9db0b094d0dbf2e7c6e10175",
     "whizzDrivers-stg": "af5fb27549079bc13bf3057d9e75e36753390531"
@@ -447,7 +447,7 @@
     {
       "repository": "whizzCentralPlatform-stg",
       "path": "frontend/customer-cash-review.js",
-      "sha256": "3bd164f3eede2c840743a6d0f5f185b91784ca00ae27c94eef91a3f0e1fd75d0"
+      "sha256": "20ec18b09ee39199173d83d0c00cdd0132dde1ad9e3c977a5dc8034b859ba565"
     },
     {
       "repository": "whizzCentralPlatform-stg",
@@ -462,7 +462,7 @@
     {
       "repository": "whizzCentralPlatform-stg",
       "path": "frontend/pages/customer-cash-review.html",
-      "sha256": "b06443f449bae53a5a0ccb89107ce3b22d2c3fb867ed6c8cfe9de37e6118b2a1"
+      "sha256": "9cd8de4a0e524e3a316acfbea75353fff50e73385634c2b71a4a69aab41fe18f"
     },
     {
       "repository": "whizzCentralPlatform-stg",
@@ -773,6 +773,26 @@
       "repository": "whizzDrivers-stg",
       "path": "frontend/test/customer_cash_review_266_test.dart",
       "sha256": "871eb0362de4d7a0641f969d94f9eb9f6994480bcb94a9c2eed025c2f58bbbe3"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/company-accounts.js",
+      "sha256": "f4f72d522fb9e04b6cb3bfc17d58e0b7070bace28fd6c06fbedcc0427139492f"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/company-accounting.js",
+      "sha256": "ba99f78014e0a5676fc2898b12726417c0caa1cb63b172a21b2956eb2fca9089"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "backend/staff-service/company-chart.js",
+      "sha256": "9c94314d4661f1c14d3decdce0c1a9b29d445be9ae2a586a1e5752b7cf7ed5e7"
+    },
+    {
+      "repository": "whizzCentralPlatform-stg",
+      "path": "frontend/company-accounts.js",
+      "sha256": "48e8cb11b0e13d06e82bc013d6e64e96786a71b2423794599c622d653145f623"
     }
   ],
   "benefitLifecycleAdapters": [
