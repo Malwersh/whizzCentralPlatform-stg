@@ -75,12 +75,24 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
    if(!saved||saved.responseStatus!=='financial_pending')return conflict();
    const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash);
    if(!equal(offer.versionedOffer,saved.financialOffer)||offer.assignmentId!==wave.assignmentId)return conflict();
-   const live=await context.checkAcceptance({orderId,branchId,driverId,waveNumber,offerId:offer.offerId});
-   if(live.subjectId!==offer.driverSubjectId||live.assignment.dispatchJobId!==wave.assignmentId)return conflict();
-   // Revalidate all DynamoDB references before an external send. A winner racing AFTER this check
-   // can still cause a stale notification; acceptance's atomic conditions remain authoritative.
-   await db.send(new TransactWriteCommand({TransactItems:[live.order.condition,...(live.order.releaseCondition?[live.order.releaseCondition]:[]),...Object.values(live.guards).filter(v=>!Array.isArray(v)),
-    ...live.guards.deletions,exactCheck(jobs,waveKey,wave),exactCheck(offers,{orderId,SK:saved.SK},saved)] as any}));
+   let live:Awaited<ReturnType<typeof context.checkAcceptance>>|undefined;
+   // Heartbeats can update the exact position fence during identity/lease reads.
+   // Retry only an isolated position CAS loss; every attempt rereads all guards.
+   for(let positionAttempt=0;positionAttempt<3;positionAttempt++){
+    live=await context.checkAcceptance({orderId,branchId,driverId,waveNumber,offerId:offer.offerId});
+    if(live.subjectId!==offer.driverSubjectId||live.assignment.dispatchJobId!==wave.assignmentId)return conflict();
+    const preflight:Row[]=[live.order.condition,...(live.order.releaseCondition?[live.order.releaseCondition]:[]),...Object.values(live.guards).filter(v=>!Array.isArray(v)),
+      ...live.guards.deletions,exactCheck(jobs,waveKey,wave),exactCheck(offers,{orderId,SK:saved.SK},saved)];
+    const positionIndex=preflight.findIndex(op=>op===live!.guards.position);
+    try{await db.send(new TransactWriteCommand({TransactItems:preflight as any}));break;}
+    catch(error:any){
+     const reasons=error?.CancellationReasons;
+     const positionOnly=error?.name==='TransactionCanceledException'&&positionIndex>=0&&Array.isArray(reasons)&&reasons.length>=preflight.length&&
+       reasons[positionIndex]?.Code==='ConditionalCheckFailed'&&reasons.every((r:any,i:number)=>i===positionIndex||r?.Code==='None');
+     if(!positionOnly||positionAttempt===2)throw error;
+    }
+   }
+   if(!live)return conflict();
    const view=versionedFinancialOfferView(offer,driverId,live.subjectId,new Date(now()).toISOString(),options.enableDeliveryFunding,options.enableFullCash);
    await sendOffer(driverId,{type:'financial_wave_offer',eventId:offer.offerId,waveNumber,offer:{...view,...(live.order.display?{display:live.order.display}:{})}});
    try{await db.send(new TransactWriteCommand({TransactItems:[updateChecked(exactCheck(jobs,waveKey,wave),

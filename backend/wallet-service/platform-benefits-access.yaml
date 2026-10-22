@@ -21,6 +21,12 @@ Resources:
             Condition:
               ForAllValues:StringLike:
                 dynamodb:LeadingKeys: ['BENEFIT_ORDER#*', 'USER#*']
+          # Pin published terms in the same order transaction as the reservation.
+          # Reading a campaign does not authorize DynamoDB ConditionCheck operations.
+          - Sid: PlatformBenefitCampaignFence
+            Effect: Allow
+            Action: [dynamodb:ConditionCheckItem]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Platform_Discounts
   BenefitStaffAccess:
     Type: AWS::IAM::ManagedPolicy
     Properties:

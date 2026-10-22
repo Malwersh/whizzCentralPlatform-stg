@@ -84,3 +84,33 @@ test('large checkout records preserve complete atomic offer fences without excee
  };
  await assert.rejects(g.run());assert.equal(changed,true);assert.equal(g.out.length,0);assert.equal(g.get('WaveOffers_staging',{orderId:'order1',SK:'FINANCIAL#driver1#WAVE#1'}),undefined);
 });
+
+test('heartbeat race before notification rereads guards and sends the same pinned offer once',async()=>{
+ const f=await setup();let races=0;const send=f.db.send;
+ f.db.send=async c=>{
+  const tx=c.input.TransactItems;
+  if(tx?.every(op=>op.ConditionCheck)&&tx.some(op=>op.ConditionCheck.TableName==='WizzDriverLiveState_staging')&&races===0){
+   const index=tx.findIndex(op=>op.ConditionCheck.TableName==='WizzDriverLiveState_staging');
+   f.get('WizzDriverLiveState_staging',tx[index].ConditionCheck.Key).lng+=.000001;races++;
+   const e=Error('heartbeat advanced');e.name='TransactionCanceledException';e.CancellationReasons=tx.map((_,i)=>({Code:i===index?'ConditionalCheckFailed':'None'}));throw e;
+  }
+  return send(c);
+ };
+ await f.run();assert.equal(races,1);assert.equal(f.out.length,2);assert.deepEqual(f.wave().delivered,['driver1','driver2']);assert.equal(f.selected,1);
+ for(const {id,message} of f.out)assert.equal(message.eventId,f.get('WaveOffers_staging',{orderId:'order1',SK:'FINANCIAL#'+id+'#WAVE#1'}).offerId);
+});
+test('pre-send retries are bounded and never send after repeated heartbeat conflicts',async()=>{
+ const f=await setup();let attempts=0;const send=f.db.send;
+ f.db.send=async c=>{const tx=c.input.TransactItems;if(tx?.every(op=>op.ConditionCheck)&&tx.some(op=>op.ConditionCheck.TableName==='WizzDriverLiveState_staging')){
+  attempts++;const index=tx.findIndex(op=>op.ConditionCheck.TableName==='WizzDriverLiveState_staging');const e=Error('busy heartbeat');e.name='TransactionCanceledException';e.CancellationReasons=tx.map((_,i)=>({Code:i===index?'ConditionalCheckFailed':'None'}));throw e;
+ }return send(c);};
+ await assert.rejects(f.run(),/busy heartbeat/);assert.equal(attempts,3);assert.equal(f.out.length,0);assert.deepEqual(f.wave().delivered,[]);
+ f.db.send=send;f.time+=10000;await f.run('worker2');assert.equal(f.out.length,2);assert.equal(f.selected,1);
+});
+test('an eligibility or policy conflict is not retried as a heartbeat race',async()=>{
+ const f=await setup();let attempts=0;const send=f.db.send;
+ f.db.send=async c=>{const tx=c.input.TransactItems;if(tx?.every(op=>op.ConditionCheck)&&tx.some(op=>op.ConditionCheck.TableName==='WizzDriverLiveState_staging')){
+  attempts++;const index=tx.findIndex(op=>op.ConditionCheck.TableName==='WhizzDrivers_staging');const e=Error('driver changed');e.name='TransactionCanceledException';e.CancellationReasons=tx.map((_,i)=>({Code:i===index?'ConditionalCheckFailed':'None'}));throw e;
+ }return send(c);};
+ await assert.rejects(f.run(),/driver changed/);assert.equal(attempts,1);assert.equal(f.out.length,0);
+});
