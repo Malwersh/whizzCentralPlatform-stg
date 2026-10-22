@@ -11,7 +11,7 @@ function fixture(){
  const calls=[],db={send:async c=>{calls.push(c);assert.equal(c.input.ConsistentRead,true);if(c.constructor.name==='QueryCommand')return {Items:structuredClone(indexes)};assert.equal(c.constructor.name,'GetCommand');return {Item:structuredClone(rows.get(key(c.input.TableName,c.input.Key)))};}};
  const facts={orderId:'order',branchId:'branch',merchantId:'merchant',goodsGross:m('12000'),goodsAfterDiscounts:m('11000'),hasGoodsDiscount:true,referenceFee:m('4000')};
  const prepare=(previewOnly=false)=>create({db,previewOnly,pricingRequest:source.pricingRequest,now:()=>Date.parse('2026-10-18T12:00:00.000Z'),customerFacts:async()=>({customerId:'customer',isNewCustomer:false,conditions:[{ConditionCheck:{TableName:'WizzUser_users_staging',Key:{userId:'customer'},ConditionExpression:'attribute_exists(userId)'}}]})}).prepare(facts);
- return {add,change,put,prepare,facts,indexes,calls,source};
+ return {add,change,put,prepare,facts,indexes,calls,source,db};
 }
 test('server selects best eligible customer price and prepares one budget reservation without writes',async()=>{const f=fixture();f.add('expensive','2000');f.add('best','1500');const r=await f.prepare();assert.equal(r.applied,true);assert.equal(r.deliveryFunding.policyPin.policyId,'best');assert.equal(r.customerFee.minorAmount,1500000);assert.equal(r.operations.filter(o=>o.Put?.Item.pk.startsWith('DELIVERY_RESERVATION#')).length,1);assert.ok(r.operations.some(o=>Object.values(o.ConditionCheck?.ExpressionAttributeNames??{}).includes('deliveryOfferRevision')));});
 test('ties use deterministic policy identity and exhausted best budget falls back to next',async()=>{const f=fixture();f.add('b','1500');f.add('a','1500');assert.equal((await f.prepare()).deliveryFunding.policyPin.policyId,'a');const b=f.change(S,{pk:'DELIVERY_BUDGET#a',sk:'VERSION#1'});b.platformSpent=b.platformTotal;b.platformAvailable=0;const {quoteHash}=require('../dist/deliveryQuoteRecord');const {digest,...content}=b;b.digest=quoteHash(content);assert.equal((await f.prepare()).deliveryFunding.policyPin.policyId,'b');});
@@ -44,4 +44,26 @@ test('preview and reservation retain identical platform cash-rounding evidence',
  assert.equal(e.beneficiary,'PLATFORM');assert.equal(e.chargedFee.minorAmount,1250000);
  assert.equal(e.customerFeeBeforeRounding.minorAmount,1100000);assert.equal(e.roundingAdjustment.minorAmount,150000);
  assert.equal(confirmation.deliveryFunding.allocation.platformShare.minorAmount,2750000);
+});
+
+// Regression 283: a contract survives independently of promotional stacking.
+test('283 non-stackable goods benefit keeps agreement while excluding delivery campaigns',async()=>{
+ const f=fixture();addAgreement(f);f.add('free','0','FREE');
+ const selection=create({db:f.db,agreementsOnly:true,previewOnly:true,pricingRequest:f.source.pricingRequest,now:()=>Date.parse('2026-10-18T12:00:00.000Z'),customerFacts:async()=>({customerId:'customer',isNewCustomer:false,conditions:[{ConditionCheck:{TableName:'WizzUser_users_staging',Key:{userId:'customer'},ConditionExpression:'attribute_exists(userId)'}}]})});
+ const r=await selection.prepare(f.facts);assert.equal(r.agreement,true);assert.equal(r.customerFee.minorAmount,1500000);assert.equal(r.deliveryFunding.allocation.schemaVersion,2);assert.equal(r.commission.rate.numerator,5);
+});
+for(const origin of ['PLATFORM','MERCHANT','SHARED'])test('283 '+origin+' free campaign overlays agreement with independent funding and reservations',async()=>{
+ const f=fixture();addAgreement(f);const p=f.add('free','0','FREE');p.origin=origin;p.funding=origin==='SHARED'?{kind:'SHARED_RATIO',merchantNumerator:1,denominator:2,merchantCap:m('5000'),platformCap:m('5000')}:{kind:origin};
+ p.limits.merchantPerOrder=m(origin==='PLATFORM'?'0':'5000');p.limits.platformPerOrder=m(origin==='MERCHANT'?'0':'5000');p.limits.merchantBudget=m(origin==='PLATFORM'?'0':'100000');p.limits.platformBudget=m(origin==='MERCHANT'?'0':'100000');
+ for(const sk of ['CURRENT','VERSION#1']){const row=f.change(S,{pk:'DELIVERY_FUNDING#free',sk});row.policy=p;row.termsHash=read(p).termsHash;}
+ const budget=init(p).Put.Item;f.put(S,{pk:budget.pk,sk:budget.sk},budget);
+ const preview=await f.prepare(true),r=await f.prepare();assert.equal(r.agreement,true);assert.equal(r.customerFee.minorAmount,0);assert.equal(r.commission.rate.numerator,5);assert.deepEqual(preview.deliveryFunding,r.deliveryFunding);assert.equal(preview.operations.length,0);
+ const [agreement,promotion]=r.deliveryFunding.components;assert.equal(agreement.allocation.customerFee.minorAmount,1500000);assert.equal(promotion.allocation.referenceFee.minorAmount,1500000);assert.equal(promotion.allocation.subsidy.minorAmount,1500000);
+ assert.equal(promotion.allocation.merchantShare.minorAmount,origin==='MERCHANT'?1500000:origin==='SHARED'?750000:0);assert.equal(r.deliveryFunding.allocation.subsidy.minorAmount,4000000);
+ const reservations=r.operations.filter(x=>x.Put?.Item.pk.startsWith('DELIVERY_RESERVATION#')).map(x=>x.Put.Item.pk);assert.deepEqual(reservations,['DELIVERY_RESERVATION#order','DELIVERY_RESERVATION#order#PROMOTION']);
+ const planner=require('../dist/deliveryCampaignBudget').createStagingDeliveryCampaignBudget({db:f.db});for(const op of r.operations)if(op.Put)f.put(op.Put.TableName,{pk:op.Put.Item.pk,sk:op.Put.Item.sk},op.Put.Item);const settled=await planner.settle({orderId:'order',outcome:'CAPTURED',expectedFunding:r.deliveryFunding});assert.equal(settled.operations.length,4);for(const op of settled.operations)if(op.Put)f.put(op.Put.TableName,{pk:op.Put.Item.pk,sk:op.Put.Item.sk},op.Put.Item);assert.equal((await planner.settle({orderId:'order',outcome:'CAPTURED',expectedFunding:r.deliveryFunding})).replayed,true);assert.equal(f.change(S,{pk:'DELIVERY_USAGE#free',sk:'CUSTOMER#customer'}).completedUses,1);
+});
+test('283 a free agreement consumes no additional free-delivery campaign usage',async()=>{
+ const f=fixture(),p=addAgreement(f);p.customerRule={kind:'FREE'};for(const sk of ['CURRENT','VERSION#1']){const row=f.change(S,{pk:'DELIVERY_FUNDING#contract',sk});row.policy=p;row.termsHash=read(p).termsHash;}
+ f.add('free','0','FREE');const r=await f.prepare();assert.equal(r.customerFee.minorAmount,0);assert.equal(r.deliveryFunding.allocation.schemaVersion,2);assert.ok(!r.operations.some(x=>x.Put?.Item.pk.startsWith('DELIVERY_USAGE#')));
 });

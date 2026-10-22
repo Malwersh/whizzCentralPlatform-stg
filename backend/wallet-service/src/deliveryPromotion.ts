@@ -17,10 +17,11 @@ function amount(v: unknown): Money { try { const m = readMoney(v); if (m.minorAm
  * earning input is accepted. Reuses route tariff and discount arithmetic engine.
  */
 export function calculateDeliveryPromotionCandidate(value: unknown) {
-  const r = exact(value, ['pricingRequest', 'policy', 'eligibility']);
+  const override=!!value&&typeof value==='object'&&Object.prototype.hasOwnProperty.call(value,'referenceFee');
+  const r = exact(value, ['pricingRequest', 'policy', 'eligibility',...(override?['referenceFee']:[])]);
   const request = exact(r.pricingRequest, ['schemaVersion', 'at', 'context', 'rules', 'deliveryRoute', 'discount']);
   if (request.discount !== null) return fail('DELIVERY_PROMOTION_STACKING_UNSUPPORTED');
-  const base = calculateDeliveryFee(request), referenceFee = base.customerDeliveryFee;
+  const base = calculateDeliveryFee(request), referenceFee = override?amount(r.referenceFee):base.customerDeliveryFee;
   const {policy, termsHash} = readDeliveryFundingPolicy(r.policy);
   const e = exact(r.eligibility, ['goodsGross', 'goodsAfterDiscounts', 'hasGoodsDiscount', 'isNewCustomer', 'customerUses']);
   const gross = amount(e.goodsGross), after = amount(e.goodsAfterDiscounts);
@@ -56,7 +57,10 @@ export function calculateDeliveryPromotionCandidate(value: unknown) {
     default: return fail();
   }
   if (discount.minorAmount === 0) return fallback('NO_DISCOUNT');
-  const calculation = calculateDeliveryFee({...request, discount: {id: policy.id, fundingParty: policy.origin, amount: discount}});
+  const beforeRounding=subtractMoney(referenceFee,discount);
+  const rounded=override&&base.components.finalRounding?quantizeWholeIqd(beforeRounding,base.components.finalRounding):beforeRounding;
+  const charged=moneyFromMinor(Math.min(referenceFee.minorAmount,rounded.minorAmount));
+  const calculation = override?{...base,customerDeliveryFee:charged,discountFundingAmount:subtractMoney(referenceFee,charged),components:{...base.components,beforeDiscount:referenceFee,requestedDiscount:discount,customerFeeBeforeFinalRounding:beforeRounding,promotionRoundingAdjustment:subtractMoney(charged,beforeRounding)}}:calculateDeliveryFee({...request, discount: {id: policy.id, fundingParty: policy.origin, amount: discount}});
   if (calculation.discountFundingAmount.minorAmount === 0) return fallback('NO_DISCOUNT');
   let funding;
   try { funding = calculatePolicyDeliveryFunding(policy, referenceFee, calculation.customerDeliveryFee); }
