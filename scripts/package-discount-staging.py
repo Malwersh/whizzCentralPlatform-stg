@@ -30,7 +30,7 @@ def main():
   with zipfile.ZipFile(base['archive']) as old:
    if old.testzip() is not None:raise RuntimeError('Corrupt backup ZIP')
    names=old.namelist()
-   if entry not in names or runtime in names:raise RuntimeError('Unexpected archive layout')
+   if entry not in names:raise RuntimeError('Unexpected archive layout')
    original=old.read(entry).decode()
    for relative in re.findall(r'require\(["\'](\.\.?/[^"\']+)["\']\)\.restoreFinanceRolloutConfig\(\)',original):
     file=posixpath.normpath(posixpath.join(posixpath.dirname(entry),relative))
@@ -41,7 +41,7 @@ def main():
    wrapper="'use strict';\n"+''.join('require('+json.dumps(b)+').restoreFinanceRolloutConfig();\n' for b in bootstraps)+'module.exports = require('+json.dumps(relative)+');\n'
    with zipfile.ZipFile(dest,'w',compression=zipfile.ZIP_DEFLATED) as new:
     for item in old.infolist():
-     if item.filename!=entry:new.writestr(item,old.read(item.filename))
+     if item.filename not in (entry,runtime):new.writestr(item,old.read(item.filename))
     new.writestr(entry,wrapper);new.writestr(runtime,content)
   dest.chmod(0o600)
   with zipfile.ZipFile(dest) as archive:

@@ -63,7 +63,8 @@
     "discount-engine.js",
     "campaign-notifications.js",
     "platform-benefits.js",
-    "platform-benefits-runtime.js"
+    "platform-benefits-runtime.js",
+    "financial-compatibility.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",

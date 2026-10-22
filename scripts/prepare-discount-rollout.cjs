@@ -29,7 +29,7 @@ for(const [name,entry] of entries){
  const destination=path.join(out,name,'index.js');
  try{
   await esbuild.build({entryPoints:[entry],outfile:destination,bundle:true,platform:'node',target:'node20',keepNames:true,
-   nodePaths:[path.join(root,'backend/wallet-service/node_modules'),...(extraModules?[extraModules]:[])],
+   nodePaths:[path.join(root,'backend/wallet-service/node_modules'),path.join(root,'backend/node_modules'),path.join(root,'node_modules'),...(extraModules?[extraModules]:[])],
    plugins:[{name:'resolve-packaged-lambda-sdk-fallback',setup(build){build.onResolve({filter:/^\.\/campaign-sdk\/node_modules\/@aws-sdk\/client-lambda$/},()=>({path:require.resolve('@aws-sdk/client-lambda',{paths:[path.join(root,'backend/wallet-service/node_modules'),...(extraModules?[extraModules]:[])]})}));}}],logLevel:'silent'});
   const content=fs.readFileSync(destination);
   manifest.artifacts.push({name,source:entry,file:destination,bytes:content.length,sha256:crypto.createHash('sha256').update(content).digest('hex')});
