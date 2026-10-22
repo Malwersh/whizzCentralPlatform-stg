@@ -57,7 +57,10 @@
     "payout-otp-provider.js",
     "merchant-account.js",
     "merchant-account-index-runtime.js",
-    "merchant-device-payouts.js"
+    "merchant-device-payouts.js",
+    "company-accounts.js",
+    "company-accounting.js",
+    "company-chart.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",

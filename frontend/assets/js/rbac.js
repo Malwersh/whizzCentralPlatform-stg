@@ -137,7 +137,7 @@ window.RBAC = {
             if(['pricing.html','delivery-pricing.html'].includes(pageName))return this.staff.permissions.includes('pricing.read');
             if(['merchants.html','promotions.html'].includes(pageName)&&this.staff.permissions.includes('commercial.read'))return true;
             if(pageName==='settings.html')return this.staff.permissions.includes('settings.read')||this.staff.permissions.includes('finance.read');
-            const permission={'staff.html':'staff.read','finance.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read'}[pageName];
+            const permission={'staff.html':'staff.read','finance.html':'finance.read','financial-management.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read'}[pageName];
             return pageName==='account-security.html'||pageName==='index.html'||(!!permission&&this.staff.permissions.includes(permission));
         }
         console.log('🔍 Checking page access for:', pageName);
@@ -198,7 +198,7 @@ window.RBAC = {
     isReadOnly() {
         if(this.staff) {
             const page=window.location.pathname.split('/').pop();
-            const domain={'drivers.html':'drivers','merchants.html':'merchants','orders.html':'orders','support.html':'support','finance.html':'financial','regions.html':'regions','promotions.html':'campaigns'}[page];
+            const domain={'drivers.html':'drivers','merchants.html':'merchants','orders.html':'orders','support.html':'support','finance.html':'financial','financial-management.html':'financial','regions.html':'regions','promotions.html':'campaigns'}[page];
             return domain?!this.can(domain,'write'):false;
         }
         const userGroups = this.getUserGroups();

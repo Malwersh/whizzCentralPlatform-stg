@@ -1,0 +1,113 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Scan"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+        "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+        "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets"
+      ],
+      "Condition": {
+        "Null": {
+          "dynamodb:Attributes": "false"
+        },
+        "ForAllValues:StringEquals": {
+          "dynamodb:Attributes": [
+            "pk",
+            "sk",
+            "kind",
+            "status",
+            "state",
+            "lines",
+            "accountingLines",
+            "createdAt",
+            "paidAt",
+            "at",
+            "postedAt",
+            "operationId",
+            "journalId",
+            "orderId",
+            "branchId",
+            "payoutId",
+            "decisionId",
+            "reference",
+            "externalReference",
+            "voucherNumber",
+            "documentNumber",
+            "documentId",
+            "reason",
+            "allocation",
+            "outcome",
+            "receipt",
+            "captureIqd",
+            "code",
+            "balanceIqd",
+            "pendingCountId",
+            "updatedAt",
+            "walletId",
+            "ownerType",
+            "availableBalance",
+            "lockedBalance",
+            "amount",
+            "amountIqd",
+            "returnFinancialVersion",
+            "returnRemainingAmount",
+            "refunds",
+            "requestedBy",
+            "version",
+            "requestDigest",
+            "accountId",
+            "name",
+            "accountType",
+            "reversedDocumentId",
+            "postingDigest",
+            "journalDigest",
+            "amountMinor",
+            "counterparty",
+            "type",
+            "category"
+          ]
+        },
+        "StringEquals": {
+          "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:BatchGetItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+      "Condition": {
+        "Null": {
+          "dynamodb:Attributes": "false",
+          "dynamodb:LeadingKeys": "false"
+        },
+        "ForAllValues:StringEquals": {
+          "dynamodb:Attributes": [
+            "PK",
+            "SK",
+            "orderId",
+            "orderNumber",
+            "storeName",
+            "restaurantName",
+            "businessName"
+          ]
+        },
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "ORDER#*"
+          ]
+        },
+        "StringEquals": {
+          "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+        }
+      }
+    }
+  ]
+}
