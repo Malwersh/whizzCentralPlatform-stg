@@ -1,0 +1,299 @@
+{
+  "schemaVersion": 1,
+  "scope": "LOCAL_REPOSITORY_ONLY",
+  "sourceCommit": "c72ca9aef58e22c74fca763a54facf74b91a4e2b",
+  "awsCalled": false,
+  "awsConfigurationChanged": false,
+  "deploymentPerformed": false,
+  "historicalBundlesModified": false,
+  "sourceConsumers": [
+    {
+      "entry": "backend/wallet-service/src/cashAdjudicationReadRuntime278.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryFundingComposition"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/checkoutFinanceRuntime222.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/codIntegrationRuntime.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "fullCashRelease",
+        "financialRelease",
+        "deliveryFundingRetention"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/customerCashRuntime266.ts",
+      "inOriginalFiveArtifactBuilder": true,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "fullCashCompletion",
+        "codCompletion"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/deliveryAgreementCompositionRuntime.ts",
+      "inOriginalFiveArtifactBuilder": true,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "fullCashCompletion",
+        "codCompletion",
+        "fullCashRelease",
+        "financialRelease"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/deliveryQuoteRuntime.ts",
+      "inOriginalFiveArtifactBuilder": true,
+      "components": [
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/dispatchCoordinatorRuntime.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "financialRelease",
+        "deliveryFundingRetention"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/dispatchLegacyBridgeRuntime.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryFundingComposition"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/dispatchReviewHostRuntime.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "financialRelease",
+        "deliveryFundingRetention"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/driverFinancialRuntime.ts",
+      "inOriginalFiveArtifactBuilder": true,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "fullCashCompletion",
+        "codCompletion",
+        "fullCashRelease",
+        "financialRelease",
+        "deliveryFundingRetention",
+        "exceptionFinancials"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/merchantPendingRuntime.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "fullCashRelease",
+        "financialRelease"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/merchantResponseRuntime.ts",
+      "inOriginalFiveArtifactBuilder": true,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "fullCashRelease",
+        "financialRelease"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/merchantSettlementAdminRuntime.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryFundingComposition"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/orderExceptionRuntime229.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "fullCashRelease",
+        "financialRelease",
+        "exceptionFinancials"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/returnContinuationRuntime264.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "financialRelease"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/returnContinuationRuntime265.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "financialRelease"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/returnItemRuntime262.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition",
+        "fullCashRelease",
+        "financialRelease"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/storeDeliveryAgreementRuntime.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryFundedAllocation",
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition"
+      ]
+    },
+    {
+      "entry": "backend/wallet-service/src/storefrontPreviewRuntime.ts",
+      "inOriginalFiveArtifactBuilder": false,
+      "components": [
+        "deliveryCampaignBudget",
+        "deliveryFundingComposition"
+      ]
+    }
+  ],
+  "historicalSnapshots": [
+    {
+      "file": "backend/shared/checkout-finance-runtime-222.js",
+      "sha256": "e13ef3a553b4ee84f614d5467f382f4d053785eac12a2eaa92c9b590f168bfd0",
+      "containsEmbeddedBudgetBridge": true,
+      "containsEmbeddedAllocationReader": true,
+      "containsCompositionValidatorMarker": false,
+      "requiresHostAndOverlayReview": true
+    },
+    {
+      "file": "backend/shared/customer-cash-runtime-266.js",
+      "sha256": "251fda893f51a39a2e7c9c9c8df92e0f2145b8714b4428e6adbbd72cc63ab6f8",
+      "containsEmbeddedBudgetBridge": true,
+      "containsEmbeddedAllocationReader": true,
+      "containsCompositionValidatorMarker": false,
+      "requiresHostAndOverlayReview": true
+    },
+    {
+      "file": "backend/shared/financial-compatibility.js",
+      "sha256": "530f01b42fdba7a6fdefde001c1047821b00cf458b2eb4152d6a568b0466ce0a",
+      "containsEmbeddedBudgetBridge": false,
+      "containsEmbeddedAllocationReader": true,
+      "containsCompositionValidatorMarker": true,
+      "requiresHostAndOverlayReview": true
+    },
+    {
+      "file": "backend/shared/order-exception-runtime-229.js",
+      "sha256": "a025f12593b8d100603e23c874cdcea9adb67c9e3659b5df310a8162e65ebe28",
+      "containsEmbeddedBudgetBridge": true,
+      "containsEmbeddedAllocationReader": true,
+      "containsCompositionValidatorMarker": false,
+      "requiresHostAndOverlayReview": true
+    },
+    {
+      "file": "backend/shared/return-continuation-runtime-264.js",
+      "sha256": "a8bbe537e4d0db4dcb400b6acffaa458c7b74fee50757cda84646a5cbd984b85",
+      "containsEmbeddedBudgetBridge": false,
+      "containsEmbeddedAllocationReader": true,
+      "containsCompositionValidatorMarker": false,
+      "requiresHostAndOverlayReview": true
+    },
+    {
+      "file": "backend/shared/return-continuation-runtime-265.js",
+      "sha256": "b9438e18a520033fc6cb9a226a22037d90ba33990f91290718e8a7813259aec0",
+      "containsEmbeddedBudgetBridge": false,
+      "containsEmbeddedAllocationReader": true,
+      "containsCompositionValidatorMarker": false,
+      "requiresHostAndOverlayReview": true
+    },
+    {
+      "file": "backend/shared/return-items-runtime-262.js",
+      "sha256": "1fb3024fb70af5b99407e3dd514d5cf3794e8e3e85af079652f72242887047b4",
+      "containsEmbeddedBudgetBridge": true,
+      "containsEmbeddedAllocationReader": true,
+      "containsCompositionValidatorMarker": false,
+      "requiresHostAndOverlayReview": true
+    }
+  ],
+  "summary": {
+    "sourceConsumers": 19,
+    "sourceEntriesOutsideOriginalFive": [
+      "backend/wallet-service/src/cashAdjudicationReadRuntime278.ts",
+      "backend/wallet-service/src/checkoutFinanceRuntime222.ts",
+      "backend/wallet-service/src/codIntegrationRuntime.ts",
+      "backend/wallet-service/src/dispatchCoordinatorRuntime.ts",
+      "backend/wallet-service/src/dispatchLegacyBridgeRuntime.ts",
+      "backend/wallet-service/src/dispatchReviewHostRuntime.ts",
+      "backend/wallet-service/src/merchantPendingRuntime.ts",
+      "backend/wallet-service/src/merchantSettlementAdminRuntime.ts",
+      "backend/wallet-service/src/orderExceptionRuntime229.ts",
+      "backend/wallet-service/src/returnContinuationRuntime264.ts",
+      "backend/wallet-service/src/returnContinuationRuntime265.ts",
+      "backend/wallet-service/src/returnItemRuntime262.ts",
+      "backend/wallet-service/src/storeDeliveryAgreementRuntime.ts",
+      "backend/wallet-service/src/storefrontPreviewRuntime.ts"
+    ],
+    "historicalSnapshotsWithoutValidatorMarker": [
+      "backend/shared/checkout-finance-runtime-222.js",
+      "backend/shared/customer-cash-runtime-266.js",
+      "backend/shared/order-exception-runtime-229.js",
+      "backend/shared/return-continuation-runtime-264.js",
+      "backend/shared/return-continuation-runtime-265.js",
+      "backend/shared/return-items-runtime-262.js"
+    ]
+  },
+  "interpretation": [
+    "Fresh source graphs contain the composition verifier wherever they include funding allocation or budget settlement.",
+    "The original five offline bundles do not cover every possible host or runtime entry.",
+    "Missing marker identifies an older embedded implementation needing review, not proof that a deployed route currently calls it.",
+    "A marker alone does not prove complete host compatibility; inspect exports, wrappers, module bindings and original atomic transactions.",
+    "Actual Lambda package versions, active routes and feature gates were not queried. Coordinated deployment and staging acceptance remain with the colleague."
+  ]
+}
