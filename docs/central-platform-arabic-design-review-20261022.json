@@ -1,0 +1,207 @@
+{
+  "date": "2026-10-22",
+  "scope": "تقييم وتحسين أساس العرض العربي المشترك للمنصة المركزية",
+  "assessment": {
+    "initialVisualScoreOutOf10": 6,
+    "scoreIsSubjective": true,
+    "findings": [
+      "اختلاف اتجاه الواجهة بين الصفحات، وظهور القائمة يساراً في صفحات رئيسية",
+      "خلط عناوين وحقول عربية وإنكليزية",
+      "ملف اللغة المشار إليه في الطلبات والعروض غير موجود",
+      "خطوط احتياطية مختلفة وأحجام صغيرة لعناوين الجداول وحالات البيانات",
+      "نسب مقارنة ثابتة في لوحة التحكم لا ترتبط بمصدر بيانات"
+    ]
+  },
+  "changes": [
+    "تثبيت ar وrtl في مستندات الواجهة المشتركة وقبل تحميل التنقل",
+    "إضافة ملف اللغة المفقود وتحديث روابط التخزين المؤقت",
+    "اعتماد خط Noto Sans Arabic محلياً مع رخصته، وتوحيد قابلية القراءة والتركيز وأحجام الأزرار",
+    "تعريب نصوص ثابتة في لوحة التحكم والسائقين والعملاء والمتاجر والمناطق",
+    "اعتماد العربية في الدعم حتى مع وجود تفضيل إنكليزي محفوظ سابقاً",
+    "تعريب شاشة الدخول وإظهارها بنفس النسق مع الاحتفاظ باتجاه البريد وكلمة المرور",
+    "إزالة مقارنات لوحة التحكم الثابتة وإظهار شرطة عند انتظار البيانات بدلاً من أصفار أولية"
+  ],
+  "browserVerification": [
+    {
+      "page": "dashboard",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 390,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "لوحة التحكم",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "dashboard",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 1440,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "لوحة التحكم",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "drivers",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 390,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "السائقون",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "drivers",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 1440,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "السائقون",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "customers",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 390,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "إدارة العملاء",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "customers",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 1440,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "إدارة العملاء",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "orders",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 390,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "الطلبات",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "orders",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 1440,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "الطلبات",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "financial-management",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 390,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "حسابات الشركة",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "financial-management",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 1440,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "حسابات الشركة",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "promotions",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 390,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "عروض تستحق الاهتمام.\nوأسباب أكثر للطلب.",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "promotions",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 1440,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "عروض تستحق الاهتمام.\nوأسباب أكثر للطلب.",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    }
+  ],
+  "verificationNotes": [
+    "فحص عرض محلي باستخدام Microsoft Edge مع حظر طلبات الشبكة الخارجية؛ ليس اختباراً لبيانات الإنتاج",
+    "القائمة يمين الديسكتوب، وتفتح من اليمين على الموبايل وتغلق بزر Escape",
+    "تم التحقق من تحميل الخط المحلي وعدم تجاوز عرض الصفحة في 12 حالة عرض",
+    "أسماء وقيَم وعقود حقول النماذج والبرامج المضمنة بقيت مطابقة في 15 مستند HTML",
+    "فحص حماية التسويات نجح: 156 ملفاً و4 مواضع ربط الهدايا",
+    "فحص إضافي نجح لتطابق عقود النماذج والأزرار والتسميات في 18 مستنداً، بما فيها تسجيل الدخول وتغيير كلمة المرور والتحقق الثنائي",
+    "الدعم يبقى عربياً حتى عند وجود تفضيل إنكليزي قديم أو استدعاء تبديل اللغة"
+  ],
+  "remainingWork": [
+    "مراجعة الرسائل الديناميكية والقيم القادمة من الخدمات القديمة لتغطية التعريب الكامل؛ تعريب المستندات الثابتة لا يكفي وحده",
+    "استكمال تجربة الجداول والنوافذ المالية ببيانات حسابات مصرح بها، ومراجعة الطباعة",
+    "مراجعة اتساق تنسيق العملات والتواريخ في مكونات الصفحات القديمة، بدون تغيير دلالة الأرقام المالية"
+  ],
+  "financialLogicChanged": false,
+  "liveDataWritten": false,
+  "frontendPublished": false,
+  "loginVerification": [
+    {
+      "page": "login",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 390,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "ويز سنترال",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "login",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 1440,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "ويز سنترال",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    }
+  ],
+  "finalFontVerification": [
+    {
+      "page": "dashboard",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 390,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "لوحة التحكم",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    },
+    {
+      "page": "dashboard",
+      "dir": "rtl",
+      "lang": "ar",
+      "width": 1440,
+      "overflow": 0,
+      "bodyDirection": "rtl",
+      "h1": "لوحة التحكم",
+      "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+    }
+  ]
+}

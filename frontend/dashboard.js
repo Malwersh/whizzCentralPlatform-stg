@@ -105,7 +105,7 @@ async function loadDashboardStats() {
         const element = document.getElementById(id);
         if (element) {
             element.textContent = value === null ? '—' : value.toLocaleString();
-            element.title = value === null ? 'Data unavailable or not yet configured' : '';
+            element.title = value === null ? 'البيانات غير متاحة أو لم تُهيأ بعد' : '';
         }
     }
     showDashboardDataSourceIndicator(results.some(r => r.status === 'rejected') ? 'failed' : 'real');

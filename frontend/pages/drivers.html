@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WizzCentral Platform - Drivers Management</title>
+    <title>ويز سنترال — إدارة السائقين</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <!-- Security: DOMPurify for XSS Protection -->
@@ -598,7 +599,7 @@
                     </div>
                     <div class="stat-info">
                         <h3>0</h3>
-                        <p>Approved Drivers</p>
+                        <p>السائقون المعتمدون</p>
                     </div>
                 </div>
 
@@ -608,7 +609,7 @@
                     </div>
                     <div class="stat-info">
                         <h3>0</h3>
-                        <p>Pending Review</p>
+                        <p>بانتظار المراجعة</p>
                     </div>
                 </div>
 
@@ -618,7 +619,7 @@
                     </div>
                     <div class="stat-info">
                         <h3>0</h3>
-                        <p>Total Drivers</p>
+                        <p>إجمالي السائقين</p>
                     </div>
                 </div>
 
@@ -628,7 +629,7 @@
                     </div>
                     <div class="stat-info">
                         <h3>0.0</h3>
-                        <p>Average Rating</p>
+                        <p>متوسط التقييم</p>
                     </div>
                 </div>
             </div>
@@ -637,21 +638,21 @@
             <div class="table-controls">
                 <div class="search-container">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search drivers..." id="searchInput">
+                    <input type="text" placeholder="بحث عن سائق..." id="searchInput">
                 </div>
                 <div class="filter-container">
                     <select id="statusFilter">
-                        <option value="">All Status</option>
-                        <option value="online">Online</option>
-                        <option value="offline">Offline</option>
-                        <option value="delivering">Delivering</option>
-                        <option value="unavailable">Unavailable</option>
+                        <option value="">جميع الحالات</option>
+                        <option value="online">متصل</option>
+                        <option value="offline">غير متصل</option>
+                        <option value="delivering">قيد التوصيل</option>
+                        <option value="unavailable">غير متاح</option>
                     </select>
                     <select id="ratingFilter">
-                        <option value="">All Ratings</option>
-                        <option value="5">5 Stars</option>
-                        <option value="4">4+ Stars</option>
-                        <option value="3">3+ Stars</option>
+                        <option value="">جميع التقييمات</option>
+                        <option value="5">٥ نجوم</option>
+                        <option value="4">٤ نجوم فأكثر</option>
+                        <option value="3">٣ نجوم فأكثر</option>
                     </select>
                 </div>
             </div>
@@ -661,21 +662,21 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Driver</th>
-                            <th>Phone</th>
-                            <th>Status</th>
-                            <th>Current Location</th>
-                            <th>Orders Completed</th>
-                            <th>Rating</th>
-                            <th>Earnings Today</th>
-                            <th>Actions</th>
+                            <th>السائق</th>
+                            <th>الهاتف</th>
+                            <th>الحالة</th>
+                            <th>الموقع الحالي</th>
+                            <th>الطلبات المكتملة</th>
+                            <th>التقييم</th>
+                            <th>أرباح اليوم</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="driversTableBody">
                         <!-- Driver data will be loaded dynamically from WhizzDrivers_dev table -->
                         <tr>
                             <td colspan="8" class="text-center" style="padding: 2rem;">
-                                <i class="fas fa-spinner fa-spin"></i> Loading drivers from database...
+                                <i class="fas fa-spinner fa-spin"></i> جاري تحميل السائقين...
                             </td>
                         </tr>
                     </tbody>
@@ -688,7 +689,7 @@
     <div class="modal" id="addDriverModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add New Driver</h2>
+                <h2>إضافة سائق جديد</h2>
                 <button class="modal-close" onclick="closeAddDriverModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -697,45 +698,45 @@
                 <form id="addDriverForm">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="driverName">Full Name</label>
+                            <label for="driverName">الاسم الكامل</label>
                             <input type="text" id="driverName" name="name" required>
                         </div>
                         <div class="form-group">
-                            <label for="driverEmail">Email</label>
+                            <label for="driverEmail">البريد الإلكتروني</label>
                             <input type="email" id="driverEmail" name="email" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="driverPhone">Phone Number</label>
+                            <label for="driverPhone">رقم الهاتف</label>
                             <input type="tel" id="driverPhone" name="phone" required>
                         </div>
                         <div class="form-group">
-                            <label for="driverLicense">License Number</label>
+                            <label for="driverLicense">رقم الإجازة</label>
                             <input type="text" id="driverLicense" name="license" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="vehicleType">Vehicle Type</label>
+                            <label for="vehicleType">نوع المركبة</label>
                             <select id="vehicleType" name="vehicleType" required>
-                                <option value="">Select vehicle type</option>
-                                <option value="motorcycle">Motorcycle</option>
-                                <option value="bicycle">Bicycle</option>
-                                <option value="car">Car</option>
-                                <option value="scooter">Scooter</option>
+                                <option value="">اختر نوع المركبة</option>
+                                <option value="motorcycle">دراجة نارية</option>
+                                <option value="bicycle">دراجة هوائية</option>
+                                <option value="car">سيارة</option>
+                                <option value="scooter">سكوتر</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="emergencyContact">Emergency Contact</label>
+                            <label for="emergencyContact">جهة الاتصال للطوارئ</label>
                             <input type="tel" id="emergencyContact" name="emergencyContact" required>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeAddDriverModal()">Cancel</button>
-                <button type="submit" form="addDriverForm" class="btn-primary" data-write-only>Add Driver</button>
+                <button type="button" class="btn-secondary" onclick="closeAddDriverModal()">إلغاء</button>
+                <button type="submit" form="addDriverForm" class="btn-primary" data-write-only>إضافة سائق</button>
             </div>
         </div>
     </div>
@@ -744,7 +745,7 @@
     <div class="modal" id="editDriverModal">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h2>Edit Driver</h2>
+                <h2>تعديل السائق</h2>
                 <button class="modal-close" onclick="closeEditDriverModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -753,19 +754,19 @@
                 <!-- Read-Only Driver Information Section -->
                 <div class="driver-info-section" style="background: var(--md-sys-color-surface-container-highest); padding: 16px; border-radius: var(--md-sys-shape-corner-medium); margin-bottom: 24px;">
                     <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 0 0 12px 0;">
-                        <i class="fas fa-info-circle"></i> Driver Information
+                        <i class="fas fa-info-circle"></i> معلومات السائق
                     </h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font: var(--md-sys-typescale-body-small-font);">
                         <div>
-                            <strong style="color: var(--md-sys-color-on-surface-variant);">Driver ID:</strong>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">معرّف السائق:</strong>
                             <span id="viewDriverId" style="color: var(--md-sys-color-on-surface); font-family: monospace; font-size: 11px;"></span>
                         </div>
                         <div>
-                            <strong style="color: var(--md-sys-color-on-surface-variant);">Profile Completed:</strong>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">اكتمال الملف:</strong>
                             <span id="viewProfileCompleted" style="color: var(--md-sys-color-on-surface);"></span>
                         </div>
                         <div style="grid-column: 1 / -1;">
-                            <strong style="color: var(--md-sys-color-on-surface-variant);">Last Updated:</strong>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">آخر تحديث:</strong>
                             <span id="viewLastUpdated" style="color: var (--md-sys-color-on-surface);"></span>
                         </div>
                     </div>
@@ -777,11 +778,11 @@
                     
                     <!-- Basic Information -->
                     <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 0 0 16px 0;">
-                        <i class="fas fa-user"></i> Basic Information
+                        <i class="fas fa-user"></i> المعلومات الأساسية
                     </h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editDriverName">Full Name</label>
+                            <label for="editDriverName">الاسم الكامل</label>
                             <input type="text" id="editDriverName" name="name" required>
                         </div>
                         <div class="form-group">
@@ -789,17 +790,17 @@
                             <select id="editGovernorate" name="governorate_id" required></select>
                             <label for="editDriverCity">منطقة العمل</label>
                             <select id="editDriverCity" name="work_region_id" required>
-                                <option value="">Loading cities...</option>
+                                <option value="">جاري تحميل المدن...</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editDriverLicense">License Number</label>
+                            <label for="editDriverLicense">رقم الإجازة</label>
                             <input type="text" id="editDriverLicense" name="licenseNumber" required>
                         </div>
                         <div class="form-group">
-                            <label for="editDriverNationalId">National ID</label>
+                            <label for="editDriverNationalId">الهوية الوطنية</label>
                             <input type="text" id="editDriverNationalId" name="nationalId" required>
                         </div>
                     </div>
@@ -808,56 +809,56 @@
                     <p id="editRegionError" role="alert"></p>
                     <!-- Vehicle & Status -->
                     <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 24px 0 16px 0;">
-                        <i class="fas fa-car"></i> Vehicle & Status
+                        <i class="fas fa-car"></i> المركبة والحالة
                     </h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editVehicleType">Vehicle Type</label>
+                            <label for="editVehicleType">نوع المركبة</label>
                             <select id="editVehicleType" name="vehicleType" required>
-                                <option value="">Select vehicle type</option>
+                                <option value="">اختر نوع المركبة</option>
                                 <option value="motorcycle">Motorcycle (دراجة نارية)</option>
                                 <option value="car">Car (سيارة)</option>
 
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="editDriverStatus">Status</label>
+                            <label for="editDriverStatus">الحالة</label>
                             <select id="editDriverStatus" name="status" required>
-                                <option value="PENDING_REVIEW">Pending Review</option>
-                                <option value="ACTIVE">Active/Approved</option>
-                                <option value="SUSPENDED">Suspended</option>
-                                <option value="REJECTED">Rejected</option>
+                                <option value="PENDING_REVIEW">بانتظار المراجعة</option>
+                                <option value="ACTIVE">نشط ومعتمد</option>
+                                <option value="SUSPENDED">موقوف</option>
+                                <option value="REJECTED">مرفوض</option>
                             </select>
                         </div>
                     </div>
 
                     <!-- Documents Section -->
                     <h3 style="font: var(--md-sys-typescale-title-small-font); color: var(--md-sys-color-on-surface); margin: 24px 0 16px 0;">
-                        <i class="fas fa-file-alt"></i> Documents
+                        <i class="fas fa-file-alt"></i> المستندات
                     </h3>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Driving License</label>
+                            <label>إجازة القيادة</label>
                             <div id="drivingLicensePreview" style="margin-top: 8px;">
                                 <a id="drivingLicenseLink" href="#" target="_blank" style="display: none; color: var(--md-sys-color-primary); text-decoration: none;">
-                                    <i class="fas fa-external-link-alt"></i> View Document
+                                    <i class="fas fa-external-link-alt"></i> عرض المستند
                                 </a>
                                 <div id="drivingLicenseImage" style="display: none; margin-top: 8px; max-width: 100%; border-radius: var(--md-sys-shape-corner-medium); overflow: hidden;">
                                     <img src="" alt="Driving License" style="max-width: 100%; height: auto; display: block;">
                                 </div>
-                                <span id="drivingLicenseNone" style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">No document uploaded</span>
+                                <span id="drivingLicenseNone" style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">لم يُرفع مستند</span>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Registration Paper</label>
+                            <label>وثيقة التسجيل</label>
                             <div id="registrationPaperPreview" style="margin-top: 8px;">
                                 <a id="registrationPaperLink" href="#" target="_blank" style="display: none; color: var(--md-sys-color-primary); text-decoration: none;">
-                                    <i class="fas fa-external-link-alt"></i> View Document
+                                    <i class="fas fa-external-link-alt"></i> عرض المستند
                                 </a>
                                 <div id="registrationPaperImage" style="display: none; margin-top: 8px; max-width: 100%; border-radius: var(--md-sys-shape-corner-medium); overflow: hidden;">
                                     <img src="" alt="Registration Paper" style="max-width: 100%; height: auto; display: block;">
                                 </div>
-                                <span id="registrationPaperNone" style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">No document uploaded</span>
+                                <span id="registrationPaperNone" style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">لم يُرفع مستند</span>
                             </div>
                         </div>
                         <div class="form-group">
@@ -870,9 +871,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeEditDriverModal()">Cancel</button>
+                <button type="button" class="btn-secondary" onclick="closeEditDriverModal()">إلغاء</button>
                 <button type="submit" form="editDriverForm" class="btn-primary" data-write-only>
-                    <i class="fas fa-save"></i> Save Changes
+                    <i class="fas fa-save"></i> حفظ التغييرات
                 </button>
             </div>
         </div>
@@ -882,7 +883,7 @@
     <div class="modal" id="viewDriverModal">
         <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header">
-                <h2><i class="fas fa-user-circle" style="color: var(--md-sys-color-primary);"></i> Driver Profile</h2>
+                <h2><i class="fas fa-user-circle" style="color: var(--md-sys-color-primary);"></i> ملف السائق</h2>
                 <button class="modal-close" onclick="closeViewDriverModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -902,10 +903,10 @@
                 <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: center;">
                     <button class="btn-primary" onclick="editDriverFromView()" style="display: inline-flex; align-items: center; gap: 8px;"
                         data-write-only>
-                        <i class="fas fa-edit"></i> Edit Driver
+                        <i class="fas fa-edit"></i> تعديل السائق
                     </button>
                     <button class="btn-secondary" onclick="window.print()" style="display: inline-flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-print"></i> Print
+                        <i class="fas fa-print"></i> طباعة
                     </button>
                 </div>
 
@@ -915,23 +916,23 @@
                     <!-- Personal Information Card -->
                     <div class="info-card">
                         <h3 class="info-card-title">
-                            <i class="fas fa-id-card"></i> Personal Information
+                            <i class="fas fa-id-card"></i> المعلومات الشخصية
                         </h3>
                         <div class="info-grid">
                             <div class="info-item">
-                                <label>Full Name:</label>
+                                <label>الاسم الكامل:</label>
                                 <span id="viewDriverNameFull"></span>
                             </div>
                             <div class="info-item">
-                                <label>National ID:</label>
+                                <label>الهوية الوطنية:</label>
                                 <span id="viewDriverNationalId"></span>
                             </div>
                             <div class="info-item">
-                                <label>City / Region:</label>
+                                <label>المدينة والمنطقة:</label>
                                 <span id="viewDriverCityFull"></span>
                             </div>
                             <div class="info-item">
-                                <label>License Number:</label>
+                                <label>رقم الإجازة:</label>
                                 <span id="viewDriverLicenseFull"></span>
                             </div>
                         </div>
@@ -940,15 +941,15 @@
                     <!-- Vehicle Information Card -->
                     <div class="info-card">
                         <h3 class="info-card-title">
-                            <i class="fas fa-motorcycle"></i> Vehicle Information
+                            <i class="fas fa-motorcycle"></i> معلومات المركبة
                         </h3>
                         <div class="info-grid">
                             <div class="info-item">
-                                <label>Vehicle Type:</label>
+                                <label>نوع المركبة:</label>
                                 <span id="viewDriverVehicleType"></span>
                             </div>
                             <div class="info-item">
-                                <label>Registration Status:</label>
+                                <label>حالة التسجيل:</label>
                                 <span id="viewDriverRegStatus"></span>
                             </div>
                         </div>
@@ -957,19 +958,19 @@
                     <!-- System Information Card -->
                     <div class="info-card">
                         <h3 class="info-card-title">
-                            <i class="fas fa-cog"></i> System Information
+                            <i class="fas fa-cog"></i> معلومات النظام
                         </h3>
                         <div class="info-grid">
                             <div class="info-item">
-                                <label>Driver ID:</label>
+                                <label>معرّف السائق:</label>
                                 <span id="viewDriverIdFull" style="font-family: monospace; font-size: 11px; word-break: break-all;"></span>
                             </div>
                             <div class="info-item">
-                                <label>Profile Completed:</label>
+                                <label>اكتمال الملف:</label>
                                 <span id="viewProfileCompletedFull"></span>
                             </div>
                             <div class="info-item">
-                                <label>Last Updated:</label>
+                                <label>آخر تحديث:</label>
                                 <span id="viewLastUpdatedFull"></span>
                             </div>
                         </div>
@@ -979,7 +980,7 @@
                 <!-- Documents Section -->
                 <div style="margin-bottom: 24px;">
                     <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-file-image" style="color: var(--md-sys-color-primary);"></i> Documents
+                        <i class="fas fa-file-image" style="color: var(--md-sys-color-primary);"></i> المستندات
                     </h3>
                     <div id="viewDocumentsSection" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;"></div>
                 </div>
@@ -987,10 +988,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeViewDriverModal()">
-                    <i class="fas fa-times"></i> Close
+                    <i class="fas fa-times"></i> إغلاق
                 </button>
                 <button type="button" class="btn-primary" onclick="editDriverFromView()" data-write-only>
-                    <i class="fas fa-edit"></i> Edit Driver
+                    <i class="fas fa-edit"></i> تعديل السائق
                 </button>
             </div>
         </div>
@@ -1126,7 +1127,7 @@
     <script src="../data-service.js?v=20261011-session-fix2"></script>
 
     <!-- Page-specific scripts -->
-    <script src="../assets/js/navigation.js?v=20250906"></script>
+    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
     <script>
         // Initialize navigation (single source of truth)
         document.addEventListener('DOMContentLoaded', function () {

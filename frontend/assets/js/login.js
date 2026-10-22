@@ -68,7 +68,7 @@
   if (!window.AmazonCognitoIdentity) {
     console.error('Cognito library not loaded - check CSP or network');
     try { document.body.style.visibility = 'visible'; } catch (_) {}
-    showStatus('❌ Auth library failed to load', 'error');
+    showStatus('تعذر تحميل خدمة تسجيل الدخول', 'error');
     return; // Abort further auth setup
   }
 
@@ -81,7 +81,7 @@
   };
   if (!COGNITO_CONFIG.region || !COGNITO_CONFIG.userPoolId || !COGNITO_CONFIG.clientId) {
     console.error('Missing Cognito config. Ensure env.js + config.js are loaded and Amplify env vars are set.');
-    showStatus('❌ Missing Cognito configuration', 'error');
+    showStatus('إعدادات تسجيل الدخول غير مكتملة', 'error');
     return;
   }
 
@@ -117,7 +117,7 @@
     document.getElementById('mfaSubmit').disabled = false;
     document.getElementById('mfaForm').classList.add('hidden');
     document.getElementById('loginForm').classList.remove('hidden');
-    const button = document.getElementById('loginBtn'); button.disabled = false; button.textContent = 'Sign In';
+    const button = document.getElementById('loginBtn'); button.disabled = false; button.textContent = 'تسجيل الدخول';
     delete window.pendingPasswordChange;
     showStatus('', 'info');
   });
@@ -134,10 +134,10 @@
 
       const email = emailEl.value.trim();
       const password = passwordEl.value;
-      if (!email || !password) { showStatus('Please enter both email and password', 'error'); return; }
+      if (!email || !password) { showStatus('أدخل البريد الإلكتروني وكلمة المرور', 'error'); return; }
 
-      loginBtn.disabled = true; loginBtn.textContent = 'Signing in...';
-      showStatus('Authenticating...', 'info');
+      loginBtn.disabled = true; loginBtn.textContent = 'جاري تسجيل الدخول...';
+      showStatus('جاري التحقق من الحساب...', 'info');
       log(`Starting authentication for: ${email}`, 'info');
 
       try {
@@ -155,7 +155,7 @@
             writeStorageItem('userEmail', email);
             writeStorageItem('isAuthenticated', 'true');
             writeStorageItem('lastLoginTime', Date.now().toString());
-            showStatus('✅ Login successful! Redirecting...', 'success');
+            showStatus('تم تسجيل الدخول، جاري فتح المنصة...', 'success');
             setTimeout(async () => {
               let landing;try{landing=await landingUrl();}catch(error){showStatus(error.message,'error');loginBtn.disabled=false;return;}
               const returnUrl = readStorageItem('returnUrl');
@@ -166,31 +166,31 @@
           onFailure: function(err) {
             log(`❌ Authentication failed: ${err.code || err.name}`, 'error');
             log(`Error message: ${err.message}`, 'error');
-            let errorMessage = 'Login failed';
-            if (err.code === 'NotAuthorizedException') errorMessage = 'Invalid email or password';
-            else if (err.code === 'UserNotConfirmedException') errorMessage = 'Please verify your email address';
-            else if (err.code === 'UserNotFoundException') errorMessage = 'User not found';
+            let errorMessage = 'تعذر تسجيل الدخول';
+            if (err.code === 'NotAuthorizedException') errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            else if (err.code === 'UserNotConfirmedException') errorMessage = 'يرجى تأكيد البريد الإلكتروني';
+            else if (err.code === 'UserNotFoundException') errorMessage = 'الحساب غير موجود';
             else if (err.message) errorMessage = err.message;
             showStatus(`❌ ${errorMessage}`, 'error');
-            loginBtn.disabled = false; loginBtn.textContent = 'Sign In';
+            loginBtn.disabled = false; loginBtn.textContent = 'تسجيل الدخول';
           },
           totpRequired: function() { mfaChallenge(cognitoUser, this); },
           newPasswordRequired: function(userAttributes, requiredAttributes) {
             log('⚠️ New password required', 'warning');
-            showStatus('Please set a new password to continue', 'info');
+            showStatus('عيّن كلمة مرور جديدة للمتابعة', 'info');
             loginForm.classList.add('hidden');
             const npForm = document.getElementById('newPasswordForm');
             if (npForm) npForm.classList.remove('hidden');
             const subtitle = document.querySelector('.subtitle');
-            if (subtitle) subtitle.textContent = 'Set your new password';
-            loginBtn.disabled = false; loginBtn.textContent = 'Sign In';
+            if (subtitle) subtitle.textContent = 'عيّن كلمة المرور الجديدة';
+            loginBtn.disabled = false; loginBtn.textContent = 'تسجيل الدخول';
             window.pendingPasswordChange = { cognitoUser, userAttributes, requiredAttributes };
           }
         });
       } catch (error) {
         log(`❌ Unexpected error: ${error}`, 'error');
-        showStatus('❌ An unexpected error occurred', 'error');
-        loginBtn.disabled = false; loginBtn.textContent = 'Sign In';
+        showStatus('حدث خطأ غير متوقع. أعد المحاولة.', 'error');
+        loginBtn.disabled = false; loginBtn.textContent = 'تسجيل الدخول';
       }
     });
   }
@@ -206,13 +206,13 @@
       if (!newPasswordEl || !confirmPasswordEl || !btn) return;
       const newPassword = newPasswordEl.value;
       const confirmPassword = confirmPasswordEl.value;
-      if (newPassword !== confirmPassword) { showStatus('❌ Passwords do not match', 'error'); return; }
+      if (newPassword !== confirmPassword) { showStatus('كلمتا المرور غير متطابقتين', 'error'); return; }
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-      if (!passwordRegex.test(newPassword)) { showStatus('❌ Password must meet complexity requirements', 'error'); return; }
-      btn.disabled = true; btn.textContent = 'Changing Password...'; showStatus('Changing password...', 'info');
+      if (!passwordRegex.test(newPassword)) { showStatus('كلمة المرور لا تستوفي المتطلبات الموضحة', 'error'); return; }
+      btn.disabled = true; btn.textContent = 'جاري تغيير كلمة المرور...'; showStatus('جاري تغيير كلمة المرور...', 'info');
       try {
         const pending = window.pendingPasswordChange;
-        if (!pending) { showStatus('❌ Password change context missing', 'error'); btn.disabled = false; btn.textContent = 'Change Password'; return; }
+        if (!pending) { showStatus('انتهت جلسة تغيير كلمة المرور. سجّل الدخول مجدداً.', 'error'); btn.disabled = false; btn.textContent = 'تغيير كلمة المرور'; return; }
         const { cognitoUser, userAttributes } = pending;
         const userEmail = userAttributes.email;
         delete userAttributes.email_verified; delete userAttributes.email;
@@ -226,20 +226,20 @@
             writeStorageItem('userEmail', userEmail);
             writeStorageItem('isAuthenticated', 'true');
             writeStorageItem('lastLoginTime', Date.now().toString());
-            showStatus('✅ Password changed! Redirecting to dashboard...', 'success');
+            showStatus('تم تغيير كلمة المرور، جاري فتح المنصة...', 'success');
             delete window.pendingPasswordChange;
             setTimeout(async () => {try{window.location.href=await landingUrl();}catch(error){showStatus(error.message,'error');}}, 1500);
           },
           onFailure: function(err) {
             log(`❌ Password change failed: ${err.code || err.name}`, 'error');
             log(`Error message: ${err.message}`, 'error');
-            const msg = err.message || 'Failed to change password';
-            showStatus(`❌ ${msg}`, 'error'); btn.disabled = false; btn.textContent = 'Change Password';
+            const msg = err.message || 'تعذر تغيير كلمة المرور';
+            showStatus(`❌ ${msg}`, 'error'); btn.disabled = false; btn.textContent = 'تغيير كلمة المرور';
           }
         });
       } catch (error) {
         log(`❌ Unexpected error during password change: ${error}`, 'error');
-        showStatus('❌ An unexpected error occurred', 'error'); btn.disabled = false; btn.textContent = 'Change Password';
+        showStatus('حدث خطأ غير متوقع. أعد المحاولة.', 'error'); btn.disabled = false; btn.textContent = 'تغيير كلمة المرور';
       }
     });
   }
@@ -253,7 +253,7 @@
       if (npForm) npForm.classList.add('hidden');
       if (loginForm) loginForm.classList.remove('hidden');
       const subtitle = document.querySelector('.subtitle');
-      if (subtitle) subtitle.textContent = 'Sign in to your account';
+      if (subtitle) subtitle.textContent = 'سجّل الدخول إلى حسابك';
       const np = document.getElementById('newPassword');
       const cp = document.getElementById('confirmPassword');
       if (np) np.value=''; if (cp) cp.value='';

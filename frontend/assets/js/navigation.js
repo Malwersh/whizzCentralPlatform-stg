@@ -1,3 +1,7 @@
+// Apply before authentication or asynchronous sidebar loading to avoid an LTR first frame.
+document.documentElement.lang = 'ar';
+document.documentElement.dir = 'rtl';
+
 // Unified Navigation System for WizzCentral Platform
 // Handles sidebar loading, active states, navigation, and interactions
 
@@ -211,7 +215,7 @@ class NavigationManager {
             stylesheet = document.createElement('link');
             stylesheet.id = 'wizz-shell-styles';
             stylesheet.rel = 'stylesheet';
-            stylesheet.href = this._prefix('/styles/app-shell.css?v=20261017-design1');
+            stylesheet.href = this._prefix('/styles/app-shell.css?v=20261022-rtl1');
             const ready = new Promise((resolve, reject) => {
                 stylesheet.onload = resolve;
                 stylesheet.onerror = () => reject(new Error('Could not load the shared layout stylesheet.'));
@@ -223,7 +227,7 @@ class NavigationManager {
             const visual = document.createElement('link');
             visual.id = 'wizz-admin-styles';
             visual.rel = 'stylesheet';
-            visual.href = this._prefix('/styles/admin-ui.css?v=20261017-design1');
+            visual.href = this._prefix('/styles/admin-ui.css?v=20261022-rtl1');
             const ready = new Promise((resolve, reject) => {
                 visual.onload = resolve;
                 visual.onerror = () => reject(new Error('Could not load the admin presentation stylesheet.'));
@@ -929,7 +933,7 @@ class NavigationManager {
                             </a>
                         </li>
                         <li class="nav-item" data-page="settings"><a href="settings.html" class="nav-link"><i class="fas fa-cog"></i><span>الإعدادات</span></a></li>
-                        <li class="nav-item" data-page="pricing"><a href="delivery-pricing.html" class="nav-link" data-nav="page"><i class="fas fa-route"></i><span>Pricing &amp; Commissions</span></a></li>
+                        <li class="nav-item" data-page="pricing"><a href="delivery-pricing.html" class="nav-link" data-nav="page"><i class="fas fa-route"></i><span>التسعير والعمولات</span></a></li>
 <li class="nav-item" data-page="financial"><a href="financial-management.html" class="nav-link"><i class="fas fa-chart-line"></i><span>حسابات الشركة</span></a></li>
 <li class="nav-item" data-page="finance"><a href="finance.html" class="nav-link"><i class="fas fa-wallet"></i><span>إدارة شحن المحافظ</span></a></li>
                         <li class="nav-item" data-page="merchants">

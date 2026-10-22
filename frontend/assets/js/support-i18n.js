@@ -237,8 +237,8 @@ const SupportI18n = {
      * @param {string} lang - Language code ('ar' or 'en')
      */
     setLanguage(lang) {
-        if (this.translations[lang]) {
-            this.currentLanguage = lang;
+        if (lang === 'ar') {
+            this.currentLanguage = 'ar';
             this.updatePageTexts();
             // Store preference
             try {
@@ -261,16 +261,9 @@ const SupportI18n = {
      * Initialize i18n system
      */
     init() {
-        // Load saved language preference
-        try {
-            const savedLang = localStorage.getItem('support_language');
-            if (savedLang && this.translations[savedLang]) {
-                this.currentLanguage = savedLang;
-            }
-        } catch (e) {
-            console.warn('Could not load language preference', e);
-        }
-        
+        // Platform language is Arabic, including accounts with an old English preference.
+        this.currentLanguage = 'ar';
+
         // Update page title
         document.title = this.t('pageTitle');
         

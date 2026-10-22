@@ -1,51 +1,53 @@
+@import url("./arabic-font.css?v=20261022-rtl1");
+
 /* WizzCentral admin presentation. Geometry belongs to app-shell.css.
    Keep domain state classes, hidden attributes and application event hooks intact. */
 body.wizz-shell {
   --md-sys-typescale-display-large-size: var(--md-sys-typescale-display-large-font-size);
   --md-sys-typescale-display-large-weight: var(--md-sys-typescale-display-large-font-weight);
-  --md-sys-typescale-display-large-font: var(--md-sys-typescale-display-large-font-weight) var(--md-sys-typescale-display-large-font-size)/var(--md-sys-typescale-display-large-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-display-large-font: var(--md-sys-typescale-display-large-font-weight) var(--md-sys-typescale-display-large-font-size)/var(--md-sys-typescale-display-large-line-height) var(--admin-font);
   --md-sys-typescale-display-medium-size: var(--md-sys-typescale-display-medium-font-size);
   --md-sys-typescale-display-medium-weight: var(--md-sys-typescale-display-medium-font-weight);
-  --md-sys-typescale-display-medium-font: var(--md-sys-typescale-display-medium-font-weight) var(--md-sys-typescale-display-medium-font-size)/var(--md-sys-typescale-display-medium-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-display-medium-font: var(--md-sys-typescale-display-medium-font-weight) var(--md-sys-typescale-display-medium-font-size)/var(--md-sys-typescale-display-medium-line-height) var(--admin-font);
   --md-sys-typescale-display-small-size: var(--md-sys-typescale-display-small-font-size);
   --md-sys-typescale-display-small-weight: var(--md-sys-typescale-display-small-font-weight);
-  --md-sys-typescale-display-small-font: var(--md-sys-typescale-display-small-font-weight) var(--md-sys-typescale-display-small-font-size)/var(--md-sys-typescale-display-small-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-display-small-font: var(--md-sys-typescale-display-small-font-weight) var(--md-sys-typescale-display-small-font-size)/var(--md-sys-typescale-display-small-line-height) var(--admin-font);
   --md-sys-typescale-headline-large-size: var(--md-sys-typescale-headline-large-font-size);
   --md-sys-typescale-headline-large-weight: var(--md-sys-typescale-headline-large-font-weight);
-  --md-sys-typescale-headline-large-font: var(--md-sys-typescale-headline-large-font-weight) var(--md-sys-typescale-headline-large-font-size)/var(--md-sys-typescale-headline-large-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-headline-large-font: var(--md-sys-typescale-headline-large-font-weight) var(--md-sys-typescale-headline-large-font-size)/var(--md-sys-typescale-headline-large-line-height) var(--admin-font);
   --md-sys-typescale-headline-medium-size: var(--md-sys-typescale-headline-medium-font-size);
   --md-sys-typescale-headline-medium-weight: var(--md-sys-typescale-headline-medium-font-weight);
-  --md-sys-typescale-headline-medium-font: var(--md-sys-typescale-headline-medium-font-weight) var(--md-sys-typescale-headline-medium-font-size)/var(--md-sys-typescale-headline-medium-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-headline-medium-font: var(--md-sys-typescale-headline-medium-font-weight) var(--md-sys-typescale-headline-medium-font-size)/var(--md-sys-typescale-headline-medium-line-height) var(--admin-font);
   --md-sys-typescale-headline-small-size: var(--md-sys-typescale-headline-small-font-size);
   --md-sys-typescale-headline-small-weight: var(--md-sys-typescale-headline-small-font-weight);
-  --md-sys-typescale-headline-small-font: var(--md-sys-typescale-headline-small-font-weight) var(--md-sys-typescale-headline-small-font-size)/var(--md-sys-typescale-headline-small-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-headline-small-font: var(--md-sys-typescale-headline-small-font-weight) var(--md-sys-typescale-headline-small-font-size)/var(--md-sys-typescale-headline-small-line-height) var(--admin-font);
   --md-sys-typescale-title-large-size: var(--md-sys-typescale-title-large-font-size);
   --md-sys-typescale-title-large-weight: var(--md-sys-typescale-title-large-font-weight);
-  --md-sys-typescale-title-large-font: var(--md-sys-typescale-title-large-font-weight) var(--md-sys-typescale-title-large-font-size)/var(--md-sys-typescale-title-large-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-title-large-font: var(--md-sys-typescale-title-large-font-weight) var(--md-sys-typescale-title-large-font-size)/var(--md-sys-typescale-title-large-line-height) var(--admin-font);
   --md-sys-typescale-title-medium-size: var(--md-sys-typescale-title-medium-font-size);
   --md-sys-typescale-title-medium-weight: var(--md-sys-typescale-title-medium-font-weight);
-  --md-sys-typescale-title-medium-font: var(--md-sys-typescale-title-medium-font-weight) var(--md-sys-typescale-title-medium-font-size)/var(--md-sys-typescale-title-medium-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-title-medium-font: var(--md-sys-typescale-title-medium-font-weight) var(--md-sys-typescale-title-medium-font-size)/var(--md-sys-typescale-title-medium-line-height) var(--admin-font);
   --md-sys-typescale-title-small-size: var(--md-sys-typescale-title-small-font-size);
   --md-sys-typescale-title-small-weight: var(--md-sys-typescale-title-small-font-weight);
-  --md-sys-typescale-title-small-font: var(--md-sys-typescale-title-small-font-weight) var(--md-sys-typescale-title-small-font-size)/var(--md-sys-typescale-title-small-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-title-small-font: var(--md-sys-typescale-title-small-font-weight) var(--md-sys-typescale-title-small-font-size)/var(--md-sys-typescale-title-small-line-height) var(--admin-font);
   --md-sys-typescale-body-large-size: var(--md-sys-typescale-body-large-font-size);
   --md-sys-typescale-body-large-weight: var(--md-sys-typescale-body-large-font-weight);
-  --md-sys-typescale-body-large-font: var(--md-sys-typescale-body-large-font-weight) var(--md-sys-typescale-body-large-font-size)/var(--md-sys-typescale-body-large-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-body-large-font: var(--md-sys-typescale-body-large-font-weight) var(--md-sys-typescale-body-large-font-size)/var(--md-sys-typescale-body-large-line-height) var(--admin-font);
   --md-sys-typescale-body-medium-size: var(--md-sys-typescale-body-medium-font-size);
   --md-sys-typescale-body-medium-weight: var(--md-sys-typescale-body-medium-font-weight);
-  --md-sys-typescale-body-medium-font: var(--md-sys-typescale-body-medium-font-weight) var(--md-sys-typescale-body-medium-font-size)/var(--md-sys-typescale-body-medium-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-body-medium-font: var(--md-sys-typescale-body-medium-font-weight) var(--md-sys-typescale-body-medium-font-size)/var(--md-sys-typescale-body-medium-line-height) var(--admin-font);
   --md-sys-typescale-body-small-size: var(--md-sys-typescale-body-small-font-size);
   --md-sys-typescale-body-small-weight: var(--md-sys-typescale-body-small-font-weight);
-  --md-sys-typescale-body-small-font: var(--md-sys-typescale-body-small-font-weight) var(--md-sys-typescale-body-small-font-size)/var(--md-sys-typescale-body-small-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-body-small-font: var(--md-sys-typescale-body-small-font-weight) var(--md-sys-typescale-body-small-font-size)/var(--md-sys-typescale-body-small-line-height) var(--admin-font);
   --md-sys-typescale-label-large-size: var(--md-sys-typescale-label-large-font-size);
   --md-sys-typescale-label-large-weight: var(--md-sys-typescale-label-large-font-weight);
-  --md-sys-typescale-label-large-font: var(--md-sys-typescale-label-large-font-weight) var(--md-sys-typescale-label-large-font-size)/var(--md-sys-typescale-label-large-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-label-large-font: var(--md-sys-typescale-label-large-font-weight) var(--md-sys-typescale-label-large-font-size)/var(--md-sys-typescale-label-large-line-height) var(--admin-font);
   --md-sys-typescale-label-medium-size: var(--md-sys-typescale-label-medium-font-size);
   --md-sys-typescale-label-medium-weight: var(--md-sys-typescale-label-medium-font-weight);
-  --md-sys-typescale-label-medium-font: var(--md-sys-typescale-label-medium-font-weight) var(--md-sys-typescale-label-medium-font-size)/var(--md-sys-typescale-label-medium-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-label-medium-font: var(--md-sys-typescale-label-medium-font-weight) var(--md-sys-typescale-label-medium-font-size)/var(--md-sys-typescale-label-medium-line-height) var(--admin-font);
   --md-sys-typescale-label-small-size: var(--md-sys-typescale-label-small-font-size);
   --md-sys-typescale-label-small-weight: var(--md-sys-typescale-label-small-font-weight);
-  --md-sys-typescale-label-small-font: var(--md-sys-typescale-label-small-font-weight) var(--md-sys-typescale-label-small-font-size)/var(--md-sys-typescale-label-small-line-height) -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --md-sys-typescale-label-small-font: var(--md-sys-typescale-label-small-font-weight) var(--md-sys-typescale-label-small-font-size)/var(--md-sys-typescale-label-small-line-height) var(--admin-font);
   --md-sys-elevation-1: var(--md-sys-elevation-level1);
   --md-sys-elevation-2: var(--md-sys-elevation-level2);
   --md-sys-elevation-5: var(--md-sys-elevation-level5);
@@ -74,7 +76,7 @@ body.wizz-shell {
   --md-sys-elevation-level2: 0 4px 16px #18273d0a;
   background: #f5f7fa;
   color: var(--admin-ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-family: var(--admin-font);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -83,7 +85,7 @@ body.wizz-shell *, body.wizz-shell *::before, body.wizz-shell *::after { box-siz
 body.wizz-shell:not([data-page="promotions"]) > #mainContent { padding: 32px 36px 48px; background: #f5f7fa; }
 body.wizz-shell #mainContent > .page-content,
 body.wizz-shell #mainContent > .container { padding: 0; max-width: 1440px; margin-inline: auto; }
-body.wizz-shell #mainContent h1 { font: 700 clamp(25px, 2.4vw, 32px)/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; letter-spacing: -.8px; color: var(--admin-ink); margin: 0; }
+body.wizz-shell #mainContent h1 { font: 700 clamp(25px, 2.4vw, 32px)/1.2 var(--admin-font); letter-spacing: -.8px; color: var(--admin-ink); margin: 0; }
 body.wizz-shell #mainContent h2 { color: var(--admin-ink); font-size: 18px; font-weight: 650; line-height: 1.4; }
 body.wizz-shell #mainContent :is(.top-bar,.dashboard-page-header,.support-header,.admin-page-header) {
   background: transparent; box-shadow: none; border: 0; padding: 0; margin: 0 0 28px;
@@ -180,7 +182,7 @@ body.wizz-shell .modal :is(.modal-header,.modal-footer) { padding: 18px 24px; ba
 body.wizz-shell .modal .modal-body { padding: 24px; }
 body.wizz-shell .modal .form-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); gap: 16px; }
 body.wizz-shell .modal :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]) { max-width: 100%; min-width: 0; border: 1px solid #d6deea; border-radius: 8px; font: inherit; background: #fff; color: var(--admin-ink); padding: 10px 12px; }
-body.wizz-shell .modal :is(.btn-primary,.btn-secondary) { border-radius: 8px; padding: 10px 16px; font: 600 12px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+body.wizz-shell .modal :is(.btn-primary,.btn-secondary) { border-radius: 8px; padding: 10px 16px; font: 600 12px/1.5 var(--admin-font); }
 body.wizz-shell .modal .btn-primary { background: #233f69; color: #fff; border: 1px solid #233f69; }
 body.wizz-shell .modal .btn-secondary { background: #fff; color: #334d70; border: 1px solid #d6deea; }
 body.wizz-shell .modal .modal-close svg { width: 20px; height: 20px; }
@@ -237,7 +239,7 @@ body.wizz-shell #mainContent :is(.button-secondary,.secondary-btn) { background:
 body.wizz-shell #mainContent :is(.settings-content,.staff-content) section { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; padding: 24px; margin: 0 0 20px; }
 body.wizz-shell #mainContent .staff-content { max-width: 1440px; padding: 0; margin: auto; }
 body.wizz-shell #mainContent .staff-content :is(input,select,textarea) { max-width: 100%; }
-body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content,.pricing-content) button:not(#menuToggle) { font: 600 12px/1.5 Tahoma, Arial, sans-serif; border: 1px solid #233f69; border-radius: 8px; background: #233f69; color: #fff; padding: 10px 16px; min-height: 40px; cursor: pointer; }
+body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content,.pricing-content) button:not(#menuToggle) { font: 600 12px/1.5 var(--admin-font); border: 1px solid #233f69; border-radius: 8px; background: #233f69; color: #fff; padding: 10px 16px; min-height: 40px; cursor: pointer; }
 body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content,.pricing-content) button:disabled { opacity: .5; cursor: not-allowed; }
 body.wizz-shell #mainContent :is(.staff-content,.settings-content) > a { display: inline-block; font-size: 12px; color: #3d587c; margin-inline-end: 16px; margin-block: 8px; }
 body.wizz-shell #mainContent .pricing-content section { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; box-shadow: none; padding: 24px; margin: 0 0 20px; }
@@ -258,8 +260,8 @@ body.wizz-shell #mainContent .staff-content fieldset label { flex-direction: row
 body.wizz-shell #mainContent .finance-content label > :is(input,select,textarea):not([type="checkbox"]) { margin: 0; width: min(100%,360px); }
 body.wizz-shell #mainContent .finance-content label > input[type="checkbox"] { margin: 0; width: auto; }
 body.wizz-shell #mainContent .finance-content section > :is(button,select) { margin: 4px 0 4px 8px; }
-body.wizz-shell[lang="ar"],html[lang="ar"] body.wizz-shell { font-family: Tahoma, Arial, sans-serif; }
-html[lang="ar"] body.wizz-shell #mainContent h1 { font-family: Tahoma, Arial, sans-serif; letter-spacing: 0; }
+body.wizz-shell[lang="ar"],html[lang="ar"] body.wizz-shell { font-family: var(--admin-font); }
+html[lang="ar"] body.wizz-shell #mainContent h1 { font-family: var(--admin-font); letter-spacing: 0; }
 body.wizz-shell .wizz-shell-bar { margin-bottom: 20px; }
 @media (width >= 1280px) {
   body.wizz-shell[data-page="dashboard"] #mainContent .stats-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
@@ -287,4 +289,62 @@ body.wizz-shell .wizz-shell-bar { margin-bottom: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   body.wizz-shell #mainContent :is(.stat-card,.customer-stat-card,.btn-primary,.btn-secondary) { transition: none; }
+}
+
+/* Arabic platform baseline: logical alignment, readable type, shared controls.
+   Direction is set in HTML before rendering. Identifiers retain local LTR. */
+body.wizz-shell {
+  --admin-font: "Wizz Arabic", Tahoma, Arial, sans-serif;
+  font-family: var(--admin-font);
+  line-height: 1.75;
+  text-align: start;
+}
+body.wizz-shell :is(button,input,select,textarea) { font-family: var(--admin-font); }
+body.wizz-shell #mainContent :is(h1,h2,h3) { letter-spacing: 0; line-height: 1.6; }
+body.wizz-shell .admin-eyebrow { font-size: 12px; letter-spacing: 0; text-transform: none; }
+body.wizz-shell #mainContent :is(.stat-label,.stat-info p) { font-size: 13px; line-height: 1.7; }
+body.wizz-shell #sidebar .md-navigation-item { font-size: 14px; min-block-size: 46px; }
+body.wizz-shell #sidebar .logo { letter-spacing: 0; }
+body.wizz-shell #mainContent table th {
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: start;
+  white-space: normal;
+}
+body.wizz-shell #mainContent table td { text-align: start; line-height: 1.7; }
+body.wizz-shell #mainContent :is(.status-badge,.status-pill) { font-size: 12px; letter-spacing: 0; }
+body.wizz-shell :is(.modal,dialog) { text-align: start; font-family: var(--admin-font); }
+body.wizz-shell :is(.modal,dialog) :is(h2,h3,p,label) { line-height: 1.7; }
+body.wizz-shell #mainContent :is(.btn-primary,.btn-secondary,.md-button--filled,.md-button--outlined) {
+  min-block-size: 44px;
+  font-size: 13px;
+}
+body.wizz-shell :is(input[type="email"],input[type="url"],input[type="tel"],input[type="password"],code,pre,[dir="ltr"]) {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+html[dir="rtl"] body.wizz-shell #mainContent :is(.search-container,.search-box) > i {
+  left: auto;
+  right: auto;
+  inset-inline-start: 16px;
+}
+html[dir="rtl"] body.wizz-shell #mainContent :is(.search-container,.search-box):has(> i) > input {
+  padding-inline-start: 46px;
+  padding-inline-end: 14px;
+}
+body.wizz-shell #mainContent :is(.table-wrap,.table-container) {
+  max-inline-size: 100%;
+  overscroll-behavior-inline: contain;
+}
+body.wizz-shell :is(button,a,input,select,textarea,summary):focus-visible {
+  outline: 3px solid #718fb8;
+  outline-offset: 3px;
+}
+@media (width < 600px) {
+  body.wizz-shell #mainContent :is(.header-actions,.top-bar-actions,.table-controls) { gap: 10px; }
+  body.wizz-shell #mainContent :is(.header-actions,.top-bar-actions) { flex-wrap: wrap; }
+  body.wizz-shell #mainContent table th,
+  body.wizz-shell #mainContent table td { padding: 12px; }
 }

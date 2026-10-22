@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <script src="./assets/js/wizz-locale.js?v=20261022-rtl1"></script>
+    <link rel="stylesheet" href="./styles/arabic-font.css?v=20261022-rtl1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WizzCentral - Login</title>
+    <title>ويز سنترال — تسجيل الدخول</title>
     <script src="./env.js"></script>
     <script src="./config.js"></script>
     <style>
@@ -131,45 +133,55 @@
             display: block; 
         }
         .hidden { display: none !important; }
+
+        body { font-family: "Wizz Arabic", Tahoma, Arial, sans-serif; background: #f5f7fa; color: #19273d; line-height: 1.75; }
+        .login-container { border: 1px solid #dfe5ed; border-top: 4px solid #f0c448; border-radius: 18px; box-shadow: 0 8px 32px #18273d0a; }
+        h1 { color: #19273d; }
+        input, button { font: inherit; min-height: 46px; border-radius: 8px; }
+        input[type="email"], input[type="password"], #mfaCode { direction: ltr; text-align: left; }
+        button { background: #233f69; color: #fff; font-weight: 600; }
+        button:hover { transform: none; background: #1c3558; }
+        .btn-secondary { background: #fff; color: #233f69; border: 1px solid #dfe5ed; }
+        :is(button,input):focus-visible { outline: 3px solid #718fb8; outline-offset: 3px; }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1>🚀 WizzCentral</h1>
-        <p class="subtitle">Sign in to your account</p>
+        <h1>ويز سنترال</h1>
+        <p class="subtitle">سجّل الدخول إلى حسابك</p>
         
         <form id="loginForm">
             <div class="form-group">
-                <label for="email">Email Address</label>
+                <label for="email">البريد الإلكتروني</label>
                 <input type="email" id="email" required autocomplete="username" autofocus>
             </div>
             
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password">كلمة المرور</label>
                 <input type="password" id="password" required autocomplete="current-password">
             </div>
             
-            <button type="submit" id="loginBtn">Sign In</button>
+            <button type="submit" id="loginBtn">تسجيل الدخول</button>
         </form>
         
-        <!-- New Password Form (hidden by default) -->
+        <!-- كلمة المرور الجديدة Form (hidden by default) -->
         <form id="newPasswordForm" class="hidden">
             <div class="form-group">
-                <label for="newPassword">New Password</label>
-                <input type="password" id="newPassword" required placeholder="Minimum 8 characters" autocomplete="new-password">
+                <label for="newPassword">كلمة المرور الجديدة</label>
+                <input type="password" id="newPassword" required placeholder="٨ أحرف على الأقل" autocomplete="new-password">
                 <small class="help-text">
-                    Must contain uppercase, lowercase, number, and special character
+                    يجب أن تتضمن حرفاً كبيراً وحرفاً صغيراً ورقماً ورمزاً خاصاً
                 </small>
             </div>
         
             <div class="form-group">
-                <label for="confirmPassword">Confirm New Password</label>
-                <input type="password" id="confirmPassword" required placeholder="Re-enter new password"
+                <label for="confirmPassword">تأكيد كلمة المرور الجديدة</label>
+                <input type="password" id="confirmPassword" required placeholder="أعد إدخال كلمة المرور الجديدة"
                     autocomplete="new-password">
             </div>
         
-            <button type="submit" id="changePasswordBtn">Change Password</button>
-            <button type="button" id="cancelBtn" class="btn-secondary mt-10">Cancel</button>
+            <button type="submit" id="changePasswordBtn">تغيير كلمة المرور</button>
+            <button type="button" id="cancelBtn" class="btn-secondary mt-10">إلغاء</button>
         </form>
         <form id="mfaForm" class="hidden" dir="rtl">
             <label for="mfaCode">رمز تطبيق التحقق</label>
@@ -184,6 +196,6 @@
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1471.0.min.js"></script>
     <script
         src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
-    <script src="./assets/js/login.js?v=20261012-driver-actions2" defer></script>
+    <script src="./assets/js/login.js?v=20261022-rtl1" defer></script>
 </body>
 </html>

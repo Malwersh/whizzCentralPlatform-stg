@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
@@ -709,12 +710,6 @@
                     <div class="status-indicator" id="connectionIndicator"></div>
                     <span id="connectionStatus" data-i18n="connecting">جاري الاتصال...</span>
                 </div>
-                
-                <!-- Language switcher -->
-                <button class="quick-action-button" id="languageSwitcher" title="Switch Language / تبديل اللغة">
-                    <i class="fas fa-language"></i>
-                    <span id="currentLang">AR</span>
-                </button>
                 <!-- Reconnect button wired via JS to satisfy CSP -->
                 <button class="quick-action-button" id="reconnectBtn">
                     <i class="fas fa-sync-alt"></i> <span data-i18n="reconnect">إعادة الاتصال</span>
@@ -1574,7 +1569,7 @@
                 if (countEl) countEl.textContent = String(items.length);
             }
 </script>
-    <script src="../assets/js/navigation.js"></script>
+    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.navigationManager && typeof window.navigationManager.init === 'function') {

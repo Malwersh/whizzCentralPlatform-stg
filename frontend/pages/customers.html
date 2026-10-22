@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>WizzCentral Platform - Customers Management</title>
+    <title>ويز سنترال — إدارة العملاء</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <!-- Security: DOMPurify for XSS Protection -->
@@ -575,14 +576,14 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">Customers Management</h1>
+                <h1 class="page-title">إدارة العملاء</h1>
                 <span id="version-badge"
                     style="font-size: 0.7rem; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); padding: 2px 6px; border-radius: 8px; margin-left: 10px; font-weight: 500;"></span>
             </div>
             <div class="top-bar-actions">
                 <button class="btn-primary" data-action="refresh-customer-data">
                     <i class="fas fa-sync"></i>
-                    Refresh
+                    تحديث
                 </button>
             </div>
         </div>
@@ -595,7 +596,7 @@
                     <div class="stat-content">
                         <div class="stat-info">
                             <h3 id="totalCustomers">-</h3>
-                            <p>Total Customers</p>
+                            <p>إجمالي العملاء</p>
                         </div>
                         <div class="stat-icon">
                             <i class="fas fa-users"></i>
@@ -606,7 +607,7 @@
                     <div class="stat-content">
                         <div class="stat-info">
                             <h3 id="activeCustomers">-</h3>
-                            <p>Active Customers</p>
+                            <p>العملاء النشطون</p>
                         </div>
                         <div class="stat-icon">
                             <i class="fas fa-user-check"></i>
@@ -620,9 +621,9 @@
     <div style="display: flex; align-items: center; gap: 12px;">
         <i class="fas fa-info-circle" style="color: #1976d2; font-size: 1.2rem;"></i>
         <div>
-            <h4 style="margin: 0; color: #1976d2; font-size: 1rem;">Data Source Information</h4>
+            <h4 style="margin: 0; color: #1976d2; font-size: 1rem;">معلومات مصدر البيانات</h4>
             <p id="dataSourceMessage" style="margin: 4px 0 0 0; color: #424242; font-size: 0.9rem;">
-                This system fetches customer data exclusively from AWS DynamoDB. Real-time data only.
+                تُجلب بيانات العملاء مباشرة من قاعدة بيانات المنصة.
             </p>
         </div>
     </div>
@@ -633,30 +634,30 @@
                 <div class="table-controls">
                     <div class="search-container">
                         <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search customers by name, email, or phone..." id="searchInput">
+                        <input type="text" placeholder="بحث عن عميل بالاسم أو البريد أو الهاتف..." id="searchInput">
                         </div>
                         <div class="filter-container">
                             <select id="statusFilter">
-                                <option value="">All Status</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="blocked">Blocked</option>
+                                <option value="">جميع الحالات</option>
+                                <option value="active">نشط</option>
+                                <option value="inactive">غير نشط</option>
+                                <option value="blocked">محظور</option>
                             </select>
                             <select id="segmentFilter">
-                                <option value="">All Segments</option>
-                                <option value="vip">VIP</option>
-                                <option value="regular">Regular</option>
-                                <option value="new">New</option>
+                                <option value="">جميع الفئات</option>
+                                <option value="vip">مميز</option>
+                                <option value="regular">اعتيادي</option>
+                                <option value="new">جديد</option>
                             </select>
                     </div>
                     <button class="btn-secondary" data-action="refresh-customer-points"
-                        title="Refresh customer points from latest order data">
+                        title="تحديث نقاط العميل من آخر بيانات الطلبات">
                         <i class="fas fa-sync-alt"></i>
-                        Refresh Points
+                        تحديث النقاط
                     </button>
                     <button class="btn-primary" data-action="export-customers">
                         <i class="fas fa-download"></i>
-                        Export
+                        تصدير
                     </button>
                 </div>
             </div>
@@ -666,15 +667,15 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Customer</th>
-                            <th>Contact</th>
-                            <th>Status</th>
-                            <th>Total Orders</th>
-                            <th>Total Spent</th>
-                            <th>Points</th>
-                            <th>Last Order</th>
-                            <th>Segment</th>
-                            <th>Actions</th>
+                            <th>العميل</th>
+                            <th>التواصل</th>
+                            <th>الحالة</th>
+                            <th>إجمالي الطلبات</th>
+                            <th>إجمالي الإنفاق</th>
+                            <th>النقاط</th>
+                            <th>آخر طلب</th>
+                            <th>الفئة</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="customersTableBody">
@@ -682,7 +683,7 @@
                         <tr>
                             <td colspan="9" style="text-align: center; padding: 40px; color: var(--md-sys-color-on-surface-variant);">
                                 <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
-                                <div>Loading customers...</div>
+                                <div>جاري تحميل العملاء...</div>
                             </td>
                         </tr>
                     </tbody>
@@ -699,7 +700,7 @@
     <div class="modal" id="editCustomerModal">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h2><i class="fas fa-edit" style="color: var(--md-sys-color-primary);"></i> Edit Customer</h2>
+                <h2><i class="fas fa-edit" style="color: var(--md-sys-color-primary);"></i> تعديل العميل</h2>
                 <button class="modal-close" data-action="close-edit-customer-modal">
                     <i class="fas fa-times"></i>
                 </button>
@@ -709,19 +710,19 @@
                 <div class="driver-info-section" style="background: rgba(3, 169, 244, 0.08); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); padding: 16px; margin-bottom: 24px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                         <i class="fas fa-info-circle" style="color: var(--md-sys-color-primary);"></i>
-                        <strong style="color: var(--md-sys-color-on-surface);">Read-Only Information</strong>
+                        <strong style="color: var(--md-sys-color-on-surface);">معلومات للقراءة فقط</strong>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.875rem;">
                         <div>
-                            <strong style="color: var(--md-sys-color-on-surface-variant);">Customer ID:</strong>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">معرّف العميل:</strong>
                             <div id="viewCustomerId" style="font-family: monospace; font-size: 11px; word-break: break-all; color: var(--md-sys-color-on-surface);"></div>
                         </div>
                         <div>
-                            <strong style="color: var(--md-sys-color-on-surface-variant);">Joined:</strong>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">تاريخ الانضمام:</strong>
                             <span id="viewJoinDate" style="color: var(--md-sys-color-on-surface);"></span>
                         </div>
                         <div style="grid-column: 1 / -1;">
-                            <strong style="color: var(--md-sys-color-on-surface-variant);">Last Updated:</strong>
+                            <strong style="color: var(--md-sys-color-on-surface-variant);">آخر تحديث:</strong>
                             <span id="viewLastUpdated" style="color: var(--md-sys-color-on-surface);"></span>
                         </div>
                     </div>
@@ -730,16 +731,16 @@
                 <form id="editCustomerForm">
                     <input type="hidden" id="editCustomerId" name="userId">
                     
-                    <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 0 0 16px 0;">Basic Information</h3>
+                    <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 0 0 16px 0;">المعلومات الأساسية</h3>
                     
                     <!-- Row 1: Name & Email -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editCustomerName">Full Name *</label>
-                            <input type="text" id="editCustomerName" name="name" required placeholder="Enter full name">
+                            <label for="editCustomerName">الاسم الكامل *</label>
+                            <input type="text" id="editCustomerName" name="name" required placeholder="أدخل الاسم الكامل">
                         </div>
                         <div class="form-group">
-                            <label for="editCustomerEmail">Email *</label>
+                            <label for="editCustomerEmail">البريد الإلكتروني *</label>
                             <input type="email" id="editCustomerEmail" name="email" required placeholder="customer@example.com">
                         </div>
                     </div>
@@ -747,17 +748,17 @@
                     <!-- Row 2: Phone & Gender -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editCustomerPhone">Phone</label>
+                            <label for="editCustomerPhone">الهاتف</label>
                             <input type="tel" id="editCustomerPhone" name="countryCode" placeholder="+964 770 123 4567">
                         </div>
                         <div class="form-group">
-                            <label for="editCustomerGender">Gender</label>
+                            <label for="editCustomerGender">الجنس</label>
                             <select id="editCustomerGender" name="gender">
-                                <option value="">Select Gender</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
-                                <option value="prefer-not-to-say">Prefer not to say</option>
+                                <option value="">اختر الجنس</option>
+                                <option value="male">ذكر</option>
+                                <option value="female">أنثى</option>
+                                <option value="other">آخر</option>
+                                <option value="prefer-not-to-say">أفضل عدم الإفصاح</option>
                             </select>
                         </div>
                     </div>
@@ -765,38 +766,38 @@
                     <!-- Row 3: Birth Date & Language -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editCustomerBirthDate">Birth Date</label>
+                            <label for="editCustomerBirthDate">تاريخ الميلاد</label>
                             <input type="date" id="editCustomerBirthDate" name="birth_date">
                         </div>
                         <div class="form-group">
-                            <label for="editCustomerLanguage">Preferred Language</label>
+                            <label for="editCustomerLanguage">اللغة المفضلة</label>
                             <select id="editCustomerLanguage" name="preferredLanguage">
-                                <option value="en">English</option>
+                                <option value="en">الإنكليزية</option>
                                 <option value="ar">Arabic (العربية)</option>
                                 <option value="ku">Kurdish (کوردی)</option>
                             </select>
                         </div>
                     </div>
 
-                    <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 24px 0 16px 0;">Account Status</h3>
+                    <h3 style="font: var(--md-sys-typescale-title-medium-font); color: var(--md-sys-color-on-surface); margin: 24px 0 16px 0;">حالة الحساب</h3>
                     
                     <!-- Row 4: Status & Marketing -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="editCustomerStatus">Account Status *</label>
+                            <label for="editCustomerStatus">حالة الحساب *</label>
                             <select id="editCustomerStatus" name="isActive" required>
-                                <option value="true">Active</option>
-                                <option value="false">Inactive</option>
+                                <option value="true">نشط</option>
+                                <option value="false">غير نشط</option>
                             </select>
                         </div>
                         <div class="form-group" style="display: flex; flex-direction: column; gap: 8px; padding-top: 28px;">
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                                 <input type="checkbox" id="editMarketingConsent" name="marketingConsent" style="cursor: pointer;">
-                                <span>Marketing Consent</span>
+                                <span>الموافقة على الرسائل التسويقية</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                                 <input type="checkbox" id="editNewsletterSubscription" name="newsletter_subscription" style="cursor: pointer;">
-                                <span>Newsletter Subscription</span>
+                                <span>الاشتراك بالتحديثات</span>
                             </label>
                         </div>
                     </div>
@@ -804,10 +805,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" data-action="close-edit-customer-modal">
-                    <i class="fas fa-times"></i> Cancel
+                    <i class="fas fa-times"></i> إلغاء
                 </button>
                 <button type="submit" class="btn-primary" form="editCustomerForm">
-                    <i class="fas fa-save"></i> Save Changes
+                    <i class="fas fa-save"></i> حفظ التغييرات
                 </button>
             </div>
         </div>
@@ -818,7 +819,7 @@
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header" style="flex-direction: column; align-items: stretch; gap: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h2><i class="fas fa-user" style="color: var(--md-sys-color-primary);"></i> Customer Profile</h2>
+                    <h2><i class="fas fa-user" style="color: var(--md-sys-color-primary);"></i> ملف العميل</h2>
                     <button class="modal-close" data-action="close-view-customer-modal">
                         <i class="fas fa-times"></i>
                     </button>
@@ -835,33 +836,33 @@
                 <!-- Quick Action Buttons -->
                 <div style="display: flex; gap: 12px; margin-bottom: 24px;">
                     <button class="btn-primary" data-action="edit-customer-from-view" style="flex: 1;">
-                        <i class="fas fa-edit"></i> Edit Customer
+                        <i class="fas fa-edit"></i> تعديل العميل
                     </button>
                     <button class="btn-secondary" data-action="print-view" style="flex: 1;">
-                        <i class="fas fa-print"></i> Print Profile
+                        <i class="fas fa-print"></i> طباعة الملف
                     </button>
                 </div>
 
                 <!-- Personal Information Card -->
                 <div class="view-info-card">
                     <div class="view-info-card-header">
-                        <i class="fas fa-user-circle"></i> Personal Information
+                        <i class="fas fa-user-circle"></i> المعلومات الشخصية
                     </div>
                     <div class="view-info-grid">
                         <div class="view-info-item">
-                            <div class="view-info-label">Full Name</div>
+                            <div class="view-info-label">الاسم الكامل</div>
                             <div class="view-info-value" id="viewFullName"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Email Address</div>
+                            <div class="view-info-label">البريد الإلكتروني</div>
                             <div class="view-info-value" id="viewEmail"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Phone Number</div>
+                            <div class="view-info-label">رقم الهاتف</div>
                             <div class="view-info-value" id="viewPhone"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Gender</div>
+                            <div class="view-info-label">الجنس</div>
                             <div class="view-info-value" id="viewGender"></div>
                         </div>
                     </div>
@@ -870,23 +871,23 @@
                 <!-- Account Details Card -->
                 <div class="view-info-card">
                     <div class="view-info-card-header">
-                        <i class="fas fa-id-card"></i> Account Details
+                        <i class="fas fa-id-card"></i> تفاصيل الحساب
                     </div>
                     <div class="view-info-grid">
                         <div class="view-info-item">
-                            <div class="view-info-label">Customer Segment</div>
+                            <div class="view-info-label">فئة العميل</div>
                             <div class="view-info-value" id="viewSegment"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Tier Level</div>
+                            <div class="view-info-label">مستوى العضوية</div>
                             <div class="view-info-value" id="viewTier"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Preferred Language</div>
+                            <div class="view-info-label">اللغة المفضلة</div>
                             <div class="view-info-value" id="viewLanguage"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Marketing Consent</div>
+                            <div class="view-info-label">الموافقة على الرسائل التسويقية</div>
                             <div class="view-info-value" id="viewMarketing"></div>
                         </div>
                     </div>
@@ -895,23 +896,23 @@
                 <!-- Order & Points Statistics Card -->
                 <div class="view-info-card">
                     <div class="view-info-card-header">
-                        <i class="fas fa-chart-line"></i> Order & Points Statistics
+                        <i class="fas fa-chart-line"></i> إحصائيات الطلبات والنقاط
                     </div>
                     <div class="view-info-grid">
                         <div class="view-info-item">
-                            <div class="view-info-label">Total Orders</div>
+                            <div class="view-info-label">إجمالي الطلبات</div>
                             <div class="view-info-value" id="viewTotalOrders"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Total Spent</div>
+                            <div class="view-info-label">إجمالي الإنفاق</div>
                             <div class="view-info-value" id="viewTotalSpent"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Loyalty Points</div>
+                            <div class="view-info-label">نقاط الولاء</div>
                             <div class="view-info-value" id="viewLoyaltyPoints"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Last Order Date</div>
+                            <div class="view-info-label">تاريخ آخر طلب</div>
                             <div class="view-info-value" id="viewLastOrderDate"></div>
                         </div>
                     </div>
@@ -920,19 +921,19 @@
                 <!-- System Information Card -->
                 <div class="view-info-card">
                     <div class="view-info-card-header">
-                        <i class="fas fa-database"></i> System Information
+                        <i class="fas fa-database"></i> معلومات النظام
                     </div>
                     <div class="view-info-grid">
                         <div class="view-info-item" style="grid-column: 1 / -1;">
-                            <div class="view-info-label">Customer ID</div>
+                            <div class="view-info-label">معرّف العميل</div>
                             <div class="view-info-value" id="viewSysCustomerId" style="font-family: monospace; font-size: 11px; word-break: break-all;"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Join Date</div>
+                            <div class="view-info-label">تاريخ الانضمام</div>
                             <div class="view-info-value" id="viewJoinedDate"></div>
                         </div>
                         <div class="view-info-item">
-                            <div class="view-info-label">Last Updated</div>
+                            <div class="view-info-label">آخر تحديث</div>
                             <div class="view-info-value" id="viewUpdatedDate"></div>
                         </div>
                     </div>
@@ -1147,7 +1148,7 @@
     <script src="../assets/js/aws-utils.js?v=20261011-session-fix2"></script>
 
     <!-- Page-specific scripts -->
-    <script src="../assets/js/navigation.js"></script>
+    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
     <script>
         // Initialize navigation (single source of truth)
         document.addEventListener('DOMContentLoaded', function () {

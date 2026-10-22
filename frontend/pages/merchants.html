@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>WizzCentral Platform - Merchants Management</title>
+    <title>ويز سنترال — إدارة المتاجر</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <!-- Security: DOMPurify for XSS Protection -->
@@ -902,7 +903,7 @@
             <div id="dataStatus" class="status-banner">
                 <i class="fas fa-info-circle"></i>
                 <div>
-                    <strong>Data Source:</strong> <span id="dataSourceIndicator">Loading merchants...</span>
+                    <strong>مصدر البيانات:</strong> <span id="dataSourceIndicator">جاري تحميل المتاجر...</span>
                 </div>
             </div>
 
@@ -926,7 +927,7 @@
                     <button id="backToMerchantsBtn" class="btn-secondary"
                         style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-arrow-left"></i>
-                        Back to Merchants
+                        العودة إلى المتاجر
                     </button>
                     <div class="merchant-info">
                         <h2 id="selectedMerchantName" style="margin: 0; color: var(--md-sys-color-on-surface); font-size: 1.5rem;"></h2>
@@ -936,7 +937,7 @@
                     <button id="refreshProductsBtn" class="btn-primary"
                         style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-sync"></i>
-                        Refresh
+                        تحديث
                     </button>
                 </div>
 
@@ -956,61 +957,61 @@
             <div id="editProductModal" class="modal" style="display: none;">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>Edit Product</h2>
+                        <h2>تعديل المنتج</h2>
                         <span class="close-button" data-action="close-edit-product">&times;</span>
                     </div>
                     <div class="modal-body">
                         <form id="editProductForm">
                             <input type="hidden" id="editProductId">
                             <div class="form-group">
-                                <label for="editProductName">Product Name (English)</label>
+                                <label for="editProductName">اسم المنتج بالإنكليزية</label>
                                 <input type="text" id="editProductName" required>
                             </div>
                             <div class="form-group">
-                                <label for="editProductNameAr">Product Name (Arabic)</label>
+                                <label for="editProductNameAr">اسم المنتج بالعربية</label>
                                 <input type="text" id="editProductNameAr">
                             </div>
                             <div class="form-group">
-                                <label for="editProductDescription">Description (English)</label>
+                                <label for="editProductDescription">الوصف بالإنكليزية</label>
                                 <textarea id="editProductDescription" rows="3"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="editProductDescriptionAr">Description (Arabic)</label>
+                                <label for="editProductDescriptionAr">الوصف بالعربية</label>
                                 <textarea id="editProductDescriptionAr" rows="3"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="editProductAllergens">Allergens (comma-separated)</label>
+                                <label for="editProductAllergens">مسببات الحساسية، مفصولة بفواصل</label>
                                 <textarea id="editProductAllergens" rows="2"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="editProductIngredients">Ingredients (comma-separated)</label>
+                                <label for="editProductIngredients">المكونات، مفصولة بفواصل</label>
                                 <textarea id="editProductIngredients" rows="2"></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="editProductPrice">Price</label>
+                                <label for="editProductPrice">السعر</label>
                                 <input type="number" id="editProductPrice" step="0.01" required>
                             </div>
                             <div class="form-group">
-                                <label for="editProductCategory">Category</label>
+                                <label for="editProductCategory">الفئة</label>
                                 <select id="editProductCategory" required></select>
                             </div>
                             <div class="form-group">
-                                <label for="editProductPreparationTime">Preparation Time (minutes)</label>
+                                <label for="editProductPreparationTime">مدة التحضير بالدقائق</label>
                                 <input type="number" id="editProductPreparationTime" min="0">
                             </div>
                             <div class="form-group">
                                 <label for="editProductIsAvailable">
                                     <input type="checkbox" id="editProductIsAvailable">
-                                    Is Available
+                                    متاح للطلب
                                 </label>
                             </div>
                             <div class="form-group">
-                                <label for="editProductImageUrl">Image URL</label>
+                                <label for="editProductImageUrl">رابط الصورة</label>
                                 <input type="text" id="editProductImageUrl">
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn-primary">Save Changes</button>
-                                <button type="button" class="btn-secondary" data-action="cancel-edit-product">Cancel</button>
+                                <button type="submit" class="btn-primary">حفظ التغييرات</button>
+                                <button type="button" class="btn-secondary" data-action="cancel-edit-product">إلغاء</button>
                             </div>
                         </form>
                         <div id="editProductFormMessage" class="form-message" style="display: none;"></div>
@@ -1027,11 +1028,11 @@
                 style="background:white; padding:1rem; border-radius:8px; max-width:400px; width:90%; position:relative;">
                 <button data-action="close-status-modal"
                     style="position:absolute; top:8px; right:8px; background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
-                <h3 style="margin-bottom: 1rem;">Update Merchant Status</h3>
+                <h3 style="margin-bottom: 1rem;">تحديث حالة المتجر</h3>
                 <div id="statusModalBody"></div>
                 <div style="margin-top:1rem; text-align:right;">
-                    <button class="btn-secondary" data-action="cancel-status-modal" style="margin-right: 0.5rem;">Cancel</button>
-                    <button class="btn-primary" data-action="save-status-modal">Save Changes</button>
+                    <button class="btn-secondary" data-action="cancel-status-modal" style="margin-right: 0.5rem;">إلغاء</button>
+                    <button class="btn-primary" data-action="save-status-modal">حفظ التغييرات</button>
                 </div>
             </div>
         </div>
@@ -1043,10 +1044,10 @@
                 style="background:white; padding:1rem; border-radius:8px; max-width:600px; width:90%; position:relative;">
                 <button data-action="close-view-merchant"
                     style="position:absolute; top:8px; right:8px; background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
-                <h3 style="margin-bottom: 1rem;">Merchant Details</h3>
+                <h3 style="margin-bottom: 1rem;">تفاصيل المتجر</h3>
                 <div id="merchantDetailsBody"></div>
                 <div style="margin-top:1rem; text-align:right;">
-                    <button class="btn-primary" data-action="close-view-merchant">Close</button>
+                    <button class="btn-primary" data-action="close-view-merchant">إغلاق</button>
                 </div>
             </div>
         </div>
@@ -1059,22 +1060,20 @@
                 <button data-action="close-edit-merchant"
                     style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#6b7280; padding:4px;">&times;</button>
 
-                <h3 style="margin-bottom: 1.5rem; color: var(--md-sys-color-on-surface); font-size: 1.5rem;">Edit Merchant</h3>
+                <h3 style="margin-bottom: 1.5rem; color: var(--md-sys-color-on-surface); font-size: 1.5rem;">تعديل المتجر</h3>
 
                 <form id="editMerchantForm" style="display: grid; gap: 1rem;">
                     <!-- Basic Information -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
                             <label for="editBusinessName"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Business
-                                Name</label>
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">اسم النشاط التجاري</label>
                             <input type="text" id="editBusinessName" name="businessName" required
                                 style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                         </div>
                         <div>
                             <label for="editOwnerName"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Owner
-                                Name</label>
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">اسم المالك</label>
                             <input type="text" id="editOwnerName" name="ownerName"
                                 style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                         </div>
@@ -1084,14 +1083,13 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
                             <label for="editEmail"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Email</label>
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">البريد الإلكتروني</label>
                             <input type="email" id="editEmail" name="email" required
                                 style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                         </div>
                         <div>
                             <label for="editPhoneNumber"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Phone
-                                Number</label>
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">رقم الهاتف</label>
                             <input type="tel" id="editPhoneNumber" name="phoneNumber" required
                                 style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                         </div>
@@ -1101,27 +1099,26 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
                             <label for="editBusinessType"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Business
-                                Type</label>
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">نوع النشاط</label>
                             <select id="editBusinessType" name="businessType"
                                 style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
-                                <option value="restaurant">Restaurant</option>
-                                <option value="store">Store</option>
-                                <option value="cafe">Cafe</option>
-                                <option value="cloudkitchen">Cloud Kitchen</option>
-                                <option value="pharmacy">Pharmacy</option>
-                                <option value="retail">Retail</option>
+                                <option value="restaurant">مطعم</option>
+                                <option value="store">متجر</option>
+                                <option value="cafe">مقهى</option>
+                                <option value="cloudkitchen">مطبخ سحابي</option>
+                                <option value="pharmacy">صيدلية</option>
+                                <option value="retail">بيع بالتجزئة</option>
                             </select>
                         </div>
                         <div>
                             <label for="editStatus"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Status</label>
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">الحالة</label>
                             <select id="editStatus" name="status"
                                 style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="under_review">Under Review</option>
-                                <option value="rejected">Rejected</option>
+                                <option value="pending">بانتظار المراجعة</option>
+                                <option value="approved">معتمد</option>
+                                <option value="under_review">قيد المراجعة</option>
+                                <option value="rejected">مرفوض</option>
                             </select>
                         </div>
                     </div>
@@ -1130,36 +1127,35 @@
                     <div id="statusReasonSection" style="display: none;">
                         <label for="editStatusReason"
                             style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">
-                            Reason for Status Change <span style="color: #ef4444;">*</span>
+                            سبب تغيير الحالة <span style="color: #ef4444;">*</span>
                         </label>
                         <textarea id="editStatusReason" name="statusReason" rows="2" minlength="10" maxlength="500"
-                            placeholder="Please provide a reason for the status change..."
+                            placeholder="اكتب سبب تغيير الحالة..."
                             style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem; resize: vertical;"></textarea>
-                        <small style="color: #6b7280; font-size: 0.75rem;">This will be included in the email
-                            notification sent to the merchant.</small>
+                        <small style="color: #6b7280; font-size: 0.75rem;">يُدرج السبب ضمن الإشعار المرسل إلى المتجر.</small>
                     </div>
 
                     <!-- Address - Match DynamoDB structure -->
                     <div>
                         <label
-                            style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: #374151;">Address</label>
+                            style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: #374151;">العنوان</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                             <div>
-                                <input type="text" id="editStreet" name="street" placeholder="Street Address"
+                                <input type="text" id="editStreet" name="street" placeholder="عنوان الشارع"
                                     style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                             </div>
                             <div>
-                                <input type="text" id="editCity" name="city" placeholder="City"
+                                <input type="text" id="editCity" name="city" placeholder="المدينة"
                                     style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                             </div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <input type="text" id="editDistrict" name="district" placeholder="District"
+                                <input type="text" id="editDistrict" name="district" placeholder="القضاء"
                                     style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                             </div>
                             <div>
-                                <input type="text" id="editCountry" name="country" placeholder="Country" value="Iraq"
+                                <input type="text" id="editCountry" name="country" placeholder="البلد" value="Iraq"
                                     style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                             </div>
                         </div>
@@ -1174,10 +1170,10 @@
                     <div style="display: flex; gap: 1rem; margin-top: 1rem; justify-content: flex-end;">
                         <button type="button" data-action="cancel-edit-merchant"
                             style="padding: 0.75rem 1.5rem; border: 1px solid #d1d5db; background: white; color: #374151; border-radius: 6px; cursor: pointer; font-size: 0.875rem;">
-                            Cancel
+                            إلغاء
                         </button>
                         <button type="submit" id="saveEditBtn" class="btn-primary">
-                            Save Changes
+                            حفظ التغييرات
                         </button>
                     </div>
                 </form>
@@ -1207,7 +1203,7 @@
         <script src="../data-service.js?v=20261011-session-fix2"></script>
 
         <!-- Navigation (single source of truth) -->
-        <script src="../assets/js/navigation.js?v=2024-merchants"></script>
+        <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 try {

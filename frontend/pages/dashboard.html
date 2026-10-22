@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WizzCentral Platform - Dashboard</title>
+    <title>ويز سنترال — لوحة التحكم</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <!-- Security: DOMPurify for XSS Protection -->
@@ -455,7 +456,7 @@
                 <div class="indicator-content">
                     <i id="dataSourceIcon" class="indicator-icon fas fa-circle-info"></i>
                     <div>
-                        <div id="dataSourceText" class="indicator-text">Loading data...</div>
+                        <div id="dataSourceText" class="indicator-text">جاري تحميل البيانات...</div>
                         <div id="dataSourceDetails" class="indicator-details"></div>
                     </div>
                 </div>
@@ -466,81 +467,53 @@
                     <div class="stat-icon customers">
                         <i class="fas fa-users"></i>
                     </div>
-                    <div class="stat-value" id="customersCount">0</div>
-                    <div class="stat-label">Total Customers</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+12% from last month</span>
-                    </div>
+                    <div class="stat-value" id="customersCount">—</div>
+                    <div class="stat-label">إجمالي العملاء</div>
                 </div>
             
                 <div class="stat-card merchants">
                     <div class="stat-icon merchants">
                         <i class="fas fa-store"></i>
                     </div>
-                    <div class="stat-value" id="merchantsCount">0</div>
-                    <div class="stat-label">Active Merchants</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+8% from last month</span>
-                    </div>
+                    <div class="stat-value" id="merchantsCount">—</div>
+                    <div class="stat-label">المتاجر النشطة</div>
                 </div>
             
                 <div class="stat-card drivers">
                     <div class="stat-icon drivers">
                         <i class="fas fa-motorcycle"></i>
                     </div>
-                    <div class="stat-value" id="driversCount">0</div>
-                    <div class="stat-label">Online Drivers</div>
-                    <div class="stat-change neutral">
-                        <i class="fas fa-minus"></i>
-                        <span>No change</span>
-                    </div>
+                    <div class="stat-value" id="driversCount">—</div>
+                    <div class="stat-label">السائقون المتصلون</div>
                 </div>
             
                 <div class="stat-card orders">
                     <div class="stat-icon orders">
                         <i class="fas fa-shopping-bag"></i>
                     </div>
-                    <div class="stat-value" id="ordersCount">0</div>
-                    <div class="stat-label">Orders Today</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+15% from yesterday</span>
-                    </div>
+                    <div class="stat-value" id="ordersCount">—</div>
+                    <div class="stat-label">طلبات اليوم</div>
                 </div>
                 <div class="stat-card revenue">
                     <div class="stat-icon revenue">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
-                    <div class="stat-value" id="revenueCount">$0</div>
-                    <div class="stat-label">Revenue Today</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+22% from yesterday</span>
-                    </div>
+                    <div class="stat-value" id="revenueCount">—</div>
+                    <div class="stat-label">إيرادات اليوم</div>
                 </div>
                 <div class="stat-card support">
                     <div class="stat-icon support">
                         <i class="fas fa-headset"></i>
                     </div>
-                    <div class="stat-value" id="ticketsCount">0</div>
-                    <div class="stat-label">Support Tickets</div>
-                    <div class="stat-change negative">
-                        <i class="fas fa-arrow-down"></i>
-                        <span>-5% from last week</span>
-                    </div>
+                    <div class="stat-value" id="ticketsCount">—</div>
+                    <div class="stat-label">طلبات الدعم</div>
                 </div>
                 <div class="stat-card promotions clickable" data-href="promotions.html">
                     <div class="stat-icon promotions">
                         <i class="fas fa-tags"></i>
                     </div>
-                    <div class="stat-value" id="promotionsCount">0</div>
-                    <div class="stat-label">Active Promotions</div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>Marketing campaigns</span>
-                    </div>
+                    <div class="stat-value" id="promotionsCount">—</div>
+                    <div class="stat-label">العروض النشطة</div>
                 </div>
             </div>
     </div>
@@ -559,7 +532,7 @@
     <script src="../data-service.js?v=20261011-session-fix2"></script>
 
     <!-- Page-specific scripts -->
-    <script src="../assets/js/navigation.js?v=20250906"></script>
+    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
     <script src="../test-toggle-functionality.js"></script>
     
     <!-- Authentication check (moved to external) -->
