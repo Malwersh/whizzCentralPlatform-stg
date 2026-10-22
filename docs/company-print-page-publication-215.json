@@ -1,0 +1,20 @@
+{
+  "part": 215,
+  "baseJobId": "122",
+  "jobId": "123",
+  "changedFiles": [
+    "pages/finance.html",
+    "settlement-orders.js",
+    "merchant-period-print.js",
+    "settlement-statement-details.js",
+    "settlement-statements.js",
+    "merchant-payouts.js",
+    "finance-print-company.js",
+    "merchant-payout-print.js",
+    "assets/brand/wizz-wordmark-blue.png"
+  ],
+  "otherFilesPreserved": true,
+  "status": "SUCCEED",
+  "sha256": "6bf9253aa098a5e06d5e9641eb830d3d19425313860e8bb74ee1776f8f757ccb",
+  "hostedBytesVerified": true
+}

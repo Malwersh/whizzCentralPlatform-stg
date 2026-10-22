@@ -10,10 +10,10 @@ const JOBS='WizzDispatchJobs_staging';
 /** Bounded host over existing Jobs and periodic timeout. A persisted cursor resumes
  * empty pages too; no timer per offer, new queue/table or financial engine.
  */
-function createDispatchHost(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;mode?:string;engine?:'LEGACY'|'FINANCIAL';enableDeliveryFunding?:boolean;remainingMs?:()=>number;start:(input:{orderId:string;assignmentId:string;cycleId:string})=>Promise<unknown>}){
- const {db}=options,now=options.now??Date.now,engine=options.engine??'LEGACY',financial=engine==='FINANCIAL',checkpoint={orderId:'SYSTEM#DISPATCH_HOST',SK:'CURSOR#'+engine},coordinator=createStagingDispatchCoordinator({db,now,enableDeliveryFunding:options.enableDeliveryFunding});
+function createDispatchHost(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;mode?:string;engine?:'LEGACY'|'FINANCIAL';enableDeliveryFunding?:boolean;enableFullCash?:boolean;remainingMs?:()=>number;start:(input:{orderId:string;assignmentId:string;cycleId:string})=>Promise<unknown>}){
+ const {db}=options,now=options.now??Date.now,engine=options.engine??'LEGACY',financial=engine==='FINANCIAL',checkpoint={orderId:'SYSTEM#DISPATCH_HOST',SK:'CURSOR#'+engine},coordinator=createStagingDispatchCoordinator({db,now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash});
  const enabled=()=>{if((options.mode??process.env[financial?'DISPATCH_FINANCIAL_HOST_MODE':'DISPATCH_LEGACY_HOST_MODE'])!=='REQUIRED')throw Error(financial?'DISPATCH_FINANCIAL_HOST_DISABLED':'DISPATCH_LEGACY_HOST_DISABLED');};
- const consumer=createStagingDispatchRestartStart({db,now,mode:'REQUIRED',start:options.start});
+ const consumer=createStagingDispatchRestartStart({db,now,mode:'REQUIRED',engine,enableFullCash:options.enableFullCash,start:options.start});
  async function processOrder(orderId:string,expectedAssignment?:string){
   enabled();if(!quoteEntityIdValid(orderId))throw Error('DISPATCH_HOST_SELECTOR_INVALID');
   const job=await strongGet(db,JOBS,{orderId,SK:'METADATA'});if(!job)return {skipped:'MISSING'};
@@ -22,7 +22,7 @@ function createDispatchHost(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?
   const cycle=validateDispatchCycle(job.dispatchCycle);if(cycle.engine!==engine||cycle.assignmentId!==job.dispatchJobId||cycle.orderId!==orderId)throw Error('DISPATCH_HOST_SOURCE_INVALID');
   // An uncertain reservation is not a reason to launch another offer or release money.
   if(!financial){let cursor:Row|undefined;for(let page=0;page<5;page++){const q=await db.send(new QueryCommand({TableName:JOBS,ConsistentRead:true,Limit:20,ExclusiveStartKey:cursor,KeyConditionExpression:'orderId=:id AND begins_with(SK,:prefix)',ExpressionAttributeValues:{':id':orderId,':prefix':'DISPATCH_ACCEPTANCE#'}}));for(const a of q.Items??[]){if(a.kind!=='LEGACY_ACCEPTANCE_ATTEMPT'||a.orderId!==orderId)throw Error('DISPATCH_HOST_ACCEPTANCE_INVALID');if(['RESERVATION_PENDING','ASSIGNMENT_PENDING','REVIEW_REQUIRED'].includes(a.state))return {skipped:'RESERVATION_REVIEW'};if(a.state!=='ASSIGNED')throw Error('DISPATCH_HOST_ACCEPTANCE_INVALID');}cursor=q.LastEvaluatedKey;if(!cursor)break;}if(cursor)throw Error('DISPATCH_HOST_ACCEPTANCE_INCOMPLETE');}
-  if(job.dispatchRestart){if(financial)throw Error('FINANCIAL_RESTART_NOT_READY');const r=await strongGet(db,JOBS,{orderId,SK:'DISPATCH_RESTART#'+job.dispatchRestart.restartId});if(!r)throw Error('DISPATCH_HOST_RESTART_MISSING');if(r.state!=='STARTED')return consumer.process(orderId,r.restartId,'host:'+quoteHash({orderId,at:now()}).slice(0,32));}
+  if(job.dispatchRestart){const r=await strongGet(db,JOBS,{orderId,SK:'DISPATCH_RESTART#'+job.dispatchRestart.restartId});if(!r)throw Error('DISPATCH_HOST_RESTART_MISSING');if(r.state!=='STARTED')return consumer.process(orderId,r.restartId,'host:'+quoteHash({orderId,at:now()}).slice(0,32));}
   if(job.status!=='searching')return {skipped:'NOT_SEARCHING'};
   const plan=await coordinator.plan({orderId,assignmentId:job.dispatchJobId,source:'TIMEOUT'});
   let resumeDelivery=false;if(plan.action==='WAIT'&&job.currentWaveNumber>0){const wave=await strongGet(db,JOBS,{orderId,SK:dispatchWaveSK(cycle,job.currentWaveNumber)});if(!wave||wave.kind!==(financial?'FINANCIAL_WAVE':'DISPATCH_WAVE')||(financial?wave.operatingLimits?.version!==cycle.policy.version:wave.cycleDigest!==cycle.digest)||!Array.isArray(wave.driverIds)||!Array.isArray(wave.delivered))throw Error('DISPATCH_HOST_WAVE_INVALID');resumeDelivery=wave.driverIds.some((id:string)=>!wave.delivered.includes(id));}
@@ -57,7 +57,7 @@ function createDispatchHost(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?
  return {tick,processOrder};
 }
 
-// Share cursor/lease/pagination recovery, but never legacy acceptance or restart handling.
+// Share cursor/lease/pagination and engine-bound durable restart recovery; acceptance remains separate.
 type HostOptions=Omit<Parameters<typeof createDispatchHost>[0],'engine'>;
 export function createStagingDispatchLegacyHost(options:HostOptions){return createDispatchHost({...options,engine:'LEGACY'});}
 export function createStagingDispatchFinancialHost(options:HostOptions){return createDispatchHost({...options,engine:'FINANCIAL'});}

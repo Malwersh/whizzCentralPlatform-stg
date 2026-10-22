@@ -1,3 +1,4 @@
+import {financialWaveSK} from './financialDispatchKeys';
 import {DeliveryOperationsValues} from './deliveryOperationsPolicy';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { createStagingDriverOfferContext } from './driverOfferContext';
@@ -11,17 +12,17 @@ const conflict=():never=>{throw Object.assign(Error('FINANCIAL_WAVE_CONFLICT'),{
  * A READY wave is required by acceptance. Notifications carry the allowlisted financial view only.
  */
 export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocumentClient,'send'>;
-  pinnedTransitionId?:string;enableDeliveryFunding?:boolean;
+  pinnedTransitionId?:string;enableDeliveryFunding?:boolean;enableFullCash?:boolean;
   operating?:{version:number;values:DeliveryOperationsValues;condition:Row|null};
   context:ReturnType<typeof createStagingDriverOfferContext>;sendOffer:(driverId:string,message:Row)=>Promise<void>;now?:()=>number}) {
- const {db,context,sendOffer}=options,now=options.now??Date.now,store=createStagingDriverOfferStore({db,now,enableDeliveryFunding:options.enableDeliveryFunding});
+ const {db,context,sendOffer}=options,now=options.now??Date.now,store=createStagingDriverOfferStore({db,now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash});
  return Object.freeze({async run(value:unknown){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='branchId,driverIds,orderId,waveNumber')return conflict();
   const r=detach(value as Row),{orderId,branchId,waveNumber}=r;
   if(![orderId,branchId].every(quoteEntityIdValid)||!Number.isSafeInteger(waveNumber)||waveNumber<1||waveNumber>1000||
     !Array.isArray(r.driverIds)||r.driverIds.length>25||!r.driverIds.every(quoteEntityIdValid)||new Set(r.driverIds).size!==r.driverIds.length)return conflict();
-  const driverIds=[...r.driverIds].sort(),waveKey={orderId,SK:`FINANCIAL_WAVE#${waveNumber}`},jobKey={orderId,SK:'METADATA'};
-  const selectedJob=await strongGet(db,jobs,jobKey);
+  const driverIds=[...r.driverIds].sort(),jobKey={orderId,SK:'METADATA'};
+  const selectedJob=await strongGet(db,jobs,jobKey),waveKey={orderId,SK:financialWaveSK(selectedJob,waveNumber)};
   if(selectedJob&&Object.prototype.hasOwnProperty.call(selectedJob,'dispatchCycle')?(!options.pinnedTransitionId||selectedJob.dispatchTransition?.id!==options.pinnedTransitionId):options.pinnedTransitionId!==undefined)return conflict();
   let wave=await strongGet(db,jobs,waveKey);
   if(!wave){
@@ -44,11 +45,13 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
     const key={orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`},saved=await strongGet(db,offers,key);
     if(saved){
      if(saved.offerId!==offerId||saved.financialOffer?.assignmentId!==wave.assignmentId||saved.responseStatus!=='financial_pending')return conflict();
-     versionedFinancialOfferView(saved.financialOffer,driverId,resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding).driverSubjectId,new Date(now()).toISOString(),options.enableDeliveryFunding);
+     versionedFinancialOfferView(saved.financialOffer,driverId,resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash).driverSubjectId,new Date(now()).toISOString(),options.enableDeliveryFunding,options.enableFullCash);
     }else{
-     const prepared=await context.prepare({orderId,branchId,driverId,waveNumber,offerId});
-     if(resolveFinancialOffer(prepared.offer,options.enableDeliveryFunding).assignmentId!==wave.assignmentId)return conflict();
-     await store.save(prepared);
+     for(let positionAttempt=0;positionAttempt<3;positionAttempt++){
+      const prepared=await context.prepare({orderId,branchId,driverId,waveNumber,offerId});
+      if(resolveFinancialOffer(prepared.offer,options.enableDeliveryFunding,options.enableFullCash).assignmentId!==wave.assignmentId)return conflict();
+      try{await store.save(prepared);break;}catch(error:any){if(error?.code!=='DRIVER_OFFER_POSITION_CONFLICT'||positionAttempt===2)throw error;}
+     }
     }
    }
    const job=await strongGet(db,jobs,jobKey);
@@ -70,7 +73,7 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
    // The durable response is authoritative; skip it without inventing a delivery ACK.
    if(options.pinnedTransitionId&&saved&&(['financial_declined','financial_expired'].includes(saved.responseStatus)||(saved.responseStatus==='financial_pending'&&Date.parse(saved.expiresAt)<=now())))continue;
    if(!saved||saved.responseStatus!=='financial_pending')return conflict();
-   const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding);
+   const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash);
    if(!equal(offer.versionedOffer,saved.financialOffer)||offer.assignmentId!==wave.assignmentId)return conflict();
    const live=await context.checkAcceptance({orderId,branchId,driverId,waveNumber,offerId:offer.offerId});
    if(live.subjectId!==offer.driverSubjectId||live.assignment.dispatchJobId!==wave.assignmentId)return conflict();
@@ -78,7 +81,7 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
    // can still cause a stale notification; acceptance's atomic conditions remain authoritative.
    await db.send(new TransactWriteCommand({TransactItems:[live.order.condition,...(live.order.releaseCondition?[live.order.releaseCondition]:[]),...Object.values(live.guards).filter(v=>!Array.isArray(v)),
     ...live.guards.deletions,exactCheck(jobs,waveKey,wave),exactCheck(offers,{orderId,SK:saved.SK},saved)] as any}));
-   const view=versionedFinancialOfferView(offer,driverId,live.subjectId,new Date(now()).toISOString(),options.enableDeliveryFunding);
+   const view=versionedFinancialOfferView(offer,driverId,live.subjectId,new Date(now()).toISOString(),options.enableDeliveryFunding,options.enableFullCash);
    await sendOffer(driverId,{type:'financial_wave_offer',eventId:offer.offerId,waveNumber,offer:{...view,...(live.order.display?{display:live.order.display}:{})}});
    try{await db.send(new TransactWriteCommand({TransactItems:[updateChecked(exactCheck(jobs,waveKey,wave),
      'SET #uDelivered=:uDelivered, #uVersion=:uVersion',{'#uDelivered':'delivered','#uVersion':'version'},
@@ -92,8 +95,8 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
   return {kind:'FINANCIAL_WAVE_READY',orderId,waveNumber,offers:driverIds.length,timeoutAt};
  }, async expire(orderId:string,waveNumber:number){
   if(!quoteEntityIdValid(orderId)||!Number.isSafeInteger(waveNumber)||waveNumber<1||waveNumber>1000)return conflict();
-  const jobKey={orderId,SK:'METADATA'},waveKey={orderId,SK:`FINANCIAL_WAVE#${waveNumber}`};
-  const job=await strongGet(db,jobs,jobKey),wave=await strongGet(db,jobs,waveKey);
+  const jobKey={orderId,SK:'METADATA'},job=await strongGet(db,jobs,jobKey),waveKey={orderId,SK:financialWaveSK(job,waveNumber)};
+  const wave=await strongGet(db,jobs,waveKey);
   if(job?.status==='assigned')return {expired:false,assigned:true};
   if(!wave||wave.kind!=='FINANCIAL_WAVE'||job?.status!=='searching'||job.dispatchJobId!==wave.assignmentId)return conflict();
   if(wave.state==='EXPIRED')return {expired:true,driverIds:wave.driverIds};

@@ -132,6 +132,7 @@ window.RBAC = {
             pageName = pageName + '.html';
         }
         
+        if(this.staff && pageName==='order-exceptions.html')return this.staff.employee.roles.includes('bootstrap_admin')||this.staff.permissions.includes('orders.read')||this.staff.permissions.includes('finance.read');
         if(this.staff && !this.staff.employee.roles.includes('bootstrap_admin')) {
             if(['pricing.html','delivery-pricing.html'].includes(pageName))return this.staff.permissions.includes('pricing.read');
             if(['merchants.html','promotions.html'].includes(pageName)&&this.staff.permissions.includes('commercial.read'))return true;
@@ -244,6 +245,7 @@ window.RBAC = {
     },
 
     _applyReadOnlyUI() {
+        if(document.body.dataset.page==='order-exceptions')return; // Case controls use server-projected capabilities; keep search available.
         const actionButtons = document.querySelectorAll('button, .btn');
         actionButtons.forEach(button => {
             // Commercial sections render only server-authorized actions; other page domains remain read-only.

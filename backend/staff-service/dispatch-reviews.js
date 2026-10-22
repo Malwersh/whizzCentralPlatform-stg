@@ -10,11 +10,20 @@ const fail=(code,status=409)=>Object.assign(Error(code),{status});
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(v);
 const canon=v=>JSON.stringify(v===undefined?null:Array.isArray(v)?v.map(x=>JSON.parse(canon(x))):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,JSON.parse(canon(v[k]))])):v);
 const hash=v=>createHash('sha256').update(canon(v)).digest('hex');
-const fields={order:['PK','SK','orderId','storeId','businessId','status','orderStatus','driverId','assignedDriverId','pickedUpAt','deliveredAt','completedAt','financialOutcome','financialRelease','returnCaseId','returnStatus','cashCollected','cashCollectedAmount','cancellationRequestId','cancellationStatus','deletionRequestId','deletionStatus','deletedAt','isDeleted','dispatchReviewOutcome'],branch:['businessId','regionId','businessName','name','ownerId','cognitoUserId','status','isActive','ordersBlocked','platformSuspended','isDeleted','deletedAt','deletionRequestId'],hold:['orderId','sk','holdId','status','version','updatedAt'],job:['orderId','SK','kind','status','state','restaurantId','dispatchJobId','dispatchCycle','dispatchReview','financialDispatch','financialSearchVersion','noDriverReason','attemptId','cycleId','branchId','version','reason','updatedAt','createdAt','dispatchReviewOutcome']};
+const fields={order:['PK','SK','orderId','storeId','businessId','status','orderStatus','driverId','assignedDriverId','pickedUpAt','deliveredAt','completedAt','financialOutcome','financialRelease','returnCaseId','returnStatus','cashCollected','cashCollectedAmount','cancellationRequestId','cancellationStatus','deletionRequestId','deletionStatus','deletedAt','isDeleted','dispatchReviewOutcome','financeRollout'],branch:['businessId','regionId','businessName','name','ownerId','cognitoUserId','status','isActive','ordersBlocked','platformSuspended','isDeleted','deletedAt','deletionRequestId'],hold:['orderId','sk','holdId','status','version','updatedAt'],job:['orderId','SK','kind','status','state','restaurantId','dispatchJobId','dispatchCycle','dispatchReview','financialDispatch','financialSearchVersion','noDriverReason','attemptId','cycleId','branchId','version','reason','updatedAt','createdAt','dispatchReviewOutcome']};
 function exact(table,key,row,keys){const names={},values={},parts=[];for(const [i,k]of keys.entries()){names['#g'+i]=k;if(row?.[k]===undefined)parts.push('attribute_not_exists(#g'+i+')');else{values[':g'+i]=row[k];parts.push('#g'+i+'=:g'+i);}}return {ConditionCheck:{TableName:table,Key:key,ConditionExpression:parts.join(' AND '),ExpressionAttributeNames:names,...(Object.keys(values).length?{ExpressionAttributeValues:values}:{})}};}
 const selector=q=>q.source==='SEARCH'?{orderId:q.orderId,SK:'METADATA'}:{orderId:q.orderId,SK:'DISPATCH_ACCEPTANCE#'+q.attemptId};
 function validate(q){if(!q||Object.keys(q).some(k=>!['orderId','source','attemptId'].includes(k))||!id(q.orderId)||!['SEARCH','ACCEPTANCE'].includes(q.source)||q.source==='ACCEPTANCE'&&!/^LA:[a-f0-9]{48}$/.test(q.attemptId||''))throw fail('INVALID_REVIEW_SELECTOR',400);return {orderId:q.orderId,source:q.source,...(q.source==='ACCEPTANCE'?{attemptId:q.attemptId}:{})};}
 function candidate(r){return r.SK==='METADATA'&&r.status==='no_driver_available'&&(r.dispatchReview?.reviewStatus==='REQUIRED'||r.financialDispatch===true&&r.financialSearchVersion===1)||r.kind==='LEGACY_ACCEPTANCE_ATTEMPT'&&['RESERVATION_PENDING','ASSIGNMENT_PENDING','REVIEW_REQUIRED'].includes(r.state);}
+// General release admits persisted, server-pinned orders to operational review.
+// It never enrolls a customer/order or grants financial execution permissions.
+function reviewAccess({db,rollout,env=process.env}){
+ const mode=env.FINANCE_GENERAL_RELEASE_MODE??'OFF';
+ if(!['OFF','REQUIRED'].includes(mode))throw fail('FINANCE_ROLLOUT_NOT_CONFIGURED',503);
+ if(mode==='OFF')return {db:rollout.db,scopeContains:rollout.containsOrder};
+ if(env.AWS_REGION!=='us-east-1'||(env.STAGE??env.ENVIRONMENT)!=='staging'||(env.STAGE!==undefined&&env.STAGE!=='staging')||(env.ENVIRONMENT!==undefined&&env.ENVIRONMENT!=='staging')||env.FINANCIAL_SETTLEMENT_MODEL!=='FULL_CASH_AT_DELIVERY_V1')throw fail('FINANCE_ROLLOUT_NOT_CONFIGURED',503);
+ return {db,scopeContains:()=>true,generalRelease:true,historicalContainsOrder:rollout.containsOrder};
+}
 function createReviewReader(ctx,actor){
  const get=async(table,key,keys)=>{const names=keys&&Object.fromEntries(keys.map((k,i)=>['#p'+i,k]));return (await ctx.db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true,...(names?{ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names}:{})}))).Item;};
  async function fresh(){const live=await ctx.employee(actor.employeeId);if(!live||live.version!==actor.version||live.status!=='ACTIVE')throw fail('EMPLOYEE_CHANGED',403);}
@@ -23,6 +32,10 @@ function createReviewReader(ctx,actor){
   if(!source||!job||!id(job.restaurantId))throw fail('REVIEW_UNAVAILABLE',404);
   const [order,branch,hold]=await Promise.all([get(ORDERS,{PK:'ORDER#'+q.orderId,SK:'META'},fields.order),get(BRANCH,{businessId:job.restaurantId},fields.branch),get(HOLDS,{orderId:q.orderId,sk:'HOLD'},fields.hold)]);
   if(!order||order.orderId!==q.orderId||![order.storeId,order.businessId].includes(job.restaurantId)||[order.storeId,order.businessId].some(v=>v!==undefined&&v!==job.restaurantId)||!branch||branch.businessId!==job.restaurantId||!allowed(actor,'orders.read',branch.regionId)||!id(branch.ownerId)||branch.cognitoUserId!==branch.ownerId)throw fail('REVIEW_UNAVAILABLE',404);
+  if(ctx.generalRelease&&!ctx.historicalContainsOrder?.(q.orderId)){
+   const pin=order.financeRollout;
+   if(pin?.schemaVersion!==2||pin.scopeId!=='GENERAL_STAGING_FULL_CASH_V1'||pin.version!==1||!/^[a-f0-9]{64}$/.test(pin.digest??''))throw fail('REVIEW_UNAVAILABLE',404);
+  }
   const guards=[exact(JOBS,key,source,fields.job),...(q.source==='SEARCH'?[]:[exact(JOBS,{orderId:q.orderId,SK:'METADATA'},job,fields.job)]),exact(ORDERS,{PK:order.PK,SK:order.SK},order,fields.order),exact(BRANCH,{businessId:branch.businessId},branch,fields.branch),exact(HOLDS,{orderId:q.orderId,sk:'HOLD'},hold,fields.hold)];
   if(order.deletionRequestId!=null||order.deletionStatus!=null||order.deletedAt!=null||order.isDeleted===true||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)throw fail('REVIEW_UNAVAILABLE',404);
   for(const pk of ['ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId,'BUSINESS_LIFECYCLE#MERCHANT#'+branch.businessId]){if(await get(LOCKS,{pk,sk:'META'},['pk','sk']))throw fail('REVIEW_UNAVAILABLE',404);guards.push(exact(LOCKS,{pk,sk:'META'},undefined,['pk']));}
@@ -37,7 +50,10 @@ function createReviewReader(ctx,actor){
   const safeHold=!hold||hold.status==='RELEASED';
   const ready=active&&q.source==='SEARCH'&&before&&safeHold&&!pending;
   const caseId=hash({orderId:q.orderId,source:q.source,cycle,...(q.attemptId?{attemptId:q.attemptId}:{})}),decisionKey={pk:'DISPATCH_REVIEW#'+caseId,sk:'DECISION'},decision=await get(ctx.table,decisionKey);
-  const baseDigest=hash({source,job,order,branch,hold:hold??null,attempts});
+  // Keep the established decision digest stable for the existing executor.
+  // Admission pin is an additional atomic guard, not a new digest protocol.
+  const digestOrder={...order};delete digestOrder.financeRollout;
+  const baseDigest=hash({source,job,order:digestOrder,branch,hold:hold??null,attempts});
   const publicDecision=decision?{requestId:decision.requestId,action:decision.action,status:decision.status,reason:decision.reason,createdAt:decision.createdAt,resultCode:decision.resultCode??null,executedAt:decision.executedAt??null,stale:['PENDING_EXECUTION','BLOCKED_DEPENDENCY'].includes(decision.status)&&decision.baseDigest!==baseDigest}:null;
   const item={...q,caseId,baseDigest,active,branchId:branch.businessId,branchName:branch.businessName??branch.name??branch.businessId,regionId:branch.regionId,reason:q.source==='SEARCH'?source.dispatchReview?.reason??source.noDriverReason:source.reason??source.state,phase:q.source==='SEARCH'?'SEARCH_EXHAUSTED':source.state,orderStatus:order.status,goodsState:before?'BEFORE_PICKUP_RECORDED':'REQUIRES_CHECK',holdState:hold?.status??'NOT_RECORDED',pendingAcceptance:pending,decision:publicDecision,executionReady:false,
    canRequestRetry:!decision&&ready&&branch.status==='approved'&&branch.isActive===true&&branch.ordersBlocked!==true&&branch.platformSuspended!==true&&allowed(actor,'orders.assign',branch.regionId),
@@ -80,4 +96,4 @@ async function route(ctx,actor,method,path,input={}){
  try{await ctx.db.send(new TransactWriteCommand({TransactItems:tx}));}catch(e){const saved=await get(ctx.table,c.decisionKey);if(saved?.requestId===row.requestId&&saved.actorId===actor.employeeId&&saved.requestDigest===requestDigest){await fresh();return receipt(saved,true);}if(e.name==='TransactionCanceledException')throw fail('REVIEW_CHANGED');throw e;}
  return receipt(row);
 }
-module.exports={route,PATH,hash,createReviewReader};
+module.exports={route,PATH,hash,createReviewReader,reviewAccess};

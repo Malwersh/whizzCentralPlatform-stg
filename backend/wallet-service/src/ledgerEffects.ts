@@ -1,7 +1,7 @@
 /** Read-only interpretation of the entry shapes produced by this service.
  * Unknown or contradictory shapes remain unclassified; no ledger is rewritten.
  */
-export const EFFECT_RULE_VERSION = 'LEDGER_EFFECTS_V4';
+export const EFFECT_RULE_VERSION = 'LEDGER_EFFECTS_V7';
 type Bucket = 'AVAILABLE' | 'LOCKED';
 type Effect = {status:'CLASSIFIED';bucket:Bucket;delta:number} | {status:'UNCLASSIFIED';reason:'UNKNOWN_SHAPE'|'INVALID_VALUES'};
 export function ledgerEffect(row:Record<string,any>):Effect {
@@ -9,6 +9,16 @@ export function ledgerEffect(row:Record<string,any>):Effect {
   const invalid:Effect={status:'UNCLASSIFIED',reason:'INVALID_VALUES'};
   if(!Number.isSafeInteger(row.amount)||row.amount===0)return invalid;
   const amount=row.amount;
+  if(row.category==='CASH_ADJUDICATION_SETTLED'){
+    if(!/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(row.metadata?.decisionId??'')||
+      !Number.isSafeInteger(row.metadata?.driverShortfallCreditIqd)||row.metadata.driverShortfallCreditIqd<0)return invalid;
+    return ledgerEffect({...row,category:'FULL_CASH_COMPLETED'});
+  }
+  if(row.category==='MERCHANT_PAYOUT_PAID'){
+    const m=row.metadata;
+    if(row.type!=='DEBIT'||amount>=0||!/^MPO:[a-f0-9]{48}$/.test(row.transactionId||'')||row.transactionId!==row.relatedEntityId||m?.payoutId!==row.transactionId||row.relatedEntityType!=='MERCHANT_PAYOUT'||m?.balanceType!=='LOCKED'||row.walletId!=='WALLET#MERCHANT#'+m?.branchId||! /^[a-f0-9]{64}$/.test(m?.journalDigest||'')||!Number.isSafeInteger(row.balanceBefore)||!Number.isSafeInteger(row.balanceAfter)||row.balanceAfter<0||row.balanceAfter-row.balanceBefore!==amount)return invalid;
+    return {status:'CLASSIFIED',bucket:'LOCKED',delta:amount};
+  }
   const beforeAfter=row.balanceBefore!==undefined||row.balanceAfter!==undefined;
   const validPair=Number.isSafeInteger(row.balanceBefore)&&Number.isSafeInteger(row.balanceAfter)&&row.balanceBefore>=0&&row.balanceAfter>=0;
   const validBalance=Number.isSafeInteger(row.balance)&&row.balance>=0;
@@ -22,12 +32,20 @@ export function ledgerEffect(row:Record<string,any>):Effect {
   }
   if(['COD_COMPLETED','COD_RETURN_RELEASED','COD_ASSIGNMENT_RELEASED'].includes(row.category)){
     const bucket=row.metadata?.balanceType,operation=row.metadata?.operationId;
-    if(row.metadata?.financialSchemaVersion!==2||!['AVAILABLE','LOCKED'].includes(bucket)||
+    if(![2,3].includes(row.metadata?.financialSchemaVersion)||!['AVAILABLE','LOCKED'].includes(bucket)||
       typeof operation!=='string'||!(row.category==='COD_COMPLETED'?/^COD:[a-f0-9]{48}$/:row.category==='COD_RETURN_RELEASED'?/^CR:[a-f0-9]{48}$/:/^CA:[a-f0-9]{48}$/).test(operation)||row.transactionId!==operation||
       row.relatedEntityType!=='ORDER'||row.relatedEntityId!==row.metadata?.orderId||
       typeof row.sk!=='string'||!row.sk.endsWith('#'+bucket+'#'+operation)||row.type!==(amount>0?'CREDIT':'DEBIT'))return invalid;
     return result(bucket,amount,true);
   }
+  if(['FULL_CASH_COMPLETED','FULL_CASH_RELEASED'].includes(row.category)){
+    const bucket=row.metadata?.balanceType,operation=row.metadata?.operationId;
+    if(row.metadata?.financialSchemaVersion!==4||row.metadata?.settlementModel!=='FULL_CASH_AT_DELIVERY_V1'||!['AVAILABLE','LOCKED'].includes(bucket)||
+      typeof operation!=='string'||!(row.category==='FULL_CASH_COMPLETED'?/^FCS:[a-f0-9]{48}$/:/^(CA|CR):[a-f0-9]{48}$/).test(operation)||row.transactionId!==operation||
+      row.relatedEntityType!=='ORDER'||row.relatedEntityId!==row.metadata?.orderId||typeof row.sk!=='string'||!row.sk.endsWith('#'+bucket+'#'+operation)||row.type!==(amount>0?'CREDIT':'DEBIT'))return invalid;
+    return result(bucket,amount,true);
+  }
+  if(row.category==='ORDER_EXCEPTION_FINANCIAL'){const m=row.metadata,bucket=m?.balanceType;if(m?.financialSchemaVersion!==5||!['AVAILABLE','LOCKED'].includes(bucket)||!/^EX[FG]:[a-f0-9]{48}$/.test(row.transactionId||'')||m.operationId!==row.transactionId||row.relatedEntityType!=='ORDER'||row.relatedEntityId!==m.orderId||row.type!==(amount>0?'CREDIT':'DEBIT')||!String(row.sk).endsWith('#'+bucket+'#'+row.transactionId))return invalid;return result(bucket,amount,true);}
   if(row.category==='TRANSFER'){
     if(row.type==='DEBIT'&&amount<0||row.type==='CREDIT'&&amount>0)return result('AVAILABLE',amount,true);
     return invalid;

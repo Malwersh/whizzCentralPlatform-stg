@@ -2,6 +2,7 @@ import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb
 import {strongGet,exactCheck,equal,FinancialRow as Row} from './driverFinancialTransaction';
 import {setFinancialFields as set,prepareCodRelease} from './financialRelease';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
+import {prepareFullCashOrderSnapshot} from './fullCashOffer';
 import {prepareDeliveryFundedFinancialSnapshot} from './deliveryFundedOffer';
 import {prepareDriverOfferFinancialSnapshot} from './driverOfferOrderReader';
 import {fromWholeIqd,readMoney} from './money';
@@ -9,7 +10,7 @@ const T={orders:'WizzOrders',branches:'WhizzMerchants_Businesses',events:'stagin
 const fail=(code:string):never=>{throw Object.assign(Error(code),{code});};
 export type MerchantResponseActor={kind:'SYSTEM'|'MERCHANT';subjectId:string;businessId:string;ownerId:string;guards:Row[]};
 /** Pre-acceptance only. Never touches an assigned driver's hold or earnings. */
-export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;authenticate:()=>Promise<MerchantResponseActor>}){
+export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;authenticate:()=>Promise<MerchantResponseActor>}){
  const {db,authenticate}=options,now=options.now??Date.now;
  async function run(orderId:string,mode:'AUTO_ACCEPT'|'EXPIRE'|'REJECT',reason?:string){
   if(!quoteEntityIdValid(orderId)||!['AUTO_ACCEPT','EXPIRE','REJECT'].includes(mode))return fail('INVALID_MERCHANT_RESPONSE');
@@ -45,6 +46,7 @@ export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentC
   const guardKeys=new Set(guards.map(x=>quoteHash([x.ConditionCheck.TableName,x.ConditionCheck.Key])));
   for(const g of actor.guards){const q=g.ConditionCheck;if(!q||!guardKeys.has(quoteHash([q.TableName,q.Key])))guards.push(g);}
   const financial=Object.prototype.hasOwnProperty.call(o,'financialSnapshot')||Object.prototype.hasOwnProperty.call(o,'commercialPricing');
+  if(o.financialSnapshot?.schemaVersion===3&&options.enableFullCash!==true)return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
   if(o.financialSnapshot?.schemaVersion===2&&options.enableDeliveryFunding!==true)return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
   if(o.driverId!=null||o.assignedDriverId!=null||o.financialAcceptance!=null||o.financialOutcome!=null||o.returnCaseId!=null||o.walletPendingHoldId!=null||o.pickedUpAt!=null||o.pickupAt!=null||o.cashCollected===true||o.cashCollectedAmount>0||!['pending','unpaid',null,undefined].includes(o.paymentStatus)||o.holdId!=null||o.holdAmount!=null&&o.holdAmount!==0||['ACTIVE','SETTLED','CAPTURED'].includes(o.holdStatus))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
   const status=mode==='AUTO_ACCEPT'?'confirmed':mode==='EXPIRE'?'expired':'cancelled';
@@ -67,13 +69,13 @@ export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentC
   }else{
    fields.cancelReason=mode==='EXPIRE'?'لم يرد المطعم خلال مهلة قبول الطلب':String(reason??'رفض المطعم الطلب').slice(0,500);fields.cancelledAt=at;fields.canceledBy=mode==='EXPIRE'?'system':'restaurant';
    if(financial){
-    const snapshot=o.financialSnapshot,deliveryFunded=snapshot?.schemaVersion===2;
+    const snapshot=o.financialSnapshot,fullCash=snapshot?.schemaVersion===3,deliveryFunded=snapshot?.schemaVersion===2||fullCash&&snapshot.deliveryFunding!=null;
     if(deliveryFunded&&options.enableDeliveryFunding!==true)return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
     let original:Row;
     try{
-     const rebuilt=deliveryFunded?prepareDeliveryFundedFinancialSnapshot({order:snapshot.order,deliveryFunding:snapshot.deliveryFunding}):prepareDriverOfferFinancialSnapshot(snapshot?.snapshot);
+     const rebuilt=fullCash?prepareFullCashOrderSnapshot({order:snapshot.order,deliveryFunding:snapshot.deliveryFunding}):deliveryFunded?prepareDeliveryFundedFinancialSnapshot({order:snapshot.order,deliveryFunding:snapshot.deliveryFunding}):prepareDriverOfferFinancialSnapshot(snapshot?.snapshot);
      if(!equal(snapshot,rebuilt))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
-     original=deliveryFunded?snapshot.order:snapshot.snapshot;
+     original=fullCash||deliveryFunded?snapshot.order:snapshot.snapshot;
     }catch{return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');}
     if(original.orderId!==orderId||original.branchId!==actor.businessId||original.merchantId!==o.merchantId||original.allocation.paymentMethod!=='COD'||!['cash','cod'].includes(String(o.paymentMethod).toLowerCase())||o.commercialPricing?.schemaVersion!==(deliveryFunded?2:1))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
     if(deliveryFunded&&!equal(o.commercialPricing.deliveryFunding,snapshot.deliveryFunding))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
@@ -82,9 +84,9 @@ export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentC
     // existing audited release planner for promotion funding only; all original
     // order fields remain fenced by the transaction below.
     const release=await prepareCodRelease(db,{...o,holdId:null,holdAmount:0,holdStatus:'NOT_REQUIRED'},
-      {allocation:{driverWalletHold:fromWholeIqd(0),platformGoodsDiscountFunding:funding,...(deliveryFunded?{platformDeliveryPromotionFunding:snapshot.deliveryFunding.allocation.platformShare}:{})}},at,operationId,true,options.enableDeliveryFunding===true,deliveryFunded?snapshot.deliveryFunding:undefined);
+      {allocation:{driverWalletHold:fromWholeIqd(0),platformGoodsDiscountFunding:funding,...(deliveryFunded?{platformDeliveryPromotionFunding:snapshot.deliveryFunding.allocation.platformShare}:{})}},at,operationId,true,options.enableDeliveryFunding===true,deliveryFunded?snapshot.deliveryFunding:undefined,options.enableFullCash===true);
     for(const op of release.operations){if(op.Put?.TableName==='staging-LedgerEntries')op.Put.Item.category='MERCHANT_PENDING_PROMOTION_RELEASED';}
-    ops.push(...release.operations,{Put:{TableName:T.holds,Item:{orderId,sk:'FINANCIAL_OUTCOME',kind:'MERCHANT_PENDING_CANCEL_JOURNAL',financialSchemaVersion:deliveryFunded?3:2,...(deliveryFunded?{deliveryFunding:snapshot.deliveryFunding}:{}),action:'MERCHANT_RESPONSE_'+mode,outcome:'CANCELLED',operationId,branchId:actor.businessId,actorKind:actor.kind,actorId:actor.subjectId,receipt:{success:true,kind:'MERCHANT_PENDING_CANCELLED',orderId,operationId,status},journalLines:release.journalLines,createdAt:at,reason:fields.cancelReason},ConditionExpression:'attribute_not_exists(orderId)'}});
+    ops.push(...release.operations,{Put:{TableName:T.holds,Item:{orderId,sk:'FINANCIAL_OUTCOME',kind:'MERCHANT_PENDING_CANCEL_JOURNAL',financialSchemaVersion:fullCash?4:deliveryFunded?3:2,...(fullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),...(deliveryFunded?{deliveryFunding:snapshot.deliveryFunding}:{}),action:'MERCHANT_RESPONSE_'+mode,outcome:'CANCELLED',operationId,branchId:actor.businessId,actorKind:actor.kind,actorId:actor.subjectId,receipt:{success:true,kind:'MERCHANT_PENDING_CANCELLED',orderId,operationId,status},journalLines:release.journalLines,createdAt:at,reason:fields.cancelReason},ConditionExpression:'attribute_not_exists(orderId)'}});
     fields.financialOutcome=operationId;fields.walletFinancialStatus='CANCELLED';
    }else if(!['cash','cod'].includes(String(o.paymentMethod).toLowerCase()))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
   }

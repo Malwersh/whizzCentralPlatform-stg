@@ -11,7 +11,7 @@ export async function coordinateUnifiedDispatch(input:{orderId:string;assignment
  if(input?.source==='DECLINE')throw Error('UNIFIED_DECLINE_NOT_READY');
  const enableDeliveryFunding=deliveryFundingCapability();
  const db=DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'}),{marshallOptions:{removeUndefinedValues:true}});
- const rollout=createFinanceRollout({db});return createStagingDispatchCoordinator({db:rollout.db,enableDeliveryFunding}).plan(input);
+ const rollout=createFinanceRollout({db});return createStagingDispatchCoordinator({db:rollout.db,enableDeliveryFunding,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1'}).plan(input);
 }
 
 // Export the dependency-injected server adapter for coordinated verification and
@@ -29,9 +29,9 @@ export async function createUnifiedDispatchFromStream(record:Record<string,any>,
  const enableDeliveryFunding=deliveryFundingCapability();
  const db=DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'}),{marshallOptions:{removeUndefinedValues:true}});
  const rollout=createFinanceRollout({db}),image=unmarshall(record?.dynamodb?.NewImage??{});
- if(!rollout.containsOrder(image.orderId)){if(require('../../order-service/legacy-order-policy').isFinancialOrder(image))throw Error('FINANCE_ROLLOUT_OUT_OF_SCOPE');return {legacyFallback:true};}
+ if(!rollout.containsOrder(image.orderId,image)){if(require('../../order-service/legacy-order-policy').isFinancialOrder(image))throw Error('FINANCE_ROLLOUT_OUT_OF_SCOPE');return {legacyFallback:true};}
  await rollout.order(image.orderId,'ADMIT');
- return createStagingDispatchCreator({db:rollout.db,invokeStart,enableDeliveryFunding}).process(record);
+ return createStagingDispatchCreator({db:rollout.db,invokeStart,enableDeliveryFunding,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1'}).process(record);
 }
 
 export {createStagingLegacyWaveExecutor,createStagingLegacyResponses} from './dispatchLegacy';
@@ -88,7 +88,7 @@ export async function runHostedFinancialTick(event:Row,context:{awsRequestId?:st
  if(!rule||!rule.startsWith('arn:aws:events:us-east-1:699561669180:rule/')||event?.source!=='aws.events'||event['detail-type']!=='Scheduled Event'||event.account!=='699561669180'||event.region!=='us-east-1'||!Array.isArray(event.resources)||!event.resources.includes(rule))throw Error('DISPATCH_HOST_TRIGGER_INVALID');
  if(!context?.awsRequestId||!context.getRemainingTimeInMillis)throw Error('DISPATCH_HOST_CONTEXT_REQUIRED');
  const raw=DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'}),{marshallOptions:{removeUndefinedValues:true}}),rollout=createFinanceRollout({db:raw});
- return createStagingDispatchFinancialHost({db:rollout.db,enableDeliveryFunding,remainingMs:()=>context.getRemainingTimeInMillis!(),start:async input=>{await rollout.order(input.orderId,'OFFER');return invokeStart(input);}}).tick(context.awsRequestId);
+ return createStagingDispatchFinancialHost({db:rollout.db,enableDeliveryFunding,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',remainingMs:()=>context.getRemainingTimeInMillis!(),start:async input=>{await rollout.order(input.orderId,'OFFER');return invokeStart(input);}}).tick(context.awsRequestId);
 }
 export async function runHostedFinancialWave(input:{orderId:string;assignmentId:string;cycleId:string},api:{postToConnection:(input:Row)=>{promise:()=>Promise<unknown>}},owner:string){
  hostedFinancialScope();const enableDeliveryFunding=deliveryFundingCapability();
@@ -99,6 +99,6 @@ export async function runHostedFinancialWave(input:{orderId:string;assignmentId:
  const getAccessToken=createMapboxSecretReader({secrets:new SecretsManagerClient({region:'us-east-1'}),secretArn:process.env.FINANCIAL_ROUTING_SECRET_ARN??'',accountId:'699561669180',region:'us-east-1',timeoutMs:1500});
  const router=createMapboxRoadRouter({getAccessToken,profile:'driving',ttlSeconds:profile.offerTtlSeconds,timeoutMs:5000}),cognito=new CognitoIdentityProviderClient({region:'us-east-1'});
  const transport=require('../../../lambda/WaveSystem_StartWave/wave-offer-transport').createWaveOfferTransport({api,notificationsBase:process.env.NOTIFICATIONS_API_BASE??'',internalKey:process.env.NOTIFICATIONS_INTERNAL_KEY??''});
- const sendOffer=createStagingFinancialOfferDelivery({db,enableDeliveryFunding,beforeSend:async(orderId,driverId)=>{await rollout.order(orderId,'SEND');rollout.driver(orderId,driverId);},postSocket:transport.postSocket,postPush:transport.postPush});
- return createStagingPinnedFinancialRunner({db,cognito,router,enableDeliveryFunding,sendOffer}).run({orderId:input.orderId,assignmentId:input.assignmentId,owner,leaseSeconds:20});
+ const sendOffer=createStagingFinancialOfferDelivery({db,enableDeliveryFunding,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',beforeSend:async(orderId,driverId)=>{await rollout.order(orderId,'SEND');rollout.driver(orderId,driverId);},postSocket:transport.postSocket,postPush:transport.postPush});
+ return createStagingPinnedFinancialRunner({db,cognito,router,enableDeliveryFunding,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',sendOffer}).run({orderId:input.orderId,assignmentId:input.assignmentId,owner,leaseSeconds:20});
 }

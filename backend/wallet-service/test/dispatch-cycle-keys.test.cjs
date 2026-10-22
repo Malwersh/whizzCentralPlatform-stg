@@ -12,12 +12,13 @@ test('key versions preserve old bytes and isolate cycle, driver, engine and wave
  const old={engine:'LEGACY',id:'a#b'},v2={...old,keyVersion:2};assert.equal(dispatchWaveSK(old,1),'LEGACY_WAVE#1');assert.equal(dispatchOfferSK(old,'d',1),'d#WAVE#1');
  assert.equal(dispatchWaveSK({engine:'FINANCIAL',id:'x'},1),'FINANCIAL_WAVE#1');
  const keys=[dispatchWaveSK(v2,1),dispatchWaveSK({...v2,id:'a'},1),dispatchWaveSK(v2,2),dispatchOfferSK(v2,'d',1),dispatchOfferSK(v2,'d#WAVE#1',1)];assert.equal(new Set(keys).size,keys.length);assert(keys.every(k=>k.startsWith('CYCLE#')));
- for(const c of [{...v2,keyVersion:3},{...v2,engine:'FINANCIAL'},{...v2,id:'bad space'}])assert.throws(()=>dispatchWaveSK(c,1));
+ for(const c of [{...v2,keyVersion:3},{...v2,id:'bad space'}])assert.throws(()=>dispatchWaveSK(c,1));
+ for(const c of [{engine:'FINANCIAL',id:'bad space'},{engine:'FINANCIAL',id:'x',keyVersion:3}])assert.throws(()=>dispatchOfferSK(c,'driver',1));
  for(const n of [0,-1,1.5,1001])assert.throws(()=>dispatchWaveSK(v2,n));
 });
-test('namespace is explicit frozen cycle evidence; unknown or financial version cannot silently downgrade',async()=>{
+test('namespace is frozen cycle evidence; funded initial retry isolates waves and retains settlement offer keys',async()=>{
  const f=await setup(),c=f.job().dispatchCycle,n=make(c,{keyVersion:2});assert.equal(validateDispatchCycle(n).keyVersion,2);assert.notEqual(n.digest,c.digest);assert.deepEqual(validateDispatchCycle(c),c);
- assert.throws(()=>validateDispatchCycle({...c,keyVersion:2}));assert.throws(()=>make(c,{keyVersion:3}));assert.throws(()=>make(c,{keyVersion:2,engine:'FINANCIAL'}));
+ assert.throws(()=>validateDispatchCycle({...c,keyVersion:2}));assert.throws(()=>make(c,{keyVersion:3}));const financial=make(c,{keyVersion:2,engine:'FINANCIAL'});assert.equal(validateDispatchCycle(financial).engine,'FINANCIAL');assert.match(dispatchWaveSK(financial,1),/^CYCLE#[a-f0-9]{64}#FINANCIAL_WAVE#1$/);assert.equal(dispatchOfferSK(financial,'driver',1),'FINANCIAL#driver#WAVE#1');assert.notEqual(dispatchWaveSK(financial,1),dispatchWaveSK({...financial,id:'other'},1));
 });
 test('namespaced sender and acceptance reuse recorded terms, bridge and response receipt without money writes',async()=>{
  const f=await setup({keyVersion:2});await f.run();const o=f.offer();assert.equal(o.dispatchKeyVersion,2);assert.equal(f.get('WaveOffers_staging',{orderId:'order1',SK:'driver1#WAVE#1'}),undefined);

@@ -17,7 +17,7 @@ function request(){return {offer:build(input()),waveNumber:1,guards:{
  deletions:[check('staging-AccountDeletion',{pk:'ACCOUNT_LIFECYCLE#DRIVER#driver1',sk:'META'})]}};}
 function fixture(){
  let saved, order={PK:'ORDER#order1',SK:'META',orderId:'order1',storeId:'branch1',merchantId:'merchant1',status:'ready_for_pickup',financialSnapshot:envelope(input().order)};
- const calls=[]; let time=Date.parse(at), lose=false, conflict=false, unavailable=false, onOrder;
+ const calls=[]; let time=Date.parse(at), lose=false, conflict=false, unavailable=false, onOrder, cancellationReasons;
  const db={async send(c){calls.push(c);
   if(c instanceof GetCommand){
    if(c.input.TableName==='WaveOffers_staging'){if(unavailable)throw Error('private details');return {Item:clone(saved)};}
@@ -29,13 +29,13 @@ function fixture(){
   assert.equal(tx.filter(o=>o.Put).length,1);
   assert.equal(tx.filter(o=>o.ConditionCheck?.TableName==='WizzOrders').length,1);
   // This mock simulates conditional failure before all writes, plus conditional put concurrency.
-  if(conflict||saved){const error=Error('condition rejected');error.name='TransactionCanceledException';throw error;}
+  if(conflict||saved){const error=Error('condition rejected');error.name='TransactionCanceledException';if(cancellationReasons)error.CancellationReasons=cancellationReasons;throw error;}
   saved=clone(tx.find(o=>o.Put).Put.Item);
   if(lose)throw Error('response lost after commit');
   return {};
  }};
  const service=store({db,now:()=>time});return {service,calls,get saved(){return saved;},set saved(v){saved=v;},get order(){return order;},
- set time(v){time=v;},set lose(v){lose=v;},set conflict(v){conflict=v;},set unavailable(v){unavailable=v;},set onOrder(v){onOrder=v;}};
+ set time(v){time=v;},set lose(v){lose=v;},set conflict(v){conflict=v;},set cancellationReasons(v){cancellationReasons=v;},set unavailable(v){unavailable=v;},set onOrder(v){onOrder=v;}};
 }
 const selector={orderId:'order1',driverId:'driver1',subjectId:'driver-sub',waveNumber:1};
 test('issuance atomically stores proposal with strong order snapshot and required external guards; legacy cannot claim its key/status',async()=>{
@@ -120,4 +120,8 @@ test('lifecycle absence guards can omit expression maps; transaction preserves t
  await f.service.save(r);
  const tx=f.calls.find(c=>c instanceof TransactWriteCommand).input.TransactItems;
  assert.equal(tx.find(v=>v.ConditionCheck?.TableName==='staging-AccountDeletion').ConditionCheck.ConditionExpression,'attribute_not_exists(pk)');
+});
+
+test('position retry classification requires exactly the isolated position fence and explicit cancellation reasons',async()=>{
+ for(const indices of [[2],[1,2],[0],[3],[]]){const f=fixture();f.conflict=true;f.cancellationReasons=Array.from({length:8},(_,i)=>({Code:indices.includes(i)?'ConditionalCheckFailed':'None'}));await rejects(f.service.save(request()),indices.length===1&&indices[0]===2?'DRIVER_OFFER_POSITION_CONFLICT':'DRIVER_OFFER_SAVE_CONFLICT');assert.equal(f.saved,undefined);}
 });

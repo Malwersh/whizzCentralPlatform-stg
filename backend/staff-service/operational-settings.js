@@ -12,6 +12,8 @@ function validate(values){
  return {...values};
 }
 async function route(ctx,actor,method,path,input){
+ if(path==='/staff/settings/order-exception-cases'||path.startsWith('/staff/settings/order-exception-cases/'))return require('./order-exception-case-settings').route(ctx,actor,method,path,input);
+ if(path==='/staff/settings/order-exceptions'||path.startsWith('/staff/settings/order-exceptions/'))return require('./order-exception-settings').route(ctx,actor,method,path,input);
  const {db,table,employee,guard,audit,requirePermission,recent,claims}=ctx;
  const settingsSpec=ctx.settingsSpec,settingsPk=settingsSpec?.pk||PK,validateValues=settingsSpec?.validate||validate,actionPrefix=settingsSpec?.actionPrefix||'DELETION';
  if(method==='POST'&&!ctx.enrolled)throw fail('ENROLLMENT_REQUIRED',403);

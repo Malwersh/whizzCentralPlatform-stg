@@ -1,3 +1,4 @@
+import {readStoreDeliveryAgreement,calculateStoreDeliveryAgreement} from './storeDeliveryAgreement';
 import { allocateDeliveryFunding } from './deliveryFunding';
 import { moneyFromMinor, readMoney } from './money';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
@@ -25,6 +26,7 @@ function freeze<T>(v: T): T {
  */
 export function readDeliveryFundingPolicy(value: unknown) {
   try {
+    if ((value as any)?.schemaVersion === 2) return readStoreDeliveryAgreement(value);
     const r = exact(value, ['schemaVersion', 'id', 'version', 'merchantId', 'branchId', 'origin', 'effectiveFrom', 'effectiveTo',
       'customerRule', 'funding', 'eligibility', 'limits', 'onUnavailable']);
     if (r.schemaVersion !== 1 || !['MERCHANT', 'PLATFORM', 'SHARED'].includes(r.origin) || r.onUnavailable !== 'NORMAL_TARIFF') return fail();
@@ -73,6 +75,7 @@ export function assertDeliveryFundingPolicyPin(value: unknown, pin: unknown) {
  */
 export function calculatePolicyDeliveryFunding(value: unknown, referenceFee: unknown, customerFee: unknown) {
   const {policy, termsHash} = readDeliveryFundingPolicy(value);
+  if(policy.schemaVersion===2){const result=calculateStoreDeliveryAgreement(policy,referenceFee);if(quoteHash(result.allocation.customerFee)!==quoteHash(customerFee))return fail();return freeze(result);}
   const allocation = allocateDeliveryFunding({schemaVersion: 1, referenceFee, customerFee, funding: policy.funding});
   if (allocation.merchantShare.minorAmount > policy.limits.merchantPerOrder.minorAmount ||
       allocation.platformShare.minorAmount > policy.limits.platformPerOrder.minorAmount) return fail('DELIVERY_FUNDING_CAP_EXCEEDED');

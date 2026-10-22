@@ -1,0 +1,19 @@
+{
+  "part": 217,
+  "status": "PUBLISHED_ACTIVE_USER_CONFIRMED",
+  "objective": "Restore actual staff/merchant finance read routing through current settlement adapters",
+  "rootCause": "Live index.js delegates to _discount_review/central-staff/index.js, whose embedded schedule-only service still validates staff UUIDv4 and lacks current account, payout and collection views. Prior root-only overlays did not change that embedded module.",
+  "scope": "Bridge only bundled settlement module and owner settlement action; keep all unrelated bundled commercial functionality and original authentication",
+  "tests": "Exact old bundled entry reproduces403; actual patched entry returns200 for staff orders/account/statements/collections and merchant account/payout reads; invalid JWT401 and no writes",
+  "financialDataChanged": false,
+  "permissionsChanged": false,
+  "publication": "finance-entry-publication-217.json",
+  "liveUserConfirmation": {
+    "result": "ظهرت في التطبيق والمنصة",
+    "merchantApp": true,
+    "centralPlatform": true,
+    "scope": "User confirmed financial dues and statements displayed after refresh"
+  },
+  "codeSha256": "QRTNNZUjshYvypqvtEduSJAdd73wbKh97zO19WAv7rM=",
+  "verificationLimits": "Real-user read recovery confirmed in merchant app and central platform. No real payout, OTP or financial write was performed during this repair."
+}

@@ -586,3 +586,12 @@ async function invokeStartWaveLambda(dispatchJob) {
     throw error;
   }
 }
+
+// Keep dispatch behavior intact; forward status changes through the existing stream.
+const dispatchWithoutActivity = exports.handler;
+exports.handler = async (event, context) => {
+  if (Array.isArray(event.Records)) {
+    await require('./order-activity-stream').forward(event, input => lambda.invoke(input).promise());
+  }
+  return dispatchWithoutActivity(event, context);
+};

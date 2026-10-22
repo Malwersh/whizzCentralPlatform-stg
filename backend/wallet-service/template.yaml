@@ -878,12 +878,16 @@ Resources:
             Path: /wallet/funding/admin/lifecycle/retry
             Method: post
             RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
         WalletLifecycleRead:
           Type: Api
           Properties:
             Path: /wallet/funding/admin/lifecycle
             Method: get
             RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
         FinancialOwners:
           Type: Api
           Properties:

@@ -10,7 +10,7 @@ const date = (value: any) => {
 };
 /** Captured only when a new search is created. Never backfill a live legacy job. */
 export function createDispatchCycle(input:{id:string;orderId:string;assignmentId:string;engine:DispatchEngine;startedAt:string;policy:unknown;keyVersion?:2}) {
-  if(!input||Object.keys(input).filter(k=>k!=='keyVersion').sort().join(',')!=='assignmentId,engine,id,orderId,policy,startedAt'||Object.prototype.hasOwnProperty.call(input,'keyVersion')&&(input.keyVersion!==2||input.engine!=='LEGACY')||![input.id,input.orderId,input.assignmentId].every(quoteEntityIdValid)||!['LEGACY','FINANCIAL'].includes(input.engine))return bad();
+  if(!input||Object.keys(input).filter(k=>k!=='keyVersion').sort().join(',')!=='assignmentId,engine,id,orderId,policy,startedAt'||Object.prototype.hasOwnProperty.call(input,'keyVersion')&&input.keyVersion!==2||![input.id,input.orderId,input.assignmentId].every(quoteEntityIdValid)||!['LEGACY','FINANCIAL'].includes(input.engine))return bad();
   const snapshot=validateOperationsSnapshot(input.policy);
   if(snapshot.version<1||!snapshot.values.dispatch)return bad();
   const dispatch=validateDispatchPolicy(snapshot.values.dispatch),profile=dispatch.profiles[input.engine],start=date(input.startedAt);

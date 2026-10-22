@@ -1,13 +1,14 @@
 'use strict';
 const {GetCommand,QueryCommand,ScanCommand}=require('@aws-sdk/lib-dynamodb');
-const {createMerchantSettlementAuthority,createMerchantSettlementScheduleWorkflow}=require('./settlement-runtime');
+const {createMerchantSettlementAuthority,createMerchantSettlementScheduleWorkflow,createMerchantStatementsAdmin,createMerchantPeriodCollection}=require('./settlement-runtime');
 const {allowed}=require('./catalog');
+const {operator}=require('./write-workflow');
 const P='staging-MerchantPlatform',B='WhizzMerchants_Businesses',D='staging-AccountDeletion';
 const fail=(code,status)=>{throw Object.assign(Error(code),{status});};
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(v);
 async function wrap(ctx,run){if(ctx.enabled!==true)fail('SETTLEMENT_SCHEDULE_ADMIN_DISABLED',503);try{return await run();}catch(e){if(e.status)throw e;const code=e.code||e.message;
  const status=/PERMISSION|OWNER_REQUIRED|PRINCIPAL|INDEPENDENT|EMPLOYEE|REAUTH/.test(code)?403:/NOT_FOUND/.test(code)?404:/CONFLICT|UNKNOWN_OUTCOME|CHANGED|REVOKED/.test(code)?409:/INVALID|BOUNDARY|CONSENT_REQUIRED|AGREEMENT_UNAVAILABLE|BASE_VERSION/.test(code)?400:503;
- fail(/^(?:SCHEDULE_|SETTLEMENT_|INVALID_MERCHANT_SETTLEMENT_PERIOD)/.test(code)?code:'SETTLEMENT_SCHEDULE_UNAVAILABLE',status);
+ fail(/^(?:PAYOUT_|SCHEDULE_|SETTLEMENT_|MERCHANT_PAYABLE_ALREADY_IN_SETTLEMENT$|MERCHANT_ACCRUAL_OUTSIDE_PERIOD$|INVALID_MERCHANT_(?:SETTLEMENT|OPENING)_PERIOD$)/.test(code)?code:'SETTLEMENT_SCHEDULE_UNAVAILABLE',status);
 }}
 async function get(db,table,key){return (await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true,...(table===D?{ProjectionExpression:'#pk,#sk',ExpressionAttributeNames:{'#pk':'pk','#sk':'sk'}}:{})}))).Item;}
 async function branch(db,branchId){if(!id(branchId))fail('INVALID_SCHEDULE_REQUEST',400);const b=await get(db,B,{businessId:branchId});if(!b||b.ownerId!==b.cognitoUserId||b.status!=='approved'||b.deletedAt!=null||b.deletionRequestId!=null||b.isDeleted===true)fail('SCHEDULE_BRANCH_UNAVAILABLE',404);
@@ -30,8 +31,15 @@ async function branches(ctx,actor,method,input){return wrap(ctx,async()=>{
 });}
 async function staff(ctx,actor,method,input){return wrap(ctx,async()=>{
  const principal={kind:'STAFF',employeeId:actor.employeeId,authTime:ctx.claims?.auth_time,mfaEnrolled:ctx.enrolled===true};
- const authorize=createMerchantSettlementAuthority({db:ctx.db,principal}),workflow=createMerchantSettlementScheduleWorkflow({db:ctx.db,principal});
+ const authorize=createMerchantSettlementAuthority({db:ctx.db,principal}),workflow=createMerchantSettlementScheduleWorkflow({db:ctx.db,principal,allowSameStaffApproval:operator(actor)});
+ if(require('./merchant-payouts').matches(method,input))return require('./merchant-payouts').route(ctx,{staff:principal},method,input);
+ const collections=()=>createMerchantPeriodCollection({db:require('./settlement-orders').projectEvidenceDb(ctx.db),principal});
+ const statements=()=>createMerchantStatementsAdmin({db:require('./settlement-orders').projectEvidenceDb(ctx.db),principal});
  if(method==='GET'){
+  if(['period-collections','period-collection','period-collection-parts'].includes(input?.view)){const {view,...body}=input;return collections()[view==='period-collections'?'list':view==='period-collection'?'read':'parts'](body);}
+  if(input?.view==='batches'){const {view,...body}=input;if(typeof body.limit!=='string'||! /^[1-9][0-9]?$/.test(body.limit))fail('INVALID_SCHEDULE_REQUEST',400);return statements().list({...body,limit:Number(body.limit)});}
+  if(input?.view==='batch'){const {view,...body}=input;return statements().read(body);}
+  if(input?.view==='orders'){await authorize(input.branchId,'READ');await branch(ctx.db,input.branchId);const result=await require('./settlement-orders').read(ctx.db,input);await authorize(input.branchId,'READ');return result;}
   if(!input||Object.keys(input).sort().join(',')!=='branchId')fail('INVALID_SCHEDULE_REQUEST',400);
   await authorize(input.branchId,'READ');const b=await branch(ctx.db,input.branchId),rows=await list(ctx.db,input.branchId);
   const ref=b.commercialAgreementId?await get(ctx.db,P,{pk:'COMMERCIAL_AGREEMENT#'+b.commercialAgreementId,sk:'CURRENT'}):null;
@@ -40,13 +48,14 @@ async function staff(ctx,actor,method,input){return wrap(ctx,async()=>{
    proposals:rows.filter(r=>r.kind==='MERCHANT_SETTLEMENT_SCHEDULE_PROPOSAL').map(present).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),
    versions:rows.filter(r=>r.sk.startsWith('SETTLEMENT_SCHEDULE#VERSION#')).map(present).sort((a,b)=>b.schedule.version-a.schedule.version),
    agreement:ref&&ref.status==='ACTIVE'&&ref.version===b.commercialAgreementVersion?{id:b.commercialAgreementId,version:ref.version,termsHash:ref.termsHash}:null,
-   can:{request:allowed(actor,'finance.settings.request'),approve:allowed(actor,'finance.settings.approve')},actorId:actor.employeeId};
+   can:{request:allowed(actor,'finance.settings.request'),approve:allowed(actor,'finance.settings.approve')},actorId:actor.employeeId,sameStaffApprovalAllowed:operator(actor)};
  }
  if(method!=='POST'||!input||typeof input!=='object'||Array.isArray(input))fail('INVALID_SCHEDULE_REQUEST',400);
- const {action,...body}=input;if(action==='PROPOSE')return workflow.propose(body);if(action==='APPROVE')return workflow.approve(body);fail('INVALID_SCHEDULE_REQUEST',400);
+ const {action,...body}=input;const collectionActions={START_PERIOD_COLLECTION:'start',ADVANCE_PERIOD_COLLECTION:'advance',FREEZE_PERIOD_COLLECTION:'freeze'};if(Object.prototype.hasOwnProperty.call(collectionActions,action))return collections()[collectionActions[action]](body);if(action==='APPROVE_STATEMENT')return statements().approve(body);if(action==='PREVIEW_STATEMENT')return statements().preview(body);if(action==='CREATE_STATEMENT')return statements().create(body);if(action==='PROPOSE')return workflow.propose(body);if(action==='APPROVE')return workflow.approve(body);fail('INVALID_SCHEDULE_REQUEST',400);
 });}
-async function owner(ctx,subjectId,method,input){return wrap(ctx,async()=>{
+async function owner(ctx,subjectId,method,input,verifiedOwner){return wrap(ctx,async()=>{
  if(!input||typeof input!=='object'||Array.isArray(input))fail('INVALID_SCHEDULE_REQUEST',400);
+ if(require('./merchant-payouts').matches(method,input)){if(!verifiedOwner)fail('PAYOUT_VERIFIED_PRINCIPAL_REQUIRED',403);return require('./merchant-payouts').route(ctx,{owner:verifiedOwner},method,input);}
  const b=await branch(ctx.db,input.branchId);if(subjectId!==b.ownerId)fail('SCHEDULE_OWNER_REQUIRED',403);
  if(method==='GET'){
   if(Object.keys(input).sort().join(',')!=='branchId')fail('INVALID_SCHEDULE_REQUEST',400);

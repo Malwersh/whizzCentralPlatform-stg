@@ -12,7 +12,7 @@ export function createStagingFinancialPushValidation(options:{db:Pick<DynamoDBDo
   if(env.STAGE!=='staging'||env.AWS_REGION!=='us-east-1'||env.FINANCIAL_PUSH_VALIDATION_MODE!=='REQUIRED'||!['OFF','REQUIRED'].includes(env.FINANCIAL_DELIVERY_FUNDING_MODE??'OFF'))return fail();
   const reference=readFinancialPushReference(value),enabled=env.FINANCIAL_DELIVERY_FUNDING_MODE==='REQUIRED';
    const rollout=createFinanceRollout({db,env,now});await rollout.order(reference.orderId,'SEND');rollout.driver(reference.orderId,reference.dispatchDriverId,reference.driverId);
-   const proof=await readStagingFinancialOfferDelivery({db,now,enableDeliveryFunding:enabled},{orderId:reference.orderId,offerId:reference.offerId,waveNumber:reference.waveNumber,dispatchDriverId:reference.dispatchDriverId});
+   const proof=await readStagingFinancialOfferDelivery({db,now,enableDeliveryFunding:enabled,enableFullCash:env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1'},{orderId:reference.orderId,offerId:reference.offerId,waveNumber:reference.waveNumber,dispatchDriverId:reference.dispatchDriverId});
    if(!equal(proof.reference,reference)||proof.saved.financialDeliveryAck?.schemaVersion!==1||proof.saved.financialDeliveryAck.referenceDigest!==quoteHash(reference))return fail();
    const driver=await strongGet(db,'WhizzDrivers_staging',{driverId:reference.dispatchDriverId});
    if(!driver||(driver.cognitoSub??driver.driverId)!==reference.driverId||!['APPROVED','VERIFIED'].includes(String(driver.status||driver.registrationStatus).toUpperCase())||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null||driver.isBanned===true||driver.isSuspended===true)return fail();

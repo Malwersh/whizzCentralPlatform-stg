@@ -77,3 +77,10 @@ test('confirmation fences minimum presence and value against concurrent restaura
  else assert.ok(Object.values(condition.ExpressionAttributeValues).includes(value));
  }
 });
+
+test('dated delivery agreement overrides minimum and commission and preserves tip without campaign allowance',async()=>{
+ const {createStagingCommercialSource:create}=require('../dist/orderCommercialSource'),{parseIqd:m}=require('../dist/money');
+ for(const percent of [5,15]){const f=fixture('org','owner',opts=>create({...opts,deliveryPromotion:{prepare:async facts=>({applied:true,agreement:true,minimumOrderAmountIqd:3000,commission:{kind:'PERCENT',basis:'GOODS_GROSS',fixed:null,rate:{numerator:percent,denominator:100},rounding:'TOWARD_ZERO',finalRounding:{incrementIqd:1,mode:'TOWARD_ZERO'}},customerFee:m('1500'),validUntil:'2026-10-15T13:00:00.000Z',deliveryFunding:{policyPin:{policyId:'contract',version:1,termsHash:'a'.repeat(64)},allocation:{schemaVersion:2,referenceFee:m('1000'),customerFee:m('1500'),subsidy:m('0'),merchantShare:m('0'),platformShare:m('0')}},operations:[]})}}));
+ f.change('WhizzMerchants_Businesses',{businessId:'b1'}).minimum_order=4000;f.input.tip=m('1000');const r=await f.prepare();assert.equal(r.calculation.commission.amount.minorAmount,3500*percent/100*1000);assert.equal(r.calculation.allocationInput.driverTip.minorAmount,1000000);assert.equal(r.calculation.allocationInput.customerDeliveryFee.minorAmount,1500000);assert.equal(r.financialSnapshot.schemaVersion,2);
+ }
+});

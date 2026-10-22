@@ -59,3 +59,11 @@ test('delivery send commits notice and appears pending until merchant activates'
  assert.equal((await service(f.ctx,owner,'GET',{businessId:'branch',view:'pending-sharing'})).items.length,1);
  await call(f,owner,decision(r,'ACCEPT_DELIVERY'));assert.equal((await service(f.ctx,owner,'GET',{businessId:'branch',view:'pending-sharing'})).items.length,0);
 });
+
+test('dated agreement consent publishes commission and public terms without campaign budget',async()=>{
+ const f=setup(),input=save(),p=input.values;delete p.limits;delete p.onUnavailable;p.schemaVersion=2;p.customerRule={kind:'FIXED_TARIFF',amount:m('1500')};p.eligibility={regionIds:['zone'],minimumGoods:m('7000')};p.commission={kind:'PERCENT',basis:'GOODS_GROSS',fixed:null,rate:{numerator:5,denominator:100},rounding:'TOWARD_ZERO',finalRounding:{incrementIqd:1,mode:'TOWARD_ZERO'}};
+ const pending=await call(f,editor(),input);assert.equal(f.get('WhizzMerchants_Businesses',{businessId:'branch'}).storefrontDeliveryAgreements,undefined);
+ await call(f,owner,decision(pending,'ACCEPT_DELIVERY'));
+ const current=f.get(S,{pk:'DELIVERY_FUNDING#delivery',sk:'CURRENT'});assert.equal(current.policy.commission.rate.numerator,5);assert.equal(f.get(S,{pk:'DELIVERY_BUDGET#delivery',sk:'VERSION#1'}),undefined);
+ const b=f.get('WhizzMerchants_Businesses',{businessId:'branch'});assert.equal(b.storefrontDeliveryAgreements[0].deliveryFeeIqd,1500);assert.equal(b.storefrontDeliveryAgreements[0].minimumOrderAmountIqd,7000);assert.equal(b.storefrontDeliveryAgreements[0].commission,undefined);
+});

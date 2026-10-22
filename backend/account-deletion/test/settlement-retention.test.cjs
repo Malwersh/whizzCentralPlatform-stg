@@ -28,11 +28,26 @@ function fixture(){
   if(c instanceof ScanCommand)return {Items:structuredClone(tables[q.TableName]||[])};
   if(c instanceof QueryCommand){if(db.incomplete)return {Items:[],LastEvaluatedKey:{pk:'p',sk:'s'}};return {Items:structuredClone((tables[q.TableName]||[]).filter(row=>row.pk===q.ExpressionAttributeValues[':pk']&&(!q.ExpressionAttributeValues[':prefix']||row.sk.startsWith(q.ExpressionAttributeValues[':prefix']))))};}
   assert(c instanceof TransactWriteCommand);if(db.beforeWrite){const hook=db.beforeWrite;db.beforeWrite=null;hook();}
-  for(const op of q.TransactItems){const x=op.ConditionCheck||op.Put;check(get(x.TableName,x.Key||{pk:x.Item.pk,sk:x.Item.sk}),x);}
-  writes.push(q.TransactItems);for(const {Put:p}of q.TransactItems)if(p)tables[p.TableName].push(structuredClone(p.Item));return {};
+  for(const op of q.TransactItems){const x=op.ConditionCheck||op.Put||op.Delete;check(get(x.TableName,x.Key||{pk:x.Item.pk,sk:x.Item.sk}),x);}
+  writes.push(q.TransactItems);for(const {Delete:d}of q.TransactItems)if(d)tables[d.TableName]=tables[d.TableName].filter(row=>!Object.entries(d.Key).every(([k,v])=>row[k]===v));for(const {Put:p}of q.TransactItems)if(p)tables[p.TableName].push(structuredClone(p.Item));return {};
  }};
  return {r,job,tables,writes,db,header,line,lookup,request,run:()=>settlementRetention({db,r,job,clock:()=>when,maxPages:2})};
 }
+function addPaidPayout(f){
+ const payoutId='MPO:'+'a'.repeat(48),amount={currency:'IQD',moneySchemaVersion:1,scale:1000,minorAmount:9000000};
+ const p={pk:'MERCHANT_PAYOUT#branch',sk:payoutId,payoutId,kind:'MERCHANT_PAYOUT',schemaVersion:1,branchId:'branch',ownerId:'owner',batchId:bid,batchDigest:f.header.batchDigest,method:'ZAIN_CASH',amount,status:'PAID',paidAt:when,externalReference:'ZC-0001',sourceAccount:'ZAIN-01',retentionClass:'FINANCIAL_SETTLEMENT'};
+ const j={pk:'MERCHANT_PAYOUT_PAID#'+payoutId,sk:'META',kind:'MERCHANT_PAYOUT_PAID_JOURNAL',schemaVersion:1,branchId:'branch',ownerId:'owner',receiptOwnerId:'owner',payoutId,batchId:bid,batchDigest:p.batchDigest,status:'PAID',paidAt:when,amount};j.digest=digest(j);
+ const ref={pk:'MERCHANT_PAYOUT_REFERENCE#'+digest({method:p.method,source:'ZAIN_CASH',reference:p.externalReference}),sk:'META',kind:'MERCHANT_PAYOUT_REFERENCE',payoutId,branchId:'branch',externalReference:p.externalReference,sourceAccount:p.sourceAccount};
+ f.tables[P].push(p,{pk:p.pk,sk:'BATCH#'+bid,kind:'MERCHANT_PAYOUT_CLAIM',branchId:'branch',payoutId,batchId:bid,status:'PAID'}, {pk:p.pk,sk:'PRIVATE#'+payoutId,kind:'MERCHANT_PAYOUT_DESTINATION',branchId:'branch',ownerId:'owner',payoutId,phone:'+9647800868280',retentionClass:'FINANCIAL_SETTLEMENT'},j,ref,{pk:'MERCHANT_PAYOUT_DESTINATION#branch',sk:'OWNER#owner',kind:'MERCHANT_PAYOUT_DESTINATION_CHALLENGE',branchId:'branch',ownerId:'owner',phone:'+9647800868280',codeHash:'secret-otp-hash-not-archived',status:'CONSUMED'});
+ return p;
+}
+test('paid payout, protected beneficiary, unique reference and journal are retained; ephemeral OTP is erased without archiving its secret',async()=>{
+ const f=fixture();addPaidPayout(f);const result=await f.run();assert.equal(result.archived,9);assert.equal(result.ephemeralChallengesDeleted,1);assert.equal(f.tables[P].some(r=>r.kind==='MERCHANT_PAYOUT_DESTINATION_CHALLENGE'),false);assert.equal(JSON.stringify(f.tables[A]).includes('secret-otp-hash'),false);assert(f.tables[A].some(r=>r.data.kind==='MERCHANT_PAYOUT_DESTINATION'));assert(f.tables[A].every(r=>r.purgeBlocked));
+ assert.equal(f.writes.flat().filter(o=>o.Delete).length,1);assert.equal(f.writes.flat().filter(o=>o.Delete)[0].Delete.Key.pk,'MERCHANT_PAYOUT_DESTINATION#branch');
+});
+test('unsettled payout or altered paid journal blocks merchant cleanup before any archive',async()=>{
+ for(const mutate of [f=>{addPaidPayout(f).status='PROCESSING';},f=>{addPaidPayout(f);f.tables[P].find(r=>r.kind==='MERCHANT_PAYOUT_PAID_JOURNAL').amount.minorAmount++;}]){const f=fixture();mutate(f);await assert.rejects(f.run());assert.equal(f.writes.length,0);}
+});
 test('archives every statement component without modifying sources or wallets, and retries preserve retention clocks',async()=>{
  const f=fixture(),before=structuredClone(f.tables[P]);assert.deepEqual(await f.run(),{archived:4,sourceDeleted:false});assert.deepEqual(f.tables[P],before);
  const original=structuredClone(f.tables[A]);assert(original.every(x=>x.purgeBlocked===true&&x.expiresAt===undefined&&x.minimumRetainUntil> Date.parse(when)/1000));assert.equal((await f.run()).archived,0);assert.deepEqual(f.tables[A],original);
@@ -61,4 +76,17 @@ test('bounded pagination fails closed, and empty branches remain compatible',asy
 });
 test('payable settlement membership survives COD evidence redaction without customer data',()=>{
  const row={settlementBatchId:bid,settlementLineDigest:'b'.repeat(64),settlementClaimedAt:when,customerPhone:'PRIVATE'};assert.deepEqual(codEvidence(row),{settlementBatchId:bid,settlementLineDigest:'b'.repeat(64),settlementClaimedAt:when});
+});
+test('single-admin unpaid approval has a validated immutable retention envelope',()=>{
+ const {validate}=require('../settlement-retention'),body={schemaVersion:1,kind:'MERCHANT_STATEMENT_APPROVAL',branchId:'branch',batchId:bid,batchDigest:'b'.repeat(64),status:'APPROVED_NOT_PAID',approvalPolicy:'SINGLE_ADMIN',approvedBy:'staff',approvedAt:when,payoutAuthorized:false,walletMutationPerformed:false,retentionClass:'FINANCIAL_SETTLEMENT'},row={pk:'MERCHANT_SETTLEMENT#branch',sk:'APPROVAL#'+bid,...body,digest:digest(body)};
+ assert.doesNotThrow(()=>validate(row,'branch'));assert.throws(()=>validate({...row,payoutAuthorized:true},'branch'));assert.throws(()=>validate({...row,customerPhone:'PRIVATE'},'branch'));
+});
+test('period collection and zero accrual source survive deletion as protected financial evidence',async()=>{
+ const f=fixture(),body={schemaVersion:1,kind:'MERCHANT_ACCRUAL_INDEX_ENTRY',branchId:'branch',orderId:'zero',operationId:'COD:zero',deliveredAt:when,merchantNetIqd:0,financialSchemaVersion:4,retentionClass:'FINANCIAL_SETTLEMENT'};
+ const entry={pk:'MERCHANT_ACCRUAL#branch',sk:'DELIVERED#'+when+'#zero',...body,digest:digest(body)};
+ const root={pk:'MERCHANT_COLLECTION#branch',sk:'COLLECTION#MCG:'+'a'.repeat(48),kind:'MERCHANT_PERIOD_COLLECTION',schemaVersion:1,branchId:'branch',collectionId:'MCG:'+'a'.repeat(48),status:'DISCOVERING'};root.digest=digest(root);f.tables[P].push(entry,root);
+ const result=await f.run();assert.equal(result.archived,6);assert(f.tables[A].some(r=>r.data.kind==='MERCHANT_ACCRUAL_INDEX_ENTRY'&&r.data.merchantNetIqd===0));assert(f.tables[A].some(r=>r.data.kind==='MERCHANT_PERIOD_COLLECTION'));assert(f.tables[A].every(r=>r.purgeBlocked===true&&r.expiresAt===undefined));assert(f.tables[P].includes(entry));
+});
+test('collection retention refuses corrupted seals or incomplete discovery without deleting evidence',async()=>{
+ const f=fixture(),row={pk:'MERCHANT_COLLECTION#branch',sk:'COLLECTION#MCG:'+'a'.repeat(48),kind:'MERCHANT_PERIOD_COLLECTION',schemaVersion:1,branchId:'branch',collectionId:'MCG:'+'a'.repeat(48),digest:'forged'};f.tables[P].push(row);await assert.rejects(f.run(),/SETTLEMENT_COLLECTION_RETENTION_INVALID/);assert.equal(f.writes.length,0);
 });

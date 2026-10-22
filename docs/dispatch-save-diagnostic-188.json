@@ -1,0 +1,10 @@
+{
+  "part": 188,
+  "status": "DIAGNOSTICS_PUBLISHED",
+  "function": "WaveSystem_StartWave",
+  "codeSha256": "bZU5ueWbsEX0z9VVXiRYkwFOeXcCTZ3mwUSOm9FZOSk=",
+  "configurationPreserved": true,
+  "financialDataWrites": 0,
+  "onlyErrorLoggingChanged": true,
+  "publishedAt": "2026-10-19T17:32:30.676308+00:00"
+}

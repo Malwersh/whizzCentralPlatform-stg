@@ -21,3 +21,18 @@ test('revoked authority, foreign indexes and changed reference price cannot auth
 test("storefront preview selects the same funded price without preparing a reservation or consuming usage",async()=>{const f=fixture();f.add("p","1500");const r=await f.prepare(true);assert.equal(r.applied,true);assert.equal(r.customerFee.minorAmount,1500000);assert.equal(r.operations.length,0);assert.ok(!f.calls.some(c=>c.input.Key?.pk?.startsWith("DELIVERY_RESERVATION#")));});
 
 test("free delivery preview respects campaign funding and keeps courier compensation separate",async()=>{const f=fixture();f.add("free","0","FREE");const r=await f.prepare(true);assert.equal(r.customerFee.minorAmount,0);assert.equal(r.customerRule,"FREE");assert.equal(r.operations.length,0);});
+
+function addAgreement(f,id='contract'){
+ f.add(id,'1500');const existing=f.change(S,{pk:'DELIVERY_FUNDING#'+id,sk:'CURRENT'});
+ const p={schemaVersion:2,id,version:1,merchantId:'merchant',branchId:'branch',origin:'PLATFORM',effectiveFrom:'2026-10-18T00:00:00.000Z',effectiveTo:'2026-11-18T00:00:00.000Z',customerRule:{kind:'FIXED_TARIFF',amount:m('1500')},funding:{kind:'PLATFORM'},eligibility:{regionIds:['zone'],minimumGoods:m('7000')},commission:{kind:'PERCENT',basis:'GOODS_GROSS',fixed:null,rate:{numerator:5,denominator:100},rounding:'TOWARD_ZERO',finalRounding:{incrementIqd:1,mode:'TOWARD_ZERO'}}};
+ const r={...existing,policy:p,termsHash:read(p).termsHash};for(const sk of ['CURRENT','VERSION#1'])f.put(S,{pk:r.pk,sk},{...r,sk});return p;
+}
+test('agreement price and minimum apply to empty basket before promotion eligibility',async()=>{
+ const f=fixture();addAgreement(f);f.add('promo','1000');f.facts.goodsGross=m('0');f.facts.goodsAfterDiscounts=m('0');f.facts.hasGoodsDiscount=false;
+ const p=await f.prepare(true);assert.equal(p.applied,true);assert.equal(p.agreement,true);assert.equal(p.minimumOrderAmountIqd,7000);assert.equal(p.customerFee.minorAmount,1500000);assert.equal(p.commission.rate.numerator,5);assert.deepEqual(p.operations,[]);
+ const final=await f.prepare();assert.equal(final.operations.filter(x=>x.Put?.Item.pk.startsWith('DELIVERY_RESERVATION#')).length,1);assert.ok(!final.operations.some(x=>x.Put?.Item.pk.startsWith('DELIVERY_BUDGET#')));
+});
+test('agreement respects region, expiry, approval integrity and overlapping agreements fail closed',async()=>{
+ const f=fixture();addAgreement(f);addAgreement(f,'second');await assert.rejects(f.prepare(),/DELIVERY_AGREEMENT_OVERLAP/);
+ for(const edit of [p=>p.eligibility.regionIds=['elsewhere'],p=>p.effectiveTo='2026-10-18T11:00:00.000Z']){const g=fixture();const p=addAgreement(g);edit(p);for(const sk of ['CURRENT','VERSION#1']){const row=g.change(S,{pk:'DELIVERY_FUNDING#contract',sk});row.policy=p;row.termsHash=read(p).termsHash;}assert.equal((await g.prepare()).applied,false);}
+});

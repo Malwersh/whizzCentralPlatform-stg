@@ -1,0 +1,52 @@
+{
+  "part": 240,
+  "status": "APPLIED",
+  "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+  "policyName": "ReturnOperationsMetadata240",
+  "policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "ReadReturnOperationsPolicy",
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:ConditionCheckItem"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "Condition": {
+          "ForAllValues:StringEquals": {
+            "dynamodb:LeadingKeys": [
+              "OPERATIONAL_SETTINGS#RETURN_OPERATIONS"
+            ]
+          }
+        }
+      },
+      {
+        "Sid": "OwnerReturnAcceptanceMetadataOnly",
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:ConditionCheckItem"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "RETURN_ACCEPTANCE#*"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "values": {
+    "enabled": true,
+    "closingMarginSeconds": 900,
+    "branchWaitSeconds": 300
+  },
+  "timestamp": "2026-10-21T15:00:31Z",
+  "userExplicitApproval": true,
+  "newFinancialPermissions": false
+}

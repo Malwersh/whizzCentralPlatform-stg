@@ -13,6 +13,7 @@ async function proof({merchant=0,platform=0,commission=1000,earning='3000',goods
  if(platform)f.put('staging-Holds',{orderId,sk:'PROMOTION_FUNDING',holdId:'PROMO#'+orderId,walletId:'WALLET#PLATFORM',amount:platform,status:'ACTIVE',purpose:'PLATFORM_GOODS_DISCOUNT',metadata:{agreementId:'agreement1',agreementVersion:1,fundingPolicy:{id:'fund1',version:1}}});
  const completion=createStagingCodCompletion({db:f.db,now:()=>f.time,authenticateDriver:async()=>({driverId:'driver1',subjectId:'driver1'})});
  await completion.complete({orderId,cashCollected:true});
+ const coverage={pk:'SYSTEM#MERCHANT_ACCRUAL_INDEX',sk:'COVERAGE',schemaVersion:1,kind:'MERCHANT_ACCRUAL_INDEX_COVERAGE',status:'COMPLETE'};f.put('staging-MerchantPlatform',{...coverage,digest:require('../../dist/deliveryQuoteRecord').quoteHash(coverage)});
  const acceptedOffer=f.get('WaveOffers_staging',{orderId,SK:'FINANCIAL#driver1#WAVE#1'});
  const outcome=f.get('staging-Holds',{orderId,sk:'FINANCIAL_OUTCOME'}),payable=f.get('staging-Holds',{orderId,sk:'MERCHANT_PAYABLE'});
  return {input:{branchId:'branch1',order:f.get('WizzOrders',{PK:'ORDER#'+orderId,SK:'META'}),acceptedOffer,outcome,payable},f};

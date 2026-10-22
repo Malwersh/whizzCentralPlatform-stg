@@ -5,18 +5,19 @@ export function reconcile(wallets: any[], holds: any[], ledger: any[], now = Dat
   const balances = wallets.filter(w => w.sk === 'META').map(w => {
     const entries = ledger.filter(e => e.walletId === w.walletId);
     const active = holds.filter(h => h.walletId === w.walletId && h.status === 'ACTIVE');
-    const lockedExpected = active.reduce((sum, h) => sum + h.amount, 0);
+    const pendingMerchant=holds.filter(h=>h.walletId===w.walletId&&w.ownerType==='MERCHANT'&&h.sk==='MERCHANT_PAYABLE'&&['MERCHANT_ORDER_PAYABLE','MERCHANT_EXCEPTION_PAYABLE'].includes(h.kind)&&h.status==='LOCKED_PENDING_SETTLEMENT');
+    const lockedExpected = [...active,...pendingMerchant].reduce((sum, h) => sum + (h.returnFinancialVersion?h.returnRemainingAmount:h.amount), 0);
     const ledgerNet = entries.reduce((sum, e) => sum + e.amount, 0);
     const actualTotal = w.availableBalance + w.lockedBalance;
     const gap = actualTotal - ledgerNet;
     if (gap !== 0) issues.push({ type: 'UNEXPLAINED_BALANCE', walletId: w.walletId, amount: gap, message: 'فرق عن صافي القيود المتاحة؛ يحتاج إثبات الرصيد الافتتاحي أو الحركات المفقودة' });
-    if (lockedExpected !== w.lockedBalance) issues.push({ type: 'LOCKED_MISMATCH', walletId: w.walletId, amount: w.lockedBalance - lockedExpected, message: 'المحجوز لا يطابق الحجوزات الفعالة' });
+    if (lockedExpected !== w.lockedBalance) issues.push({ type: 'LOCKED_MISMATCH', walletId: w.walletId, amount: w.lockedBalance - lockedExpected, message: 'المحجوز لا يطابق الحجوزات الفعالة ومستحقات المطعم غير المصروفة' });
     if (w.availableBalance < 0 || w.lockedBalance < 0) issues.push({ type: 'NEGATIVE_BALANCE', walletId: w.walletId, message: 'رصيد سالب يحتاج مراجعة' });
     for (const h of active) {
       const timestamp = Date.parse(h.createdAt);
-      if (!Number.isFinite(timestamp) || now - timestamp > 24 * 60 * 60 * 1000) issues.push({ type: 'STALE_HOLD', walletId: w.walletId, holdId: h.holdId, orderId: h.orderId, amount: h.amount, createdAt: h.createdAt, message: 'حجز تجاوز 24 ساعة أو تاريخ غير صالح؛ يلزم التحقق من الطلب قبل الفك' });
+      if (!Number.isFinite(timestamp) || now - timestamp > 24 * 60 * 60 * 1000) issues.push({ type: 'STALE_HOLD', walletId: w.walletId, holdId: h.holdId, orderId: h.orderId, amount: h.returnFinancialVersion?h.returnRemainingAmount:h.amount, originalAmount:h.amount, createdAt: h.createdAt, message: 'حجز تجاوز 24 ساعة أو تاريخ غير صالح؛ يلزم التحقق من الطلب قبل الفك' });
     }
-    return { walletId: w.walletId, available: w.availableBalance, locked: w.lockedBalance, ledgerNet, difference: gap, activeHoldTotal: lockedExpected };
+    return { walletId: w.walletId, available: w.availableBalance, locked: w.lockedBalance, ledgerNet, difference: gap, activeHoldTotal: active.reduce((sum,h)=>sum+(h.returnFinancialVersion?h.returnRemainingAmount:h.amount),0),pendingMerchantPayableTotal:pendingMerchant.reduce((sum,h)=>sum+(h.returnFinancialVersion?h.returnRemainingAmount:h.amount),0) };
   });
   for (const hold of holds.filter(h => h.status === 'CAPTURED')) {
     const credits = ledger.filter(e => e.walletId === 'WALLET#PLATFORM' && e.type === 'SETTLEMENT_RECEIVED' && (e.relatedEntityId === hold.holdId || e.metadata?.holdId === hold.holdId));

@@ -60,8 +60,8 @@ test('integrated financial runner selects through shared provider and reuses the
 });
 test('Creator entry point propagates new-mode failure for stream retry and blocks direct reassignment',async()=>{
  const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),code=fs.readFileSync(path.join(__dirname,'../../../lambda/WaveSystem_CreateDispatchJob/index.js'),'utf8');
- const exports={},ctx={exports,process:{env:{DISPATCH_JOBS_TABLE:'jobs',DISPATCH_CYCLE_MODE:'PLAN_ONLY'}},console:{log(){},error(){}},require:n=>n==='aws-sdk'?{DynamoDB:{DocumentClient:class{}},Lambda:class{}}:{createUnifiedDispatchFromStream:async()=>{throw Error('new path failed');}}};vm.runInNewContext(code,ctx);
- await assert.rejects(exports.handler({Records:[{}]}),/new path failed/);await assert.rejects(exports.handler({orderId:'order1'}),/UNIFIED_REASSIGNMENT_NOT_READY/);
+ const forwarded=[],exports={},ctx={exports,process:{env:{DISPATCH_JOBS_TABLE:'jobs',DISPATCH_CYCLE_MODE:'PLAN_ONLY'}},console:{log(){},error(){}},require:n=>n==='aws-sdk'?{DynamoDB:{DocumentClient:class{}},Lambda:class{}}:n==='./order-activity-stream'?{forward:async event=>{forwarded.push(event);}}:{createUnifiedDispatchFromStream:async()=>{throw Error('new path failed');}}};vm.runInNewContext(code,ctx);
+ await assert.rejects(exports.handler({Records:[{}]}),/new path failed/);assert.equal(forwarded.length,1);await assert.rejects(exports.handler({orderId:'order1'}),/UNIFIED_REASSIGNMENT_NOT_READY/);
 });
 test('legacy Creator cannot overwrite a pinned job when mode is off',async()=>{
  const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),s=fs.readFileSync(path.join(__dirname,'../../../lambda/WaveSystem_CreateDispatchJob/index.js'),'utf8');const a=s.indexOf('async function createDispatchJobForOrder('),b=s.indexOf('\nasync function ',a+30),ctx={DISPATCH_JOBS_TABLE:'jobs',dynamodb:{get:q=>{assert.equal(q.ConsistentRead,true);return {promise:async()=>({Item:{dispatchCycle:null}})};}}};vm.runInNewContext(s.slice(a,b)+'\nthis.run=createDispatchJobForOrder;',ctx);await assert.rejects(ctx.run({orderId:'order1'}),/UNIFIED_DISPATCH_NOT_READY/);

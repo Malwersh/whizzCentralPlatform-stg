@@ -86,6 +86,7 @@ async function runtime(db,event,input){
   const id=randomUUID(),secret=sec.secret(),s={pk,sk:'STAFF_SESSION#'+id,sessionId:id,businessId:b.businessId,ownerId:b.ownerId,subjectId:sub,membershipId:m.membershipId,membershipVersion:m.version,pinVersion:p.version+1,deviceId:d.deviceId,deviceVersion:d.version,tokenHash:sec.hash(secret),expiresAt:now()+120,maxExpiresAt:now()+8*3600,status:'ACTIVE',version:1};
   await tx(db,[...common,put({...p,attempts:0,version:p.version+1},p),put(s),put(audit(b,sub,'UNLOCK'))]);return {staffSession:id+':'+secret,expiresAt:s.expiresAt};
  }
+ if(input.action==='settlements')return require('./branch_device_settlements').route(event,input);
  const {s,m,authorization,common:staffGuards}=await employeeAccess(db,event,{b,d});
  common.push(...staffGuards);
  if(['discounts_list','discounts_create','discounts_update','discounts_status','discounts_delete'].includes(input.action))return require('./branch_device_discounts').execute(db,{b,d,s,m,authorization,common},input);

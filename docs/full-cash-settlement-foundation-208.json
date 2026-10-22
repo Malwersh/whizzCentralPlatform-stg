@@ -1,0 +1,33 @@
+{
+  "part": "208.A",
+  "status": "LOCAL_FOUNDATION_TESTED_NOT_ROUTED",
+  "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+  "sourceFiles": [
+    "backend/wallet-service/src/fullCashSettlement.ts",
+    "backend/wallet-service/src/fullCashOffer.ts",
+    "backend/wallet-service/src/fullCashCompletion.ts"
+  ],
+  "testsPassed": 1003,
+  "newTests": 20,
+  "financialMatrixCases": 216,
+  "referenceIqd": {
+    "customerTotal": 11950,
+    "driverCash": 3250,
+    "driverHold": 8700,
+    "driverWalletCredit": 0,
+    "merchantPayable": 7875,
+    "platformContribution": 825
+  },
+  "liveDeploymentPerformed": false,
+  "awsWritesPerformed": false,
+  "actualFinancialDataChanged": false,
+  "runtimeRouteAdded": false,
+  "prepaidIssuanceEnabled": false,
+  "pending": [
+    "Quote/order and budget commitment integration",
+    "Issuance, hydration, acceptance and cancellation/return lifecycle",
+    "Integration events and existing financial proof readers",
+    "Driver presentation and merchant settlement batches",
+    "Verified prepaid payment provider adapter"
+  ]
+}

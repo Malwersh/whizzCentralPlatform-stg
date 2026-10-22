@@ -1,3 +1,5 @@
+import {prepareGoodsPromotionExposure} from './goodsPromotionExposure';
+import {prepareFullCashOrderSnapshot} from './fullCashOffer';
 import {assertMinimumOrder} from './branchMinimumOrder';
 import {DynamoDBDocumentClient, GetCommand} from '@aws-sdk/lib-dynamodb';
 import {prepareDeliveryFundedFinancialSnapshot} from './deliveryFundedOffer';
@@ -30,7 +32,7 @@ function pin(table:string,key:Row,row:Row,fields=Object.keys(row)) {
 /** Staging-only trusted source composition. Reads server-owned, separately accepted/approved records.
  * No initialization, assumed rates, client-supplied agreement/funding or standalone wallet write.
  * Operations MUST commit together with the order, catalog, campaign usage and Quote fences. */
-export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;deliveryPromotion?:{prepare:(facts:any)=>Promise<Row>}}) {
+export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableFullCash?:boolean;deliveryPromotion?:{prepare:(facts:any)=>Promise<Row>}}) {
  const {db}=options,now=options.now??Date.now;
  async function get(table:string,key:Row):Promise<Row>{try{const r=await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}));if(!r.Item)return fail();return copy(r.Item);}catch(e){if(e instanceof CommercialSourceError)throw e;return fail();}}
  return Object.freeze({async prepare(input:unknown) {
@@ -62,7 +64,7 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
    for(const v of record.fundingPolicySnapshots){exact(v,['id','version','digest']);validId(v.id);positive(v.version);if(seen.has(v.id)||!record.allowedFundingPolicyIds.includes(v.id)||typeof v.digest!=='string'||!/^[a-f0-9]{64}$/.test(v.digest))return fail();seen.add(v.id);}
   }
   if(record.termsHash!==quoteHash({terms:record.terms,otherCharges:record.otherCharges,allowedFundingPolicyIds:record.allowedFundingPolicyIds,...(record.schemaVersion===2?{fundingPolicySnapshots:record.fundingPolicySnapshots}:{})}))return fail();
-  const terms=record.terms;
+  let terms=copy(record.terms);
   if(terms.id!==agreementId||terms.version!==version||terms.merchantId!==merchantId||
    (terms.branchId!==null&&terms.branchId!==branchId)||terms.status!=='ACTIVE'||at<instant(terms.effectiveFrom)||
    (terms.effectiveTo!==null&&at>=instant(terms.effectiveTo)))return fail();
@@ -78,7 +80,7 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
    acceptance.acceptedAt!==terms.acceptedAt||approval.approvedAt!==terms.approvedAt||
    instant(acceptance.acceptedAt)>at||instant(approval.approvedAt)>at)return fail();
   const goods=await createStagingOrderGoodsPricing({db}).price({branchId,items:r.items});
-  assertMinimumOrder(branch,goods.goodsGross.minorAmount);
+
   const operations:Row[]=[...goods.conditions,pin(platform,orgKey,org),pin(platform,key,record),pin(platform,currentKey,current),
    pin(platform,acceptanceKey,acceptance),pin(staff,approvalKey,approval)];
   const discounts:Row[]=[];let fundingPolicy:Row|null=null;
@@ -133,6 +135,7 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
   let deliveryFunding:Row|null=null;
   if(promotion){if(!Array.isArray(promotion.operations))return fail('DELIVERY_PROMOTION_UNAVAILABLE');operations.push(...promotion.operations);}
   if(promotion?.applied){
+   if(promotion.agreement===true)terms={...terms,commission:copy(promotion.commission)};
    deliveryFunding=copy(promotion.deliveryFunding);calculation=calculate(readMoney(promotion.customerFee));
    const funded=allocateDeliveryFundedOrder({allocationSchemaVersion:2,base:{...calculation.allocationInput,driverEarning:moneyFromMinor(0)},deliveryFunding});
    if(funded.referenceDeliveryFee.minorAmount!==quote.deliveryFeeMinor)return fail('DELIVERY_REFERENCE_PRICE_CHANGED');
@@ -140,10 +143,12 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
    const {digest:_digest,...content}=calculation;
    calculation={...content,merchantPayableOnSuccessfulDelivery:funded.merchantPayable,digest:quoteHash({...content,merchantPayableOnSuccessfulDelivery:funded.merchantPayable,deliveryFunding})};
   }
+  assertMinimumOrder(promotion?.agreement===true?{minimum_order:promotion.minimumOrderAmountIqd}:branch,goods.goodsGross.minorAmount);
   const deliveryAmount=deliveryFunding?.allocation.platformShare??moneyFromMinor(0);
   const amountMinor=calculation.platformGoodsDiscountFundingRequired.minorAmount;
-  const funding={amount:calculation.platformGoodsDiscountFundingRequired,policy:fundingPolicy,holdId:amountMinor?'PROMO#'+orderId:null};
-  if(amountMinor||deliveryAmount.minorAmount) {
+  const goodsExposure=options.enableFullCash&&amountMinor?prepareGoodsPromotionExposure(r.discount?.campaign,r.discount?.snapshot.source,calculation.platformGoodsDiscountFundingRequired):null;
+  const funding={...(options.enableFullCash?{exposure:goodsExposure}:{}),amount:calculation.platformGoodsDiscountFundingRequired,policy:fundingPolicy,holdId:options.enableFullCash?null:amountMinor?'PROMO#'+orderId:null};
+  if(!options.enableFullCash&&(amountMinor||deliveryAmount.minorAmount)) {
    if(amountMinor%1000!==0)return fail('FUNDING_WALLET_PRECISION_UNSUPPORTED');
    const walletId='WALLET#PLATFORM',walletKey={walletId,sk:'META'};
    const wallet=await get('staging-Wallets',walletKey);
@@ -158,11 +163,12 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
   const baseSnapshot=prepareDriverOfferFinancialSnapshot({snapshotId:'COMMERCIAL:'+orderId,revision:1,orderId,branchId,merchantId,
    zoneId:zone.regionId,cityId:city.regionId,governorateId:governorate.regionId,branchPoint:quote.origin,customerPoint:quote.destination,
    confirmedCustomerTotal:calculation.customerTotal,allocation:calculation.allocationInput,paymentEvidence:null});
-  const financialSnapshot=deliveryFunding?prepareDeliveryFundedFinancialSnapshot({order:baseSnapshot.snapshot,deliveryFunding}):baseSnapshot;
+  const financialSnapshot=options.enableFullCash?prepareFullCashOrderSnapshot({order:baseSnapshot.snapshot,deliveryFunding}):deliveryFunding?prepareDeliveryFundedFinancialSnapshot({order:baseSnapshot.snapshot,deliveryFunding}):baseSnapshot;
+  if(options.enableFullCash)operations.push({Put:{TableName:'staging-Holds',Item:{orderId,sk:'FULL_CASH_FUNDING_COMMITMENT',kind:'FULL_CASH_FUNDING_COMMITMENT',settlementModel:'FULL_CASH_AT_DELIVERY_V1',status:'COMMITTED',branchId,merchantId,snapshotDigest:financialSnapshot.digest,deliveryFunding,goodsExposure,platformGoodsFunding:calculation.platformGoodsDiscountFundingRequired,agreement:{id:agreementId,version,termsHash:record.termsHash},createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}});
   const branchFields=['businessId','ownerId','cognitoUserId','organizationId','commercialAgreementId','commercialAgreementVersion','regionPath',
    'status','isActive','onboardingSchemaVersion','onboardingComplete','acceptingOrders','platformSuspended','ordersBlocked','deletionRequestId','minimum_order'];
   const branchCondition=pin('WhizzMerchants_Businesses',{businessId:branchId},branch,branchFields);
-  const preview={schemaVersion:deliveryFunding?2:1,...(deliveryFunding?{deliveryFunding}:{}),kind:'COMMERCIAL_CHECKOUT',orderId,branchId,merchantId,expiresAt:new Date(validUntil).toISOString(),
+  const preview={...(promotion?.agreement===true?{deliveryAgreement:{...promotion.deliveryFunding.policyPin,kind:promotion.customerRule}}:{}),schemaVersion:deliveryFunding?2:1,...(options.enableFullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),...(deliveryFunding?{deliveryFunding}:{}),kind:'COMMERCIAL_CHECKOUT',orderId,branchId,merchantId,expiresAt:new Date(validUntil).toISOString(),
    goodsFingerprint:goods.fingerprint,agreement:{id:agreementId,version,termsHash:record.termsHash},funding,
    calculation,financialSnapshot,branchCondition};
   return copy({...preview,digest:quoteHash(preview),goodsLines:goods.lines,operations,requiresAtomicCommit:true});

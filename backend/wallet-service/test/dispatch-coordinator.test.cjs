@@ -64,3 +64,10 @@ test('foreign or missing offers, oversized plans and mismatched cycle/lease reco
 test('an unavailable new schema never falls back to an unpinned old job',async()=>{
  const f=await setup();delete f.job().dispatchCycle;await assert.rejects(f.plan());assert.equal(f.job().dispatchTransition,undefined);
 });
+
+test('START delegates preparation-deadline review to timeout host without committing order review',async()=>{
+ const f=await setup();await f.plan();await f.acquire();f.time=Date.parse(f.intent().waveDeadline);
+ const before=structuredClone([...f.rows]);const result=await f.plan('START');
+ assert.equal(result.action,'STOP');assert.equal(result.reason,'REVIEW_REQUIRES_TIMEOUT_HOST');assert.deepEqual([...f.rows],before);
+ assert.equal((await f.plan('TIMEOUT')).action,'REVIEW');assert.equal(f.job().status,'no_driver_available');
+});

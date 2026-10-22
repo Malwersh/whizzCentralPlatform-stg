@@ -2,7 +2,7 @@ import {readFinancialPushReference} from './financialPushReference';
 import {readStagingFinancialOfferDelivery} from './financialOfferDelivery';
 import {equal,strongGet,FinancialRow as Row} from './driverFinancialTransaction';
 import {DynamoDBDocumentClient} from '@aws-sdk/lib-dynamodb';
-export function createStagingFinancialOfferHydration(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;authenticate:()=>Promise<{driverId:string;subjectId:string}>;authorize:(reference:Row)=>Promise<void>}){
+export function createStagingFinancialOfferHydration(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;authenticate:()=>Promise<{driverId:string;subjectId:string}>;authorize:(reference:Row)=>Promise<void>}){
  return async(value:Row)=>{
   const reference=readFinancialPushReference(value),actor=await options.authenticate();
   if(actor.driverId!==reference.dispatchDriverId||actor.subjectId!==reference.driverId)throw Error('UNAUTHORIZED');

@@ -18,7 +18,7 @@ async function codAndDispatch(event: Record<string, unknown>) {
   if (delivery !== 'HELD' && delivery !== 'PENDING') throw Error('INVALID_COD_NOTICE_DELIVERY');
   const deliveryFundingMode=process.env.FINANCIAL_DELIVERY_FUNDING_MODE??'OFF';
   if(!['OFF','REQUIRED'].includes(deliveryFundingMode))throw Error('DELIVERY_FUNDING_NOT_CONFIGURED');
-  const result=cod?await createStagingCodIntegration({ db, notificationDelivery: delivery,enableDeliveryFunding:deliveryFundingMode==='REQUIRED' }).run():{disabled:true,processed:0};
+  const result=cod?await createStagingCodIntegration({ db, notificationDelivery: delivery,enableDeliveryFunding:deliveryFundingMode==='REQUIRED',enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1' }).run():{disabled:true,processed:0};
   if(!dispatch)return result;
   const notice=process.env.DISPATCH_RESPONSE_NOTICE_DELIVERY??'HELD';if(notice!=='HELD'&&notice!=='PENDING')throw Error('INVALID_DISPATCH_NOTICE_DELIVERY');
   return {...result,dispatch:await createStagingDispatchResponseIntegration({db,notificationDelivery:notice}).run()};
@@ -27,7 +27,7 @@ async function codAndDispatch(event: Record<string, unknown>) {
 // Preserve the scheduled COD/response result, then discover staff decisions independently.
 export async function handler(event:Record<string,unknown>,context?:Parameters<typeof import('./dispatchReviewHostRuntime').handler>[1]) {
  const result=await codAndDispatch(event);
- if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY'].includes(process.env.DISPATCH_REVIEW_EXECUTION_MODE??''))return result;
+ if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY'].includes(process.env.DISPATCH_REVIEW_EXECUTION_MODE??''))return result;
  const review=await (await import('./dispatchReviewHostRuntime')).handler(event,context??{});
  return {...result,review};
 }

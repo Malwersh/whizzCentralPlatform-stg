@@ -9,6 +9,7 @@ type Row = Record<string, any>;
 const P = 'staging-MerchantPlatform', S = 'staging-PlatformStaff', B = 'WhizzMerchants_Businesses', D = 'staging-AccountDeletion';
 const fail = (code: string): never => { throw Object.assign(Error(code), { code }); };
 const uuid = (v: unknown) => typeof v === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(v);
+const employeeId = (v: unknown) => typeof v === 'string' && /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
 const iso = (v: unknown): v is string => typeof v === 'string' && Number.isFinite(Date.parse(v)) && new Date(v).toISOString() === v;
 const same = (a: unknown, b: unknown) => quoteCanonical(a) === quoteCanonical(b);
 const absent = (table: string, item: Row) => ({ Put: { TableName: table, Item: item, ConditionExpression: 'attribute_not_exists(pk)' } });
@@ -17,24 +18,26 @@ export type SchedulePrincipal = { kind: 'STAFF'; employeeId: string; authTime: n
   { kind: 'OWNER'; subjectId: string };
 
 /** Internal, not routed. Principal is supplied by verified platform/merchant JWT
- * adapters with live Cognito checks. Owner consent and independent financial
- * approval are mandatory; the staging direct-write exception is not used here.
+ * adapters with live Cognito checks. Owner consent remains mandatory. The verified staging operator may approve
+ * their own proposal when its immutable approval policy permits it.
  * No wallet, payable membership or existing frozen statement is modified. */
 export function createMerchantSettlementScheduleWorkflow(options: {
-  db: Pick<DynamoDBDocumentClient, 'send'>; principal: SchedulePrincipal; now?: () => number;
+  db: Pick<DynamoDBDocumentClient, 'send'>; principal: SchedulePrincipal; now?: () => number; allowSameStaffApproval?: boolean;
 }) {
   const { db } = options, principal = detach(options.principal), clock = options.now || Date.now;
   const instant = () => new Date(clock()).toISOString();
-  if (!principal || (principal.kind === 'STAFF' ? !uuid(principal.employeeId) || !Number.isSafeInteger(principal.authTime) ||
+  if (!principal || (principal.kind === 'STAFF' ? !employeeId(principal.employeeId) || !Number.isSafeInteger(principal.authTime) ||
       principal.authTime < 0 || typeof principal.mfaEnrolled !== 'boolean' : principal.kind !== 'OWNER' || !quoteEntityIdValid(principal.subjectId))) return fail('SCHEDULE_VERIFIED_PRINCIPAL_REQUIRED');
   async function staff(action: 'REQUEST' | 'APPROVE') {
     if (principal.kind !== 'STAFF') return fail('SCHEDULE_PERMISSION_REQUIRED');
     const k = { pk: 'EMPLOYEE#' + principal.employeeId, sk: 'PROFILE' }, row = await strongGet(db, S, k);
     const age = Math.floor(clock() / 1000) - principal.authTime;
+    // Honor the staff API's verified-session policy; JWT expiry and live revocation remain enforced.
+    if (age > 300 && !(process.env.PLATFORM_ENVIRONMENT === 'staging' && process.env.PLATFORM_SESSION_POLICY === 'VALID_SESSION')) return fail('SCHEDULE_REAUTH_REQUIRED');
     if (!row || row.employeeId !== principal.employeeId || row.status !== 'ACTIVE' || !Number.isSafeInteger(row.version) || row.version < 1 ||
         row.scope?.allRegions !== true || row.deletionRequestId != null || row.deletedAt != null || row.isDeleted === true ||
         (row.minimumAuthTime !== undefined && (!Number.isSafeInteger(row.minimumAuthTime) || row.minimumAuthTime < 0)) ||
-        (row.minimumAuthTime || 0) > principal.authTime || row.mfaRequired === true && !principal.mfaEnrolled || age < -30 || age > 300 ||
+        (row.minimumAuthTime || 0) > principal.authTime || row.mfaRequired === true && !principal.mfaEnrolled || age < -30 ||
         !allowed(row, 'finance.read') || !allowed(row, action === 'REQUEST' ? 'finance.settings.request' : 'finance.settings.approve')) return fail('SCHEDULE_PERMISSION_REQUIRED');
     return { row, guard: exactCheck(S, k, row, [...Object.keys(row), 'deletionRequestId', 'deletedAt', 'isDeleted', 'minimumAuthTime', 'mfaRequired']) };
   }
@@ -83,11 +86,12 @@ export function createMerchantSettlementScheduleWorkflow(options: {
     if (row.kind !== 'MERCHANT_SETTLEMENT_SCHEDULE_PROPOSAL' || row.schemaVersion !== 1 || row.branchId !== branchId ||
         !uuid(row.proposalId) || !same({ pk, sk }, key(branchId, 'PROPOSAL#' + row.proposalId)) ||
         quoteHash(body) !== proposalDigest || !['AWAITING_OWNER', 'AWAITING_APPROVAL', 'APPROVED'].includes(status) ||
-        !quoteEntityIdValid(row.ownerId) || !uuid(row.requestedBy) || !iso(row.createdAt) ||
+        (row.approvalPolicy !== undefined && !['SINGLE_ADMIN', 'INDEPENDENT'].includes(row.approvalPolicy)) ||
+        !quoteEntityIdValid(row.ownerId) || !employeeId(row.requestedBy) || !iso(row.createdAt) ||
         (status === 'AWAITING_OWNER' && [acceptedBy, acceptedAt, approvedBy, approvedAt].some(v => v !== undefined)) ||
         (status !== 'AWAITING_OWNER' && (acceptedBy !== row.ownerId || !iso(acceptedAt) || acceptedAt < row.createdAt)) ||
         (status === 'AWAITING_APPROVAL' && (approvedBy !== undefined || approvedAt !== undefined)) ||
-        (status === 'APPROVED' && (!uuid(approvedBy) || approvedBy === row.requestedBy || !iso(approvedAt) || approvedAt < acceptedAt))) return fail('SCHEDULE_PROPOSAL_INVALID');
+        (status === 'APPROVED' && (!employeeId(approvedBy) || approvedBy === row.requestedBy && row.approvalPolicy !== 'SINGLE_ADMIN' || !iso(approvedAt) || approvedAt < acceptedAt))) return fail('SCHEDULE_PROPOSAL_INVALID');
   }
   async function load(branchId: string, proposalId: string) {
     if (!uuid(proposalId)) return fail('INVALID_SCHEDULE_REQUEST');
@@ -125,6 +129,7 @@ export function createMerchantSettlementScheduleWorkflow(options: {
       const body = { schemaVersion: 1, kind: 'MERCHANT_SETTLEMENT_SCHEDULE_PROPOSAL', branchId: input.branchId,
         proposalId: input.proposalId, requestHash: quoteHash(input), baseVersion: input.baseVersion, schedule,
         ownerId: branch.ownerId, agreement: input.agreement, effectiveFrom: input.effectiveFrom, effectiveTo: input.effectiveTo,
+        approvalPolicy: options.allowSameStaffApproval === true ? 'SINGLE_ADMIN' : 'INDEPENDENT',
         requestedBy: actor.row.employeeId, createdAt: instant() };
       const proposal = { ...key(input.branchId, 'PROPOSAL#' + input.proposalId), ...body, proposalDigest: quoteHash(body), status: 'AWAITING_OWNER' };
       await commit([actor.guard, ...guards, ...agreementGuards, live.guard, absent(P, proposal), audit(input.branchId, input.proposalId, 'SCHEDULE_PROPOSED', actor.row.employeeId, proposal.proposalDigest)]);
@@ -154,7 +159,7 @@ export function createMerchantSettlementScheduleWorkflow(options: {
       if (!input || Object.keys(input).sort().join(',') !== 'branchId,proposalDigest,proposalId') return fail('INVALID_SCHEDULE_REQUEST');
       const actor = await staff('APPROVE'), { branch, guards } = await scope(input.branchId), row = await load(input.branchId, input.proposalId);
       if (row.proposalDigest !== input.proposalDigest || row.ownerId !== branch.ownerId || row.acceptedBy !== branch.ownerId || !iso(row.acceptedAt) ||
-          actor.row.employeeId === row.requestedBy) return fail('SCHEDULE_INDEPENDENT_APPROVAL_REQUIRED');
+          actor.row.employeeId === row.requestedBy && !(row.approvalPolicy === 'SINGLE_ADMIN' && options.allowSameStaffApproval === true)) return fail('SCHEDULE_INDEPENDENT_APPROVAL_REQUIRED');
       if (row.status === 'APPROVED') return { proposal: row, replayed: true };
       if (row.status !== 'AWAITING_APPROVAL') return fail('SCHEDULE_OWNER_CONSENT_REQUIRED');
       const requesterKey = { pk: 'EMPLOYEE#' + row.requestedBy, sk: 'PROFILE' };
@@ -176,7 +181,7 @@ export function createMerchantSettlementScheduleWorkflow(options: {
       const condition = live.guard.ConditionCheck;
       const { Key: _a, TableName: _b, ...proposalCondition } = exactCheck(P, key(input.branchId, 'PROPOSAL#' + row.proposalId), row).ConditionCheck;
       const { Key: _c, TableName: _d, ...currentCondition } = condition;
-      await commit([actor.guard, requesterGuard, ...guards, ...agreementGuards,
+      await commit([actor.guard, ...(actor.row.employeeId === row.requestedBy ? [] : [requesterGuard]), ...guards, ...agreementGuards,
         { Put: { TableName: P, Item: envelope, ...currentCondition } },
         absent(P, { ...envelope, ...key(input.branchId, 'VERSION#' + row.schedule.version) }),
         ...(live.row ? [absent(P, { ...key(input.branchId, 'CLOSED#' + live.row.schedule.version), schemaVersion: 1,

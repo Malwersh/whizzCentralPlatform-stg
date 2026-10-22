@@ -34,6 +34,20 @@ async function load(more=false){if(busy)return;const run=++epoch;lock(true);el('
  catch(e){if(run===epoch){el('list').replaceChildren();cursor=null;el('more').hidden=true;el('message').textContent=e.message;}}
  finally{if(run===epoch)lock(false);}
 }
+async function openOrder(orderId){
+ if(busy||typeof orderId!=='string'||!orderId)return;
+ const run=++epoch;lock(true);cursor=null;el('more').hidden=true;el('list').replaceChildren();
+ el('message').textContent='جارٍ تحميل مراجعة الطلب المحدد…';
+ root.scrollIntoView({block:'start',behavior:'smooth'});
+ try{const r=await api('?'+new URLSearchParams({orderId,source:'SEARCH'}));if(run!==epoch)return;if(!r.item||r.item.orderId!==orderId)throw Error('تعذر مطابقة مراجعة الطلب.');el('list').append(card(r.item));el('message').textContent=r.item.active?'هذه مراجعة الطلب المحدد؛ تسجيل القرار لا يعني تنفيذ إعادة البحث.':'لا توجد حالة تعثر نشطة لهذا الطلب؛ التفاصيل المعروضة للقراءة.';}
+ catch(e){if(run===epoch)el('message').textContent=e.message;}
+ finally{if(run===epoch)lock(false);}
+}
+window.DispatchReviewNavigation=Object.freeze({openOrder});
+document.getElementById('orders-tbody')?.addEventListener('click',event=>{
+ const button=event.target.closest('[data-review-order-id]');
+ if(button)openOrder(button.dataset.reviewOrderId);
+});
 el('reload').addEventListener('click',()=>load());el('more').addEventListener('click',()=>load(true));
 window.addEventListener('pagehide',()=>{epoch++;requests.clear();el('list').replaceChildren();});
 load();

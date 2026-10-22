@@ -46,8 +46,28 @@ export async function handler(
       return buildSuccessResponse({ message: 'OK' }, 200);
     }
 
+    // Existing POST resource multiplexes an explicit workflow before cancellation.
+    // This branch never invokes cancellation, notifications or the legacy writer.
+    if(httpMethod==='POST'&&path==='/order/cancel'){
+      const input=parseBody(event.body);
+      if(input.workflow==='CUSTOMER_CASH_REVIEW'){
+        try{return buildSuccessResponse(await require('../customer-cash-case-client').invokeCustomerCashCase(event,input),200);}
+        catch(e:any){return buildErrorResponse(e.status||503,e.status?e.message:'CASH_REVIEW_UNAVAILABLE','تعذر تأكيد مراجعة النقد؛ حدّث الحالة قبل إعادة المحاولة');}
+      }
+    }
     if(httpMethod==='POST'&&['/order/cancel','/order/unassign'].includes(path)){
       try{event={...event,body:JSON.stringify(await authorizeOrder(event,parseBody(event.body)))};}catch(e:any){return buildErrorResponse(e.status||500,e.status?e.message:'AUTHENTICATION_UNAVAILABLE','تعذر التحقق من صلاحية تنفيذ العملية');}
+    }
+
+    if(path==='/order/cancel'&&httpMethod==='POST'){
+      const input=parseBody(event.body);
+      const {docClient,GetCommand,TABLES}=require('./db');
+      const {Item:order}=await docClient.send(new GetCommand({TableName:TABLES.ORDERS,Key:{PK:'ORDER#'+input.orderId,SK:'META'},ConsistentRead:true}));
+      if(order?.exceptionPolicy){
+        if(input.canceledBy!=='customer')return buildErrorResponse(409,'FINANCIAL_CANCELLATION_REQUIRED','استخدم مسار الإلغاء المالي المخصص');
+        try{return buildSuccessResponse(await require('../financial-cancellation-client').invokeCustomerCancellation(event,input),200);}
+        catch(e:any){return buildErrorResponse(e.status||503,e.message,'تعذر تأكيد الإلغاء؛ حدّث حالة الطلب قبل إعادة المحاولة');}
+      }
     }
 
     // POST /order/cancel

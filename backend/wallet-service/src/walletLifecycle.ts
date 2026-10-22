@@ -5,7 +5,7 @@ import {randomUUID} from 'crypto';
 import {docClient,TABLES,GetCommand,QueryCommand,ScanCommand,UpdateCommand} from './db';
 import {HoldService} from './holdService';
 export function lifecycleDecision(hold:any,order:any){
- if(hold.financialSchemaVersion===2)return {action:'REVIEW',reason:'FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT'};
+ if(hold.financialSchemaVersion!==undefined)return {action:'REVIEW',reason:'FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT'};
  if(hold.status==='RELEASED'&&['delivered','completed'].includes(order?.status))return {action:'REVIEW',reason:'DELIVERED_BUT_RELEASED'};
  if(hold.status==='CAPTURED'&&/^(canceled|cancelled)(_|$)/.test(order?.status||''))return {action:'REVIEW',reason:'CANCELLED_BUT_CAPTURED'};
  if(hold.status==='RELEASED'||hold.status==='CAPTURED')return {action:'DONE',result:hold.status};

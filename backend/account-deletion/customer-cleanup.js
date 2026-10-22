@@ -22,7 +22,7 @@ function financialRecord(row,kind,job,now){
  const data={};for(const field of fields)if(row[field]!==undefined)data[field]=row[field];
  if(data.pricing){const pricing={};for(const k of ['subtotal','total','deliveryFee','tax','discount','currency'])if(data.pricing[k]!==undefined)pricing[k]=data.pricing[k];data.pricing=pricing;}
  if(kind==='order'&&(row.financialAcceptance||row.financialSnapshot||row.codFinancialEvidence)){data.codFinancialEvidence={...(row.codFinancialEvidence||require('./cod-retention').codEvidence(row))};delete data.codFinancialEvidence.driverId;delete data.codFinancialEvidence.subjectId;}
- if(row.financialSchemaVersion===2||row.metadata?.financialSchemaVersion===2){data.financialSchemaVersion=2;if(typeof row.metadata?.orderId==='string')data.orderId=row.metadata.orderId;}
+ if([2,3,4].includes(row.financialSchemaVersion)||[2,3,4].includes(row.metadata?.financialSchemaVersion)){data.financialSchemaVersion=row.financialSchemaVersion??row.metadata.financialSchemaVersion;if(typeof row.metadata?.orderId==='string')data.orderId=row.metadata.orderId;}
  if(kind.startsWith('sandbox_'))data.environment='sandbox';
  if(kind==='sandbox_balance'&&!Number.isSafeInteger(data.balance))throw error('FINANCIAL_RECORD_INVALID');
  if(!['order','audit','sandbox_reference','sandbox_balance'].includes(kind)&&!Number.isSafeInteger(data.amount))throw error('FINANCIAL_RECORD_INVALID');

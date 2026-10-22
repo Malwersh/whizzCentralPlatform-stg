@@ -1,3 +1,4 @@
+import {prepareMerchantAccrualIndex} from './merchantAccrualIndex';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { codIntegrationEvent } from './codIntegrationEvent';
 import { verifyDeliveryFundedAssignment } from './deliveryFundedOffer';
@@ -40,7 +41,7 @@ export function codCollectedPaymentFields(order:Row,at:string) {
  * Authentication must validate the original live driver credential, not invocation/Gateway context.
  */
 export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClient,'send'>;
- authenticateDriver:()=>Promise<{driverId:string;subjectId:string}>;now?:()=>number;enableDeliveryFunding?:boolean}) {
+ authenticateDriver:()=>Promise<{driverId:string;subjectId:string}>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean}) {
  const {db,authenticateDriver}=options,now=options.now??Date.now;
  return Object.freeze({async complete(value:unknown){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='cashCollected,orderId'||(value as Row).cashCollected!==true||!quoteEntityIdValid((value as Row).orderId))return fail('INVALID_COD_COMPLETION');
@@ -134,6 +135,7 @@ export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClie
   // Each funding pool remains nonnegative; a negative margin uses actual available platform funds.
   if(safe(pw.availableBalance+deltaPlatform)<0)return fail('COD_FUNDING_UNAVAILABLE');
   const changes=[{w:dw,available:A,locked:-H},{w:mw,available:0,locked:M},{w:pw,available:deltaPlatform,locked:-cashFunding}];
+  ops.push(...await prepareMerchantAccrualIndex(db,{branchId,orderId,operationId,deliveredAt:timestamp,merchantNetIqd:M,financialSchemaVersion:deliveryFunded?3:2}));
   const journalLines:Row[]=[];
   for(const {w,available,locked} of changes){
    const nextAvailable=safe(w.availableBalance+available),nextLocked=safe(w.lockedBalance+locked);safe(nextAvailable+nextLocked);

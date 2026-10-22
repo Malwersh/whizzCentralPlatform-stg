@@ -6,6 +6,16 @@
  const date=v=>{if(typeof v!=='string'||!/\dT/.test(v))throw Error('حدد تاريخ ووقت السريان.');const n=new Date(v.endsWith('Z')?v:v+'Z');if(!Number.isFinite(n.getTime()))throw Error('تاريخ غير صالح.');return n.toISOString();};
  function build(data,scope){
   if(!scope||!scope.businessId||!scope.merchantId||!scope.id||!Number.isSafeInteger(scope.version)||scope.version<1)throw Error('أعد تحميل بيانات الفرع.');
+  if(data.mode==='AGREEMENT'){
+   if(!['FREE','FIXED_TARIFF'].includes(data.rule))throw Error('اختر مجاني أو رسم توصيل ثابت.');
+   const allowed=new Set((scope.regions||[]).map(r=>r.id));if(!Array.isArray(data.regions)||!data.regions.length||data.regions.length>100||new Set(data.regions).size!==data.regions.length||data.regions.some(id=>!allowed.has(id)))throw Error('اختر المناطق المشمولة.');
+   const effectiveFrom=date(data.from),effectiveTo=date(data.to);if(effectiveTo<=effectiveFrom)throw Error('النهاية يجب أن تكون بعد البداية.');
+   let funding;if(['MERCHANT','PLATFORM'].includes(data.funder))funding={kind:data.funder};else if(data.funder==='SHARED'){const n=number(data.merchantPercent);if(n>100)throw Error('راجع نسبة المشاركة.');funding={kind:'SHARED_RATIO',merchantNumerator:n,denominator:100};}else throw Error('اختر جهة تحمّل الفرق.');
+   const pct=number(data.commissionPercent);if(pct>100)throw Error('عمولة المنصة بين صفر و100%.');
+   return {schemaVersion:2,id:scope.id,version:scope.version,merchantId:scope.merchantId,branchId:scope.businessId,origin:data.funder,effectiveFrom,effectiveTo,
+    customerRule:data.rule==='FREE'?{kind:'FREE'}:{kind:'FIXED_TARIFF',amount:money(data.amount)},funding,eligibility:{regionIds:data.regions,minimumGoods:money(data.minimumGoods)},
+    commission:{kind:'PERCENT',basis:'GOODS_GROSS',fixed:null,rate:{numerator:pct,denominator:100},rounding:'TOWARD_ZERO',finalRounding:{incrementIqd:1,mode:'TOWARD_ZERO'}}};
+  }
   const customerRule={kind:data.rule};
   if(['CAPPED_PRICE','AMOUNT_OFF'].includes(data.rule))customerRule.amount=money(data.amount);
   else if(data.rule==='PERCENT_OFF'){customerRule.numerator=number(data.percent);customerRule.denominator=100;if(customerRule.numerator>100)throw Error('النسبة لا تتجاوز 100%.');customerRule.maximumDiscount=money(data.maximumDiscount);}

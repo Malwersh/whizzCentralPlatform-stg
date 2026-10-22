@@ -1,0 +1,13 @@
+{
+  "part": 230,
+  "baseJobId": "127",
+  "jobId": "128",
+  "changedFiles": [
+    "pages/settings.html",
+    "settings-order-exceptions.js"
+  ],
+  "otherFilesPreserved": true,
+  "status": "SUCCEED",
+  "sha256": "5641f3bed6fa51af096bc2d20e4fa09a0169fc4b6acb65fb0ff36ffb02d66cd3",
+  "hostedBytesVerified": true
+}

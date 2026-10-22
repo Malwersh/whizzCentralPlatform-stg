@@ -57,7 +57,6 @@ function makeApnsJwt(auth) {
     {
       algorithm: 'ES256',
       header: { alg: 'ES256', kid: auth.keyId },
-      noTimestamp: true,
     }
   );
 }
@@ -156,7 +155,7 @@ function buildPayload(orderId, statusData, eventType) {
     base.aps['stale-date'] = statusData.arrivalLatestEpoch;
   }
   if (eventType === 'end') {
-    base.aps['dismissal-date'] = Math.floor(Date.now() / 1000) + 600; // dismiss after 10 min
+    base.aps['dismissal-date'] = Math.floor(Date.now() / 1000) - 1; // remove immediately after completion
   }
 
   return JSON.stringify(base);
@@ -185,7 +184,7 @@ async function sendToOrder(orderId, statusData, eventType) {
       await sendApnsPush(token, payload, eventType);
       results.push({ success: true });
     } catch (err) {
-      console.warn('Live activity push failed', { code: err.status || 'APNS_FAILED' });
+      console.warn('Live activity push failed', { code: err.status || 'APNS_FAILED', reason: err.data?.reason || 'TRANSPORT_FAILURE' });
       results.push({ success: false, error: err.status || 'APNS_FAILED' });
       // Remove tokens that Apple reports as invalid
       if (err.status === 410) {

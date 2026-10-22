@@ -19,7 +19,9 @@ function checkedEvent(row: Row) {
   return row;
 }
 
-function checkedProof(event: Row, journal: Row | null, order: Row | null, enableDeliveryFunding=false) {
+function checkedProof(event: Row, journal: Row | null, order: Row | null, enableDeliveryFunding=false,enableFullCash=false) {
+  const fullCash=order?.financialSnapshot?.schemaVersion===3||journal?.schemaVersion===3;
+  if(fullCash&&!enableFullCash)return fail();
   const funded=order?.financialSnapshot?.schemaVersion===2||journal?.acceptedTerms?.schemaVersion===2;
   if((journal?.schemaVersion===2&&!enableDeliveryFunding)||(funded&&journal?.schemaVersion!==2))return fail();
   if (!journal || !order || journal.orderId !== event.orderId || journal.driverId !== event.driverId ||
@@ -31,7 +33,7 @@ function checkedProof(event: Row, journal: Row | null, order: Row | null, enable
       [order.storeId, order.businessId].some(v => v != null && v !== event.branchId)) return fail();
   const expected = {
     COD_ACCEPTANCE_OUTBOX: ['FINANCIAL_DRIVER_OFFER', 'ACCEPTED', null],
-    COD_COMPLETION_OUTBOX: ['COD_COMPLETION_JOURNAL', 'COMPLETED', 'delivered'],
+    COD_COMPLETION_OUTBOX: [fullCash?'FULL_CASH_COMPLETION_JOURNAL':'COD_COMPLETION_JOURNAL', 'COMPLETED', 'delivered'],
     COD_RETURN_OUTBOX: ['COD_RETURN_JOURNAL', 'RETURNED', 'returned'],
     COD_CANCEL_OUTBOX: ['COD_CANCEL_JOURNAL', 'CANCELLED', 'cancelled'],
     COD_UNASSIGN_OUTBOX: ['COD_ASSIGNMENT_RELEASE', 'UNASSIGNED', null]
@@ -81,7 +83,7 @@ function metricPlan(event: Row, previous: Row | null, at: string) {
     { ConditionCheck: { TableName: T.metrics, Key: key, ConditionExpression: 'attribute_not_exists(PK)' } };
   return updateChecked(fence, expression, names, values);
 }
-function acceptanceProof(event: Row, record: Row | null, order: Row | null, enableDeliveryFunding=false) {
+function acceptanceProof(event: Row, record: Row | null, order: Row | null, enableDeliveryFunding=false,enableFullCash=false) {
   if (!record || !order || record.kind !== 'FINANCIAL_DRIVER_OFFER' || record.schemaVersion !== 2 || record.orderId !== event.orderId ||
       record.offerId !== event.offerId || record.driverId !== event.driverId || record.waveNumber !== event.waveNumber ||
       record.responseStatus !== 'financial_accepted' || record.isWinner !== true || record.financialReceipt?.success !== true ||
@@ -93,9 +95,10 @@ function acceptanceProof(event: Row, record: Row | null, order: Row | null, enab
       ![order.storeId, order.businessId].some(v => v === event.branchId) ||
       [order.storeId, order.businessId].some(v => v != null && v !== event.branchId)) return fail();
   let offer:Row;
-  try{offer=resolveFinancialOffer(record.financialOffer,enableDeliveryFunding);}catch{return fail();}
+  try{offer=resolveFinancialOffer(record.financialOffer,enableDeliveryFunding,enableFullCash);}catch{return fail();}
   if (!equal(offer.versionedOffer, record.financialOffer) || offer.driverId !== event.driverId || offer.driverSubjectId !== event.subjectId ||
       offer.branchId !== event.branchId || offer.offerId !== event.offerId || record.acceptedTerms.offerDigest !== offer.digest) return fail();
+  if(offer.versionedOffer.schemaVersion===3&&(record.acceptedTerms.schemaVersion!==3||record.acceptedTerms.settlementModel!==offer.versionedOffer.settlementModel||!equal(record.acceptedTerms.allocation,offer.allocation)||!equal(record.acceptedTerms.deliveryFunding,offer.versionedOffer.financialSnapshot.deliveryFunding)||record.acceptedTerms.financialSnapshotDigest!==offer.snapshotHash||record.acceptedTerms.settlementDigest!==offer.versionedOffer.settlement.digest))return fail();
   if(offer.versionedOffer.schemaVersion===2&&(record.acceptedTerms.schemaVersion!==2||
     !equal(record.acceptedTerms.allocation,offer.allocation)||
     !equal(record.acceptedTerms.deliveryFunding,offer.versionedOffer.financialSnapshot.deliveryFunding)||
@@ -103,7 +106,7 @@ function acceptanceProof(event: Row, record: Row | null, order: Row | null, enab
 }
 
 /** Internal DynamoDB-only integration. No wallet/ledger writes, hold operations, dispatch, HTTP or push sends. */
-export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number; notificationDelivery?: 'HELD' | 'PENDING';enableDeliveryFunding?:boolean }) {
+export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number; notificationDelivery?: 'HELD' | 'PENDING';enableDeliveryFunding?:boolean;enableFullCash?:boolean }) {
   const { db } = options, now = options.now ?? Date.now;
   const notificationDelivery = options.notificationDelivery ?? 'HELD';
   if (!['HELD','PENDING'].includes(notificationDelivery)) throw Error('INVALID_COD_NOTICE_DELIVERY');
@@ -118,7 +121,7 @@ export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocument
     return updateChecked(check, 'SET #status=:status, #at=:at' + (extra.length ? ', ' + extra.join(', ') : '') + ' REMOVE #queue, #next' + (status !== 'INTEGRATION_REVIEW_REQUIRED' ? ', #failure' : ''), names, args);
   }
   async function processEvent(operationId: string) {
-    if (typeof operationId !== 'string' || !/^(?:CDA|COD|CR|CA):[a-f0-9]{48}:EVENT$/.test(operationId)) return fail('INVALID_COD_INTEGRATION_EVENT');
+    if (typeof operationId !== 'string' || !/^(?:CDA|COD|CR|CA|FCS):[a-f0-9]{48}:EVENT$/.test(operationId)) return fail('INVALID_COD_INTEGRATION_EVENT');
     const saved = await strongGet(db, T.events, { operationId });
     if (!saved) return { missing: true };
     checkedEvent(saved);
@@ -145,7 +148,7 @@ export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocument
       if (!driver || !order || driver.isDeleted === true || driver.deletedAt != null || driver.deletionRequestId != null ||
           order.isDeleted === true || order.deletedAt != null || order.deletionRequestId != null || order.deletionStatus != null) return fail('COD_INTEGRATION_PARTY_UNAVAILABLE');
       if ((driver.cognitoSub ?? driver.driverId) !== saved.subjectId) return fail();
-      if (acceptance) acceptanceProof(saved, journal, order,options.enableDeliveryFunding===true); else checkedProof(saved, journal, order,options.enableDeliveryFunding===true);
+      if (acceptance) acceptanceProof(saved, journal, order,options.enableDeliveryFunding===true,options.enableFullCash===true); else checkedProof(saved, journal, order,options.enableDeliveryFunding===true,options.enableFullCash===true);
       const notificationEventId = 'COD_EVENT:' + quoteHash({ operationId }).slice(0, 48), at = timestamp(now());
       const wording: Record<string, [string, string]> = {
         COD_COMPLETION_OUTBOX: ['تمت تسوية طلب التوصيل', 'افتح المحفظة لمراجعة حركة التسوية. الأجرة والإكرامية النقديتان لا تضافان مرة أخرى.'],

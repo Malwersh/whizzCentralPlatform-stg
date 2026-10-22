@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { assertDeliveryFundingPolicyPin } from './deliveryFundingPolicy';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 // Reuse existing authority implementations, not a second role/manager catalog.
@@ -26,8 +26,9 @@ function instant(v: unknown): number {
  * fences MUST join the order transaction alongside usage/budget reservations.
  * No client-supplied policy selection or copied eligibility facts are trusted.
  */
-export function createStagingDeliveryFundingReader(options: {db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number}) {
+export function createStagingDeliveryFundingReader(options: {db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number; lifecycleReadMode?: 'GET' | 'CONDITION_CHECK'}) {
   const {db} = options, now = options.now ?? Date.now;
+  if(options.lifecycleReadMode!==undefined&&!['GET','CONDITION_CHECK'].includes(options.lifecycleReadMode))return fail();
   async function get(table: string, key: Row): Promise<Row> {
     try { const item = (await db.send(new GetCommand({TableName: table, Key: key, ConsistentRead: true}))).Item;
       if (!item) return fail(); return copy(item);
@@ -44,9 +45,10 @@ export function createStagingDeliveryFundingReader(options: {db: Pick<DynamoDBDo
           !quoteEntityIdValid(branch.organizationId) || branch.isActive !== true || branch.status !== 'approved' ||
           branch.deletionRequestId != null || branch.deletedAt != null || branch.isDeleted === true || branch.platformSuspended === true || branch.ordersBlocked === true ||
           (branch.onboardingSchemaVersion !== undefined && (branch.onboardingComplete !== true || branch.acceptingOrders !== true))) return fail();
-      const orgKey = {pk:'PERSON#'+branch.ownerId, sk:'ORGANIZATION#'+branch.organizationId}, org = await get(P, orgKey);
+      const orgKey = {pk:'PERSON#'+branch.ownerId, sk:'ORGANIZATION#'+branch.organizationId};
+      const key = {pk:'DELIVERY_FUNDING#'+r.policyPin.policyId, sk:'CURRENT'};
+      const [org,current] = await Promise.all([get(P,orgKey),get(S,key)]);
       if (org.subjectId !== branch.ownerId || org.organizationId !== branch.organizationId || org.deletionRequestId != null || org.deletedAt != null || org.isDeleted === true) return fail();
-      const key = {pk:'DELIVERY_FUNDING#'+r.policyPin.policyId, sk:'CURRENT'}, current = await get(S, key);
       if (current.pk !== key.pk || current.sk !== key.sk || current.schemaVersion !== 1 || current.status !== 'ACTIVE' ||
           current.id !== r.policyPin.policyId || current.version !== r.policyPin.version || current.termsHash !== r.policyPin.termsHash ||
           current.activationMode !== 'STAFF_SEND_MERCHANT_ACCEPT') return fail();
@@ -61,12 +63,16 @@ export function createStagingDeliveryFundingReader(options: {db: Pick<DynamoDBDo
       if (author.employeeId !== current.approvedBy || author.status !== 'ACTIVE' || !allowed(author, 'commercial.funding.request') || author.scope?.allRegions !== true) return fail('DELIVERY_POLICY_AUTHORITY_REVOKED');
       const party = await resolveParty(db, branch, current.acceptedBy);
       const fences: any[] = [pin(B,branchKey,branch), pin(P,orgKey,org), pin(S,key,current), pin(S,versionKey,version), pin(S,authorKey,author), ...party.guards];
-      for (const pk of ['ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId, 'BUSINESS_LIFECYCLE#MERCHANT#'+branch.businessId]) {
-        const lifecycleKey = {pk,sk:'META'};
-        const state = await db.send(new GetCommand({TableName:L, Key:lifecycleKey, ConsistentRead:true}));
-        if (state.Item) return fail('DELIVERY_POLICY_AUTHORITY_REVOKED');
-        fences.push({ConditionCheck:{TableName:L,Key:lifecycleKey,ConditionExpression:'attribute_not_exists(pk)'}});
+      const lifecycleChecks=['ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId,'BUSINESS_LIFECYCLE#MERCHANT#'+branch.businessId].map(pk=>({ConditionCheck:{TableName:L,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}));
+      if(options.lifecycleReadMode==='CONDITION_CHECK'){
+        // The Creator already has ConditionCheckItem, not GetItem, on these guards.
+        // This transaction has no mutations. Keep the same guards in the eventual order transaction.
+        try{await db.send(new TransactWriteCommand({TransactItems:lifecycleChecks}));}
+        catch(e){if((e as any)?.name==='TransactionCanceledException'&&(e as any)?.CancellationReasons?.some((r:Row)=>r.Code==='ConditionalCheckFailed'))return fail('DELIVERY_POLICY_AUTHORITY_REVOKED');return fail();}
+      }else{
+        for(const check of lifecycleChecks){const state=await db.send(new GetCommand({TableName:L,Key:check.ConditionCheck.Key,ConsistentRead:true}));if(state.Item)return fail('DELIVERY_POLICY_AUTHORITY_REVOKED');}
       }
+      fences.push(...lifecycleChecks);
       return {policy: resolved.policy, policyPin: copy(r.policyPin), validUntil: policy.effectiveTo, referenceDigest: quoteHash({branch,org,current,author,party: {role:party.role,subjectId:party.subjectId},fences}), operations:fences};
     } catch (e) { if (e instanceof DeliveryFundingReaderError) throw e; return fail(); }
   }});

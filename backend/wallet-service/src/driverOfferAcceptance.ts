@@ -1,3 +1,5 @@
+import {retainFullCashFundingCommitment} from './fullCashFundingCommitment';
+import {financialWaveSK} from './financialDispatchKeys';
 import { prepareDeliveryFundingRetention } from './deliveryFundingRetention';
 import { assignedArrivalEstimate } from './orderArrivalEstimate';
 import {pinnedFinancialWaveFence} from './dispatchWaveFence';
@@ -23,12 +25,12 @@ const fail=(c:DriverAcceptanceError['code']):never=>{throw new DriverAcceptanceE
 export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocumentClient,'send'>;
   context:ReturnType<typeof createStagingDriverOfferContext>;
   contextForOffer?:(offer:Row)=>ReturnType<typeof createStagingDriverOfferContext>;
-  authenticateDriver:()=>Promise<{driverId:string;subjectId:string}>;now?:()=>number;enableDeliveryFunding?:boolean}) {
+  authenticateDriver:()=>Promise<{driverId:string;subjectId:string}>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean}) {
   const {db,context,authenticateDriver}=options,now=options.now??Date.now;
   async function afterDecline(saved:Row){
     try{const assignment=await strongGet(db,tables.jobs,{orderId:saved.orderId,SK:'METADATA'});
     if(!assignment||!Object.prototype.hasOwnProperty.call(assignment,'dispatchCycle'))return {success:true,declined:true,offerId:saved.offerId};
-    const transition=await createStagingDispatchCoordinator({db,now,enableDeliveryFunding:options.enableDeliveryFunding}).plan({orderId:saved.orderId,assignmentId:resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding).assignmentId,source:'DECLINE'});return {success:true,declined:true,offerId:saved.offerId,transition};}
+    const transition=await createStagingDispatchCoordinator({db,now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash}).plan({orderId:saved.orderId,assignmentId:resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash).assignmentId,source:'DECLINE'});return {success:true,declined:true,offerId:saved.offerId,transition};}
     catch{return {success:true,declined:true,offerId:saved.offerId,transitionPending:true};}
   }
   return Object.freeze({async accept(value:unknown) {
@@ -41,7 +43,8 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     let saved:Row|null;
     try{saved=await strongGet(db,tables.offers,key);}catch{return fail('FINANCIAL_ACCEPTANCE_UNAVAILABLE');}
     if(!saved||saved.kind!=='FINANCIAL_DRIVER_OFFER'||saved.schemaVersion!==2||saved.offerId!==offerId||saved.driverId!==actor.driverId||saved.waveNumber!==waveNumber||saved.orderId!==orderId||saved.SK!==key.SK)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
-    const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding);
+    const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash);
+    const fullCash=offer.versionedOffer.schemaVersion===3;
     if(!equal(offer.versionedOffer,saved.financialOffer)||offer.driverId!==actor.driverId||offer.driverSubjectId!==actor.subjectId||offer.offerId!==offerId||offer.orderId!==orderId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     function prior(row:Row|null) {
       if(row?.responseStatus!=='financial_accepted'||row.isWinner!==true||!equal(row.financialOffer,offer.versionedOffer)||
@@ -58,8 +61,8 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
       (r.effectiveTo===null||Date.parse(r.effectiveTo)>Date.parse(timestamp))).map((r:Row)=>({id:r.id,version:r.version,hash:quoteHash(r)}));
     const plan=versionedFinancialOfferAcceptance({offer,offerId,driverId:actor.driverId,subjectId:actor.subjectId,
       assignmentId:references.assignment.dispatchJobId,assignmentVersion:waveNumber,order:references.order.snapshot,...(references.order.deliveryFunding?{deliveryFunding:references.order.deliveryFunding}:{}),at:timestamp,
-      policy:{version:references.policy.version,enabledRuleVersions:enabled}},options.enableDeliveryFunding);
-    const waveKey={orderId,SK:`FINANCIAL_WAVE#${waveNumber}`},wave=await strongGet(db,tables.jobs,waveKey);
+      policy:{version:references.policy.version,enabledRuleVersions:enabled}},options.enableDeliveryFunding,options.enableFullCash);
+    const waveKey={orderId,SK:financialWaveSK(references.assignment,waveNumber)},wave=await strongGet(db,tables.jobs,waveKey);
     if(!wave||wave.kind!=='FINANCIAL_WAVE'||wave.state!=='READY'||wave.assignmentId!==offer.assignmentId||wave.branchId!==offer.branchId||
         !Array.isArray(wave.driverIds)||!wave.driverIds.includes(actor.driverId))return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const pinnedGuards=await pinnedFinancialWaveFence(db,references.assignment,offer,waveNumber,wave,now());
@@ -71,7 +74,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     if(wallet.availableBalance<amount)return fail('INSUFFICIENT_BALANCE');
     const holdKey={orderId,sk:'HOLD'},oldHold=await strongGet(db,tables.holds,holdKey);
     if(oldHold&&(!references.order.priorRelease||oldHold.status!=='RELEASED'||oldHold.releaseOperationId!==references.order.priorRelease.operationId||oldHold.metadata?.assignmentAttempt!==references.order.nextAssignmentAttempt-1||oldHold.metadata?.offerDigest!==references.order.priorRelease.offerDigest||!equal(oldHold,references.order.priorRelease.releasedHold)))return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
-    const holdId=amount?'FH:'+quoteHash({orderId,offerId,digest:offer.digest}).slice(0,48):null;
+    const holdId=amount?(fullCash?'FCH:':'FH:')+quoteHash({orderId,offerId,digest:offer.digest}).slice(0,48):null;
     const receipt={success:true,kind:'FINANCIAL_DRIVER_ACCEPTANCE',offerId,orderId,driverId:actor.driverId,acceptedAt:timestamp,
       assignmentAttempt:references.order.nextAssignmentAttempt,holdId,holdStatus:amount?'ACTIVE':'NOT_REQUIRED',holdAmount:amount,replayed:false};
     // Older deployed context readers omit preparation metadata. Hydrate it here
@@ -100,7 +103,8 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
         {':uAccepted':'financial_accepted',':uTrue':true,':uAt':timestamp,':uTerms':plan.acceptedTerms,':uReceipt':receipt}),
       {Put:{TableName:tables.audit,Item:{datePartition:'date#'+timestamp.slice(0,10).replace(/-/g,''),sk:timestamp+'#'+offerId,
         logId:offerId,action:'FINANCIAL_DRIVER_OFFER_ACCEPTED',actorId:actor.subjectId,driverId:actor.driverId,branchId:offer.branchId,orderId,offerId,holdId,amount,currency:'IQD',createdAt:timestamp},ConditionExpression:'attribute_not_exists(sk)'}}];
-    if(references.order.deliveryFunding)ops.push(...await prepareDeliveryFundingRetention(db,{orderId,at:timestamp,operationId:codAcceptanceOperation(orderId,offerId,references.order.nextAssignmentAttempt),deliveryFunding:references.order.deliveryFunding,goodsAmount:references.order.snapshot.allocation.platformGoodsDiscount,commercialPricing:references.order.commercialPricing}));
+    if(fullCash)ops.push(await retainFullCashFundingCommitment(db,{orderId,snapshotDigest:offer.snapshotHash,deliveryFunding:references.order.deliveryFunding??null,goodsAmount:references.order.snapshot.allocation.platformGoodsDiscount,goodsExposure:references.order.commercialPricing?.funding?.exposure}));
+    else if(references.order.deliveryFunding)ops.push(...await prepareDeliveryFundingRetention(db,{orderId,at:timestamp,operationId:codAcceptanceOperation(orderId,offerId,references.order.nextAssignmentAttempt),deliveryFunding:references.order.deliveryFunding,goodsAmount:references.order.snapshot.allocation.platformGoodsDiscount,commercialPricing:references.order.commercialPricing}));
     const arrival=assignedArrivalEstimate(timestamp,offer.calculation.pickupRoute.durationSeconds,
       offer.calculation.deliveryRoute.durationSeconds,readyAt);
     const orderUpdate=ops.find(op=>op.Update?.TableName==='WizzOrders')?.Update;
@@ -116,23 +120,24 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
         {'#uAv':'availableBalance','#uLocked':'lockedBalance','#uVersion':'version','#uAt':'updatedAt'},
         {':uAv':wallet.availableBalance-amount,':uLocked':wallet.lockedBalance+amount,':uVersion':wallet.version+1,':uAt':timestamp}),
         {Put:{TableName:tables.holds,Item:{...holdKey,holdId,walletId,amount,status:'ACTIVE',statusCreatedAt:'ACTIVE#'+timestamp,
-          financialSchemaVersion:2,createdAt:timestamp,updatedAt:timestamp,metadata:{assignmentAttempt:references.order.nextAssignmentAttempt,offerId,offerDigest:offer.digest}},...(oldHold?{ConditionExpression:exactCheck(tables.holds,holdKey,oldHold).ConditionCheck.ConditionExpression,ExpressionAttributeNames:exactCheck(tables.holds,holdKey,oldHold).ConditionCheck.ExpressionAttributeNames,ExpressionAttributeValues:exactCheck(tables.holds,holdKey,oldHold).ConditionCheck.ExpressionAttributeValues}:{ConditionExpression:'attribute_not_exists(orderId)'})}},
-        {Put:{TableName:tables.lifecycle,Item:{operationId:holdId,orderId,walletId,amount,financialSchemaVersion:2,status:'REVIEW_REQUIRED',action:'REVIEW',
-          lastError:'FINANCIAL_SETTLEMENT_PENDING',createdAt:timestamp,updatedAt:timestamp},ConditionExpression:'attribute_not_exists(operationId)'}});
+          financialSchemaVersion:fullCash?4:2,...(fullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),createdAt:timestamp,updatedAt:timestamp,metadata:{assignmentAttempt:references.order.nextAssignmentAttempt,offerId,offerDigest:offer.digest}},...(oldHold?{ConditionExpression:exactCheck(tables.holds,holdKey,oldHold).ConditionCheck.ConditionExpression,ExpressionAttributeNames:exactCheck(tables.holds,holdKey,oldHold).ConditionCheck.ExpressionAttributeNames,ExpressionAttributeValues:exactCheck(tables.holds,holdKey,oldHold).ConditionCheck.ExpressionAttributeValues}:{ConditionExpression:'attribute_not_exists(orderId)'})}},
+        {Put:{TableName:tables.lifecycle,Item:{operationId:holdId,orderId,walletId,amount,financialSchemaVersion:fullCash?4:2,...(fullCash?{kind:'FULL_CASH_HOLD'}:{}),status:fullCash?'FULL_CASH_PENDING_COMPLETION':'REVIEW_REQUIRED',action:'REVIEW',
+          lastError:fullCash?'FULL_CASH_SETTLEMENT_PENDING':'FINANCIAL_SETTLEMENT_PENDING',createdAt:timestamp,updatedAt:timestamp},ConditionExpression:'attribute_not_exists(operationId)'}});
       for(const locked of [false,true])ops.push({Put:{TableName:tables.ledger,Item:{walletId,sk:'ts#'+timestamp+'#'+(locked?'LOCKED#':'AVAILABLE#')+holdId,
         transactionId:holdId,type:locked?'CREDIT':'DEBIT',category:'HOLD_CREATED',amount:locked?amount:-amount,
         balanceBefore:locked?wallet.lockedBalance:wallet.availableBalance,balanceAfter:locked?wallet.lockedBalance+amount:wallet.availableBalance-amount,
-        relatedEntityId:orderId,relatedEntityType:'HOLD',metadata:{orderId,holdId,balanceType:locked?'LOCKED':'AVAILABLE',financialSchemaVersion:2},createdAt:timestamp},ConditionExpression:'attribute_not_exists(sk)'}});
+        relatedEntityId:orderId,relatedEntityType:'HOLD',metadata:{orderId,holdId,balanceType:locked?'LOCKED':'AVAILABLE',financialSchemaVersion:fullCash?4:2},createdAt:timestamp},ConditionExpression:'attribute_not_exists(sk)'}});
     }else {
       ops.push(walletFence);
       if(oldHold){const fence=exactCheck(tables.holds,holdKey,oldHold).ConditionCheck;
-       ops.push({Put:{TableName:tables.holds,Item:{...holdKey,holdId:null,walletId,amount:0,status:'NOT_REQUIRED',financialSchemaVersion:2,createdAt:timestamp,metadata:{assignmentAttempt:references.order.nextAssignmentAttempt,offerId,offerDigest:offer.digest}},ConditionExpression:fence.ConditionExpression,ExpressionAttributeNames:fence.ExpressionAttributeNames,ExpressionAttributeValues:fence.ExpressionAttributeValues}});
-      }else ops.push({ConditionCheck:{TableName:tables.holds,Key:holdKey,ConditionExpression:'attribute_not_exists(orderId)'}});
+       ops.push({Put:{TableName:tables.holds,Item:{...holdKey,holdId:null,walletId,amount:0,status:'NOT_REQUIRED',financialSchemaVersion:fullCash?4:2,...(fullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),createdAt:timestamp,metadata:{assignmentAttempt:references.order.nextAssignmentAttempt,offerId,offerDigest:offer.digest}},ConditionExpression:fence.ConditionExpression,ExpressionAttributeNames:fence.ExpressionAttributeNames,ExpressionAttributeValues:fence.ExpressionAttributeValues}});
+      }else if(fullCash)ops.push({Put:{TableName:tables.holds,Item:{...holdKey,holdId:null,walletId,amount:0,status:'NOT_REQUIRED',financialSchemaVersion:4,settlementModel:'FULL_CASH_AT_DELIVERY_V1',createdAt:timestamp,metadata:{assignmentAttempt:references.order.nextAssignmentAttempt,offerId,offerDigest:offer.digest}},ConditionExpression:'attribute_not_exists(orderId)'}});
+      else ops.push({ConditionCheck:{TableName:tables.holds,Key:holdKey,ConditionExpression:'attribute_not_exists(orderId)'}});
     }
     if(Buffer.byteLength(JSON.stringify(ops))>3500000||ops.length>100)return fail('FINANCIAL_ACCEPTANCE_UNAVAILABLE');
     const confirmedActor=await authenticateDriver();
     if(!equal(actor,confirmedActor))return fail('INVALID_FINANCIAL_ACCEPTANCE');
-    versionedFinancialOfferView(offer,actor.driverId,actor.subjectId,new Date(now()).toISOString(),options.enableDeliveryFunding);
+    versionedFinancialOfferView(offer,actor.driverId,actor.subjectId,new Date(now()).toISOString(),options.enableDeliveryFunding,options.enableFullCash);
     try{await db.send(new TransactWriteCommand({TransactItems:ops as any,ClientRequestToken:quoteHash(ops).slice(0,36)}));}
     catch(e:any){
       const committed=prior(await strongGet(db,tables.offers,key));if(committed)return committed;
@@ -145,13 +150,13 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     if(![input.orderId,input.offerId,actor.driverId,actor.subjectId].every(quoteEntityIdValid)||!Number.isSafeInteger(input.waveNumber)||input.waveNumber<1||input.waveNumber>1000)return fail('INVALID_FINANCIAL_ACCEPTANCE');
     const key={orderId:input.orderId,SK:`FINANCIAL#${actor.driverId}#WAVE#${input.waveNumber}`},saved=await strongGet(db,tables.offers,key);
     if(!saved||saved.offerId!==input.offerId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
-    const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding);
+    const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash);
     if(!equal(offer.versionedOffer,saved.financialOffer)||offer.driverSubjectId!==actor.subjectId||offer.driverId!==actor.driverId||offer.orderId!==input.orderId||offer.offerId!==input.offerId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     if(saved.responseStatus==='financial_declined')return afterDecline(saved);
     if(saved.responseStatus!=='financial_pending'||saved.isWinner!==false)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const live=await (options.contextForOffer?.(offer)??context).checkAcceptance({orderId:input.orderId,branchId:offer.branchId,driverId:actor.driverId,offerId:input.offerId,waveNumber:input.waveNumber});
-    versionedFinancialOfferView(offer,actor.driverId,actor.subjectId,new Date(now()).toISOString(),options.enableDeliveryFunding);
-    const wave=Object.prototype.hasOwnProperty.call(live.assignment,'dispatchCycle')?await strongGet(db,tables.jobs,{orderId:input.orderId,SK:'FINANCIAL_WAVE#'+input.waveNumber}):null;
+    versionedFinancialOfferView(offer,actor.driverId,actor.subjectId,new Date(now()).toISOString(),options.enableDeliveryFunding,options.enableFullCash);
+    const wave=Object.prototype.hasOwnProperty.call(live.assignment,'dispatchCycle')?await strongGet(db,tables.jobs,{orderId:input.orderId,SK:financialWaveSK(live.assignment,input.waveNumber)}):null;
     const pinnedGuards=await pinnedFinancialWaveFence(db,live.assignment,offer,input.waveNumber,wave,now());
     const g=live.guards;
     await db.send(new TransactWriteCommand({TransactItems:[live.order.condition,...(live.order.releaseCondition?[live.order.releaseCondition]:[]),g.assignment,g.driver,g.position,g.policy,g.branch,...g.deletions,...pinnedGuards,...(wave?[exactCheck(tables.jobs,{orderId:input.orderId,SK:wave.SK},wave)]:[]),

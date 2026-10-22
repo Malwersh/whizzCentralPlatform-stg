@@ -1,3 +1,5 @@
+import {merchantOffCyclePeriod} from './merchantOffCyclePeriod';
+import {merchantOpeningPeriod} from './merchantOpeningPeriod';
 import { DynamoDBDocumentClient, QueryCommand, TransactWriteCommand, TransactWriteCommandInput } from '@aws-sdk/lib-dynamodb';
 import { assembleMerchantSettlementPreview, readMerchantAccrualEvidence } from './merchantSettlementPreview';
 import { summarizeMerchantAccruals } from './merchantSettlementAccrual';
@@ -55,6 +57,7 @@ function uniqueOperations(operations: Row[]) {
   if (operations.length > 100 || Buffer.byteLength(JSON.stringify(operations)) > 2 * 1024 * 1024) return fail('SETTLEMENT_TRANSACTION_TOO_LARGE');
 }
 
+type ScheduleEvidence={openingCutoff?:string;schedule:MerchantSettlementSchedule;guard:Guard;guards?:Guard[];agreementBinding?:{id:string;version:number;termsHash:string}};
 export type SettlementBatchAuthority = { branchId: string; actorId: string; guards: Guard[] };
 
 /** Internal Staging writer, deliberately not registered as an HTTP route.
@@ -65,8 +68,10 @@ export type SettlementBatchAuthority = { branchId: string; actorId: string; guar
 export function createMerchantSettlementBatchService(options: {
   db: Pick<DynamoDBDocumentClient, 'send'>;
   authorizeBranch: (branchId: string, action: 'CREATE' | 'READ') => Promise<SettlementBatchAuthority>;
-  readSchedule: (branchId: string, at?: string) => Promise<{ schedule: MerchantSettlementSchedule; guard: Guard; guards?: Guard[]; agreementBinding?: { id: string; version: number; termsHash: string } } | null>;
+  readSchedule: (branchId: string, at?: string) => Promise<ScheduleEvidence|null>;
+  readOpeningSchedule?: (branchId:string)=>Promise<ScheduleEvidence|null>;
   now?: () => number;
+  onPrepare?: (saved:{header:Row;lines:Row[]})=>Promise<Row[]>;
 }) {
   const { db } = options;
   const now = options.now || Date.now;
@@ -113,8 +118,8 @@ export function createMerchantSettlementBatchService(options: {
         header.coverage !== 'EXPLICIT_ORDER_SELECTION_ONLY' || quoteHash(content) !== batchDigest ||
         !Array.isArray(header.lineDigests) || !header.lineDigests.length || header.lineDigests.length > 15 ||
         header.lineCount !== header.lineDigests.length || !period || header.createdAt < period.untilExclusiveUtc ||
-        header.summary?.accrualCount !== header.lineCount || header.summary?.branchId !== branchId) return fail('SETTLEMENT_BATCH_PROOF_INVALID');
-    const expectedPeriod = merchantSettlementPeriod({ schemaVersion: 1, version: period.scheduleVersion,
+        period.kind==='MERCHANT_OFF_CYCLE_PERIOD'&&header.createdAt<period.cutoffUtc || header.summary?.accrualCount !== header.lineCount || header.summary?.branchId !== branchId) return fail('SETTLEMENT_BATCH_PROOF_INVALID');
+    const expectedPeriod = period.kind==='MERCHANT_OFF_CYCLE_PERIOD'?merchantOffCyclePeriod(period.schedule,period.startLocalDate,period.throughLocalDate,period.cutoffUtc,period.reason):period.kind==='MERCHANT_OPENING_PERIOD'?merchantOpeningPeriod(period.schedule,period.startLocalDate,period.untilExclusiveUtc):merchantSettlementPeriod({ schemaVersion: 1, version: period.scheduleVersion,
       timezone: period.timezone, frequency: period.frequency, anchorLocalDate: period.anchorLocalDate }, period.fromUtc);
     if (!same(period, expectedPeriod)) return fail('SETTLEMENT_BATCH_PROOF_INVALID');
     const seen = new Set<string>();
@@ -139,7 +144,7 @@ export function createMerchantSettlementBatchService(options: {
   return Object.freeze({
     async create(value: unknown) {
       if (!value || typeof value !== 'object' || Array.isArray(value) ||
-          Object.keys(value).sort().join(',') !== 'at,branchId,orderIds,previewId,requestId') return fail('INVALID_SETTLEMENT_BATCH_REQUEST');
+          Object.keys(value).sort().join(',') !== ((value as Row).kind==='OFF_CYCLE'?'at,branchId,fromLocalDate,kind,orderIds,previewId,reason,requestId,throughLocalDate':(value as Row).kind==='OPENING'?'at,branchId,fromLocalDate,kind,orderIds,previewId,requestId':'at,branchId,orderIds,previewId,requestId')) return fail('INVALID_SETTLEMENT_BATCH_REQUEST');
       const request: Row = detach(value);
       if (!quoteEntityIdValid(request.branchId) || !UUID.test(request.requestId || '') || !PREVIEW.test(request.previewId || '') ||
           !Array.isArray(request.orderIds) || !request.orderIds.length || request.orderIds.length > 15 ||
@@ -149,12 +154,15 @@ export function createMerchantSettlementBatchService(options: {
       const requestHash = quoteHash(request), actor = await authority(request.branchId, 'CREATE');
       const prior = await replay(request, requestHash, actor);
       if (prior) return prior;
-      const schedule = detach(await options.readSchedule(request.branchId, request.at));
+      const opening=request.kind==='OPENING';
+      const schedule = detach(await (opening?options.readOpeningSchedule?.(request.branchId):options.readSchedule(request.branchId, request.at)));
       if (!schedule || !guardValid(schedule.guard) || schedule.guard.ConditionCheck.TableName !== T.records ||
           !same(schedule.guard.ConditionCheck.Key, scheduleKey(request.branchId)) ||
           schedule.guards !== undefined && (!Array.isArray(schedule.guards) || schedule.guards.length > 4 || schedule.guards.some(g => !guardValid(g)))) return fail('SETTLEMENT_SCHEDULE_GUARD_REQUIRED');
-      const period = merchantSettlementPeriod(schedule.schedule, request.at);
+      const period = request.kind==='OFF_CYCLE'?merchantOffCyclePeriod(schedule.schedule,request.fromLocalDate,request.throughLocalDate,request.at,request.reason):opening?merchantOpeningPeriod(schedule.schedule,request.fromLocalDate,schedule.openingCutoff):merchantSettlementPeriod(schedule.schedule, request.at);
+      if(opening&&request.at!==period.untilExclusiveUtc)return fail('INVALID_SETTLEMENT_BATCH_REQUEST');
       const timestamp = instant(new Date(now()).toISOString());
+      if(request.kind==='OFF_CYCLE'&&timestamp<request.at)return fail('SETTLEMENT_OFF_CYCLE_INVALID');
       if (timestamp < period.untilExclusiveUtc) return fail('SETTLEMENT_PERIOD_STILL_OPEN');
       const branch = await strongGet(db, T.branches, { businessId: request.branchId });
       if (!branch || !quoteEntityIdValid(branch.ownerId) || branch.cognitoUserId !== branch.ownerId || branch.status !== 'approved' ||
@@ -191,9 +199,11 @@ export function createMerchantSettlementBatchService(options: {
       }
       for (const [index, source] of evidence.entries()) {
         const orderId = source.accrual.orderId;
+        if(source.cashAdjudicationJournal)operations.push(exactCheck(T.holds,{orderId,sk:'CASH_ADJUDICATION_JOURNAL'},source.cashAdjudicationJournal));
+        if(source.accountingJournal)operations.push(exactCheck(T.records,{pk:'FULL_CASH_JOURNAL#'+orderId,sk:'META'},source.accountingJournal));
         operations.push(exactCheck(T.orders, { PK: 'ORDER#' + orderId, SK: 'META' }, source.order, orderFields),
           exactCheck(T.offers, { orderId, SK: `FINANCIAL#${source.order.driverId}#WAVE#${source.order.assignmentWaveNumber}` }, source.acceptedOffer),
-          exactCheck(T.holds, { orderId, sk: 'FINANCIAL_OUTCOME' }, source.outcome),
+          exactCheck(T.holds, source.outcomeKey, source.outcome),
           updateChecked(exactCheck(T.holds, { orderId, sk: 'MERCHANT_PAYABLE' }, source.payable, [...Object.keys(source.payable), ...claims]),
             'SET #batch=:batch,#line=:line,#claimed=:claimed',
             { '#batch': 'settlementBatchId', '#line': 'settlementLineDigest', '#claimed': 'settlementClaimedAt' },
@@ -213,6 +223,11 @@ export function createMerchantSettlementBatchService(options: {
           actorId: actor.actorId, branchId: request.branchId, batchId, batchDigest: header.batchDigest,
           requestId: request.requestId, createdAt: timestamp, lineCount: lines.length,
           walletChanged: false, payoutAuthorized: false }, ConditionExpression: 'attribute_not_exists(sk)' } });
+      if(options.onPrepare){
+        const extra=await options.onPrepare({header,lines});
+        if(!Array.isArray(extra)||extra.length>3||extra.some(op=>{const p=op.Put;return Object.keys(op).join(',')!=='Put'||p?.TableName!==T.records||p.Item?.pk!=='MERCHANT_COLLECTION#'+request.branchId||p.Item?.branchId!==request.branchId||!['MERCHANT_PERIOD_COLLECTION','MERCHANT_COLLECTION_PART'].includes(p.Item?.kind);}))return fail('INVALID_SETTLEMENT_COLLECTION_OPERATIONS');
+        operations.push(...extra);
+      }
       uniqueOperations(operations);
       try {
         await db.send(new TransactWriteCommand({ TransactItems: operations as TransactWriteCommandInput['TransactItems'] }));

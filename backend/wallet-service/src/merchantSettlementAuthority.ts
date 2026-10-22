@@ -17,6 +17,7 @@ export function createMerchantSettlementAuthority(options: {
   db: Pick<DynamoDBDocumentClient, 'send'>;
   principal: { employeeId: string; authTime: number; mfaEnrolled: boolean };
   now?: () => number;
+  companyCashbook?: boolean;
 }) {
   const principal = detach(options.principal), now = options.now || Date.now;
   if (!principal || !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(principal.employeeId) ||
@@ -32,9 +33,11 @@ export function createMerchantSettlementAuthority(options: {
         (employee.minimumAuthTime !== undefined && (!Number.isSafeInteger(employee.minimumAuthTime) || employee.minimumAuthTime < 0)) ||
         (employee.minimumAuthTime || 0) > principal.authTime || age < -30 ||
         (employee.mfaRequired === true && !principal.mfaEnrolled)) return fail('SETTLEMENT_EMPLOYEE_UNAVAILABLE');
-    if (action === 'CREATE' && age > 300) return fail('SETTLEMENT_REAUTH_REQUIRED');
+    // Honor the staff API's verified-session policy; JWT expiry and live revocation remain enforced.
+    if (action === 'CREATE' && age > 300 && !(process.env.PLATFORM_ENVIRONMENT === 'staging' && process.env.PLATFORM_SESSION_POLICY === 'VALID_SESSION')) return fail('SETTLEMENT_REAUTH_REQUIRED');
     if (employee.scope?.allRegions !== true || !allowed(employee, 'finance.read') ||
         (action === 'CREATE' && !allowed(employee, 'finance.request'))) return fail('SETTLEMENT_PERMISSION_REQUIRED');
+    if(options.companyCashbook===true&&branchId==='COMPANY_CASHBOOK')return {branchId,actorId:principal.employeeId,guards:[exactCheck('staging-PlatformStaff',key,employee,[...Object.keys(employee),'roles','scope','mfaRequired','minimumAuthTime','deletionRequestId','deletedAt','isDeleted'])]};
     const branch = await strongGet(options.db, 'WhizzMerchants_Businesses', { businessId: branchId });
     if (!branch || branch.businessId !== branchId || branch.status !== 'approved' ||
         !quoteEntityIdValid(branch.ownerId) || branch.ownerId !== branch.cognitoUserId ||

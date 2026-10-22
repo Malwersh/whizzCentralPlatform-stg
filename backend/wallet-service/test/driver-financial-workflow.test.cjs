@@ -100,3 +100,16 @@ test('deployed older context still includes canonical preparation in assigned ET
   else {await engine.accept(input);const assigned=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});assert(Date.parse(assigned.estimatedDeliveryTime)>Date.parse(o.estimatedReadyAt));assert.equal(assigned.deliveryEstimate.driverWaitIncluded,true);}
  }
 });
+
+test('only isolated position conflicts refresh full proposal, with bounded retries and no financial mutations',async()=>{
+ for(const mode of ['once','always','other']){
+  const f=setup(),send=f.db.send;let saves=0,prepares=0,notified=0;
+  f.db.send=async c=>{if(c.input.TransactItems?.some(x=>x.Put?.TableName==='WaveOffers_staging')){saves++;if(mode!=='once'||saves===1){const e=Object.assign(Error('position raced'),{name:'TransactionCanceledException',CancellationReasons:c.input.TransactItems.map((_,i)=>({Code:i===2||(mode==='other'&&i===1)?'ConditionalCheckFailed':'None'}))});throw e;}}return send(c);};
+  const wave=createStagingDriverFinancialWave({db:f.db,context:{...f.context,prepare:async r=>{prepares++;return f.context.prepare(r);}},now:()=>f.time,sendOffer:async()=>{notified++;}});
+  const run=()=>wave.run({orderId:'order1',branchId:'branch1',waveNumber:1,driverIds:['driver1']});
+  if(mode==='once'){await run();assert.equal(prepares,2);assert.equal(notified,1);assert(f.get('WaveOffers_staging',{orderId:'order1',SK:'FINANCIAL#driver1#WAVE#1'}));}
+  else {await assert.rejects(run());assert.equal(prepares,mode==='always'?3:1);assert.equal(notified,0);}
+  assert.equal(f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}).availableBalance,20000);
+  assert(![...f.rows.keys()].some(k=>k.startsWith('staging-LedgerEntries|')));
+ }
+});

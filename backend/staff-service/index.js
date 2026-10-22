@@ -25,6 +25,7 @@ function guard(person){return {ConditionCheck:{TableName:table,Key:key(person.em
 function audit(actor,action,before,after,id){return {Put:{TableName:table,Item:{pk:'AUDIT',sk:new Date().toISOString()+'#'+id,actorId:actor,action,before,after},ConditionExpression:'attribute_not_exists(sk)'}};}
 async function handler(event){
  if(event?.action==='commercial_notice_tick'&&!event.httpMethod&&!event.requestContext)return require('./commercial-notices').tick({db});
+ if(event?.action==='merchant_device_payout')return require('./merchant-device-payouts').handle({db,enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},event);
  if(event?.action==='settlement_schedule_owner')return require('./commercial-owner').handle({db,cognito,table,enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},event);
  if(event?.action==='commercial_owner')return require('./commercial-owner').handle({db,cognito,table,audit,enabled:process.env.COMMERCIAL_ADMIN_ENABLED==='true',deliveryFundingEnabled:process.env.DELIVERY_FUNDING_MANAGEMENT_ENABLED==='true'},event);
  try{
@@ -57,7 +58,9 @@ async function handler(event){
   }
   if(method==='GET'&&path.startsWith('/staff/drivers'))return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE},actor,method,path));
   let input;try{input=JSON.parse(event.body||'{}');if(!input||typeof input!=='object'||Array.isArray(input))throw Error();}catch(_){throw fail('INVALID_BODY',400);}
-  if(path==='/staff/dispatch-reviews'||path.startsWith('/staff/dispatch-reviews/')){const rollout=require('./finance-rollout').createFinanceRollout({db});return response(200,await require('./dispatch-reviews').route({db:rollout.db,scopeContains:rollout.containsOrder,table,employee,guard,audit,enrolled,recent,claims,query:event.queryStringParameters},actor,method,path,input));}
+  if(path.startsWith('/staff/settings/return-operations'))return response(200,await require('./return-operations-settings').route({settingsRoute:settingsRoutes.route,db,table,employee,guard,audit,enrolled,recent,claims,allowed},actor,method,path,input));
+  if(path==='/staff/order-exceptions'||path.startsWith('/staff/order-exceptions/'))return response(200,await require('./order-exception-cases').route({db,table,employee,guard,audit,enrolled,recent,claims,allowed,query:event.queryStringParameters,accessToken:token},actor,method,path,input));
+  if(path==='/staff/dispatch-reviews'||path.startsWith('/staff/dispatch-reviews/')){const rollout=require('./finance-rollout').createFinanceRollout({db});return response(200,await require('./dispatch-reviews').route({...require('./dispatch-reviews').reviewAccess({db,rollout}),table,employee,guard,audit,enrolled,recent,claims,query:event.queryStringParameters},actor,method,path,input));}
   if(path==='/staff/slideshow'||path.startsWith('/staff/slideshow/'))return response(200,await require('./home-slideshow').route({db,table,guard,audit},actor,method,path,input));
   if(path==='/staff/promotions')return response(200,await require('./promotions').route({db,guard,audit,enrolled},actor,method,method==='GET'?event.queryStringParameters||{}:input));
   if(path==='/staff/settlement-schedules/branches')return response(200,await require('./settlement-schedules').branches({db,claims,enrolled,enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},actor,method,event.queryStringParameters||{}));

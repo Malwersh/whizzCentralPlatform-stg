@@ -11,7 +11,7 @@ const fail=(code='DISPATCH_CYCLE_CONFLICT'):never=>{throw Object.assign(Error(co
  * No live entry point calls it until Creator's old Put/Update/Invoke are replaced
  * together. Existing jobs are never migrated. No wallet, ledger or offer writes.
  */
-export function createStagingDispatchCycleStore(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean}) {
+export function createStagingDispatchCycleStore(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean}) {
   const {db}=options,now=options.now??Date.now;
   return {async create(input:{requestId:string;job:Row}) {
     if(!input||Object.keys(input).sort().join(',')!=='job,requestId'||!quoteEntityIdValid(input.requestId)||!input.job||typeof input.job!=='object'||Array.isArray(input.job))return fail();
@@ -34,7 +34,7 @@ export function createStagingDispatchCycleStore(options:{db:Pick<DynamoDBDocumen
     if(engine==='FINANCIAL') {
       // Reuse the authoritative snapshot reader; malformed/archived evidence must
       // not downgrade to legacy or be repriced by this creation primitive.
-      const financial=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding}).read({orderId,branchId:job.restaurantId});
+      const financial=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash}).read({orderId,branchId:job.restaurantId});
       if(financial.nextAssignmentAttempt!==1||financial.priorRelease||(order.assignmentAttemptCounter??0)!==0||order.financialRelease!=null||!equal(order.financialSnapshot,financialSnapshotFromOrderRead(financial)))return fail();
     }
     const branchKey={businessId:job.restaurantId},branch=await strongGet(db,T.branches,branchKey);

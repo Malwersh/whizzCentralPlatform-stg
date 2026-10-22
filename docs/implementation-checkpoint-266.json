@@ -1,0 +1,47 @@
+{
+  "part": 266,
+  "status": "PUBLISHED_VERIFIED",
+  "wholeSpecificationComplete": false,
+  "serverFunctionsUpdated": true,
+  "publicationAttempt": "SSO_RENEWED_PUBLICATION_SUCCEEDED",
+  "tests": {
+    "wallet": 1373,
+    "staff": 244,
+    "orderService": 17,
+    "driverBackend": 32,
+    "candidateCashRuntime": 22,
+    "candidateLegacyReturnRuntime": 55,
+    "proxies": 3,
+    "customerFlutter": 4,
+    "driverFlutter": 4,
+    "browser": "PASS",
+    "existingIamOperationsAllowed": 12,
+    "liveReadOnlyPreflightStrongReads": 5,
+    "accountDeletionRetention": 266
+  },
+  "nativeSimulatorBuilds": {
+    "customerDebug": 215,
+    "driverDebug": 216
+  },
+  "nativeInstalledAndLaunched": true,
+  "realFinancialOrPhysicalAttestationsByAgent": false,
+  "historicalCase": {
+    "orderNumber": "ORD1792545370610",
+    "version": 14,
+    "status": "RESOLVED",
+    "merchantPayout": "PAID6250",
+    "guarantee": "RELEASED"
+  },
+  "shortfallFinancialAdjustments": "PENDING_SEPARATE_EXECUTION",
+  "electronicRefundSource": "NOT_ENABLED",
+  "merchantEmployeeHumanTest": "DEFERRED_BY_USER",
+  "humanCustomerRefundAcceptance": "NOT_PERFORMED",
+  "next": [
+    "Human acceptance of a new customer cash review/refund without reusing the historical paid case",
+    "Continue 244 coverage and independent financial correction for shortfalls"
+  ],
+  "hostingJobId": "155",
+  "deployedFunctionsVerified": 7,
+  "cashboxBalanceIqd": 3750,
+  "verificationReport": "customer-cash-verification-266.json"
+}

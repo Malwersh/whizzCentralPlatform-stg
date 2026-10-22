@@ -110,3 +110,18 @@ test('the actual minified guard bundle accepts the other SDK representation with
  const env=scopeEnv(),row={PK:'ORDER#order',SK:'META',orderId:'order',storeId:'branch',userSub:'customer',financeRollout:scopePin(env,'order')};let reads=0;
  const r=compiled.exports.createFinanceRollout({env,db:{async send(){reads++;return {Item:row};}}});await r.db.send(new GetCommand({TableName:'WizzOrders',Key:{PK:row.PK,SK:'META'},ConsistentRead:true}));assert.equal(reads,1);
 });
+test('funded V2 envelope checks nested driver identity instead of treating absent outer identity as an out-of-scope driver',async()=>{
+ const offer={schemaVersion:2,kind:'DRIVER_DELIVERY_FUNDED_OFFER',baseOffer:{schemaVersion:1,orderId:'order',branchId:'branch',driverId:'driver',driverSubjectId:'subject'}};
+ const tx=financialOffer=>new TransactWriteCommand({TransactItems:[{Put:{TableName:'WaveOffers_staging',Item:{orderId:'order',SK:'FINANCIAL#driver#WAVE#1',driverId:'driver',financialOffer}}}]});
+ const f=fixture();await f.rollout.db.send(tx(offer));assert.equal(f.transactions.length,1);
+ for(const change of [o=>o.baseOffer.driverId='foreign',o=>o.baseOffer.driverSubjectId='foreign',o=>o.baseOffer.orderId='foreign',o=>o.baseOffer.branchId='foreign',o=>o.baseOffer=null,o=>o.schemaVersion=3]){const g=fixture(),bad=structuredClone(offer);change(bad);await rejection(g.rollout.db.send(tx(bad)));assert.equal(g.transactions.length,0);}
+});
+
+test('eight independent exact scopes preserve deployed history while a ninth remains rejected',()=>{
+ const env=scopeEnv(),c=JSON.parse(env.FINANCE_ROLLOUT_CONFIG),original=c.scopes[0];
+ c.scopes=Array.from({length:8},(_,i)=>({...structuredClone(original),id:'scope-'+i,orders:[{orderId:'order-'+i,branchId:'branch',customerSubjectId:'customer'}]}));
+ const configure=()=>({...env,FINANCE_ROLLOUT_CONFIG:JSON.stringify(c),FINANCE_ROLLOUT_SHA256:quoteHash(c)});
+ assert.equal(readFinanceRollout(configure()).scopes.length,8);
+ c.scopes.push({...structuredClone(original),id:'scope-9',orders:[{orderId:'order-9',branchId:'branch',customerSubjectId:'customer'}]});
+ assert.throws(()=>readFinanceRollout(configure()),/NOT_CONFIGURED/);
+});

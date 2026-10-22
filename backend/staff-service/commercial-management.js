@@ -54,7 +54,7 @@ async function serviceCore(ctx,principal,method,input){
  if(party?.role==='MANAGER'&&method==='POST'&&!['ACCEPT_FUNDING','ACCEPT_DELIVERY'].includes(input.action))fail('PERMISSION_REQUIRED',403);
  id(b.organizationId);const org=await get(P,{pk:'PERSON#'+b.ownerId,sk:'ORGANIZATION#'+b.organizationId});
  if(!org||org.organizationId!==b.organizationId||org.subjectId!==b.ownerId||org.deletionRequestId!=null)fail('ORGANIZATION_UNAVAILABLE',409);
- const branchFields=['businessId','ownerId','cognitoUserId','organizationId','regionId','status','deletionRequestId','deletedAt','isDeleted','commercialAgreementId','commercialAgreementVersion','deliveryOfferRevision'];
+ const branchFields=['businessId','ownerId','cognitoUserId','organizationId','regionId','status','deletionRequestId','deletedAt','isDeleted','commercialAgreementId','commercialAgreementVersion','deliveryOfferRevision','storefrontDeliveryAgreements'];
  const baseGuards=[...(party?.guards||[]),...(!owner?[ctx.guard(actor)]:[]),...leaseFences(b.ownerId,[b.businessId]),check(B,{businessId:b.businessId},b,branchFields),check(P,{pk:org.pk,sk:org.sk},org)];
  const write=async tx=>{try{await ctx.db.send(new TransactWriteCommand({TransactItems:tx}));}catch(e){if(e.name==='TransactionCanceledException')fail('VERSION_OR_STATE_CONFLICT',409);throw e;}};
  const policies=async(values,ids,merchantId)=>{const resolved=[];for(const policyId of values.allowedFundingPolicyIds){const key={pk:'DISCOUNT_FUNDING#'+policyId,sk:'CURRENT'},policy=await get(S,key);if(!policy||policy.status!=='ACTIVE'||policy.merchantId!==merchantId||!ids.includes(policy.branchId))fail('FUNDING_POLICY_UNAVAILABLE',409);resolved.push(policy);}return resolved;};
@@ -148,10 +148,18 @@ async function serviceCore(ctx,principal,method,input){
     if(!author||author.employeeId!==draft.requestedBy||author.status!=='ACTIVE'||author.version!==draft.authorizedStaffVersion||!allowed(author,'commercial.funding.request')||author.scope?.allRegions!==true)fail('REQUESTER_PERMISSION_REVOKED',403);
     const revision=b.deliveryOfferRevision??0;if(!Number.isSafeInteger(revision)||revision<0||revision>=Number.MAX_SAFE_INTEGER)fail('DELIVERY_POLICY_REVISION_INVALID',409);
     const branchGuard=baseGuards.findIndex(x=>x.ConditionCheck?.TableName===B);if(branchGuard<0)fail('DELIVERY_POLICY_SCOPE_OR_VERSION_MISMATCH',409);const branchFence=baseGuards.splice(branchGuard,1)[0].ConditionCheck;
-    tx.push({Update:{...branchFence,UpdateExpression:'SET deliveryOfferRevision=:nextDeliveryRevision',ExpressionAttributeValues:{...branchFence.ExpressionAttributeValues,':nextDeliveryRevision':revision+1}}});
+    let summaries=Array.isArray(b.storefrontDeliveryAgreements)?b.storefrontDeliveryAgreements.filter(x=>x.id!==input.id&&x.effectiveTo>now):[];
+    if(values.schemaVersion===2){
+     let cursor,pages=0;const indexes=[];
+     do{const page=await ctx.db.send(new QueryCommand({TableName:P,KeyConditionExpression:'pk=:pk AND begins_with(sk,:prefix)',ExpressionAttributeValues:{':pk':'BRANCH#'+b.businessId,':prefix':'COMMERCIAL#DELIVERY#'},ConsistentRead:true,Limit:25,...(cursor?{ExclusiveStartKey:cursor}:{})}));indexes.push(...page.Items||[]);cursor=page.LastEvaluatedKey;if(++pages>4||indexes.length>100)fail('COMMERCIAL_LIST_TOO_LARGE',409);}while(cursor);
+     for(const index of indexes){if(index.recordPk===pk)continue;const other=await get(S,{pk:index.recordPk,sk:'CURRENT'});if(other?.status!=='ACTIVE'||other.policy?.schemaVersion!==2)continue;const p=readDeliveryFundingPolicy(other.policy).policy;if(p.effectiveFrom<values.effectiveTo&&values.effectiveFrom<p.effectiveTo&&p.eligibility.regionIds.some(id=>values.eligibility.regionIds.includes(id)))fail('DELIVERY_AGREEMENT_OVERLAP',409);}
+     summaries.push({id:values.id,version:values.version,effectiveFrom:values.effectiveFrom,effectiveTo:values.effectiveTo,regionIds:values.eligibility.regionIds,deliveryFeeIqd:values.customerRule.kind==='FREE'?0:values.customerRule.amount.minorAmount/1000,minimumOrderAmountIqd:values.eligibility.minimumGoods.minorAmount/1000});
+    }
+    if(summaries.length>50)fail('COMMERCIAL_LIST_TOO_LARGE',409);
+    tx.push({Update:{...branchFence,UpdateExpression:'SET deliveryOfferRevision=:nextDeliveryRevision, storefrontDeliveryAgreements=:summaries',ExpressionAttributeValues:{...branchFence.ExpressionAttributeValues,':nextDeliveryRevision':revision+1,':summaries':summaries}}});
     const policy={pk,sk:'CURRENT',schemaVersion:1,id:input.id,version:nextVersion,status:'ACTIVE',policy:values,termsHash:resolved.termsHash,acceptedBy:principal.sub,acceptedAt:now,approvedBy:author.employeeId,approvedAt:draft.createdAt,activatedAt:now,activationMode:'STAFF_SEND_MERCHANT_ACCEPT'};
     // Consent, activation, history, audit and request replay marker commit together.
-    tx.push(deliveryCampaignBudgetInitialization(values),check(S,authorKey,author),
+    tx.push(...(values.schemaVersion===2?[]:[deliveryCampaignBudgetInitialization(values)]),check(S,authorKey,author),
      {Put:{TableName:table,Item:consent,ConditionExpression:'attribute_not_exists(pk)'}},
      {Put:{TableName:S,Item:policy,...(current?{ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':current.version}}:{ConditionExpression:'attribute_not_exists(pk)'})}},
      {Put:{TableName:S,Item:{...policy,sk:'VERSION#'+nextVersion},ConditionExpression:'attribute_not_exists(pk)'}},

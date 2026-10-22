@@ -13,6 +13,7 @@ function validate(row,branchId){
   MERCHANT_SETTLEMENT_BATCH:'pk sk schemaVersion kind batchId branchId requestId requestHash previewId period summary lineCount lineDigests status coverage createdAt createdBy payoutAuthorized walletMutationPerformed retentionClass batchDigest',
   MERCHANT_SETTLEMENT_LINE:'pk sk schemaVersion kind batchId branchId orderId accrual lineDigest',
   MERCHANT_SETTLEMENT_LOOKUP:'pk sk schemaVersion kind branchId batchId headerSk batchDigest createdAt retentionClass',
+  MERCHANT_STATEMENT_APPROVAL:'pk sk schemaVersion kind branchId batchId batchDigest status approvalPolicy approvedBy approvedAt payoutAuthorized walletMutationPerformed retentionClass digest',
   MERCHANT_SETTLEMENT_REQUEST:'pk sk schemaVersion kind status requestId branchId actorId requestHash batchId batchDigest createdAt retentionClass'
  };
  const allowed=fields[row.kind]?.split(' ');
@@ -27,6 +28,9 @@ function validate(row,branchId){
   }else if(row.kind==='MERCHANT_SETTLEMENT_LINE'){
    const {pk,sk,lineDigest,...body}=row;
    if(!id(row.orderId)||sk!=='LINE#'+row.batchId+'#'+row.orderId||digest(body)!==lineDigest||row.accrual?.branchId!==branchId||row.accrual?.orderId!==row.orderId)throw error('SETTLEMENT_RETENTION_PROOF_INVALID');
+  }else if(row.kind==='MERCHANT_STATEMENT_APPROVAL'){
+   const {pk,sk,digest:approvalDigest,...body}=row;
+   if(sk!=='APPROVAL#'+row.batchId||digest(body)!==approvalDigest||row.status!=='APPROVED_NOT_PAID'||row.approvalPolicy!=='SINGLE_ADMIN'||!id(row.approvedBy)||!Number.isFinite(Date.parse(row.approvedAt))||row.payoutAuthorized!==false||row.walletMutationPerformed!==false||row.retentionClass!=='FINANCIAL_SETTLEMENT')throw error('SETTLEMENT_RETENTION_PROOF_INVALID');
   }else if(row.kind==='MERCHANT_SETTLEMENT_LOOKUP'){
    if(row.sk!=='INDEX#'+row.batchId)throw error('SETTLEMENT_RETENTION_PROOF_INVALID');
   }else throw error('SETTLEMENT_RETENTION_SCOPE_INVALID');
@@ -47,22 +51,25 @@ async function settlementRetention({db,r,job,requestTable=L,archiveTable=A,clock
  }throw error('SETTLEMENT_INVENTORY_INCOMPLETE');}
  const rows=[...await query('MERCHANT_SETTLEMENT#'+job.businessId),...await query('BRANCH#'+job.businessId,'SETTLEMENT_REQUEST#')];
  const scheduleItems=await require('./settlement-schedule-inventory').settlementScheduleInventory({db,branchId:job.businessId,ownerId:r.subjectId,maxPages});
- if(!rows.length&&!scheduleItems.length)return {archived:0,sourceDeleted:false};
+ const collectionItems=await require('./settlement-collection-inventory').settlementCollectionInventory({db,branchId:job.businessId,maxPages});
+ const payout=await require('./payout-retention').payoutInventory({db,branchId:job.businessId,ownerId:r.subjectId,maxPages});
+ if(!rows.length&&!scheduleItems.length&&!payout.items.length&&!payout.challenges.length&&!collectionItems.length)return {archived:0,sourceDeleted:false};
  const branch=await get(B,{businessId:job.businessId}),lifeKey={pk:'BUSINESS_LIFECYCLE#MERCHANT#'+job.businessId,sk:'META'},life=await get(L,lifeKey);
  if(!branch||branch.ownerId!==r.subjectId||branch.cognitoUserId!==r.subjectId||branch.deletionRequestId!==r.requestId||life?.requestId!==r.requestId||life.subjectId!==r.subjectId||life.businessId!==job.businessId)throw error('PROFILE_GENERATION_CHANGED');
- if(held(branch)||held(life)||rows.some(held))throw error('DOCUMENTED_RETENTION_HOLD');
- const headers=new Map(),lines=new Map(),lookups=new Map(),requests=new Map(),seen=new Set();
+ if(held(branch)||held(life)||rows.some(held)||payout.items.some(x=>held(x.row)))throw error('DOCUMENTED_RETENTION_HOLD');
+ const headers=new Map(),lines=new Map(),lookups=new Map(),requests=new Map(),approvals=new Map(),seen=new Set();
  for(const row of rows){validate(row,job.businessId);if(seen.has(row.pk+'|'+row.sk))throw error('SETTLEMENT_RETENTION_PROOF_INVALID');seen.add(row.pk+'|'+row.sk);
-  const map=row.kind==='MERCHANT_SETTLEMENT_BATCH'?headers:row.kind==='MERCHANT_SETTLEMENT_LINE'?lines:row.kind==='MERCHANT_SETTLEMENT_LOOKUP'?lookups:requests;
+  const map=row.kind==='MERCHANT_SETTLEMENT_BATCH'?headers:row.kind==='MERCHANT_SETTLEMENT_LINE'?lines:row.kind==='MERCHANT_SETTLEMENT_LOOKUP'?lookups:row.kind==='MERCHANT_STATEMENT_APPROVAL'?approvals:requests;
   map.set(row.kind==='MERCHANT_SETTLEMENT_LINE'?row.batchId+'#'+row.orderId:row.batchId,row);
  }
  for(const [batchId,h]of headers){const lookup=lookups.get(batchId),request=requests.get(batchId);
   if(!lookup||!request||lookup.headerSk!==h.sk||lookup.batchDigest!==h.batchDigest||request.batchDigest!==h.batchDigest||request.requestId!==h.requestId||request.requestHash!==h.requestHash||request.actorId!==h.createdBy||!Array.isArray(h.lineDigests)||h.lineCount!==h.lineDigests.length||h.lineCount<1||h.lineCount>15)throw error('SETTLEMENT_RETENTION_PROOF_INVALID');
   const orderIds=new Set();for(const ref of h.lineDigests){if(orderIds.has(ref.orderId)||lines.get(batchId+'#'+ref.orderId)?.lineDigest!==ref.digest)throw error('SETTLEMENT_RETENTION_PROOF_INVALID');orderIds.add(ref.orderId);}
  }
+ for(const [batchId,a]of approvals)if(headers.get(batchId)?.batchDigest!==a.batchDigest)throw error('SETTLEMENT_RETENTION_PROOF_INVALID');
  if(lookups.size!==headers.size||requests.size!==headers.size||lines.size!==[...headers.values()].reduce((n,h)=>n+h.lineCount,0)||[...lines.values()].some(l=>!headers.has(l.batchId)))throw error('SETTLEMENT_RETENTION_PROOF_INVALID');
  const inventory=[];
- for(const {row,table} of [...rows.map(row=>({row,table:P})),...scheduleItems]){const key={pk:row.pk,sk:row.sk},archiveKey={pk:'REQUEST#'+r.requestId,sk:'MERCHANT_SETTLEMENT#'+JSON.stringify(key)},old=await get(A,archiveKey),sourceDigest=digest(row);
+ for(const {row,table} of [...rows.map(row=>({row,table:P})),...scheduleItems,...payout.items,...collectionItems]){const key={pk:row.pk,sk:row.sk},archiveKey={pk:'REQUEST#'+r.requestId,sk:'MERCHANT_SETTLEMENT#'+JSON.stringify(key)},old=await get(A,archiveKey),sourceDigest=digest(row);
   if(old&&(held(old)||old.kind!=='merchant_settlement'||old.requestId!==r.requestId||old.sourceTable!==table||digest(old.sourceKey)!==digest(key)||old.sourceDigest!==sourceDigest||digest(old.data)!==sourceDigest||old.scopeOwnerId!==r.subjectId||old.scopeBusinessId!==job.businessId||old.purgeBlocked!==true||old.expiresAt!==undefined))throw error(held(old)?'DOCUMENTED_RETENTION_HOLD':'ARCHIVE_CONFLICT');
   inventory.push({row,table,key,archiveKey,old,sourceDigest});
  }
@@ -77,6 +84,10 @@ async function settlementRetention({db,r,job,requestTable=L,archiveTable=A,clock
    item.old?{ConditionCheck:{TableName:A,Key:item.archiveKey,...exact(item.old)}}:{Put:{TableName:A,Item:archive,ConditionExpression:'attribute_not_exists(pk)'}}
   ]}));if(!item.old)archived++;
  }
- return {archived,sourceDeleted:false};
+ for(const row of payout.challenges){const now=clock();await db.send(new TransactWriteCommand({TransactItems:[
+  {ConditionCheck:{TableName:L,Key:{pk:r.pk,sk:r.sk},ConditionExpression:'leaseOwner=:owner AND #v=:v AND leaseUntil>:now AND #s=:s',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':owner':r.leaseOwner,':v':r.version,':now':Math.floor(Date.parse(now)/1000),':s':'PROCESSING'}}},
+  {ConditionCheck:{TableName:B,Key:{businessId:job.businessId},...exact(branch)}},{ConditionCheck:{TableName:L,Key:lifeKey,...exact(life)}},
+  {Delete:{TableName:P,Key:{pk:row.pk,sk:row.sk},...exact(row)}}]}));}
+ return {archived,sourceDeleted:false,...(payout.challenges.length?{ephemeralChallengesDeleted:payout.challenges.length}:{})};
 }
 module.exports={settlementRetention,validate};

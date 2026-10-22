@@ -27,3 +27,16 @@ test('legacy fee settlement rejects schema-2 holds even if status was changed to
  assert.equal(sdk.commandCalls(TransactWriteCommand).length,0);
  }finally{sdk.restore();}
 });
+test('every marked financial version stays out of generic capture and lifecycle',async()=>{
+ const saved=hold.financialSchemaVersion;
+ try{for(const version of [3,4,99,null]){hold.financialSchemaVersion=version;assert.equal(lifecycleDecision(hold,{status:'delivered',driverId:'driver1',holdId:hold.holdId}).action,'REVIEW');}}
+ finally{hold.financialSchemaVersion=saved;}
+});
+test('generic release, capture and settlement cannot bypass a V4 hold marker',async()=>{
+ const sdk=mockClient(DynamoDBDocumentClient),newHold={...hold,financialSchemaVersion:4,settlementModel:'FULL_CASH_AT_DELIVERY_V1'};
+ try{sdk.on(GetCommand).resolves({Item:newHold});sdk.on(QueryCommand).resolves({Items:[newHold]});const service=new HoldService();
+ await assert.rejects(service.releaseHold({holdId:newHold.holdId}),/FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT/);
+ await assert.rejects(service.captureHold({holdId:newHold.holdId,actualAmount:newHold.amount}),/FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT/);
+ assert.equal(sdk.commandCalls(TransactWriteCommand).length,0);
+ }finally{sdk.restore();}
+});

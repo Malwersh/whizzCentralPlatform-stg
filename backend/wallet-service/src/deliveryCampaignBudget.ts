@@ -23,16 +23,17 @@ function put(next: Row, before?: Row) {
 }
 function verify(row: Row) {
   const {digest,...content}=row;
-  if (typeof digest !== 'string' || digest !== quoteHash(content) || num(row.version)<1 || row.schemaVersion!==1) return fail();
+  if (typeof digest !== 'string' || digest !== quoteHash(content) || num(row.version)<1 || ![1,2].includes(row.schemaVersion)) return fail();
 }
 export function validateDeliveryCampaignBudgetRecord(row: Row) {
+  if(row.schemaVersion!==1)return fail();
   exact(row,['pk','sk','schemaVersion','version','policyPin','merchantTotal','platformTotal','merchantAvailable','platformAvailable','merchantReserved','platformReserved','merchantSpent','platformSpent','digest']);verify(row);
   for (const party of ['merchant','platform']) {
     const total=num(row[party+'Total']), available=num(row[party+'Available']), reserved=num(row[party+'Reserved']), spent=num(row[party+'Spent']);
     if (BigInt(available)+BigInt(reserved)+BigInt(spent)!==BigInt(total)) return fail();
   }
 }
-export function validateDeliveryCampaignUsageRecord(row: Row) { exact(row,['pk','sk','schemaVersion','version','reservedUses','completedUses','digest']);verify(row);num(row.reservedUses);num(row.completedUses); }
+export function validateDeliveryCampaignUsageRecord(row: Row) { if(row.schemaVersion!==1)return fail(); exact(row,['pk','sk','schemaVersion','version','reservedUses','completedUses','digest']);verify(row);num(row.reservedUses);num(row.completedUses); }
 /** Campaign spend allowance, NOT cash liquidity or a wallet hold. Creation must
  * join policy acceptance transaction. Each new approved version gets its own cap.
  * Do not sum or reset historical reservations when the current policy changes.
@@ -60,11 +61,15 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
     const {policy}=readDeliveryFundingPolicy(r.policy),clock=now();
     if (!Number.isSafeInteger(clock)||clock<Date.parse(policy.effectiveFrom)||clock>=Date.parse(policy.effectiveTo)) return fail('DELIVERY_POLICY_EXPIRED');
     const allocation=calculatePolicyDeliveryFunding(policy,r.referenceFee,r.customerFee);
-    if (allocation.allocation.subsidy.minorAmount<=0) return fail('DELIVERY_SUBSIDY_REQUIRED');
+    if (allocation.allocation.subsidy.minorAmount<=0 && policy.schemaVersion!==2) return fail('DELIVERY_SUBSIDY_REQUIRED');
     const m=allocation.allocation.merchantShare.minorAmount,p=allocation.allocation.platformShare.minorAmount;
     const request={orderId:r.orderId,customerId:r.customerId,policyPin:allocation.policyPin,allocation:allocation.allocation};
     const requestDigest=quoteHash(request),existing=await get(holdKey(r.orderId));
     if(existing){verify(existing);if(existing.requestDigest!==requestDigest||!['RESERVED','CAPTURED'].includes(existing.status))return fail('DELIVERY_RESERVATION_CONFLICT');return {replayed:true,status:existing.status,operations:[]};}
+    if(policy.schemaVersion===2){
+      const hold={...holdKey(r.orderId),schemaVersion:2,version:1,...request,requestDigest,status:'RESERVED',createdAt:new Date(clock).toISOString()};
+      return {replayed:false,status:'RESERVED',operations:[put(hold)]};
+    }
     const b=await get(budgetKey(policy.id,policy.version));if(!b)return fail('DELIVERY_BUDGET_UNAVAILABLE');validateDeliveryCampaignBudgetRecord(b);
     if(quoteHash(b.policyPin)!==quoteHash(allocation.policyPin)||b.merchantTotal!==policy.limits.merchantBudget.minorAmount||b.platformTotal!==policy.limits.platformBudget.minorAmount)return fail();
     if(b.merchantAvailable<m||b.platformAvailable<p)return fail('DELIVERY_BUDGET_EXHAUSTED');
@@ -83,6 +88,12 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
     if(h.requestDigest!==quoteHash({orderId:h.orderId,customerId:h.customerId,policyPin:h.policyPin,allocation:h.allocation}))return fail();
     if(h.status===r.outcome)return {replayed:true,status:h.status,operations:[]};
     if(h.status!=='RESERVED')return fail('DELIVERY_RESERVATION_CONFLICT');
+    if(h.schemaVersion===2){
+      if(h.allocation?.schemaVersion!==2)return fail();
+      for(const name of ['referenceFee','customerFee','subsidy','merchantShare','platformShare']){const m=h.allocation[name];if(!m||m.moneySchemaVersion!==1||m.currency!=='IQD'||m.scale!==1000||!Number.isSafeInteger(m.minorAmount)||m.minorAmount<0)return fail();}
+      if(h.allocation.subsidy.minorAmount!==Math.max(0,h.allocation.referenceFee.minorAmount-h.allocation.customerFee.minorAmount)||h.allocation.merchantShare.minorAmount+h.allocation.platformShare.minorAmount!==h.allocation.subsidy.minorAmount)return fail();
+      return {replayed:false,status:r.outcome,operations:[put({...h,version:increment(h.version),status:r.outcome,settledAt:new Date(now()).toISOString()},h)]};
+    }
     const b=await get(budgetKey(h.policyPin.policyId,h.policyPin.version)),u=await get(usageKey(h.policyPin.policyId,h.customerId));
     if(!b||!u)return fail();validateDeliveryCampaignBudgetRecord(b);validateDeliveryCampaignUsageRecord(u);
     const m=num(h.allocation?.merchantShare?.minorAmount),p=num(h.allocation?.platformShare?.minorAmount);

@@ -1,0 +1,9 @@
+{
+  "status": "APPLIED",
+  "employeeId": "f40834f8-4091-7054-0e20-dba35a2793ce",
+  "oldApprovalLimitIqd": 0,
+  "newApprovalLimitIqd": 10000,
+  "otherPermissionsUnchanged": true,
+  "auditReference": "USER_APPROVED_LIMIT_242_af883722-8be7-4a88-a365-e2ac9b1e270a",
+  "financialPosting": false
+}

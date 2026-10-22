@@ -15,7 +15,8 @@ function setup(earning='3000',transform=()=>{},orderId='order1',flowOptions={}){
   table==='staging-WalletNotifications'?{eventId:r.eventId}:table==='WizzDriverPerformanceMetrics_staging'?{PK:r.PK,SK:r.SK}:table==='staging-AuditLog'?{datePartition:r.datePartition,sk:r.sk}:table==='staging-WalletLifecycle'?{operationId:r.operationId}:
   table==='WhizzMerchants_Businesses'?{businessId:r.businessId}:['WhizzDrivers_staging','WizzDriverLiveState_staging'].includes(table)?{driverId:r.driverId}:{pk:r.pk,sk:r.sk};
  const k=(t,key)=>t+'|'+quoteCanonical(key),put=(t,r)=>rows.set(k(t,keys(t,r)),clone(r)),get=(t,key)=>rows.get(k(t,key));
- put('WizzOrders',{PK:'ORDER#'+orderId,SK:'META',orderId,storeId:'branch1',merchantId:'merchant1',status:'ready_for_pickup',financialSnapshot:flowOptions.deliveryFunding?require('../../dist/deliveryFundedOffer').prepareDeliveryFundedFinancialSnapshot({order:source.order,deliveryFunding:flowOptions.deliveryFunding}):envelope(source.order)});
+ put('WizzOrders',{PK:'ORDER#'+orderId,SK:'META',orderId,storeId:'branch1',merchantId:'merchant1',status:'ready_for_pickup',financialSnapshot:flowOptions.enableFullCash?require('../../dist/fullCashOffer').prepareFullCashOrderSnapshot({order:source.order,deliveryFunding:flowOptions.deliveryFunding??null}):flowOptions.deliveryFunding?require('../../dist/deliveryFundedOffer').prepareDeliveryFundedFinancialSnapshot({order:source.order,deliveryFunding:flowOptions.deliveryFunding}):envelope(source.order)});
+ if(flowOptions.enableFullCash){const snapshot=get('WizzOrders',{PK:'ORDER#'+orderId,SK:'META'}).financialSnapshot;put('staging-Holds',{orderId,sk:'FULL_CASH_FUNDING_COMMITMENT',kind:'FULL_CASH_FUNDING_COMMITMENT',settlementModel:'FULL_CASH_AT_DELIVERY_V1',status:'COMMITTED',snapshotDigest:snapshot.digest,deliveryFunding:flowOptions.deliveryFunding??null,platformGoodsFunding:source.order.allocation.platformGoodsDiscount});}
  put('WizzDispatchJobs_staging',{orderId,SK:'METADATA',dispatchJobId:'dispatch1',restaurantId:'branch1',status:'searching',currentWaveNumber:0,expiresAt:source.assignment.expiresAt});
  put('WhizzMerchants_Businesses',{businessId:'branch1',ownerId:'owner1',cognitoUserId:'owner1',organizationId:'merchant1',status:'approved'});
  put('staging-PlatformStaff',{pk:'OPERATIONAL_SETTINGS#DELIVERY_PRICING',sk:'CURRENT',version:1,values:{deliveryRules:[],driverRules:source.policy.rules}});
@@ -27,17 +28,26 @@ function setup(earning='3000',transform=()=>{},orderId='order1',flowOptions={}){
  const f={rows,calls,sent,put,get,failSend:false,loseAcceptance:false,beforeCommit:null,get time(){return time;},set time(v){time=v;}};
  function check(q,row){
   if(!q.ConditionExpression)return true;
-  return q.ConditionExpression.split(/ AND /).every(term=>{
-   const absence=term.trim().match(/^attribute_not_exists\(([^)]+)\)$/);
-   const field=v=>q.ExpressionAttributeNames?.[v]??v;
-   if(absence)return row?.[field(absence[1])]===undefined;
-   const m=term.trim().match(/^(#[A-Za-z0-9_]+)\s*=\s*(:[A-Za-z0-9_]+)$/);
-   assert.ok(m,'unsupported condition '+term);return quoteCanonical(row?.[field(m[1])])===quoteCanonical(q.ExpressionAttributeValues[m[2]]);
-  });
+  const field=v=>q.ExpressionAttributeNames?.[v]??v;
+  function evaluate(raw){
+   const term=raw.trim();let orDepth=0,orStart=0;const alternatives=[];
+   for(let i=0;i<term.length;i++){if(term[i]==='(')orDepth++;else if(term[i]===')')orDepth--;if(orDepth===0&&term.slice(i,i+4)===' OR '){alternatives.push(term.slice(orStart,i));orStart=i+4;i+=3;}}
+   if(alternatives.length){alternatives.push(term.slice(orStart));return alternatives.some(evaluate);}
+   let depth=0,start=0;const parts=[];
+   for(let i=0;i<term.length;i++){if(term[i]==='(')depth++;else if(term[i]===')')depth--;assert.ok(depth>=0,'unbalanced condition');if(depth===0&&term.slice(i,i+5)===' AND '){parts.push(term.slice(start,i));start=i+5;i+=4;}}
+   assert.equal(depth,0,'unbalanced condition');
+   if(parts.length){parts.push(term.slice(start));return parts.every(evaluate);}
+   if(term.startsWith('(')&&term.endsWith(')'))return evaluate(term.slice(1,-1));
+   const absence=term.match(/^attribute_not_exists\(([^)]+)\)$/);if(absence)return row?.[field(absence[1])]===undefined;
+   const m=term.match(/^(#?[A-Za-z0-9_]+)\s*(=|>)\s*(:[A-Za-z0-9_]+)$/);
+   assert.ok(m,'unsupported condition '+term);const left=row?.[field(m[1])],right=q.ExpressionAttributeValues[m[3]];return m[2]==='>'?typeof left==='number'&&typeof right==='number'&&left>right:quoteCanonical(left)===quoteCanonical(right);
+  }
+  return evaluate(q.ConditionExpression);
  }
+
  const db={async send(c){calls.push(c);
   if(c instanceof GetCommand){const q=c.input,row=get(q.TableName,q.Key);if(!row)return {};if(!q.ProjectionExpression)return {Item:clone(row)};
-   return {Item:clone(Object.fromEntries(Object.entries(row).filter(([field])=>Object.values(q.ExpressionAttributeNames).includes(field))))};}
+   return {Item:clone(Object.fromEntries(Object.entries(row).filter(([field])=>q.ProjectionExpression.split(',').map(x=>q.ExpressionAttributeNames?.[x.trim()]??x.trim()).includes(field))))};}
   assert.ok(c instanceof TransactWriteCommand);
   const tx=c.input.TransactItems;
   assert.equal(new Set(tx.map(o=>{const v=o.Put??o.Update??o.ConditionCheck;return k(v.TableName,o.Put?keys(v.TableName,v.Item):v.Key);})).size,tx.length,'duplicate transaction target');
@@ -58,14 +68,15 @@ function setup(earning='3000',transform=()=>{},orderId='order1',flowOptions={}){
   return {};
  }};
  f.db=db;
+ if(flowOptions.enableFullCash)require('./full-cash-budget-fixture.cjs')(f,orderId,flowOptions.deliveryFunding??null);
  const context=createStagingDriverOfferContext({db,cognito:{async send(c){return {Enabled:true,Username:c.input.Username,UserStatus:'CONFIRMED',UserAttributes:[{Name:'sub',Value:c.input.Username}]};}},
-  router:{async getRoute(a,b){return route('route',a,b);}},positionMaxAgeSeconds:120,offerTtlSeconds:60,now:()=>time,enableDeliveryFunding:flowOptions.enableDeliveryFunding});
+  router:{async getRoute(a,b){return route('route',a,b);}},positionMaxAgeSeconds:120,offerTtlSeconds:60,now:()=>time,enableDeliveryFunding:flowOptions.enableDeliveryFunding,enableFullCash:flowOptions.enableFullCash});
  f.context=context;
- f.wave=createStagingDriverFinancialWave({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,now:()=>time,sendOffer:async(driverId,message)=>{if(f.failSend)throw Error('network');sent.push({driverId,message});}});
+ f.wave=createStagingDriverFinancialWave({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,enableFullCash:flowOptions.enableFullCash,now:()=>time,sendOffer:async(driverId,message)=>{if(f.failSend)throw Error('network');sent.push({driverId,message});}});
  f.run=(ids=['driver1','driver2'])=>f.wave.run({orderId,branchId:'branch1',waveNumber:1,driverIds:ids});
- f.decline=(driverId='driver1')=>createStagingDriverOfferAcceptance({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,now:()=>time,authenticateDriver:async()=>({driverId,subjectId:driverId})})
+ f.decline=(driverId='driver1')=>createStagingDriverOfferAcceptance({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,enableFullCash:flowOptions.enableFullCash,now:()=>time,authenticateDriver:async()=>({driverId,subjectId:driverId})})
   .decline({orderId,waveNumber:1,offerId:sent.find(v=>v.driverId===driverId).message.offer.offerId});
- f.accept=(driverId='driver1',extra={})=>createStagingDriverOfferAcceptance({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,now:()=>time,authenticateDriver:async()=>({driverId,subjectId:driverId})})
+ f.accept=(driverId='driver1',extra={})=>createStagingDriverOfferAcceptance({db,context,enableDeliveryFunding:flowOptions.enableDeliveryFunding,enableFullCash:flowOptions.enableFullCash,now:()=>time,authenticateDriver:async()=>({driverId,subjectId:driverId})})
   .accept({orderId,waveNumber:1,offerId:sent.find(v=>v.driverId===driverId).message.offer.offerId,...extra});
  return f;
 }

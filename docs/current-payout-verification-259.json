@@ -1,0 +1,94 @@
+{
+  "part": 259,
+  "status": "PASS",
+  "checkedAt": "2026-10-21T21:17:37.689Z",
+  "readOnly": true,
+  "writesByAgent": 0,
+  "payout": {
+    "payoutId": "MPO:b402c95f947d7a06cbeda06c4fa822afbdc11e4a54bbb242",
+    "status": "PAID",
+    "amountIqd": 6250,
+    "receiptAndPaidProofVerified": true
+  },
+  "cashbox": {
+    "code": "CASH-NJFMAN-01",
+    "balanceIqd": 3750,
+    "openingCount": 1,
+    "merchantCashDebitCount": 1,
+    "ledgerCount": 2,
+    "hashAndPaidProofVerified": true
+  },
+  "merchant": {
+    "payableStatus": "PAID",
+    "lockedBalanceIqd": 43575,
+    "statementVerified": true
+  },
+  "guarantee": {
+    "status": "RELEASED",
+    "amountIqd": 6250
+  },
+  "returnCase": {
+    "version": 13,
+    "financialFields": {
+      "entitlementsPosted": {
+        "operationId": "EXF:8c0039638295e54504c54f6081353e0ed0ccfd63324fd9df",
+        "driverFareIqd": 2750,
+        "merchantCompensationIqd": 6250,
+        "decisionId": "9e9bf847-13f6-48d2-8628-7014b7cbd845",
+        "postedAt": "2026-10-21T16:57:42.646Z",
+        "journalDigest": "0cc0727458f11db54b1b407d5d159c30f5132939ea291cdfef496e6f0825c4bc"
+      },
+      "entitlementDecision": {
+        "driverFareDecision": "FULL",
+        "driverFareIqd": 2750,
+        "reason": "- اعتماد تجريبي لأجرة السائق 2750 دينار وتعويض المطعم 6250 دينار بتمويل كامل من المنصة.",
+        "executedAt": "2026-10-21T16:57:42.646Z",
+        "orderId": "bb728bfe-c2c4-5c95-8492-26ce81ee1ed1",
+        "attemptDigest": null,
+        "returnExtraFareIqd": 0,
+        "offerDigest": "2e05ae6dbddbcd3692bb37bbd7dfcd585959f4391026202f076050e6d08a9bcf",
+        "caseId": "OEX:0c4ef91c4c72592a7bd9a4f297212e7fc40f73737e9d023e",
+        "digest": "a96cba40c8c894414ebdbcbf309619f32050ad93340d5ad04a70a0fb07daf351",
+        "uncollectedTipIqd": 0,
+        "operationId": "EXF:8c0039638295e54504c54f6081353e0ed0ccfd63324fd9df",
+        "state": "EXECUTED",
+        "attemptVerification": {
+          "reference": "مراجعة تجريبية لإفادتي السائق والمطعم المسجلتين للطلب ORD1792545370610",
+          "reviewedAt": "2026-10-21T16:48:44.595Z",
+          "source": "SUPPORT_VERIFIED_EVIDENCE",
+          "actorId": "f40834f8-4091-7054-0e20-dba35a2793ce"
+        },
+        "platformFundingIqd": 9000,
+        "agreement": {
+          "version": 1,
+          "id": "FATTOUSH_COD_SAMPLE",
+          "termsHash": "f623d3f189ba98f95444faf65817e08030bae91062a680be21245426d58b77ec"
+        },
+        "kind": "EXCEPTION_ENTITLEMENTS_DECISION",
+        "findingId": "c4104272-70fa-48e1-bdd0-18599d1554b0",
+        "evidenceIds": [
+          "732c0574-d7b5-4e4a-9de0-0679fec99b37",
+          "e6e1d343-9b0c-48ed-b2a8-0cf79eac3ccd"
+        ],
+        "approvedAt": "2026-10-21T16:48:44.595Z",
+        "settlementModel": "EXCEPTION_ACCRUAL_GL_V1",
+        "merchantCompensationIqd": 6250,
+        "actorId": "f40834f8-4091-7054-0e20-dba35a2793ce",
+        "merchantFundingIqd": 0,
+        "decisionId": "9e9bf847-13f6-48d2-8628-7014b7cbd845",
+        "agreementReference": "اتفاق تجريبي قبل الإطلاق: تعويض المطعم بصافي استحقاقه الأصلي عن الأصناف المرتجعة التالفة."
+      },
+      "guaranteeReview": {
+        "reason": "تحرير كامل ضمان السائق في الاختبار بعد اكتمال الإرجاع واعتماد عدم مسؤوليته.",
+        "releasedAt": "2026-10-21T16:59:59.626Z",
+        "actorId": "f40834f8-4091-7054-0e20-dba35a2793ce",
+        "amountIqd": 6250,
+        "findingId": "c4104272-70fa-48e1-bdd0-18599d1554b0",
+        "operationId": "CR:b30d22edc22cb14620c8b592e204d50c542c2e47dbc2cf50",
+        "state": "RELEASED",
+        "noLiabilityCharge": true
+      }
+    }
+  },
+  "clearingCreditIqd": 6250
+}

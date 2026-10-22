@@ -1,3 +1,6 @@
+import {retainFullCashFundingCommitment} from './fullCashFundingCommitment';
+import {createStagingDriverOfferOrderReader} from './driverOfferOrderReader';
+import {prepareDeliveryFundingRetention} from './deliveryFundingRetention';
 import {DynamoDBDocumentClient,ScanCommand,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,FinancialRow as Row} from './driverFinancialTransaction';
 import {setFinancialFields as set} from './financialRelease';
@@ -9,11 +12,11 @@ const {dispatchWaveSK}=require('../../src/utils/dispatch-cycle-keys');
 const JOBS='WizzDispatchJobs_staging',ORDERS='WizzOrders';
 const fail=():never=>{throw Error('DISPATCH_RESTART_START_CONFLICT');};
 /** Trusted durable start consumer. No public handler, own scheduling or financial
- * writer. Callback must use the existing fenced Legacy runner. A callback's return
+ * writer. Callback must use the existing fenced runner for the explicitly selected engine. A callback's return
  * value is never an ACK: inspect durable coordinator/wave/delivery evidence.
  */
-export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;mode?:string;start:(input:{orderId:string;assignmentId:string;cycleId:string})=>Promise<unknown>}){
- const {db}=options,now=options.now??Date.now;
+export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;mode?:string;engine?:'LEGACY'|'FINANCIAL';enableFullCash?:boolean;start:(input:{orderId:string;assignmentId:string;cycleId:string})=>Promise<unknown>}){
+ const {db}=options,now=options.now??Date.now,engine=options.engine??'LEGACY';
  function enabled(){if((options.mode??process.env.DISPATCH_RESTART_START_MODE)!=='REQUIRED')throw Error('DISPATCH_RESTART_START_DISABLED');}
  async function processRestart(orderId:string,restartId:string,owner:string){
   enabled();if(!quoteEntityIdValid(orderId)||!/^DRS:[a-f0-9]{48}$/.test(restartId)||!quoteEntityIdValid(owner))return fail();
@@ -32,7 +35,7 @@ export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocum
    const guards:Row[]=[exactCheck(JOBS,jobKey,job),exactCheck(ORDERS,orderKey,order,[...new Set([...Object.keys(order),'deletedAt','deletionStatus','isDeleted','deletionRequestId'])])];
    if(job.dispatchJobId!==row!.assignmentId||job.dispatchRestart?.restartId!==restartId||order.deliveryJobId!==row!.assignmentId)return {stale:true,guards};
    const cycle=validateDispatchCycle(job.dispatchCycle);
-   if(cycle.engine!=='LEGACY'||cycle.keyVersion!==2||cycle.id!==row!.cycleId||cycle.digest!==row!.cycleDigest||cycle.assignmentId!==row!.assignmentId||cycle.orderId!==orderId||job.restaurantId!==row!.branchId)return fail();
+   if(cycle.engine!==engine||(row!.engine??'LEGACY')!==engine||cycle.keyVersion!==2||cycle.id!==row!.cycleId||cycle.digest!==row!.cycleDigest||cycle.assignmentId!==row!.assignmentId||cycle.orderId!==orderId||job.restaurantId!==row!.branchId)return fail();
    const decisionKey={pk:'DISPATCH_REVIEW#'+row!.caseId,sk:'DECISION'},decision=await strongGet(db,'staging-PlatformStaff',decisionKey);
    if(!decision||decision.status!=='EXECUTED'||decision.resultCode!=='SEARCH_RESTART_QUEUED'||decision.requestId!==row!.requestId||decision.receipt?.restartId!==restartId||decision.receipt?.cycleId!==cycle.id||decision.receipt?.assignmentId!==cycle.assignmentId)return fail();
    guards.push(exactCheck('staging-PlatformStaff',decisionKey,decision));
@@ -40,12 +43,18 @@ export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocum
    if(!branch)return fail();guards.push(exactCheck('WhizzMerchants_Businesses',branchKey,branch,[...new Set([...Object.keys(branch),'deletedAt','isDeleted','deletionRequestId'])]));
    let suppressed=order.isDeleted===true||order.deletionRequestId!=null||order.deletionStatus!=null||order.deletedAt!=null||branch.isDeleted===true||branch.deletionRequestId!=null||branch.deletedAt!=null;
    for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+row!.branchId,'ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId]){const k={pk,sk:'META'},r=await strongGet(db,'staging-AccountDeletion',k);guards.push(r?exactCheck('staging-AccountDeletion',k,r):{ConditionCheck:{TableName:'staging-AccountDeletion',Key:k,ConditionExpression:'attribute_not_exists(pk)'}});if(r)suppressed=true;}
+   if(engine==='FINANCIAL'&&!suppressed&&order.status==='ready_for_pickup'){
+    const read=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:true,enableFullCash:options.enableFullCash}).read({orderId,branchId:row!.branchId});
+    guards.push(read.condition);
+    if(order.financialSnapshot?.schemaVersion===3)guards.push(await retainFullCashFundingCommitment(db,{orderId,snapshotDigest:order.financialSnapshot.digest,deliveryFunding:read.deliveryFunding??null,goodsAmount:read.snapshot.allocation.platformGoodsDiscount,goodsExposure:order.commercialPricing?.funding?.exposure}));
+    else {if(!read.deliveryFunding)return fail();guards.push(...await prepareDeliveryFundingRetention(db,{orderId,at:new Date(now()).toISOString(),operationId:'RETRY:'+row!.requestId,deliveryFunding:read.deliveryFunding,goodsAmount:read.snapshot.allocation.platformGoodsDiscount,commercialPricing:read.commercialPricing}));}
+   }
    const review=branch.status!=='approved'||branch.isActive!==true||branch.ordersBlocked===true||branch.platformSuspended===true||['cancelled','canceled','delivered','completed','returned','rejected','refunded'].includes(order.status);
    return {job,order,cycle,guards,suppressed,review};
   }
   let c=await context();if(c.stale){await commit({state:'STALE'},c.guards);return {state:'STALE'};}if(c.suppressed){await commit({state:'SUPPRESSED_DELETION'},c.guards);return {state:'SUPPRESSED_DELETION'};}if(c.review){await commit({state:'NEEDS_REVIEW'},c.guards);return {state:'NEEDS_REVIEW'};}
   if(now()>=Date.parse(c.cycle!.searchDeadline)){
-   await createStagingDispatchCoordinator({db,now}).plan({orderId,assignmentId:row.assignmentId,source:'TIMEOUT'});c=await context();await commit({state:'NEEDS_REVIEW'},c.guards);return {state:'NEEDS_REVIEW'};
+   await createStagingDispatchCoordinator({db,now,enableDeliveryFunding:engine==='FINANCIAL',enableFullCash:options.enableFullCash}).plan({orderId,assignmentId:row.assignmentId,source:'TIMEOUT'});c=await context();await commit({state:'NEEDS_REVIEW'},c.guards);return {state:'NEEDS_REVIEW'};
   }
   await commit({state:'STARTING',leaseOwner:owner,leaseUntil:Math.min(now()+30000,Date.parse(c.cycle!.searchDeadline))},c.guards);
   enabled();
@@ -54,7 +63,7 @@ export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocum
   const job=c.job!,cycle=c.cycle!;let started=job.status==='assigned'&&c.order!.driverId===job.assignedDriverId&&c.order!.driverId!=null;
   if(!started&&job.currentWaveNumber>0&&job.dispatchTransition?.cycleId===cycle.id){
    const waveKey={orderId,SK:dispatchWaveSK(cycle,job.currentWaveNumber)},wave=await strongGet(db,JOBS,waveKey),intentKey={orderId,SK:'DISPATCH_TRANSITION#'+job.dispatchTransition.id},intent=await strongGet(db,JOBS,intentKey);
-   if(wave&&intent){c.guards.push(exactCheck(JOBS,waveKey,wave),exactCheck(JOBS,intentKey,intent));started=wave.kind==='DISPATCH_WAVE'&&wave.state==='READY'&&wave.cycleDigest===cycle.digest&&wave.assignmentId===cycle.assignmentId&&wave.transitionId===intent.intentId&&intent.cycleId===cycle.id&&intent.state==='APPLIED'&&Array.isArray(wave.driverIds)&&Array.isArray(wave.delivered)&&wave.driverIds.every((id:string)=>wave.delivered.includes(id));}
+   if(wave&&intent){c.guards.push(exactCheck(JOBS,waveKey,wave),exactCheck(JOBS,intentKey,intent));started=wave.kind===(engine==='FINANCIAL'?'FINANCIAL_WAVE':'DISPATCH_WAVE')&&wave.state==='READY'&&wave.cycleDigest===cycle.digest&&wave.assignmentId===cycle.assignmentId&&wave.transitionId===intent.intentId&&intent.cycleId===cycle.id&&intent.state==='APPLIED'&&Array.isArray(wave.driverIds)&&Array.isArray(wave.delivered)&&wave.driverIds.every((id:string)=>wave.delivered.includes(id));}
   }
   const attempts=row!.attempts+1,state=started?'STARTED':job.status==='no_driver_available'||attempts>=20?'NEEDS_REVIEW':'PENDING';
   await commit({state,attempts,leaseUntil:0,nextAttemptAt:now()+Math.min(900000,15000*2**Math.min(attempts,6)),...(started?{startedAt:new Date(now()).toISOString()}:{})},c.guards);

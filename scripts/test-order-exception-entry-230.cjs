@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('fs'),Module=require('module'),path=require('path'),assert=require('node:assert/strict');
+const p='/private/tmp/attempt-230',entry=p+'/staff/_discount_review/central-staff/index.js';
+Object.assign(process.env,JSON.parse(fs.readFileSync(p+'/staff-config.private.json')).Environment.Variables);
+const values=require('../backend/wallet-service/dist/orderExceptionSettings').EXCEPTION_SETTINGS_DEFAULTS;
+const id='74584478-f091-706b-72fc-830746899672',actor={employeeId:id,status:'ACTIVE',version:1,roles:['bootstrap_admin'],scope:{allRegions:true},mfaRequired:true};
+let writes=[];const db={send:async c=>{const i=c.input;if(i.Key){if(i.Key.pk==='EMPLOYEE#'+id)return {Item:actor};if(i.Key.pk==='OPERATIONAL_SETTINGS#ORDER_EXCEPTIONS')return {Item:{pk:i.Key.pk,sk:'CURRENT',version:1,policyVersion:'v1',values}};throw Error('UNEXPECTED_READ');}if(i.TransactItems){writes.push(i);return {};}throw Error('UNEXPECTED_COMMAND');}};
+const m=new Module(entry,module);m.filename=entry;m.paths=Module._nodeModulePaths(path.dirname(entry));m._compile(fs.readFileSync(p+'/staff-candidate.js','utf8')+'\nmodule.exports.__set=(d,c,v)=>{db=d;cognito=c;verifier=v;};',entry);
+const live={Enabled:true,UserAttributes:[{Name:'sub',Value:id}],UserMFASettingList:['SOFTWARE_TOKEN_MFA']};m.exports.__set(db,{send:async()=>live},{verify:async()=>({sub:id,username:'synthetic-offline',auth_time:Math.floor(Date.now()/1000)})});
+(async()=>{const event={httpMethod:'GET',path:'/staff/settings/order-exceptions',headers:{Authorization:'Bearer SYNTHETIC_OFFLINE'}};
+ const r=await m.exports.handler(event);assert.equal(r.statusCode,200,r.body);const data=JSON.parse(r.body);assert.equal(data.current.values.arrivalRadiusMeters,100);assert.equal(data.canRequest,true);assert.equal(data.directWrite,true);
+ const post=await m.exports.handler({...event,httpMethod:'POST',path:event.path+'/request',body:JSON.stringify({baseVersion:1,values,reason:'approved offline fixture'})});assert.equal(post.statusCode,200,post.body);assert.equal(JSON.parse(post.body).status,'SAVED');assert.equal(writes.length,1);assert(writes[0].TransactItems.every(x=>Object.values(x)[0].TableName==='staging-PlatformStaff'));
+ console.log('PASS actual nested staff entry: route loads external settings contract, authenticated global read, direct versioned save; offline metadata only');
+})().catch(e=>{console.error(e);process.exitCode=1;});

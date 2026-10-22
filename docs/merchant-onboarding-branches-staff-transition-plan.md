@@ -1240,3 +1240,14 @@ Protected existing commercial API reads committed consent audits and actual cons
 One authenticated personal-phone acceptance by either the owner or the active assigned branch manager is sufficient. Branch membership/role and transaction fences enforce scope; manager consent does not enable fee-agreement acceptance, other employees, paired devices, or the unfinished broad manager preset. Actual signer and role persist in consent, funding and platform notices. Future request notices target eligible owner and manager personal tokens, with no replay of existing SENT notices. Employee home now links managers to the existing sharing consent screen and notification settings.
 
 Tests: 451 server/retention, 685 wallet, 19 Flutter checks passed. Disposable real Dynamo tests cover sole manager publication, simultaneous consent, retry stability and revocation; table removed. Five scoped Lambda overlays deployed with financial gates/configuration preserved. Amplify98 successful and hosted bytes checked. Signed release installed on physical iPhone; automatic launch was blocked by locked device. No real manager consent or new phone-delivery claim was fabricated. Financial reader requires manager membership to remain valid for future quotes; previously pinned orders remain unchanged.
+
+
+## الجزء 259 — إكمال تفويض موظفي المطعم للمستحقات والصرف
+
+اكتمل على staging مسار جهاز الفرع وPIN لقراءة الحساب والكشوف وطلب الصرف وتأكيد الاستلام، دون استخدام جلسة المالك. فُصلت أذونات القراءة والطلب والاستلام، وبقي اعتماد الصرف والتنفيذ والمطابقة لدى إدارة المنصة. فُعّل قالبا المدير والموظف المالي بالقدرات المنفذة حاليًا وسياسة الموظفين الإصدار2؛ لا تحويلات ضمن هذه الحزمة ولا منح ضمنية للعضويات السابقة. على المالك استخدام «الموظفون والصلاحيات → تغيير نوع الموظف»، ثم يفتح الموظف جلسةPIN جديدة.
+
+يحفظ requestActor وreceiptActor الاسم والصفة واسم المطعم وإصدارات المنح والسياسة والجهاز؛ ويظهر المستلم الفعلي في التقرير. إذا طلب الموظف واستلم المالك تُحفظ هوية المالك عند الإقرار، وإذا استلم الموظف تُحفظ هويته التاريخية ولا تتغير بسحب المنح لاحقًا. زين كاش يستخدم جهة المالك المتحقق منها فقط، ولا يسمح للموظف بتغييرها.
+
+نُشرت تسع خدمات بحزم محدودة مع مزامنة سجل الصلاحيات في جميع مستهلكيه، دون تغيير IAM أو إعدادات الخدمات. نسخة المطعم226 مثبتة ومشغلة على المحاكي. لا عضوية موظف تغيرت تلقائيًا ولا عمليات مالية أو OTP بواسطة الوكيل. لم يجر اختبار استلام بشري لموظف جديد؛ يحتاج منحًا صريحًا واختبارًا مستقبليًا، ولا يعاد صرف6250المدفوع. هوية العملية السابقة تبقىمحمدعلي/مالك/مطعمفتوش. قضية الإرجاع المالية الأوسع لا تزال غير مغلقة.
+
+المراجع: merchant-staff-settlements-259.md وimplementation-checkpoint-259.json وmerchant-staff-settlements-publication-259.json وmerchant-staff-settlements-policy-259.json وmerchant-staff-settlements-verification-259.json.

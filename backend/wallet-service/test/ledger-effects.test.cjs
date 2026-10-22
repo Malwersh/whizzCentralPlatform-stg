@@ -32,3 +32,9 @@ test('unsafe aggregate and empty period are explicit and do not mutate the sourc
  const result=summarizeLedger([row,row]);assert.equal(result.summary.status,'UNAVAILABLE');assert.equal(result.summary.reason,'UNSAFE_TOTAL');assert.equal(result.summary.totals,undefined);assert.deepEqual(row,copy);
  const empty=summarizeLedger([]);assert.equal(empty.summary.status,'AVAILABLE');assert.equal(empty.summary.rowCount,0);assert.equal(empty.summary.totals.AVAILABLE.net,0);assert.equal(empty.summary.ruleVersion,EFFECT_RULE_VERSION);
 });
+test('full cash posted lines classify exact buckets and never accept old model tags',()=>{
+ const operation='FCS:'+'a'.repeat(48),row={walletId:'WALLET#DRIVER#d',sk:'ts#2026-10-19T00:00:00.000Z#LOCKED#'+operation,transactionId:operation,type:'DEBIT',category:'FULL_CASH_COMPLETED',amount:-8700,balanceBefore:8700,balanceAfter:0,relatedEntityId:'o',relatedEntityType:'ORDER',metadata:{orderId:'o',operationId:operation,balanceType:'LOCKED',financialSchemaVersion:4,settlementModel:'FULL_CASH_AT_DELIVERY_V1'}};
+ assert.deepEqual(ledgerEffect(row),{status:'CLASSIFIED',bucket:'LOCKED',delta:-8700});
+ assert.equal(ledgerEffect({...row,metadata:{...row.metadata,financialSchemaVersion:2}}).status,'UNCLASSIFIED');
+ assert.equal(ledgerEffect({...row,balanceAfter:1}).status,'UNCLASSIFIED');
+});

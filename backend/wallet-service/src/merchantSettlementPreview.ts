@@ -1,9 +1,11 @@
+import {MerchantStatementPeriod} from './merchantOpeningPeriod';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { deriveMerchantCodAccrual, summarizeMerchantAccruals, merchantAccrualReportingAmounts } from './merchantSettlementAccrual';
 import { merchantSettlementPeriod, MerchantSettlementSchedule } from './merchantSettlementPeriod';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 import { readMoney } from './money';
 import { csvCell } from './walletStatement';
+import {verifyMerchantPayoutJournal} from './merchantPayout';
 
 type Row = Record<string, any>;
 const fail = (code = 'MERCHANT_SETTLEMENT_PREVIEW_UNAVAILABLE'): never => { throw Object.assign(Error(code), { code }); };
@@ -19,16 +21,26 @@ export async function readMerchantAccrualEvidence(db: Pick<DynamoDBDocumentClien
   if (order.orderId !== orderId || ![order.storeId, order.businessId].some(b => b === branchId) ||
       [order.storeId, order.businessId].some(b => b !== undefined && b !== branchId) ||
       !quoteEntityIdValid(order.driverId) || !Number.isSafeInteger(order.assignmentWaveNumber) || order.assignmentWaveNumber < 1) return fail();
-  const [outcome, payable, acceptedOffer] = await Promise.all([
-    get('staging-Holds', { orderId, sk: 'FINANCIAL_OUTCOME' }),
+  const [payable, acceptedOffer] = await Promise.all([
     get('staging-Holds', { orderId, sk: 'MERCHANT_PAYABLE' }),
     get('WaveOffers_staging', { orderId, SK: `FINANCIAL#${order.driverId}#WAVE#${order.assignmentWaveNumber}` }),
   ]);
-  return { order, outcome, payable, acceptedOffer,
-    accrual: deriveMerchantCodAccrual({ branchId, order, outcome, payable, acceptedOffer }) };
+  const outcomeKey={orderId,sk:payable.kind==='MERCHANT_EXCEPTION_PAYABLE'?'EXCEPTION_ENTITLEMENTS':'FINANCIAL_OUTCOME'};
+  const outcome=await get('staging-Holds',outcomeKey);
+  const accountingJournal=outcome.schemaVersion===3?await get('staging-MerchantPlatform',{pk:'FULL_CASH_JOURNAL#'+orderId,sk:'META'}):undefined;
+  const cashAdjudicationJournal=order.cashAdjudication?await get('staging-Holds',{orderId,sk:'CASH_ADJUDICATION_JOURNAL'}):undefined;
+  let sourcePayable=payable;
+  if(payable.status==='PAID'){
+    const paidJournal=await get('staging-MerchantPlatform',{pk:'MERCHANT_PAYOUT_PAID#'+payable.paidPayoutId,sk:'META'});
+    verifyMerchantPayoutJournal(paidJournal,branchId,payable);
+    const {paidAt:_paidAt,paidPayoutId:_payout,...original}=payable;
+    sourcePayable={...original,status:'LOCKED_PENDING_SETTLEMENT'};
+  }
+  return { order, outcome, outcomeKey, payable, acceptedOffer,...(cashAdjudicationJournal?{cashAdjudicationJournal}:{}),...(accountingJournal?{accountingJournal}:{}),
+    accrual: deriveMerchantCodAccrual({ branchId, order, outcome, payable:sourcePayable, acceptedOffer,accountingJournal,cashAdjudicationJournal }) };
 }
 
-export function assembleMerchantSettlementPreview(branchId: string, period: ReturnType<typeof merchantSettlementPeriod>,
+export function assembleMerchantSettlementPreview(branchId: string, period: MerchantStatementPeriod,
   accruals: ReturnType<typeof deriveMerchantCodAccrual>[]) {
   for (const accrual of accruals) {
     if (accrual.deliveredAt < period.fromUtc || accrual.deliveredAt >= period.untilExclusiveUtc) return fail('MERCHANT_ACCRUAL_OUTSIDE_PERIOD');
@@ -78,7 +90,7 @@ export function exportMerchantSettlementPreview(preview: Awaited<ReturnType<Retu
   const { previewId, ...content } = preview;
   if (previewId !== 'MSV:' + quoteHash(content).slice(0, 48) || preview.canPay !== false || preview.canReserve !== false ||
       quoteHash(preview.summary) !== quoteHash(summarizeMerchantAccruals(preview.branchId, preview.accruals))) return fail();
-  const includeDelivery=preview.accruals.some(a=>a.schemaVersion===2);
+  const includeDelivery=preview.accruals.some(a=>a.schemaVersion===2||[4,6].includes(a.schemaVersion));
   const deliveryFields=['referenceDeliveryFee','deliveryPromotionSubsidy','merchantDeliverySupport','platformDeliveryPromotionFunding','baselineDeliveryMargin','deliveryNetContribution'];
   const rows: unknown[][] = [
     ['report_type', preview.kind], ['branch_id', preview.branchId], ['preview_id', preview.previewId],

@@ -42,7 +42,7 @@ function financialPurge({db,clock=()=>Math.floor(Date.now()/1000),dryRun=true,ma
    if(commercial){const guards=await require('./commercial-retention').commercialPurgeGuards({db,group:g,source});if(!guards||guards.length+g.archives.length+1>100){blocked++;continue;}financialGuards.push(...guards);}
    // Expiry must not erase proof of an unpaid merchant liability or unresolved return/compensation.
    // These sources are shared by parties with independent deletion requests and retention clocks.
-   const codSource=g.archives.some(a=>String(a.kind).startsWith('cod_')||a.kind==='order'&&a.data?.codFinancialEvidence||a.data?.financialSchemaVersion===2||/^COD_/.test(a.data?.category||'')||/^COD_/.test(a.data?.action||'')||a.data?.action==='FINANCIAL_DRIVER_OFFER_ACCEPTED');
+   const codSource=g.archives.some(a=>String(a.kind).startsWith('cod_')||a.kind==='order'&&a.data?.codFinancialEvidence||[2,3,4].includes(a.data?.financialSchemaVersion)||/^(COD_|FULL_CASH_)/.test(a.data?.category||'')||/^(COD_|FULL_CASH_)/.test(a.data?.action||'')||a.data?.action==='FINANCIAL_DRIVER_OFFER_ACCEPTED');
    if(codSource){
     const orderId=source?.orderId||g.archives[0].data?.orderId;
     if(typeof orderId!=='string'||!orderId){blocked++;continue;}

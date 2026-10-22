@@ -1,0 +1,13 @@
+{
+  "part": 221,
+  "baseJobId": "126",
+  "jobId": "127",
+  "changedFiles": [
+    "merchant-financial-account.js",
+    "merchant-period-print.js"
+  ],
+  "otherFilesPreserved": true,
+  "status": "SUCCEED",
+  "sha256": "47fd1034c047d6df22c7acd8305a2ba5e7487c25b0bd5e68bc20709414c83fe3",
+  "hostedBytesVerified": true
+}

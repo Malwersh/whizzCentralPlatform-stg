@@ -30,3 +30,33 @@ test('an old-cycle acceptance remains read-only and cannot request actions on it
 test('lifecycle changing after case reads prevents read-fence delivery of the stale case',async()=>{const f=fixture(),send=f.ctx.db.send;f.ctx.db.send=async c=>{const r=await send(c);if(c.constructor.name==='QueryCommand')f.put('staging-AccountDeletion',{pk:'BUSINESS_LIFECYCLE#MERCHANT#b',sk:'META'},{pk:'BUSINESS_LIFECYCLE#MERCHANT#b',sk:'META'});return r;};await assert.rejects(f.details(),/REVIEW_CHANGED/);assert.equal(f.writes.length,0);});
 
 test('cohort filtering preserves pagination without loading a foreign order or claiming end of results',async()=>{const f=fixture();f.pages={Items:[{orderId:'foreign',SK:'METADATA',dispatchReview:{reason:'SEARCH_WINDOW_EXPIRED',reviewStatus:'REQUIRED'}}],LastEvaluatedKey:{orderId:'foreign',SK:'METADATA'}};const r=await route({...f.ctx,scopeContains:()=>false},f.actor,'GET',PATH);assert.deepEqual(r.items,[]);assert.ok(r.nextCursor);assert.ok(!f.calls.some(q=>q.TableName==='WizzOrders'));assert.equal(f.writes.length,0);});
+
+test('general release reviews server-pinned new orders without a historical account cohort; decisions remain request-only',async()=>{
+ const {reviewAccess}=require('../dispatch-reviews'),f=fixture(),env={AWS_REGION:'us-east-1',STAGE:'staging',FINANCE_GENERAL_RELEASE_MODE:'REQUIRED',FINANCIAL_SETTLEMENT_MODEL:'FULL_CASH_AT_DELIVERY_V1'};
+ const rollout={db:{send:async()=>{throw Error('obsolete cohort adapter must not handle general release');}},containsOrder:()=>false};
+ Object.assign(f.ctx,reviewAccess({db:f.ctx.db,rollout,env}));
+ f.get('WizzOrders',{PK:'ORDER#o',SK:'META'}).financeRollout={schemaVersion:2,scopeId:'GENERAL_STAGING_FULL_CASH_V1',version:1,digest:'a'.repeat(64)};
+ const r=await f.details();assert.equal(r.item.canRequestRetry,true);assert.equal(r.item.financeRollout,undefined);assert.equal((await f.post()).status,'PENDING_EXECUTION');assert(f.writes[0].filter(x=>x.Put).every(x=>x.Put.TableName==='staff'));
+});
+test('general release review rejects unpinned/foreign-version orders and retains employee, regional and lifecycle fences',async()=>{
+ const {reviewAccess}=require('../dispatch-reviews'),env={AWS_REGION:'us-east-1',STAGE:'staging',FINANCE_GENERAL_RELEASE_MODE:'REQUIRED',FINANCIAL_SETTLEMENT_MODEL:'FULL_CASH_AT_DELIVERY_V1'};
+ for(const variant of ['missing','wrongScope','wrongVersion','badDigest','wrongRegion','deleted','changedPin']){
+  const f=fixture();Object.assign(f.ctx,reviewAccess({db:f.ctx.db,rollout:{containsOrder:()=>false},env}));
+  const order=f.get('WizzOrders',{PK:'ORDER#o',SK:'META'});order.financeRollout={schemaVersion:2,scopeId:'GENERAL_STAGING_FULL_CASH_V1',version:1,digest:'a'.repeat(64)};
+  if(variant==='missing')delete order.financeRollout;
+  if(variant==='wrongScope')order.financeRollout.scopeId='OTHER';
+  if(variant==='wrongVersion')order.financeRollout.version=2;
+  if(variant==='badDigest')order.financeRollout.digest='invalid';
+  if(variant==='wrongRegion')f.actor.scope.regionIds=['other'];
+  if(variant==='deleted')order.isDeleted=true;
+  if(variant==='changedPin'){const {item}=await f.details();f.beforeCommit=()=>{order.financeRollout.digest='b'.repeat(64);};await assert.rejects(route(f.ctx,f.actor,'POST',PATH+'/decisions',{selector:{orderId:'o',source:'SEARCH'},requestId,baseDigest:item.baseDigest,action:'RETRY_SEARCH',reason:'إعادة البحث بعد المراجعة'}),/REVIEW_CHANGED/);}
+  else await assert.rejects(f.details(),/REVIEW_UNAVAILABLE/);
+  assert.equal(f.writes.length,0);
+ }
+});
+test('general release review preserves historical reads and scoped mode; invalid deployment settings fail closed',async()=>{
+ const {reviewAccess}=require('../dispatch-reviews'),f=fixture(),env={AWS_REGION:'us-east-1',STAGE:'staging',FINANCE_GENERAL_RELEASE_MODE:'REQUIRED',FINANCIAL_SETTLEMENT_MODEL:'FULL_CASH_AT_DELIVERY_V1'},rollout={db:f.ctx.db,containsOrder:()=>true};
+ Object.assign(f.ctx,reviewAccess({db:f.ctx.db,rollout,env}));assert.equal((await f.details()).item.canRequestRetry,true);
+ const scoped=reviewAccess({db:{},rollout,env:{}});assert.equal(scoped.db,rollout.db);assert.equal(scoped.scopeContains,rollout.containsOrder);
+ for(const change of [{FINANCE_GENERAL_RELEASE_MODE:'UNKNOWN'},{STAGE:'production'},{FINANCIAL_SETTLEMENT_MODEL:'OTHER'},{AWS_REGION:'eu-west-1'},{ENVIRONMENT:'production'}])assert.throws(()=>reviewAccess({db:f.ctx.db,rollout,env:{...env,...change}}),/FINANCE_ROLLOUT_NOT_CONFIGURED/);
+});

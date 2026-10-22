@@ -4,8 +4,9 @@ const sdk=require('@aws-sdk/lib-dynamodb');
 const runtime=require('../../dist/deliveryQuoteOrder');
 const handlerPath=process.env.QUOTE_ORDER_HANDLER_FILE||path.resolve(__dirname,'../../../../../wizzuser-stg/backend/src/functions/create-order/index.js');
 const {accountGuard}=require(path.join(path.dirname(handlerPath),'account-guard'));
-async function setup(mode='REQUIRED',free=false){
+async function setup(mode='REQUIRED',free=false,{cashDenomination=false}={}){
  const f=fixture();if(free){const {parseIqd}=require('../../dist/money');f.policy.values.deliveryRules[0].base=parseIqd('0');f.policy.values.deliveryRules[0].perKm=parseIqd('0');}
+ if(cashDenomination)f.policy.values.deliveryRules[0].base=require('../../dist/money').parseIqd('400');
  const quote=await f.create();f.orderQueries=0;f.externalCalls=0;
  f.products=new Map([['p1',{productId:'p1',businessId:'b1',name:'Test',price:3500,categoryId:'cat1',isAvailable:true}]]);
  f.category={categoryId:'cat1',isActive:true};
@@ -41,11 +42,13 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   vm.runInNewContext(fs.readFileSync(path.resolve(path.dirname(handlerPath),'../shared',name+'.js'),'utf8'),{
    module,exports:module.exports,Buffer,Date:FakeDate,process:{env},AbortSignal,
    fetch:async()=>({ok:true,json:async()=>({Username:'username',UserAttributes:[{Name:'sub',Value:'sub1'}]})}),
-   require:n=>n==='@aws-sdk/lib-dynamodb'?sdk:n==='../create-order/account-guard'?{accountGuard}:n.startsWith('./')?loadShared(n.slice(2)):require(n)
+   require:n=>n==='@aws-sdk/lib-dynamodb'?sdk:n==='../create-order/account-guard'?{accountGuard}:n.startsWith('../create-order/quote-runtime/')?require('../../dist/'+n.split('/').at(-1)):n.startsWith('./')?loadShared(n.slice(2)):require(n)
   });
   return shared[name]=module.exports;
  }
  const modules={
+  './checkout-pricing-reads':require('../../../../../wizzuser-stg/backend/src/functions/create-order/checkout-pricing-reads'),
+  '../shared/branch-minimum-order':loadShared('branch-minimum-order'),
   '../shared/offer-context':loadShared('offer-context'),
   '../shared/offer-eligibility':loadShared('offer-eligibility'),
   '../shared/offer-attribution':loadShared('offer-attribution'),
@@ -61,6 +64,7 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   './quote-runtime/deliveryPromotionSelection':{createStagingDeliveryPromotionSelection:o=>require('../../dist/deliveryPromotionSelection').createStagingDeliveryPromotionSelection({...o,now:()=>f.time})},
   './quote-runtime/deliveryPromotionCustomer':require('../../dist/deliveryPromotionCustomer'),
   './quote-runtime/money':require('../../dist/money'),
+  './quote-runtime/orderExceptionPolicy':require('../../dist/orderExceptionPolicy'),
   './quote-runtime/orderGoodsPricing':require('../../dist/orderGoodsPricing'),
   '../shared/discount-engine':fs.existsSync(path.resolve(path.dirname(handlerPath),'../shared/discount-engine.js'))?require(path.resolve(path.dirname(handlerPath),'../shared/discount-engine.js')):{},
   uuid:{v4:()=>require('node:crypto').randomUUID()},https:{request:()=>{f.externalCalls++;throw Error('external call prohibited');}}
@@ -104,7 +108,7 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   f.extraPut=p=>{if(p.TableName==='staging-PlatformStaff'){put(p.TableName,{pk:p.Item.pk,sk:p.Item.sk},p.Item);return true;}return priorPut(p);};
   f.env.DELIVERY_PROMOTION_MODE='REQUIRED';return policy;
  };
- f.env=env;return f;
+ f.env=env;f.adapterDb=db;return f;
 }
 
 module.exports={setup};

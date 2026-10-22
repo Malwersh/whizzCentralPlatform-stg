@@ -1,0 +1,45 @@
+{
+  "part": 232,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "EspFjIv5LjYNN6ePxkdfGqkKs0whLuFkNKK9g7zbHNc=",
+      "codeSha256": "8ek0ZrfzOi1Jj+pJ6Oytpkn4R5MpDabT9hH0gO9iq0c=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "zuRqAqfh5FOANHiO+BoH5cvTFV85rReX7pLr8R/NYuU=",
+      "codeSha256": "FqkEn2RoRV8QZPx2NuP1IvWHbdECzsrxy5faNEX4HGw=",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "operational-settings.js",
+        "order-exception-case-settings.js",
+        "order-exception-case-contract.js",
+        "order-exception-cases.js",
+        "order-number-index-232.json",
+        "order-exception-case-client.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "baseCodeSha256": "e/Sid+0Jhs63ddUlmPRdmysUnfG8J26GXwmXFgbw6v0=",
+      "codeSha256": "tY/rp7UIKUEiICrazT6dt+oKonf3pApD/D/6Wznh5yA=",
+      "changedFiles": [
+        "order_returns.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialWritesByAgent": false,
+  "scope": "STAGING_GENERAL_NEW_POLICY_ORDERS"
+}

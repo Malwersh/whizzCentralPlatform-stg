@@ -82,6 +82,7 @@ Resources:
           CLIENT_ID: 17mu2qlqis0qcs1n1n980q7e3j
           FRONTEND_ORIGIN: https://staging.d2vmebm1e1n95m.amplifyapp.com
       Policies:
+        - arn:aws:iam::699561669180:policy/staging-merchant-cashbox-register-250
         - Statement:
             - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:Scan, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
@@ -137,6 +138,10 @@ Resources:
                 - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
                 - arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
+            - {"Sid": "ReadProjectedWizzOrders", "Effect": "Allow", "Action": "dynamodb:GetItem", "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders", "Condition": {"Null": {"dynamodb:Attributes": "false"}, "ForAllValues:StringEquals": {"dynamodb:Attributes": ["PK", "SK", "orderId", "orderNumber", "storeId", "businessId", "merchantId", "driverId", "assignmentWaveNumber", "assignmentAttemptCounter", "status", "orderStatus", "cashCollected", "cashCollectedAmount", "returnStatus", "returnCaseId", "cancellationStatus", "cancellationRequestId", "deletedAt", "deletionRequestId", "isDeleted", "financialOutcome", "deliveredAt", "financialAcceptance", "financialSnapshot", "commercialPricing"]}, "ForAllValues:StringLike": {"dynamodb:LeadingKeys": ["ORDER#*"]}}}
+            - {"Sid": "ReadProjectedstagingHolds", "Effect": "Allow", "Action": "dynamodb:GetItem", "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds", "Condition": {"Null": {"dynamodb:Attributes": "false"}, "ForAllValues:StringEquals": {"dynamodb:Attributes": ["orderId", "sk", "kind", "schemaVersion", "financialSchemaVersion", "outcome", "operationId", "createdAt", "driverId", "subjectId", "branchId", "attempt", "offerId", "offerDigest", "allocation", "receipt", "journalLines", "walletId", "status", "amount", "agreement", "deliveryFunding", "merchantDeliverySupport", "settlementBatchId", "settlementLineDigest", "settlementClaimedAt"]}, "ForAllValues:StringLike": {"dynamodb:LeadingKeys": ["????????-????-????-????-????????????"]}}}
+            - {"Sid": "ReadProjectedWaveOffersstaging", "Effect": "Allow", "Action": ["dynamodb:GetItem", "dynamodb:ConditionCheckItem"], "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging", "Condition": {"Null": {"dynamodb:Attributes": "false"}, "ForAllValues:StringEquals": {"dynamodb:Attributes": ["orderId", "SK", "financialOffer", "acceptedTerms", "responseStatus", "isWinner", "waveNumber"]}, "ForAllValues:StringLike": {"dynamodb:LeadingKeys": ["????????-????-????-????-????????????"]}}}
+            - {"Sid": "ReadProjectedstagingLedgerEntries", "Effect": "Allow", "Action": "dynamodb:Query", "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries", "Condition": {"Null": {"dynamodb:Attributes": "false"}, "ForAllValues:StringEquals": {"dynamodb:Attributes": ["walletId", "sk", "category", "metadata", "relatedEntityId", "transactionId", "amount"]}, "ForAllValues:StringLike": {"dynamodb:LeadingKeys": ["WALLET#MERCHANT#*"]}, "StringEquals": {"dynamodb:Select": "SPECIFIC_ATTRIBUTES"}}}
             - Effect: Allow
               Action: [s3:GetObject]
               Resource: arn:aws:s3:::staging-merchant-onboarding-699561669180/persons/*

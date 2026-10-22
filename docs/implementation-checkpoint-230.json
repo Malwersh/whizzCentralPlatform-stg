@@ -1,0 +1,76 @@
+{
+  "part": 230,
+  "status": "PUBLISHED_STAGING_DRIVER_INSTALLED_AND_LAUNCHED",
+  "specification": "specifications/ORDER_EXCEPTIONS_RESOLUTION_SPEC_AR.md",
+  "publication": "delivery-attempt-publication-230.json",
+  "hosting": "delivery-attempt-page-publication-230.json",
+  "scope": "Verified-arrival, server waiting deadline and reported contact initiation for no-response returns on new-policy COD orders",
+  "approvedPolicy": {
+    "waitSeconds": 600,
+    "minimumContactAttempts": 3,
+    "arrivalRadiusMeters": 100,
+    "maximumAccuracyMeters": 50,
+    "positionMaxAgeSeconds": 120,
+    "contactIntervalSeconds": 60,
+    "configurableFromPlatform": true,
+    "frozenPerAttempt": true,
+    "returnExtraFeeIQD": 0
+  },
+  "implemented": [
+    "Global RBAC, enrolled/recent-session versioned settings with direct staging save; no second finance employee",
+    "Existing financial writer authenticates driver and binds assigned order, saved offer digest and assignment attempt",
+    "Device-reported GPS checked for distance, accuracy and freshness against saved customer point",
+    "Server-generated deadline; replay or reopening cannot reset it or adopt changed settings",
+    "Idempotent spaced contact initiation metadata, with explicit distinction from proof of answered call",
+    "No-response return requires both elapsed waiting and minimum contact count in the existing atomic return transaction",
+    "Driver native UI: fresh GPS, server countdown, dialer, retry same event after uncertain acknowledgement, automatic refresh and resume",
+    "Other return reasons and historical orders retain existing workflows; monetary approval and payout remain separate"
+  ],
+  "tests": {
+    "walletServiceBeforeAdditionalSettingsTests": {
+      "passed": 1162,
+      "failed": 0
+    },
+    "additionalSettingsTests": {
+      "passed": 3,
+      "failed": 0
+    },
+    "attemptTestsWithinWalletSuite": 7,
+    "sameAttemptTestsOnBundledPublishedHelper": {
+      "passed": 7,
+      "failed": 0
+    },
+    "capturedFinancialLifecycleMatrix": {
+      "passed": 65,
+      "failed": 0
+    },
+    "actualNestedStaffEntry": "offline authenticated read and direct metadata save passed",
+    "chromeSettingsUI": "approved defaults, minute conversion, authenticated payload, direct save, stale conflict and read-only access passed",
+    "driverFlutter": {
+      "passed": 11,
+      "failed": 0
+    },
+    "nativeAnalyze": "No errors or warnings; style information only",
+    "generatedRuntimeChecks": true,
+    "deployedNegativeSmoke": "All three financial actions reject wrong-role tokens with401; staff settings rejects unauthenticated401; proxy route verified"
+  },
+  "iam": {
+    "stack": "staging-order-exception-attempt-access-230",
+    "added": "Financial role GetItem and ConditionCheckItem restricted to OPERATIONAL_SETTINGS#ORDER_EXCEPTIONS in staging-PlatformStaff",
+    "customAllowAndDenyTests": true,
+    "livePrincipalReadSimulation": "allowed",
+    "walletOrOrderPermissionsAdded": false
+  },
+  "native": {
+    "driverBuild": 211,
+    "mode": "Release",
+    "installed": true,
+    "device": "iMohammed",
+    "launchVerified": true,
+    "reason": "Launched successfully after user unlocked iMohammed"
+  },
+  "physicalEndToEndAttemptTest": "NOT_RUN: requires user arrival and three contact initiations on a new order; not represented as complete",
+  "financialWritesByAgent": false,
+  "historicalPolicyOrLedgerChanged": false,
+  "next": "Physical attempt verification, then remaining OECSR liability, approval and funded compensation workflow; no claim the whole specification is complete"
+}

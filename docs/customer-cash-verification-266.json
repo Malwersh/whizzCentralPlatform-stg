@@ -1,0 +1,74 @@
+{
+  "part": 266,
+  "status": "PASS",
+  "verifiedAt": "2026-10-22T01:38:52.469085+00:00",
+  "scope": "staging",
+  "services": [
+    {
+      "function": "staging-account-deletion-worker",
+      "codeSha256": "XCfrUbuVOQ0DH9Rr7w/LcCwYU61Zl0CsnLRJbQ8NhBc=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "staging-account-deletion-financial-expiry",
+      "codeSha256": "iFK+TO3bW1wGZStUAY4xxQwAS8zdBlF2HWjPGfH2k1c=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "Dc5ZdjEjKa3hxQsmQc4B1twbI5pUNB28QUfm68dzF98=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "rRJ02HAdYSutfgEEeUXce90esgVx2wTyz4GxkvPcxaE=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "OrderService-staging",
+      "codeSha256": "dUAE5aVFiyKOXQZ6Qa7zoZoviqt8kHCzCJpAhFkvLcs=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "DriversApi-staging",
+      "codeSha256": "nQI3iWyYLrQ9b+oC631vVuJ+70+jai0m4JZS4HUOPhQ=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "staging-order-exception-sla-232",
+      "codeSha256": "B4TQS0/r4winVXK2acSwdHJHz/hq7OGvrSYxM31tUQs=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    }
+  ],
+  "hostingJobId": "155",
+  "historicalCase": {
+    "number": "ORD1792545370610",
+    "version": 14,
+    "status": "RESOLVED",
+    "compensationStatus": "PAID",
+    "compensationIqd": 6250,
+    "guaranteeStatus": "RELEASED",
+    "newCashCaseAbsent": true,
+    "noBackfill": true
+  },
+  "cashboxBalanceIqd": 3750,
+  "noRealFinancialOrPhysicalAttestationsByAgent": true,
+  "humanCustomerRefundAcceptance": "NOT_PERFORMED",
+  "merchantEmployeeHumanTest": "DEFERRED_BY_USER",
+  "wholeSpecificationComplete": false,
+  "iamChanged": false,
+  "nativeSimulatorBuilds": {
+    "customerDebug": 215,
+    "driverDebug": 216
+  },
+  "nativeInstalledAndLaunched": true,
+  "shortfallFinancialAdjustments": "PENDING_SEPARATE_EXECUTION",
+  "electronicRefundSource": "NOT_ENABLED"
+}

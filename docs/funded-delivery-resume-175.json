@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-19T06:52:50.804432+00:00",
+  "checkedAt": "2026-10-19T13:33:41.376704+00:00",
   "branchId": "business_95ac73c9-feda-4207-9285-550aec61b94c",
   "merchantId": "79f054e4-dd19-4ea0-b4c9-3cb526faf1f5",
   "minimumOrderIqd": "4000",
@@ -8,7 +8,14 @@
   "driverAvailable": "60000",
   "driverLocked": "0",
   "driverCurrentOrderId": null,
-  "deliveryPolicies": [],
+  "deliveryPolicies": [
+    {
+      "key": "COMMERCIAL#DELIVERY#DLV-1e6705f4-9570-4df9-83cd-23204c9a18ef",
+      "status": null,
+      "policyId": null,
+      "version": null
+    }
+  ],
   "policiesTruncated": false,
   "writes": 0
 }

@@ -29,7 +29,7 @@
  .commercial-platform-toast>button{background:transparent;border:0;color:inherit;font-size:24px;cursor:pointer;flex-shrink:0}
  `;
  document.head.append(style);
- const anchor=document.querySelector('[data-commercial-kind="FUNDING"]>summary')||document.querySelector('[data-commercial-kind="AGREEMENT"]>summary')||document.querySelector('main .page-header,main header,main')||document.body;
+ const anchor=document.querySelector('[data-commercial-notice-anchor]')||document.querySelector('[data-commercial-kind="FUNDING"]>summary')||document.querySelector('[data-commercial-kind="AGREEMENT"]>summary')||document.querySelector('main .page-header,main header,main')||document.body;
  anchor.append(box);document.body.append(panel,toast);
  let toastTimer,renderSignature='';
  function positionPanel(){if(panel.hidden)return;const rect=summary.getBoundingClientRect(),width=Math.min(360,innerWidth-24),top=Math.max(12,Math.min(rect.bottom+8,innerHeight-180));panel.style.width=width+'px';panel.style.left=Math.max(12,Math.min(rect.right-width,innerWidth-width-12))+'px';panel.style.top=top+'px';panel.style.maxHeight=Math.max(120,Math.min(520,innerHeight-top-12))+'px';}

@@ -26,11 +26,11 @@ export async function handler(event:Row){
   try{
    if(row.kind==='MERCHANT_RESUME'){await resumeMerchantPause(raw,row);result.processed++;continue;}
    const rawOrder=await strongGet(raw,'WizzOrders',{PK:'ORDER#'+row.orderId,SK:'META'});
-   if(rawOrder?.financialSnapshot||rawOrder?.commercialPricing){if(!rollout.containsOrder(row.orderId)){result.deferred++;continue;}currentDb=db;}
+   if(rawOrder?.financialSnapshot||rawOrder?.commercialPricing){if(!rollout.containsOrder(row.orderId,rawOrder)){result.deferred++;continue;}currentDb=db;}
    const o=await strongGet(currentDb,'WizzOrders',{PK:'ORDER#'+row.orderId,SK:'META'});if(!o)throw Object.assign(Error('ORDER_MISSING'),{code:'ORDER_MISSING'});
    const expired=Date.now()>=Date.parse(o.merchantAcceptanceDeadlineAt??'');
    if(!expired&&o.merchantResponsePolicy?.autoAccept!==true)throw Object.assign(Error('WAIT_FOR_RESPONSE'),{code:'WAIT_FOR_RESPONSE'});
-   const engine=createMerchantPendingResponse({db:currentDb,enableDeliveryFunding:fundingMode==='REQUIRED',authenticate:async()=>({kind:'SYSTEM',subjectId:'MERCHANT_RESPONSE_WORKER',businessId:row.branchId,ownerId:row.ownerId,guards:[]})});
+   const engine=createMerchantPendingResponse({db:currentDb,enableDeliveryFunding:fundingMode==='REQUIRED',enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',authenticate:async()=>({kind:'SYSTEM',subjectId:'MERCHANT_RESPONSE_WORKER',businessId:row.branchId,ownerId:row.ownerId,guards:[]})});
    await engine.run(row.orderId,expired?'EXPIRE':'AUTO_ACCEPT');result.processed++;
   }catch(error:any){
    const fresh=await strongGet(currentDb,TABLE,{operationId:row.operationId});if(!fresh||fresh.status!=='PENDING')continue;

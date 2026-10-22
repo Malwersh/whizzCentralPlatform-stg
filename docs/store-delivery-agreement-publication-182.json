@@ -1,0 +1,74 @@
+{
+  "part": 182,
+  "startedAt": "2026-10-19T15:34:29.567732+00:00",
+  "status": "PUBLISHED_VERIFIED",
+  "iamChanged": false,
+  "configurationChanged": false,
+  "ordersCreated": 0,
+  "financialDataWritten": false,
+  "policySentOrAccepted": false,
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "fzWUeU/07V8wyya0Ai/F7tHBE64AdOaav1MBI+eiB80=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "codeSha256": "WtBElk38LRzx8BNRNY1wN3b8BvIBUuuAYA3J7/OK1uA=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "codeSha256": "M+7tMzCuuCv1vwSc9auWre7uUpWiZlp7CnvYi1N9R9w=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "V7VdWeNVeaUFhb+BMo+esRPNSER+AvV2HryASir4PB4=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "FrdROY7Niy+VtpFfvHM/unqFecOc3Ly7yHt/ewmrRlo=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "mewRChmP+/ehkzX93cfOF5b7dZkAKRlY8xGyZ+3Mk+0=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "lQR9k9TX8Vip7xXKy4wAhk/KNnVpgNXKJdhG+PoX4pA=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WizzUser-GetBusinesses-staging",
+      "codeSha256": "DJEISAmGv3amXr8KmffTHAJLv6gPzzFGnGLZXMsgk/8=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WizzUser-GetBusiness-staging",
+      "codeSha256": "W8RmJEdVbrqiHgnaVS2MjMppTJv/kHmzFsyUuCbiSms=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "0w5dHHxE1jj2sSOmnX4IR1c1C0hHvKGVP6DyVrA7XzQ=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "SgQoQctjtgdJoHM9ypbwCrfgkN3DLKluKPQ6mSrggIw=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "UbaTVwaojc6ffqWXgO4HM9vNIHRdPCyZscZ5UeyFKd0=",
+      "configurationPreserved": true
+    }
+  ],
+  "completedAt": "2026-10-19T15:36:50.085682+00:00",
+  "physicalAgreementOrderVerificationPending": true
+}

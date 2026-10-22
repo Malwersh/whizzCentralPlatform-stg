@@ -1,3 +1,4 @@
+import {planInitialFinancialRetry} from './dispatchFinancialRetry';
 import {DynamoDBDocumentClient,QueryCommand,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {CognitoIdentityProviderClient,AdminGetUserCommand} from '@aws-sdk/client-cognito-identity-provider';
 import {strongGet,exactCheck,FinancialRow as Row} from './driverFinancialTransaction';
@@ -14,13 +15,13 @@ const statuses=['EXECUTED','STALE','AUTHORIZATION_CHANGED','NEEDS_REVIEW','SUPPR
 const fail=(code='DISPATCH_REVIEW_EXECUTION_CONFLICT'):never=>{throw Error(code);};
 /** Trusted single-decision executor, never a public HTTP event. No owner/driver
  * impersonation, money writes or external sends. Numeric policies are unchanged.
- * Retry is limited to proven initial Legacy and an explicit independent mode.
+ * Retry requires an independent mode: proven initial Legacy or never-offered funded COD.
  */
-export function createStagingDispatchReviewExecutor(options:{db:Pick<DynamoDBDocumentClient,'send'>;cognito:Pick<CognitoIdentityProviderClient,'send'>;now?:()=>number;mode?:string}){
+export function createStagingDispatchReviewExecutor(options:{db:Pick<DynamoDBDocumentClient,'send'>;cognito:Pick<CognitoIdentityProviderClient,'send'>;now?:()=>number;mode?:string;enableFullCash?:boolean}){
  const {db,cognito}=options,now=options.now??Date.now;
  return {async process(caseId:string){
   const mode=options.mode??process.env.DISPATCH_REVIEW_EXECUTION_MODE;
-  if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY'].includes(mode??''))return fail('DISPATCH_REVIEW_EXECUTION_DISABLED');
+  if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY'].includes(mode??''))return fail('DISPATCH_REVIEW_EXECUTION_DISABLED');
   if(!/^[a-f0-9]{64}$/.test(caseId))return fail();
   const key={pk:'DISPATCH_REVIEW#'+caseId,sk:'DECISION'},stored=await strongGet(db,T.staff,key);
   if(!stored)return {missing:true};const decision:Row=stored;
@@ -55,7 +56,7 @@ export function createStagingDispatchReviewExecutor(options:{db:Pick<DynamoDBDoc
   try{c=await reader.load(decision.selector);}catch(error:any){if(error?.message==='REVIEW_UNAVAILABLE')return finish('STALE','SOURCE_UNAVAILABLE');throw error;}
   if(c.item.caseId!==caseId||c.item.orderId!==decision.orderId||c.item.branchId!==decision.branchId||c.item.regionId!==decision.regionId||c.decision?.requestId!==decision.requestId||c.decision?.requestDigest!==decision.requestDigest)return fail();
   if(!c.item.active||c.baseDigest!==decision.baseDigest)return finish('STALE','SOURCE_CHANGED',[],c.guards);
-  if(decision.action==='RETRY_SEARCH'&&mode!=='SAFE_LEGACY_RETRY')return finish('BLOCKED_DEPENDENCY','RETRY_EXECUTION_DISABLED',[],c.guards);
+  if(decision.action==='RETRY_SEARCH'&&!['SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY'].includes(mode??''))return finish('BLOCKED_DEPENDENCY','RETRY_EXECUTION_DISABLED',[],c.guards);
   if(decision.action==='CHECK_RESERVATION'){
    // No assignment/hold resolution can be inferred from timeout or a missing
    // HTTP reply. Keep unresolved evidence for an explicit financial review.
@@ -64,6 +65,13 @@ export function createStagingDispatchReviewExecutor(options:{db:Pick<DynamoDBDoc
   if(!['CANCEL_BEFORE_PICKUP','RETRY_SEARCH'].includes(decision.action)||decision.selector.source!=='SEARCH')return fail();
   const orderKey={PK:'ORDER#'+decision.orderId,SK:'META'},jobKey={orderId:decision.orderId,SK:'METADATA'};
   const order=await strongGet(db,T.orders,orderKey),job=await strongGet(db,T.jobs,jobKey);if(!order||!job)return fail();
+  if(mode==='SAFE_FINANCIAL_INITIAL_RETRY'){
+   if(decision.action!=='RETRY_SEARCH'||job.financialDispatch!==true)return finish('BLOCKED_DEPENDENCY','FINANCIAL_INITIAL_RETRY_ONLY',[],c.guards);
+   const plan=await planInitialFinancialRetry({db,order,job,decision,context:c,at,enableFullCash:options.enableFullCash});
+   if(!plan.ready)return finish('NEEDS_REVIEW',plan.resultCode,[],c.guards);
+   if(!await identity())return finish('AUTHORIZATION_CHANGED','EMPLOYEE_AUTHORITY_CHANGED',[],c.guards);
+   return finish('EXECUTED',plan.resultCode,plan.writes,[...c.guards,...plan.guards],{receiptFields:plan.receiptFields});
+  }
   let cycle:Row;try{cycle=validateDispatchCycle(job.dispatchCycle);readLegacyOrderAmounts(order);}catch{return finish('BLOCKED_DEPENDENCY','FINANCIAL_OR_SOURCE_WORKFLOW_REQUIRED',[],c.guards);}
   if(cycle.engine!=='LEGACY'||cycle.orderId!==order.orderId||cycle.assignmentId!==job.dispatchJobId||order.deliveryJobId!==job.dispatchJobId||job.financialDispatch!==false||job.assignedDriverId!=null||job.driverId!=null||job.status!=='no_driver_available'||job.dispatchReview?.cycleId!==cycle.id||job.dispatchReview?.intentId!==job.dispatchTransition?.id||job.dispatchReview?.reviewStatus!=='REQUIRED'||
    order.status!=='ready_for_pickup'||order.orderStatus!=null&&order.orderStatus!=='ready_for_pickup'||c.item.goodsState!=='BEFORE_PICKUP_RECORDED'||c.item.pendingAcceptance||c.attempts.length>0||[order.holdId,order.walletPendingHoldId,order.driverId,order.assignedDriverId,order.returnCaseId,order.returnStatus,order.financialRelease].some(v=>v!=null)||(order.assignmentAttemptCounter??0)!==0||(order.holdAmount??0)!==0||![undefined,null,'NONE','NOT_REQUIRED'].includes(order.holdStatus))return finish('NEEDS_REVIEW','GOODS_OR_RESERVATION_UNCONFIRMED',[],c.guards);

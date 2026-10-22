@@ -53,7 +53,7 @@ export class HoldService {
     validateAmount(amount);
     
     const prior = await docClient.send(new GetCommand({TableName:TABLES.HOLDS,Key:{orderId,sk:'HOLD'},ConsistentRead:true}));
-    if(prior.Item?.financialSchemaVersion===2)throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
+    if(prior.Item?.financialSchemaVersion!==undefined)throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
     if(prior.Item?.status==='ACTIVE'&&prior.Item.walletId===walletId&&prior.Item.amount===amount&&(prior.Item.metadata?.assignmentAttempt||1)===(assignmentAttempt||1))return {success:true,hold:prior.Item as Hold,message:'Hold already exists for this assignment'};
 
     const holdId = generateHoldId();
@@ -253,7 +253,7 @@ export class HoldService {
           })
         );
 
-        if (existingHoldResult.Item?.financialSchemaVersion === 2) throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
+        if (existingHoldResult.Item?.financialSchemaVersion !== undefined) throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
         if (existingHoldResult.Item && existingHoldResult.Item.walletId === walletId && existingHoldResult.Item.amount === amount && existingHoldResult.Item.status === 'ACTIVE') {
           return {
             success: true,
@@ -355,7 +355,7 @@ export class HoldService {
     const canonical = await docClient.send(new GetCommand({TableName:TABLES.HOLDS,Key:{orderId:hold.orderId,sk:'HOLD'},ConsistentRead:true}));
     if (!canonical.Item || canonical.Item.holdId !== holdId) throw new InvalidHoldStateError('Hold replaced by another assignment');
     Object.assign(hold,canonical.Item);
-    if ((hold as any).financialSchemaVersion === 2) throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
+    if ((hold as any).financialSchemaVersion !== undefined) throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
 
     if(hold.status==='RELEASED'){const current=await docClient.send(new GetCommand({TableName:TABLES.WALLETS,Key:{walletId:hold.walletId,sk:'META'},ConsistentRead:true}));if(!current.Item)throw new WalletNotFoundError('Wallet not found');return {success:true,holdId,message:'Hold already released',walletBalance:{available:current.Item.availableBalance,locked:current.Item.lockedBalance}};}
     // Check hold state
@@ -580,7 +580,7 @@ export class HoldService {
     const canonical = await docClient.send(new GetCommand({TableName:TABLES.HOLDS,Key:{orderId:hold.orderId,sk:'HOLD'},ConsistentRead:true}));
     if (!canonical.Item || canonical.Item.holdId !== holdId) throw new InvalidHoldStateError('Hold replaced by another assignment');
     Object.assign(hold,canonical.Item);
-    if ((hold as any).financialSchemaVersion === 2) throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
+    if ((hold as any).financialSchemaVersion !== undefined) throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
 
     if(hold.status==='CAPTURED'){if(actualAmount!==undefined&&actualAmount!==hold.capturedAmount)throw new InvalidHoldStateError('Capture amount differs from completed capture');return {success:true,holdId,capturedAmount:hold.capturedAmount!,releasedAmount:hold.amount-hold.capturedAmount!,message:'Hold already captured'};}
     // Check hold state

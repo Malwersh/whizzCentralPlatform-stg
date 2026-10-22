@@ -59,7 +59,7 @@ test('composition preserves token boundaries and omits empty expression maps for
  const raw={ConditionCheck:{TableName:'locks',Key:{pk:'p',sk:'s'},ConditionExpression:'attribute_not_exists(pk)'}};
  const merged=composeDispatchTransaction([raw],[raw])[0].ConditionCheck;assert.equal(merged.ExpressionAttributeNames,undefined);assert.equal(merged.ExpressionAttributeValues,undefined);
  const a={ConditionCheck:{TableName:'jobs',Key:{orderId:'o',SK:'m'},ConditionExpression:'#f1=:v1 AND #f10=:v10',ExpressionAttributeNames:{'#f1':'one','#f10':'ten'},ExpressionAttributeValues:{':v1':1,':v10':10}}};
- const b=composeDispatchTransaction([a],[a])[0].ConditionCheck;assert.equal(Object.keys(b.ExpressionAttributeNames).length,4);assert.equal(Object.keys(b.ExpressionAttributeValues).length,4);assert(!b.ConditionExpression.includes('undefined'));
+ const b=composeDispatchTransaction([a],[a])[0].ConditionCheck;assert.equal(Object.keys(b.ExpressionAttributeNames).length,2);assert.equal(Object.keys(b.ExpressionAttributeValues).length,2);assert.equal(b.ConditionExpression,a.ConditionCheck.ConditionExpression);assert(!b.ConditionExpression.includes('undefined'));
 });
 test('revoked transition during the acceptance transaction rolls back assignment and funds',async()=>{
  const f=await setup();await f.run();f.beforeCommit=()=>{f.intent().state='CANCELLED';};await assert.rejects(f.service('driver1').accept(f.selector('driver1')));assert.equal(f.job().status,'searching');assert.equal(f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}).lockedBalance,0);assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'HOLD'}),undefined);

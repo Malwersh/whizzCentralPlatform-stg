@@ -1,3 +1,4 @@
+import {financialWaveSK} from './financialDispatchKeys';
 import {createStagingDispatchCandidates} from './dispatchCandidates';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {createStagingDispatchCoordinator} from './dispatchCoordinator';
@@ -11,11 +12,11 @@ import {quoteEntityIdValid,quoteHash} from './deliveryQuoteRecord';
  * in storage, not notification delivery. delivered[] resumes fixed-event-ID sends.
  * Selection and route/identity dependencies must be trusted, never HTTP data.
  */
-export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;
+export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;
  selectDrivers:(input:{job:Row;intent:Row})=>Promise<string[]>;
- context:(input:{db:Pick<DynamoDBDocumentClient,'send'>;offerDeadline:string;offerTtlSeconds:number;positionMaxAgeSeconds:number;enableDeliveryFunding?:boolean})=>ReturnType<typeof createStagingDriverOfferContext>;
+ context:(input:{db:Pick<DynamoDBDocumentClient,'send'>;offerDeadline:string;offerTtlSeconds:number;positionMaxAgeSeconds:number;enableDeliveryFunding?:boolean;enableFullCash?:boolean})=>ReturnType<typeof createStagingDriverOfferContext>;
  sendOffer:(driverId:string,message:Row)=>Promise<void>}) {
- const {db}=options,now=options.now??Date.now,coordinator=createStagingDispatchCoordinator({db,now,enableDeliveryFunding:options.enableDeliveryFunding});
+ const {db}=options,now=options.now??Date.now,coordinator=createStagingDispatchCoordinator({db,now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash});
  return {async run(input:{orderId:string;assignmentId:string;owner:string;leaseSeconds:number}) {
   if(!input||Object.keys(input).sort().join(',')!=='assignmentId,leaseSeconds,orderId,owner'||![input.orderId,input.assignmentId,input.owner].every(quoteEntityIdValid)||!Number.isSafeInteger(input.leaseSeconds)||input.leaseSeconds<1||input.leaseSeconds>120)throw Error('INVALID_DISPATCH_EXECUTOR');
   const planned=await coordinator.plan({orderId:input.orderId,assignmentId:input.assignmentId,source:'START'});
@@ -26,7 +27,7 @@ export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocum
   const lease=await coordinator.acquire({...input,intentId});if(!lease.acquired)return {handled:true,action:'LEASE_BUSY'};
   const selector={orderId:input.orderId,assignmentId:input.assignmentId,intentId,owner:input.owner,leaseVersion:lease.leaseVersion!};
   const first=await coordinator.executionFence(selector),intent=first.intent,profile=cycle.policy.values.dispatch!.profiles.FINANCIAL;
-  const key={orderId:input.orderId,SK:'FINANCIAL_WAVE#'+intent.waveNumber},saved=await strongGet(db,'WizzDispatchJobs_staging',key);
+  const key={orderId:input.orderId,SK:financialWaveSK(job,intent.waveNumber)},saved=await strongGet(db,'WizzDispatchJobs_staging',key);
   const driverIds=saved?.driverIds??await options.selectDrivers({job:detach(job!),intent:detach(intent)});
   if(!Array.isArray(driverIds)||driverIds.length>25||new Set(driverIds).size!==driverIds.length||!driverIds.every(quoteEntityIdValid)||(intent.rule.recipients!=='ALL'&&driverIds.length>intent.rule.recipients))throw Error('INVALID_PINNED_RECIPIENTS');
   if(saved&&(saved.transitionId!==intentId||saved.cycleDigest!==cycle.digest||saved.waveNumber!==intent.waveNumber))throw Error('PINNED_WAVE_CONFLICT');
@@ -46,8 +47,8 @@ export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocum
    const operations=composeDispatchTransaction(tx,guards);
    return db.send(new TransactWriteCommand({TransactItems:operations as any,ClientRequestToken:quoteHash(operations).slice(0,36)}));
   }} as Pick<DynamoDBDocumentClient,'send'>;
-  const context=options.context({db:fencedDb,enableDeliveryFunding:options.enableDeliveryFunding,offerDeadline:intent.waveDeadline,offerTtlSeconds:profile.offerTtlSeconds,positionMaxAgeSeconds:profile.positionMaxAgeSeconds!});
-  const producer=createStagingDriverFinancialWave({db:fencedDb,context,enableDeliveryFunding:options.enableDeliveryFunding,pinnedTransitionId:intentId,operating:{...cycle.policy,condition:null},now,sendOffer:async(driverId,message)=>{
+  const context=options.context({db:fencedDb,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash,offerDeadline:intent.waveDeadline,offerTtlSeconds:profile.offerTtlSeconds,positionMaxAgeSeconds:profile.positionMaxAgeSeconds!});
+  const producer=createStagingDriverFinancialWave({db:fencedDb,context,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash,pinnedTransitionId:intentId,operating:{...cycle.policy,condition:null},now,sendOffer:async(driverId,message)=>{
    await coordinator.executionFence(selector);await options.sendOffer(driverId,message);
   }});
   try{return await producer.run({orderId:input.orderId,branchId:job!.restaurantId,waveNumber:intent.waveNumber,driverIds});}
@@ -63,7 +64,7 @@ export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocum
  * Candidate selection uses the shared Legacy algorithm with captured policy.
  */
 export function createStagingPinnedFinancialRunner(options:Omit<Parameters<typeof createStagingDriverOfferContext>[0],'positionMaxAgeSeconds'|'offerTtlSeconds'|'offerDeadline'> & {sendOffer:(driverId:string,message:Row)=>Promise<void>}) {
- const selectDrivers=createStagingDispatchCandidates({db:options.db,now:options.now,enableDeliveryFunding:options.enableDeliveryFunding});
- return createStagingDispatchWaveExecutor({db:options.db,now:options.now,enableDeliveryFunding:options.enableDeliveryFunding,selectDrivers,sendOffer:options.sendOffer,
+ const selectDrivers=createStagingDispatchCandidates({db:options.db,now:options.now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash});
+ return createStagingDispatchWaveExecutor({db:options.db,now:options.now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash,selectDrivers,sendOffer:options.sendOffer,
   context:input=>createStagingDriverOfferContext({...input,cognito:options.cognito,router:options.router,now:options.now})});
 }

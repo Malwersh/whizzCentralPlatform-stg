@@ -40,3 +40,16 @@ test('deletion existence checks request only pk/sk under deployed attribute-rest
  const f=fixture();await f.adapter()('branch1','READ');const calls=f.calls.filter(c=>c.input.TableName==='staging-AccountDeletion');assert.equal(calls.length,2);
  for(const c of calls){assert.deepEqual(Object.values(c.input.ExpressionAttributeNames).sort(),['pk','sk']);assert.equal(c.input.ProjectionExpression,'#pk,#sk');assert.equal(c.input.ConsistentRead,true);}
 });
+
+
+test('staging verified-session policy permits saving after five minutes while live revocation and MFA still block',async()=>{
+ const before={environment:process.env.PLATFORM_ENVIRONMENT,policy:process.env.PLATFORM_SESSION_POLICY};
+ try{
+ process.env.PLATFORM_ENVIRONMENT='staging';process.env.PLATFORM_SESSION_POLICY='VALID_SESSION';
+ const f=fixture();f.principal.authTime-=7200;await f.adapter()('branch1','CREATE');
+ f.employee.minimumAuthTime=f.principal.authTime+1;await assert.rejects(f.adapter()('branch1','CREATE'),/EMPLOYEE_UNAVAILABLE/);
+ const g=fixture();g.principal.authTime-=7200;g.principal.mfaEnrolled=false;await assert.rejects(g.adapter()('branch1','CREATE'),/EMPLOYEE_UNAVAILABLE/);
+ const h=fixture();h.principal.authTime-=7200;h.employee.status='SUSPENDED';await assert.rejects(h.adapter()('branch1','CREATE'),/EMPLOYEE_UNAVAILABLE/);
+ process.env.PLATFORM_ENVIRONMENT='production';const p=fixture();p.principal.authTime-=7200;await assert.rejects(p.adapter()('branch1','CREATE'),/REAUTH_REQUIRED/);
+ }finally{for(const [key,value] of [['PLATFORM_ENVIRONMENT',before.environment],['PLATFORM_SESSION_POLICY',before.policy]]){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
+});

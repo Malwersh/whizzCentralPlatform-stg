@@ -1,0 +1,29 @@
+{
+  "part": 258,
+  "status": "PUBLISHED",
+  "scope": "Verified recipient name and owner role with merchant name in payment details and signature",
+  "businessDecisionsOrPaymentsByAgent": false,
+  "platformWalletFundingConditionAdded": false,
+  "companyCashAssetPostingAdded": false,
+  "iamChanged": false,
+  "function": {
+    "name": "staging-wizz-staff-service",
+    "baseCodeSha256": "7f3dOfPq8erdxxjMD0pdqE7BLvmqgY74gw8bY7gFMPI=",
+    "codeSha256": "NjP2/CrLhD4/zwgN7okPkeUbPuRDxUphOlEJo63Ql3Q=",
+    "changedFiles": [
+      "settlement-runtime.js"
+    ],
+    "unrelatedEntriesAndConfigurationPreserved": true
+  },
+  "hosting": {
+    "baseJobId": "145",
+    "jobId": "146",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-payout-print.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

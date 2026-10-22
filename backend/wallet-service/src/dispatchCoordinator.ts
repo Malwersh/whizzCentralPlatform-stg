@@ -19,7 +19,7 @@ const ms=(value:any)=>{
  * A future executor must fence every write with the current intent lease token;
  * external invocation is at least once, not exactly once.
  */
-export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean}) {
+export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean}) {
  const {db}=options,now=options.now??Date.now;
  async function bound(orderId:string,assignmentId:string){
   if(![orderId,assignmentId].every(quoteEntityIdValid))return fail();
@@ -34,7 +34,7 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
   if(stop)return {stop,job,cycle,order,jobKey,orderKey,guards:[] as Row[]};
   if([order.deletionRequestId,order.deletionStatus,order.deletedAt,order.cancellationRequestId,order.cancellationStatus,order.returnCaseId,order.returnStatus].some(v=>v!=null)||order.isDeleted===true)return fail();
   let releaseGuard:Row|null=null;
-  if(cycle.engine==='FINANCIAL'){const verified=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding}).read({orderId,branchId:job.restaurantId});if(!equal(order.financialSnapshot,financialSnapshotFromOrderRead(verified)))return fail();releaseGuard=verified.releaseCondition;}
+  if(cycle.engine==='FINANCIAL'){const verified=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash}).read({orderId,branchId:job.restaurantId});if(!equal(order.financialSnapshot,financialSnapshotFromOrderRead(verified)))return fail();releaseGuard=verified.releaseCondition;}
   else if(![order.status,order.orderStatus].some(s=>s==='ready_for_pickup')||[order.status,order.orderStatus].some(s=>s!==undefined&&s!=='ready_for_pickup'))return fail();
   const branchKey={businessId:job.restaurantId},branch=await strongGet(db,T.branches,branchKey);
   if(!branch||branch.status!=='approved'||branch.isActive===false||branch.ordersBlocked===true||branch.platformSuspended===true||!quoteEntityIdValid(branch.ownerId)||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)return fail();
@@ -69,7 +69,7 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
   for(const driverId of wave.driverIds){
    const key={orderId:c.cycle.orderId,SK:dispatchOfferSK(c.cycle,driverId,n)},offer=await strongGet(db,T.offers,key);
    if(!offer||offer.orderId!==c.cycle.orderId||offer.driverId!==driverId||offer.waveNumber!==n)return fail();
-   if(financial){const rebuilt=resolveFinancialOffer(offer.financialOffer,options.enableDeliveryFunding);if(!equal(rebuilt.versionedOffer,offer.financialOffer)||rebuilt.assignmentId!==c.cycle.assignmentId||rebuilt.driverId!==driverId||rebuilt.assignmentVersion!==n)return fail();}
+   if(financial){const rebuilt=resolveFinancialOffer(offer.financialOffer,options.enableDeliveryFunding,options.enableFullCash);if(!equal(rebuilt.versionedOffer,offer.financialOffer)||rebuilt.assignmentId!==c.cycle.assignmentId||rebuilt.driverId!==driverId||rebuilt.assignmentVersion!==n)return fail();}
    else if(offer.dispatchJobId!==c.cycle.assignmentId||offer.dispatchCycleId!==c.cycle.id)return fail();
    const pending=financial?'financial_pending':'pending',declined=financial?'financial_declined':'rejected',expired=financial?'financial_expired':'expired',winner=financial?'financial_accepted':'accepted';
    if(![pending,declined,expired,winner].includes(offer.responseStatus))return fail();
@@ -97,6 +97,7 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
    if(prior&&['PENDING','LEASED'].includes(prior.record.state)){progress={currentWave:prior.record.waveNumber,assigned:false,terminal:false,waveState:'PREPARING',waveDeadline:prior.record.waveDeadline};}
    if(!prior||prior.record.state==='APPLIED'){const evidence=await progressFor(c,prior);progress=evidence.progress;waveGuards=evidence.guards;expire=evidence.expire;}
    const decision=decideDispatchTransition(c.cycle,progress,iso(time));
+   if(input.source==='START'&&decision.action==='REVIEW')return {handled:true,action:'STOP',reason:'REVIEW_REQUIRES_TIMEOUT_HOST'};
    if(!['START_WAVE','REVIEW'].includes(decision.action))return {handled:true,...decision};
    const target=decision.action==='START_WAVE'?decision.waveNumber:0,intentId='DT:'+quoteHash({cycle:c.cycle.id,assignment:c.cycle.assignmentId,wave:target,action:decision.action}).slice(0,48);
    const key={orderId:input.orderId,SK:'DISPATCH_TRANSITION#'+intentId},sequence=(prior?.record.sequence??0)+1;

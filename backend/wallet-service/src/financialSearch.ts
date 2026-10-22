@@ -1,3 +1,4 @@
+import {financialWaveSK} from './financialDispatchKeys';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {quoteEntityIdValid} from './deliveryQuoteRecord';
 import {createStagingDriverOfferOrderReader} from './driverOfferOrderReader';
@@ -7,7 +8,7 @@ export function unavailableDispatchSearch(reason:string,observedAt:string) {
  return {status:'no_driver_available',reason,reviewStatus:'REQUIRED',observedAt};
 }
 /** Exhaustion is an operational review state. No cancellation, wallet, hold, ledger or financial-outcome write. */
-export function createStagingFinancialSearch(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean}) {
+export function createStagingFinancialSearch(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean}) {
  const {db}=options,now=options.now??Date.now;
  return {async exhaust(orderId:string){
   if(!quoteEntityIdValid(orderId))throw Error('INVALID_FINANCIAL_SEARCH');
@@ -17,11 +18,11 @@ export function createStagingFinancialSearch(options:{db:Pick<DynamoDBDocumentCl
   if(job.status==='no_driver_available'&&job.financialSearchVersion===1)return {exhausted:true,replayed:true};
   if(!['searching','no_driver_available'].includes(job.status)||!quoteEntityIdValid(job.restaurantId)||!Number.isFinite(Date.parse(job.expiresAt)))throw Error('FINANCIAL_SEARCH_CONFLICT');
   const timedOut=Date.parse(job.expiresAt)<=now(),waveNumber=job.currentWaveNumber??0;
-  const wave=waveNumber>0?await strongGet(db,'WizzDispatchJobs_staging',{orderId,SK:'FINANCIAL_WAVE#'+waveNumber}):null;
+  const wave=waveNumber>0?await strongGet(db,'WizzDispatchJobs_staging',{orderId,SK:financialWaveSK(job,waveNumber)}):null;
   const maxWaves=job.financialSearchMaxWave??job.maxWaves??4;
   if(!Number.isSafeInteger(maxWaves)||maxWaves<1||maxWaves>1000)throw Error('FINANCIAL_SEARCH_CONFLICT');
   if(!timedOut&&!(waveNumber>=maxWaves&&wave?.state==='EXPIRED'))return {exhausted:false,assigned:false};
-  const order=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding}).read({orderId,branchId:job.restaurantId});
+  const order=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash}).read({orderId,branchId:job.restaurantId});
   const search=unavailableDispatchSearch(timedOut?'SEARCH_WINDOW_EXPIRED':'MAX_WAVES_REACHED',new Date(now()).toISOString());
   const checks:any[]=[updateChecked(exactCheck('WizzDispatchJobs_staging',key,job),'SET #s=:s, #r=:r, #at=:at, #sv=:sv',{'#s':'status','#r':'noDriverReason','#at':'updatedAt','#sv':'financialSearchVersion'},{':s':search.status,':r':search.reason,':at':search.observedAt,':sv':1}),
    updateChecked(order.condition,'SET #ds=:ds, #fs=:fs',{'#ds':'dispatchStatus','#fs':'financialSearch'},{':ds':search.status,':fs':search})];

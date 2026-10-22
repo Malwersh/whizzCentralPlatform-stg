@@ -108,3 +108,15 @@ test('merchant response deadline queue composes with quote order while preservin
  assert.throws(()=>composeQuoteOrderOperations([put,put]),e=>e.code==='INVALID_QUOTE_ORDER');
  assert.throws(()=>composeQuoteOrderOperations([{Put:{TableName:'unrecognized',Item:{operationId:'x'}}}]),e=>e.code==='INVALID_QUOTE_ORDER');
 });
+
+test('merging lifecycle absence guards never emits empty DynamoDB expression maps',()=>{
+ const {composeQuoteOrderOperations}=require('../dist/deliveryQuoteOrder');
+ for(const alias of [false,true]){
+  const checks=['deletedAt','deletionRequestId'].map(field=>({ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'synthetic',sk:'META'},ConditionExpression:'attribute_not_exists('+(alias?'#field':field)+')',...(alias?{ExpressionAttributeNames:{'#field':field}}:{})}}));
+  const input=JSON.stringify(checks),merged=composeQuoteOrderOperations(checks);
+  assert.equal(merged.length,1);assert.ok(merged[0].ConditionCheck.ConditionExpression.includes(' AND '));
+  assert.equal(merged[0].ConditionCheck.ExpressionAttributeValues,undefined);
+  assert.equal(merged[0].ConditionCheck.ExpressionAttributeNames===undefined,!alias);
+  assert.equal(JSON.stringify(checks),input);
+ }
+});

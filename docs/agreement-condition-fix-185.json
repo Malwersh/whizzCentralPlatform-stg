@@ -1,0 +1,16 @@
+{
+  "part": 185,
+  "status": "PUBLISHED_VERIFIED",
+  "function": "WizzUser-CreateOrder-staging",
+  "codeSha256": "FZA1dI0llqA0RWBjOx5nJkxiELHqM8Y0SJLzrTQtQXo=",
+  "publishedAt": "2026-10-19T16:42:50.697210+00:00",
+  "onlyChangedFile": "agreement-runtime182.js",
+  "correction": "omit empty DynamoDB expression metadata while preserving every predicate",
+  "configurationPreserved": true,
+  "iamChanged": false,
+  "financialDataWrites": 0,
+  "originalCrashReproduced": true,
+  "packagedPredicateTestPassed": true,
+  "regressionTestsPassed": 24,
+  "deviceRetryPending": true
+}

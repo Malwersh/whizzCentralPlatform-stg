@@ -62,6 +62,20 @@ function statusBody({ orderNumber, businessName }) {
 }
 
 exports.sendOrderUpdate = async (event) => {
+  // IAM-only asynchronous invocation; public HTTP envelopes cannot select this path.
+  if (event.source === 'wizz.order-activity-stream' && event.schemaVersion === 1 &&
+      typeof event.orderId === 'string' && !event.httpMethod && !event.requestContext) {
+    const {Item: order} = await dynamodb.send(new GetCommand({
+      TableName: 'WizzOrders', Key: {PK:'ORDER#'+event.orderId, SK:'META'}, ConsistentRead:true,
+    }));
+    if (!order || order.orderId !== event.orderId || order.isDeleted || order.deletedAt || order.deletionRequestId) return {skipped:true};
+    const result = await require('./live-activity-push').pushForOrder(order.orderId,
+      require('./order-arrival-content').content(order),
+      require('./live-activity-order-access').terminal(order.status)?'end':'update');
+    console.log(JSON.stringify({metric:'OrderActivityDelivery',orderId:order.orderId,status:order.status,tokensAttempted:result.tokensAttempted,results:result.results}));
+    if (result.results.some(r=>!r.success && r.error!==410)) throw Error('ORDER_ACTIVITY_DELIVERY_RETRY');
+    return result;
+  }
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }

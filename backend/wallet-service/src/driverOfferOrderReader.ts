@@ -1,3 +1,4 @@
+import {prepareFullCashOrderSnapshot} from './fullCashOffer';
 import { prepareDeliveryFundedFinancialSnapshot } from './deliveryFundedOffer';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { exactCheck } from './driverFinancialTransaction';
@@ -59,7 +60,7 @@ export function prepareDriverOfferFinancialSnapshot(value: unknown) {
  * The returned ConditionCheck must be composed into issuance/acceptance's atomic transaction. A
  * read alone does not fence changes, select a winner, check deletion locks, reserve funding or hold money.
  */
-export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDBDocumentClient, 'send'>;enableDeliveryFunding?:boolean }) {
+export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDBDocumentClient, 'send'>;enableDeliveryFunding?:boolean;enableFullCash?:boolean }) {
   return Object.freeze({ async read(value: unknown) {
     if (!value || typeof value !== 'object' || Array.isArray(value) ||
         Object.keys(value).sort().join(',') !== 'branchId,orderId' ||
@@ -90,7 +91,11 @@ export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDB
         [saved.storeId, saved.businessId].some(v => v !== undefined && v !== branchId)) return fail('DRIVER_OFFER_ORDER_UNAVAILABLE');
     let envelope: Row;
     try {
-      if(saved.financialSnapshot?.schemaVersion===2){
+      if(saved.financialSnapshot?.schemaVersion===3){
+       if(options.enableFullCash!==true)return fail('DRIVER_OFFER_FINANCIAL_SNAPSHOT_REQUIRED');
+       envelope=exact(saved.financialSnapshot,['schemaVersion','kind','settlementModel','order','deliveryFunding','digest']);
+       if(quoteCanonical(envelope)!==quoteCanonical(prepareFullCashOrderSnapshot({order:envelope.order,deliveryFunding:envelope.deliveryFunding})))return fail('DRIVER_OFFER_FINANCIAL_SNAPSHOT_REQUIRED');
+      }else if(saved.financialSnapshot?.schemaVersion===2){
        if(options.enableDeliveryFunding!==true)return fail('DRIVER_OFFER_FINANCIAL_SNAPSHOT_REQUIRED');
        envelope=exact(saved.financialSnapshot,['schemaVersion','kind','order','deliveryFunding','digest']);
        if(quoteCanonical(envelope)!==quoteCanonical(prepareDeliveryFundedFinancialSnapshot({order:envelope.order,deliveryFunding:envelope.deliveryFunding})))return fail('DRIVER_OFFER_FINANCIAL_SNAPSHOT_REQUIRED');
@@ -99,7 +104,7 @@ export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDB
        if (envelope.schemaVersion !== 1 || envelope.kind !== 'ORDER_FINANCIAL_SNAPSHOT' || quoteCanonical(envelope) !== quoteCanonical(prepareDriverOfferFinancialSnapshot(envelope.snapshot))) return fail('DRIVER_OFFER_FINANCIAL_SNAPSHOT_REQUIRED');
       }
     } catch { return fail('DRIVER_OFFER_FINANCIAL_SNAPSHOT_REQUIRED'); }
-    const snapshot = envelope.schemaVersion===2?envelope.order:envelope.snapshot;
+    const snapshot = envelope.schemaVersion>=2?envelope.order:envelope.snapshot;
     if (snapshot.orderId !== orderId || snapshot.branchId !== branchId || saved.merchantId !== snapshot.merchantId) return fail('DRIVER_OFFER_ORDER_UNAVAILABLE');
     // A syntactically correct reference is insufficient proof of captured and allocated payment funds.
     if (snapshot.allocation.paymentMethod !== 'COD') return fail('DRIVER_OFFER_PAYMENT_READER_REQUIRED');
@@ -108,7 +113,7 @@ export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDB
       if (saved[field] === undefined) conditions.push(`attribute_not_exists(#f${i})`);
       else { conditions.push(`#f${i} = :v${i}`); values[':v' + i] = copy(saved[field]); }
     }
-    return copy({commercialPricing:saved.commercialPricing??null, estimatedReadyAt:saved.estimatedReadyAt ?? null, display:driverOfferDisplay(saved), priorRelease, releaseCondition, nextAssignmentAttempt:previousAttempt+1, snapshot, snapshotHash: envelope.schemaVersion===2?envelope.digest:quoteHash(snapshot), ...(envelope.schemaVersion===2?{deliveryFunding:envelope.deliveryFunding}:{}), condition: { ConditionCheck: {
+    return copy({commercialPricing:saved.commercialPricing??null, estimatedReadyAt:saved.estimatedReadyAt ?? null, display:driverOfferDisplay(saved), priorRelease, releaseCondition, nextAssignmentAttempt:previousAttempt+1, snapshot, snapshotHash: envelope.schemaVersion>=2?envelope.digest:quoteHash(snapshot), ...(envelope.schemaVersion>=2?{deliveryFunding:envelope.deliveryFunding}:{}),...(envelope.schemaVersion===3?{settlementModel:envelope.settlementModel}:{}), condition: { ConditionCheck: {
       TableName: TABLE, Key: key, ConditionExpression: conditions.join(' AND '),
       ExpressionAttributeNames: names, ExpressionAttributeValues: values
     } }, requiresAtomicComposition: true, requiresLiveDriverAndDeletionGuards: true, performsWrites: false });
@@ -119,5 +124,6 @@ export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDB
  * Never reprice or erase the delivery funding pin when binding a dispatch cycle.
  */
 export function financialSnapshotFromOrderRead(read:Row) {
+ if(read.settlementModel==='FULL_CASH_AT_DELIVERY_V1')return prepareFullCashOrderSnapshot({order:read.snapshot,deliveryFunding:read.deliveryFunding??null});
  return read.deliveryFunding?prepareDeliveryFundedFinancialSnapshot({order:read.snapshot,deliveryFunding:read.deliveryFunding}):prepareDriverOfferFinancialSnapshot(read.snapshot);
 }
