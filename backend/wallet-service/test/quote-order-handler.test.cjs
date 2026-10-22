@@ -32,37 +32,37 @@ test('new quoted confirmation still enforces the existing active-order restricti
 
 test('discounted Quote atomically saves catalog fences and usage; replay never increments usage',async()=>{
  const f=await setup();f.discountRow={discountId:'d1',businessId:'b1',status:'active',type:'percentage',value:10,usage_count:0,usage_limit:1};
- const a=await f.invoke({discountId:'d1',discount:350});assert.equal(a.statusCode,201,JSON.stringify(a.json));
- assert.equal(a.json.order.pricing.discount,350000);assert.equal(f.discountRow.usage_count,1);assert.equal(f.discountUpdates,1);
+ const a=await f.invoke({discountId:'d1',discount:250});assert.equal(a.statusCode,201,JSON.stringify(a.json));
+ assert.equal(a.json.order.pricing.discount,250000);assert.equal(f.discountRow.usage_count,1);assert.equal(f.discountUpdates,1);
  const tx=f.transactions.at(-1).TransactItems;
  assert.ok(tx.some(a=>a.ConditionCheck?.TableName==='WhizzMerchants_Products'));
  assert.ok(tx.some(a=>a.Update?.TableName==='WhizzMerchants_Discounts'));
- const b=await f.invoke({discountId:'d1',discount:350});assert.equal(b.statusCode,200,JSON.stringify(b.json));assert.equal(f.discountUpdates,1);
+ const b=await f.invoke({discountId:'d1',discount:250});assert.equal(b.statusCode,200,JSON.stringify(b.json));assert.equal(f.discountUpdates,1);
 });
 test('campaign withdrawal during order save aborts order, Quote consumption and usage together',async()=>{
  const f=await setup();f.discountRow={discountId:'d1',businessId:'b1',status:'active',type:'percentage',value:10,usage_count:0,usage_limit:1};
  f.beforeTransaction=()=>{f.discountRow.status='inactive';};
- const a=await f.invoke({discountId:'d1',discount:350});assert.equal(a.statusCode,409,JSON.stringify(a.json));
+ const a=await f.invoke({discountId:'d1',discount:250});assert.equal(a.statusCode,409,JSON.stringify(a.json));
  assert.equal(f.orders.size,0);assert.equal(f.discountRow.usage_count,0);assert.equal([...f.saved.values()][0].consumption,undefined);
 });
 test('tampered item price and unavailable catalog cannot create a discounted order',async()=>{
  const f=await setup();f.discountRow={discountId:'d1',businessId:'b1',status:'active',type:'percentage',value:10,usage_count:0};
  const a=await f.invoke({discountId:'d1',items:[{id:'p1',price:1,quantity:1}]});assert.equal(a.statusCode,409,JSON.stringify(a.json));
- f.products.get('p1').isAvailable=false;assert.notEqual((await f.invoke({discountId:'d1',discount:350})).statusCode,201);assert.equal(f.orders.size,0);
+ f.products.get('p1').isAvailable=false;assert.notEqual((await f.invoke({discountId:'d1',discount:250})).statusCode,201);assert.equal(f.orders.size,0);
 });
 
 test('campaign amount changed after customer preview requires explicit revalidation',async()=>{
  const f=await setup();f.discountRow={discountId:'d1',businessId:'b1',status:'active',type:'percentage',value:20,usage_count:0};
- const r=await f.invoke({discountId:'d1',discount:350});assert.equal(r.statusCode,409);assert.equal(r.json.message,'DISCOUNT_PREVIEW_CHANGED');assert.equal(f.orders.size,0);
+ const r=await f.invoke({discountId:'d1',discount:250});assert.equal(r.statusCode,409);assert.equal(r.json.message,'DISCOUNT_PREVIEW_CHANGED');assert.equal(f.orders.size,0);
 });
 test('commercial preview performs no writes; consent commits immutable snapshot with approved fees',async()=>{
  const f=await setup();f.enableCommercial();
  const before=f.transactions.length,p=await f.invoke({action:'preview_commercial'});
  assert.equal(p.statusCode,200,JSON.stringify(p.json));assert.equal(f.transactions.length,before);assert.equal(f.orders.size,0);
- assert.equal(p.json.commercial.customerTotal.minorAmount,7100000);
+ assert.equal(p.json.commercial.customerTotal.minorAmount,7000000);
  const consent={digest:p.json.commercial.digest,customerTotalMinor:p.json.commercial.customerTotal.minorAmount};
  const r=await f.invoke({commercialConsent:consent});assert.equal(r.statusCode,201,JSON.stringify(r.json));
- assert.equal(r.json.order.pricing.serviceFee,500000);assert.equal([...f.orders.values()][0].financialSnapshot.snapshot.confirmedCustomerTotal.minorAmount,7100000);assert.equal(r.json.order.financialSnapshot,undefined);assert.equal(r.json.order.commercialPricing,undefined);
+ assert.equal(r.json.order.pricing.serviceFee,500000);assert.equal([...f.orders.values()][0].financialSnapshot.snapshot.confirmedCustomerTotal.minorAmount,7000000);assert.equal(r.json.order.financialSnapshot,undefined);assert.equal(r.json.order.commercialPricing,undefined);
  assert.equal(r.json.order.merchantId,'org1');
  assert.equal((await f.invoke({commercialConsent:consent})).statusCode,200);
 });
@@ -70,7 +70,7 @@ test('commercial order requires explicit consent and changes to agreement invali
  const f=await setup();f.enableCommercial();assert.equal((await f.invoke()).statusCode,409);assert.equal(f.orders.size,0);
  const p=await f.invoke({action:'preview_commercial'});
  const approval=[...f.commercialRecords.values()].find(r=>r.sk==='APPROVAL#1');approval.status='REVOKED';
- const r=await f.invoke({commercialConsent:{digest:p.json.commercial.digest,customerTotalMinor:7100000}});
+ const r=await f.invoke({commercialConsent:{digest:p.json.commercial.digest,customerTotalMinor:7000000}});
  assert.equal(r.statusCode,409);assert.equal(f.orders.size,0);
 });
 test('funding, ledger, usage and order share a transaction; replay after response loss does not reserve twice',async()=>{
@@ -118,4 +118,22 @@ test('closing the cohort preserves confirmation replay but cannot consume anothe
  const f=await setup(),first=await f.invoke();assert.equal(first.statusCode,201);const journey=[...f.journey.values()].map(x=>x.count);drain(f);
  const replay=await f.invoke();assert.equal(replay.statusCode,200,JSON.stringify(replay.json));assert.equal(replay.json.replayed,true);assert.equal(replay.json.orderId,first.json.orderId);assert.deepEqual([...f.journey.values()].map(x=>x.count),journey);
  const fresh=await setup();drain(fresh);const denied=await fresh.invoke();assert.equal(denied.json.code,'FINANCE_ROLLOUT_ADMISSION_CLOSED');assert.equal(fresh.orders.size,0);assert.equal(fresh.journey.size,0);assert.equal([...fresh.saved.values()][0].consumption,undefined);
+});
+test('actual handler full-cash general release creates schema 3 with commitment and replays once',async()=>{
+ const f=await setup();f.enableCommercial();Object.assign(f.env,require('./helpers/finance-rollout-fixture.cjs').scopeEnv({orders:[{orderId:'historical-order',branchId:'b1',customerSubjectId:'sub1'}]}));f.env.FINANCE_GENERAL_RELEASE_MODE='REQUIRED';f.env.FINANCIAL_SETTLEMENT_MODEL='FULL_CASH_AT_DELIVERY_V1';
+ const p=await f.invoke({action:'preview_commercial'});assert.equal(p.statusCode,200,JSON.stringify(p.json));
+ const patch={commercialConsent:{digest:p.json.commercial.digest,customerTotalMinor:p.json.commercial.customerTotal.minorAmount}};
+ const r=await f.invoke(patch);assert.equal(r.statusCode,201,JSON.stringify(r.json));
+ const order=[...f.orders.values()][0];assert.equal(order.financialSnapshot.schemaVersion,3);assert.equal(order.financeRollout.schemaVersion,2);assert.equal(order.financeRollout.scopeId,'GENERAL_STAGING_FULL_CASH_V1');assert.equal(order.commercialPricing.funding.state,'BUDGET_COMMITTED_WITH_ORDER');
+ const commitments=[...f.commercialRecords.values()].filter(x=>x.sk==='FULL_CASH_FUNDING_COMMITMENT');assert.equal(commitments.length,1);assert.equal(commitments[0].snapshotDigest,order.financialSnapshot.digest);
+ assert.equal((await f.invoke(patch)).statusCode,200);assert.equal([...f.commercialRecords.values()].filter(x=>x.sk==='FULL_CASH_FUNDING_COMMITMENT').length,1);
+});
+for(const kind of ['GOODS_AMOUNT','FREE_DELIVERIES'])test('actual full-cash handler reserves '+kind+' entitlement with order and replays without reuse',async()=>{
+ const f=await setup();f.enableCommercial();Object.assign(f.env,require('./helpers/finance-rollout-fixture.cjs').scopeEnv({orders:[{orderId:'historical-order',branchId:'b1',customerSubjectId:'sub1'}]}));Object.assign(f.env,{FINANCE_GENERAL_RELEASE_MODE:'REQUIRED',FINANCIAL_SETTLEMENT_MODEL:'FULL_CASH_AT_DELIVERY_V1',...(kind==='FREE_DELIVERIES'?{DELIVERY_PROMOTION_MODE:'REQUIRED'}:{})});
+ f.promoRow={discountId:'test-gift',version:1,status:'active',isActive:true,startDate:'2026-01-01T00:00:00.000Z',endDate:'2030-01-01T00:00:00.000Z',benefit:{schemaVersion:1,kind,amountIqd:kind==='GOODS_AMOUNT'?750:0,usesPerCustomer:1,maximumPerOrderIqd:5000,minimumGoodsIqd:0,maximumRoadMeters:10000,grantMode:'AUTO',audience:'ALL',branchIds:[],regionIds:[],customerIds:[],allowGoodsStacking:false}};
+ const patch=kind==='GOODS_AMOUNT'?{platformDiscountId:'test-gift',discount:750}:{deliveryBenefitId:'test-gift'};
+ const p=await f.invoke({...patch,action:'preview_commercial'});assert.equal(p.statusCode,200,JSON.stringify(p.json));assert.equal(f.journey.size,0);
+ const confirmed={...patch,commercialConsent:{digest:p.json.commercial.digest,customerTotalMinor:p.json.commercial.customerTotal.minorAmount}};
+ const r=await f.invoke(confirmed);assert.equal(r.statusCode,201,JSON.stringify(r.json));const order=[...f.orders.values()][0];assert.equal(order.financialSnapshot.schemaVersion,3);const grant=f.journey.get('USER#sub1|BENEFIT#test-gift');assert.equal(grant.reservedUses,1);assert.equal(grant.usedUses,0);
+ assert.equal((await f.invoke(confirmed)).statusCode,200);assert.equal(f.journey.get('USER#sub1|BENEFIT#test-gift').reservedUses,1);
 });

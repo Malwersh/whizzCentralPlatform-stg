@@ -21,3 +21,12 @@ test('matrix conserves cash across reference tariffs, driver costs, splits and p
   const r=allocate(v);balance(r);assert.equal(r.driverTotalEntitlement.minorAmount,(earning+300)*1000);assert.equal(r.merchantPayable.minorAmount,(10000-500-700-merchant)*1000);
  }
 });
+
+test('rounding uplift stays with platform without increasing driver or merchant amounts',()=>{
+ const before=input('0','2900');before.base.customerDeliveryFee=m('1100');before.deliveryFunding.allocation.customerFee=m('1100');before.deliveryFunding.allocation.subsidy=m('2900');
+ const after=input('0','2750');after.base.customerDeliveryFee=m('1250');after.deliveryFunding.allocation.customerFee=m('1250');after.deliveryFunding.allocation.subsidy=m('2750');
+ const a=allocate(before),b=allocate(after);
+ assert.equal(b.platformNetContribution.minorAmount-a.platformNetContribution.minorAmount,150000);
+ assert.deepEqual(b.merchantPayable,a.merchantPayable);assert.deepEqual(b.driverTotalEntitlement,a.driverTotalEntitlement);
+ assert.equal(b.customerTotal.minorAmount-a.customerTotal.minorAmount,150000);balance(b);
+});

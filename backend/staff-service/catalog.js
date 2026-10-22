@@ -20,7 +20,7 @@ const ROLES={
  merchant_reviewer:['merchants.read','merchants.documents.read','merchants.review','merchants.suspend'],
  operations:['orders.read','orders.assign','orders.cancel','drivers.read','merchants.read'],
  region_manager:['regions.read','regions.edit','regions.activate'],
- promotions_manager:['promotions.read','promotions.create','promotions.edit'],
+ promotions_manager:['promotions.read','promotions.create','promotions.edit','promotions.grant'],
  promotions_approver:['promotions.read','promotions.approve'],
  finance_viewer:['finance.read'],
  finance_operator:['finance.read','finance.request','finance.topup.review'],

@@ -78,3 +78,11 @@ test('decimal and whole bridges round trip across representative price and signe
   assert.equal(m.addMoney(value,m.subtractMoney(minor(0),value)).minorAmount,0);
  }
 });
+
+test('ceiling cash denomination is exact, signed and bounded',()=>{
+ const policy={incrementIqd:250,mode:'CEILING'};
+ for(const [input,want] of [['0','0'],['0.001','250'],['1100','1250'],['1250','1250'],['1250.001','1500'],['-1100','-1000']]){
+  assert.deepEqual(m.quantizeWholeIqd(m.parseIqd(input),policy),m.parseIqd(want));
+ }
+ assert.throws(()=>m.quantizeWholeIqd(minor(Number.MAX_SAFE_INTEGER),policy),m.MoneyError);
+});

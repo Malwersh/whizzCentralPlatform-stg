@@ -8,3 +8,5 @@ export {createStagingStorefrontPreview} from './storefrontPreview';
 
 export {hasStoreAgreementOrderEvidence} from './storeDeliveryAgreement';
 export {composeQuoteOrderOperations} from './deliveryQuoteOrder';
+
+export {composeDeliveryFunding} from './deliveryFundingComposition';

@@ -1,4 +1,5 @@
 import {prepareMerchantAccrualIndex} from './merchantAccrualIndex';
+import {settlePlatformBenefit} from './platformBenefits';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { codIntegrationEvent } from './codIntegrationEvent';
 import { verifyDeliveryFundedAssignment } from './deliveryFundedOffer';
@@ -87,6 +88,7 @@ export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClie
   const liveKey={driverId:actor.driverId},live=await strongGet(db,T.live,liveKey),jobKey={orderId,SK:'METADATA'},job=await strongGet(db,T.jobs,jobKey);
   if(!live||live.currentOrderId!==orderId||live.activeOrdersCount!==1||!job||job.assignedDriverId!==actor.driverId||job.status!=='assigned'||job.dispatchJobId!==offer.assignmentId)return fail();
   const ops:Row[]=[exactCheck(T.offers,offerKey,saved!),exactCheck(T.driver,{driverId:actor.driverId},driver),exactCheck(T.branch,{businessId:branchId},branch)];
+  if(order.platformBenefitReceipt?.target==='GOODS'){const benefit=await settlePlatformBenefit(db,{orderId,target:'GOODS',outcome:'CAPTURED'});if(benefit.replayed)return fail();ops.push(...benefit.operations);}
   for(const pk of new Set(['ACCOUNT_LIFECYCLE#DRIVER#'+actor.driverId,'ACCOUNT_LIFECYCLE#DRIVER#'+actor.subjectId,'BUSINESS_LIFECYCLE#MERCHANT#'+branchId,'ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId]))
    ops.push({ConditionCheck:{TableName:T.deletion,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}});
   const walletIds=['WALLET#DRIVER#'+actor.driverId,'WALLET#MERCHANT#'+branchId,'WALLET#PLATFORM'];

@@ -6,34 +6,38 @@ import {prepareFullCashOrderSnapshot} from './fullCashOffer';
 import {prepareDeliveryFundedFinancialSnapshot} from './deliveryFundedOffer';
 import {prepareDriverOfferFinancialSnapshot} from './driverOfferOrderReader';
 import {fromWholeIqd,readMoney} from './money';
+import {prepareOfferUsageRelease,offerAcceptanceFields} from './offerUsageRelease';
 const T={orders:'WizzOrders',branches:'WhizzMerchants_Businesses',events:'staging-WalletLifecycle',deletion:'staging-AccountDeletion',holds:'staging-Holds',audit:'staging-AuditLog'};
 const fail=(code:string):never=>{throw Object.assign(Error(code),{code});};
-export type MerchantResponseActor={kind:'SYSTEM'|'MERCHANT';subjectId:string;businessId:string;ownerId:string;guards:Row[]};
+export type MerchantResponseActor={kind:'SYSTEM'|'MERCHANT'|'CUSTOMER';subjectId:string;businessId:string;ownerId:string;customerId?:string;guards:Row[]};
 /** Pre-acceptance only. Never touches an assigned driver's hold or earnings. */
 export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;authenticate:()=>Promise<MerchantResponseActor>}){
  const {db,authenticate}=options,now=options.now??Date.now;
- async function run(orderId:string,mode:'AUTO_ACCEPT'|'EXPIRE'|'REJECT',reason?:string){
-  if(!quoteEntityIdValid(orderId)||!['AUTO_ACCEPT','EXPIRE','REJECT'].includes(mode))return fail('INVALID_MERCHANT_RESPONSE');
-  const actor=await authenticate();if(!['SYSTEM','MERCHANT'].includes(actor.kind)||!quoteEntityIdValid(actor.subjectId)||!quoteEntityIdValid(actor.businessId)||!quoteEntityIdValid(actor.ownerId)||!Array.isArray(actor.guards)||actor.kind==='SYSTEM'&&mode==='REJECT'||actor.kind==='MERCHANT'&&mode!=='REJECT')return fail('MERCHANT_RESPONSE_UNAUTHORIZED');
+ async function run(orderId:string,mode:'AUTO_ACCEPT'|'EXPIRE'|'REJECT'|'CUSTOMER_CANCEL',reason?:string){
+  if(!quoteEntityIdValid(orderId)||!['AUTO_ACCEPT','EXPIRE','REJECT','CUSTOMER_CANCEL'].includes(mode))return fail('INVALID_MERCHANT_RESPONSE');
+  const actor=await authenticate();if(!['SYSTEM','MERCHANT','CUSTOMER'].includes(actor.kind)||!quoteEntityIdValid(actor.subjectId)||!quoteEntityIdValid(actor.businessId)||!quoteEntityIdValid(actor.ownerId)||!Array.isArray(actor.guards)||actor.kind==='SYSTEM'&&!['AUTO_ACCEPT','EXPIRE'].includes(mode)||actor.kind==='MERCHANT'&&mode!=='REJECT'||actor.kind==='CUSTOMER'&&mode!=='CUSTOMER_CANCEL')return fail('MERCHANT_RESPONSE_UNAUTHORIZED');
   const at=new Date(now()).toISOString(),key={PK:'ORDER#'+orderId,SK:'META'},eventKey={operationId:'MERCHANT_RESPONSE#'+orderId};
   const o=await strongGet(db,T.orders,key),event=await strongGet(db,T.events,eventKey);
   if(!o||o.orderId!==orderId||o.storeId!==actor.businessId||o.businessId!=null&&o.businessId!==actor.businessId)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
-  if(mode==='REJECT'&&reason!==undefined&&(typeof reason!=='string'||!reason.trim()||reason.length>500))return fail('INVALID_MERCHANT_RESPONSE');
-  const requestDigest=quoteHash({orderId,mode,actorKind:actor.kind,actorId:actor.subjectId,reason:mode==='REJECT'?(reason??'رفض المطعم الطلب').trim():null});
+  if(actor.kind==='CUSTOMER'&&(!quoteEntityIdValid(actor.customerId)||o.userSub!==actor.subjectId||o.userId!==actor.customerId||o.isGuestOrder===true||!actor.guards.some(g=>g.ConditionCheck?.TableName==='WizzUser_users_staging'&&g.ConditionCheck.Key?.userId===actor.customerId&&typeof g.ConditionCheck.ConditionExpression==='string'&&g.ConditionCheck.ConditionExpression.length>0)))return fail('MERCHANT_RESPONSE_UNAUTHORIZED');
+  if(['REJECT','CUSTOMER_CANCEL'].includes(mode)&&reason!==undefined&&(typeof reason!=='string'||!reason.trim()||reason.length>500))return fail('INVALID_MERCHANT_RESPONSE');
+  const defaultReason=mode==='CUSTOMER_CANCEL'?'إلغاء من العميل':'رفض المطعم الطلب';
+  const requestDigest=quoteHash({orderId,mode,actorKind:actor.kind,actorId:actor.subjectId,reason:['REJECT','CUSTOMER_CANCEL'].includes(mode)?(reason??defaultReason).trim():null});
   if(event?.status==='DONE'){
-   if(actor.kind==='MERCHANT'&&(event.responseMode!==mode||event.responseDigest!==requestDigest||o.status!=='cancelled'))return fail('ORDER_ALREADY_HANDLED');
+   if(actor.kind!=='SYSTEM'&&(event.responseMode!==mode||event.responseDigest!==requestDigest||o.status!=='cancelled'))return fail('ORDER_ALREADY_HANDLED');
    return {status:o.status,replayed:true};
   }
   if(actor.kind==='SYSTEM'&&(!event||event.kind!=='MERCHANT_RESPONSE'||event.orderId!==orderId||event.branchId!==actor.businessId||event.status!=='PENDING'||event.queuePartition!=='MERCHANT_RESPONSE'||!Number.isSafeInteger(event.nextAttemptAt)))return fail('MERCHANT_RESPONSE_UNAVAILABLE');
   if(event&&event.orderId!==orderId)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
   const deadline=Date.parse(o.merchantAcceptanceDeadlineAt??'');
-  if(!Number.isFinite(deadline)||!o.merchantResponsePolicy||o.merchantResponsePolicy.schemaVersion!==1||!Number.isSafeInteger(o.merchantResponsePolicy.acceptanceSeconds)||o.merchantResponsePolicy.acceptanceSeconds<60||o.merchantResponsePolicy.acceptanceSeconds>1800)return fail('MERCHANT_RESPONSE_POLICY_REQUIRED');
+  if(mode!=='CUSTOMER_CANCEL'&&(!Number.isFinite(deadline)||!o.merchantResponsePolicy||o.merchantResponsePolicy.schemaVersion!==1||!Number.isSafeInteger(o.merchantResponsePolicy.acceptanceSeconds)||o.merchantResponsePolicy.acceptanceSeconds<60||o.merchantResponsePolicy.acceptanceSeconds>1800))return fail('MERCHANT_RESPONSE_POLICY_REQUIRED');
   const eventDone=(result:string)=>event?set(exactCheck(T.events,eventKey,event),{status:'DONE',result,responseMode:result==='ALREADY_HANDLED'?'ALREADY_HANDLED':mode,responseActorId:actor.subjectId,responseDigest:requestDigest,completedAt:at,queuePartition:'MERCHANT_RESPONSE_DONE',nextAttemptAt:0}):{Put:{TableName:T.events,Item:{...eventKey,kind:'MERCHANT_RESPONSE',merchantResponseSchemaVersion:1,orderId,branchId:actor.businessId,status:'DONE',result,responseMode:mode,responseActorId:actor.subjectId,responseDigest:requestDigest,completedAt:at},ConditionExpression:'attribute_not_exists(operationId)'}};
   if(o.status!=='pending'){
    if(actor.kind!=='SYSTEM')return fail('ORDER_ALREADY_HANDLED');
    await db.send(new TransactWriteCommand({TransactItems:[eventDone('ALREADY_HANDLED'),exactCheck(T.orders,key,o),...actor.guards] as any}));return {status:o.status,replayed:true};
   }
   if(o.deletionRequestId!=null||o.deletedAt!=null||o.isDeleted===true)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
+  if(offerAcceptanceFields.some(k=>o[k]!=null))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
   if(mode==='EXPIRE'&&now()<deadline||mode==='AUTO_ACCEPT'&&now()>=deadline)return fail('MERCHANT_RESPONSE_NOT_DUE');
   const branchKey={businessId:actor.businessId},b=await strongGet(db,T.branches,branchKey);
   if(!b||b.ownerId!==b.cognitoUserId||b.ownerId!==actor.ownerId||!b.ownerId||b.deletionRequestId!=null)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
@@ -67,7 +71,9 @@ export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentC
    const seconds=o.deliveryQuote?.route?.durationSeconds;
    if(Number.isSafeInteger(seconds)&&seconds>0&&seconds<=86400){const t=now()+minutes*60000+seconds*1000;fields.estimatedDeliveryTime=new Date(t).toISOString();fields.deliveryEstimate={schemaVersion:1,basis:'PREPARATION_AND_SAVED_ROUTE',updatedAt:at,preparationMinutes:minutes,deliverySeconds:seconds,earliestAt:fields.estimatedDeliveryTime,latestAt:new Date(t+300000).toISOString(),driverWaitIncluded:false};}
   }else{
-   fields.cancelReason=mode==='EXPIRE'?'لم يرد المطعم خلال مهلة قبول الطلب':String(reason??'رفض المطعم الطلب').slice(0,500);fields.cancelledAt=at;fields.canceledBy=mode==='EXPIRE'?'system':'restaurant';
+   const usageRelease=await prepareOfferUsageRelease(db,o,at);
+   ops.push(...usageRelease.operations);Object.assign(fields,usageRelease.fields);
+   fields.cancelReason=mode==='EXPIRE'?'لم يرد المطعم خلال مهلة قبول الطلب':String(reason??defaultReason).trim().slice(0,500);fields.cancelledAt=at;fields.canceledBy=mode==='EXPIRE'?'system':mode==='CUSTOMER_CANCEL'?'customer':'restaurant';
    if(financial){
     const snapshot=o.financialSnapshot,fullCash=snapshot?.schemaVersion===3,deliveryFunded=snapshot?.schemaVersion===2||fullCash&&snapshot.deliveryFunding!=null;
     if(deliveryFunded&&options.enableDeliveryFunding!==true)return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');

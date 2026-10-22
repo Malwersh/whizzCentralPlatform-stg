@@ -1,3 +1,5 @@
+import {verifyDeliveryFundingComposition} from './deliveryFundingComposition';
+import {BENEFIT_POLICY_PREFIX,settlePlatformBenefit} from './platformBenefits';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { readDeliveryFundingPolicy, calculatePolicyDeliveryFunding } from './deliveryFundingPolicy';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
@@ -50,8 +52,9 @@ export function deliveryCampaignBudgetInitialization(value: unknown) {
  * holds, financial journal and audit. Calling this alone changes no state.
  * Terminal outcome authorization is the caller's existing order lifecycle duty.
  */
-export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number}) {
+export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;reservationNamespace?:'PROMOTION'}) {
   const {db}=options,now=options.now??Date.now;
+  const reservationKey=(order:string)=>({...holdKey(order),...(options.reservationNamespace?{pk:holdKey(order).pk+'#PROMOTION'}:{})});
   async function get(key: Row):Promise<Row|undefined> {
     try { return (await db.send(new GetCommand({TableName:TABLE,Key:key,ConsistentRead:true}))).Item; }
     catch { return fail('DELIVERY_BUDGET_UNAVAILABLE'); }
@@ -64,10 +67,10 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
     if (allocation.allocation.subsidy.minorAmount<=0 && policy.schemaVersion!==2) return fail('DELIVERY_SUBSIDY_REQUIRED');
     const m=allocation.allocation.merchantShare.minorAmount,p=allocation.allocation.platformShare.minorAmount;
     const request={orderId:r.orderId,customerId:r.customerId,policyPin:allocation.policyPin,allocation:allocation.allocation};
-    const requestDigest=quoteHash(request),existing=await get(holdKey(r.orderId));
+    const requestDigest=quoteHash(request),existing=await get(reservationKey(r.orderId));
     if(existing){verify(existing);if(existing.requestDigest!==requestDigest||!['RESERVED','CAPTURED'].includes(existing.status))return fail('DELIVERY_RESERVATION_CONFLICT');return {replayed:true,status:existing.status,operations:[]};}
     if(policy.schemaVersion===2){
-      const hold={...holdKey(r.orderId),schemaVersion:2,version:1,...request,requestDigest,status:'RESERVED',createdAt:new Date(clock).toISOString()};
+      const hold={...reservationKey(r.orderId),schemaVersion:2,version:1,...request,requestDigest,status:'RESERVED',createdAt:new Date(clock).toISOString()};
       return {replayed:false,status:'RESERVED',operations:[put(hold)]};
     }
     const b=await get(budgetKey(policy.id,policy.version));if(!b)return fail('DELIVERY_BUDGET_UNAVAILABLE');validateDeliveryCampaignBudgetRecord(b);
@@ -77,12 +80,26 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
     if(BigInt(u?.reservedUses??0)+BigInt(u?.completedUses??0)>=BigInt(policy.limits.perCustomerUses))return fail('DELIVERY_USAGE_EXHAUSTED');
     const nextBudget={...b,version:increment(b.version),merchantAvailable:b.merchantAvailable-m,platformAvailable:b.platformAvailable-p,merchantReserved:b.merchantReserved+m,platformReserved:b.platformReserved+p};
     const nextUsage={...usageKey(policy.id,r.customerId),schemaVersion:1,version:u?increment(u.version):1,reservedUses:num((u?.reservedUses??0)+1),completedUses:u?.completedUses??0};
-    const hold={...holdKey(r.orderId),schemaVersion:1,version:1,...request,requestDigest,status:'RESERVED',createdAt:new Date(clock).toISOString()};
+    const hold={...reservationKey(r.orderId),schemaVersion:1,version:1,...request,requestDigest,status:'RESERVED',createdAt:new Date(clock).toISOString()};
     return {replayed:false,status:'RESERVED',operations:[put(nextBudget,b),put(nextUsage,u),put(hold)]};
-  },async settle(value: unknown) {
+  },async settle(value: unknown):Promise<{replayed:boolean;status?:string;operations:Row[]}> {
     const hasExpected=!!value&&typeof value==='object'&&Object.prototype.hasOwnProperty.call(value,'expectedFunding');
     const r=exact(value,['orderId','outcome',...(hasExpected?['expectedFunding']:[])]);id(r.orderId);if(!['CAPTURED','RELEASED'].includes(r.outcome))return fail();
-    const h=await get(holdKey(r.orderId));if(!h)return fail('DELIVERY_RESERVATION_UNAVAILABLE');verify(h);
+    if(r.expectedFunding?.allocation?.schemaVersion===3){
+      const funding=verifyDeliveryFundingComposition(r.expectedFunding);
+      const base=await createStagingDeliveryCampaignBudget({db,now}).settle({...r,expectedFunding:funding.components[0]});
+      const extra=await createStagingDeliveryCampaignBudget({db,now,reservationNamespace:'PROMOTION'}).settle({...r,expectedFunding:funding.components[1]});
+      if(base.replayed!==extra.replayed)return fail('DELIVERY_RESERVATION_CONFLICT');
+      return {replayed:base.replayed,status:r.outcome,operations:[...base.operations,...extra.operations]};
+    }
+    if(r.expectedFunding?.policyPin?.policyId?.startsWith(BENEFIT_POLICY_PREFIX)){
+      const order=(await db.send(new GetCommand({TableName:'WizzOrders',Key:{PK:'ORDER#'+r.orderId,SK:'META'},ConsistentRead:true}))).Item;
+      const receipt=order?.platformDeliveryBenefitReceipt??order?.platformBenefitReceipt;
+      if(!order||receipt?.target!=='DELIVERY'||BENEFIT_POLICY_PREFIX+receipt.campaignId!==r.expectedFunding.policyPin.policyId)return fail();
+      const keepUse=order.status!=='pending'||['confirmedAt','merchantAcceptedAt','acceptedAt','financialAcceptance'].some(k=>order[k]!=null);
+      return settlePlatformBenefit(db,{orderId:r.orderId,target:'DELIVERY',outcome:r.outcome,keepUse,expectedFunding:r.expectedFunding});
+    }
+    const h=await get(reservationKey(r.orderId));if(!h)return fail('DELIVERY_RESERVATION_UNAVAILABLE');verify(h);
     if(h.orderId!==r.orderId||!quoteEntityIdValid(h.customerId)||!quoteEntityIdValid(h.policyPin?.policyId)||!Number.isSafeInteger(h.policyPin?.version)||h.policyPin.version<1)return fail();
     if(hasExpected){exact(r.expectedFunding,['policyPin','allocation']);if(quoteHash(r.expectedFunding)!==quoteHash({policyPin:h.policyPin,allocation:h.allocation}))return fail('DELIVERY_RESERVATION_CONFLICT');}
     if(h.requestDigest!==quoteHash({orderId:h.orderId,customerId:h.customerId,policyPin:h.policyPin,allocation:h.allocation}))return fail();

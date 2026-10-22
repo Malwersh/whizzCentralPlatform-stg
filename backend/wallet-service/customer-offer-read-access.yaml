@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Supplemental read-only access for staging offer listings and previews. No redemption or financial writes.
+Parameters:
+  CustomerOfferReadRoleNames:
+    Type: CommaDelimitedList
+    Description: Existing execution role names for merchant/platform listings and both preview functions.
+Resources:
+  CustomerOfferReadAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles: !Ref CustomerOfferReadRoleNames
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [dynamodb:GetItem]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WizzOfferJourney
+            Condition:
+              ForAllValues:StringLike:
+                dynamodb:LeadingKeys: ['USER#*']
+          - Effect: Allow
+            Action: [dynamodb:GetItem]
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_users_staging
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_addresses_staging
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Regions
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Products
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Categories
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Discounts
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Platform_Discounts
+          - Effect: Allow
+            Action: [dynamodb:Query]
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Discounts
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Platform_Discounts
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Discounts/index/BusinessIdIndex
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Platform_Discounts/index/code-index
+          - Effect: Allow
+            Action: [dynamodb:Scan]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Platform_Discounts
+          - Effect: Allow
+            Action: [dynamodb:Scan]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders
+            Condition:
+              StringEquals:
+                dynamodb:Select: SPECIFIC_ATTRIBUTES
+              ForAllValues:StringEquals:
+                dynamodb:Attributes: [orderId, createdAt, discountId, promoCode, userSub, userId, offerSnapshot, offerUsageRelease]

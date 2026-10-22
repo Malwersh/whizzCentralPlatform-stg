@@ -103,7 +103,8 @@
   "promotions_manager": [
     "promotions.read",
     "promotions.create",
-    "promotions.edit"
+    "promotions.edit",
+    "promotions.grant"
   ],
   "promotions_approver": [
     "promotions.read",
@@ -191,6 +192,7 @@
     "promotions.read",
     "promotions.create",
     "promotions.edit",
+    "promotions.grant",
     "promotions.approve",
     "finance.read",
     "finance.request",

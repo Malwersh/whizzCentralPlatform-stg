@@ -17,10 +17,11 @@ function amount(v: unknown): Money { try { const m = readMoney(v); if (m.minorAm
  * earning input is accepted. Reuses route tariff and discount arithmetic engine.
  */
 export function calculateDeliveryPromotionCandidate(value: unknown) {
-  const r = exact(value, ['pricingRequest', 'policy', 'eligibility']);
+  const override=!!value&&typeof value==='object'&&Object.prototype.hasOwnProperty.call(value,'referenceFee');
+  const r = exact(value, ['pricingRequest', 'policy', 'eligibility',...(override?['referenceFee']:[])]);
   const request = exact(r.pricingRequest, ['schemaVersion', 'at', 'context', 'rules', 'deliveryRoute', 'discount']);
   if (request.discount !== null) return fail('DELIVERY_PROMOTION_STACKING_UNSUPPORTED');
-  const base = calculateDeliveryFee(request), referenceFee = base.customerDeliveryFee;
+  const base = calculateDeliveryFee(request), referenceFee = override?amount(r.referenceFee):base.customerDeliveryFee;
   const {policy, termsHash} = readDeliveryFundingPolicy(r.policy);
   const e = exact(r.eligibility, ['goodsGross', 'goodsAfterDiscounts', 'hasGoodsDiscount', 'isNewCustomer', 'customerUses']);
   const gross = amount(e.goodsGross), after = amount(e.goodsAfterDiscounts);
@@ -51,14 +52,18 @@ export function calculateDeliveryPromotionCandidate(value: unknown) {
       // Existing whole-IQD tariff quantum governs the customer-visible discount.
       const raw = multiplyMoney(referenceFee, c.numerator, c.denominator, 'TOWARD_ZERO');
       const bounded = moneyFromMinor(Math.min(raw.minorAmount, c.maximumDiscount.minorAmount));
-      discount = base.components.finalRounding ? quantizeWholeIqd(bounded, {incrementIqd: base.components.finalRounding.incrementIqd, mode: 'TOWARD_ZERO'}) : bounded; break;
+      discount = base.components.finalRounding && base.components.finalRounding.mode !== 'CEILING' ? quantizeWholeIqd(bounded, {incrementIqd: base.components.finalRounding.incrementIqd, mode: 'TOWARD_ZERO'}) : bounded; break;
     }
     default: return fail();
   }
   if (discount.minorAmount === 0) return fallback('NO_DISCOUNT');
+  const beforeRounding=subtractMoney(referenceFee,discount);
+  const rounded=override&&base.components.finalRounding?quantizeWholeIqd(beforeRounding,base.components.finalRounding):beforeRounding;
+  const charged=moneyFromMinor(Math.min(referenceFee.minorAmount,rounded.minorAmount));
+  const calculation = override?{...base,customerDeliveryFee:charged,discountFundingAmount:subtractMoney(referenceFee,charged),components:{...base.components,beforeDiscount:referenceFee,requestedDiscount:discount,customerFeeBeforeFinalRounding:beforeRounding,promotionRoundingAdjustment:subtractMoney(charged,beforeRounding)}}:calculateDeliveryFee({...request, discount: {id: policy.id, fundingParty: policy.origin, amount: discount}});
+  if (calculation.discountFundingAmount.minorAmount === 0) return fallback('NO_DISCOUNT');
   let funding;
-  try { funding = calculatePolicyDeliveryFunding(policy, referenceFee, subtractMoney(referenceFee, discount)); }
+  try { funding = calculatePolicyDeliveryFunding(policy, referenceFee, calculation.customerDeliveryFee); }
   catch (error) { if ((error as any)?.code === 'DELIVERY_FUNDING_CAP_EXCEEDED') return fallback('FUNDING_CAP_EXCEEDED'); throw error; }
-  const calculation = calculateDeliveryFee({...request, discount: {id: policy.id, fundingParty: policy.origin, amount: discount}});
   return Object.freeze({applied: true as const, reason: 'APPLIED', policyPin: pin, calculation, funding});
 }

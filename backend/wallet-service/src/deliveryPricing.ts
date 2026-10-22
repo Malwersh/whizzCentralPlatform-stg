@@ -173,14 +173,21 @@ export function calculateDeliveryFee(value: unknown) {
     const d = row(input.discount, ['id', 'fundingParty', 'amount']);
     const requested = amount(d.amount);
     // Preserve discount funding exactly. A sub-quantum delivery discount needs an explicit compatible rule.
-    if (r.finalRounding && requested.minorAmount < beforeDiscount.minorAmount && BigInt(requested.minorAmount) % (BigInt(r.finalRounding.incrementIqd) * 1000n) !== 0n) return fail();
+    if (r.finalRounding && r.finalRounding.mode !== 'CEILING' && requested.minorAmount < beforeDiscount.minorAmount && BigInt(requested.minorAmount) % (BigInt(r.finalRounding.incrementIqd) * 1000n) !== 0n) return fail();
     if (!['PLATFORM', 'MERCHANT', 'THIRD_PARTY', 'SHARED'].includes(d.fundingParty as string)) return fail();
     funding = Object.freeze({ id: text(d.id), party: d.fundingParty as string });
     discount = requested.minorAmount > beforeDiscount.minorAmount ? beforeDiscount : requested;
   }
+  const requestedDiscount = discount;
+  const customerFeeBeforeFinalRounding = subtractMoney(beforeDiscount, requestedDiscount);
+  const customerDeliveryFee = r.finalRounding?.mode === 'CEILING'
+    ? quantizeWholeIqd(customerFeeBeforeFinalRounding, r.finalRounding) : customerFeeBeforeFinalRounding;
+  // Funding is the benefit actually received, never the pre-rounding promotion.
+  discount = subtractMoney(beforeDiscount, customerDeliveryFee);
+  const promotionRoundingAdjustment = subtractMoney(customerDeliveryFee, customerFeeBeforeFinalRounding);
   return Object.freeze({ engineVersion: 'DELIVERY_PRICING_V1' as const, basis: 'CALCULATION_PROPOSAL' as const, rule: reference(r), deliveryRoute: leg,
-    components: Object.freeze({ base: r.base, distance, longDistance, peak, beforeLimits, limitAdjustment: subtractMoney(boundedFee, beforeLimits), ...(r.finalRounding ? { finalRounding: r.finalRounding, finalRoundingAdjustment: subtractMoney(beforeDiscount, boundedFee) } : {}), beforeDiscount, discount }),
-    customerDeliveryFee: subtractMoney(beforeDiscount, discount), discountFunding: funding, discountFundingAmount: discount });
+    components: Object.freeze({ base: r.base, distance, longDistance, peak, beforeLimits, limitAdjustment: subtractMoney(boundedFee, beforeLimits), ...(r.finalRounding ? { finalRounding: r.finalRounding, finalRoundingAdjustment: subtractMoney(beforeDiscount, boundedFee) } : {}), beforeDiscount, discount, ...(r.finalRounding?.mode === 'CEILING' ? { requestedDiscount, customerFeeBeforeFinalRounding, promotionRoundingAdjustment } : {}) }),
+    customerDeliveryFee, discountFunding: funding, discountFundingAmount: discount });
 }
 
 /** E excludes tips and customer fee. No payment, hold or entitlement is written. */

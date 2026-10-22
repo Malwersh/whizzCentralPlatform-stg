@@ -1,3 +1,4 @@
+import {settlePlatformBenefit} from './platformBenefits';
 import {cashReportsDigest,cashAdjudicationAdjustment} from './cashAdjudication';
 import {prepareMerchantAccrualIndex} from './merchantAccrualIndex';
 import {verifyGoodsPromotionExposure} from './goodsPromotionExposure';
@@ -155,6 +156,7 @@ export function createFullCashCompletion(options: {
     operations.push(set(T.holds, budgetKey, budget, { status: 'CONSUMED', operationId, consumedAt: timestamp }),
       set(T.holds, holdKey, hold, { status: H ? 'SETTLED' : 'NOT_REQUIRED', settlementOperationId: operationId, settledAt: timestamp }));
     if(H){const lcKey={operationId:hold.holdId},lc=await strongGet(db,'staging-WalletLifecycle',lcKey);if(!lc||lc.kind!=='FULL_CASH_HOLD'||lc.financialSchemaVersion!==4||lc.orderId!==orderId||lc.status!=='FULL_CASH_PENDING_COMPLETION'||lc.amount!==H||lc.walletId!==driverId)return fail();operations.push(set('staging-WalletLifecycle',lcKey,lc,{status:'COMPLETED',action:'NONE',updatedAt:timestamp,lastError:null,settlementOperationId:operationId}));}
+    if(order.platformBenefitReceipt?.target==='GOODS'){const benefit=await settlePlatformBenefit(db,{orderId,target:'GOODS',outcome:'CAPTURED'});if(benefit.replayed)return fail();operations.push(...benefit.operations);}
     if(offer.financialSnapshot.deliveryFunding){const campaign=await createStagingDeliveryCampaignBudget({db,now}).settle({orderId,outcome:'CAPTURED',expectedFunding:offer.financialSnapshot.deliveryFunding});if(campaign.replayed)return fail();operations.push(...campaign.operations);}
     operations.push(...await prepareMerchantAccrualIndex(db,{branchId,orderId,operationId,deliveredAt:timestamp,merchantNetIqd:M,financialSchemaVersion:4}));
     const walletLines: Row[] = [];

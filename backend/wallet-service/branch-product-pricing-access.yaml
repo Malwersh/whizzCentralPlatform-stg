@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Read-only catalog access for staging merchant authoritative discount previews. Does not enable or deploy the handler.
+Parameters:
+  MerchantDiscountRoleName:
+    Type: String
+Resources:
+  BranchProductPricingAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles: [!Ref MerchantDiscountRoleName]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [dynamodb:GetItem]
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Products
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Categories

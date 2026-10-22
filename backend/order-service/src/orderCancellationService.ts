@@ -3,7 +3,7 @@ const {isFinancialOrder,LEGACY_ONLY}=require('../legacy-order-policy');
  * Order Cancellation Service - Core business logic
  */
 
-import { docClient, TABLES, GetCommand, UpdateCommand } from './db';
+import { docClient, TABLES, GetCommand } from './db';
 import { WalletServiceClient } from './walletServiceClient';
 import { WebSocketNotifier } from './websocketNotifier';
 import { OrderTimelineManager } from './orderTimelineManager';
@@ -17,6 +17,8 @@ import {
   InvalidStatusError,
 } from './types';
 import { getCurrentTimestamp } from './utils';
+import {TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
+import {prepareOfferUsageRelease,offerUsageOrderFence} from './offerUsageRelease';
 
 export class OrderCancellationService {
   private walletClient: WalletServiceClient;
@@ -43,6 +45,10 @@ export class OrderCancellationService {
     // Step 1: Get order from WizzOrders
     const order = await this.getOrder(orderId);
     if (isFinancialOrder(order)) throw new OrderServiceError('Financial order requires its return/cancellation workflow', 409, 'FINANCIAL_CANCELLATION_REQUIRED');
+    const previous=order.orderTimeline?.filter(event=>event.event==='order_cancelled').slice(-1)[0];
+    if(order.status==='canceled_by_'+canceledBy&&order.canceledBy===canceledBy&&order.cancelReason===reason&&previous?.actor===requestedBy){
+      return {success:true,orderId,newStatus:order.status,holdReleased:order.holdStatus==='RELEASED',message:'Order cancellation already recorded'};
+    }
 
     // Step 2: Validate cancellation rules
     this.validateCancellation(order, canceledBy, requestedBy);
@@ -73,7 +79,7 @@ export class OrderCancellationService {
       originalStatus: order.status,
       originalDriverId: order.driverId,
       orderTimeline: updatedTimeline,
-    });
+    }, order);
     // Step 3: Release Hold (if exists and ACTIVE)
     if (order.holdId && order.holdStatus === 'ACTIVE') {
       console.log(`💰 Order has active Hold: ${order.holdId}`);
@@ -136,6 +142,7 @@ export class OrderCancellationService {
           PK: `ORDER#${orderId}`,
           SK: 'META',
         },
+        ConsistentRead: true,
       })
     );
 
@@ -234,7 +241,8 @@ export class OrderCancellationService {
       originalStatus: string;
       originalDriverId?: string;
       orderTimeline?: any[];
-    }
+    },
+    originalOrder: Order
   ): Promise<void> {
     console.log(`💾 Updating order ${orderId} in database...`);
 
@@ -263,22 +271,32 @@ export class OrderCancellationService {
       expressionAttributeValues[':orderTimeline'] = updates.orderTimeline;
     }
 
-    await docClient.send(
-      new UpdateCommand({
+    const release=await prepareOfferUsageRelease(docClient,originalOrder,updates.canceledAt);
+    const fence=offerUsageOrderFence(originalOrder);
+    const names:Record<string,string>={...fence.ExpressionAttributeNames,'#status':'status'};
+    Object.assign(expressionAttributeValues,fence.ExpressionAttributeValues);
+    for(const [i,[key,value]] of Object.entries(release.fields).entries()){
+      names['#release'+i]=key;expressionAttributeValues[':release'+i]=value;
+      updateExpression+=', #release'+i+'=:release'+i;
+    }
+    const orderUpdate={
         TableName: TABLES.ORDERS,
         Key: {
           PK: `ORDER#${orderId}`,
           SK: 'META',
         },
         UpdateExpression: updateExpression,
-        ExpressionAttributeNames: {
-          '#status': 'status',
-        },
+        ExpressionAttributeNames: names,
         ExpressionAttributeValues: expressionAttributeValues,
         // ConditionExpression to prevent race conditions
-        ConditionExpression: LEGACY_ONLY+' AND attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
-      })
-    );
+        ConditionExpression: LEGACY_ONLY+' AND '+fence.ConditionExpression+' AND attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
+    };
+    try {
+      await docClient.send(new TransactWriteCommand({TransactItems:[{Update:orderUpdate},...release.operations] as any}));
+    } catch(error:any) {
+      if(error.name==='TransactionCanceledException')throw new OrderServiceError('Order or discount usage changed; retry cancellation',409,'CANCELLATION_STATE_CHANGED');
+      throw error;
+    }
 
     console.log('✅ Order updated successfully');
   }

@@ -2,8 +2,9 @@
 const {GetCommand,ScanCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {createHash,randomUUID}=require('node:crypto');
 const {versioned}=require('../shared/campaign-version');
+const {patchTerms}=require('../shared/discount-contract');
 const D='WhizzMerchants_Discounts',T='staging-MerchantPlatform';
-const FIELDS=['discountId','businessId','title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_count','usage_limit','updated_at','created_at','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters','version','fundingPolicyId','fundingPolicyVersion','legalHold','retentionHold'];
+const FIELDS=['discountId','businessId','title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_count','usage_limit','updated_at','created_at','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters','version','fundingPolicyId','fundingPolicyVersion','legalHold','retentionHold','validFrom','validTo','minimumOrderAmount','usageLimit','usageCount','discountType','discountValue','isActive'];
 const fail=(code,status=400)=>{throw Object.assign(Error(code),{status});};
 const pick=r=>Object.fromEntries(FIELDS.filter(k=>r[k]!==undefined).map(k=>[k,r[k]]));
 const digest=r=>createHash('sha256').update(JSON.stringify(r)).digest('hex');
@@ -58,14 +59,14 @@ async function execute(db,{b,d,s,m,authorization,common},input){
  if(action==='discounts_status'&&input.active)validate(row);
  if((action==='discounts_create'||action==='discounts_update')&&Date.parse(data.valid_to)<=Date.now()||action==='discounts_status'&&input.active&&Date.parse(row.valid_to)<=Date.now())fail('DISCOUNT_EXPIRED',409);
  let after=action==='discounts_delete'?null:row?{...row,...(data||{}),...(action==='discounts_status'?{status:input.active?'active':'inactive'}:{}),updated_at:now}:{discountId:id,id,businessId:b.businessId,...data,applicability:'allItems',applicable_item_ids:[],applicable_category_ids:[],conditional_rule:null,conditional_parameters:{},usage_limit:null,usage_count:0,status:'inactive',created_at:now,updated_at:now};
- after=after?versioned(row,after):null;
+ after=after?versioned(row,patchTerms(row,row?{...(data||{}),...(action==='discounts_status'?{status:input.active?'active':'inactive'}:{})}:after,'merchant')):null;
  const adopt=!!row&&row.version===undefined;
  const changed=!row||after===null||Object.keys(data||{status:after.status}).some(k=>row[k]!==after[k]);
  let write;
  if(!row)write={Put:{TableName:D,Item:after,ConditionExpression:'attribute_not_exists(discountId)'}};
  else if(action==='discounts_delete')write={Delete:fence(row)};
  else if(!changed&&!adopt)write={ConditionCheck:fence(row)};
- else{const op=fence(row),patch={...(data||{status:after.status}),updated_at:now,version:after.version};op.UpdateExpression='SET '+Object.entries(patch).map(([k,v],i)=>{op.ExpressionAttributeNames['#set'+i]=k;op.ExpressionAttributeValues[':set'+i]=v;return '#set'+i+'=:set'+i;}).join(',');const removed=['fundingPolicyId','fundingPolicyVersion'].filter(k=>row[k]!==undefined&&after[k]===undefined);if(removed.length)op.UpdateExpression+=' REMOVE '+removed.map((k,i)=>{op.ExpressionAttributeNames['#remove'+i]=k;return '#remove'+i;}).join(',');write={Update:op};}
+ else{const op=fence(row),patch=Object.fromEntries(Object.entries(after).filter(([k,v])=>row[k]!==v&&!['fundingPolicyId','fundingPolicyVersion'].includes(k)));op.UpdateExpression='SET '+Object.entries(patch).map(([k,v],i)=>{op.ExpressionAttributeNames['#set'+i]=k;op.ExpressionAttributeValues[':set'+i]=v;return '#set'+i+'=:set'+i;}).join(',');const removed=['fundingPolicyId','fundingPolicyVersion'].filter(k=>row[k]!==undefined&&after[k]===undefined);if(removed.length)op.UpdateExpression+=' REMOVE '+removed.map((k,i)=>{op.ExpressionAttributeNames['#remove'+i]=k;return '#remove'+i;}).join(',');write={Update:op};}
  const eventAction={discounts_create:'DISCOUNT_CREATED',discounts_update:'DISCOUNT_UPDATED',discounts_status:'DISCOUNT_STATUS_CHANGED',discounts_delete:'DISCOUNT_DELETED'}[action];
  const audit={pk:key.pk,sk:'STAFF_AUDIT#OPERATIONS#'+now+'#'+randomUUID(),ownerId:b.ownerId,businessId:b.businessId,actorId:s.subjectId,actorName:m.displayName||'',roleName:m.grant?.roleNameAr||m.role,deviceId:d.deviceId,sessionId:s.sessionId,permissionVersion:m.version,policyVersion:authorization.policy.version,action:eventAction,entityId:id,createdAt:now,result:'SUCCEEDED',before:row?view(row):null,after:after?view(after):null};
  try{await db.send(new TransactWriteCommand({TransactItems:[...common,write,{Put:{TableName:T,Item:{...key,ownerId:b.ownerId,businessId:b.businessId,discountId:id,fingerprint,createdAt:now},ConditionExpression:'attribute_not_exists(pk)'}},...(changed?[{Put:{TableName:T,Item:audit,ConditionExpression:'attribute_not_exists(pk)'}}]:[])]}));}catch(e){if(e.name!=='TransactionCanceledException')throw e;const repeated=await replay();if(repeated)return repeated;fail('VERSION_OR_STATE_CONFLICT',409);}

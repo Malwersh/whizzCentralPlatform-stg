@@ -58,3 +58,32 @@ test('reordered selections keep the same financial fingerprint and safe subtotal
  assert.equal((await r.price(selection(a))).fingerprint,(await r.price(selection([...a].reverse()))).fingerprint);
  const products=Array.from({length:40},(_,i)=>product('p'+i,1000000000));await rejects(setup(products).price(selection(products.map(p=>({productId:p.productId,quantity:1000})))),'GOODS_PRICING_UNSUPPORTED');
 });
+
+const optionProduct=()=>({...product(),optionGroups:[{id:'sides',title:'Sides',required:true,maxSelections:1,options:[{id:'salad',name:'Salad',extraPrice:250,isAvailable:true},{id:'rice',name:'Rice',extraPrice:500,isAvailable:false}]}]});
+test('branch options use saved prices and fence the complete catalog in the order transaction',async()=>{
+ const p=optionProduct(),out=await setup([p]).price(selection([{productId:'p1',quantity:2,selectedOptions:{sides:['salad']}}]));
+ assert.deepEqual(out.lines[0].unitPrice,m('2750'));assert.deepEqual(out.goodsGross,m('5500'));
+ const check=out.conditions[0].ConditionCheck,alias=Object.keys(check.ExpressionAttributeNames).find(k=>check.ExpressionAttributeNames[k]==='optionGroups');
+ assert.ok(check.ConditionExpression.includes(alias+' = '));assert.deepEqual(check.ExpressionAttributeValues[':'+alias.slice(1)],p.optionGroups);
+});
+test('required, unknown, disabled and duplicate options never receive a price proposal',async()=>{
+ for(const [selectedOptions,code] of [[{},'INVALID_GOODS_SELECTION'],[{sides:['rice']},'GOODS_UNAVAILABLE'],[{sides:['missing']},'GOODS_UNAVAILABLE'],[{other:['salad']},'INVALID_GOODS_SELECTION'],[{sides:['salad','salad']},'INVALID_GOODS_SELECTION'],[{sides:[{id:'salad',price:1}]},'INVALID_GOODS_SELECTION']]){
+  await rejects(setup([optionProduct()]).price(selection([{productId:'p1',quantity:1,selectedOptions}])),code);
+ }
+});
+
+test('different configurations share one catalog read and fence but retain distinct economic lines',async()=>{
+ const p=optionProduct();p.optionGroups[0].options[1].isAvailable=true;
+ const items=[{productId:'p1',quantity:1,selectedOptions:{sides:['salad']}},{productId:'p1',quantity:2,selectedOptions:{sides:['rice']}}];
+ const r=setup([p]),out=await r.price(selection(items));
+ assert.deepEqual(out.goodsGross,m('8750'));assert.deepEqual(out.lines.map(l=>l.unitPrice),[m('2750'),m('3000')]);
+ assert.notEqual(out.lines[0].lineId,out.lines[1].lineId);
+ assert.equal(r.calls.filter(c=>c.input.Key.productId).length,1);assert.equal(out.conditions.length,2);
+ const reversed=await setup([p]).price(selection([...items].reverse()));
+ assert.equal(out.fingerprint,reversed.fingerprint);
+ assert.equal(out.lines[0].lineId,reversed.lines[1].lineId);
+});
+test('empty groups cannot disguise duplicate configurations',async()=>{
+ const input=[{productId:'p1',quantity:1},{productId:'p1',quantity:1,selectedOptions:{empty:[]}}];
+ const r=setup();await rejects(r.price(selection(input)),'INVALID_GOODS_SELECTION');assert.equal(r.calls.length,0);
+});

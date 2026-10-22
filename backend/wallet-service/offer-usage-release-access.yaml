@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Counter restoration access for existing staging merchant rejection and timeout roles.
+Parameters:
+  MerchantResponseRoleNames:
+    Type: CommaDelimitedList
+    Description: Existing execution role names for the pending-response worker and merchant order handler.
+Resources:
+  OfferUsageReleaseAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles: !Ref MerchantResponseRoleNames
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:ConditionCheckItem]
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WizzOfferJourney
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Discounts
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Platform_Discounts

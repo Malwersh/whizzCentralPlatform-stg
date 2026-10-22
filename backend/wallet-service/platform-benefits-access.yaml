@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Platform benefit entitlements and usage reservations. No wallet, ledger or merchant-pricing permissions.
+Parameters:
+  RuntimeRoleNames:
+    Type: CommaDelimitedList
+  StaffRoleNames:
+    Type: CommaDelimitedList
+  CustomerReaderRoleNames:
+    Type: CommaDelimitedList
+Resources:
+  BenefitRuntimeAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles: !Ref RuntimeRoleNames
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:ConditionCheckItem]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WizzOfferJourney
+            Condition:
+              ForAllValues:StringLike:
+                dynamodb:LeadingKeys: ['BENEFIT_ORDER#*', 'USER#*']
+  BenefitStaffAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles: !Ref StaffRoleNames
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:ConditionCheckItem]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WizzOfferJourney
+            Condition:
+              ForAllValues:StringLike:
+                dynamodb:LeadingKeys: ['BENEFIT_REQUEST#*', 'USER#*']
+          - Effect: Allow
+            Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:Scan, dynamodb:ConditionCheckItem]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Platform_Discounts
+          - Effect: Allow
+            Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem, dynamodb:Scan]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_users_staging
+  BenefitCustomerReaderAccess:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles: !Ref CustomerReaderRoleNames
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [dynamodb:GetItem]
+            Resource:
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_users_staging
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_addresses_staging
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Regions
+              - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Platform_Discounts
+          - Effect: Allow
+            Action: [dynamodb:GetItem]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WizzOfferJourney
+            Condition:
+              ForAllValues:StringLike:
+                dynamodb:LeadingKeys: ['USER#*']
+          - Effect: Allow
+            Action: [dynamodb:Scan]
+            Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders
+            Condition:
+              StringEquals:
+                dynamodb:Select: SPECIFIC_ATTRIBUTES
+              ForAllValues:StringEquals:
+                dynamodb:Attributes: [orderId, createdAt, discountId, promoCode, offerSnapshot, offerUsageRelease, userSub, userId]

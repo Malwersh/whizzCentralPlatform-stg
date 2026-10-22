@@ -58,6 +58,13 @@
     "merchant-account.js",
     "merchant-account-index-runtime.js",
     "merchant-device-payouts.js",
+    "offers.js",
+    "discount-contract.js",
+    "discount-engine.js",
+    "campaign-notifications.js",
+    "platform-benefits.js",
+    "platform-benefits-runtime.js",
+    "financial-compatibility.js",
     "company-accounts.js",
     "company-accounting.js",
     "company-chart.js"

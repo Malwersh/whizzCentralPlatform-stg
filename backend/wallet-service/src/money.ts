@@ -65,7 +65,7 @@ export function subtractMoney(left: Money, right: Money): Money {
   return moneyFromMinor(bounded(BigInt(readMoney(left).minorAmount) - BigInt(readMoney(right).minorAmount)));
 }
 export type MoneyRounding = 'EXACT' | 'TOWARD_ZERO' | 'HALF_AWAY_FROM_ZERO';
-export type WholeIqdRounding = Readonly<{ incrementIqd: number; mode: MoneyRounding }>;
+export type WholeIqdRounding = Readonly<{ incrementIqd: number; mode: MoneyRounding | 'CEILING' }>;
 /** Explicit versioned price policy. Absence must never quantize legacy snapshots. */
 export function readWholeIqdRounding(value: unknown): WholeIqdRounding {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new MoneyError('INVALID_ROUNDING');
@@ -73,8 +73,8 @@ export function readWholeIqdRounding(value: unknown): WholeIqdRounding {
   if (Object.keys(r).sort().join(',') !== 'incrementIqd,mode' ||
       typeof r.incrementIqd !== 'number' || !Number.isSafeInteger(r.incrementIqd) || r.incrementIqd < 1 ||
       r.incrementIqd > Math.floor(Number.MAX_SAFE_INTEGER / 1000) ||
-      !['EXACT', 'TOWARD_ZERO', 'HALF_AWAY_FROM_ZERO'].includes(r.mode as string)) throw new MoneyError('INVALID_ROUNDING');
-  return Object.freeze({ incrementIqd: r.incrementIqd, mode: r.mode as MoneyRounding });
+      !['EXACT', 'TOWARD_ZERO', 'HALF_AWAY_FROM_ZERO', 'CEILING'].includes(r.mode as string)) throw new MoneyError('INVALID_ROUNDING');
+  return Object.freeze({ incrementIqd: r.incrementIqd, mode: r.mode as WholeIqdRounding['mode'] });
 }
 /** Round the final charge before consent/hash/quote/offer creation, never at wallet persistence. */
 export function quantizeWholeIqd(value: Money, policy: WholeIqdRounding): Money {
@@ -83,6 +83,7 @@ export function quantizeWholeIqd(value: Money, policy: WholeIqdRounding): Money 
   const remainder = amount % step;
   if (remainder !== 0n) {
     if (p.mode === 'EXACT') throw new MoneyError('PRECISION_LOSS');
+    if (p.mode === 'CEILING' && remainder > 0n) units += 1n;
     const absolute = remainder < 0n ? -remainder : remainder;
     if (p.mode === 'HALF_AWAY_FROM_ZERO' && absolute * 2n >= step) units += amount < 0n ? -1n : 1n;
   }

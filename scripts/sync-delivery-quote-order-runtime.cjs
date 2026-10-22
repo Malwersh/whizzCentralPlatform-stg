@@ -2,10 +2,10 @@
 // Keep the customer order adapter on the same Money and Quote contracts as the pricing service.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const ts=require('../backend/wallet-service/node_modules/typescript');
-const destination=path.resolve(__dirname,'../../wizzuser-stg/backend/src/functions/create-order/quote-runtime');
+const destination=path.join(path.resolve(process.env.WIZZUSER_RUNTIME_ROOT||path.resolve(__dirname,'../../wizzuser-stg')),'backend/src/functions/create-order/quote-runtime');
 const check=process.argv.includes('--check');
 const sourceRoot=path.resolve(__dirname,'../backend/wallet-service/src');
-const pending=['financeRollout','deliveryQuoteOrder','orderGoodsPricing','orderCommercialSource','deliveryPromotionSelection','deliveryPromotionCustomer'];
+const pending=['financeRollout','deliveryQuoteOrder','orderGoodsPricing','orderCommercialSource','deliveryPromotionSelection','deliveryPromotionCustomer','merchantPendingResponse'];
 const visited=new Set();
 const authorityFiles=['catalog','commercial-party'];
 for(const name of pending){
