@@ -227,22 +227,9 @@ function mapVehicleType(dbVehicleType) {
 
 // Helper function to format dates
 function formatDate(timestamp) {
-    if (!timestamp) return 'N/A';
-    try {
-        // Handle both timestamp and ISO string formats
-        const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
-        if (isNaN(date.getTime())) {
-            return timestamp.toString(); // Return original if can't parse
-        }
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    } catch (e) {
-        console.warn(`Could not parse date: ${timestamp}`);
-        return timestamp.toString();
-    }
+    if (!timestamp) return '—';
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return window.WizzLocale.date(date);
 }
 
 // Generate avatar URL for driver
@@ -777,22 +764,8 @@ async function displayDriverDocuments(driver) {
 
 function formatDateTime(timestamp) {
     if (!timestamp) return null;
-    try {
-        // Handle both ISO string and Unix timestamp
-        const date = typeof timestamp === 'string' ? new Date(timestamp) : new Date(timestamp * 1000);
-        if (isNaN(date.getTime())) return null;
-        
-        return date.toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (e) {
-        console.warn(`Could not parse datetime: ${timestamp}`);
-        return null;
-    }
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return window.WizzLocale.dateTime(date);
 }
 
 let driverRegionModel = null;

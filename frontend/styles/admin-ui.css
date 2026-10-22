@@ -335,3 +335,44 @@ body.wizz-shell :is(button,a,input,select,textarea,summary):focus-visible {
   body.wizz-shell #mainContent table th,
   body.wizz-shell #mainContent table td { padding: 12px; }
 }
+
+/* Structured dialogs: keep the title/actions visible while long forms scroll.
+   Custom compact dialogs keep their own layout; print rules remain untouched. */
+@media screen {
+  body.wizz-shell .modal .modal-content:has(> .modal-body) {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 32px);
+    overflow: hidden !important;
+  }
+  body.wizz-shell .modal .modal-content > :is(.modal-header,.modal-footer) { flex: 0 0 auto; }
+  body.wizz-shell .modal .modal-content > .modal-body {
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  body.wizz-shell .modal .modal-header { display: flex; align-items: flex-start; gap: 16px; }
+  body.wizz-shell .modal .modal-header :is(h2,h3) { margin: 0; flex: 1; font-size: 20px; }
+  body.wizz-shell .modal .modal-footer { display: flex; flex-wrap: wrap; gap: 10px; border-block-start: 1px solid var(--admin-line); }
+  body.wizz-shell .modal :is(.modal-close,.close-button) {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    flex-shrink: 0;
+    border: 1px solid var(--admin-line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--admin-ink);
+    cursor: pointer;
+  }
+  body.wizz-shell .modal .modal-footer :is(button,.btn) { min-block-size: 44px; font-size: 14px; line-height: 1.6; }
+  body.wizz-shell .modal .form-group { min-inline-size: 0; }
+  body.wizz-shell .modal .form-group > label { display: block; margin-block-end: 7px; line-height: 1.7; }
+  body.wizz-shell .modal .form-group > :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) { inline-size: 100%; }
+  body.wizz-shell .modal textarea { resize: vertical; }
+}
+@media screen and (width < 600px) {
+  body.wizz-shell .modal :is(.modal-header,.modal-body,.modal-footer) { padding: 16px; }
+  body.wizz-shell .modal .modal-footer > :is(button,.btn) { flex: 1 1 140px; }
+  body.wizz-shell .modal .modal-body .form-row { grid-template-columns: minmax(0,1fr); }
+}

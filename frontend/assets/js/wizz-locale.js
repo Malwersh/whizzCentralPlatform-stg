@@ -1574,7 +1574,20 @@
     const key=String(value).trim().toLowerCase().replace(/[ -]+/g,'_');
     return /[؀-ۿ]/.test(String(value))?String(value):roles[key]||'موظف';
   }
-  window.WizzLocale=Object.freeze({language:'ar',locale:'ar-IQ',t,status,error,role});
+  // Display-only formatting. Callers convert Unix seconds explicitly; amounts
+  // here are already IQD, never minor units and never a financial calculation.
+  const dayFormat=new Intl.DateTimeFormat('ar-IQ',{timeZone:'Asia/Baghdad',year:'numeric',month:'short',day:'numeric'});
+  const timeFormat=new Intl.DateTimeFormat('ar-IQ',{timeZone:'Asia/Baghdad',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const amountFormat=new Intl.NumberFormat('ar-IQ',{maximumFractionDigits:3});
+  function displayDate(value,formatter){
+    if(value==null||value==='')return '—';
+    const d=value instanceof Date?value:new Date(value);
+    return Number.isFinite(d.getTime())?formatter.format(d):'—';
+  }
+  const date=value=>displayDate(value,dayFormat);
+  const dateTime=value=>displayDate(value,timeFormat);
+  const iqd=value=>typeof value==='number'&&Number.isFinite(value)?amountFormat.format(value)+' د.ع':'—';
+  window.WizzLocale=Object.freeze({language:'ar',locale:'ar-IQ',t,status,error,role,date,dateTime,iqd});
   document.documentElement.lang='ar';
   document.documentElement.dir='rtl';
   // Status badges are UI-owned enums. Never walk customer names, table cells,

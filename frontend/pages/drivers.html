@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 
 <head>
-<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
+<script src="../assets/js/wizz-locale.js?v=20261023-details1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ويز سنترال — إدارة السائقين</title>
@@ -690,7 +690,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>إضافة سائق جديد</h2>
-                <button class="modal-close" onclick="closeAddDriverModal()">
+                <button class="modal-close" onclick="closeAddDriverModal()" aria-label="إغلاق النافذة">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -746,7 +746,7 @@
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
                 <h2>تعديل بيانات السائق</h2>
-                <button class="modal-close" onclick="closeEditDriverModal()">
+                <button class="modal-close" onclick="closeEditDriverModal()" aria-label="إغلاق النافذة">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -884,7 +884,7 @@
         <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header">
                 <h2><i class="fas fa-user-circle" style="color: var(--md-sys-color-primary);"></i> ملف السائق</h2>
-                <button class="modal-close" onclick="closeViewDriverModal()">
+                <button class="modal-close" onclick="closeViewDriverModal()" aria-label="إغلاق النافذة">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -1127,7 +1127,7 @@
     <script src="../data-service.js?v=20261011-session-fix2"></script>
 
     <!-- Page-specific scripts -->
-    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
+    <script src="../assets/js/navigation.js?v=20261023-details1"></script>
     <script>
         // Initialize navigation (single source of truth)
         document.addEventListener('DOMContentLoaded', function () {
@@ -1141,7 +1141,7 @@
         });
     </script>
     <script src="../assets/js/driver-regions.js?v=20261012-driver-actions2"></script>
-    <script src="../drivers.js?v=20261017-ar1"></script>
+    <script src="../drivers.js?v=20261023-details1"></script>
 
     <!-- Authentication is handled by page scripts (single source of truth) -->
     
