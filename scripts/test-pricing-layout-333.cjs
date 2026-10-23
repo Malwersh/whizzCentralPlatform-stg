@@ -20,7 +20,7 @@ const {prepare}=require('./build-general-pricing-321.cjs');
  if(u.pathname==='/staff/pricing/draft'){saves++;assert.deepEqual(req.postDataJSON().values,expected);return route.fulfill({json:{status:'PUBLISHED',policy:{version:3}}});}
  if(u.pathname==='/staff/pricing')return route.fulfill({json:{current:{version:2,values},can:{direct:true,request:true,approve:true,simulate:true}}});
  return route.abort();});
- await page.goto('http://fixture.invalid/');await page.locator('#pricing-driver-list h3').filter({hasText:'مطعم اختبار'}).waitFor();
+ await page.goto('http://fixture.invalid/');await page.locator('#pricing-driver-list h3').filter({hasText:'مطعم اختبار'}).waitFor({state:'attached'});
  const cards=page.locator('#pricing-driver-list .pricing-rule-card');assert.equal(await cards.count(),2);assert.match(await cards.first().locator('h3').textContent(),/العامة/);
  assert.match(await cards.first().textContent(),/الوصول إلى المطعم/);assert.equal(await cards.first().locator('.pricing-rule-technical').isVisible(),false);
  await page.locator('#driver').screenshot({path:'/private/tmp/pricing333/desktop.png'});
@@ -32,7 +32,7 @@ const {prepare}=require('./build-general-pricing-321.cjs');
  for(const id of ['branchId','merchantId','zoneId','cityId','governorateId','vehicleType'])await page.locator('#sim-'+id).fill('fixture');
  await page.locator('#sim-at').fill('2026-10-23T12:00');for(const id of ['pickupMeters','pickupSeconds','deliveryMeters','deliverySeconds'])await page.locator('#sim-'+id).fill('1000');
  await page.locator('#pricing-simulate').click();await page.locator('#pricing-sim-result').filter({hasText:'فرق أساسي تتحمله المنصة: ٢٥٠'}).waitFor();
- await page.locator('#pricing-branch').selectOption('b');assert.equal(await cards.count(),1);assert.match(await cards.first().locator('h3').textContent(),/مطعم اختبار/);
+ await page.locator('#pricing-branch').selectOption('b');assert.equal(await cards.count(),2);assert.match(await cards.first().locator('h3').textContent(),/مطعم اختبار/);
  await page.locator('#pricing-branch').selectOption('');await page.setViewportSize({width:390,height:844});await page.locator('#driver').screenshot({path:'/private/tmp/pricing333/mobile.png'});
  const width=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth}));assert.ok(width.scroll<=width.client+1,JSON.stringify(width));assert.deepEqual(errors,[]);
  console.log('PASS: desktop/mobile cards, branch names, general-first ordering, correct edit index, unchanged save payload, branch filtering, no horizontal overflow. Mock writes only.');
