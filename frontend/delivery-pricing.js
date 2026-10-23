@@ -105,6 +105,7 @@
   for(const group of [...host.querySelectorAll(':scope > fieldset')]){if(!['مكونات الأجرة','الحدود والتقريب','التغطية'].includes(group.querySelector('legend').textContent))advanced.append(group);}
   const form=el('rule-form');for(const group of [...form.querySelectorAll(':scope > fieldset')])advanced.append(group);host.append(advanced);
   const note=node('p','المبالغ بالدينار العراقي. عدّل المكونات المطلوبة فقط؛ التفاصيل الإضافية تحتفظ بقيمها المحفوظة.','pricing-rule-muted');host.prepend(note);
+  window.attachPricingFieldHelp(host,kind);
   window.dispatchEvent(new CustomEvent('pricing-editor-open',{detail:{kind}}));
   el('rule-editor').scrollIntoView({behavior:'smooth',block:'start'});
  }
