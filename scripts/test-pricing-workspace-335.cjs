@@ -10,11 +10,12 @@ const {prepare}=require('./build-general-pricing-321.cjs');
  values.driverRules.unshift({...structuredClone(values.driverRules[0]),id:'BRANCH_RULE',scope:{type:'BRANCH',id:'b'},priority:1});
  const expected=structuredClone(values);for(const rules of [expected.deliveryRules,expected.driverRules])for(const r of rules)r.status='DRAFT';
  let saves=0;
- await page.addInitScript(()=>{window.Auth={ensureSession:async()=>{},getToken:()=> 'fixture'};window.WIZZCENTRAL_CONFIG={STAFF_API_BASE_URL:'http://localhost'};window.AWSUtils={getDynamoDBClient:async()=>({scan:()=>({promise:async()=>({Items:[{businessId:'b',businessName:'مطعم اختبار'},{businessId:'c',businessName:'فرع بلا استثناء'}]})})})};});
+ await page.addInitScript(()=>{window.Auth={ensureSession:async()=>{},getToken:()=> 'fixture'};window.WIZZCENTRAL_CONFIG={STAFF_API_BASE_URL:'http://localhost'};window.AWSUtils={scanAll:async table=>table==='WizzCentral_Regions'?[{regionId:'zone',name_ar:'منطقة اختبار',level:3,is_active:true}]:[],getDynamoDBClient:async()=>({scan:()=>({promise:async()=>({Items:[{businessId:'b',businessName:'مطعم اختبار'},{businessId:'c',businessName:'فرع بلا استثناء'}]})})})};});
  await page.route('**/*',async route=>{
  const req=route.request(),u=new URL(req.url());
- if(u.pathname==='/')return route.fulfill({contentType:'text/html',body:fs.readFileSync('frontend/pages/delivery-pricing.html','utf8').replace(/<script[^>]*src="(?!\.\.\/(?:delivery-pricing|pricing-workspace).js)[^"]*"[^>]*><\/script>/g,'')});
+ if(u.pathname==='/')return route.fulfill({contentType:'text/html',body:fs.readFileSync('frontend/pages/delivery-pricing.html','utf8').replace(/<script[^>]*src="(?!\.\.\/(?:delivery-pricing|pricing-workspace|pricing-region-picker).js)[^"]*"[^>]*><\/script>/g,'')});
  if(u.pathname==='/pricing-workspace.js')return route.fulfill({contentType:'text/javascript',body:fs.readFileSync('frontend/pricing-workspace.js','utf8')});
+ if(u.pathname==='/pricing-region-picker.js')return route.fulfill({contentType:'text/javascript',body:fs.readFileSync('frontend/pricing-region-picker.js','utf8')});
  if(u.pathname==='/delivery-pricing.js')return route.fulfill({contentType:'text/javascript',body:fs.readFileSync('frontend/delivery-pricing.js','utf8')});
  if(u.pathname==='/styles/pricing-layout.css')return route.fulfill({contentType:'text/css',body:fs.readFileSync('frontend/styles/pricing-layout.css','utf8')});
  if(u.pathname==='/staff/pricing/simulate'){const m=n=>({currency:'IQD',scale:1000,moneySchemaVersion:1,minorAmount:n*1000});return route.fulfill({json:{version:2,delivery:{customerDeliveryFee:m(2250),rule:{id:'delivery',version:1}},driver:{driverEarning:m(2500),rule:{id:'driver',version:1},components:Object.fromEntries(['base','pickup','delivery','time','longDistance','peak','limitAdjustment'].map(k=>[k,m(0)]))}}});}
