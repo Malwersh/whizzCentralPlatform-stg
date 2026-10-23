@@ -1,0 +1,36 @@
+{
+  "part": 333,
+  "environment": "staging",
+  "scope": "Pricing UI only",
+  "changes": [
+    "Structured customer delivery and driver rules into readable cards",
+    "General rules first; branch names instead of primary technical IDs",
+    "Separate base, pickup, delivery and time components",
+    "Arabic money, rounding labels and Baghdad effective dates",
+    "Collapsible extra and technical details",
+    "Grouped editor fields, preserving existing IDs and save contract",
+    "Explain baseline platform delivery gap and show it in simulator"
+  ],
+  "tests": {
+    "browser": "PASS: desktop/mobile, branch names and filtering, original rule edit index after presentation sort, unchanged save payload, no horizontal overflow",
+    "financialWrites": 0,
+    "simulatorGap": "PASS: 2250 customer delivery / 2500 driver displays 250 platform baseline gap"
+  },
+  "pricingPolicyChanged": false,
+  "backendChanged": false,
+  "hostingFiles": [
+    "pages/delivery-pricing.html",
+    "delivery-pricing.js",
+    "styles/pricing-layout.css"
+  ],
+  "hosting": {
+    "jobId": "168",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "delivery-pricing.js",
+      "styles/pricing-layout.css"
+    ],
+    "baseJob": "167"
+  }
+}
