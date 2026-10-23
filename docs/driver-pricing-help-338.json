@@ -1,0 +1,34 @@
+{
+  "part": 338,
+  "environment": "staging",
+  "change": "Arabic explanations for driver compensation fields",
+  "details": [
+    "Inline purpose, units, zero meaning and examples for every driver editor field",
+    "Separate pickup compensation rate and pickup distance included",
+    "Explain route-calculated driving minutes exclude actual restaurant waiting",
+    "Explain driver minimum/maximum before independent tip",
+    "Explain extra long-distance incentive uses delivery leg only",
+    "Dynamic illustrative 3km pickup /5km delivery /20minute calculation explicitly before extras, limits, rounding and tip",
+    "No automatic value changes; remove stale per-kind peak note on editor switch"
+  ],
+  "tests": [
+    "Browser desktop/mobile PASS",
+    "750 base+500 pickup+2000 delivery gives3250 basic example PASS",
+    "Zero pickup rate disables component; zero included distance compensates full pickup PASS",
+    "20 per minute adds400 for20 exampleminutes PASS",
+    "Existing rule save payload unchanged PASS",
+    "Customer helper and navigation regression flow PASS"
+  ],
+  "policyWrites": 0,
+  "backendChanged": false,
+  "hosting": {
+    "jobId": "175",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "pricing-field-help.js"
+    ],
+    "baseJob": "173",
+    "abandonedUploadJob": "174 cancelled after connection reset; no deployment started"
+  }
+}
