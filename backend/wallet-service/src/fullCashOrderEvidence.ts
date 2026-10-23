@@ -1,3 +1,4 @@
+import {verifyCashRoundingEvidence} from './cashRounding';
 import {prepareFullCashOrderSnapshot} from './fullCashOffer';
 import {verifyGoodsPromotionExposure} from './goodsPromotionExposure';
 import {quoteCanonical} from './deliveryQuoteRecord';
@@ -21,6 +22,10 @@ export function verifyFullCashOrderEvidence(order:Row,operations:Row[],deliveryF
  const snapshot=prepareFullCashOrderSnapshot({order:order.financialSnapshot.order,deliveryFunding:deliveryFunding??null});
  const commitment=operations.find(x=>x.Put?.TableName==='staging-Holds'&&x.Put.Item?.orderId===order.orderId&&x.Put.Item?.sk==='FULL_CASH_FUNDING_COMMITMENT')?.Put?.Item;
  if(snapshot.order.orderId!==order.orderId||snapshot.order.branchId!==order.storeId||snapshot.order.merchantId!==order.merchantId||snapshot.order.confirmedCustomerTotal.minorAmount!==order.pricing?.total||snapshot.order.allocation.paymentMethod!=='COD'||!same(snapshot,order.financialSnapshot)||!commitment||commitment.kind!=='FULL_CASH_FUNDING_COMMITMENT'||commitment.settlementModel!=='FULL_CASH_AT_DELIVERY_V1'||commitment.branchId!==order.storeId||commitment.merchantId!==order.merchantId||commitment.status!=='COMMITTED'||commitment.snapshotDigest!==snapshot.digest||!same(commitment.deliveryFunding,deliveryFunding??null)||!same(commitment.platformGoodsFunding,snapshot.order.allocation.platformGoodsDiscount)||operations.some(x=>x.Update?.TableName==='staging-Wallets'||x.Put?.TableName==='staging-Holds'&&['PROMOTION_FUNDING','DELIVERY_PROMOTION_FUNDING'].includes(x.Put.Item?.sk)))return fail();
+ if(commitment.cashRounding||order.commercialPricing?.cashRounding){
+  const cash=verifyCashRoundingEvidence(commitment.cashRounding);
+  if(!same(cash,order.commercialPricing?.cashRounding)||cash.customerTotal.minorAmount!==snapshot.order.confirmedCustomerTotal.minorAmount||cash.serviceFee.minorAmount!==snapshot.order.allocation.serviceFee.minorAmount)return fail();
+ }
  const amount=readMoney(snapshot.order.allocation.platformGoodsDiscount).minorAmount;
  if(amount>0){
   const exposure=verifyGoodsPromotionExposure(commitment.goodsExposure,snapshot.order.allocation.platformGoodsDiscount);

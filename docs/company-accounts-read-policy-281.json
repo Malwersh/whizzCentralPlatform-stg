@@ -69,7 +69,8 @@
             "amountMinor",
             "counterparty",
             "type",
-            "category"
+            "category",
+            "cashRounding"
           ]
         },
         "StringEquals": {
