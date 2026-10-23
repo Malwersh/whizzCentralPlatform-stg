@@ -1,0 +1,13 @@
+{
+  "part": 331,
+  "status": "ACCEPTANCE_VERIFIED_NO_SERVER_DEPLOYMENT",
+  "client": "wizzuser-stg shared-checkout-invoice-331",
+  "cases": [
+    "Prepared price and same request ID can be used with final customer/store/instruction metadata",
+    "NONE/MERCHANT/PLATFORM delivery funding preserve financial consent digest between preparation and commit",
+    "Replay commits exactly one mocked order"
+  ],
+  "testsPassed": 13,
+  "financialWrites": "Fixture-only; no actual order, wallet or usage mutation",
+  "backendRuntimeOrPolicyChanged": false
+}

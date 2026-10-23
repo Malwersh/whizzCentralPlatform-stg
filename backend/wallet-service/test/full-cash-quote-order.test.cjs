@@ -58,3 +58,11 @@ for(const [mode,enabled,total,service]of [['UP',true,7000,500],['DOWN',true,6750
  const preview=await f.invoke({action:'preview_commercial'});assert.equal(preview.statusCode,200,JSON.stringify(preview.json));assert.equal(preview.json.commercial.serviceFee.minorAmount,service*1000);assert.equal(preview.json.commercial.customerTotal.minorAmount,total*1000);
  const r=await f.invoke({commercialConsent:{digest:preview.json.commercial.digest,customerTotalMinor:total*1000}});assert.equal(r.statusCode,201,JSON.stringify(r.json));const order=[...f.orders.values()][0];assert.equal(order.commercialPricing.cashRounding.baseServiceFee.minorAmount,300000);assert.equal(order.pricing.serviceFee,service*1000);assert.equal(order.pricing.total,total*1000);
 });
+for(const source of ['NONE','MERCHANT','PLATFORM'])test('prepared invoice remains valid for final metadata and same request ID: '+source,async()=>{
+ const f=await setup();if(source==='NONE')f.enableCommercial();else f.enableDeliveryPromotions(source);f.env.FINANCIAL_SETTLEMENT_MODEL='FULL_CASH_AT_DELIVERY_V1';
+ const p=await f.invoke({action:'preview_commercial',storeName:'Informational name',customerName:null,customerPhone:null,deliveryInstructions:null});assert.equal(p.statusCode,200,JSON.stringify(p.json));assert.equal(f.orders.size,0);
+ const r=await f.invoke({storeName:'Current display name',customerName:'Synthetic',customerPhone:'synthetic',deliveryInstructions:'Current instructions',commercialConsent:{digest:p.json.commercial.digest,customerTotalMinor:p.json.commercial.customerTotal.minorAmount}});
+ assert.equal(r.statusCode,201,JSON.stringify(r.json));assert.equal(f.orders.size,1);
+ assert.equal((await f.invoke({storeName:'Current display name',customerName:'Synthetic',customerPhone:'synthetic',deliveryInstructions:'Current instructions',commercialConsent:{digest:p.json.commercial.digest,customerTotalMinor:p.json.commercial.customerTotal.minorAmount}})).statusCode,200);
+ assert.equal(f.orders.size,1);
+});

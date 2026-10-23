@@ -441,3 +441,7 @@ Set only فروج المدينة جديد business_fcade368-5514-44bb-a421-b8ada
 
 ## Part327 — cash rounding live (2026-10-23)
 General policy CURRENT v1 active: COD only, UP250 IQD, minimum effective service250. Whole invoice rounded once; signed delta lives in effective service. Immutable base/delta/final evidence, policy fence and minimum override stored with order/commitment and full-cash completion journal. Company chart/report expose base revenue and signed adjustment separately. Central pricing page cash section live, Amplify job167 verified. Actual create-order, standard/admin completion and staff report overlays published; writer CASH_ROUNDING_POLICY_MODE=REQUIRED. See docs/cash-rounding-327.json. Native customer simulator237 installed. No actual financial/order writes during verification; owner agreements untouched. Do not roll back settlement/report readers while rounded orders remain.
+
+
+## Part331 — client shared prepared invoice compatibility
+Customer now prepares/caches a scoped invoice early and reuses its quote/request ID for review; closing review is normal cancellation. Actual server handler fixture verified preparation digest remains valid with final display/contact/instruction metadata under NONE/MERCHANT/PLATFORM delivery funding, with one-order replay.13 targeted acceptance cases passed, three new. No server runtime, policy or live financial mutation. Customer simulator241 installed. See docs/prepared-invoice-compatibility-331.json and customer docs/shared-checkout-invoice-331.json.
