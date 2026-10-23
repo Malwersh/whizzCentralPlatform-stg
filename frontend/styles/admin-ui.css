@@ -77,23 +77,24 @@ body.wizz-shell {
   background: #f5f7fa;
   color: var(--admin-ink);
   font-family: var(--admin-font);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.75;
   -webkit-font-smoothing: antialiased;
 }
 body.wizz-shell *, body.wizz-shell *::before, body.wizz-shell *::after { box-sizing: border-box; }
 body.wizz-shell:not([data-page="promotions"]) > #mainContent { padding: 32px 36px 48px; background: #f5f7fa; }
 body.wizz-shell #mainContent > .page-content,
 body.wizz-shell #mainContent > .container { padding: 0; max-width: 1440px; margin-inline: auto; }
-body.wizz-shell #mainContent h1 { font: 700 clamp(25px, 2.4vw, 32px)/1.2 var(--admin-font); letter-spacing: -.8px; color: var(--admin-ink); margin: 0; }
-body.wizz-shell #mainContent h2 { color: var(--admin-ink); font-size: 18px; font-weight: 650; line-height: 1.4; }
+body.wizz-shell #mainContent h1 { font: 700 clamp(25px, 2.4vw, 32px)/1.2 var(--admin-font); letter-spacing: -.8px; color: var(--admin-ink); margin: 0; padding-block-end: 10px; border-block-end: 2px solid color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent); }
+body.wizz-shell #mainContent h2:not(.admin-section-heading h2) { color: var(--admin-ink); font-size: 22px; font-weight: 650; line-height: 1.4; margin-block: 24px 12px; }
+body.wizz-shell #mainContent h3 { color: var(--admin-ink); font-size: 18px; font-weight: 650; line-height: 1.5; margin-block: 20px 10px; }
 body.wizz-shell #mainContent :is(.top-bar,.dashboard-page-header,.support-header,.admin-page-header) {
   background: transparent; box-shadow: none; border: 0; padding: 0; margin: 0 0 28px;
   display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
 }
 body.wizz-shell #mainContent .top-bar-left { min-width: 0; gap: 12px; }
 body.wizz-shell .admin-heading-copy { min-width: 0; }
-body.wizz-shell .admin-eyebrow { display: block; margin-bottom: 9px; font-size: 10px; font-weight: 750; letter-spacing: 1.7px; color: #78869a; text-transform: uppercase; }
+body.wizz-shell .admin-eyebrow { display: block; margin-bottom: 9px; font-size: 13px; font-weight: 750; letter-spacing: 1.7px; color: #78869a; text-transform: uppercase; }
 body.wizz-shell #mainContent :is(.admin-heading-copy,.dashboard-page-header,.support-title) > p,
 body.wizz-shell .admin-page-description { margin: 9px 0 0; color: var(--admin-muted); font-size: 14px; max-width: 65ch; }
 body.wizz-shell .admin-heading-copy h1 > i { display: none; }
@@ -105,28 +106,28 @@ body.wizz-shell #sidebar .admin-brand-mark { inline-size: 34px; block-size: 34px
 body.wizz-shell #sidebar-placeholder #sidebar.collapsed .logo .admin-brand-mark { display: grid; }
 body.wizz-shell #sidebar .sidebar-nav { padding: 20px 10px !important; }
 body.wizz-shell #sidebar .sidebar-nav ul { gap: 3px !important; }
-body.wizz-shell #sidebar .md-navigation-item { min-height: 43px; padding: 10px 13px; margin: 0; gap: 12px; color: #b9c5d6; border-radius: 8px; font-size: 13px; font-weight: 500; }
+body.wizz-shell #sidebar .md-navigation-item { min-height: 43px; padding: 10px 13px; margin: 0; gap: 12px; color: #b9c5d6; border-radius: 8px; font-size: 14px; font-weight: 500; }
 body.wizz-shell #sidebar .md-navigation-item:hover { background: #ffffff0b; color: #fff; }
 body.wizz-shell #sidebar .nav-item.active > a { background: #f0c448; color: #172840; font-weight: 700; }
-body.wizz-shell #sidebar .md-navigation-item__icon { inline-size: 19px; block-size: 19px; opacity: 1; margin: 0; }
+body.wizz-shell #sidebar .md-navigation-item__icon { inline-size: 22px; block-size: 22px; flex: 0 0 22px; opacity: 1; margin: 0; }
 body.wizz-shell #sidebar .sidebar-footer { padding: 16px; background: #0d1c31; border-top: 1px solid #ffffff0c; }
 body.wizz-shell #sidebar .user-profile { gap: 10px; padding: 0 0 14px; }
-body.wizz-shell #sidebar .user-avatar { width: 32px; height: 32px; background: #2a405e; font-size: 13px; }
-body.wizz-shell #sidebar .user-name { color: #edf2f8; font-size: 12px; }
-body.wizz-shell #sidebar .user-role { color: #96a9c2; font-size: 11px; }
-body.wizz-shell #sidebar .logout-btn { background: #ffffff06; border: 1px solid #ffffff16; color: #c5d0df; border-radius: 7px; padding: 8px 12px; font-size: 12px; }
+body.wizz-shell #sidebar .user-avatar { width: 32px; height: 32px; background: #2a405e; font-size: 14px; }
+body.wizz-shell #sidebar .user-name { color: #edf2f8; font-size: 14px; }
+body.wizz-shell #sidebar .user-role { color: #96a9c2; font-size: 13px; }
+body.wizz-shell #sidebar .logout-btn { background: #ffffff06; border: 1px solid #ffffff16; color: #c5d0df; border-radius: 7px; padding: 8px 12px; font-size: 14px; }
 body.wizz-shell #sidebarToggle { background: transparent; border: 0; border-radius: 6px; color: #c5d0df; padding: 6px; cursor: pointer; }
 /* Metric cards: one hierarchy, no rainbow borders or hover movement. */
 body.wizz-shell #mainContent :is(.stats-grid,.customers-stats-grid,.orders-stats,.stats-container) { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,210px),1fr)); gap: 16px; margin-bottom: 24px; }
 body.wizz-shell #mainContent :is(.stat-card,.customer-stat-card) { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; box-shadow: none; padding: 20px; min-width: 0; transform: none; }
 body.wizz-shell #mainContent :is(.stat-card,.customer-stat-card)::before { display: none; }
 body.wizz-shell #mainContent .stat-content { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-body.wizz-shell #mainContent :is(.stat-icon,.customer-stat-card .stat-icon) { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 10px; background: #eef2f8 !important; color: #3c587b; font-size: 18px; margin-bottom: 12px; }
+body.wizz-shell #mainContent :is(.stat-icon,.customer-stat-card .stat-icon) { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 10px; background: #eef2f8 !important; color: #3c587b; font-size: 18px; margin-bottom: 12px; }
 body.wizz-shell #mainContent .stat-icon svg { width: 20px; height: 20px; }
 body.wizz-shell #mainContent .stat-info h3,
 body.wizz-shell #mainContent .stat-value { color: var(--admin-ink); font-family: inherit; font-size: 29px; font-weight: 650; line-height: 1.2; letter-spacing: -.8px; margin: 0 0 6px; font-variant-numeric: tabular-nums; }
-body.wizz-shell #mainContent :is(.stat-label,.stat-info p) { color: var(--admin-muted); font-size: 12px; margin: 0; }
-body.wizz-shell #mainContent .stat-change { font-size: 11px; color: var(--admin-muted); margin-top: 14px; }
+body.wizz-shell #mainContent :is(.stat-label,.stat-info p) { color: var(--admin-muted); font-size: 14px; margin: 0; }
+body.wizz-shell #mainContent .stat-change { font-size: 13px; color: var(--admin-muted); margin-top: 14px; }
 body.wizz-shell #mainContent :is(.stat-card,.customer-stat-card):hover { transform: none; box-shadow: 0 3px 12px #18273d06; }
 /* Tables and their filters share sizing and surfaces, preserving status semantics. */
 body.wizz-shell #mainContent :is(.controls-section,.orders-controls,.filters-section,.filter-section) { background: #fff; padding: 18px; border: 1px solid var(--admin-line); border-radius: 12px; box-shadow: none; margin-bottom: 20px; }
@@ -136,7 +137,7 @@ body.wizz-shell #mainContent .table-controls > :is(button,.filter-container) { f
 body.wizz-shell #mainContent .table-controls > .search-container { flex: 1 1 240px; max-width: none; }
 body.wizz-shell[data-page="drivers"] #mainContent .table-controls { border: 1px solid var(--admin-line); padding: 18px; border-radius: 12px; }
 body.wizz-shell[data-page="drivers"] #mainContent .table-controls :is(input,select) { height: 40px; }
-body.wizz-shell #mainContent .admin-section-heading a { color: #334d70; font-size: 12px; text-decoration: none; font-weight: 600; }
+body.wizz-shell #mainContent .admin-section-heading a { color: #334d70; font-size: 14px; text-decoration: none; font-weight: 600; }
 body.wizz-shell #mainContent .admin-section-heading a:hover { text-decoration: underline; }
 body.wizz-shell #version-badge:empty { display: none; }
 body.wizz-shell #mainContent .status-badge:is(.active,.approved,.online,.completed) { color: #176144; background: #eaf5ef; }
@@ -144,24 +145,55 @@ body.wizz-shell #mainContent .status-badge.pending { color: #8a611b; background:
 body.wizz-shell #mainContent .status-badge:is(.suspended,.rejected,.cancelled,.blocked) { color: #a1333d; background: #fceef0; }
 body.wizz-shell #mainContent :is(.search-container,.search-box) { min-width: min(200px,100%); }
 body.wizz-shell #mainContent :is(.table-container,.orders-table,.drivers-table-container,.data-table-container) { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; box-shadow: none; overflow-x: auto; }
-body.wizz-shell #mainContent table { width: 100%; border-collapse: collapse; color: var(--admin-ink); font-size: 13px; }
+body.wizz-shell #mainContent table { width: 100%; border-collapse: collapse; color: var(--admin-ink); font-size: 14px; }
 body.wizz-shell #mainContent .table-container table:has(th:nth-child(7)) { min-width: 880px; }
-body.wizz-shell #mainContent table th { padding: 14px 18px; font-family: inherit; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #65738a; background: #f8fafc; border-bottom: 1px solid var(--admin-line); text-align: start; }
+body.wizz-shell #mainContent table th { padding: 14px 18px; font-family: inherit; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #65738a; background: #f8fafc; border-bottom: 1px solid var(--admin-line); text-align: start; }
 body.wizz-shell #mainContent table td { padding: 16px 18px; border-bottom: 1px solid #edf0f4; color: #33445b; vertical-align: middle; }
 body.wizz-shell #mainContent table tbody tr:hover { background: #f8fafc; }
 body.wizz-shell #mainContent table tbody tr:last-child td { border-bottom: 0; }
 body.wizz-shell #mainContent :is(.table-header,.table-footer,.pagination-container) { padding: 16px 18px; gap: 12px; flex-wrap: wrap; }
-body.wizz-shell #mainContent :is(.status-banner,.data-source-indicator) { border: 1px solid #dce6f1; background: #edf3fa; color: #3b5473; box-shadow: none; border-radius: 10px; padding: 12px 16px; font-size: 12px; }
+body.wizz-shell #mainContent :is(.status-banner,.data-source-indicator) { border: 1px solid #dce6f1; background: #edf3fa; color: #3b5473; box-shadow: none; border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+/* Tables: quiet zebra, comfortable padding, consistent wrap surfaces. */
+body.wizz-shell #mainContent tbody tr:nth-child(even) { background: #fafbfd; }
+body.wizz-shell #mainContent table tbody tr:hover { background: #f4f7fb; }
+body.wizz-shell #mainContent table td { font-variant-numeric: tabular-nums; }
+body.wizz-shell #mainContent table caption { padding-block: 8px; font-size: 13px; color: var(--admin-muted); text-align: start; }
+body.wizz-shell #mainContent :is(.table-wrap,.scroll) { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; box-shadow: var(--md-sys-elevation-level1); overflow-x: auto; }
+/* Sections and cards share one surface, radius and vertical rhythm. */
+body.wizz-shell #mainContent :is(section,.card) { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; padding: 20px; margin-block: 20px; }
+body.wizz-shell #mainContent :is(section,.card) > :is(h2,h3):first-child { margin-block-start: 0; }
+/* Status messages: quiet banner with a platform-colored edge; empty ones stay hidden. */
+body.wizz-shell #mainContent :is(#message,.status,[role="status"]) { padding: 12px 16px; background: #f0f3f7; border-inline-start: 4px solid var(--md-sys-color-primary); border-radius: 8px; color: var(--admin-ink); font-size: 14px; line-height: 1.8; margin-block: 12px; }
+body.wizz-shell #mainContent :is(#message,.status,[role="status"]):empty { display: none; }
+body.wizz-shell #mainContent :is(#message,.status,[role="status"]).success { background: #eaf5ef; border-inline-start-color: var(--md-sys-color-success); color: #176144; }
+body.wizz-shell #mainContent :is(#message,.status,[role="status"]).error { background: #fceef0; border-inline-start-color: var(--md-sys-color-error); color: #a1333d; }
+/* Secondary copy stays quiet and readable. */
+body.wizz-shell #mainContent :is(.muted,small) { color: var(--admin-muted); line-height: 1.8; }
 /* Native forms remain native; never override hidden/display state globally. */
-body.wizz-shell #mainContent :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]) { font: inherit; color: var(--admin-ink); background-color: #fff; border: 1px solid #d6deea; border-radius: 8px; min-height: 40px; padding-block: 9px; max-width: 100%; }
-body.wizz-shell #mainContent :is(input,select,textarea):focus-visible { outline: 3px solid #33598926; outline-offset: 1px; border-color: #536f94; }
+body.wizz-shell #mainContent :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]) { font: inherit; color: var(--admin-ink); background-color: #fff; border: 1px solid #d6deea; border-radius: 8px; min-height: 44px; padding-block: 9px; padding-inline: 12px; max-width: 100%; }
+body.wizz-shell #mainContent :is(input,select,textarea):focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; border-color: var(--md-sys-color-primary); }
+/* Fields, labels, fieldsets and form grids share one rhythm; logical properties keep RTL/LTR automatic. */
+body.wizz-shell #mainContent :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):disabled { background-color: var(--md-sys-color-surface-container); color: var(--admin-muted); border-color: var(--admin-line); cursor: not-allowed; }
+body.wizz-shell #mainContent :is(input,select,textarea)::placeholder { color: var(--admin-muted); opacity: .85; }
+body.wizz-shell #mainContent input[type="number"] { text-align: start; font-variant-numeric: tabular-nums; }
+body.wizz-shell #mainContent label { text-align: start; font-size: 14px; font-weight: 500; color: var(--admin-ink); }
+body.wizz-shell #mainContent label:is(:has(> input),:has(> select),:has(> textarea)) { display: grid; gap: 6px; }
+body.wizz-shell #mainContent label:has(> input:is([type="checkbox"],[type="radio"])) { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+body.wizz-shell #mainContent input:is([type="checkbox"],[type="radio"]) { inline-size: 18px; block-size: 18px; margin: 0; flex: 0 0 auto; accent-color: var(--md-sys-color-primary); }
+body.wizz-shell #mainContent .form-group > label { display: block; margin-block-end: 7px; font-weight: 600; }
+body.wizz-shell #mainContent fieldset { border: 1px solid var(--admin-line); border-radius: 12px; padding: 18px; margin-block: 16px; min-inline-size: 0; }
+body.wizz-shell #mainContent legend { padding-inline: 8px; font-size: 14px; font-weight: 650; color: var(--admin-ink); }
+body.wizz-shell #mainContent textarea { resize: vertical; }
+body.wizz-shell #mainContent :is(.fields,.form-grid,.form-row) { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); align-items: end; }
+body.wizz-shell #mainContent :is(.form-actions,.button-row,.buttons-row,.actions-row) { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+body.wizz-shell #mainContent form > button + button { margin-inline-start: 12px; }
 body.wizz-shell #mainContent :is(button,.btn) { font-family: inherit; }
-body.wizz-shell #mainContent :is(.btn-primary,.md-button--filled) { background: #233f69; color: #fff; border: 1px solid #233f69; border-radius: 8px; padding: 10px 16px; min-height: 40px; font-size: 12px; font-weight: 600; box-shadow: none; }
-body.wizz-shell #mainContent :is(.btn-secondary,.md-button--outlined) { background: #fff; color: #334d70; border: 1px solid #d6deea; border-radius: 8px; padding: 10px 16px; min-height: 40px; font-size: 12px; font-weight: 600; box-shadow: none; }
+body.wizz-shell #mainContent :is(.btn-primary,.md-button--filled) { background: #233f69; color: #fff; border: 1px solid #233f69; border-radius: 8px; padding: 10px 16px; min-height: 44px; font-size: 14px; font-weight: 600; box-shadow: none; }
+body.wizz-shell #mainContent :is(.btn-secondary,.md-button--outlined) { background: #fff; color: #334d70; border: 1px solid #d6deea; border-radius: 8px; padding: 10px 16px; min-height: 44px; font-size: 14px; font-weight: 600; box-shadow: none; }
 body.wizz-shell #mainContent button:disabled { opacity: .5; cursor: not-allowed; }
 body.wizz-shell #mainContent :is(.btn-primary,.btn-secondary):hover:not(:disabled) { filter: brightness(.96); transform: none; }
 body.wizz-shell #mainContent :is(.btn-primary,.btn-secondary):focus-visible { outline: 3px solid #b6c7de; outline-offset: 3px; }
-body.wizz-shell #mainContent :is(.status-badge,.status-pill) { padding: 4px 9px; font-size: 10px; font-weight: 650; letter-spacing: .2px; border-radius: 6px; }
+body.wizz-shell #mainContent :is(.status-badge,.status-pill) { padding: 4px 9px; font-size: 13px; font-weight: 650; letter-spacing: .2px; border-radius: 6px; }
 body.wizz-shell[data-page="merchants"] #mainContent .btn-toggle-status.approved { background: #e8f5ee; color: #196345; }
 body.wizz-shell[data-page="merchants"] #mainContent .btn-toggle-status.pending { background: #fff4dc; color: #835c16; }
 body.wizz-shell #mainContent :is(.modal-content,.modal-dialog) { border: 1px solid var(--admin-line); border-radius: 14px; box-shadow: 0 24px 80px #13243d33; max-width: calc(100vw - 32px); }
@@ -182,23 +214,23 @@ body.wizz-shell .modal :is(.modal-header,.modal-footer) { padding: 18px 24px; ba
 body.wizz-shell .modal .modal-body { padding: 24px; }
 body.wizz-shell .modal .form-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); gap: 16px; }
 body.wizz-shell .modal :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="file"]) { max-width: 100%; min-width: 0; border: 1px solid #d6deea; border-radius: 8px; font: inherit; background: #fff; color: var(--admin-ink); padding: 10px 12px; }
-body.wizz-shell .modal :is(.btn-primary,.btn-secondary) { border-radius: 8px; padding: 10px 16px; font: 600 12px/1.5 var(--admin-font); }
+body.wizz-shell .modal :is(.btn-primary,.btn-secondary) { border-radius: 8px; padding: 10px 16px; font: 600 14px/1.65 var(--admin-font); }
 body.wizz-shell .modal .btn-primary { background: #233f69; color: #fff; border: 1px solid #233f69; }
 body.wizz-shell .modal .btn-secondary { background: #fff; color: #334d70; border: 1px solid #d6deea; }
 body.wizz-shell .modal .modal-close svg { width: 20px; height: 20px; }
 body.wizz-shell .modal .modal-close { min-width: 36px; min-height: 36px; display: inline-grid; place-items: center; }
 body.wizz-shell .admin-section-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin: 28px 0 16px; }
 body.wizz-shell .admin-section-heading h2 { margin: 0 0 4px; }
-body.wizz-shell .admin-section-heading p { margin: 0; color: var(--admin-muted); font-size: 13px; }
+body.wizz-shell .admin-section-heading p { margin: 0; color: var(--admin-muted); font-size: 14px; }
 body.wizz-shell .admin-shortcuts { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: 14px; }
 body.wizz-shell .admin-shortcut { display: flex; flex-direction: column; gap: 7px; color: var(--admin-ink); background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; padding: 20px; text-decoration: none; }
 body.wizz-shell .admin-shortcut:hover { border-color: #8499b6; }
 body.wizz-shell .admin-shortcut strong { font-size: 14px; }
-body.wizz-shell .admin-shortcut span { font-size: 12px; color: var(--admin-muted); }
+body.wizz-shell .admin-shortcut span { font-size: 14px; color: var(--admin-muted); }
 body.wizz-shell .admin-shortcut:focus-visible { outline: 3px solid #8499b6; outline-offset: 2px; }
 body.wizz-shell #mainContent details.admin-configuration { margin: 24px 0; padding: 0; border: 1px solid var(--admin-line); border-radius: 12px; background: #fff; }
 body.wizz-shell details.admin-configuration > summary { cursor: pointer; padding: 18px 20px; font-size: 14px; font-weight: 650; }
-body.wizz-shell details.admin-configuration > summary small { font-size: 12px; font-weight: 400; color: var(--admin-muted); margin-inline-start: 12px; }
+body.wizz-shell details.admin-configuration > summary small { font-size: 14px; font-weight: 400; color: var(--admin-muted); margin-inline-start: 12px; }
 body.wizz-shell #mainContent details.admin-configuration > .admin-configuration-body { padding: 0 20px 20px; }
 body.wizz-shell #mainContent .admin-configuration-body > details { border: 1px solid var(--admin-line); border-radius: 8px !important; margin-bottom: 10px !important; padding: 14px 16px !important; }
 body.wizz-shell #mainContent details summary { cursor: pointer; }
@@ -207,7 +239,7 @@ body.wizz-shell[data-page="support"] #mainContent .support-container { border: 1
 body.wizz-shell[data-page="support"] #mainContent .sessions-panel { background: #fff; }
 body.wizz-shell[data-page="support"] #mainContent .chat-panel { background: #fff; }
 body.wizz-shell[data-page="support"] #mainContent .support-header { color: var(--admin-ink); }
-body.wizz-shell[data-page="support"] #mainContent .quick-action-button { background: #233f69; border: 1px solid #233f69; border-radius: 8px; font-size: 12px; }
+body.wizz-shell[data-page="support"] #mainContent .quick-action-button { background: #233f69; border: 1px solid #233f69; border-radius: 8px; font-size: 14px; }
 body.wizz-shell[data-page="support"] #mainContent .support-container { height: min(760px,calc(100dvh - 172px)); min-height: 480px; }
 body.wizz-shell[data-page="support"] #mainContent .sessions-panel { width: 330px; min-width: 0; }
 body.wizz-shell[data-page="support"] #mainContent .sessions-list .empty-state { min-height: 140px; height: auto; padding: 18px 10px; }
@@ -225,7 +257,7 @@ body.wizz-shell[data-page="financial"] #mainContent :is(.section-card,.tabs-cont
 body.wizz-shell[data-page="financial"] #mainContent .tab-buttons { display: flex; flex-wrap: wrap; }
 body.wizz-shell[data-page="financial"] #mainContent .financial-container { padding: 0; }
 body.wizz-shell[data-page="financial"] #mainContent .tab-navigation { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; }
-body.wizz-shell[data-page="financial"] #mainContent .tab-button { flex: 1 0 auto; padding: 14px 18px; font-size: 12px; white-space: nowrap; }
+body.wizz-shell[data-page="financial"] #mainContent .tab-button { flex: 1 0 auto; padding: 14px 18px; font-size: 14px; white-space: nowrap; }
 body.wizz-shell[data-page="financial"] #mainContent .tab-button.active { background: #fff; color: #233f69; }
 body.wizz-shell[data-page="financial"] #mainContent .metric-card { background: #fff; border: 1px solid var(--admin-line); border-radius: 10px; box-shadow: none; }
 body.wizz-shell[data-page="financial"] #mainContent .metric-value { color: var(--admin-ink); }
@@ -234,14 +266,14 @@ body.wizz-shell[data-page="financial"] #mainContent .section-title > .icon { dis
 @media (width < 600px) {
   body.wizz-shell[data-page="financial"] #mainContent :is(.tab-content,.section-card) { padding: 18px; }
 }
-body.wizz-shell #mainContent :is(.button-primary,.btn-add-region,.primary-btn) { background: #233f69; color: #fff; border: 1px solid #233f69; border-radius: 8px; padding: 10px 16px; font-size: 12px; }
-body.wizz-shell #mainContent :is(.button-secondary,.secondary-btn) { background: #fff; color: #334d70; border: 1px solid #d6deea; border-radius: 8px; padding: 10px 16px; font-size: 12px; }
+body.wizz-shell #mainContent :is(.button-primary,.btn-add-region,.primary-btn) { background: #233f69; color: #fff; border: 1px solid #233f69; border-radius: 8px; padding: 10px 16px; font-size: 14px; }
+body.wizz-shell #mainContent :is(.button-secondary,.secondary-btn) { background: #fff; color: #334d70; border: 1px solid #d6deea; border-radius: 8px; padding: 10px 16px; font-size: 14px; }
 body.wizz-shell #mainContent :is(.settings-content,.staff-content) section { background: #fff; border: 1px solid var(--admin-line); border-radius: 12px; }
 body.wizz-shell #mainContent .staff-content { max-width: 1440px; padding: 0; margin: auto; }
 body.wizz-shell #mainContent .staff-content :is(input,select,textarea) { max-width: 100%; }
-body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content) button:not(#menuToggle) { font: 600 12px/1.5 var(--admin-font); border: 1px solid #233f69; border-radius: 8px; background: #233f69; color: #fff; padding: 10px 16px; min-height: 40px; cursor: pointer; }
+body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content) button:not(#menuToggle) { font: 600 14px/1.65 var(--admin-font); border: 1px solid #233f69; border-radius: 8px; background: #233f69; color: #fff; padding: 10px 16px; min-height: 44px; cursor: pointer; }
 body.wizz-shell #mainContent :is(.finance-content,.staff-content,.settings-content) button:disabled { opacity: .5; cursor: not-allowed; }
-body.wizz-shell #mainContent :is(.staff-content,.settings-content) > a { display: inline-block; font-size: 12px; color: #3d587c; margin-inline-end: 16px; margin-block: 8px; }
+body.wizz-shell #mainContent :is(.staff-content,.settings-content) > a { display: inline-block; font-size: 14px; color: #3d587c; margin-inline-end: 16px; margin-block: 8px; }
 body.wizz-shell #mainContent .finance-content label { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-block: 14px; }
 body.wizz-shell #mainContent .finance-content label:has(>input[type="checkbox"]) { flex-direction: row; align-items: center; }
 body.wizz-shell #mainContent .finance-content label > :is(input,select,textarea):not([type="checkbox"]) { margin: 0; width: min(100%,360px); }
@@ -262,7 +294,7 @@ body.wizz-shell .wizz-shell-bar { margin-bottom: 20px; }
   body.wizz-shell #mainContent :is(.stat-card,.customer-stat-card) { padding: 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
   body.wizz-shell #mainContent .stat-content { flex-direction: column-reverse; align-items: flex-start; gap: 8px; }
   body.wizz-shell #mainContent .stat-value, body.wizz-shell #mainContent .stat-info h3 { font-size: 25px; }
-  body.wizz-shell #mainContent .stat-icon { width: 32px; height: 32px; flex-basis: 32px; margin-bottom: 0; font-size: 14px; }
+  body.wizz-shell #mainContent .stat-icon { width: 40px; height: 40px; flex-basis: 40px; margin-bottom: 0; font-size: 21px; }
   body.wizz-shell #mainContent :is(.table-controls,.controls-row,.filter-container,.filter-group) { flex-wrap: wrap; min-width: 0; }
   body.wizz-shell #mainContent :is(.filter-container,.filter-group) > select { min-width: 0; max-width: 100%; flex: 1 1 130px; }
   body.wizz-shell #mainContent :is(.top-bar,.dashboard-page-header,.support-header,.admin-page-header) { margin-bottom: 22px; gap: 14px; }
@@ -283,29 +315,38 @@ body.wizz-shell .wizz-shell-bar { margin-bottom: 20px; }
 body.wizz-shell {
   --admin-font: "Wizz Arabic", Tahoma, Arial, sans-serif;
   font-family: var(--admin-font);
+  --md-sys-typescale-body-large-font-size: 16px;
+  --md-sys-typescale-body-large-line-height: 28px;
+  --md-sys-typescale-body-medium-font-size: 15px;
+  --md-sys-typescale-body-medium-line-height: 26px;
+  --md-sys-typescale-body-small-font-size: 13px;
+  --md-sys-typescale-body-small-line-height: 23px;
+  --md-sys-typescale-label-large-font-size: 15px;
+  --md-sys-typescale-label-medium-font-size: 14px;
+  --md-sys-typescale-label-small-font-size: 13px;
   line-height: 1.75;
   text-align: start;
 }
 body.wizz-shell :is(button,input,select,textarea) { font-family: var(--admin-font); }
 body.wizz-shell #mainContent :is(h1,h2,h3) { letter-spacing: 0; line-height: 1.6; }
-body.wizz-shell .admin-eyebrow { font-size: 12px; letter-spacing: 0; text-transform: none; }
-body.wizz-shell #mainContent :is(.stat-label,.stat-info p) { font-size: 13px; line-height: 1.7; }
-body.wizz-shell #sidebar .md-navigation-item { font-size: 14px; min-block-size: 46px; }
+body.wizz-shell .admin-eyebrow { font-size: 14px; letter-spacing: 0; text-transform: none; }
+body.wizz-shell #mainContent :is(.stat-label,.stat-info p) { font-size: 14px; line-height: 1.7; }
+body.wizz-shell #sidebar .md-navigation-item { font-size: 15px; min-block-size: 52px; line-height: 1.65; gap: 14px; }
 body.wizz-shell #sidebar .logo { letter-spacing: 0; }
 body.wizz-shell #mainContent table th {
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0;
   text-transform: none;
   text-align: start;
   white-space: normal;
 }
 body.wizz-shell #mainContent table td { text-align: start; line-height: 1.7; }
-body.wizz-shell #mainContent :is(.status-badge,.status-pill) { font-size: 12px; letter-spacing: 0; }
+body.wizz-shell #mainContent :is(.status-badge,.status-pill) { font-size: 14px; letter-spacing: 0; }
 body.wizz-shell :is(.modal,dialog) { text-align: start; font-family: var(--admin-font); }
 body.wizz-shell :is(.modal,dialog) :is(h2,h3,p,label) { line-height: 1.7; }
 body.wizz-shell #mainContent :is(.btn-primary,.btn-secondary,.md-button--filled,.md-button--outlined) {
   min-block-size: 44px;
-  font-size: 13px;
+  font-size: 14px;
 }
 body.wizz-shell :is(input[type="email"],input[type="url"],input[type="tel"],input[type="password"],code,pre,[dir="ltr"]) {
   direction: ltr;
@@ -375,4 +416,30 @@ body.wizz-shell :is(button,a,input,select,textarea,summary):focus-visible {
   body.wizz-shell .modal :is(.modal-header,.modal-body,.modal-footer) { padding: 16px; }
   body.wizz-shell .modal .modal-footer > :is(button,.btn) { flex: 1 1 140px; }
   body.wizz-shell .modal .modal-body .form-row { grid-template-columns: minmax(0,1fr); }
+}
+
+/* Shared text and action icons; preserve Font Awesome/Material icon font families. */
+@media screen {
+  body.wizz-shell #mainContent :is(h1,h2,h3,h4,p,label,table,summary),
+  body.wizz-shell .modal :is(h1,h2,h3,h4,p,label) { font-family: var(--admin-font); }
+  body.wizz-shell #mainContent :is(input,select,textarea):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=color]) {
+    font-size: 15px; line-height: 1.7;
+  }
+  body.wizz-shell #mainContent :is(button,.btn,.md-button) { font-size: 14px; line-height: 1.6; min-block-size: 44px; }
+  body.wizz-shell #mainContent :is(.action-btn,.icon-btn,.btn-icon,.md-icon-button,.action-button) {
+    min-inline-size: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  body.wizz-shell #mainContent :is(button,.btn,.search-container,.search-box,.table-actions)
+    :is(i.fa,i.fas,i.far,i.fa-solid,i.fa-regular,.material-icons,.material-symbols-outlined) {
+    font-size: 20px; line-height: 1; flex-shrink: 0;
+  }
+  body.wizz-shell #mainContent :is(button,.btn,.md-icon-button) > svg {
+    inline-size: 20px; block-size: 20px; flex-shrink: 0;
+  }
+  body.wizz-shell #sidebar .md-navigation-item__text { white-space: normal; overflow-wrap: anywhere; }
+  body.wizz-shell #sidebar .logout-btn { min-block-size: 44px; }
+  body.wizz-shell .modal .modal-close { min-inline-size: 44px; min-block-size: 44px; font-size: 24px; }
+}
+@media screen and (width < 600px) {
+  body.wizz-shell #mainContent :is(input,select,textarea):not([type=checkbox]):not([type=radio]) { font-size: 16px; }
 }

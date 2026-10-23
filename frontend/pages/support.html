@@ -14,10 +14,13 @@
     <!-- Support Internationalization -->
     <script src="../assets/js/support-i18n.js?v=20261017-ar1"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <link rel="stylesheet" id="wizz-shell-styles" href="../styles/app-shell.css?v=20261022-rtl1">
+    <link rel="stylesheet" id="wizz-admin-styles" href="../styles/admin-ui.css?v=20261024-tables1">
+    <link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1">
     <script src="../styles/wizz-theme-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../styles/dashboard.css">
+    <link rel="stylesheet" href="../styles/support-workspace.css">
     <!-- Security utilities -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script>
@@ -41,659 +44,8 @@
     <script src="../assets/js/auth-utils.js?v=20261011-session-fix2"></script>
     <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
     <script src="../assets/js/rbac-early-check.js"></script>
-    <style>
-        .support-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 2rem;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .support-title h1 {
-            margin: 0;
-            font-size: 1.875rem;
-            font-weight: 700;
-            color: #1f2937;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .support-title p {
-            margin: 0.25rem 0 0 0;
-            font-size: 1rem;
-            color: #6b7280;
-        }
-        
-        .support-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .support-container {
-            display: flex;
-            height: calc(100vh - 140px);
-            background: #f8fafc;
-        }
-        
-        .sessions-panel {
-            width: 400px;
-            background: white;
-            border-right: 1px solid #e5e7eb;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .sessions-header {
-            padding: 1.5rem 1.5rem 1rem 1.5rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            background: #f3f4f6;
-            border: 1px solid #d1d5db;
-        }
-        
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10b981;
-        }
-        
-        .status-indicator.connected {
-            background: #10b981;
-        }
-        
-        .status-indicator.disconnected {
-            background: #ef4444;
-        }
-        
-        .status-indicator.connecting {
-            background: #f59e0b;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .section-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #374151;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-        }
-        
-        .sessions-list {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        .session-card {
-            padding: 1rem;
-            border-radius: 0.75rem;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .session-card:hover {
-            background: #f8fafc;
-            border-color: #d1d5db;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-            transform: translateY(-1px);
-        }
-        
-        .session-card.active {
-            background: #eff6ff;
-            border-color: #3b82f6;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-        }
-        
-        /* Closed session styles */
-        .session-card.closed-session {
-            opacity: 0.8;
-            background: #f9fafb;
-            border-color: #e5e7eb;
-        }
-        
-        .session-card.closed-session:hover {
-            opacity: 1;
-            background: #f3f4f6;
-            border-color: #d1d5db;
-        }
-        
-        .session-card.closed-session.active {
-            background: #f3f4f6;
-            border-color: #9ca3af;
-            opacity: 1;
-        }
-        
-        .session-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .customer-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--md-sys-color-on-primary);
-            font-weight: 600;
-            font-size: 0.875rem;
-            flex-shrink: 0;
-        }
-        
-        .session-details {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .customer-name {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.25rem;
-            font-size: 0.95rem;
-        }
-        
-        .last-message {
-            font-size: 0.875rem;
-            color: #6b7280;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.4;
-        }
-        
-        .session-meta {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 0.25rem;
-        }
-        
-        .message-time {
-            font-size: 0.75rem;
-            color: #9ca3af;
-            font-weight: 500;
-        }
-        
-        .unread-badge {
-            background: var(--md-sys-color-error);
-            color: var(--md-sys-color-on-error);
-            font-size: 0.75rem;
-            padding: 0.125rem 0.5rem;
-            border-radius: 9999px;
-            font-weight: 500;
-        }
-        
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #ffffff;
-        }
-        
-        .chat-header {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #e5e7eb;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .chat-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .chat-title h2 {
-            margin: 0;
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #111827;
-        }
-        
-        .chat-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-        
-        .btn-primary {
-            background: var(--md-sys-color-primary);
-            color: var(--md-sys-color-on-primary);
-        }
-        
-        .btn-primary:hover {
-            background: var(--wizz-primary-dark);
-        }
-        
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
-            border: 1px solid #d1d5db;
-        }
-        
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-        
-        .chat-messages {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            background: #f9fafb;
-        }
-        
-        .message {
-            margin-bottom: 1rem;
-            display: flex;
-            gap: 0.75rem;
-        }
-        
-        .message.agent {
-            flex-direction: row-reverse;
-        }
-        
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #6b7280;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 0.75rem;
-            flex-shrink: 0;
-        }
-        
-        .message.agent .message-avatar {
-            background: #00c2e8;
-        }
-        
-        .message-content {
-            max-width: 70%;
-        }
-        
-        .message-bubble {
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            background: white;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .message.agent .message-bubble {
-            background: #00c2e8;
-            color: white;
-        }
-        
-        .message-text {
-            margin: 0;
-            line-height: 1.5;
-        }
-        
-        .message-timestamp {
-            font-size: 0.75rem;
-            color: #6b7280;
-            margin-top: 0.25rem;
-        }
-        
-        .chat-input {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #e5e7eb;
-            background: white;
-        }
-        
-        .input-container {
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-end;
-        }
-        
-        .message-input {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            resize: none;
-            font-family: inherit;
-            min-height: 44px;
-            max-height: 120px;
-        }
-        
-        .message-input:focus {
-            outline: none;
-            border-color: #00c2e8;
-            box-shadow: 0 0 0 1px #00c2e8;
-        }
-        
-        .send-button {
-            background: #00c2e8;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .send-button:hover {
-            background: #009bb8;
-        }
-        
-        .send-button:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
-        
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            text-align: center;
-            color: #6b7280;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #d1d5db;
-        }
-        
-        .empty-state h3 {
-            margin: 0 0 0.5rem 0;
-            font-size: 1.125rem;
-            font-weight: 600;
-        }
-        
-        .empty-state p {
-            margin: 0;
-            font-size: 0.875rem;
-        }
-        
-        .quick-action-button {
-            padding: 0.5rem 1rem;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .quick-action-button:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-        
-        .quick-action-button:active {
-            transform: translateY(0);
-        }
-        
-        .quick-action-button i {
-            font-size: 0.875rem;
-        }
-        
-        .quick-action-button:focus {
-            outline: 2px solid #3b82f6;
-            outline-offset: 2px;
-        }
-        
-        .ai-trigger-btn {
-            background: linear-gradient(135deg, #7c3aed, #4c1d95);
-            color: #fff;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.65rem 0.9rem;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .ai-trigger-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 18px rgba(124, 58, 237, 0.35);
-        }
-        
-        .ai-suggestion-panel {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.85rem;
-            padding: 1rem 1.1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.12);
-        }
-        
-        .ai-suggestion-panel.hidden {
-            display: none;
-        }
-        
-        .ai-suggestion-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-        }
-        
-        .ai-suggestion-header .ai-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #ede9fe;
-            color: #5b21b6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-        
-        .ai-suggestion-header .ai-title {
-            font-weight: 600;
-            margin-left: 0.5rem;
-            color: #111827;
-        }
-        
-        .ai-close-btn {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            color: #6b7280;
-            cursor: pointer;
-        }
-        
-        .ai-suggestion-body {
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-        }
-        
-        .ai-loading,
-        .ai-error,
-        .ai-content {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .ai-loading.hidden,
-        .ai-error.hidden,
-        .ai-content.hidden {
-            display: none;
-        }
-        
-        .ai-loading .spinner {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 3px solid #e0e7ff;
-            border-top-color: #6366f1;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        .ai-suggestion-text {
-            font-size: 0.95rem;
-            color: #111827;
-            line-height: 1.45;
-        }
-        
-        .ai-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        
-        .ai-actions button {
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.5rem 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        .btn-ai-use {
-            background: #10b981;
-            color: #fff;
-        }
-        
-        .btn-ai-regenerate {
-            background: #f59e0b;
-            color: #1f2937;
-        }
-        
-        .btn-ai-dismiss,
-        .btn-ai-retry {
-            background: #f3f4f6;
-            color: #111827;
-        }
-        
-        .ai-footer {
-            text-align: right;
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-        
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        
-        @media (max-width: 1024px) {
-            .support-container {
-                flex-direction: column;
-                height: calc(100vh - 120px);
-            }
-            
-            .sessions-panel {
-                width: 100%;
-                height: 300px;
-                border-right: none;
-                border-bottom: 1px solid #e5e7eb;
-            }
-            
-            .support-header {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-            
-            .support-controls {
-                justify-content: center;
-            }
-        }
-        
-        /* RTL-specific adjustments */
-        [dir="rtl"] .sessions-panel {
-            border-right: none;
-            border-left: 1px solid #e5e7eb;
-        }
-        
-        [dir="rtl"] .message {
-            direction: rtl;
-        }
-        
-        [dir="rtl"] .message.agent {
-            flex-direction: row;
-        }
-        
-        [dir="rtl"] .message:not(.agent) {
-            flex-direction: row-reverse;
-        }
-        
-        @media (max-width: 768px) {
-            .support-header {
-                padding: 1rem;
-            }
-            
-            .support-title h1 {
-                font-size: 1.5rem;
-            }
-            
-            .sessions-panel {
-                height: 250px;
-            }
-            
-            .session-card {
-                padding: 0.75rem;
-            }
-            
-            .customer-avatar {
-                width: 36px;
-                height: 36px;
-            }
-        }
-    </style>
-<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
-<body data-page="support">
+</head>
+<body class="wizz-shell" data-page="support">
     <!-- Standard WizzCentral Sidebar -->
     <div id="sidebar-placeholder"></div>
 
@@ -771,6 +123,7 @@
                     <p data-i18n="selectConversationDesc">اختر محادثة نشطة من الشريط الجانبي لبدء مساعدة العملاء</p>
                 </div>
             </div>
+            <p id="chatFeedback" role="status" aria-live="polite" aria-atomic="true"></p>
             <div class="chat-input" id="chatInputArea" style="display: none;" data-write-only>
                 <div class="input-container">
                     <textarea class="message-input" id="messageInput" data-i18n-placeholder="typeYourMessage" placeholder="اكتب رسالتك..."
@@ -789,6 +142,7 @@
         window.DISABLE_GLOBAL_WS_MANAGER = true;
     </script>
     <script src="../assets/js/websocket-manager.js?v=1763059200"></script>
+    <script src="../js/support/SupportAttachments.js?v=20261023-private-images"></script>
     <script src="../js/support/ChatSessionService.js?v=1763059200"></script>
     <script src="../js/support/LiveChatSocket.js?v=1763059200"></script>
     <script src="../js/auto-session-filter.js?v=1763059200"></script>
@@ -813,11 +167,20 @@
     </script>
 
     <script>
+        function sessionDisplayName(session) {
+            const info = session?.payload || session || {};
+            const role = session?.userType || info.userType;
+            return session?.userDisplayName || info.userDisplayName || session?.customerName || info.customerName ||
+                session?.merchantName || info.merchantName || session?.driverName || info.driverName ||
+                (role === 'customer' ? 'زبون' : role === 'merchant' ? 'متجر' : 'سائق');
+        }
+
         // Global variables
         let activeChatSessions = new Map();
         let currentSessionId = null;
         let wsManager = null;
             let merchantChatWS = null;
+            let merchantAuthConnecting = false;
             let merchantSessions = new Map();
             let closedSessions = new Map();  // Store recently closed sessions
             let merchantStatusWatchId = null; // 🔍 Watchdog for reflecting merchant WS state into UI
@@ -836,6 +199,29 @@
             }
             // ▶️ Track last joined session to avoid redundant join_channel calls
             let lastJoinedSessionId = null;
+            const pendingReplies = new Map();
+
+            function showChatFeedback(message) {
+                const feedback = document.getElementById('chatFeedback');
+                if (feedback) feedback.textContent = message;
+            }
+
+            function settleReply(clientMessageId, sessionId, status, serverMessageId) {
+                const pending = pendingReplies.get(clientMessageId);
+                if (!pending || pending.sessionId !== sessionId) return;
+                clearTimeout(pending.timer);
+                pending.message.deliveryStatus = status;
+                if (serverMessageId) pending.message.id = serverMessageId;
+                // Keep timed-out entries so a late acknowledgement can still confirm them.
+                if (status === 'accepted') pendingReplies.delete(clientMessageId);
+                if (currentSessionId === sessionId) {
+                    const transcript = document.getElementById('chatMessages');
+                    if (transcript) {
+                        transcript.innerHTML = '';
+                        (merchantSessions.get(sessionId)?.messages || []).forEach(appendMessageToChat);
+                    }
+                }
+            }
             // ▶️ De-dupe window to avoid echoing agent messages from server after optimistic append
             const DUPLICATE_WINDOW_MS = 3000;
 
@@ -926,8 +312,7 @@
             document.addEventListener('DOMContentLoaded', function () {
                 console.log('🚀 Production Support page initializing...');
                 console.log('🔍 DEBUG: Script version check - FIX APPLIED v3 - TIMESTAMP: 1736100000');
-                // Request notification permission
-                requestNotificationPermission();
+                // Permission prompts must follow an explicit user action, never page load.
 
             console.log('🎯 Using merchant chat system as primary connection');
 
@@ -1027,10 +412,11 @@
             }
         };
 
-            function initializeMerchantChatSystem() {
+            async function initializeMerchantChatSystem() {
                 console.log('🏪 Initializing merchant chat system...');
 
-            // Prevent parallel sockets
+            // Prevent parallel sockets, including while renewing the login session.
+            if (merchantAuthConnecting) return;
             if (merchantChatWS && (merchantChatWS.readyState === WebSocket.OPEN || merchantChatWS.readyState === WebSocket.CONNECTING)) {
                 console.log('🔁 Merchant WS already active (state:', merchantChatWS.readyState, ')');
                 return;
@@ -1046,7 +432,23 @@
             if (String(MERCHANT_WS_URL).includes('/dev')) {
                 throw new Error(`Refusing to connect to dev merchant WS in staging: ${MERCHANT_WS_URL}`);
             }
-            const AGENT_ID = 'agent_' + Date.now();
+            let token;
+            merchantAuthConnecting = true;
+            try {
+                await window.Auth.ensureSession();
+                token = window.Auth.getToken('idToken');
+                if (!token) throw new Error('Missing support session');
+            } catch (_) {
+                updateConnectionStatus('disconnected');
+                showChatFeedback('تعذر التحقق من تسجيل الدخول؛ حدّث جلستك ثم أعد الاتصال.');
+                return;
+            } finally {
+                merchantAuthConnecting = false;
+            }
+            const authenticatedUrl = new URL(MERCHANT_WS_URL);
+            authenticatedUrl.searchParams.set('token', token);
+            authenticatedUrl.searchParams.set('userType', 'support');
+            const AGENT_ID = null; // The server binds the agent identity to the verified token.
             const AGENT_NAME = 'Support Agent';
 
             // Clean old handlers/socket if present
@@ -1055,7 +457,7 @@
             console.log('🔗 Attempting to connect to:', MERCHANT_WS_URL);
             console.log('⚠️ NOTE: If connection fails, check AWS WebSocket API Gateway configuration');
             
-            merchantChatWS = new WebSocket(MERCHANT_WS_URL);
+            merchantChatWS = new WebSocket(authenticatedUrl.toString());
             
             // Add connection timeout (10 seconds)
             let connectionTimeout = setTimeout(() => {
@@ -1084,6 +486,8 @@
                 // Clear connection timeout
                 try { clearTimeout(connectionTimeout); } catch (_) { }
                 
+                // A new connection must rejoin the selected conversation.
+                lastJoinedSessionId = null;
                 // Reset reconnect backoff
                 try { if (merchantReconnectTimer) clearTimeout(merchantReconnectTimer); } catch (_) { }
                 merchantReconnectAttempts = 0;
@@ -1092,11 +496,11 @@
                 const msg = {
                     action: 'chat_agent_connect',
                     type: 'chat_agent_connect',
-                    agentId: AGENT_ID,
                     agentName: AGENT_NAME
                 };
                 merchantChatWS.send(JSON.stringify(msg));
                 console.log('📤 Sent merchant agent_connect');
+                if (currentSessionId) selectSession(currentSessionId);
 
                 // Expose agent identity for subsequent join_channel actions
                 try { window.MERCHANT_AGENT_ID = AGENT_ID; window.MERCHANT_AGENT_NAME = AGENT_NAME; } catch (_) { }
@@ -1113,11 +517,10 @@
             };
 
             merchantChatWS.onerror = (error) => {
-                console.error('❌ Merchant chat WebSocket error:', error);
+                console.error('❌ Merchant chat WebSocket error:', error.type);
                 console.error('❌ WebSocket endpoint:', MERCHANT_WS_URL);
                 console.error('❌ Error details:', {
                     type: error.type,
-                    target: error.target,
                     timestamp: new Date().toISOString(),
                     readyState: merchantChatWS?.readyState
                 });
@@ -1201,7 +604,11 @@
                         <div class="message-text">${safeText(message.messageText || message.text || '')}</div>
                     </div>
                     <div class="message-timestamp">${new Date(message.timestamp || Date.now()).toLocaleTimeString()}</div>
+                    ${message.deliveryStatus ? `<div class="message-delivery-status">${safeText({pending: 'بانتظار تأكيد الخدمة', accepted: 'حُفظت لدى الخدمة؛ لا يعني ذلك قراءتها', unknown: 'لم يتأكد الإرسال؛ تحقق من السجل قبل إعادة الإرسال'}[message.deliveryStatus] || '')}</div>` : ''}
                 </div>`;
+            if (message.attachment && window.SupportAttachments) {
+                el.querySelector('.message-bubble')?.appendChild(window.SupportAttachments.createPreview(message.attachment, message.sessionId));
+            }
             chatMessages.appendChild(el);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -1244,7 +651,6 @@
                 }
                 if (activeCount) activeCount.textContent = String(merchantSessions.size);
             }
-        }
 
             function selectSession(sessionId) {
                 currentSessionId = sessionId;
@@ -1255,7 +661,7 @@
 
                 // Use i18n for chat title
                 const defaultTitle = window.SupportI18n ? window.SupportI18n.t('selectConversation') : 'Select a conversation';
-                if (chatTitle) chatTitle.textContent = sess ? (sess.customer || sess.driverName || 'Conversation') : defaultTitle;
+                if (chatTitle) chatTitle.textContent = sess ? (sessionDisplayName(sess) + (sess.orderId ? ' — الطلب ' + sess.orderId : '')) : defaultTitle;
                 
                 if (chatInputArea) chatInputArea.style.display = sess ? '' : 'none';
                 if (endSessionBtn) endSessionBtn.style.display = sess ? '' : 'none';
@@ -1293,9 +699,15 @@
                 const type = data.type || data.action;
                 if (!type) return;
 
+            if (type === 'error') {
+                showChatFeedback(data.code === 'AUTH_REQUIRED'
+                    ? 'انتهت صلاحية اتصال الدعم؛ أعد الاتصال لتحديث الجلسة. لن نعيد إرسال الرسائل تلقائيًا.'
+                    : 'لم تقبل الخدمة الطلب. تحقق من حالة المحادثة وصلاحياتك قبل المحاولة مجددًا.');
+                return;
+            }
             // Ack, auth, and connection confirmations
             if (type === 'message_ack') {
-                console.log('✅ Message ACK:', data.messageId, 'session:', data.sessionId);
+                settleReply(data.clientMessageId, data.sessionId, 'accepted', data.messageId);
                 return;
             }
             if (type === 'agent_authenticated' || type === 'connection_confirmed') {
@@ -1311,15 +723,19 @@
 
             // Normalize message payload
             if (type === 'chat_message' || type === 'driver_message' || type === 'CHAT_MESSAGE' || type === 'new_message') {
-                const payload = typeof data.message === 'object' ? data.message : data;
+                const payload = data.message && typeof data.message === 'object' ? data.message : data;
                 const sessionId = payload.sessionId || payload.session_id || data.sessionId || data.session_id;
                 if (!sessionId) return;
 
+                if (payload.senderType === 'agent' && payload.clientMessageId) {
+                    settleReply(payload.clientMessageId, sessionId, 'accepted', payload.messageId);
+                }
                 const msg = {
-                    id: payload.messageId || `msg_${Date.now()}`,
+                    id: payload.messageId || payload.id || `msg_${Date.now()}_${Math.random().toString(36).slice(2)}`,
                     sessionId,
                     senderType: (payload.senderType === 'driver' || payload.senderType === 'user') ? 'driver' : (payload.senderType || 'agent'),
                     senderName: payload.senderName || ((payload.senderType === 'driver' || payload.senderType === 'user') ? 'Driver' : 'Support Agent'),
+                    attachment: payload.attachment || null,
                     messageText: (payload.messageText || payload.text || data.message || data.messageText || ''),
                     timestamp: payload.createdAt || payload.timestamp || data.timestamp || new Date().toISOString()
                 };
@@ -1328,7 +744,9 @@
                 if (!merchantSessions.has(sessionId)) {
                     merchantSessions.set(sessionId, {
                         id: sessionId,
-                        driverName: msg.senderType === 'driver' ? (msg.senderName || 'Driver') : (payload.driverName || data.driverName || 'Driver'),
+                        driverName: sessionDisplayName(data),
+                        userType: data.userType,
+                        orderId: data.orderId || null,
                         lastMessage: msg.messageText,
                         time: new Date(msg.timestamp).toLocaleTimeString(),
                         messages: []
@@ -1339,9 +757,10 @@
                 // De-duplication: skip if same sender and text appeared very recently
                 const nowTs = Date.parse(msg.timestamp) || Date.now();
                 const recent = (sess.messages || []).slice(-5).some(m => (
+                    (m.id && m.id === msg.id) || (!payload.messageId && !payload.id &&
                     (m.senderType === msg.senderType) &&
                     (String(m.messageText || '') === String(msg.messageText || '')) &&
-                    Math.abs((Date.parse(m.timestamp) || nowTs) - nowTs) < DUPLICATE_WINDOW_MS
+                    Math.abs((Date.parse(m.timestamp) || nowTs) - nowTs) < DUPLICATE_WINDOW_MS)
                 ));
                 if (recent) {
                     console.log('🧹 Skipping duplicate message echo');
@@ -1378,12 +797,15 @@
                 const sess = merchantSessions.get(sessionId);
                 const chron = [...data.messages].reverse();
                 chron.forEach(m => {
+                    // A history fetch can confirm a saved reply whose acknowledgement was lost.
+                    settleReply(m.metadata?.clientMessageId, sessionId, 'accepted', m.messageId);
                     const norm = {
                         id: m.messageId,
+                        attachment: m.attachment || null,
                         sessionId,
-                        senderType: m.senderType === 'driver' ? 'driver' : 'agent',
-                        senderName: m.senderType === 'driver' ? (data.driverName || 'Driver') : 'Support Agent',
-                        messageText: m.text || '',
+                        senderType: m.senderType || 'customer',
+                        senderName: m.senderName || (m.senderType === 'agent' ? 'Support Agent' : (data.driverName || data.merchantName || 'Customer')),
+                        messageText: m.text || m.messageText || '',
                         timestamp: m.createdAt || new Date().toISOString()
                     };
                     // Deduplicate by id
@@ -1411,7 +833,9 @@
                     if (!merchantSessions.has(sessionId)) {
                         merchantSessions.set(sessionId, {
                             id: sessionId,
-                            driverName: s.driverName || s.customer || 'Driver',
+                            driverName: sessionDisplayName(s),
+                            userType: s.userType || s.payload?.userType,
+                            orderId: s.orderId || s.payload?.orderId || null,
                             lastMessage: s.lastMessage || '',
                             time: s.lastActivity ? new Date(s.lastActivity).toLocaleTimeString() : '',
                             messages: []
@@ -1430,6 +854,13 @@
             if (type === 'session_closed' || type === 'chat_session_closed') {
                 const sessionId = data.sessionId;
                 if (!sessionId) return;
+                for (const [id, pending] of pendingReplies) {
+                    if (pending.sessionId === sessionId) {
+                        clearTimeout(pending.timer);
+                        pending.message.deliveryStatus = 'unknown';
+                        pendingReplies.delete(id);
+                    }
+                }
                 // Move to closed
                 const sess = merchantSessions.get(sessionId) || { id: sessionId, messages: [] };
                 merchantSessions.delete(sessionId);
@@ -1457,7 +888,13 @@
             if (!input || !currentSessionId) return;
             const text = input.value.trim();
             if (!text) return;
+            if (!merchantChatWS || merchantChatWS.readyState !== WebSocket.OPEN) {
+                showChatFeedback('الاتصال غير متاح؛ احتفظنا بنص رسالتك. أعد المحاولة بعد الاتصال.');
+                return false;
+            }
+            const clientMessageId = window.crypto?.randomUUID?.() || `reply_${Date.now()}_${Math.random().toString(36).slice(2)}`;
             const outbound = {
+                clientMessageId,
                 action: 'chat_message',
                 type: 'chat_message',
                 sessionId: currentSessionId,
@@ -1467,9 +904,14 @@
                 agentId: 'support_dashboard',
                 timestamp: new Date().toISOString()
             };
-            try { merchantChatWS?.send(JSON.stringify(outbound)); } catch (e) { console.error('Send failed', e); }
-            // Optimistic UI
-            const optim = { sessionId: currentSessionId, senderType: 'agent', senderName: 'Support Agent', messageText: text, text, timestamp: outbound.timestamp };
+            try {
+                merchantChatWS.send(JSON.stringify(outbound));
+            } catch (e) {
+                showChatFeedback('تعذر إرسال الرسالة؛ النص محفوظ هنا للمحاولة مجددًا.');
+                return false;
+            }
+            showChatFeedback('');
+            const optim = { id: clientMessageId, clientMessageId, deliveryStatus: 'pending', sessionId: currentSessionId, senderType: 'agent', senderName: 'Support Agent', messageText: text, text, timestamp: outbound.timestamp };
             appendMessageToChat(optim);
             // Track locally
             const sess = merchantSessions.get(currentSessionId);
@@ -1481,12 +923,21 @@
                 sess.lastActivity = Date.parse(optim.timestamp);
                 updateSessionsList();
             }
+            const replySessionId = currentSessionId;
+            const pending = { sessionId: replySessionId, message: optim };
+            pending.timer = setTimeout(() => settleReply(clientMessageId, replySessionId, 'unknown'), 15000);
+            pendingReplies.set(clientMessageId, pending);
             input.value = '';
             input.style.height = 'auto';
+            return true;
         };
 
             window.endChatSession = function () {
                 if (!currentSessionId) return;
+                if (!merchantChatWS || merchantChatWS.readyState !== WebSocket.OPEN) {
+                    showChatFeedback('تعذر إنهاء المحادثة أثناء انقطاع الاتصال.');
+                    return false;
+                }
                 const outbound = {
                     action: 'chat_session_close',
                     type: 'chat_session_close',
@@ -1495,21 +946,15 @@
                 reason: 'ended_by_agent',
                 timestamp: new Date().toISOString()
             };
-            try { merchantChatWS?.send(JSON.stringify(outbound)); } catch (e) { console.error('End session send failed', e); }
-            // Archive locally
-            merchantSessions.delete(currentSessionId);
-            currentSessionId = null;
-            updateSessionsList();
-            const chatMessages = document.getElementById('chatMessages');
-            if (chatMessages) {
-                chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-comment-dots"></i><h3>Select a conversation</h3><p>Choose a conversation from the left to start helping customers</p></div>';
+            try {
+                merchantChatWS.send(JSON.stringify(outbound));
+                showChatFeedback('أُرسل طلب الإغلاق؛ ننتظر تأكيد الخدمة.');
+            } catch (e) {
+                showChatFeedback('تعذر إرسال طلب الإغلاق؛ المحادثة ما زالت مفتوحة.');
+                return false;
             }
-            const chatTitle = document.getElementById('chatTitle');
-            if (chatTitle) chatTitle.textContent = 'Select a conversation';
-            const endBtn = document.getElementById('endSessionBtn');
-            if (endBtn) endBtn.style.display = 'none';
-            // Reflect in closed sessions panel
-            updateClosedSessionsList();
+            // Only the server's session_closed event archives the conversation.
+            return true;
         };
 
             // Extra UX: Enter to send, Shift+Enter for newline. Disable send if socket not open.
@@ -1518,7 +963,7 @@
                 const sendBtn = document.getElementById('sendButton');
                 if (input) {
                     input.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
+                        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
                             e.preventDefault();
                             window.sendMessage();
                         }
