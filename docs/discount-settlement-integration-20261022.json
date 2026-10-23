@@ -337,7 +337,7 @@
     {
       "repository": "whizzCentralPlatform-stg",
       "path": "docs/finance-pricing-settlements-returns-unified-plan.md",
-      "sha256": "b9cb5362507bad6aba8984194eff460612eaa5580c8070d83cf1266096e0fdff"
+      "sha256": "91d22d713f7c71dab0dd2d796dfa9879b20801b1ee472146547fbb012996d353"
     },
     {
       "repository": "whizzCentralPlatform-stg",
@@ -762,7 +762,7 @@
     {
       "repository": "whizzDrivers-stg",
       "path": "frontend/lib/features/active_order/screens/customer_cash_review_screen.dart",
-      "sha256": "449f0e4cb8cb0c4a53a2e089dd5f8a30d9ba99d344de68dc8a3036b606bdcbc0"
+      "sha256": "1e3f6aaf199982aee93b1db3fdd7a040439c29958a3ddfacb63ee32c304a247a"
     },
     {
       "repository": "whizzDrivers-stg",
@@ -772,7 +772,7 @@
     {
       "repository": "whizzDrivers-stg",
       "path": "frontend/test/customer_cash_review_266_test.dart",
-      "sha256": "871eb0362de4d7a0641f969d94f9eb9f6994480bcb94a9c2eed025c2f58bbbe3"
+      "sha256": "92b2c683043b129d0ae35decd4211ac16250858e344d0d0ce8decc14a68ab767"
     },
     {
       "repository": "whizzCentralPlatform-stg",
@@ -817,5 +817,32 @@
       "settlementSourceSha256": "ebc0007cf3236ea7fdf532db094ee402228c1e489c850c2f062e9f98e2d858cd"
     }
   ],
-  "validationLogs": "/private/tmp/wizz-github-sync-20261022"
+  "validationLogs": "/private/tmp/wizz-github-sync-20261022",
+  "colleagueBaselineUpdates": [
+    {
+      "date": "2026-10-23",
+      "reason": "Reviewed colleague documentation and driver cash review UI refresh; files exactly match colleague branch.",
+      "files": [
+        {
+          "repository": "whizzCentralPlatform-stg",
+          "path": "docs/finance-pricing-settlements-returns-unified-plan.md",
+          "previousSha256": "b9cb5362507bad6aba8984194eff460612eaa5580c8070d83cf1266096e0fdff",
+          "sha256": "91d22d713f7c71dab0dd2d796dfa9879b20801b1ee472146547fbb012996d353"
+        },
+        {
+          "repository": "whizzDrivers-stg",
+          "path": "frontend/lib/features/active_order/screens/customer_cash_review_screen.dart",
+          "previousSha256": "449f0e4cb8cb0c4a53a2e089dd5f8a30d9ba99d344de68dc8a3036b606bdcbc0",
+          "sha256": "e8736f4517c9578bc450a72c5db4208cd82e61a2acfab4c10922af1989137a82"
+        },
+        {
+          "repository": "whizzDrivers-stg",
+          "path": "frontend/test/customer_cash_review_266_test.dart",
+          "previousSha256": "871eb0362de4d7a0641f969d94f9eb9f6994480bcb94a9c2eed025c2f58bbbe3",
+          "sha256": "92b2c683043b129d0ae35decd4211ac16250858e344d0d0ce8decc14a68ab767"
+        }
+      ],
+      "localCompatibilityFix": "Driver cash review panel adds a transparent Material ancestor for ListTile ink; no financial behavior changed."
+    }
+  ]
 }
