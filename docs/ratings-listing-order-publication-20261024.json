@@ -1,0 +1,16 @@
+[
+  {
+    "function": "WizzUser-GetBusinessesByRegion-staging",
+    "changedFile": "lambdas/get-businesses-by-region.js",
+    "status": "PUBLISHED_VERIFIED",
+    "allOtherFilesAndConfigPreserved": true,
+    "codeSha256": "iEM3eYGZJOoSJ3pjDBxxI6SxjaESSvmUO1H+p9gtFeU="
+  },
+  {
+    "function": "WizzUser-GetNearbyBusinesses-staging",
+    "changedFile": "lambdas/get-nearby-businesses.js",
+    "status": "PUBLISHED_VERIFIED",
+    "allOtherFilesAndConfigPreserved": true,
+    "codeSha256": "qmekBpczg67gQsUwGk02JxCsWeq91159I3YQYbaPE5w="
+  }
+]

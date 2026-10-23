@@ -1,0 +1,12 @@
+{
+  "function": "WizzUser-GetBusinesses-staging",
+  "revisionId": "aaa2e80a-5640-4a7a-afed-03ab3f8d4e7e",
+  "baseCodeSha256": "DJEISAmGv3amXr8KmffTHAJLv6gPzzFGnGLZXMsgk/8=",
+  "changedFile": "functions/shared/storefront-facts-170.js",
+  "candidateSha256": "466171f325b53e350b5009dd8e810093c902589d91e07571b9cd004c5a92d372",
+  "allOtherFilesPreserved": true,
+  "status": "PUBLISHED_VERIFIED",
+  "newRevisionId": "5cdae632-c352-459c-a652-f3881314f311",
+  "newCodeSha256": "RmFx8yW1PjULUAndjoEAk8kCWJ2R4HVxuc0ATFqS03I=",
+  "configurationPreserved": true
+}

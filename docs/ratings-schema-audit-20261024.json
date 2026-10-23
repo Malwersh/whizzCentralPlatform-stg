@@ -1,0 +1,42 @@
+{
+  "WizzOrders": {
+    "status": "ACTIVE",
+    "keys": [
+      {
+        "AttributeName": "PK",
+        "KeyType": "HASH"
+      },
+      {
+        "AttributeName": "SK",
+        "KeyType": "RANGE"
+      }
+    ]
+  },
+  "WizzUser_users_staging": {
+    "status": "ACTIVE",
+    "keys": [
+      {
+        "AttributeName": "userId",
+        "KeyType": "HASH"
+      }
+    ]
+  },
+  "WhizzMerchants_Businesses": {
+    "status": "ACTIVE",
+    "keys": [
+      {
+        "AttributeName": "businessId",
+        "KeyType": "HASH"
+      }
+    ]
+  },
+  "WhizzDrivers_staging": {
+    "status": "ACTIVE",
+    "keys": [
+      {
+        "AttributeName": "driverId",
+        "KeyType": "HASH"
+      }
+    ]
+  }
+}

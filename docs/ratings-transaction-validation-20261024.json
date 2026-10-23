@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "transactionExpressionsValidatedByDynamoDB": true,
+  "guard": "attribute_exists(pk) AND attribute_not_exists(pk)",
+  "allWritesAtomicallyCancelled": true,
+  "realOrdersOrRatingsModified": false,
+  "operatorCredentialProbeNotAuthenticatedCustomerTest": true
+}

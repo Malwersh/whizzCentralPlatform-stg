@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-24",
+  "stack": "whizz-order-ratings-staging",
+  "account": "699561669180",
+  "status": "DEPLOYED_VERIFIED",
+  "package": "/tmp/order-ratings-package-20261024/whizz-order-ratings.zip",
+  "sha256": "be0966e08375363b74e2ccb8800679267e3eb14228584523eaba331279c9a724",
+  "backendTests": 29,
+  "customerFlutterTests": 12,
+  "driverProfileTests": 1,
+  "storefrontTests": 5,
+  "newInfrastructure": [
+    "Dedicated ratings Lambda and REST routes",
+    "Retained encrypted on-demand DynamoDB ratings/aggregate table with PITR"
+  ],
+  "writesOnUserSubmissionOnly": [
+    "Verified order rating",
+    "Merchant customerRating/count/sum",
+    "Assigned driver customerRating/count/sum"
+  ],
+  "legacyRatingFieldsPreserved": true,
+  "financialPathsModified": false,
+  "realRatingsSubmittedByAgent": false,
+  "deploymentPerformed": true,
+  "stackStatus": "CREATE_COMPLETE",
+  "functionRuntime": "nodejs22.x",
+  "functionState": "Active",
+  "codeHashVerified": true,
+  "tableStatus": "ACTIVE",
+  "unauthenticatedChecks": [
+    {
+      "method": "GET",
+      "token": "absent",
+      "status": 401,
+      "body": "{\"success\":false,\"code\":\"UNAUTHORIZED\"}"
+    },
+    {
+      "method": "GET",
+      "token": "invalid",
+      "status": 401,
+      "body": "{\"success\":false,\"code\":\"UNAUTHORIZED\"}"
+    },
+    {
+      "method": "POST",
+      "token": "absent",
+      "status": 401,
+      "body": "{\"success\":false,\"code\":\"UNAUTHORIZED\"}"
+    }
+  ],
+  "endpoint": "https://hozgpdv0kg.execute-api.us-east-1.amazonaws.com/staging",
+  "transactionValidation": "docs/ratings-transaction-validation-20261024.json",
+  "liveCustomerRatingTest": "PENDING_USER",
+  "iphoneApps": {
+    "driver": {
+      "build": "PASS_PROFILE_SIGNED",
+      "signature": "PASS",
+      "install": "PASS",
+      "launch": "PASS",
+      "app": "/Users/ghaythallaheebi/Documents/GitHub/whizzDrivers-stg/frontend/build/ios/iphoneos/Runner.app"
+    },
+    "customer": {
+      "build": "PASS_PROFILE_SIGNED",
+      "signature": "PASS",
+      "install": "PASS",
+      "launch": "PASS",
+      "app": "/Users/ghaythallaheebi/Documents/GitHub/wizzuser-stg/frontend/build/ios/iphoneos/Runner.app"
+    }
+  },
+  "isolatedCommitTests": {
+    "backend": 29,
+    "customer": 12,
+    "driver": 1
+  },
+  "serverlessVersion": "4.45.0",
+  "nodeVersion": "22.18.0",
+  "ratingRecordImmutable": true,
+  "realCustomerAcceptance": "PENDING_USER_TEST"
+}
