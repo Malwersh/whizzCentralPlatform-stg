@@ -14,3 +14,5 @@ export {readDeliveryOperations} from './deliveryOperations';
 export {createFinanceRollout} from './financeRollout';
 
 export {createStagingStorefrontPreview} from './storefrontPreview';
+
+export {createStagingStorefrontRoute} from './storefrontRoute';
