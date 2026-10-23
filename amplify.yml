@@ -3,6 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
+        - node scripts/verify-pricing-ui.cjs
         - |
           node - <<'NODE'
           const fs = require('fs');
