@@ -1,3 +1,4 @@
+import {verifyCashRoundingEvidence} from './cashRounding';
 import { allocateOrder } from './orderAllocation';
 import { allocateDeliveryFundedOrder } from './deliveryFundedAllocation';
 import { Money, readMoney, moneyFromMinor, addMoney, subtractMoney } from './money';
@@ -71,7 +72,7 @@ export function verifyFullCashSettlement(value: unknown): FullCashSettlement {
  * Promotion budget commitments are disclosed separately and not expensed twice.
  * No durable account IDs, payment proof or posting authority is supplied here.
  */
-export function prepareFullCashJournal(value: unknown) {
+export function prepareFullCashJournal(value: unknown, cashRounding?: unknown) {
   const proposal = verifyFullCashSettlement(value), a = proposal.allocation, source = proposal.source;
   const delivery = source.deliveryFunding !== null;
   const goodsFunding = readMoney(a.platformGoodsDiscountFunding);
@@ -88,7 +89,10 @@ export function prepareFullCashJournal(value: unknown) {
   post('DRIVER_WALLET_PAYABLE', 'CREDIT', a.driverWalletCreditTotal);
   post('THIRD_PARTY_PAYABLE', 'CREDIT', a.thirdPartyPayable);
   post('MERCHANT_COMMISSION_REVENUE', 'CREDIT', a.merchantCommission);
-  post('SERVICE_FEE_REVENUE', 'CREDIT', readMoney(source.base.serviceFee));
+  const cash=cashRounding===undefined?null:verifyCashRoundingEvidence(cashRounding);
+  if(cash&&(cash.paymentMethod!==a.paymentMethod||cash.customerTotal.minorAmount!==a.customerTotal.minorAmount||cash.serviceFee.minorAmount!==readMoney(source.base.serviceFee).minorAmount))return fail('CASH_ROUNDING_SETTLEMENT_MISMATCH');
+  post('SERVICE_FEE_REVENUE', 'CREDIT', cash?cash.baseServiceFee:readMoney(source.base.serviceFee));
+  if(cash)post('CASH_ROUNDING_SERVICE_ADJUSTMENT',cash.adjustment.minorAmount<0?'DEBIT':'CREDIT',moneyFromMinor(Math.abs(cash.adjustment.minorAmount)));
   post('PLATFORM_OTHER_REVENUE', 'CREDIT', readMoney(source.base.platformOtherCharges));
   post('PLATFORM_GOODS_PROMOTION_EXPENSE', 'DEBIT', goodsFunding);
   post('PLATFORM_DELIVERY_PROMOTION_EXPENSE', 'DEBIT', deliveryFunding);
@@ -98,7 +102,7 @@ export function prepareFullCashJournal(value: unknown) {
   const credit = addMoney(...lines.filter(l => l.side === 'CREDIT').map(l => l.amount));
   if (debit.minorAmount !== credit.minorAmount) return fail('FULL_CASH_JOURNAL_UNBALANCED');
   const content = { schemaVersion: 1, kind: 'FULL_CASH_POSTING_PROPOSAL', settlementModel: proposal.settlementModel,
-    allocationDigest: proposal.digest, paymentMethod: a.paymentMethod, lines, debit, credit,
+    allocationDigest: proposal.digest, paymentMethod: a.paymentMethod, ...(cash?{cashRounding:cash}:{}), lines, debit, credit,
     funding: { platformGoodsPromotion: goodsFunding, platformDeliveryPromotion: deliveryFunding,
       merchantDeliverySupport: delivery ? readMoney((a as Row).merchantDeliverySupport) : moneyFromMinor(0),
       platformNetContribution: a.platformNetContribution,

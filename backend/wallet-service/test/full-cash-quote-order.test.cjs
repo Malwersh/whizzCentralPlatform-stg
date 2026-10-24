@@ -35,3 +35,34 @@ test('shared goods funding commits finite campaign exposure and usage once witho
  assert.equal((await f.invoke({...patch,commercialConsent:consent})).statusCode,200);assert.equal(f.discountRow.usage_count,1);
  assert.equal([...f.commercialRecords.values()].some(x=>x.sk==='PROMOTION_FUNDING'),false);
 });
+test('cash policy applies before consent and commits immutable audit with no wallet reservation',async()=>{
+ const f=await setup();f.enableCommercial();f.env.FINANCIAL_SETTLEMENT_MODEL='FULL_CASH_AT_DELIVERY_V1';
+ const key='staging-PlatformStaff|'+JSON.stringify({pk:'OPERATIONAL_SETTINGS#CASH_ROUNDING',sk:'CURRENT'});
+ const policy={pk:'OPERATIONAL_SETTINGS#CASH_ROUNDING',sk:'CURRENT',version:1,values:{schemaVersion:1,enabled:true,incrementIqd:250,mode:'UP',minimumServiceFeeIqd:250,minimumConflict:'NEXT_COLLECTIBLE_TOTAL'}};
+ f.commercialRecords.set(key,policy);
+ const p=await f.invoke({action:'preview_commercial'});assert.equal(p.statusCode,200,JSON.stringify(p.json));
+ const old={digest:p.json.commercial.digest,customerTotalMinor:p.json.commercial.customerTotal.minorAmount};
+ f.commercialRecords.set(key,{...policy,version:2});
+ const stale=await f.invoke({commercialConsent:old});assert.equal(stale.statusCode,409);assert.equal(f.orders.size,0);
+ const p2=await f.invoke({action:'preview_commercial'});assert.equal(p2.statusCode,200,JSON.stringify(p2.json));
+ const r=await f.invoke({commercialConsent:{digest:p2.json.commercial.digest,customerTotalMinor:p2.json.commercial.customerTotal.minorAmount}});assert.equal(r.statusCode,201,JSON.stringify(r.json));
+ const order=[...f.orders.values()][0],commitment=[...f.commercialRecords.values()].find(v=>v.kind==='FULL_CASH_FUNDING_COMMITMENT');
+ assert.equal(order.commercialPricing.cashRounding.policy.version,2);assert.deepEqual(commitment.cashRounding,order.commercialPricing.cashRounding);assert.equal(order.pricing.total%250000,0);
+});
+test('required cash policy cannot disappear into an assumed legacy price',async()=>{const f=await setup();f.enableCommercial();f.env.FINANCIAL_SETTLEMENT_MODEL='FULL_CASH_AT_DELIVERY_V1';f.env.CASH_ROUNDING_POLICY_MODE='REQUIRED';const r=await f.invoke({action:'preview_commercial'});assert.equal(r.statusCode,409,JSON.stringify(r.json));assert.equal(r.json.code,'CASH_ROUNDING_POLICY_UNAVAILABLE');assert.equal(f.orders.size,0);});
+for(const [mode,enabled,total,service]of [['UP',true,7000,500],['DOWN',true,6750,250],['UP',false,6800,300]])test('agreed service300 flows through real preview and commit: '+mode+'/'+enabled,async()=>{
+ const f=await setup();f.enableCommercial();f.env.FINANCIAL_SETTLEMENT_MODEL='FULL_CASH_AT_DELIVERY_V1';f.env.CASH_ROUNDING_POLICY_MODE='REQUIRED';
+ const {moneyFromMinor:m}=require('../dist/money'),{quoteHash}=require('../dist/deliveryQuoteRecord');
+ const record=[...f.commercialRecords.values()].find(r=>r.terms?.id==='a1');const old=record.termsHash;record.terms.serviceFee.fixed=m(300000);const hash=quoteHash({terms:record.terms,otherCharges:record.otherCharges,allowedFundingPolicyIds:record.allowedFundingPolicyIds});for(const r of f.commercialRecords.values())if(r.termsHash===old)r.termsHash=hash;
+ const key={pk:'OPERATIONAL_SETTINGS#CASH_ROUNDING',sk:'CURRENT'};f.commercialRecords.set('staging-PlatformStaff|'+JSON.stringify(key),{...key,version:1,values:{schemaVersion:1,enabled,incrementIqd:250,mode,minimumServiceFeeIqd:250,minimumConflict:'NEXT_COLLECTIBLE_TOTAL'}});
+ const preview=await f.invoke({action:'preview_commercial'});assert.equal(preview.statusCode,200,JSON.stringify(preview.json));assert.equal(preview.json.commercial.serviceFee.minorAmount,service*1000);assert.equal(preview.json.commercial.customerTotal.minorAmount,total*1000);
+ const r=await f.invoke({commercialConsent:{digest:preview.json.commercial.digest,customerTotalMinor:total*1000}});assert.equal(r.statusCode,201,JSON.stringify(r.json));const order=[...f.orders.values()][0];assert.equal(order.commercialPricing.cashRounding.baseServiceFee.minorAmount,300000);assert.equal(order.pricing.serviceFee,service*1000);assert.equal(order.pricing.total,total*1000);
+});
+for(const source of ['NONE','MERCHANT','PLATFORM'])test('prepared invoice remains valid for final metadata and same request ID: '+source,async()=>{
+ const f=await setup();if(source==='NONE')f.enableCommercial();else f.enableDeliveryPromotions(source);f.env.FINANCIAL_SETTLEMENT_MODEL='FULL_CASH_AT_DELIVERY_V1';
+ const p=await f.invoke({action:'preview_commercial',storeName:'Informational name',customerName:null,customerPhone:null,deliveryInstructions:null});assert.equal(p.statusCode,200,JSON.stringify(p.json));assert.equal(f.orders.size,0);
+ const r=await f.invoke({storeName:'Current display name',customerName:'Synthetic',customerPhone:'synthetic',deliveryInstructions:'Current instructions',commercialConsent:{digest:p.json.commercial.digest,customerTotalMinor:p.json.commercial.customerTotal.minorAmount}});
+ assert.equal(r.statusCode,201,JSON.stringify(r.json));assert.equal(f.orders.size,1);
+ assert.equal((await f.invoke({storeName:'Current display name',customerName:'Synthetic',customerPhone:'synthetic',deliveryInstructions:'Current instructions',commercialConsent:{digest:p.json.commercial.digest,customerTotalMinor:p.json.commercial.customerTotal.minorAmount}})).statusCode,200);
+ assert.equal(f.orders.size,1);
+});

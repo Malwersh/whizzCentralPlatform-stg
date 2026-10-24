@@ -18,12 +18,13 @@ export async function readMerchantAccrualEvidence(db: Pick<DynamoDBDocumentClien
     return JSON.parse(JSON.stringify(row));
   };
   const order = await get('WizzOrders', { PK: 'ORDER#' + orderId, SK: 'META' });
+  const cancellationUnassigned=order.status==='cancelled'&&!order.financialAcceptance&&order.financialSnapshot?.schemaVersion===3;
   if (order.orderId !== orderId || ![order.storeId, order.businessId].some(b => b === branchId) ||
       [order.storeId, order.businessId].some(b => b !== undefined && b !== branchId) ||
-      !quoteEntityIdValid(order.driverId) || !Number.isSafeInteger(order.assignmentWaveNumber) || order.assignmentWaveNumber < 1) return fail();
+      !cancellationUnassigned&&(!quoteEntityIdValid(order.driverId) || !Number.isSafeInteger(order.assignmentWaveNumber) || order.assignmentWaveNumber < 1)) return fail();
   const [payable, acceptedOffer] = await Promise.all([
     get('staging-Holds', { orderId, sk: 'MERCHANT_PAYABLE' }),
-    get('WaveOffers_staging', { orderId, SK: `FINANCIAL#${order.driverId}#WAVE#${order.assignmentWaveNumber}` }),
+    cancellationUnassigned?Promise.resolve({}):get('WaveOffers_staging', { orderId, SK: `FINANCIAL#${order.driverId}#WAVE#${order.assignmentWaveNumber}` }),
   ]);
   const outcomeKey={orderId,sk:payable.kind==='MERCHANT_EXCEPTION_PAYABLE'?'EXCEPTION_ENTITLEMENTS':'FINANCIAL_OUTCOME'};
   const outcome=await get('staging-Holds',outcomeKey);

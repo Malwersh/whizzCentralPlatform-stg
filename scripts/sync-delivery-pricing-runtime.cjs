@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const ts=require('../backend/wallet-service/node_modules/typescript');
 const destination=path.resolve(__dirname,'../backend/staff-service/pricing-runtime');
 const check=process.argv.includes('--check');
-const pending=['money','deliveryPricing','orderAllocation','deliveryQuoteRecord','orderCommercialPricing','deliveryFunding','deliveryFundingPolicy','deliveryPromotion','deliveryCampaignBudget'];
+const pending=['cashRounding','money','deliveryPricing','orderAllocation','deliveryQuoteRecord','orderCommercialPricing','deliveryFunding','deliveryFundingPolicy','deliveryPromotion','deliveryCampaignBudget'];
 const visited=new Set();
 for(const name of pending){
  if(visited.has(name))continue;visited.add(name);

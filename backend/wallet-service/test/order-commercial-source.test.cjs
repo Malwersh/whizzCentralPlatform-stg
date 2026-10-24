@@ -49,10 +49,10 @@ test('expired Quote and wrong region source cannot produce a financial snapshot'
 });
 module.exports={fixture};
 
-test('commercial expiry follows campaign duration, and a changed campaign reverts to source-funded default',async()=>{
+test('commercial expiry follows campaign duration; stale shared consent rejects instead of charging the source',async()=>{
  const f=fixture();f.funded();f.input.discount.campaign.valid_to='2026-10-15T12:01:00.000Z';
- const r=await f.prepare();assert.equal(r.expiresAt,'2026-10-15T12:01:00.000Z');assert.equal(r.funding.amount.minorAmount,0);
- const g=fixture();g.funded();g.input.discount.snapshot.version=2;g.input.discount.campaign.version=2;assert.equal((await g.prepare()).funding.amount.minorAmount,0);
+ await assert.rejects(f.prepare(),/DISCOUNT_FUNDING_TERMS_CHANGED/);
+ const g=fixture();g.funded();g.input.discount.snapshot.version=2;g.input.discount.campaign.version=2;await assert.rejects(g.prepare(),/DISCOUNT_FUNDING_TERMS_CHANGED/);
 });
 test('sharing consent is independent from agreement funding lists, but pins owner, scope and exact policy digest',async()=>{
  const {quoteHash}=require('../dist/deliveryQuoteRecord');const f=fixture();f.funded();

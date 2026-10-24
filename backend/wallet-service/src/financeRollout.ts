@@ -387,7 +387,7 @@ export function createFinanceRollout(options: {
       const q = command.input as Row;
       const opType = operation(command);
       if (opType === "TransactWriteItems") {
-        let items = JSON.parse(JSON.stringify(q.TransactItems));
+        let items = structuredClone(q.TransactItems);
         const recoveryGuards:Row[]=[];
         const ids = new Set<string>();
 

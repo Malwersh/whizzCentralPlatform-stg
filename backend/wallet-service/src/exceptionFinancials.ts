@@ -19,7 +19,7 @@ const seal=(v:Row)=>({...v,digest:quoteHash(v)});
 const validSeal=(v:Row)=>{const {digest,...body}=v??{};return digest===quoteHash(body);};
 const uuid=(v:any)=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
 /** Aggregate a single checked update per wallet; all signed ledger lines sum to zero. */
-async function wallets(db:Pick<DynamoDBDocumentClient,'send'>,changes:Row,orderId:string,operationId:string,at:string,release=false,platformNetIqd=0){
+export async function wallets(db:Pick<DynamoDBDocumentClient,'send'>,changes:Row,orderId:string,operationId:string,at:string,release=false,platformNetIqd=0){
  const ops:Row[]=[],lines:Row[]=[];
  for(const [walletId,d]of Object.entries(changes)as [string,Row][]){if(!d.AVAILABLE&&!d.LOCKED)continue;const key={walletId,sk:'META'},w=await strongGet(db,W,key),ownerType=walletId==='WALLET#PLATFORM'?'PLATFORM':walletId.startsWith('WALLET#DRIVER#')?'DRIVER':'MERCHANT';
  if(!w||w.walletId!==walletId||w.currency!=='IQD'||w.ownerType!==ownerType||ownerType!=='PLATFORM'&&w.ownerId!==walletId.split('#').slice(2).join('#')||!(release&&ownerType==='DRIVER'?['ACTIVE','SUSPENDED']:['ACTIVE']).includes(w.status)||w.deletionRequestId!=null||w.deletedAt!=null||w.isDeleted===true||![w.availableBalance,w.lockedBalance,w.version].every(Number.isSafeInteger)||w.availableBalance<0||w.lockedBalance<0||w.version<1||w.version>=Number.MAX_SAFE_INTEGER)return fail('EXCEPTION_WALLET_UNAVAILABLE');

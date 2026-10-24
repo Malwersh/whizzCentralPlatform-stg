@@ -74,3 +74,16 @@ test('zero-hold reassignment preserves the absence of money movements and cancel
  assert.equal(w(f,'WALLET#DRIVER#driver1').version,1);assert.equal(w(f,'WALLET#DRIVER#driver2').version,1);
  assert.equal([...f.rows.keys()].filter(k=>k.startsWith('staging-LedgerEntries|')).length,0);
 });
+test('staff unassignment releases original driver only and keeps funding, with explicit authority and reason',async()=>{
+ const f=await before(),v=input(f),staff={kind:'STAFF',subjectId:'operator1'},guards=[{ConditionCheck:{TableName:'staging-PlatformStaff',Key:{pk:'EMPLOYEE#operator1',sk:'PROFILE'},ConditionExpression:'attribute_not_exists(pk)'}}];
+ const options={db:f.db,now:()=>f.time,reassignmentWindowSeconds:120,authenticate:async()=>staff,unassignActorKind:'STAFF',authorizeStaff:async()=>guards,assignmentDecision:{reason:'إعادة توزيع الطلب على سائق آخر',idempotencyKey:'12345678-1234-4123-8123-123456789abc'}};
+ const api=createStagingCodReassignment(options);await api.unassign(v);assert.equal(f.get('WizzOrders',key).status,'ready_for_pickup');assert.equal(w(f,'WALLET#DRIVER#driver1').availableBalance,20000);assert.equal(w(f,'WALLET#PLATFORM').lockedBalance,2000);
+ const archive=f.get('staging-Holds',{orderId:'order1',sk:'ASSIGNMENT_RELEASE#1'});assert.equal(archive.actorKind,'STAFF');assert.equal(archive.staffDecision.reason,options.assignmentDecision.reason);assert.equal((await api.unassign(v)).replayed,true);
+ await assert.rejects(createStagingCodReassignment({...options,assignmentDecision:{...options.assignmentDecision,reason:'different reason'}}).unassign(v));
+ const g=await before();await assert.rejects(createStagingCodReassignment({...options,db:g.db,authorizeStaff:undefined}).unassign(input(g)),/FORBIDDEN/);
+});
+test('staff full-cash unassignment preserves shared goods commitment and tip while returning collateral once',async()=>{
+ const f=await require('./helpers/full-cash-lifecycle-matrix-fixture.cjs')({platformGoodsDiscount:250}),o=f.get('WizzOrders',key);o.status='arrived_at_store';const snapshot=structuredClone(o.financialSnapshot),commit=structuredClone(f.get('staging-Holds',{orderId:'order1',sk:'FULL_CASH_FUNDING_COMMITMENT'}));
+ const api=createStagingCodReassignment({db:f.db,now:()=>f.time,authenticate:async()=>({kind:'STAFF',subjectId:'operator1'}),authorizeStaff:async()=>[{ConditionCheck:{TableName:'staging-PlatformStaff',Key:{pk:'EMPLOYEE#operator1',sk:'PROFILE'},ConditionExpression:'attribute_not_exists(pk)'}}],unassignActorKind:'STAFF',assignmentDecision:{reason:'إعادة توزيع الطلب قبل الاستلام',idempotencyKey:'12345678-1234-4123-8123-123456789abc'},enableFullCash:true,enableDeliveryFunding:true,reassignmentWindowSeconds:120});
+ const v={orderId:'order1',offerId:o.financialAcceptance.offerId,attempt:1,cashCollected:false,reason:'Other'};await api.unassign(v);assert.deepEqual(f.get('WizzOrders',key).financialSnapshot,snapshot);assert.deepEqual(f.get('staging-Holds',{orderId:'order1',sk:'FULL_CASH_FUNDING_COMMITMENT'}),commit);assert.equal(w(f,'WALLET#DRIVER#driver1').availableBalance,20000);assert.equal((await api.unassign(v)).replayed,true);
+});

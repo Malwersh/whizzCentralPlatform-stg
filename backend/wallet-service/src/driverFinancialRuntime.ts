@@ -1,3 +1,6 @@
+import {handler as cancellationCompensationHandler} from './cancellationCompensation';
+import {handler as merchantHandoverHandler} from './merchantHandover';
+import {handler as staffOrderManagementHandler} from './staffOrderManagement';
 import {createReturnContinuation} from './returnContinuation';
 import {createReturnCustodyReconciler} from './returnCustody';
 import {createReturnOperations,createReturnRoadRouter} from './returnOperations';
@@ -194,6 +197,9 @@ export async function readFinancialOffer(body:Row,accessToken:string){
  * a caller-supplied subject/hold/amount is never accepted. Never log event or credentials.
  */
 export async function financialAcceptanceHandler(event:Row) {
+ if(event?.action==='cancellation_compensation')return cancellationCompensationHandler(event);
+ if(event?.action==='merchant_handover')return merchantHandoverHandler(event);
+ if(event?.action==='staff_order_management')return staffOrderManagementHandler(event);
  if(event?.action==='reconcile_return_receipt'){try{return {statusCode:200,result:await reconcileVerifiedReturnReceipt(event)};}catch{return {statusCode:409,code:'RETURN_CUSTODY_CONFLICT'};}}
  try {
   if(event?.action==='validate_push_reference'){if(Object.keys(event).sort().join(',')!=='action,body')throw Error('INVALID_FINANCIAL_ACCEPTANCE');configuration();const {db}=clients();return {statusCode:200,result:await createStagingFinancialPushValidation({db})(event.body)};}

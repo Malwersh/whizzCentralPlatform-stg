@@ -7,7 +7,7 @@ const editor=()=>staff('editor','funding_editor'),reviewer=()=>staff('reviewer',
 const catalog=require('../catalog');
 const roles=Object.keys(catalog.ROLES);const er=roles.find(r=>catalog.allowed({...editor().actor,roles:[r]},'commercial.funding.request')),ar=roles.find(r=>catalog.allowed({...reviewer().actor,roles:[r]},'commercial.funding.approve'));
 const writer=()=>staff('editor',er),approver=()=>staff('reviewer',ar);
-const campaign=()=>({discountId:'offer',version:1,businessId:'branch',title:'خصم الاختبار',status:'active',valid_from:'2026-10-01T00:00:00.000Z',valid_to:'2026-11-01T00:00:00.000Z'});
+const campaign=()=>({discountId:'offer',version:1,type:'fixedAmount',value:500,usageLimit:100,usage_limit:100,businessId:'branch',title:'خصم الاختبار',status:'active',valid_from:'2026-10-01T00:00:00.000Z',valid_to:'2026-11-01T00:00:00.000Z'});
 const values=()=>({campaignId:'offer',campaignVersion:1,source:'MERCHANT',effectiveFrom:campaign().valid_from,effectiveTo:campaign().valid_to,merchantNumerator:30,denominator:100,merchantShareFinalRounding:{incrementIqd:1,mode:'TOWARD_ZERO'}});
 const save=(v=values())=>({businessId:'branch',action:'SAVE_FUNDING',id:'share',requestId:randomUUID(),draftVersion:0,baseVersion:0,businessIds:['branch'],values:v,reason:'مشاركة خصم الاختبار'});
 const decide=(r,action)=>({businessId:'branch',action,id:'share',requestId:randomUUID(),draftVersion:r.draftVersion,baseVersion:0,hash:r.hash,...(action==='ACCEPT_FUNDING'?{}:{reason:'اعتماد المشاركة'})});
@@ -41,3 +41,5 @@ test('owner pending-sharing view contains only live unaccepted current campaign 
  const g=setup();await call(g,writer(),save());g.put('WhizzMerchants_Discounts',{...campaign(),version:2});assert.equal((await service(g.ctx,owner,'GET',{businessId:'branch',view:'pending-sharing'})).items.length,0);
  await assert.rejects(service(g.ctx,{kind:'OWNER',sub:'other'},'GET',{businessId:'branch',view:'pending-sharing'}),/BUSINESS_UNAVAILABLE/);
 });
+
+test('missing total campaign cap rejects sharing before saving or asking for consent',async()=>{const f=setup();f.put('WhizzMerchants_Discounts',{...campaign(),usageLimit:null,usage_limit:null,perCustomerLimit:1});await assert.rejects(call(f,writer(),save()),/FUNDING_TOTAL_USAGE_LIMIT_REQUIRED/);assert.equal(f.get(S,{pk:'DISCOUNT_FUNDING#share',sk:'DRAFT'}),undefined);});

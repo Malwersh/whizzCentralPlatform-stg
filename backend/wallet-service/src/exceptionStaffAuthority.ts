@@ -21,6 +21,8 @@ export function createExceptionStaffAuthority(options:{db:Pick<DynamoDBDocumentC
  return {
   async authenticate():Promise<{kind:'STAFF';subjectId:string}>{const actor=await authenticateFinancialIdentity(options.cognito,options.accessToken,'STAFF');await profile(actor.subjectId,'READ');return actor;},
   async authorizeStaff(actor:ReturnActor,_order:Row,_branch:Row){if(actor.kind!=='STAFF')return fail('UNAUTHORIZED');const p=await profile(actor.subjectId,'OPERATE');return [p.guard];},
+  async cancel(actor:ReturnActor){const p=await profile(actor.subjectId,'READ');if(actor.kind!=='STAFF'||!allowed(p.employee,'orders.cancel'))return fail();return [p.guard];},
+  async assign(actor:ReturnActor){const p=await profile(actor.subjectId,'READ');if(actor.kind!=='STAFF'||!allowed(p.employee,'orders.assign'))return fail();return [p.guard];},
   async read(actor:ReturnActor){if(actor.kind!=='STAFF')return fail('UNAUTHORIZED');return profile(actor.subjectId,'READ');},
   async readCash(actor:ReturnActor){if(actor.kind!=='STAFF')return fail('UNAUTHORIZED');const p=await profile(actor.subjectId,'READ');if(!allowed(p.employee,'finance.read'))return fail();return p;},
   async operate(actor:ReturnActor){if(actor.kind!=='STAFF')return fail('UNAUTHORIZED');return profile(actor.subjectId,'OPERATE');},

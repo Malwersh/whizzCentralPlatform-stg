@@ -1,0 +1,93 @@
+{
+  "part": 321,
+  "status": "PASS_READ_ONLY",
+  "policyVersion": 2,
+  "consumerCount": 14,
+  "consumers": [
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "ERMb+QR9TUlgRLS1P1NnuxuZJcjElxPBHRTQzkCI2nY=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "staging-cod-integration",
+      "codeSha256": "DJD+wmZA6/9fgdV/ZRpOAsmSd8YnreUTtFzeG6634QA=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "lDP5ijE+1u7kcHlvT3BffVN5vDpzaAGwtQjPABxAnQQ=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "zfiX2fMwzfAO1tXCSLDV2iQ6DWOXOrf81wAXLUAicgA=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "codeSha256": "S2kLjBFPrrWJo3nAx6PeMDK4c69tabLNhhrJ4PPv7UM=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "codeSha256": "jDIAsIg+b9hon0AEo4IKXgYX0RP9sJHj2nNaej/zNuA=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "pzzylCKyou+M3xlQiZxPVyiczfTR9+fS8FEeGkZNLRY=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "z+xgx7XOZgQDzIuF2f/6zpPLhWVsMCr9bZkhetCECGg=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "WaveSystem_StartWave",
+      "codeSha256": "EgQTLmG4SPpfRgbefIQQGklrlMPL3SmuF+drDWxhJKY=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "8TMcSHcc1mWjSkKkcxLTgaShorvJSWjJL/8vK3cRDyU=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "WaveSystem_HandleDriverAccept",
+      "codeSha256": "TsDBpLOxTGV4cs5XO49GzCukj3VIguMvEo0UpwgtliU=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "WaveSystem_HandleDriverReject",
+      "codeSha256": "uOxJ1t/rFR7grfuxhA+GGBpZCIK51vz7rrE/OEf93LE=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "codeSha256": "6UT1Gt8qFUepB5EXFh1Q0LCSkV8mYnY5qnzkncZdb0E=",
+      "generalReleaseMode": "REQUIRED"
+    },
+    {
+      "function": "DriversApi-staging",
+      "codeSha256": "yuB12ZPbNGQEqLiRHTjvzPhWQaFL1aO3Z4erLxd+3AY=",
+      "generalReleaseMode": "REQUIRED"
+    }
+  ],
+  "actualPublishedEngine": "staging-wizz-staff-service/pricing-runtime/deliveryPricing.js",
+  "coverageAndOverrides": {
+    "status": "PASS",
+    "verifiedGeneralFeeAndDriverCases": 32,
+    "approvedZoneCount": 8,
+    "branchOverridesPreserved": true,
+    "unapprovedZoneRejected": true,
+    "livePolicyAndLiveEngine": true,
+    "routeInputs": "OFFLINE_VERIFICATION, not a provider request or customer quote",
+    "financialWrites": 0
+  },
+  "authenticationSmoke": "OPTIONS only; no authentication bypass or financial handler invocation",
+  "financialWrites": 0,
+  "humanOrderAcceptance": "Pending: do not claim a live end-to-end order from read-only and mocked tests",
+  "froujReadiness": "General tariff applies; organization and genuinely accepted/approved commercial binding still required before order creation."
+}

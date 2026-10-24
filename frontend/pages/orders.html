@@ -736,6 +736,10 @@
             button.dataset.orderId = String(order.cleanOrderId || order.orderId || '');
             const actions = row.insertCell();
             actions.append(button);
+            const manage = text('button', 'إدارة الطلب', 'view-details-btn');
+            manage.type = 'button';
+            manage.dataset.manageOrderId = String(order.cleanOrderId || order.orderId || '');
+            actions.append(manage);
             if (order.status === 'ready_for_pickup' || order.status === 'جاهز للاستلام' || order.fullData?.status === 'ready_for_pickup') {
                 const review = text('button', 'مراجعة التوزيع', 'review-dispatch-btn');
                 review.type = 'button';
@@ -989,5 +993,6 @@
 </script>
 <script src="../commercial-platform-notices.js?v=81"></script>
 <script src="../dispatch-reviews.js?v=190"></script>
+<script src="../order-management.js?v=248"></script>
 </body>
 </html>

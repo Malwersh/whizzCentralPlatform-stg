@@ -60,7 +60,7 @@ async function route(ctx,actor,method,input){
   if(before&&(before.version<1||before.version>=Number.MAX_SAFE_INTEGER||before.reservedUses<0||before.usedUses<0||before.reservedUses+before.usedUses>before.grantedUses))fail('BENEFIT_GRANT_INVALID');
   if(current.benefit.customerIds.length&&!current.benefit.customerIds.includes(input.userSub))fail('BENEFIT_NOT_ELIGIBLE');
   if(before&&input.uses<before.grantedUses||input.action==='REVOKE'&&!before)fail('BENEFIT_GRANT_INVALID');
-  const grant={...key,version:(before?.version||0)+1,grantedUses:input.uses,reservedUses:before?.reservedUses||0,usedUses:before?.usedUses||0,revoked:input.action==='REVOKE',grantedBy:actor.employeeId,reason:input.reason.trim(),updatedAt:now};
+  const grant={...key,...(before?.compensationReference?{compensationReference:before.compensationReference}:{}),version:(before?.version||0)+1,grantedUses:input.uses,reservedUses:before?.reservedUses||0,usedUses:before?.usedUses||0,revoked:input.action==='REVOKE',grantedBy:actor.employeeId,reason:input.reason.trim(),updatedAt:now};
   ops.push({ConditionCheck:{TableName:CAMPAIGNS,Key:{discountId:input.id},...fence(current)}},{ConditionCheck:{TableName:'WizzUser_users_staging',Key:{userId:input.userSub},...fence(profile)}},put(BENEFIT_TABLE,grant,before));result.userSub=input.userSub;
  }
  result.revision=digest(next);ops.push(put(BENEFIT_TABLE,{...markerKey,fingerprint,receipt:result,createdAt:now}),ctx.audit(actor.employeeId,'PLATFORM_BENEFIT_'+input.action,current,next,input.requestId));

@@ -9,7 +9,7 @@ const fail=(code,status=400)=>{throw Object.assign(Error(code),{status});};
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(v);
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
 const platformFields=['imageKey','title','name','description','code','type','discountType','campaignType','value','discountValue','minOrderValue','minOrderAmount','usageLimit','limit','startDate','endDate','validFrom','validTo','status','isActive','autoActivate','target','targetRegionIds','targetLocation','targetRestaurants','targetSegments','occasions','customerSegments','singleUse','stackable','applicableToAll','discountSource','maxDiscount','maxDiscountAmount','firstOrderOnly','perCustomerLimit','applicability','applicable_item_ids','applicable_category_ids'];
-const merchantFields=['title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_limit','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters'];
+const merchantFields=['title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_limit','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters','perCustomerLimit','maxDiscountAmount'];
 const aliases=[['title','name'],['type','discountType'],['value','discountValue'],['minOrderValue','minOrderAmount'],['usageLimit','limit'],['startDate','validFrom'],['endDate','validTo']];
 const project=r=>Object.fromEntries(['discountId','businessId','campaignId','id','version','fundingPolicyId','fundingPolicyVersion','createdAt','updatedAt','created_at','updated_at','usage_count','usage','currentUsage',...platformFields,...merchantFields].filter(k=>r[k]!==undefined).map(k=>[k,r[k]]));
 function values(source,patch,current,now,actorId,discountId){
@@ -64,7 +64,7 @@ async function route(ctx,actor,method,input){
  if(current)await scope(current);else if(previous?.scope)await scope(previous.scope);else if(source==='MERCHANT')fail('CAMPAIGN_UNAVAILABLE',404);
  async function write(ops){try{await ctx.db.send(new TransactWriteCommand({TransactItems:[...guards,...ops]}));}catch(e){if(e.name==='TransactionCanceledException')fail('VERSION_OR_STATE_CONFLICT',409);throw e;}}
  if(method==='GET'){
-  if(!current)fail('CAMPAIGN_UNAVAILABLE',404);await write([{ConditionCheck:{TableName:table,Key:{discountId},...fence(current)}}]);return {campaign:{...project(current),imageUrl:current.imageKey?await require('./home-slideshow').assets(ctx).url(current.imageKey):''},revision:revision(current)};
+  if(!current)fail('CAMPAIGN_UNAVAILABLE',404);await write([{ConditionCheck:{TableName:table,Key:{discountId},...fence(current)}}]);return {campaign:{...project(current),sharingLocked:(await require('./shared-discount-lock').read(ctx.db,source,current)).locked,imageUrl:current.imageKey?await require('./home-slideshow').assets(ctx).url(current.imageKey):''},revision:revision(current)};
  }
  if(method!=='POST'||!['CREATE','UPDATE','DELETE','ADOPT'].includes(input.action))fail('INVALID_CAMPAIGN_ACTION');
  if(Object.keys(input).some(k=>!['source','discountId','action','requestId','baseRevision','values'].includes(k))||!uuid(input.requestId))fail('INVALID_CAMPAIGN_REQUEST');
@@ -88,6 +88,8 @@ async function route(ctx,actor,method,input){
    for(const regionId of next.targetRegionIds||[]){const region=await get('WizzCentral_Regions',{regionId});if(!region||region.isActive===false||region.is_active===false||region.deletedAt||region.status==='inactive')fail('CAMPAIGN_REGION_UNAVAILABLE',409);guards.push({ConditionCheck:{TableName:'WizzCentral_Regions',Key:{regionId},...fence(region)}});}
   }
  }
+ if(current&&input.action==='UPDATE'&&Object.keys(input.values||{}).every(k=>['status','isActive','autoActivate'].includes(k)))next=versioned(current,{...current,...input.values,[source==='MERCHANT'?'updated_at':'updatedAt']:now});
+ if(current){const locks=require('./shared-discount-lock'),lock=await locks.read(ctx.db,source,current);locks.assertChange(lock,current,next);guards.push(...lock.guards);}
  const codeOps=[];
  if(source==='PLATFORM'){
   const newCode=next?.code||'',oldCode=current?.code||'';

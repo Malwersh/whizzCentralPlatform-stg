@@ -8,7 +8,7 @@ import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynam
 import { codCollectedPaymentFields } from './codCompletion';
 import { verifyFullCashAssignment } from './fullCashOffer';
 import { prepareFullCashJournal, FULL_CASH_SETTLEMENT_MODEL } from './fullCashSettlement';
-import { detach, equal, exactCheck, strongGet, updateChecked } from './driverFinancialTransaction';
+import { detach, equal, exactCheck, strongGet, updateChecked, financialTransactionToken } from './driverFinancialTransaction';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 import { toWholeIqdExact } from './money';
 
@@ -90,7 +90,7 @@ export function createFullCashCompletion(options: {
     const saved = await strongGet(db, T.offers, offerKey);
     if (!saved || saved.orderId !== orderId || saved.driverId !== actor.driverId || saved.SK !== offerKey.SK) return fail();
     const offer = verifyFullCashAssignment(order, saved, actor.subjectId), a = offer.settlement.allocation;
-    const posting = prepareFullCashJournal(offer.settlement), branchId = offer.baseOffer.branchId;
+    const posting = prepareFullCashJournal(offer.settlement,order.commercialPricing?.cashRounding), branchId = offer.baseOffer.branchId;
     const agreement = order.commercialPricing?.agreement;
     if (!agreement || !quoteEntityIdValid(agreement.id) || !Number.isSafeInteger(agreement.version) || agreement.version < 1 ||
         !/^[a-f0-9]{64}$/.test(agreement.termsHash || '')) return fail('FULL_CASH_AGREEMENT_REQUIRED');
@@ -152,6 +152,7 @@ export function createFullCashCompletion(options: {
         budget.settlementModel !== FULL_CASH_SETTLEMENT_MODEL || budget.snapshotDigest !== offer.financialSnapshot.digest ||
         !equal(budget.deliveryFunding, offer.financialSnapshot.deliveryFunding) ||
         !equal(budget.platformGoodsFunding, a.platformGoodsDiscountFunding)) return fail('FULL_CASH_BUDGET_COMMITMENT_REQUIRED');
+    if(!equal(budget.cashRounding??null,order.commercialPricing?.cashRounding??null))return fail('CASH_ROUNDING_SETTLEMENT_MISMATCH');
     if(a.platformGoodsDiscountFunding.minorAmount>0){verifyGoodsPromotionExposure(budget.goodsExposure,a.platformGoodsDiscountFunding);if(!equal(budget.goodsExposure,order.commercialPricing?.funding?.exposure))return fail('FULL_CASH_BUDGET_COMMITMENT_REQUIRED');}
     operations.push(set(T.holds, budgetKey, budget, { status: 'CONSUMED', operationId, consumedAt: timestamp }),
       set(T.holds, holdKey, hold, { status: H ? 'SETTLED' : 'NOT_REQUIRED', settlementOperationId: operationId, settledAt: timestamp }));
@@ -186,7 +187,7 @@ export function createFullCashCompletion(options: {
     operations.push(put(T.journal, { pk: 'FULL_CASH_JOURNAL#' + orderId, sk: 'META', kind: 'FULL_CASH_ACCOUNTING_JOURNAL',
       schemaVersion: 1, status: 'POSTED', orderId, operationId, driverId: actor.driverId, branchId, settlementModel: FULL_CASH_SETTLEMENT_MODEL,
       offerDigest: offer.digest, allocationDigest: offer.settlement.digest, postingDigest: posting.digest, ...(administrative?{cashAdjudication:{decisionId:decision.decisionId,actualCollectedIqd:actualCollected,adjustment}}:{}),
-      lines: posting.lines, debit: posting.debit, credit: posting.credit, funding: posting.funding, walletLines, createdAt: timestamp }, 'pk'),
+      ...(order.commercialPricing?.cashRounding?{cashRounding:order.commercialPricing.cashRounding}:{}),lines: posting.lines, debit: posting.debit, credit: posting.credit, funding: posting.funding, walletLines, createdAt: timestamp }, 'pk'),
       put(T.holds, { ...outcomeKey, kind: 'FULL_CASH_COMPLETION_JOURNAL', schemaVersion: 3, outcome: 'COMPLETED',
         settlementModel: FULL_CASH_SETTLEMENT_MODEL, orderId, operationId, driverId: actor.driverId, subjectId: actor.subjectId, branchId,
         offerDigest: offer.digest,offerId:offer.baseOffer.offerId,attempt:order.assignmentAttemptCounter, allocation: a, journalDigest: posting.digest, walletLines, receipt, createdAt: timestamp }, 'orderId'),
@@ -218,8 +219,14 @@ export function createFullCashCompletion(options: {
     }
     if (operations.length > 100 || Buffer.byteLength(JSON.stringify(operations)) > 3500000) return fail('FULL_CASH_TRANSACTION_TOO_LARGE');
     if (!equal(actor, await options.authenticateDriver())) return fail('UNAUTHORIZED');
-    try { await db.send(new TransactWriteCommand({ TransactItems: operations as any, ClientRequestToken: quoteHash(operations).slice(0, 36) })); }
-    catch { const recovered = prior(await strongGet(db, T.holds, outcomeKey)); if (recovered && equal(actor, await options.authenticateDriver())) return recovered; return fail('FULL_CASH_CONFLICT_OR_UNKNOWN_OUTCOME_RETRY'); }
+    try { await db.send(new TransactWriteCommand({ TransactItems: operations as any, ClientRequestToken: financialTransactionToken(operations) })); }
+    catch (error) {
+      const failure=error as {name?:unknown;CancellationReasons?:{Code?:string}[]};
+      console.error('FULL_CASH_TRANSACTION_REJECTED', {
+        name:typeof failure?.name==='string'?failure.name:'UnknownError',
+        cancellations:Array.isArray(failure?.CancellationReasons)?failure.CancellationReasons.map((reason,index)=>({index,code:reason.Code??'Unknown',table:Object.values(operations[index]??{})[0]?.TableName})):[],
+      });
+      const recovered = prior(await strongGet(db, T.holds, outcomeKey)); if (recovered && equal(actor, await options.authenticateDriver())) return recovered; return fail('FULL_CASH_CONFLICT_OR_UNKNOWN_OUTCOME_RETRY'); }
     return receipt;
   }
   return Object.freeze({complete:(value:unknown)=>run(value),

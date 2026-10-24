@@ -295,7 +295,8 @@
       );
       const actions = node("div", null, "row-actions");
       actions.append(button("التفاصيل", () => details(o)));
-      if (state.permissions.edit && !o.unsupported) {
+      if(o.sharingLocked)actions.append(node("span","خصم مشترك — الشروط مقفلة"));
+      if (state.permissions.edit && !o.unsupported && !o.sharingLocked) {
         const edit = button("تعديل", () => open(o));
         edit.disabled = o.status === "active" && !state.permissions.approve;
         edit.title = edit.disabled
@@ -308,7 +309,7 @@
           o.status === "active" ? "إيقاف مؤقت" : "تفعيل",
           () => toggleStatus(o),
         );
-        toggle.disabled = busy;
+        toggle.disabled = busy || (o.sharingLocked && !o.sharingCanActivate && o.status !== 'active');
         actions.append(toggle);
       }
       row.append(identity, value, target, timing, actions);
@@ -916,6 +917,7 @@
     const actions = node("div", null, "detail-actions");
     if (
       state.permissions.edit &&
+      !o.sharingLocked &&
       !o.unsupported &&
       (o.status !== "active" || state.permissions.approve)
     )
