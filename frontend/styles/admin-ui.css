@@ -82,6 +82,8 @@ body.wizz-shell {
   -webkit-font-smoothing: antialiased;
 }
 body.wizz-shell *, body.wizz-shell *::before, body.wizz-shell *::after { box-sizing: border-box; }
+/* The hidden attribute always wins over page display rules. */
+body.wizz-shell [hidden] { display: none !important; }
 body.wizz-shell:not([data-page="promotions"]) > #mainContent { padding: 32px 36px 48px; background: #f5f7fa; }
 body.wizz-shell #mainContent > .page-content,
 body.wizz-shell #mainContent > .container { padding: 0; max-width: 1440px; margin-inline: auto; }
@@ -167,6 +169,8 @@ body.wizz-shell #mainContent :is(#message,.status,[role="status"]) { padding: 12
 body.wizz-shell #mainContent :is(#message,.status,[role="status"]):empty { display: none; }
 body.wizz-shell #mainContent :is(#message,.status,[role="status"]).success { background: #eaf5ef; border-inline-start-color: var(--md-sys-color-success); color: #176144; }
 body.wizz-shell #mainContent :is(#message,.status,[role="status"]).error { background: #fceef0; border-inline-start-color: var(--md-sys-color-error); color: #a1333d; }
+/* Backend messages may carry line breaks; keep them readable everywhere. */
+body.wizz-shell #mainContent :is(#message,[id$="-message"]) { white-space: pre-wrap; }
 /* Secondary copy stays quiet and readable. */
 body.wizz-shell #mainContent :is(.muted,small) { color: var(--admin-muted); line-height: 1.8; }
 /* Native forms remain native; never override hidden/display state globally. */
@@ -279,6 +283,19 @@ body.wizz-shell #mainContent .finance-content label:has(>input[type="checkbox"])
 body.wizz-shell #mainContent .finance-content label > :is(input,select,textarea):not([type="checkbox"]) { margin: 0; width: min(100%,360px); }
 body.wizz-shell #mainContent .finance-content label > input[type="checkbox"] { margin: 0; width: auto; }
 body.wizz-shell #mainContent .finance-content section > :is(button,select) { margin: 4px 0 4px 8px; }
+/* Settings-family pages share one measure, form rhythm and an accent primary action. */
+body.wizz-shell #mainContent .settings-content { max-inline-size: 1050px; margin-inline: auto; }
+body.wizz-shell #mainContent .settings-content label { margin-block: 16px; }
+body.wizz-shell #mainContent .settings-content input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) { inline-size: min(100%, 260px); }
+body.wizz-shell #mainContent .settings-content textarea { inline-size: 100%; }
+body.wizz-shell #mainContent .settings-content button.primary:not(#menuToggle) { background: #f0c448; border-color: #f0c448; color: #18273d; }
+/* Pricing workspace: narrower measure, shell-styled native buttons and spaced nav anchors. */
+body.wizz-shell[data-page="pricing"] #mainContent > .page-content { max-inline-size: 1100px; }
+body.wizz-shell[data-page="pricing"] #mainContent label { margin-block: 10px; }
+body.wizz-shell[data-page="pricing"] #mainContent :is(button,.btn):not(#menuToggle) { background: #233f69; color: #fff; border: 1px solid #233f69; border-radius: 8px; padding: 10px 16px; min-block-size: 44px; font: 600 14px/1.65 var(--admin-font); cursor: pointer; }
+body.wizz-shell[data-page="pricing"] #mainContent button:disabled { opacity: .5; cursor: not-allowed; }
+body.wizz-shell[data-page="pricing"] #mainContent nav a { display: inline-block; margin: 10px; }
+body.wizz-shell #mainContent output { display: block; white-space: pre-line; line-height: 1.9; }
 body.wizz-shell[lang="ar"],html[lang="ar"] body.wizz-shell { font-family: var(--admin-font); }
 html[lang="ar"] body.wizz-shell #mainContent h1 { font-family: var(--admin-font); letter-spacing: 0; }
 body.wizz-shell .wizz-shell-bar { margin-bottom: 20px; }
@@ -442,4 +459,26 @@ body.wizz-shell :is(button,a,input,select,textarea,summary):focus-visible {
 }
 @media screen and (width < 600px) {
   body.wizz-shell #mainContent :is(input,select,textarea):not([type=checkbox]):not([type=radio]) { font-size: 16px; }
+}
+
+/* Async loading states: shimmering placeholder rows and an inline text spinner.
+   Placeholder markup lives in the table body and is replaced wholesale once data arrives. */
+body.wizz-shell #mainContent .table-skeleton td { padding-block: 15px; }
+body.wizz-shell #mainContent .table-skeleton .skl {
+  display: block; block-size: 12px; inline-size: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, #e9edf3 0%, #f5f8fc 50%, #e9edf3 100%);
+  background-size: 200% 100%;
+  animation: wizz-skeleton-sweep 1.6s linear infinite;
+}
+body.wizz-shell #mainContent .loading-inline { display: inline-flex; align-items: center; gap: 8px; color: var(--admin-muted); font-size: 14px; }
+body.wizz-shell #mainContent .loading-inline::before {
+  content: ""; inline-size: 14px; block-size: 14px; flex: 0 0 14px; border-radius: 50%;
+  border: 2px solid var(--admin-line); border-block-start-color: var(--md-sys-color-primary);
+  animation: wizz-loading-spin 0.8s linear infinite;
+}
+@keyframes wizz-skeleton-sweep { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes wizz-loading-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  body.wizz-shell #mainContent .table-skeleton .skl,
+  body.wizz-shell #mainContent .loading-inline::before { animation: none; }
 }
