@@ -4,7 +4,7 @@ const {createHash,randomUUID}=require('node:crypto');
 const {versioned}=require('../shared/campaign-version');
 const {patchTerms}=require('../shared/discount-contract');
 const D='WhizzMerchants_Discounts',T='staging-MerchantPlatform';
-const FIELDS=['discountId','businessId','title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_count','usage_limit','updated_at','created_at','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters','version','fundingPolicyId','fundingPolicyVersion','legalHold','retentionHold','validFrom','validTo','minimumOrderAmount','usageLimit','usageCount','discountType','discountValue','isActive'];
+const FIELDS=['discountId','businessId','title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_count','usage_limit','updated_at','created_at','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters','version','fundingPolicyId','fundingPolicyVersion','sharedStopped','legalHold','retentionHold','validFrom','validTo','minimumOrderAmount','usageLimit','usageCount','discountType','discountValue','isActive'];
 const fail=(code,status=400)=>{throw Object.assign(Error(code),{status});};
 const pick=r=>Object.fromEntries(FIELDS.filter(k=>r[k]!==undefined).map(k=>[k,r[k]]));
 const digest=r=>createHash('sha256').update(JSON.stringify(r)).digest('hex');
@@ -36,8 +36,9 @@ async function execute(db,{b,d,s,m,authorization,common},input){
   if(input.cursor){try{if(typeof input.cursor!=='string'||input.cursor.length>1024)throw Error();const parsed=JSON.parse(Buffer.from(input.cursor,'base64url'));if(Object.keys(parsed).sort().join(',')!=='businessId,discountId'||parsed.businessId!==b.businessId||typeof parsed.discountId!=='string'||!/^[\w-]{1,150}$/.test(parsed.discountId))throw Error();cursor={discountId:parsed.discountId};}catch(_){fail('INVALID_CURSOR');}}
   const names=Object.fromEntries(FIELDS.map((k,i)=>['#f'+i,k]));
   const page=await db.send(new ScanCommand({TableName:D,FilterExpression:'businessId=:b',ExpressionAttributeValues:{':b':b.businessId},ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names,ConsistentRead:true,Limit:50,...(cursor?{ExclusiveStartKey:cursor}:{})}));
+  const locksById=new Map();for(const r of (page.Items||[]).filter(r=>r.businessId===b.businessId))locksById.set(r.discountId,await require('../shared/shared-discount-lock').read(db,'MERCHANT',r));
   await prove(db,common);
-  return {discounts:(page.Items||[]).filter(r=>r.businessId===b.businessId).map(view),nextCursor:page.LastEvaluatedKey?Buffer.from(JSON.stringify({businessId:b.businessId,discountId:page.LastEvaluatedKey.discountId})).toString('base64url'):null};
+  return {discounts:(page.Items||[]).filter(r=>r.businessId===b.businessId).map(r=>({...view(r),sharingLocked:locksById.get(r.discountId)?.locked===true,sharingCanActivate:locksById.get(r.discountId)?.initiallyInactive===true&&!r.sharedStopped})),nextCursor:page.LastEvaluatedKey?Buffer.from(JSON.stringify({businessId:b.businessId,discountId:page.LastEvaluatedKey.discountId})).toString('base64url'):null};
  }
  if(typeof input.requestId!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(input.requestId))fail('REQUEST_ID_REQUIRED');
  if(action!=='discounts_create'&&(typeof input.discountId!=='string'||!/^[\w-]{1,150}$/.test(input.discountId)||typeof input.baseRevision!=='string'))fail('INVALID_DISCOUNT');
@@ -60,6 +61,7 @@ async function execute(db,{b,d,s,m,authorization,common},input){
  if((action==='discounts_create'||action==='discounts_update')&&Date.parse(data.valid_to)<=Date.now()||action==='discounts_status'&&input.active&&Date.parse(row.valid_to)<=Date.now())fail('DISCOUNT_EXPIRED',409);
  let after=action==='discounts_delete'?null:row?{...row,...(data||{}),...(action==='discounts_status'?{status:input.active?'active':'inactive'}:{}),updated_at:now}:{discountId:id,id,businessId:b.businessId,...data,applicability:'allItems',applicable_item_ids:[],applicable_category_ids:[],conditional_rule:null,conditional_parameters:{},usage_limit:null,usage_count:0,status:'inactive',created_at:now,updated_at:now};
  after=after?versioned(row,patchTerms(row,row?{...(data||{}),...(action==='discounts_status'?{status:input.active?'active':'inactive'}:{})}:after,'merchant')):null;
+ const locks=require('../shared/shared-discount-lock'),lock=row?await locks.read(db,'MERCHANT',row):null;if(lock){locks.assertChange(lock,row,after);common=[...common,...lock.guards];}
  const adopt=!!row&&row.version===undefined;
  const changed=!row||after===null||Object.keys(data||{status:after.status}).some(k=>row[k]!==after[k]);
  let write;

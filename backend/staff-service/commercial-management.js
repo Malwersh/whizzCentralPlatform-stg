@@ -113,6 +113,7 @@ async function serviceCore(ctx,principal,method,input){
  if((draft?.version||0)!==input.draftVersion||(current?.version||0)!==input.baseVersion)fail('VERSION_OR_STATE_CONFLICT',409);
  const now=ctx.now?ctx.now():new Date().toISOString();let tx=[],result;
  if(saving){
+  if(kind==='FUNDING'&&current)fail('SHARED_DISCOUNT_TERMS_LOCKED',409);
   if(!Array.isArray(input.businessIds)||input.businessIds.length<1||input.businessIds.length>10||new Set(input.businessIds).size!==input.businessIds.length||!input.businessIds.includes(b.businessId))fail('INVALID_COMMERCIAL_SCOPE');
   const ids=[...input.businessIds].sort();ids.forEach(id);
   if(draft&&kind==='FUNDING'&&(draft.values.campaignId!==input.values.campaignId||draft.values.source!==input.values.source))fail('NEW_SHARING_REQUIRED',409);
@@ -189,6 +190,7 @@ async function serviceCore(ctx,principal,method,input){
     const consent=await get(S,{pk,sk:'CONSENT#'+draft.version});if(!consent||consent.hash!==draft.hash)fail('OWNER_ACCEPTANCE_REQUIRED',409);
     const signer=await require('./commercial-party').resolve(ctx.db,b,consent.subjectId);if(signer.role==='MANAGER'&&(consent.acceptedRole!=='MANAGER'||consent.ownerId!==b.ownerId))fail('OWNER_ACCEPTANCE_REQUIRED',409);tx.push(...signer.guards);
     tx.push(check(S,{pk,sk:consent.sk},consent),check(campaignTable,{discountId:values.campaignId},campaign));
+    const sharedLock=require('./shared-discount-lock');tx.push({Put:{TableName:sharedLock.TABLE,Item:{...sharedLock.key(values.source,values.campaignId),locked:true,initiallyInactive:campaign.status==='inactive'||campaign.isActive===false}}});
     const policy={pk,sk:'CURRENT',schemaVersion:3,id:input.id,version:nextVersion,status:'ACTIVE',campaignId:values.campaignId,campaignVersion:values.campaignVersion,source:values.source,merchantId:b.organizationId,branchId:b.businessId,target:'GOODS',effectiveFrom:values.effectiveFrom,effectiveTo:values.effectiveTo,merchantNumerator:values.merchantNumerator,denominator:values.denominator,rounding:'MERCHANT_TOWARD_ZERO_PLATFORM_REMAINDER',merchantShareFinalRounding:values.merchantShareFinalRounding,acceptedBy:consent.subjectId,acceptedAt:consent.acceptedAt,approvedBy:actor.employeeId,approvedAt:now};
     const bindingKey={pk:'BRANCH#'+b.businessId,sk:'COMMERCIAL_SHARING#'+values.source+'#'+values.campaignId},binding=await get(P,bindingKey);
     if(binding&&binding.policyId!==input.id)fail('SHARING_POLICY_EXISTS',409);

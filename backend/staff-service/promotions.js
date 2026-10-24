@@ -64,7 +64,7 @@ async function route(ctx,actor,method,input){
  if(current)await scope(current);else if(previous?.scope)await scope(previous.scope);else if(source==='MERCHANT')fail('CAMPAIGN_UNAVAILABLE',404);
  async function write(ops){try{await ctx.db.send(new TransactWriteCommand({TransactItems:[...guards,...ops]}));}catch(e){if(e.name==='TransactionCanceledException')fail('VERSION_OR_STATE_CONFLICT',409);throw e;}}
  if(method==='GET'){
-  if(!current)fail('CAMPAIGN_UNAVAILABLE',404);await write([{ConditionCheck:{TableName:table,Key:{discountId},...fence(current)}}]);return {campaign:{...project(current),imageUrl:current.imageKey?await require('./home-slideshow').assets(ctx).url(current.imageKey):''},revision:revision(current)};
+  if(!current)fail('CAMPAIGN_UNAVAILABLE',404);await write([{ConditionCheck:{TableName:table,Key:{discountId},...fence(current)}}]);return {campaign:{...project(current),sharingLocked:(await require('./shared-discount-lock').read(ctx.db,source,current)).locked,imageUrl:current.imageKey?await require('./home-slideshow').assets(ctx).url(current.imageKey):''},revision:revision(current)};
  }
  if(method!=='POST'||!['CREATE','UPDATE','DELETE','ADOPT'].includes(input.action))fail('INVALID_CAMPAIGN_ACTION');
  if(Object.keys(input).some(k=>!['source','discountId','action','requestId','baseRevision','values'].includes(k))||!uuid(input.requestId))fail('INVALID_CAMPAIGN_REQUEST');
@@ -88,6 +88,8 @@ async function route(ctx,actor,method,input){
    for(const regionId of next.targetRegionIds||[]){const region=await get('WizzCentral_Regions',{regionId});if(!region||region.isActive===false||region.is_active===false||region.deletedAt||region.status==='inactive')fail('CAMPAIGN_REGION_UNAVAILABLE',409);guards.push({ConditionCheck:{TableName:'WizzCentral_Regions',Key:{regionId},...fence(region)}});}
   }
  }
+ if(current&&input.action==='UPDATE'&&Object.keys(input.values||{}).every(k=>['status','isActive','autoActivate'].includes(k)))next=versioned(current,{...current,...input.values,[source==='MERCHANT'?'updated_at':'updatedAt']:now});
+ if(current){const locks=require('./shared-discount-lock'),lock=await locks.read(ctx.db,source,current);locks.assertChange(lock,current,next);guards.push(...lock.guards);}
  const codeOps=[];
  if(source==='PLATFORM'){
   const newCode=next?.code||'',oldCode=current?.code||'';

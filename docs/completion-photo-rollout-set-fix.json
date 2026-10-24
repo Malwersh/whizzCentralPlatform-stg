@@ -16,7 +16,7 @@
   "orderNumber": "ORD1792804837572",
   "orderId": "4f0b538e-7211-57b0-8db4-83011a5ff992",
   "agentFinancialOrOrderWrites": false,
-  "humanDeliveryRetry": "PENDING",
+  "humanDeliveryRetry": "VERIFIED",
   "nativeRebuildRequired": false,
   "publishedAt": "2026-10-24T01:46:11.261079+00:00",
   "tests": {
@@ -25,5 +25,6 @@
     "actualPublishedHostPatchReproducible": true
   },
   "previousFixLimitation": "Guard preservation was fixed but rollout copy still dropped Set before raw DB transport; prior isolated factory test missed that boundary",
-  "failureDiagnostics": "Bounded error name and cancellation code/index/table only; no payloads, credentials or personal data"
+  "failureDiagnostics": "Bounded error name and cancellation code/index/table only; no payloads, credentials or personal data",
+  "finalAudit": "completion-photo-final-audit.json"
 }

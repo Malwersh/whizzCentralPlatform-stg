@@ -115,7 +115,8 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
     }
     if(policy.schemaVersion!==3||policy.id!==binding.policyId||policy.version!==positive(binding.policyVersion)||quoteHash(policy)!==binding.policyDigest||policy.status!=='ACTIVE'||policy.merchantId!==merchantId||policy.branchId!==branchId||policy.campaignId!==snapshot.discountId||policy.source!==snapshot.source||policy.target!=='GOODS'||!quoteEntityIdValid(policy.acceptedBy)||instant(policy.acceptedAt)>at||instant(policy.approvedAt)>at||!quoteEntityIdValid(policy.approvedBy)||policy.rounding!=='MERCHANT_TOWARD_ZERO_PLATFORM_REMAINDER')return fail('DISCOUNT_FUNDING_UNAUTHORIZED');
     operations.push(pin(platform,bindingKey,binding),pin(staff,policyKey,policy));
-    // A campaign edit invalidates the sharing consent. The source-funded default remains usable.
+    // Never replace agreed shared funding with a unilateral source-funded charge.
+    if(policy.campaignVersion!==snapshot.version||instant(policy.effectiveFrom)!==start||instant(policy.effectiveTo)!==end)return fail('DISCOUNT_FUNDING_TERMS_CHANGED');
     if(policy.campaignVersion===snapshot.version&&instant(policy.effectiveFrom)===start&&instant(policy.effectiveTo)===end){
      if(!Number.isSafeInteger(policy.merchantNumerator)||policy.merchantNumerator<=0||policy.merchantNumerator>=positive(policy.denominator))return fail('DISCOUNT_FUNDING_UNAUTHORIZED');
      try{const final=readWholeIqdRounding(policy.merchantShareFinalRounding);if(final.mode!=='TOWARD_ZERO')return fail();merchantShare=quantizeWholeIqd(multiplyMoney(amount,policy.merchantNumerator,policy.denominator,'TOWARD_ZERO'),final);}catch{return fail('DISCOUNT_FUNDING_UNAVAILABLE');}

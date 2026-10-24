@@ -445,3 +445,12 @@ General policy CURRENT v1 active: COD only, UP250 IQD, minimum effective service
 
 ## Part331 — client shared prepared invoice compatibility
 Customer now prepares/caches a scoped invoice early and reuses its quote/request ID for review; closing review is normal cancellation. Actual server handler fixture verified preparation digest remains valid with final display/contact/instruction metadata under NONE/MERCHANT/PLATFORM delivery funding, with one-order replay.13 targeted acceptance cases passed, three new. No server runtime, policy or live financial mutation. Customer simulator241 installed. See docs/prepared-invoice-compatibility-331.json and customer docs/shared-checkout-invoice-331.json.
+
+
+## تحديث — قفل شروط الخصم المشترك بعد الاعتماد، ٢٣ أكتوبر ٢٠٢٦
+
+نُشرت الحماية في staging للمنصة والمطعم والموظف ومسار إنشاء الطلب، والواجهة Amplify job180. راجع shared-discount-terms-lock-238.json. شروط الخصم والمشاركة المعتمدتين مقفلة؛ الإيقاف يحفظ السجل ويمنع إعادة تشغيل الخصم المشترك المتوقف. «إيقاف الخصم وإنشاء بديل» يفتح مسودة جديدة بالقيم السابقة بهوية جديدة دون نقل الموافقة. يُسمح بالتشغيل الأول لخصم جديد اعتُمد وهو غير مفعّل. الاختلاف القديم بين إصدار الخصم والمشاركة يرفض تطبيق الخصم بدل تحميل المطعم كامل قيمته. نسخة المطعم238 مثبتة على المحاكيين ومفتوحة على iPhone16. لا خصم أو موافقة أو طلب أو رصيد عُدّل بواسطة الوكيل.
+
+الطلب ORD1792804837572 أصبح delivered وتسويته SETTLED، والقيد POSTED ومتوازن15000/15000، وعملية إكمال واحدة مثبتة بمدخلين في المحافظ. له صورتا تسليم محفوظتان كـSet؛ مبلغ الزبون16500=السائق1500+مستحق المطعم10750+مساهمة المنصة4250. مستحق المطعم LOCKED_PENDING_SETTLEMENT وليس مدفوعًا. راجع completion-photo-final-audit.json. هذا الطلب حمّل المطعم كامل خصم500 لأن العرضv3 والمشاركةv1؛ لا تغيّر تسويته بأثر رجعي.
+
+الخطوة البشرية التالية: إيقاف العرض القديم وإنشاء بديل من تطبيق المطعم، ثم إنشاء مشاركة50/50 للبديل واعتمادها فعليًا من المطعم، ثم طلب جديد لإثبات250/250. اختبار المناصفة لم يكتمل بعد، ولا تُعلَن الخطة المالية مكتملة.

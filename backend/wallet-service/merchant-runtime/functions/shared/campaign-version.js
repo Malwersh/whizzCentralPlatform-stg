@@ -2,7 +2,7 @@
 // Canonical campaign-content version. Usage/state updates retain approved terms; changed terms revoke the current funding binding.
 const {createHash}=require('node:crypto');
 const {patchTerms}=require('./discount-contract');
-const transient=new Set(['version','status','isActive','autoActivate','updatedAt','updated_at','createdAt','created_at','createdBy','updatedBy','usage','currentUsage','usage_count','usageCount','fundingPolicyId','fundingPolicyVersion','revision']);
+const transient=new Set(['sharedStopped','version','status','isActive','autoActivate','updatedAt','updated_at','createdAt','created_at','createdBy','updatedBy','usage','currentUsage','usage_count','usageCount','fundingPolicyId','fundingPolicyVersion','revision']);
 const pinned=['version','fundingPolicyId','fundingPolicyVersion','legalHold','retentionHold','isDeleted','deletedAt','deletionStatus'];
 const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
 const digest=v=>createHash('sha256').update(JSON.stringify(stable(v))).digest('hex');
@@ -45,7 +45,9 @@ async function ownerOperation(raw,item,businessId,sdk){
  if(item.Put){if(op.Item.businessId!==businessId)fail('CAMPAIGN_SCOPE_INVALID');if(['version','fundingPolicyId','fundingPolicyVersion'].some(k=>op.Item[k]!==undefined))fail('CAMPAIGN_WRITE_FORBIDDEN');return {Put:{TableName:op.TableName,Item:versioned(null,op.Item),...appendCondition({ConditionExpression:'attribute_not_exists(discountId)'},op)}};}
  const row=(await raw.send(new sdk.GetCommand({TableName:op.TableName,Key:op.Key,ConsistentRead:true}))).Item;if(!row||row.businessId!==businessId)fail('CAMPAIGN_UNAVAILABLE');validVersion(row);if(sdk.expectedRevision!==undefined&&sdk.expectedRevision!==revision(row))fail('VERSION_OR_STATE_CONFLICT');
  if(row.legalHold===true||row.retentionHold===true)fail('CAMPAIGN_RETENTION_HOLD');
+ const locks=require('./shared-discount-lock'),lock=await locks.read(raw,'MERCHANT',row);
+ const proposed=item.Delete?null:applySet(row,op);locks.assertChange(lock,row,proposed);sdk.lockGuards?.push(...lock.guards);
  const condition=appendCondition(fence(row),op);if(item.Delete)return {Delete:{TableName:op.TableName,Key:op.Key,...condition}};
- return {Put:{TableName:op.TableName,Item:versioned(row,patchTerms(row,Object.fromEntries(Object.entries(applySet(row,op)).filter(([k,v])=>JSON.stringify(v)!==JSON.stringify(row[k]))),'merchant')),...condition}};
+ return {Put:{TableName:op.TableName,Item:versioned(row,lock.locked?proposed:patchTerms(row,Object.fromEntries(Object.entries(applySet(row,op)).filter(([k,v])=>JSON.stringify(v)!==JSON.stringify(row[k]))),'merchant')),...condition}};
 }
 module.exports={versioned,validVersion,revision,fence,digest,ownerOperation};

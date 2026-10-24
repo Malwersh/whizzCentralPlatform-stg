@@ -365,7 +365,7 @@ async function route(ctx, actor, method, path, input) {
         .filter(
           (r) => !r.benefit && !r.isDeleted && !r.deletedAt && inScope(actor, r, merchants),
         )
-        .map(async row => {const offer=normalize(row); return {...offer,imageUrl:offer.imageKey?await require('./home-slideshow').assets(ctx).url(offer.imageKey):''};})),
+        .map(async row => {const offer=normalize(row),sharing=await require('./shared-discount-lock').read(ctx.db,offer.source==='merchant'?'MERCHANT':'PLATFORM',row); return {...offer,sharingLocked:sharing.locked,sharingCanActivate:sharing.initiallyInactive&&!row.sharedStopped,imageUrl:offer.imageKey?await require('./home-slideshow').assets(ctx).url(offer.imageKey):''};})),
       merchants: visible.map((m) => ({
         id: m.businessId,
         label: m.businessName || m.businessNameArabic || m.name || m.businessId,
@@ -413,6 +413,8 @@ async function route(ctx, actor, method, path, input) {
       "This offer changed in another window. Reload it before saving.",
       409,
     );
+  const sharedLocks=require('./shared-discount-lock'),sharing=before?await sharedLocks.read(ctx.db,input.source==='merchant'?'MERCHANT':'PLATFORM',before):null;
+  if(sharing?.locked&&!path.endsWith('/status'))throw fail('هذا خصم مشترك معتمد؛ لا يمكن تعديل شروطه. أوقفه وأنشئ بديلًا بموافقة جديدة.',409);
   let data;
   if (path.endsWith("/status")) {
     if (!before) throw fail("Offer not found.", 404);
@@ -625,9 +627,10 @@ async function route(ctx, actor, method, path, input) {
       allowedBusinessIds: [],
       businessIds: [],
     });
+  if(sharing?.locked){const state={status:data.status,...(before.isActive!==undefined?{isActive:data.status==='active'}:{}),...(before.autoActivate!==undefined?{autoActivate:data.status==='active'}:{})};const proposed={...before,...state};sharedLocks.assertChange(sharing,before,proposed);for(const k of Object.keys(common))delete common[k];Object.assign(common,state,{[data.source==='merchant'?'updated_at':'updatedAt']:now},proposed.sharedStopped===true?{sharedStopped:true}:{});}
   // Use the existing canonical version contract while retaining the editor API.
   const prior=before?{...before}:null;
-  const after=patchTerms(before,{...common},data.source==='merchant'?'merchant':'platform');
+  const after=sharing?.locked?{...before,...common}:patchTerms(before,{...common},data.source==='merchant'?'merchant':'platform');
   // Editor revision metadata must not turn a status-only update into a terms edit.
   if(prior)delete prior.editorVersion;
   const terms={...after};delete terms.editorVersion;
@@ -692,6 +695,7 @@ async function route(ctx, actor, method, path, input) {
       randomUUID(),
     ),
   ];
+  if(sharing)tx.push(...sharing.guards);
   if (data.source !== "merchant" && data.code)
     tx.push({
       Update: {
