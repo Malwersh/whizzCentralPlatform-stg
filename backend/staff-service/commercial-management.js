@@ -67,6 +67,7 @@ async function serviceCore(ctx,principal,method,input){
  const campaignFor=async values=>{
   const table=values.source==='MERCHANT'?'WhizzMerchants_Discounts':'WizzCentral_Platform_Discounts',campaign=await get(table,{discountId:values.campaignId});
   if(!campaign||campaign.version!==values.campaignVersion||campaign.isDeleted||campaign.deletedAt||campaign.deletionRequestId||(values.source==='MERCHANT'&&campaign.businessId!==b.businessId))fail('CAMPAIGN_VERSION_REQUIRED',409);
+  require('./funding-campaign-limits').validate(campaign,values.source);
   const targets=campaign.targetRestaurants?.length?campaign.targetRestaurants:campaign.allowedBusinessIds?.length?campaign.allowedBusinessIds:campaign.businessIds?.length?campaign.businessIds:campaign.businessId?[campaign.businessId]:[];
   if(!Array.isArray(targets)||values.source==='PLATFORM'&&targets.length&&!targets.includes(b.businessId))fail('COMMERCIAL_SCOPE_MISMATCH',403);
   let from,to;try{from=new Date(campaign.validFrom||campaign.valid_from||campaign.startDate).toISOString();to=new Date(campaign.validTo||campaign.valid_to||campaign.endDate).toISOString();}catch{fail('INVALID_COMMERCIAL_PERIOD');}

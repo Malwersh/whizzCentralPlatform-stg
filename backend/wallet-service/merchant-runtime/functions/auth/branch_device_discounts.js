@@ -4,7 +4,7 @@ const {createHash,randomUUID}=require('node:crypto');
 const {versioned}=require('../shared/campaign-version');
 const {patchTerms}=require('../shared/discount-contract');
 const D='WhizzMerchants_Discounts',T='staging-MerchantPlatform';
-const FIELDS=['discountId','businessId','title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_count','usage_limit','updated_at','created_at','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters','version','fundingPolicyId','fundingPolicyVersion','sharedStopped','legalHold','retentionHold','validFrom','validTo','minimumOrderAmount','usageLimit','usageCount','discountType','discountValue','isActive'];
+const FIELDS=['discountId','businessId','title','description','type','value','applicability','minimum_order_amount','valid_from','valid_to','status','usage_count','usage_limit','updated_at','created_at','applicable_item_ids','applicable_category_ids','conditional_rule','conditional_parameters','version','fundingPolicyId','fundingPolicyVersion','perCustomerLimit','singleUse','maxDiscountAmount','sharedStopped','legalHold','retentionHold','validFrom','validTo','minimumOrderAmount','usageLimit','usageCount','discountType','discountValue','isActive'];
 const fail=(code,status=400)=>{throw Object.assign(Error(code),{status});};
 const pick=r=>Object.fromEntries(FIELDS.filter(k=>r[k]!==undefined).map(k=>[k,r[k]]));
 const digest=r=>createHash('sha256').update(JSON.stringify(r)).digest('hex');
