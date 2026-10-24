@@ -10,7 +10,7 @@ async function api(path,method='GET',body){
  try{await window.Auth.ensureSession();}catch(e){if(e.code==='SessionExpired')await window.Auth.logout();throw e;}
  const token=window.Auth.getToken('accessToken');
  if(!token)throw Error('يرجى تسجيل الدخول.');
- let response;try{response=await fetch(base+path,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});}catch(_){throw Object.assign(Error('تعذر الاتصال بالخدمة. حدّث حالة الدعوة قبل إعادة المحاولة.'),{code:'NETWORK_UNCERTAIN'});}
+ let response;const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20000);try{response=await fetch(base+path,{method,signal:controller.signal,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});}catch(_){throw Object.assign(Error('تعذر الاتصال بالخدمة. حدّث حالة الدعوة قبل إعادة المحاولة.'),{code:'NETWORK_UNCERTAIN'});}finally{clearTimeout(timer);}
  const data=await response.json();if(response.status===401||data.error==='EMPLOYEE_INACTIVE'){await window.Auth.logout();throw Error('انتهت صلاحية الحساب.');}if(!response.ok)throw Object.assign(Error(errors[data.error]||'تعذر تنفيذ الطلب. حدّث الصفحة أو سجّل الدخول مجددًا.'),{code:data.error,status:response.status});return data;
 }
 async function all(path){let items=[],cursor;do{const page=await api(path+(cursor?'?cursor='+encodeURIComponent(cursor):''));items.push(...page.items);cursor=page.nextCursor;if(items.length>10000)throw Error('القائمة كبيرة. يلزم استخدام البحث.');}while(cursor);return items;}
