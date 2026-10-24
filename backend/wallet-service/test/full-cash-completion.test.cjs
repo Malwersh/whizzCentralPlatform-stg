@@ -18,3 +18,22 @@ test('lost transaction response recovers the durable outcome with no duplicate j
 test('zero-net full-cash completion records discoverable source atomically without zero wallet lines or invented credit',async()=>{const f=fixture(2750,9450);await f.complete();const p=f.get('staging-Holds',{orderId:'order1',sk:'MERCHANT_PAYABLE'});assert.equal(p.amount,0);const rows=[...f.rows.values()].filter(r=>r.kind==='MERCHANT_ACCRUAL_INDEX_ENTRY');assert.equal(rows.length,1);assert.equal(rows[0].merchantNetIqd,0);assert.equal(rows[0].financialSchemaVersion,4);assert.equal(wallet(f,'WALLET#MERCHANT#branch1').lockedBalance,10);assert.ok(f.get('staging-MerchantPlatform',{pk:'FULL_CASH_JOURNAL#order1',sk:'META'}).walletLines.every(l=>l.delta!==0));await require('../dist/merchantSettlementPreview').readMerchantAccrualEvidence(f.db,'branch1','order1');const before=JSON.stringify([...f.rows]);await f.complete();assert.equal(JSON.stringify([...f.rows]),before);});
 
 for(const mode of ['UP','DOWN'])test('cash rounding '+mode+' posts once with complete evidence and balanced company journal',async()=>{const f=fixture(2750,1575,mode),before=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).commercialPricing.cashRounding;await f.complete();const j=f.get('staging-MerchantPlatform',{pk:'FULL_CASH_JOURNAL#order1',sk:'META'});assert.deepEqual(j.cashRounding,before);assert.equal(j.debit.minorAmount,j.credit.minorAmount);assert.equal(j.lines.find(l=>l.account==='SERVICE_FEE_REVENUE').amount.minorAmount,300000);assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'MERCHANT_PAYABLE'}).amount,7875);const rows=JSON.stringify([...f.rows]);assert.equal((await f.complete()).replayed,true);assert.equal(JSON.stringify([...f.rows]),rows);});
+
+test('delivery with photo proof preserves exact SS condition, posts once and retains proof',async()=>{
+ const f=fixture();const order=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ order.deliveryProofIds=new Set(['photo1']);order.deliveryProofs=[{proofId:'photo1',key:'private-proof'}];
+ const db={send:async c=>{
+  if(c.constructor.name==='TransactWriteCommand'){
+   const update=c.input.TransactItems.find(x=>x.Update?.TableName==='WizzOrders').Update;
+   const alias=Object.entries(update.ExpressionAttributeNames).find(([,v])=>v==='deliveryProofIds')[0];
+   const value=update.ExpressionAttributeValues[':v'+alias.slice(2)];
+   assert.ok(value instanceof Set,'DynamoDB SS must never be compared with a JSON map');
+   assert.deepEqual([...value],['photo1']);
+  }
+  return f.db.send(c);
+ }};
+ await f.complete({db});
+ assert.deepEqual([...f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).deliveryProofIds],['photo1']);
+ assert.equal((await f.complete({db})).replayed,true);
+ assert.equal([...f.rows.values()].filter(x=>x.kind==='FULL_CASH_ACCOUNTING_JOURNAL').length,1);
+});

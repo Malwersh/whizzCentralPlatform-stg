@@ -8,7 +8,7 @@ import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynam
 import { codCollectedPaymentFields } from './codCompletion';
 import { verifyFullCashAssignment } from './fullCashOffer';
 import { prepareFullCashJournal, FULL_CASH_SETTLEMENT_MODEL } from './fullCashSettlement';
-import { detach, equal, exactCheck, strongGet, updateChecked } from './driverFinancialTransaction';
+import { detach, equal, exactCheck, strongGet, updateChecked, financialTransactionToken } from './driverFinancialTransaction';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 import { toWholeIqdExact } from './money';
 
@@ -219,7 +219,7 @@ export function createFullCashCompletion(options: {
     }
     if (operations.length > 100 || Buffer.byteLength(JSON.stringify(operations)) > 3500000) return fail('FULL_CASH_TRANSACTION_TOO_LARGE');
     if (!equal(actor, await options.authenticateDriver())) return fail('UNAUTHORIZED');
-    try { await db.send(new TransactWriteCommand({ TransactItems: operations as any, ClientRequestToken: quoteHash(operations).slice(0, 36) })); }
+    try { await db.send(new TransactWriteCommand({ TransactItems: operations as any, ClientRequestToken: financialTransactionToken(operations) })); }
     catch { const recovered = prior(await strongGet(db, T.holds, outcomeKey)); if (recovered && equal(actor, await options.authenticateDriver())) return recovered; return fail('FULL_CASH_CONFLICT_OR_UNKNOWN_OUTCOME_RETRY'); }
     return receipt;
   }
