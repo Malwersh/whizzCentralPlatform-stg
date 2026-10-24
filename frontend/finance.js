@@ -3,7 +3,7 @@
 const base='https://z14s5f8oxh.execute-api.us-east-1.amazonaws.com/staging';
 let config,staffProfile=null;
 const can=permission=>staffProfile?.permissions?.includes(permission)||permission==='bootstrap.only'&&staffProfile?.employee?.roles?.includes('bootstrap_admin');
-async function staffAccess(){const url=window.WIZZCENTRAL_CONFIG?.STAFF_API_BASE_URL;if(!url)throw Error('تعذر تحميل صلاحيات الموظف. أعد تسجيل الدخول.');const response=await fetch(url+'/staff/me',{headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken')}});staffProfile=await response.json();if(!response.ok||!can('finance.read'))throw Error('صلاحية مالية مطلوبة. تحقق من الحساب وأعد تسجيل الدخول.');for(const [id,permission] of Object.entries({'transfer-create':'finance.request','transfer-settings-propose':'finance.settings.request','save':'bootstrap.only','sandbox-save':'bootstrap.only'}))el(id).hidden=!can(permission);}
+async function staffAccess(){const url=window.WIZZCENTRAL_CONFIG?.STAFF_API_BASE_URL;if(!url)throw Error('تعذر تحميل صلاحيات الموظف. أعد تسجيل الدخول.');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);let response;try{response=await fetch(url+'/staff/me',{signal:controller.signal,headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken')}});}finally{clearTimeout(timer);}staffProfile=await response.json();if(!response.ok||!can('finance.read'))throw Error('صلاحية مالية مطلوبة. تحقق من الحساب وأعد تسجيل الدخول.');for(const [id,permission] of Object.entries({'transfer-create':'finance.request','transfer-settings-propose':'finance.settings.request','save':'bootstrap.only','sandbox-save':'bootstrap.only'}))el(id).hidden=!can(permission);}
 let sandbox;
 let transferPolicy=null,settingsPending=null;
 const el=id=>document.getElementById(id);
@@ -12,9 +12,11 @@ async function call(path,method='GET',body){
  if(window.Auth?.ensureSession) await window.Auth.ensureSession();
  const token=window.Auth?.getToken?.('accessToken') || sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
  if(!token)throw Error('يرجى تسجيل الدخول مجدداً');
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
  let r;
- try { r=await fetch(base+path,{method,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}); }
+ try { r=await fetch(base+path,{method,signal:controller.signal,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}); }
  catch (_) { throw Error('تعذر الاتصال بخدمة المحفظة. تحقق من الاتصال وأعد المحاولة.'); }
+ finally{ clearTimeout(timer); }
  const d=await r.json();
  if(r.status===401)throw Error('انتهت جلسة الدخول. سجّل الخروج ثم الدخول مجدداً.');
  if(r.status===403 && ['REAUTH_REQUIRED','SECOND_APPROVER_REQUIRED'].includes(d.error?.code))throw Error(d.error.message);

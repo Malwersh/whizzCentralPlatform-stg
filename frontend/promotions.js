@@ -181,7 +181,9 @@ async function loadPromotionsData() {
         const idToken = localStorage.getItem('idToken');
         const urlLoad = `${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/promotions`;
         const headersLoad = { 'Authorization': `Bearer ${idToken}` };
-        const response = await fetch(urlLoad, { headers: headersLoad });
+        const controllerLoad=new AbortController(),timerLoad=setTimeout(()=>controllerLoad.abort(),20000);
+        let response;
+        try{response = await fetch(urlLoad, { signal:controllerLoad.signal, headers: headersLoad });}finally{clearTimeout(timerLoad);}
         const result = await response.json();
         if (!response.ok || !result.success) {
             throw new Error(result.error?.message || 'Failed to load promotions');
@@ -653,10 +655,13 @@ async function updatePromotionStats() {
             const API_BASE_URL = window.WIZZCENTRAL_CONFIG?.API_BASE_URL;
             if (API_BASE_URL) {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/orders`, {
+                    const controllerStats=new AbortController(),timerStats=setTimeout(()=>controllerStats.abort(),20000);
+                    let response;
+                    try{response = await fetch(`${API_BASE_URL}/orders`, {
+                        signal:controllerStats.signal,
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json' }
-                    });
+                    });}finally{clearTimeout(timerStats);}
                     if (response.ok) {
                         const result = await response.json();
                         const orders = result.orders || result.data?.orders || result.Items || [];

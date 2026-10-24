@@ -31,3 +31,20 @@ body[data-page="order-exceptions"],body[data-page="finance"]{background:#f4f7fb}
 .cashbook-workspace{margin-block:18px}.cashbook-workspace>summary{font-size:1.15rem;font-weight:700;cursor:pointer}.cashbook-workspace label{display:grid;gap:6px;margin-block:8px}.cashbook-workspace label.cashbook-check{display:flex;align-items:center;gap:10px}.cashbook-workspace input,.cashbook-workspace select{max-width:100%;width:100%}.cashbook-workspace input[type=checkbox]{width:20px;flex-shrink:0}.cashbook-catalog{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}.cashbook-catalog article,.cashbook-summary{border:1px solid #dbe4f0;background:#f5f8fd;border-radius:12px;padding:16px}.cashbook-workspace details details{padding:12px;margin:12px 0;border:1px solid #dbe4f0;border-radius:10px}.cashbook-workspace p{overflow-wrap:anywhere}.cashbook-workspace [data-cashbook-section]{margin-block:20px}.cashbook-workspace[aria-busy=true] button{opacity:.65;pointer-events:none}
 
 .cashbook-pane-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-block:16px}.cashbook-pane-tabs button[aria-pressed=true]{box-shadow:inset 0 -3px 0 #ffc400}.cashbook-pane-tabs button[aria-pressed=false]{background:white;color:#082c63;border-color:#cbd8e9}
+
+/* Extracted from inline styles — finance.html & order-exceptions.html */
+.finance-heading,.case-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.case-heading img{width:110px;height:auto}
+.finance-heading{gap:16px}
+.table-wrap{overflow:auto}
+#message{white-space:pre-wrap}
+.muted{color:var(--workflow-muted)}
+.warning{color:#9b4f00}
+.bad{color:#a62b39}
+.danger{background:#a62b39;color:#fff;border-color:#a62b39}
+.finance-content .summary-grid > div,.exceptions-content .summary-grid > div{background:#f5f8fc;border-radius:12px;padding:16px}
+.settlement-schedules-panel{background:#fff;padding:20px;margin:20px 0;border-radius:16px;border:1px solid var(--workflow-border)}
+dialog{border:1px solid #ccd8e8;border-radius:20px;max-width:650px;width:90%}
+dialog::backdrop{background:#00152a80}
+.finance-content table,.exceptions-content table{width:100%;border-collapse:collapse}
+.finance-content td,.finance-content th,.exceptions-content td,.exceptions-content th{padding:12px;text-align:right;border-bottom:1px solid #e3e9f1;vertical-align:top}

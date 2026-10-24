@@ -141,13 +141,16 @@ async function fetchMerchantsFromApi() {
     if (!token) throw new Error('No authentication token available');
     updateDataSourceIndicator('loading', 'Fetching merchants from API...');
 
-    const response = await fetch(`${API_BASE_URL}/merchants`, {
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+    let response;
+    try{response=await fetch(`${API_BASE_URL}/merchants`, {
+        signal:controller.signal,
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         }
-    });
+    });}finally{clearTimeout(timer);}
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.message || 'Failed to fetch merchants from API');
@@ -623,7 +626,7 @@ async function toggleMerchantStatus(merchantId) {
     const reason=window.prompt('سبب الإجراء — خمسة أحرف على الأقل');if(!reason)return;
     try {
       await window.Auth.ensureSession();
-      const r=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/merchants/control',{method:'POST',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},body:JSON.stringify({businessId:merchantId,baseUpdatedAt:merchant.updatedAtRaw,action:actions[action],reason})});
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);let r;try{r=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/merchants/control',{method:'POST',signal:controller.signal,headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},body:JSON.stringify({businessId:merchantId,baseUpdatedAt:merchant.updatedAtRaw,action:actions[action],reason})});}finally{clearTimeout(timer);}
       const d=await r.json();if(!r.ok)throw Error(({PERMISSION_REQUIRED:'لا تملك صلاحية التحكم بالنشاط.',VERSION_OR_STATE_CONFLICT:'تغيرت بيانات النشاط. حدّث القائمة.',INVALID_CONTROL_REQUEST:'اكتب سببًا من خمسة أحرف على الأقل.'})[d.error]||'تعذر تنفيذ الإجراء.');
       Object.assign(merchant,{updatedAtRaw:d.updatedAt,...d});renderMerchantsTable();showMessage('تم حفظ إجراء المنصة. تشغيل الاستقبال يبقى بيد المالك بعد رفع الحظر.','success');
     } catch(e){showMessage(e.message,'error');}
@@ -718,12 +721,15 @@ async function loadMerchantProducts(merchantId) {
         const idToken = localStorage.getItem('idToken');
 
         // Load categories first
-        const categoriesResponse = await fetch(`${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/categories`, {
+        const categoriesController=new AbortController(),categoriesTimer=setTimeout(()=>categoriesController.abort(),20000);
+        let categoriesResponse;
+        try{categoriesResponse = await fetch(`${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/categories`, {
+            signal:categoriesController.signal,
             headers: {
                 'Authorization': `Bearer ${idToken}`,
                 'Content-Type': 'application/json'
             }
-        });
+        });}finally{clearTimeout(categoriesTimer);}
 
         if (!categoriesResponse.ok) {
             throw new Error(`Failed to load categories: ${categoriesResponse.status}`);
@@ -740,12 +746,15 @@ async function loadMerchantProducts(merchantId) {
         const businessId = merchantId; // Use the merchant ID directly
         console.log(`Loading products for businessId: ${businessId}`);
 
-        const productsResponse = await fetch(`${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/merchants/${businessId}/products`, {
+        const productsController=new AbortController(),productsTimer=setTimeout(()=>productsController.abort(),20000);
+        let productsResponse;
+        try{productsResponse = await fetch(`${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/merchants/${businessId}/products`, {
+            signal:productsController.signal,
             headers: {
                 'Authorization': `Bearer ${idToken}`,
                 'Content-Type': 'application/json'
             }
-        });
+        });}finally{clearTimeout(productsTimer);}
 
         if (!productsResponse.ok) {
             throw new Error(`Failed to load products: ${productsResponse.status}`);
@@ -968,14 +977,17 @@ async function handleEditProductFormSubmit(event) {
 
     try {
         const idToken = localStorage.getItem('idToken');
-        const response = await fetch(`${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/merchants/${currentMerchantId}/products/${productId}`, {
+        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+        let response;
+        try{response = await fetch(`${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/merchants/${currentMerchantId}/products/${productId}`, {
+            signal:controller.signal,
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${idToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(updatedProductData)
-        });
+        });}finally{clearTimeout(timer);}
 
         const result = await response.json();
 
@@ -1123,14 +1135,17 @@ async function handleEditFormSubmission(event) {
             throw new Error('Authentication token not found.');
         }
 
-        const response = await fetch(`${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/merchants/${merchantId}`, {
+        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+        let response;
+        try{response = await fetch(`${window.WIZZCENTRAL_CONFIG.API_BASE_URL}/merchants/${merchantId}`, {
+            signal:controller.signal,
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${idToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(updatedMerchantData)
-        });
+        });}finally{clearTimeout(timer);}
 
         const result = await response.json();
 

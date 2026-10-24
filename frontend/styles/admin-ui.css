@@ -482,3 +482,109 @@ body.wizz-shell #mainContent .loading-inline::before {
   body.wizz-shell #mainContent .table-skeleton .skl,
   body.wizz-shell #mainContent .loading-inline::before { animation: none; }
 }
+
+/* Live support console (pages/support-production.html). The workspace keeps its
+   own LTR chat presentation inside the RTL shell; geometry rides the shared rules. */
+body.wizz-shell[data-page="support"] #mainContent .support-container { display: flex; background: #fff; }
+body.wizz-shell[data-page="support"] #mainContent .support-sidebar { inline-size: 280px; min-inline-size: 0; background: var(--md-sys-color-secondary, #304968); color: var(--md-sys-color-on-secondary, #fff); display: flex; flex-direction: column; border-inline-end: 1px solid var(--md-sys-color-outline, #dfe5ed); }
+body.wizz-shell[data-page="support"] #mainContent .support-sidebar .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #374151; }
+body.wizz-shell[data-page="support"] #mainContent .support-sidebar .sidebar-header h1 { margin: 0; padding: 0; border: 0; font-size: 1.25rem; font-weight: 600; color: #f9fafb; letter-spacing: 0; }
+body.wizz-shell[data-page="support"] #mainContent .support-sidebar .sidebar-header p { margin: 0.5rem 0 0; font-size: 0.875rem; color: #9ca3af; }
+body.wizz-shell[data-page="support"] #mainContent .connection-status { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding: 0.5rem; border-radius: 0.375rem; background: #374151; }
+body.wizz-shell[data-page="support"] #mainContent .status-indicator { width: 8px; height: 8px; border-radius: 50%; background: #10b981; flex: 0 0 auto; }
+body.wizz-shell[data-page="support"] #mainContent .status-indicator.disconnected { background: #ef4444; }
+body.wizz-shell[data-page="support"] #mainContent .status-indicator.connecting { background: #f59e0b; }
+body.wizz-shell[data-page="support"] #mainContent .sessions-section { flex: 1; padding: 1rem; overflow-y: auto; min-block-size: 0; }
+body.wizz-shell[data-page="support"] #mainContent .support-sidebar .section-title { font-size: 0.875rem; font-weight: 600; color: #d1d5db; margin: 0 0 1rem; text-transform: uppercase; letter-spacing: 0.025em; }
+body.wizz-shell[data-page="support"] #mainContent .sessions-list { display: flex; flex-direction: column; gap: 0.5rem; }
+body.wizz-shell[data-page="support"] #mainContent .session-card { padding: 1rem; border-radius: 0.5rem; background: #374151; cursor: pointer; transition: background-color 0.2s; border: 1px solid transparent; }
+body.wizz-shell[data-page="support"] #mainContent .session-card:hover { background: #4b5563; }
+body.wizz-shell[data-page="support"] #mainContent .session-card.active { background: #009bb8; border-color: #00c2e8; }
+body.wizz-shell[data-page="support"] #mainContent .session-info { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+body.wizz-shell[data-page="support"] #mainContent .customer-avatar { width: 36px; height: 36px; border-radius: 50%; background: #6b7280; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 0.875rem; flex: 0 0 auto; }
+body.wizz-shell[data-page="support"] #mainContent .session-details { flex: 1; min-width: 0; }
+body.wizz-shell[data-page="support"] #mainContent .customer-name { font-weight: 500; color: #f9fafb; margin-bottom: 0.25rem; }
+body.wizz-shell[data-page="support"] #mainContent .last-message { font-size: 0.875rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.wizz-shell[data-page="support"] #mainContent .session-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; flex: 0 0 auto; }
+body.wizz-shell[data-page="support"] #mainContent .message-time { font-size: 0.75rem; color: #6b7280; }
+body.wizz-shell[data-page="support"] #mainContent .unread-badge { background: #ef4444; color: #fff; font-size: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 9999px; font-weight: 500; }
+body.wizz-shell[data-page="support"] #mainContent .support-container .main-content { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; background: #fff; margin: 0; padding: 0; min-block-size: 0; }
+body.wizz-shell[data-page="support"] #mainContent .chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+body.wizz-shell[data-page="support"] #mainContent .chat-title { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+body.wizz-shell[data-page="support"] #mainContent .chat-title h2 { margin: 0; font-size: 1.125rem; font-weight: 600; color: #111827; }
+body.wizz-shell[data-page="support"] #mainContent .chat-actions { display: flex; gap: 0.5rem; flex: 0 0 auto; }
+body.wizz-shell[data-page="support"] #mainContent .chat-actions .btn { padding: 0.5rem 1rem; border-radius: 0.375rem; border: 0; cursor: pointer; font-weight: 500; font-size: 0.875rem; min-block-size: 0; transition: background-color 0.2s, color 0.2s; }
+body.wizz-shell[data-page="support"] #mainContent .chat-actions .btn-primary { background: #00c2e8; color: #fff; border: 0; }
+body.wizz-shell[data-page="support"] #mainContent .chat-actions .btn-primary:hover:not(:disabled) { background: #009bb8; filter: none; }
+body.wizz-shell[data-page="support"] #mainContent .chat-actions .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+body.wizz-shell[data-page="support"] #mainContent .chat-actions .btn-secondary:hover:not(:disabled) { background: #e5e7eb; filter: none; }
+body.wizz-shell[data-page="support"] #mainContent .chat-messages { flex: 1; min-block-size: 0; padding: 1rem; overflow-y: auto; background: #f9fafb; }
+body.wizz-shell[data-page="support"] #mainContent .message { margin-bottom: 1rem; display: flex; gap: 0.75rem; }
+body.wizz-shell[data-page="support"] #mainContent .message.agent { flex-direction: row-reverse; }
+body.wizz-shell[data-page="support"] #mainContent .message-avatar { width: 32px; height: 32px; border-radius: 50%; background: #6b7280; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 0.75rem; flex-shrink: 0; }
+body.wizz-shell[data-page="support"] #mainContent .message.agent .message-avatar { background: #00c2e8; }
+body.wizz-shell[data-page="support"] #mainContent .message-content { max-width: 70%; min-width: 0; }
+body.wizz-shell[data-page="support"] #mainContent .message-bubble { padding: 0.75rem 1rem; border-radius: 1rem; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); overflow-wrap: anywhere; }
+body.wizz-shell[data-page="support"] #mainContent .message.agent .message-bubble { background: #00c2e8; color: #fff; }
+body.wizz-shell[data-page="support"] #mainContent .message-text { margin: 0; line-height: 1.5; }
+body.wizz-shell[data-page="support"] #mainContent .message-timestamp { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; }
+body.wizz-shell[data-page="support"] #mainContent .chat-input { padding: 1rem 1.5rem; border-top: 1px solid #e5e7eb; background: #fff; }
+body.wizz-shell[data-page="support"] #mainContent .input-container { display: flex; gap: 0.75rem; align-items: flex-end; }
+body.wizz-shell[data-page="support"] #mainContent .message-input { flex: 1; min-inline-size: 0; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; resize: none; min-height: 44px; max-height: 120px; }
+body.wizz-shell[data-page="support"] #mainContent .message-input:focus { outline: none; border-color: #00c2e8; box-shadow: 0 0 0 1px #00c2e8; }
+body.wizz-shell[data-page="support"] #mainContent .send-button { background: #00c2e8; color: #fff; border: 0; border-radius: 0.5rem; padding: 0.75rem 1rem; cursor: pointer; min-block-size: 0; transition: background-color 0.2s; }
+body.wizz-shell[data-page="support"] #mainContent .send-button:hover:not(:disabled) { background: #009bb8; filter: none; }
+body.wizz-shell[data-page="support"] #mainContent .send-button:disabled { background: #9ca3af; cursor: not-allowed; opacity: 1; }
+body.wizz-shell[data-page="support"] #mainContent .support-container .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 140px; text-align: center; color: #6b7280; padding: 18px 10px; }
+body.wizz-shell[data-page="support"] #mainContent .support-container .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: #d1d5db; }
+body.wizz-shell[data-page="support"] #mainContent .support-container .empty-state h3 { margin: 0 0 0.5rem; font-size: 1.125rem; font-weight: 600; }
+body.wizz-shell[data-page="support"] #mainContent .support-container .empty-state p { margin: 0; font-size: 0.875rem; }
+body.wizz-shell[data-page="support"] #mainContent .quick-actions { padding: 1rem; border-top: 1px solid #374151; }
+body.wizz-shell[data-page="support"] #mainContent .typing-dots { display: inline-flex; gap: 4px; align-items: center; }
+body.wizz-shell[data-page="support"] #mainContent .typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: #6b7280; animation: wizz-typing-bounce 1.2s infinite ease-in-out; }
+body.wizz-shell[data-page="support"] #mainContent .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+body.wizz-shell[data-page="support"] #mainContent .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes wizz-typing-bounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-4px); opacity: 1; } }
+@media (width < 768px) {
+  body.wizz-shell[data-page="support"] #mainContent .support-container { flex-direction: column; }
+  body.wizz-shell[data-page="support"] #mainContent .support-sidebar { inline-size: 100%; max-block-size: 300px; overflow-y: auto; border-inline-end: 0; border-bottom: 1px solid var(--md-sys-color-outline, #dfe5ed); }
+  body.wizz-shell[data-page="support"] #mainContent .support-container .main-content { min-block-size: 420px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.wizz-shell[data-page="support"] #mainContent .typing-dots span { animation: none; opacity: 1; }
+}
+
+/* Merchant support info card (pages/support-merchants.html). Kept as a
+   self-contained LTR panel; the shell supplies the surrounding page. */
+body.wizz-shell[data-page="support"] #mainContent .merchant-support-card { max-width: 800px; margin: 0 auto; background: #fff; border: 1px solid var(--admin-line); border-radius: 16px; box-shadow: 0 20px 60px rgba(19, 36, 61, 0.18); overflow: hidden; }
+body.wizz-shell[data-page="support"] #mainContent .merchant-support-card > header { background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-secondary) 100%); color: var(--md-sys-color-on-primary); padding: 40px 30px; text-align: center; }
+body.wizz-shell[data-page="support"] #mainContent .merchant-support-card > header h1 { margin: 0 0 10px; padding: 0; border: 0; font-size: 2.5em; font-weight: 700; color: inherit; letter-spacing: 0; }
+body.wizz-shell[data-page="support"] #mainContent .merchant-support-card > header p { margin: 0; }
+body.wizz-shell[data-page="support"] #mainContent .merchant-support-body { padding: 40px 30px; }
+body.wizz-shell[data-page="support"] #mainContent .merchant-support-body h2 { color: var(--md-sys-color-primary); font-size: 1.8em; margin: 0 0 20px; }
+body.wizz-shell[data-page="support"] #mainContent .contact-method { background: #f9f9f9; padding: 25px; border-radius: 12px; margin-bottom: 20px; border-inline-start: 4px solid #1976d2; }
+body.wizz-shell[data-page="support"] #mainContent .contact-method h3 { margin: 0 0 10px; }
+body.wizz-shell[data-page="support"] #mainContent .contact-method p { margin: 0 0 6px; }
+body.wizz-shell[data-page="support"] #mainContent .contact-link { display: inline-block; background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 10px; }
+body.wizz-shell[data-page="support"] #mainContent .merchant-support-card > footer { background: #f5f5f5; padding: 30px; text-align: center; color: #666; }
+body.wizz-shell[data-page="support"] #mainContent .merchant-support-card > footer p { margin: 0 0 6px; }
+@media (width < 600px) {
+  body.wizz-shell[data-page="support"] #mainContent .merchant-support-body { padding: 24px 18px; }
+  body.wizz-shell[data-page="support"] #mainContent .merchant-support-card > header { padding: 28px 18px; }
+}
+
+/* Cash collection review (pages/customer-cash-review.html). */
+body.wizz-shell #mainContent .cash-review-content { max-inline-size: 1000px; }
+body.wizz-shell #mainContent .cash-review-content p { overflow-wrap: anywhere; }
+body.wizz-shell #mainContent .cash-review-content button:not(#menuToggle) { font: 600 14px/1.65 var(--admin-font); border: 1px solid var(--md-sys-color-primary); border-radius: 8px; background: var(--md-sys-color-primary); color: #fff; padding: 10px 16px; min-height: 44px; cursor: pointer; margin: 6px; }
+body.wizz-shell #mainContent .cash-review-content button:disabled { opacity: 0.5; cursor: not-allowed; }
+body.wizz-shell #mainContent .cash-review-content .muted { color: var(--admin-muted); }
+body.wizz-shell #mainContent .cash-review-content .error { color: #a62632; }
+body.wizz-shell #mainContent .cash-review-content .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+body.wizz-shell #mainContent .cash-review-content fieldset.cash-choices { min-width: 0; margin: 16px 0; padding: 12px; border: 1px solid #b8c6db; border-radius: 8px; }
+body.wizz-shell #mainContent .cash-review-content fieldset.cash-choices legend { padding: 0 6px; }
+body.wizz-shell #mainContent .cash-review-content .cash-choices label { display: flex; align-items: flex-start; gap: 10px; padding: 12px; margin: 8px 0; border: 1px solid #dce4ef; border-radius: 8px; cursor: pointer; }
+body.wizz-shell #mainContent .cash-review-content .cash-choices input[type="radio"] { width: auto; flex: 0 0 auto; margin: 5px 0; accent-color: #082c63; }
+body.wizz-shell #mainContent .cash-review-content .cash-choices span { min-width: 0; overflow-wrap: anywhere; line-height: 1.7; }
+body.wizz-shell #mainContent .cash-review-content .cash-choices label:has(input:checked) { background: #edf3ff; border-color: #082c63; }
+body.wizz-shell #mainContent .cash-review-content .cash-choices label:focus-within { outline: 2px solid #2463b6; outline-offset: 2px; }
