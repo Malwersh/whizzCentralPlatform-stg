@@ -1,0 +1,66 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "functions": {
+    "financial": {
+      "function": "staging-driver-financial-accept",
+      "baseCodeSha256": "yScOBvaUPfJAPxUYdWgeh8Z/4URrMdyB/HKGu5wnRJ8=",
+      "codeSha256": "1CN0L9Pp7240kDpTevWPHFwYvKeWXHQJWT5LVRB6NOQ=",
+      "changedFiles": [
+        "index.js",
+        "staff-order-management-runtime.js",
+        "merchant-handover-runtime.js",
+        "order-exception-runtime-229.js"
+      ],
+      "configurationPreserved": true
+    },
+    "staff": {
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "r4Ict+ifDnThxfLrpan4OdeB0LMgoG4+HO8PYliLMIM=",
+      "codeSha256": "dfuZOjADcmYAZpco6Rsq2jbFZFJ3pZkor5MMpr2RUG4=",
+      "changedFiles": [
+        "order-management.js"
+      ],
+      "configurationPreserved": true
+    },
+    "auth": {
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "baseCodeSha256": "+AWp+Yxrjm3JjjUf4DsJTscaWXeZiTuv66vZ84u+nZU=",
+      "codeSha256": "2TaoKNMP1qHf9mIk90Qa1YjsjiVNw6oJq5RfUgfItCc=",
+      "changedFiles": [
+        "order_returns.js",
+        "merchant_handover_proxy.js"
+      ],
+      "configurationPreserved": true
+    },
+    "orders": {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "baseCodeSha256": "pzzylCKyou+M3xlQiZxPVyiczfTR9+fS8FEeGkZNLRY=",
+      "codeSha256": "MoDVx7nFHQgzJTCKWCFPsDzyGjBRg0yAGt5iPw4K/kg=",
+      "changedFiles": [
+        "merchant_order_handler.js"
+      ],
+      "configurationPreserved": true
+    }
+  },
+  "realOrdersChanged": false,
+  "financialWritesPerformed": false,
+  "iamChanged": false,
+  "validation": {
+    "targetedTestsPassed": 26,
+    "bundledFactoryRegressionTestsPassed": 83,
+    "merchantWidgetTestsPassed": 3,
+    "typeScriptCompile": "PASS",
+    "browserDirectCancellationWorkflow": "PASS",
+    "raceCoverage": [
+      "cancellation first blocks handover",
+      "handover first prevents collateral release"
+    ]
+  },
+  "merchantNative": {
+    "buildNumber": 241,
+    "simulatorBuild": "PASS",
+    "installedOnBothSimulators": true,
+    "installedVersionVerified": true,
+    "launchedOn": "iPhone 16"
+  }
+}

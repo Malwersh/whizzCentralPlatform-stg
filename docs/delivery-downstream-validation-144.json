@@ -1,0 +1,10 @@
+{
+  "part": 144,
+  "scope": "local driver offer parser and COD integration",
+  "checks": {"typescript": "passed", "runtimeSync": "passed", "backendTestsPassed": 68, "driverFlutterTestsPassed": 10},
+  "integrationDeliveryFundingDefault": "OFF",
+  "deployed": false,
+  "deviceInstalled": false,
+  "financialMutations": false,
+  "remaining": ["mixed settlement summaries and reporting", "dispatch response and host packaging review", "platform send UI", "refunds and partial returns", "scoped staging and device verification"]
+}

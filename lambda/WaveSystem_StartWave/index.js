@@ -26,7 +26,7 @@ const { isDriverApproved } = require('./driver_eligibility');
  */
 
 const AWS = require('aws-sdk');
-const https = require('https');
+const {createWaveOfferTransport} = require('./wave-offer-transport');
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 function getOptionalEnv(name) {
@@ -71,56 +71,7 @@ const GOOGLE_MAPS_API_KEY = String(process.env.GOOGLE_MAPS_API_KEY || '').trim()
 const NOTIFICATIONS_API_BASE = getOptionalEnv('NOTIFICATIONS_API_BASE'); // e.g. https://x066k4dftk.execute-api.us-east-1.amazonaws.com/staging
 const NOTIFICATIONS_INTERNAL_KEY = getOptionalEnv('NOTIFICATIONS_INTERNAL_KEY');
 
-function postJson(urlString, headers, body, timeoutMs = 2500) {
-  return new Promise((resolve, reject) => {
-    const url = new URL(urlString);
-    const data = JSON.stringify(body);
-
-    const req = https.request(
-      {
-        method: 'POST',
-        hostname: url.hostname,
-        path: url.pathname + url.search,
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(data),
-          ...headers
-        }
-      },
-      (res) => {
-        let chunks = '';
-        res.on('data', (d) => (chunks += d));
-        res.on('end', () => {
-          resolve({ statusCode: res.statusCode || 0, body: chunks });
-        });
-      }
-    );
-
-    req.on('error', reject);
-    req.setTimeout(timeoutMs, () => req.destroy(new Error('request timeout')));
-    req.write(data);
-    req.end();
-  });
-}
-
-async function sendWaveOfferPushNotification(payload) {
-  if (!NOTIFICATIONS_API_BASE || !NOTIFICATIONS_INTERNAL_KEY) {
-    return { skipped: true, reason: 'Missing NOTIFICATIONS_API_BASE or NOTIFICATIONS_INTERNAL_KEY' };
-  }
-
-  const endpoint = `${NOTIFICATIONS_API_BASE.replace(/\/$/, '')}/push/send/wave-offer`;
-
-  const resp = await postJson(
-    endpoint,
-    {
-      'x-internal-key': NOTIFICATIONS_INTERNAL_KEY
-    },
-    payload,
-    3000
-  );
-
-  return resp;
-}
+async function sendWaveOfferPushNotification(payload) { return offerTransport.postPush(payload); }
 
 const websocketManagementEndpoint = getWebsocketManagementEndpoint();
 console.log(`🔗 WebSocket management endpoint: ${websocketManagementEndpoint}`);
@@ -128,6 +79,7 @@ console.log(`🔗 WebSocket management endpoint: ${websocketManagementEndpoint}`
 const apigateway = new AWS.ApiGatewayManagementApi({
   endpoint: websocketManagementEndpoint
 });
+const offerTransport=createWaveOfferTransport({api:apigateway,notificationsBase:NOTIFICATIONS_API_BASE,internalKey:NOTIFICATIONS_INTERNAL_KEY});
 const eventbridge = new AWS.EventBridge();
 
 // =====================================
@@ -281,10 +233,18 @@ exports.handler = async (event) => {
     console.log(`🌊 Starting Wave ${waveNumber} for DispatchJob: ${dispatchJobId}`);
 
     // Step 1: جلب تفاصيل DispatchJob
-    const dispatchJob = await getDispatchJob(dispatchJobId);
+    const dispatchJob = await getDispatchJob(dispatchJobId, event.orderId);
     
     if (!dispatchJob) {
       throw new Error(`DispatchJob not found: ${dispatchJobId}`);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(dispatchJob,'dispatchCycle')) {
+      if(process.env.DISPATCH_FINANCIAL_HOST_MODE==='REQUIRED'&&dispatchJob.dispatchCycle?.engine==='FINANCIAL'){if(event.cycleId!==dispatchJob.dispatchCycle.id)throw Error('DISPATCH_HOST_SOURCE_INVALID');const result=await require('./dispatch-cycle-runtime').runHostedFinancialWave({orderId:dispatchJob.orderId,assignmentId:dispatchJobId,cycleId:dispatchJob.dispatchCycle.id},apigateway,'start:'+require('crypto').randomUUID());return {statusCode:200,body:JSON.stringify(result)};}
+
+      if(process.env.DISPATCH_LEGACY_HOST_MODE==='REQUIRED'&&dispatchJob.dispatchCycle?.engine==='LEGACY'){if(event.cycleId!==dispatchJob.dispatchCycle.id)throw Error('DISPATCH_HOST_SOURCE_INVALID');const result=await require('./dispatch-cycle-runtime').runHostedLegacyWave({orderId:dispatchJob.orderId,assignmentId:dispatchJobId,cycleId:dispatchJob.dispatchCycle.id},apigateway,'start:'+require('crypto').randomUUID());return {statusCode:200,body:JSON.stringify(result)};}
+      const plan=await require('./dispatch-cycle-runtime').coordinateUnifiedDispatch({orderId:dispatchJob.orderId,assignmentId:dispatchJobId,source:'START'});
+      return {statusCode:200,body:JSON.stringify({planningOnly:true,...plan})};
     }
 
     if (dispatchJob.status === 'assigned') {
@@ -292,15 +252,27 @@ exports.handler = async (event) => {
       return { statusCode: 200, message: 'Order already assigned' };
     }
 
+    const financialSource = await dynamodb.get({TableName:'WizzOrders',Key:{PK:`ORDER#${dispatchJob.orderId}`,SK:'META'},
+      ConsistentRead:true,ProjectionExpression:'financialSnapshot'}).promise();
+    if (financialSource.Item && Object.prototype.hasOwnProperty.call(financialSource.Item,'financialSnapshot')) dispatchJob.financialDispatch = true;
+    if (dispatchJob.financialDispatch === true && process.env.FINANCIAL_DISPATCH_MODE !== 'REQUIRED') throw new Error('FINANCIAL_DISPATCH_DISABLED');
+    if (dispatchJob.financialDispatch === true) {
+      const existingWave = await dynamodb.get({TableName:DISPATCH_JOBS_TABLE,
+        Key:{orderId:dispatchJob.orderId,SK:`FINANCIAL_WAVE#${waveNumber}`},ConsistentRead:true}).promise();
+      if (existingWave.Item) return await runFinancialDispatch(dispatchJob,existingWave.Item.driverIds,waveNumber);
+    }
+
+
     // Step 1.5: جلب العملة من WizzOrders
     const orderCurrency = await getOrderCurrency(dispatchJob.orderId);
     dispatchJob.currency = orderCurrency;
     console.log(`💱 Order currency: ${orderCurrency}`);
 
     // Step 2: البحث عن السائقين المؤهلين
-    const waveThresholds = getWaveThresholds(waveNumber, isEmergencyWave);
+    const financialPolicy=dispatchJob.financialDispatch===true?await require('./financial-wave-policy').createFinancialWavePolicy({db:dynamodb,jobsTable:DISPATCH_JOBS_TABLE}).read(dispatchJob,waveNumber):null;
+    const waveThresholds = financialPolicy?.thresholds ?? getWaveThresholds(waveNumber, isEmergencyWave);
     console.log(`📊 Wave ${waveNumber} thresholds:`, waveThresholds);
-    let qualifiedDrivers = await getQualifiedDrivers(dispatchJob, excludeDriverIds, excludeDriverIds, rejectedDriverIds, isFinalWave, isEmergencyWave, waveNumber, waveThresholds);
+    let qualifiedDrivers = await getQualifiedDrivers(dispatchJob, financialPolicy?.permanent ?? excludeDriverIds, financialPolicy?.permanent ?? excludeDriverIds, financialPolicy?.previous ?? rejectedDriverIds, financialPolicy?.isFinalWave ?? isFinalWave, isEmergencyWave, waveNumber, waveThresholds);
 
     const approvedDrivers = [];
     for (const candidate of qualifiedDrivers) {
@@ -310,7 +282,7 @@ exports.handler = async (event) => {
     }
     qualifiedDrivers = approvedDrivers;
 
-    if (qualifiedDrivers.length === 0) {
+    if (qualifiedDrivers.length === 0 && dispatchJob.financialDispatch !== true) {
       console.warn(`⚠️ No qualified drivers found for Wave ${waveNumber}`);
       
       // إذا كانت الموجة الطارئة (Wave 5)، نتوقف نهائياً
@@ -343,6 +315,11 @@ exports.handler = async (event) => {
       }).promise();
       
       return { statusCode: 200, message: `Wave ${waveNumber} skipped, no drivers available` };
+    }
+
+    if (dispatchJob.financialDispatch === true) {
+      if (process.env.FINANCIAL_DISPATCH_MODE !== 'REQUIRED') throw new Error('FINANCIAL_DISPATCH_DISABLED');
+      return await runFinancialDispatch(dispatchJob,qualifiedDrivers.slice(0,financialPolicy.recipients==='ALL'?25:financialPolicy.recipients).map(d=>d.driverId),waveNumber,financialPolicy.operating);
     }
 
     // Step 3: اختيار السائقين حسب نوع الموجة
@@ -411,25 +388,26 @@ exports.handler = async (event) => {
 // =====================================
 // Step 1: جلب DispatchJob
 // =====================================
-async function getDispatchJob(dispatchJobId) {
+async function getDispatchJob(dispatchJobId, selectedOrderId) {
   console.log(`🔍 Fetching DispatchJob: ${dispatchJobId}`);
 
   // نستخرج orderId من dispatchJobId (format: DISPATCH_ORDER123_timestamp)
   const orderIdMatch = dispatchJobId.match(/DISPATCH_(.+?)_\d+$/);
-  if (!orderIdMatch) {
+  if (!orderIdMatch && !selectedOrderId) {
     throw new Error(`Invalid dispatchJobId format: ${dispatchJobId}`);
   }
-  const orderId = orderIdMatch[1];
+  const orderId = selectedOrderId || orderIdMatch[1];
 
   const result = await dynamodb.get({
     TableName: DISPATCH_JOBS_TABLE,
     Key: {
       orderId: orderId,
       SK: 'METADATA'
-    }
+    },
+    ConsistentRead: true
   }).promise();
 
-  if (!result.Item) {
+  if (!result.Item || result.Item.dispatchJobId !== dispatchJobId) {
     return null;
   }
 
@@ -481,451 +459,17 @@ async function getOrderCurrency(orderId) {
 // =====================================
 // Step 2: البحث عن السائقين المؤهلين
 // =====================================
-async function getQualifiedDrivers(dispatchJob, excludeDriverIds = [], permanentlyExcludedDriverIds = [], rejectedDriverIds = [], isFinalWave = false, isEmergencyWave = false, waveNumber = 1, waveThresholds = {}) {
-  console.log(`🔍 Searching for qualified drivers (Wave ${waveNumber})...`);
-  console.log(`   Exclude: ${excludeDriverIds.length} drivers, Permanently Excluded: ${permanentlyExcludedDriverIds.length}, Rejected: ${rejectedDriverIds.length} drivers, Final Wave: ${isFinalWave}, Emergency Wave: ${isEmergencyWave}`);
-  console.log(`   Thresholds:`, waveThresholds);
-
-  // استخدام المعايير الممررة أو القيم الافتراضية
-  const MIN_ACCEPTANCE_RATE = waveThresholds.MIN_ACCEPTANCE_RATE !== undefined ? waveThresholds.MIN_ACCEPTANCE_RATE : 0.6;
-  const MIN_COMPLETION_RATE = waveThresholds.MIN_COMPLETION_RATE !== undefined ? waveThresholds.MIN_COMPLETION_RATE : 0.8;
-  const MAX_CONSECUTIVE_REJECTIONS = waveThresholds.MAX_CONSECUTIVE_REJECTIONS !== undefined ? waveThresholds.MAX_CONSECUTIVE_REJECTIONS : 3;
-  const WAVE_MAX_DISTANCE = waveThresholds.MAX_DISTANCE_KM !== undefined ? waveThresholds.MAX_DISTANCE_KM : 20;
-  const REGION_PRIORITIES = waveThresholds.REGION_PRIORITIES !== undefined ? waveThresholds.REGION_PRIORITIES : [0, 1];
-
-  const restaurantLat = dispatchJob.restaurantLat;
-  const restaurantLng = dispatchJob.restaurantLng;
-  const restaurantRegionId = dispatchJob.restaurantRegionId;
-
-  // المرحلة 1: جلب السائقين من المنطقة باستخدام GSI
-  console.log(`📍 Querying drivers in region: ${restaurantRegionId}`);
-  
-  let driversInRegion = await queryDriversByRegion(restaurantRegionId);
-  console.log(`📊 Found ${driversInRegion.length} drivers with current_work_region_id = ${restaurantRegionId}`);
-
-  // 🔄 Fallback: إذا لم نجد سائقين في current_work_region_id، ابحث في جميع السائقين available
-  if (driversInRegion.length === 0) {
-    console.log(`🔄 No drivers in current_work_region_id, searching all available drivers...`);
-    driversInRegion = await queryAllAvailableDrivers();
-    console.log(`📊 Found ${driversInRegion.length} total available drivers, will filter by allowed_region_ids`);
-  }
-
-  if (driversInRegion.length === 0) {
-    console.warn(`⚠️ No available drivers found at all`);
-    return [];
-  }
-  
-  // المرحلة 2: فلترة السائقين المتصلين والمتاحين
-  const filterStats = {
-    total: driversInRegion.length,
-    excludedPermanent: 0,
-    excludedTemporary: 0,
-    notAvailable: 0,
-    notSearching: 0,
-    missingConnectionId: 0,
-    badConnectionStatus: 0,
-    missingAllowedRegions: 0,
-    passed: 0,
-  };
-
-  const availableDrivers = driversInRegion.filter(driver => {
-    // 🚫 استبعاد دائم: السائقين الذين ألغوا الطلب بعد القبول (driver unassignment)
-    // يُستبعدون من **جميع الموجات** دائماً (لا فرصة ثانية)
-    if (Array.isArray(excludeDriverIds) && excludeDriverIds.includes(driver.driverId)) {
-      console.log(`   🚫 Skipping driver ${driver.driverId} (⛔ PERMANENTLY EXCLUDED - unassigned after acceptance)`);
-      filterStats.excludedPermanent++;
-      return false;
-    }
-    
-    // ⏳ استبعاد مؤقت: السائقين الذين رفضوا أو لم يردوا في موجات سابقة
-    // الموجات 1-3: يُستبعدون (استبعاد مؤقت)
-    // الموجات 4-5: يُعاد إرسال الطلب لهم (فرصة ثانية + بونص)
-    if (!isEmergencyWave && waveNumber < 4 && Array.isArray(rejectedDriverIds) && rejectedDriverIds.includes(driver.driverId)) {
-      console.log(`   ⏳ Skipping driver ${driver.driverId} temporarily (rejected/no-response in wave 1-${waveNumber-1}, will retry in wave 4+)`);
-      filterStats.excludedTemporary++;
-      return false;
-    }
-    
-    // ✅ في الموجات 4-5: نُرسل للسائقين الذين رفضوا/لم يردوا مرة أخرى (فرصة ثانية)
-    if ((waveNumber >= 4 || isEmergencyWave) && Array.isArray(rejectedDriverIds) && rejectedDriverIds.includes(driver.driverId)) {
-      console.log(`   🔄 Re-including driver ${driver.driverId} (SECOND CHANCE in wave ${waveNumber}/${isEmergencyWave ? 'EMERGENCY' : 'FINAL'})`);
-      // لا نستبعده - نعطيه فرصة ثانية
-    }
-    
-    const isAvailable = driver.status === 'available';
-    const isSearching = driver.isSearching === true;
-
-    if (!isAvailable) {
-      filterStats.notAvailable++;
-    }
-    if (!isSearching) {
-      filterStats.notSearching++;
-    }
-
-    const hasConnectionId = Boolean(driver.connectionId);
-    if (!hasConnectionId) {
-      filterStats.missingConnectionId++;
-    }
-
-    // ✅ Compatibility: some environments use 'active' instead of 'connected'
-    const connectionStatus = String(driver.connectionStatus || '').trim().toLowerCase();
-    const hasGoodConnectionStatus = connectionStatus === 'connected' || connectionStatus === 'active' || connectionStatus === '';
-    if (hasConnectionId && !hasGoodConnectionStatus) {
-      filterStats.badConnectionStatus++;
-    }
-
-    const hasConnection = hasConnectionId && hasGoodConnectionStatus;
-    
-    // 🆕 فحص أولويات المناطق حسب الموجة
-    let hasRegionWithPriority = false;
-    
-    // ⚡ الموجة الطارئة: تقبل جميع المناطق
-    if (isEmergencyWave) {
-      hasRegionWithPriority = true;
-    } 
-    // 🎯 Wave 1: فقط priority0 (الأقرب)
-    else if (waveNumber === 1) {
-      if (Array.isArray(driver.allowed_region_ids_priority0) && driver.allowed_region_ids_priority0.includes(restaurantRegionId)) {
-        hasRegionWithPriority = true;
-      } else if (driver.current_work_region_id === restaurantRegionId) {
-        // Fallback: if allowed_region_ids_priority0 missing, use current region match
-        hasRegionWithPriority = true;
-      }
-    }
-    // 🌊 Wave 2-4: جميع المناطق المسموحة (priority0 + priority1)
-    else {
-      if (Array.isArray(driver.allowed_region_ids) && driver.allowed_region_ids.includes(restaurantRegionId)) {
-        hasRegionWithPriority = true;
-      } else if (driver.current_work_region_id === restaurantRegionId) {
-        // Fallback: if allowed_region_ids missing, use current region match
-        hasRegionWithPriority = true;
-      }
-    }
-
-    if (!hasRegionWithPriority) {
-      filterStats.missingAllowedRegions++;
-    }
-
-    const passed = isAvailable && isSearching && hasConnection && hasRegionWithPriority;
-    if (passed) {
-      filterStats.passed++;
-    }
-
-    return passed;
-  });
-
-  console.log(`🔗 ${availableDrivers.length} drivers are available and connected`);
-  console.log(`📊 Driver filter diagnostics (wave ${waveNumber}):`, filterStats);
-
-  if (availableDrivers.length === 0) {
-    return [];
-  }
-
-  // المرحلة 3: حساب المسافة والفلترة (حسب معايير الموجة)
-  const driversWithDistance = availableDrivers
-    .map(driver => {
-      // ✅ استخدام lat/lng بدلاً من gpsLatitude/gpsLongitude
-      if (!driver.lat || !driver.lng) {
-        console.log(`⚠️ Driver ${driver.driverId} missing location (lat: ${driver.lat}, lng: ${driver.lng})`);
-        return null;
-      }
-
-      const distance = calculateDistance(
-        restaurantLat, restaurantLng,
-        driver.lat, driver.lng
-      );
-
-      console.log(`📏 Driver ${driver.driverId}: ${distance.toFixed(2)}km from restaurant`);
-      return { ...driver, distance };
-    })
-    .filter(driver => driver !== null && driver.distance <= WAVE_MAX_DISTANCE);
-
-  console.log(`📍 ${driversWithDistance.length} drivers within ${WAVE_MAX_DISTANCE}km (Wave ${waveNumber} limit)`);
-
-  if (driversWithDistance.length === 0) {
-    return [];
-  }
-
-  // المرحلة 4: فلترة الأداء (تُتخطى في الموجة الطارئة)
-  let performanceFiltered = driversWithDistance;
-  
-  if (!isEmergencyWave) {
-    performanceFiltered = driversWithDistance.filter(driver => {
-      const acceptanceRate = driver.metricsSnapshot_acceptanceRate !== undefined && driver.metricsSnapshot_acceptanceRate !== null ? driver.metricsSnapshot_acceptanceRate : null;
-      const completionRate = driver.metricsSnapshot_completionRate !== undefined && driver.metricsSnapshot_completionRate !== null ? driver.metricsSnapshot_completionRate : null;
-      const consecutiveRejections = driver.metricsSnapshot_consecutiveRejections !== undefined && driver.metricsSnapshot_consecutiveRejections !== null ? driver.metricsSnapshot_consecutiveRejections : 0;
-      const totalTrips = driver.metricsSnapshot_totalTrips !== undefined && driver.metricsSnapshot_totalTrips !== null ? driver.metricsSnapshot_totalTrips : 0;
-
-      // ✅ السائق الجديد (totalTrips < 5): يُقبل تلقائياً
-      if (totalTrips < 5) {
-        console.log(`🆕 New driver ${driver.driverId}: ${totalTrips} trips - auto-accepted`);
-        return true;
-      }
-
-      // ✅ السائق ذو الخبرة: يُفحص الأداء بالمعايير الديناميكية
-      const meetsAcceptanceRate = acceptanceRate >= MIN_ACCEPTANCE_RATE;
-      const meetsCompletionRate = completionRate >= MIN_COMPLETION_RATE;
-      const meetsRejectionLimit = consecutiveRejections <= MAX_CONSECUTIVE_REJECTIONS;
-      
-      if (!meetsAcceptanceRate || !meetsCompletionRate || !meetsRejectionLimit) {
-        console.log(`❌ Driver ${driver.driverId} excluded: acceptance=${acceptanceRate ? acceptanceRate.toFixed(2) : 'null'} (need ${MIN_ACCEPTANCE_RATE}), completion=${completionRate ? completionRate.toFixed(2) : 'null'} (need ${MIN_COMPLETION_RATE}), rejections=${consecutiveRejections} (max ${MAX_CONSECUTIVE_REJECTIONS})`);
-        return false;
-      }
-      
-      return true;
-    });
-  } else {
-    // 🚨 الموجة الطارئة: تُقبل جميع السائقين بدون فحص الأداء
-    console.log(`🚨 EMERGENCY WAVE: Skipping performance checks - accepting ALL drivers`);
-  }
-
-  console.log(`⭐ ${performanceFiltered.length} drivers meet ${isEmergencyWave ? 'emergency' : 'performance'} criteria`);
-
-  if (performanceFiltered.length === 0) {
-    return [];
-  }  // المرحلة 5: حساب النقاط والترتيب
-  const driversWithScores = performanceFiltered.map(driver => {
-    const regionScore = calculateRegionScore(driver, restaurantRegionId);
-    const distanceScore = calculateDistanceScore(driver.distance, MAX_DISTANCE_KM);
-    const performanceScore = calculatePerformanceScore(driver);
-    
-    const totalScore = regionScore + distanceScore + performanceScore;
-
-    return {
-      ...driver,
-      scores: {
-        total: totalScore,
-        region: regionScore,
-        distance: distanceScore,
-        performance: performanceScore
-      }
-    };
-  });
-
-  // الترتيب من الأعلى للأدنى
-  driversWithScores.sort((a, b) => b.scores.total - a.scores.total);
-
-  // طباعة أفضل 5 سائقين
-  driversWithScores.slice(0, 5).forEach((driver, index) => {
-    console.log(
-      `🏆 #${index + 1} ${driver.driverId}: ${driver.scores.total.toFixed(1)} pts ` +
-      `(region=${driver.scores.region}, distance=${driver.scores.distance.toFixed(1)}, ` +
-      `performance=${driver.scores.performance.toFixed(1)}, ${driver.distance.toFixed(2)}km)`
-    );
-  });
-
-  return driversWithScores;
+async function getQualifiedDrivers(...args) {
+  return require('./driver-selection').createDriverSelection({dynamodb,DRIVER_LIVE_STATE_TABLE,MAX_DISTANCE_KM}).getQualifiedDrivers(...args);
 }
 
-// =====================================
-// Query Drivers by Region (using GSI)
-// =====================================
-async function queryDriversByRegion(regionId) {
-  try {
-    const result = await dynamodb.query({
-      TableName: DRIVER_LIVE_STATE_TABLE,
-      IndexName: 'RegionStatusIndex',
-      KeyConditionExpression: 'current_work_region_id = :regionId AND #status = :statusVal',
-      ExpressionAttributeNames: {
-        '#status': 'status'
-      },
-      ExpressionAttributeValues: {
-        ':regionId': regionId,
-        ':statusVal': 'available'
-      }
-    }).promise();
-
-    return result.Items || [];
-  } catch (error) {
-    console.error('Error querying drivers by region:', error);
-    return [];
-  }
-}
-
-// =====================================
-// Query All Available Drivers (fallback)
-// =====================================
-async function queryAllAvailableDrivers() {
-  try {
-    const result = await dynamodb.scan({
-      TableName: DRIVER_LIVE_STATE_TABLE,
-      FilterExpression: '#status = :statusVal',
-      ExpressionAttributeNames: {
-        '#status': 'status'
-      },
-      ExpressionAttributeValues: {
-        ':statusVal': 'available'
-      }
-    }).promise();
-
-    return result.Items || [];
-  } catch (error) {
-    console.error('Error scanning all available drivers:', error);
-    return [];
-  }
-}
-
-// =====================================
-// حساب النقاط - المنطقة (0-25)
-// =====================================
-function calculateRegionScore(driver, restaurantRegionId) {
-  // منطقة العمل الأساسية → 25 نقطة
-  if (restaurantRegionId === driver.home_region_id) {
-    return 25;
-  }
-
-  // Priority 0 (جيران مباشرون) → 20 نقطة
-  if (driver.allowed_region_ids_priority0?.includes(restaurantRegionId)) {
-    return 20;
-  }
-
-  // Priority 1 (جيران قريبون) → 10 نقاط
-  if (driver.allowed_region_ids_priority1?.includes(restaurantRegionId)) {
-    return 10;
-  }
-
-  // خارج النطاق → 0 نقطة
-  return 0;
-}
-
-// =====================================
-// حساب النقاط - المسافة (0-30)
-// =====================================
-function calculateDistanceScore(distance, maxDistance) {
-  // 0 كم → 30 نقطة
-  // maxDistance كم → 0 نقطة
-  // خطي بينهما
-  const score = 30 * (1 - (distance / maxDistance));
-  return Math.max(0, score);
-}
-
-// =====================================
-// حساب النقاط - الأداء (0-45 + responseRate bonus max 5)
-// =====================================
-function calculatePerformanceScore(driver) {
-  const acceptanceRate = driver.metricsSnapshot_acceptanceRate ?? 1.0;
-  const completionRate = driver.metricsSnapshot_completionRate ?? 1.0;
-  const consecutiveRejections = driver.metricsSnapshot_consecutiveRejections ?? 0;
-  const rating = driver.rating ?? 4.5;
-  const responseRate = driver.metricsSnapshot_responseRate ?? 0; // ✨ NEW: Response rate
-
-  // معدل القبول: 0-20 نقطة
-  const acceptanceScore = acceptanceRate * 20;
-
-  // معدل الإكمال: 0-20 نقطة
-  const completionScore = completionRate * 20;
-
-  // التقييم: 0-5 نقاط
-  const ratingScore = Math.max(0, (rating - 4.0) * 5);
-
-  // عقوبة الرفضات المتتالية: -10 لكل رفض
-  const rejectionPenalty = consecutiveRejections * 10;
-
-  // ✨ NEW: Response Rate Bonus (max +5 points)
-  let responseBonus = 0;
-  if (responseRate >= 0.80) {
-    responseBonus = 5; // 80%+ → +5 نقاط 🌟
-  } else if (responseRate >= 0.60) {
-    responseBonus = 2; // 60-79% → +2 نقاط ⭐
-  }
-  // responseRate < 60% → 0 نقاط (لا شيء)
-
-  const totalPerformance = acceptanceScore + completionScore + ratingScore + responseBonus - rejectionPenalty;
-
-  console.log(
-    `   📊 Driver ${driver.driverId} performance: ` +
-    `acceptance=${acceptanceScore.toFixed(1)}, completion=${completionScore.toFixed(1)}, ` +
-    `rating=${ratingScore.toFixed(1)}, responseBonus=${responseBonus}, ` +
-    `rejectionPenalty=${rejectionPenalty} → total=${totalPerformance.toFixed(1)}`
-  );
-
-  return Math.max(0, totalPerformance);
-}
-
-// =====================================
-// حساب المسافة (Haversine Formula)
-// =====================================
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // نصف قطر الأرض بالكيلومتر
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-  
-  return distance;
-}
-
-// =====================================
-// Step 4: إنشاء WaveOffers
-// =====================================
 async function createWaveOffers(dispatchJob, selectedDrivers, waveNumber, isEmergencyWave = false) {
   console.log(`📝 Creating ${selectedDrivers.length} WaveOffers for wave ${waveNumber} (Emergency: ${isEmergencyWave})`);
 
   const now = new Date().toISOString();
   const expiresAt = new Date(Date.now() + WAVE_TIMEOUT_SECONDS * 1000).toISOString();
 
-  const offers = selectedDrivers.map((driver, index) => {
-    const offerId = `OFFER_${dispatchJob.orderId}_${driver.driverId}_W${waveNumber}`;
-
-    // 🚨 حساب البونص في الموجة الطارئة
-    const baseDeliveryFee = dispatchJob.deliveryFee || calculateDriverPayout(dispatchJob.orderTotal, driver.distance);
-    const bonusAmount = isEmergencyWave ? (baseDeliveryFee * 0.25) : 0; // 25% bonus
-    const totalDriverEarnings = baseDeliveryFee + bonusAmount;
-    const whizzSubsidy = bonusAmount; // Whizz تدفع البونص كاملاً
-
-    return {
-      // Primary Key (PK: orderId, SK: driverId#waveNumber)
-      orderId: dispatchJob.orderId,
-      SK: `${driver.driverId}#WAVE#${waveNumber}`,
-      
-      // Basic Info
-      offerId: offerId,
-      driverId: driver.driverId,
-      waveNumber: waveNumber,
-      dispatchJobId: dispatchJob.dispatchJobId,
-      
-      // Timing
-      sentAt: now,
-      expiresAt: expiresAt,
-      responseAt: null,
-      
-      // Status
-      responseStatus: 'pending',
-      responseReasonCode: null,
-      isWinner: false,
-      
-      // Distance & Earnings (من المطعم إلى الزبون)
-      distanceKmAtOffer: dispatchJob.distanceKm || driver.distance,
-      estimatedEarningsAtOffer: totalDriverEarnings, // Total with bonus
-      baseDeliveryFee: baseDeliveryFee,
-      bonusAmount: bonusAmount,
-      whizzSubsidy: whizzSubsidy,
-      isEmergencyWave: isEmergencyWave,
-      estimatedDurationMinutes: dispatchJob.estimatedMinutes || Math.ceil((dispatchJob.distanceKm || driver.distance) * 1.5),
-      
-      // Region Info
-      restaurantRegionId: dispatchJob.restaurantRegionId,
-      driverRegionAtOffer: driver.current_region_id || driver.current_work_region_id,
-      restaurantId: dispatchJob.restaurantId,
-      restaurantName: dispatchJob.restaurantName,
-      
-      // Metrics Snapshot
-      driverMetricsSnapshot_acceptanceRate: driver.metricsSnapshot_acceptanceRate ?? 1.0,
-      driverMetricsSnapshot_completionRate: driver.metricsSnapshot_completionRate ?? 1.0,
-      driverMetricsSnapshot_consecutiveRejections: driver.metricsSnapshot_consecutiveRejections ?? 0,
-      driverScoreAtOffer: driver.scores?.total || 0,
-      
-      // System
-      createdAt: now,
-      updatedAt: now,
-      ttl: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days
-    };
-  });
+  const offers = selectedDrivers.map(driver=>require('./legacy-offer-contract').buildLegacyOfferRow(dispatchJob,driver,waveNumber,{at:now,ttlSeconds:WAVE_TIMEOUT_SECONDS,isEmergencyWave}));
 
   // حفظ جميع العروض
   const batchWriteParams = {
@@ -943,14 +487,7 @@ async function createWaveOffers(dispatchJob, selectedDrivers, waveNumber, isEmer
 // =====================================
 // حساب أجر السائق
 // =====================================
-function calculateDriverPayout(orderTotal, distanceKm) {
-  // أجر أساسي + نسبة من الطلب + أجر المسافة
-  const baseFee = 2000; // IQD
-  const orderPercentage = orderTotal * 0.15; // 15% من قيمة الطلب
-  const distanceFee = distanceKm * 500; // 500 IQD per km
-
-  return Math.round(baseFee + orderPercentage + distanceFee);
-}
+function calculateDriverPayout(...args) { return require('./legacy-offer-contract').calculateDriverPayout(...args); }
 
 // =====================================
 // استخراج العنوان الكامل من Object
@@ -1156,10 +693,7 @@ async function sendWebSocketMessage(connectionId, message) {
   console.log(`📋 Message type: ${message.type}`);
   console.log(`📦 Full message: ${JSON.stringify(message, null, 2)}`);
   
-  await apigateway.postToConnection({
-    ConnectionId: connectionId,
-    Data: JSON.stringify(message)
-  }).promise();
+  await offerTransport.postSocket(connectionId,message);
   
   console.log(`✅ Message sent successfully to ${connectionId}`);
 }
@@ -1311,4 +845,19 @@ async function calculateEstimatedDuration(originLat, originLng, destLat, destLng
   const fallbackDuration = Math.ceil(distanceKm * 1.5);
   console.log(`📐 Fallback formula: ${fallbackDuration} minutes (${distanceKm}km * 1.5)`);
   return fallbackDuration;
+}
+
+async function runFinancialDispatch(dispatchJob,driverIds,waveNumber,selectionPolicy) {
+  if (process.env.FINANCIAL_DISPATCH_MODE !== 'REQUIRED') throw new Error('FINANCIAL_DISPATCH_DISABLED');
+  const {runFinancialWave} = require('./financial-runtime');
+  const result = await runFinancialWave({orderId:dispatchJob.orderId,branchId:dispatchJob.restaurantId,waveNumber,driverIds},async(driverId,message)=>{
+    const state = await dynamodb.get({TableName:DRIVER_LIVE_STATE_TABLE,Key:{driverId},ConsistentRead:true}).promise();
+    if (!state.Item?.connectionId) throw new Error('FINANCIAL_DRIVER_CONNECTION_UNAVAILABLE');
+    await sendWebSocketMessage(state.Item.connectionId,message);
+  },selectionPolicy);
+  // Persist the actual offer deadline; the existing periodic timeout worker consumes it.
+  await dynamodb.update({TableName:DISPATCH_JOBS_TABLE,Key:{orderId:dispatchJob.orderId,SK:'METADATA'},
+    UpdateExpression:'SET financialWaveDeadline=:deadline',ConditionExpression:'#s=:searching AND currentWaveNumber=:wave AND financialDispatch=:yes',
+    ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':deadline':result.timeoutAt,':searching':'searching',':wave':waveNumber,':yes':true}}).promise();
+  return {statusCode:200,...result};
 }

@@ -1,0 +1,434 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Staging customer deletion requests and scoped SMS verification; irreversible worker not enabled
+Parameters:
+  DeliveryQuotesEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+    Description: Enable only after quote table exists and scoped cleanup package/IAM are verified.
+  CustomerMutationGuardsVerified:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+    Description: Verified customer write protections; does not enable the scheduled worker.
+  DriverMutationGuardsVerified:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+    Description: Verified driver write protections; private execution only.
+  MerchantMutationGuardsVerified:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+    Description: Verified merchant write protections; private execution only.
+  AutomaticExecutionEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+  FinancialExpiryEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+  BackupRetentionEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+Conditions:
+  AutomaticExecution: !Equals [!Ref AutomaticExecutionEnabled, 'true']
+  FinancialExpiryExecution: !Equals [!Ref FinancialExpiryEnabled, 'true']
+  BackupRetentionExecution: !Equals [!Ref BackupRetentionEnabled, 'true']
+Resources:
+  Requests:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: staging-AccountDeletion
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: pk, AttributeType: S}, {AttributeName: sk, AttributeType: S}]
+      KeySchema: [{AttributeName: pk, KeyType: HASH}, {AttributeName: sk, KeyType: RANGE}]
+      SSESpecification: {SSEEnabled: true}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      TimeToLiveSpecification: {AttributeName: expiresAt, Enabled: true}
+  FinancialArchive:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: staging-AccountDeletionFinancialArchive
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: pk, AttributeType: S}, {AttributeName: sk, AttributeType: S}]
+      KeySchema: [{AttributeName: pk, KeyType: HASH}, {AttributeName: sk, KeyType: RANGE}]
+      SSESpecification: {SSEEnabled: true}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      # Expiry must check documented holds; DynamoDB TTL cannot do that.
+      TimeToLiveSpecification: {AttributeName: expiresAt, Enabled: false}
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: staging
+      MethodSettings: [{ResourcePath: '/*', HttpMethod: '*', ThrottlingRateLimit: 5, ThrottlingBurstLimit: 10}]
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-account-deletion-requests
+      Runtime: nodejs22.x
+      CodeUri: .
+      Handler: index.handler
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          ENVIRONMENT: staging
+          DELETION_TABLE: !Ref Requests
+          STAFF_TABLE: staging-PlatformStaff
+          MUTATION_GUARDS_VERIFIED: !Ref CustomerMutationGuardsVerified
+          DRIVER_MUTATION_GUARDS_VERIFIED: !Ref DriverMutationGuardsVerified
+          MERCHANT_MUTATION_GUARDS_VERIFIED: !Ref MerchantMutationGuardsVerified
+          AUTOMATIC_EXECUTION_ENABLED: !Ref AutomaticExecutionEnabled
+          OTP_SECRET_ARN: arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ
+      Policies:
+        - DynamoDBCrudPolicy: {TableName: !Ref Requests}
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:Query]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging/index/*
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_wallets_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_wallets_staging/index/*
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_transactions_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-TopupRequests
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-SandboxPayments
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-IdempotencyKeys
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging
+            - Effect: Allow
+              Action: dynamodb:GetItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringEquals:
+                  dynamodb:LeadingKeys: [OPERATIONAL_SETTINGS#ACCOUNT_DELETION]
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ
+      Events:
+        Deletion:
+          Type: Api
+          Properties: {RestApiId: !Ref Api, Path: '/deletion/{proxy+}', Method: ANY}
+  Worker:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-account-deletion-worker
+      Runtime: nodejs22.x
+      CodeUri: .
+      Handler: worker.handler
+      ReservedConcurrentExecutions: 1
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          ENVIRONMENT: staging
+          DELETION_TABLE: !Ref Requests
+          ARCHIVE_TABLE: !Ref FinancialArchive
+          MUTATION_GUARDS_VERIFIED: !Ref CustomerMutationGuardsVerified
+          DRIVER_MUTATION_GUARDS_VERIFIED: !Ref DriverMutationGuardsVerified
+          MERCHANT_MUTATION_GUARDS_VERIFIED: !Ref MerchantMutationGuardsVerified
+          AUTOMATIC_EXECUTION_ENABLED: !Ref AutomaticExecutionEnabled
+          DELIVERY_QUOTES_ENABLED: !Ref DeliveryQuotesEnabled
+      Policies:
+        - Statement:
+            - Sid: CustomerDeliveryQuoteCleanup
+              Effect: Allow
+              Action: [dynamodb:Query, dynamodb:DeleteItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['CUSTOMER#*']
+        - DynamoDBCrudPolicy: {TableName: !Ref Requests}
+        - DynamoDBCrudPolicy: {TableName: !Ref FinancialArchive}
+        - Statement:
+            - Effect: Allow
+              Action: [cognito-idp:AdminGetUser, cognito-idp:AdminDisableUser, cognito-idp:AdminUserGlobalSignOut, cognito-idp:AdminDeleteUser]
+              Resource: arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_TpyyrVkEE
+            - Effect: Allow
+              Action: [cognito-idp:AdminGetUser, cognito-idp:AdminDisableUser, cognito-idp:AdminUserGlobalSignOut, cognito-idp:AdminDeleteUser]
+              Resource: arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_RGTqUXF5C
+            - Effect: Allow
+              Action: [cognito-idp:AdminGetUser, cognito-idp:AdminDisableUser, cognito-idp:AdminUserGlobalSignOut, cognito-idp:AdminDeleteUser]
+              Resource: arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_gtCR3ndzT
+            - Effect: Allow
+              Action: [s3:ListBucketVersions]
+              Resource: arn:aws:s3:::staging-merchant-onboarding-699561669180
+              Condition:
+                StringLike:
+                  s3:prefix: ['persons/*']
+            - Effect: Allow
+              Action: [s3:DeleteObject, s3:DeleteObjectVersion]
+              Resource: arn:aws:s3:::staging-merchant-onboarding-699561669180/persons/*
+            - Effect: Allow
+              Action: [s3:ListBucket, s3:ListBucketVersions]
+              Resource: arn:aws:s3:::whizzdrivers-documents-staging-699561669180
+              Condition:
+                StringLike:
+                  s3:prefix: ['drivers/*']
+            - Effect: Allow
+              Action: [s3:DeleteObject, s3:DeleteObjectVersion]
+              Resource: arn:aws:s3:::whizzdrivers-documents-staging-699561669180/drivers/*
+            - Effect: Allow
+              Action: [s3:ListBucketVersions]
+              Resource: arn:aws:s3:::wizz-merchants-staging-businessphotosbucket-up3j1qega8m5
+              Condition:
+                StringLike:
+                  s3:prefix: ['business-photos/*', 'business-documents/*', 'product-images/*', 'merchants/*']
+            - Effect: Allow
+              Action: [s3:DeleteObject, s3:DeleteObjectVersion]
+              Resource: [arn:aws:s3:::wizz-merchants-staging-businessphotosbucket-up3j1qega8m5/business-photos/*, arn:aws:s3:::wizz-merchants-staging-businessphotosbucket-up3j1qega8m5/business-documents/*, arn:aws:s3:::wizz-merchants-staging-businessphotosbucket-up3j1qega8m5/product-images/*, arn:aws:s3:::wizz-merchants-staging-businessphotosbucket-up3j1qega8m5/merchants/*]
+            - Effect: Allow
+              Action: execute-api:ManageConnections
+              Resource: arn:aws:execute-api:us-east-1:699561669180:igcrhwc84c/staging/DELETE/@connections/*
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:Query, dynamodb:UpdateItem, dynamodb:PutItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging/index/*
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_addresses_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_favorites_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_wallets_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_wallets_staging/index/*
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_transactions_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_temp_users_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_password_reset_tokens_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_phone_auth_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_phone_link_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_websocket_connections_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_websocket_subscriptions_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_PushDeviceTokens_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/chat-sessions-staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/chat-messages-staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-TopupRequests
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-SandboxPayments
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-IdempotencyKeys
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-AuditLog
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletNotifications
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzDriverLiveState_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzDriverPerformanceMetrics_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Products
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_BusinessWorkingHours
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_RegionListings
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Users
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_BusinessSubcategories
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_DeviceTokens
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_GlobalProducts
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_otp_sessions_staging
+            - Effect: Allow
+              Action: dynamodb:GetItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringEquals:
+                  dynamodb:LeadingKeys: [OPERATIONAL_SETTINGS#ACCOUNT_DELETION]
+            - Effect: Allow
+              Action: dynamodb:Scan
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                StringEquals:
+                  dynamodb:Select: SPECIFIC_ATTRIBUTES
+                ForAllValues:StringEquals:
+                  dynamodb:Attributes: [pk, sk, kind, schemaVersion, orderId, branchId, regionId, status, caseId, requestId, requestDigest, baseDigest, action, resultCode, executionId, receipt, createdAt, executedAt, actorId, actorVersion, legalHold, retentionHold, financialArchiveConfirmed, codFinancialEvidence, accountDeletionRequestId, financialRetainUntil]
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['DISPATCH_REVIEW#*']
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['COMMERCIAL_AGREEMENT#*', 'DISCOUNT_FUNDING#*']
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringEquals:
+                  dynamodb:LeadingKeys: [AUDIT]
+      Events:
+        Retry:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Enabled: !If [AutomaticExecution, true, false]
+  FinancialExpiry:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-account-deletion-financial-expiry
+      Runtime: nodejs22.x
+      CodeUri: .
+      Handler: financial-purge.handler
+      Timeout: 300
+      MemorySize: 256
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          ENVIRONMENT: staging
+          FINANCIAL_EXPIRY_ENABLED: !Ref FinancialExpiryEnabled
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:Scan, dynamodb:GetItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_transactions_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-IdempotencyKeys
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-AuditLog
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-TopupRequests
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-SandboxPayments
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletionFinancialArchive
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['DISPATCH_REVIEW#*']
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['COMMERCIAL_AGREEMENT#*', 'BRANCH#*']
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['COMMERCIAL_AGREEMENT#*', 'DISCOUNT_FUNDING#*', AUDIT]
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['BUSINESS_LIFECYCLE#MERCHANT#*', 'SUBJECT#MERCHANT#*']
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['WALLET#MERCHANT#*']
+      Events:
+        Expiry:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+            Enabled: !If [FinancialExpiryExecution, true, false]
+            Input: '{"dryRun":false}'
+  BackupRetention:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-account-deletion-backup-retention
+      Runtime: nodejs22.x
+      CodeUri: .
+      Handler: backup-retention.handler
+      Timeout: 300
+      MemorySize: 256
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          ENVIRONMENT: staging
+          BACKUP_RETENTION_ENABLED: !Ref BackupRetentionEnabled
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:ListBackups]
+              Resource: '*'
+            - Effect: Allow
+              Action: [dynamodb:DeleteBackup]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/*/backup/*
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem]
+              Resource: !GetAtt Requests.Arn
+              Condition:
+                ForAllValues:StringEquals:
+                  dynamodb:LeadingKeys: [BACKUP_RETENTION]
+      Events:
+        Expiry:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+            Enabled: !If [BackupRetentionExecution, true, false]
+            Input: '{"dryRun":false}'
+  TechnicalLogRetention:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-account-deletion-log-retention
+      Runtime: python3.13
+      Handler: index.handler
+      Timeout: 300
+      MemorySize: 128
+      InlineCode: |
+        import boto3
+        def handler(event, context):
+            if context.invoked_function_arn.split(':')[4] != '699561669180':
+                raise RuntimeError('ENVIRONMENT_NOT_ALLOWED')
+            client = boto3.client('logs', region_name='us-east-1')
+            dry = event.get('dryRun', True)
+            inspected = changed = 0
+            for page in client.get_paginator('describe_log_groups').paginate():
+                for group in page.get('logGroups', []):
+                    name = group['logGroupName']
+                    if not name.startswith(('/aws/lambda/', '/aws/apigateway/', 'API-Gateway-Execution-Logs_')):
+                        continue
+                    inspected += 1
+                    if group.get('retentionInDays') == 30:
+                        continue
+                    if not dry:
+                        client.put_retention_policy(logGroupName=name, retentionInDays=30)
+                    changed += 1
+            return {'dryRun': dry, 'inspected': inspected, 'changed': changed, 'retentionDays': 30}
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [logs:DescribeLogGroups]
+              Resource: '*'
+            - Effect: Allow
+              Action: [logs:PutRetentionPolicy]
+              Resource:
+                - arn:aws:logs:us-east-1:699561669180:log-group:/aws/lambda/*:*
+                - arn:aws:logs:us-east-1:699561669180:log-group:/aws/apigateway/*:*
+                - arn:aws:logs:us-east-1:699561669180:log-group:API-Gateway-Execution-Logs_*:*
+      Events:
+        ApplyRetention:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+            Enabled: true
+            Input: '{"dryRun":false}'
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${Api}.execute-api.${AWS::Region}.amazonaws.com/staging

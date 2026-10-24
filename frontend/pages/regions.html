@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WizzCentral Platform - Regions Management</title>
+    <title>ويز سنترال — إدارة المناطق</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
@@ -24,7 +25,7 @@
     <!-- Security utilities -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="../assets/js/security-utils.js"></script>
-    <script src="../assets/js/rbac.js"></script>
+    <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
     <style>
         /* Regions Management Styles */
         /* Search and Filters */
@@ -391,7 +392,7 @@
 
         .action-btn.edit {
             background: var(--md-sys-color-secondary-container);
-            color: var (--md-sys-color-on-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
         }
 
         .action-btn.toggle {
@@ -619,7 +620,7 @@
         }
 
         .region-status.inactive {
-            background: var (--md-sys-color-error);
+            background: var(--md-sys-color-error);
             box-shadow: 0 0 0 2px var(--md-sys-color-error-container);
         }
 
@@ -737,7 +738,7 @@
             color: var(--md-sys-color-on-surface-variant);
             cursor: pointer;
             padding: 0.25rem;
-            border-radius: var (--md-sys-shape-corner-small);
+            border-radius: var(--md-sys-shape-corner-small);
             transition: background-color 0.2s ease;
         }
 
@@ -1018,7 +1019,7 @@
         .leaflet-bar a:hover { background: var(--wizz-primary-light) !important; }
         .button-primary, .primary-btn { background: var(--wizz-primary); color:#1C1B1F; border:none; }
         .button-primary:hover, .primary-btn:hover { background: var(--wizz-primary-light); }
-        .button-secondary { background:#fff; color: var (--wizz-secondary); border:2px solid var(--wizz-secondary); }
+        .button-secondary { background:#fff; color: var(--wizz-secondary); border:2px solid var(--wizz-secondary); }
         .button-secondary:hover { background: var(--wizz-secondary); color:#fff; }
         /* Remove any gradient classes if present */
         .header-gradient, .gradient-bg { background:#fff !important; }
@@ -1026,7 +1027,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-</head>
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
 
 <body data-page="regions">
     <!-- Sidebar include placeholder -->
@@ -1040,18 +1041,18 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title">Regions Management</h1>
+                <h1 class="page-title">المناطق</h1>
                 <span id="version-badge"
                     style="font-size: 0.7rem; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface-variant); padding: 2px 6px; border-radius: 8px; margin-left: 10px; font-weight: 500;"></span>
             </div>
             <div class="top-bar-actions">
                 <button class="btn-primary" onclick="refreshRegionsData()">
                     <i class="fas fa-sync"></i>
-                    Refresh
+                    تحديث الصفحة
                 </button>
                 <button class="btn-secondary" onclick="window.location.reload(true)" style="margin-left: 0.5rem;">
                     <i class="fas fa-redo"></i>
-                    Hard Reload
+                    إعادة تحميل الصفحة
                 </button>
             </div>
         </div>
@@ -1068,20 +1069,20 @@
                 <div class="search-input-container">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="regionSearch" class="form-input search-input" 
-                           placeholder="Search regions... (English/Arabic)">
+                           placeholder="ابحث عن منطقة بالعربية أو الإنجليزية..." dir="auto">
                 </div>
                 <div class="filters-container">
                     <select id="levelFilter" class="form-select">
-                        <option value="">All Levels</option>
-                        <option value="1">Governorates</option>
-                        <option value="2">Districts</option>
-                        <option value="3">Neighborhoods</option>
-                        <option value="4">Streets</option>
+                        <option value="">جميع المستويات</option>
+                        <option value="1">المحافظات</option>
+                        <option value="2">الأقضية</option>
+                        <option value="3">الأحياء</option>
+                        <option value="4">الشوارع</option>
                     </select>
                     <select id="statusFilter" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
+                        <option value="">جميع الحالات</option>
+                        <option value="true">نشط</option>
+                        <option value="false">غير نشط</option>
                     </select>
                 </div>
             </div>
@@ -1091,7 +1092,7 @@
                 <!-- Regions Map -->
                 <div class="regions-map-card" id="regionsMapCard">
                     <div class="regions-map-header">
-                        <i class="fas fa-map"></i> Service Regions Map
+                        <i class="fas fa-map"></i> خريطة مناطق الخدمة
                     </div>
                     <div id="regionInfoPanel" class="region-info-panel" style="display:none;"></div>
                     <div id="regionsMap"></div>
@@ -1101,11 +1102,11 @@
                 <!-- Regions List -->
                 <div class="regions-list">
                     <div class="regions-header">
-                        <h3>Service Regions</h3>
+                        <h3>مناطق الخدمة</h3>
                         <div class="regions-header-actions">
                             <button class="btn-add-region" onclick="openAddRegionModal()" data-write-only>
                                 <i class="fas fa-plus"></i>
-                                Add Region
+                                إضافة منطقة
                             </button>
                         </div>
                     </div>
@@ -1114,8 +1115,8 @@
                     <div class="regions-cards" id="regionsCards" style="display: none;">
                         <div class="empty-state">
                             <i class="fas fa-map"></i>
-                            <h3>Loading regions...</h3>
-                            <p>Please wait while we load the service regions</p>
+                            <h3>جارٍ تحميل المناطق...</h3>
+                            <p>يرجى الانتظار حتى يكتمل تحميل مناطق الخدمة.</p>
                         </div>
                     </div>
                     
@@ -1127,22 +1128,22 @@
                                     <tr>
                                         <th class="sortable" onclick="sortTable('regionName')">
                                             <i class="fas fa-map-marker-alt"></i>
-                                            Region Name
+                                            اسم المنطقة
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                         <th class="sortable" onclick="sortTable('governorate')">
                                             <i class="fas fa-map"></i>
-                                            Governorate
+                                            المحافظة
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                         <th class="sortable" onclick="sortTable('isActive')">
                                             <i class="fas fa-power-off"></i>
-                                            Status
+                                            الحالة
                                             <i class="fas fa-sort sort-icon"></i>
                                         </th>
                                         <th>
                                             <i class="fas fa-cog"></i>
-                                            Actions
+                                            الإجراءات
                                         </th>
                                     </tr>
                                 </thead>
@@ -1151,7 +1152,7 @@
                                         <td colspan="4" class="loading-cell">
                                             <div class="loading-state">
                                                 <i class="fas fa-spinner fa-spin"></i>
-                                                Loading regions data...
+                                                جارٍ تحميل بيانات المناطق...
                                             </div>
                                         </td>
                                     </tr>
@@ -1162,16 +1163,16 @@
                         <!-- Pagination -->
                         <div class="table-pagination" id="tablePagination">
                             <div class="pagination-info">
-                                Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalCount">0</span> regions
+                                عرض <span id="showingStart">0</span> إلى <span id="showingEnd">0</span> من <span id="totalCount">0</span> منطقة
                             </div>
                             <div class="pagination-controls">
                                 <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
                                     <i class="fas fa-chevron-left"></i>
-                                    Previous
+                                    السابق
                                 </button>
                                 <span class="page-numbers" id="pageNumbers"></span>
                                 <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>
-                                    Next
+                                    التالي
                                     <i class="fas fa-chevron-right"></i>
                                 </button>
                             </div>
@@ -1186,7 +1187,7 @@
     <div class="modal" id="regionModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">Add New Region</h2>
+                <h2 class="modal-title" id="modalTitle">إضافة منطقة جديدة</h2>
                 <button class="btn-close" onclick="closeRegionModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -1194,77 +1195,77 @@
             <div class="modal-body">
                 <form id="regionForm">
                     <div class="form-group">
-                        <label class="form-label">Region Name</label>
-                        <input type="text" class="form-input" id="regionName" placeholder="e.g., Baghdad Central" required>
+                        <label class="form-label">اسم المنطقة</label>
+                        <input type="text" class="form-input" id="regionName" placeholder="مثال: وسط بغداد" required dir="auto">
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Region Name (Arabic)</label>
-                        <input type="text" class="form-input" id="regionNameArabic" placeholder="e.g., بغداد المركز" required>
+                        <label class="form-label">اسم المنطقة بالعربية</label>
+                        <input type="text" class="form-input" id="regionNameArabic" placeholder="e.g., بغداد المركز" required dir="auto">
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Level</label>
+                            <label class="form-label">المستوى</label>
                             <select class="form-select" id="regionLevel" required>
-                                <option value="3" selected>Neighborhood</option>
-                                <option value="2">District</option>
-                                <option value="1">Governorate</option>
-                                <option value="0">Country</option>
+                                <option value="3" selected>الحي</option>
+                                <option value="2">القضاء</option>
+                                <option value="1">المحافظة</option>
+                                <option value="0">الدولة</option>
                             </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Parent Region</label>
+                                <label class="form-label">المنطقة الأم</label>
                                 <select class="form-select" id="parentRegion">
-                                    <option value="">None</option>
+                                    <option value="">لا يوجد</option>
                                 </select>
                                 <div style="font-size: 0.75rem; color: var(--md-sys-color-on-surface-variant); margin-top: 0.25rem;">
-                                    Parent must be level (selected level - 1)
+                                    يجب أن تنتمي المنطقة الأم إلى المستوى الأعلى مباشرةً.
                                 </div>
                             </div>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label">Governorate (Label only)</label>
+                                <label class="form-label">المحافظة (للعرض فقط)</label>
                                 <select class="form-select" id="governorate">
-                            <option value="">Select Governorate</option>
-                            <option value="Baghdad">Baghdad / بغداد</option>
-                            <option value="Basra">Basra / البصرة</option>
-                            <option value="Erbil">Erbil / أربيل</option>
-                            <option value="Najaf">Najaf / النجف</option>
-                            <option value="Karbala">Karbala / كربلاء</option>
-                            <option value="Mosul">Mosul / الموصل</option>
-                            <option value="Sulaymaniyah">Sulaymaniyah / السليمانية</option>
-                            <option value="Kirkuk">Kirkuk / كركوك</option>
+                            <option value="">اختر المحافظة</option>
+                            <option value="Baghdad">بغداد</option>
+                            <option value="Basra">البصرة</option>
+                            <option value="Erbil">أربيل</option>
+                            <option value="Najaf">النجف</option>
+                            <option value="Karbala">كربلاء</option>
+                            <option value="Mosul">الموصل</option>
+                            <option value="Sulaymaniyah">السليمانية</option>
+                            <option value="Kirkuk">كركوك</option>
                         </select>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Latitude</label>
-                            <input type="number" step="0.000001" class="form-input" id="coordLat" placeholder="33.3152">
+                            <label class="form-label">خط العرض</label>
+                            <input type="number" step="0.000001" class="form-input" id="coordLat" placeholder="33.3152" dir="ltr">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Longitude</label>
-                            <input type="number" step="0.000001" class="form-input" id="coordLng" placeholder="44.3661">
+                            <label class="form-label">خط الطول</label>
+                            <input type="number" step="0.000001" class="form-input" id="coordLng" placeholder="44.3661" dir="ltr">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Radius (meters)</label>
-                            <input type="number" class="form-input" id="coordRadius" placeholder="3000">
+                            <label class="form-label">نطاق التغطية (متر)</label>
+                            <input type="number" class="form-input" id="coordRadius" placeholder="3000" dir="ltr">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Map Tools</label>
+                            <label class="form-label">أدوات الخريطة</label>
                             <div style="display:flex; gap:.5rem; flex-wrap: wrap;">
                                 <button type="button" class="btn-map" id="pickOnMapBtn">
-                                    <i class="fas fa-location-crosshairs"></i> Pick on Map
+                                    <i class="fas fa-location-crosshairs"></i> تحديد على الخريطة
                                 </button>
                                 <button type="button" class="btn-secondary" id="useMapCenterBtn">
-                                    <i class="fas fa-crosshairs"></i> Use Map Center
+                                    <i class="fas fa-crosshairs"></i> استخدام مركز الخريطة
                                 </button>
                                 <button type="button" class="btn-secondary" id="drawAreaBtn">
-                                    <i class="fas fa-draw-polygon"></i> Draw Area
+                                    <i class="fas fa-draw-polygon"></i> رسم منطقة
                                 </button>
                             </div>
                             <div id="drawSummary" style="margin-top:.5rem; font-size:.8rem; color:var(--md-sys-color-on-surface-variant); display:none;"></div>
@@ -1273,54 +1274,54 @@
 
                     <div class="form-row">
                         <div class="form-group" id="estimatedDeliveryWrapper">
-                            <label class="form-label">Estimated Delivery (minutes)</label>
-                            <input type="number" class="form-input" id="estimatedDelivery" placeholder="30" required>
+                            <label class="form-label">مدة التوصيل التقديرية (دقائق)</label>
+                            <input type="number" class="form-input" id="estimatedDelivery" placeholder="30" required dir="ltr">
                         </div>
                         <!-- New: Base Delivery Fee -->
                         <div class="form-group" id="deliveryBaseFeeWrapper">
-                            <label class="form-label">Base Delivery Fee</label>
-                            <input type="number" step="0.01" min="0" class="form-input" id="deliveryBaseFee" placeholder="0.00">
-                            <div style="font-size:0.65rem; margin-top:4px; color:var(--md-sys-color-on-surface-variant);">Optional. If blank while editing, existing fee is preserved.</div>
+                            <label class="form-label">رسوم التوصيل الأساسية</label>
+                            <input type="number" step="0.01" min="0" class="form-input" id="deliveryBaseFee" placeholder="0.00" dir="ltr">
+                            <div style="font-size:0.65rem; margin-top:4px; color:var(--md-sys-color-on-surface-variant);">اختياري. اتركه فارغًا عند التعديل للإبقاء على الرسوم الحالية.</div>
                         </div>
                         <!-- New: Minimum Order -->
                         <div class="form-group" id="deliveryMinimumOrderWrapper">
-                            <label class="form-label">Minimum Order</label>
-                            <input type="number" step="0.01" min="0" class="form-input" id="deliveryMinimumOrder" placeholder="0.00">
-                            <div style="font-size:0.65rem; margin-top:4px; color:var(--md-sys-color-on-surface-variant);">Optional. If blank while editing, existing minimum is preserved.</div>
+                            <label class="form-label">الحد الأدنى للطلب</label>
+                            <input type="number" step="0.01" min="0" class="form-input" id="deliveryMinimumOrder" placeholder="0.00" dir="ltr">
+                            <div style="font-size:0.65rem; margin-top:4px; color:var(--md-sys-color-on-surface-variant);">اختياري. اتركه فارغًا عند التعديل للإبقاء على الحد الأدنى الحالي.</div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Status</label>
+                            <label class="form-label">الحالة</label>
                             <select class="form-select" id="regionStatus" required>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="maintenance">Maintenance</option>
+                                <option value="active">نشط</option>
+                                <option value="inactive">غير نشط</option>
+                                <option value="maintenance">صيانة</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Service Types</label>
+                        <label class="form-label">أنواع الخدمات</label>
                         <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="checkbox" id="serviceDelivery" checked>
-                                <span>Delivery</span>
+                                <input type="checkbox" id="serviceDelivery" checked dir="auto">
+                                <span>توصيل</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="checkbox" id="servicePickup" checked>
-                                <span>Pickup</span>
+                                <input type="checkbox" id="servicePickup" checked dir="auto">
+                                <span>استلام من المتجر</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="checkbox" id="serviceDineIn">
-                                <span>Dine In</span>
+                                <input type="checkbox" id="serviceDineIn" dir="auto">
+                                <span>تناول داخل المتجر</span>
                             </label>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeRegionModal()">Cancel</button>
+                <button class="btn-secondary" onclick="closeRegionModal()">إلغاء</button>
                 <button class="btn-primary" onclick="saveRegion()" data-write-only>
-                    <span id="saveButtonText">Save Region</span>
+                    <span id="saveButtonText">حفظ المنطقة</span>
                     <span id="saveButtonSpinner" class="loading-spinner" style="display: none; margin-left: 0.5rem;"></span>
                 </button>
             </div>
@@ -1331,32 +1332,32 @@
     <div class="modal" id="drawRegionModal" style="display:none;">
         <div class="modal-content" style="max-width: 960px; width: 96%; max-height: 90vh;">
             <div class="modal-header">
-                <h2 class="modal-title">Draw Service Area</h2>
-                <button class="btn-close" id="closeDrawRegionModalBtn" title="Close">
+                <h2 class="modal-title">رسم منطقة الخدمة</h2>
+                <button class="btn-close" id="closeDrawRegionModalBtn" title="إغلاق">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body" style="padding: 0;">
                 <div id="regionDrawMap" style="height: 70vh; width: 100%;"></div>
                 <div style="padding: .75rem 1rem; display:flex; gap:.5rem; align-items:center; border-top:1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface-container-lowest);">
-                    <span style="font-size:.85rem; color: var(--md-sys-color-on-surface-variant);" id="drawHint">Use the polygon/line tools to draw the boundary. Edit/delete with the toolbar.</span>
+                    <span style="font-size:.85rem; color: var(--md-sys-color-on-surface-variant);" id="drawHint">استخدم أدوات الرسم لتحديد حدود المنطقة، وشريط الأدوات لتعديلها أو حذفها.</span>
                     <div style="flex:1 1 auto"></div>
-                    <button class="btn-secondary" id="clearDrawnShapeBtn" type="button"><i class="fas fa-eraser"></i> Clear</button>
-                    <button class="btn-primary" id="useDrawnShapeBtn" type="button"><i class="fas fa-check"></i> Use This Shape</button>
+                    <button class="btn-secondary" id="clearDrawnShapeBtn" type="button"><i class="fas fa-eraser"></i> مسح</button>
+                    <button class="btn-primary" id="useDrawnShapeBtn" type="button"><i class="fas fa-check"></i> اعتماد هذا الشكل</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="../assets/js/navigation.js"></script>
+    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
     <script src="../config.js"></script>
     <script src="../assets/js/auth-utils.js?v=20261011-session-fix2"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
     <script src="../assets/js/aws-utils.js?v=20261011-session-fix2"></script>
     
     <!-- Regions Management Script - Loads comprehensive Najaf regions from API -->
-    <script src="../regions.js?v=20261011-central-data"></script>
+    <script src="../regions.js?v=20261017-ar1"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -1411,5 +1412,6 @@
             el.style.display = 'block';
         }
     </script>
+<script src="../commercial-platform-notices.js?v=81"></script>
 </body>
 </html>

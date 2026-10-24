@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "kind": "PROPOSED_STAGING_SAMPLE",
+  "environment": "Staging",
+  "businessId": "business_1791634772438_p2hlg6w5qii",
+  "businessName": "فروج المدينة",
+  "pricing": {
+    "deliveryRules": [
+      {
+        "version": 1,
+        "scope": {
+          "type": "BRANCH",
+          "id": "business_1791634772438_p2hlg6w5qii"
+        },
+        "priority": 1,
+        "status": "DRAFT",
+        "effectiveFrom": "2026-10-18T00:00:00.000Z",
+        "effectiveTo": null,
+        "rounding": "HALF_AWAY_FROM_ZERO",
+        "vehicleType": null,
+        "minimum": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 2000000
+        },
+        "maximum": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 6000000
+        },
+        "fallbackPolicyId": null,
+        "longDistance": {
+          "afterMeters": 10000,
+          "flat": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          },
+          "perKm": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          }
+        },
+        "peaks": [],
+        "id": "FAROUJ_CITY_SAMPLE_DELIVERY",
+        "base": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 1000000
+        },
+        "perKm": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 500000
+        },
+        "tiers": [],
+        "coverage": {
+          "enabled": true,
+          "maxRoadMeters": 10000,
+          "maxDurationSeconds": 1800,
+          "supportedZoneIds": [
+            "Rmhvcpnn3iy5f1"
+          ]
+        },
+        "finalRounding": {
+          "incrementIqd": 250,
+          "mode": "HALF_AWAY_FROM_ZERO"
+        }
+      }
+    ],
+    "driverRules": [
+      {
+        "version": 1,
+        "scope": {
+          "type": "BRANCH",
+          "id": "business_1791634772438_p2hlg6w5qii"
+        },
+        "priority": 1,
+        "status": "DRAFT",
+        "effectiveFrom": "2026-10-18T00:00:00.000Z",
+        "effectiveTo": null,
+        "rounding": "HALF_AWAY_FROM_ZERO",
+        "vehicleType": null,
+        "minimum": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 1500000
+        },
+        "maximum": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 8000000
+        },
+        "fallbackPolicyId": null,
+        "longDistance": {
+          "afterMeters": 10000,
+          "flat": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          },
+          "perKm": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          }
+        },
+        "peaks": [],
+        "id": "FAROUJ_CITY_SAMPLE_DRIVER",
+        "base": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 1000000
+        },
+        "pickupPerKm": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 250000
+        },
+        "pickupIncludedMeters": 1000,
+        "deliveryPerKm": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 400000
+        },
+        "perMinute": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 0
+        },
+        "finalRounding": {
+          "incrementIqd": 250,
+          "mode": "HALF_AWAY_FROM_ZERO"
+        }
+      }
+    ]
+  },
+  "agreement": {
+    "id": "FAROUJ_CITY_COD_SAMPLE",
+    "values": {
+      "scope": "BRANCH",
+      "effectiveFrom": "2026-10-18T00:00:00.000Z",
+      "effectiveTo": null,
+      "commission": {
+        "kind": "PERCENT",
+        "basis": "AFTER_MERCHANT_DISCOUNT",
+        "fixed": null,
+        "rate": {
+          "numerator": 1000,
+          "denominator": 10000
+        },
+        "rounding": "HALF_AWAY_FROM_ZERO",
+        "finalRounding": {
+          "incrementIqd": 1,
+          "mode": "HALF_AWAY_FROM_ZERO"
+        }
+      },
+      "serviceFee": {
+        "kind": "FIXED",
+        "basis": null,
+        "fixed": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 500000
+        },
+        "rate": null,
+        "rounding": "EXACT",
+        "finalRounding": {
+          "incrementIqd": 1,
+          "mode": "HALF_AWAY_FROM_ZERO"
+        }
+      },
+      "allowedFundingPolicyIds": []
+    }
+  },
+  "reason": "تجهيز فروج المدينة لتجربة النظام المالي الجديد",
+  "firstOrderDiscount": "NONE",
+  "requiresExplicitSave": true,
+  "requiresOwnerConsent": true,
+  "requiresIndependentApproval": true
+}

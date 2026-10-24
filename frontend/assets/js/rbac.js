@@ -132,6 +132,14 @@ window.RBAC = {
             pageName = pageName + '.html';
         }
         
+        if(this.staff && pageName==='order-exceptions.html')return this.staff.employee.roles.includes('bootstrap_admin')||this.staff.permissions.includes('orders.read')||this.staff.permissions.includes('finance.read');
+        if(this.staff && !this.staff.employee.roles.includes('bootstrap_admin')) {
+            if(['pricing.html','delivery-pricing.html'].includes(pageName))return this.staff.permissions.includes('pricing.read');
+            if(['merchants.html','promotions.html'].includes(pageName)&&this.staff.permissions.includes('commercial.read'))return true;
+            if(pageName==='settings.html')return this.staff.permissions.includes('settings.read')||this.staff.permissions.includes('finance.read');
+            const permission={'staff.html':'staff.read','finance.html':'finance.read','financial-management.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read'}[pageName];
+            return pageName==='account-security.html'||pageName==='index.html'||(!!permission&&this.staff.permissions.includes(permission));
+        }
         console.log('🔍 Checking page access for:', pageName);
         
         if (RBAC_CONFIG.publicPages.includes(pageName)) {
@@ -174,6 +182,7 @@ window.RBAC = {
     },
 
     hasPermission(permission) {
+        if(this.staff)return this.staff.permissions.includes(permission);
         const userGroups = this.getUserGroups();
         for (const groupNameRaw of userGroups) {
             const groupName = String(groupNameRaw);
@@ -187,6 +196,11 @@ window.RBAC = {
     },
 
     isReadOnly() {
+        if(this.staff) {
+            const page=window.location.pathname.split('/').pop();
+            const domain={'drivers.html':'drivers','merchants.html':'merchants','orders.html':'orders','support.html':'support','finance.html':'financial','financial-management.html':'financial','regions.html':'regions','promotions.html':'campaigns'}[page];
+            return domain?!this.can(domain,'write'):false;
+        }
         const userGroups = this.getUserGroups();
         // Check if user is admin (either 'admin' or 'admins' group)
         const lowered = userGroups.map(g => String(g).toLowerCase());
@@ -231,21 +245,27 @@ window.RBAC = {
     },
 
     _applyReadOnlyUI() {
+        if(document.body.dataset.page==='order-exceptions')return; // Case controls use server-projected capabilities; keep search available.
         const actionButtons = document.querySelectorAll('button, .btn');
         actionButtons.forEach(button => {
+            // Commercial sections render only server-authorized actions; other page domains remain read-only.
+            if(button.closest('[data-commercial-kind]'))return;
             const text = button.textContent.toLowerCase();
-            if (text.includes('add') || text.includes('edit') || text.includes('delete') || 
+            const markedWrite = button.matches('[data-write-only], [data-write-action]');
+            const arabicWrite = /إضافة|تعديل|حذف|إزالة|إنشاء|حفظ|اعتماد|نشر|إيقاف|تفعيل/.test(text) ||
+                /(?:تحديث|تغيير)\s+(?:الحالة|العرض|الحملة|المتجر|المنتج|بيانات)/.test(text);
+            if (markedWrite || arabicWrite || text.includes('add') || text.includes('edit') || text.includes('delete') ||
                 text.includes('remove') || text.includes('create') || text.includes('save') || 
                 text.includes('update')) {
                 button.disabled = true;
                 button.style.opacity = '0.5';
                 button.style.cursor = 'not-allowed';
-                button.title = 'Read-only mode';
+                button.title = 'للاطلاع فقط';
             }
         });
         const inputs = document.querySelectorAll('input:not([type="search"]), textarea, select');
         inputs.forEach(input => {
-            if (!input.closest('.search-form')) {
+            if (!input.closest('.search-form') && !input.closest('[data-commercial-kind]')) {
                 input.disabled = true;
                 input.style.backgroundColor = '#f5f5f5';
             }
@@ -254,7 +274,7 @@ window.RBAC = {
             const banner = document.createElement('div');
             banner.id = 'rbac-readonly-banner';
             banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#fbbf24;color:#92400e;padding:8px 16px;text-align:center;font-size:14px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.1);';
-            banner.innerHTML = '🔒 Read-Only Mode - You have view-only access';
+            banner.textContent = 'للاطلاع فقط — لا تملك صلاحية إجراء التعديلات';
             document.body.appendChild(banner);
         }
     },
@@ -310,6 +330,8 @@ window.RBAC = {
                     parentLi.style.display = 'none';
                 }
             } else if (pageName) {
+                link.style.display = '';
+                const parentLi=link.closest('li');if(parentLi)parentLi.style.display='';
                 console.log('✅ Showing menu item:', pageName);
             }
         });
@@ -319,6 +341,7 @@ window.RBAC = {
     
     // Auto-run navigation filtering when DOM is ready
     autoFilterNavigation() {
+        this.ensure().catch(()=>{});
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.filterNavigationMenu());
         } else {
@@ -331,12 +354,25 @@ window.RBAC = {
     },
 
     // Legacy API compatibility
-    async ensure() { return Promise.resolve(); },
+    async ensure() {
+        const base=window.WIZZCENTRAL_CONFIG?.STAFF_API_BASE_URL;
+        if(!base)return;
+        await window.Auth.ensureSession();
+        const response=await fetch(base+'/staff/me',{headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken')}});
+        if(!response.ok){this.staff=null;throw Error('Staff session unavailable');}
+        this.staff=await response.json();
+        this.filterNavigationMenu();
+        if(!this.staff.employee.roles.includes('bootstrap_admin')&&window.location.pathname.endsWith('/dashboard.html')) {
+            const page=this.staff.permissions.includes('staff.read')?'staff.html':this.staff.permissions.includes('finance.read')?'finance.html':this.staff.permissions.includes('drivers.read')?'drivers.html':this.staff.permissions.includes('settings.read')?'settings.html':'account-security.html';
+            window.location.replace(page);
+        }
+    },
     pageAllowed(page) { return this.hasPageAccess(page); },
     applyReadOnly() { this.applyReadOnlyMode(); },
     
     // Fetch current user information
     async fetchMe() {
+        if(this.staff)return {email:this.staff.employee.email,roles:this.staff.employee.roles};
         try {
             const idToken = localStorage.getItem('idToken');
             if (!idToken) {
@@ -367,6 +403,11 @@ window.RBAC = {
     
     // Check if user can perform action on domain
     can(domain, action = 'read') {
+        if(this.staff) {
+            const read={pricing:'pricing.read',financial:'finance.read',campaigns:'promotions.read'};
+            const writes={pricing:['pricing.request','pricing.approve'],drivers:['drivers.edit','drivers.review','drivers.suspend'],merchants:['merchants.edit','merchants.review','merchants.suspend'],orders:['orders.assign','orders.cancel'],customers:['customers.edit'],support:['support.reply','support.assign','support.close'],regions:['regions.edit','regions.activate'],campaigns:['promotions.create','promotions.edit','promotions.approve'],financial:['finance.request','finance.approve','finance.settings.request','finance.settings.approve']};
+            return action==='read'?this.staff.permissions.includes(read[domain]||domain+'.read'):(writes[domain]||[]).some(p=>this.staff.permissions.includes(p));
+        }
         const userGroups = this.getUserGroups();
         
         // Admins can do everything

@@ -1,0 +1,225 @@
+{
+  "scope": "COD_FIRST_LAUNCH",
+  "updatedAt": "2026-10-24",
+  "sourcePlan": "finance-pricing-settlements-returns-unified-plan.md",
+  "scenarioMatrix": "cod-launch-exceptions-matrix-251.csv",
+  "decisions": {
+    "skipRepeatedMerchantPayoutHumanTest": true,
+    "skipNewPositiveMerchantAndDriverCancellationPayoutTest": true,
+    "skippedIsNotPassed": true,
+    "customerPreferredRemedy": "EXISTING_TARGETED_BENEFIT_OR_COUPON",
+    "driverRemedy": "CANONICAL_WALLET_CREDIT",
+    "merchantRemedy": "MERCHANT_PAYABLE_AND_EXISTING_SETTLEMENT_PAYOUT",
+    "prepaidCardChargeback": "DEFERRED_OUT_OF_FIRST_LAUNCH"
+  },
+  "globalDefinitionOfDone": [
+    "Existing path audited",
+    "Input/state/actor/authority rules pinned",
+    "Clear interface and explicit review",
+    "Meaningful state/race/replay tests passed",
+    "Actual deployment IAM verified without unnecessary expansion",
+    "Narrow publication preserves unrelated changes",
+    "Hosted code/read-only compatibility verified",
+    "Human acceptance state recorded separately",
+    "Plan/checkpoint and scenario evidence updated"
+  ],
+  "workItems": [
+    {
+      "id": "COD-01",
+      "name": "ربط المنحة الموجهة القائمة بصاحب الطلب والقضية",
+      "status": "PUBLISHED_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+      "acceptance": [
+        "No new grant or wallet",
+        "Only own existing unused one-use DIRECT goods grant",
+        "Current employee approval authority and amount limit",
+        "Case/current grant/campaign/user deletion atomic guards",
+        "One grant per case and no grant reuse between cases",
+        "Immutable reference and replay receipt",
+        "Show available/used/reserved/revoked/expired truth",
+        "No cash refund or automatic closure"
+      ],
+      "humanAcceptance": "PENDING_NEW_OPEN_CASE",
+      "evidence": [
+        "backend/staff-service/test/customer-benefit-compensation-252.test.cjs",
+        "scripts/test-customer-compensation-ui-252.cjs",
+        "docs/customer-benefit-compensation-publication-252.json",
+        "docs/customer-benefit-compensation-verification-252.json",
+        "docs/customer-benefit-compensation-cash-ui-252b.json"
+      ]
+    },
+    {
+      "id": "COD-02",
+      "name": "إنهاء دورة بلاغات الاستلام الخمسة",
+      "status": "PENDING",
+      "scenarios": [
+        "A04",
+        "A05",
+        "A06",
+        "A11",
+        "A12"
+      ],
+      "acceptance": [
+        "Owner/assignee/deadline",
+        "Contact trail",
+        "Customer approval for item changes",
+        "Reasoned decision",
+        "Canonical cancel/unassign",
+        "Resolved operational and financial result"
+      ]
+    },
+    {
+      "id": "COD-03",
+      "name": "تغيير عنوان الزبون بعد الاستلام",
+      "status": "PENDING",
+      "scenarios": [
+        "B02",
+        "B03"
+      ],
+      "acceptance": [
+        "Old/new address pinned",
+        "Road/zone/time validation",
+        "Quoted difference and explicit agreement",
+        "Immutable original accepted terms",
+        "Ineligible address outcome"
+      ]
+    },
+    {
+      "id": "COD-04",
+      "name": "نقل عهدة الطلب بين سائقين",
+      "status": "PENDING",
+      "scenarios": [
+        "B07",
+        "B08",
+        "B12"
+      ],
+      "acceptance": [
+        "Authenticated sender/recipient",
+        "Both custody attestations",
+        "Quantities pinned",
+        "Old/new live state and collateral",
+        "No double fare/collateral or fictional handover"
+      ]
+    },
+    {
+      "id": "COD-05",
+      "name": "تسليم جزئي للزبون وإرجاع الباقي",
+      "status": "PENDING",
+      "scenarios": [
+        "B05",
+        "B06",
+        "B13"
+      ],
+      "acceptance": [
+        "Customer-approved quantities",
+        "Canonical goods/discount/fees/cash allocation",
+        "Remaining custody tracked",
+        "No rewriting original receipt/ledger",
+        "Safe retries and disputes"
+      ]
+    },
+    {
+      "id": "COD-06",
+      "name": "شكاوى ما بعد التسليم وربط التعويضات",
+      "status": "PENDING",
+      "scenarios": [
+        "B18",
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C07",
+        "C08"
+      ],
+      "acceptance": [
+        "Claim intake linked to final order",
+        "Safety priority and deadlines",
+        "Evidence/confirmed responsibility",
+        "Existing benefit/wallet/merchant remedy",
+        "Separate after-payout correction if owed",
+        "No duplicate payment or historical status rewrite"
+      ]
+    },
+    {
+      "id": "COD-07",
+      "name": "إقفال كامل تغطية42سيناريو",
+      "status": "PENDING",
+      "scenarios": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10",
+        "B11",
+        "B12",
+        "B13",
+        "B14",
+        "B15",
+        "B16",
+        "B17",
+        "B18",
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12"
+      ],
+      "acceptance": [
+        "Every scenario has trigger/actor/operation/financial outcome/terminal state",
+        "Timeout/offline/replay/race",
+        "No unsupported partial success",
+        "Human test only where materially missing",
+        "Skipped payout test stays skipped",
+        "All evidence reconciled before launch"
+      ]
+    }
+  ],
+  "businessActionsExecutedByAgent": false,
+  "nextWorkItem": "COD-02",
+  "delegatedParallelWork": {
+    "id": "MERCHANT_PRODUCTS_AND_BULK_IMPORT",
+    "owner": "USER_COLLEAGUE",
+    "status": "DELEGATED_TO_COLLEAGUE",
+    "assignedBy": "USER",
+    "assignedAt": "2026-10-24",
+    "scope": [
+      "Manual product management",
+      "CSV/Excel/XLSX bulk import",
+      "Menus/categories/options/images/catalog",
+      "SKU/barcode/branch stock and availability",
+      "Versioned draft/review/publish/resume",
+      "Branch/device permissions and order/pricing/custody integration"
+    ],
+    "handoff": "merchant-products-import-colleague-handoff-2026-10-24.txt",
+    "agentMustNotStartParallelImplementation": true,
+    "dependenciesOnCodWork": [
+      "Approved item changes",
+      "Partial delivery pricing",
+      "Inventory release on cancellation/return"
+    ]
+  }
+}

@@ -1,0 +1,378 @@
+{
+  "part": 320,
+  "status": "REVIEW_COMPLETE_NO_ACTIVATION",
+  "clientDate": "2026-10-23",
+  "clientTimezone": "America/Chicago",
+  "finding": {
+    "rootCause": "General execution rollout was enabled, but the centrally published delivery/customer and driver pricing bundle remained the Fattoush-only sample. No GLOBAL/GOVERNORATE/ZONE fallback exists.",
+    "classification": "Incomplete pricing-policy rollout and cross-branch acceptance coverage, not a requirement to hardcode each restaurant.",
+    "liveRecord": {
+      "table": "staging-PlatformStaff",
+      "key": {
+        "pk": "OPERATIONAL_SETTINGS#DELIVERY_PRICING",
+        "sk": "CURRENT"
+      },
+      "version": 1,
+      "updatedAt": "2026-10-17T14:08:36.496Z",
+      "reason": "تجهيز عينة فتوش المعتمدة لاختبار COD",
+      "deliveryRules": [
+        {
+          "id": "FATTOUSH_SAMPLE_DELIVERY",
+          "scope": {
+            "type": "BRANCH",
+            "id": "business_95ac73c9-feda-4207-9285-550aec61b94c"
+          },
+          "status": "PUBLISHED"
+        }
+      ],
+      "driverRules": [
+        {
+          "id": "FATTOUSH_SAMPLE_DRIVER",
+          "scope": {
+            "type": "BRANCH",
+            "id": "business_95ac73c9-feda-4207-9285-550aec61b94c"
+          },
+          "status": "PUBLISHED"
+        }
+      ]
+    },
+    "originalLimitedSamplePlanLine": 1747,
+    "approvedBaseline": "docs/finance-commercial-pricing-approval-59.json",
+    "pricingSelectionSource": "backend/wallet-service/src/deliveryPricing.ts:122",
+    "failClosedSource": "backend/wallet-service/src/deliveryPricing.ts:127"
+  },
+  "independentBlocker": {
+    "branches": [
+      {
+        "branchId": "business_1791634772438_p2hlg6w5qii",
+        "hasOrganization": false,
+        "hasCommercialAgreementId": false,
+        "hasCommercialAgreementVersion": false,
+        "hasOwnCoordinates": true,
+        "preparationMinutes": 20,
+        "minimumOrderIqd": 10000
+      },
+      {
+        "branchId": "business_95ac73c9-feda-4207-9285-550aec61b94c",
+        "hasOrganization": true,
+        "hasCommercialAgreementId": true,
+        "hasCommercialAgreementVersion": true,
+        "hasOwnCoordinates": true,
+        "preparationMinutes": 20,
+        "minimumOrderIqd": 4000
+      }
+    ],
+    "conclusion": "Frouj has numeric own GPS, preparation20 and minimum10000, but no organizationId/commercialAgreementId/commercialAgreementVersion. General delivery pricing can fix its preview while modern commercial order creation still correctly rejects missing bindings. Do not invent an agreement, commission or owner consent.",
+    "source": "backend/wallet-service/src/orderCommercialSource.ts:46"
+  },
+  "recommendedPolicy": {
+    "approach": "One explicitly approved GLOBAL customer rule and one GLOBAL driver rule; keep existing branch overrides unchanged. No code edits or per-branch rules for ordinary new branches within approved coverage.",
+    "precedence": [
+      "BRANCH",
+      "MERCHANT with verified organization",
+      "ZONE",
+      "CITY only with proven CITY identity",
+      "GOVERNORATE",
+      "GLOBAL"
+    ],
+    "importantRegionSemantics": "Current ZONE matches customer destination coverage, not pickup region. Current context intentionally uses UNBOUND_CITY because district is not a city. Do not implement regional pickup tariffs by guessing these meanings.",
+    "customer": {
+      "formulaIqd": "round250(clamp(1000 + 500 * roadMeters/1000, 2000, 6000))",
+      "minimumIqd": 2000,
+      "maximumIqd": 6000,
+      "maxRoadMeters": 10000,
+      "maxDrivingSeconds": 1800,
+      "rounding": "nearest250, halfway away from zero; not always ceiling",
+      "peaksOrExtraLongDistance": 0
+    },
+    "driver": {
+      "formulaIqd": "round250(clamp(1000 + 400 * deliveryMeters/1000 + 250 * max(pickupMeters-1000,0)/1000,1500,8000))",
+      "minimumIqd": 1500,
+      "maximumIqd": 8000,
+      "timeOrPeakComponents": 0,
+      "pickupSelection": "Existing dispatch radius/profile still applies; this proposal does not expand search coverage."
+    },
+    "serviceFee": "Approved earlier500, but resolved from each commercial agreement; not injected as an unconsented global charge.",
+    "commission": "No global commission assumed. Preserve each active accepted/approved agreement and its basis/rounding, including Fattoush15% GOODS_GROSS when applicable. Historical10/7/0 examples do not assign merchants.",
+    "coverage": [
+      {
+        "regionId": "Rmi38n0z7vltsb",
+        "name": "ناحية الرضوية",
+        "parentId": "Rmhvbdpawvszni",
+        "hasIndex": true
+      },
+      {
+        "regionId": "Rmhvg3ylfp911f",
+        "name": "ناحية القادسية",
+        "parentId": "Rmhvc7snfyul1f",
+        "hasIndex": true
+      },
+      {
+        "regionId": "Rmi3vdfc4tnef5",
+        "name": "ناحية الشبكة",
+        "parentId": "Rmhvbdpawvszni",
+        "hasIndex": true
+      },
+      {
+        "regionId": "Rmi9vc5mk2m1zj",
+        "name": "ناحية العباسية",
+        "parentId": "Rmi8d5ai1x2kvz",
+        "hasIndex": true
+      },
+      {
+        "regionId": "Rmiaf8e07pwbcz",
+        "name": "ناحية الحرية",
+        "parentId": "Rmi8d5ai1x2kvz",
+        "hasIndex": true
+      },
+      {
+        "regionId": "Rmi39f418ox1p2",
+        "name": "ناحية الحيدرية",
+        "parentId": "Rmhvbdpawvszni",
+        "hasIndex": true
+      },
+      {
+        "regionId": "Rmhvcpnn3iy5f1",
+        "name": "مركز المناذرة",
+        "parentId": "Rmhvc7snfyul1f",
+        "hasIndex": true
+      },
+      {
+        "regionId": "Rmhveqa2vrrj13",
+        "name": "ناحية الحيرة",
+        "parentId": "Rmhvc7snfyul1f",
+        "hasIndex": true
+      }
+    ],
+    "coverageProofLimit": "Active level3 and at least one region-id index entry verified. Full geometry/index-cell coverage and actual origin/destination cases remain acceptance checks. A GLOBAL rate does not itself activate geography."
+  },
+  "fundingAndSettlement": {
+    "order": [
+      "Server road-based reference tariff",
+      "Applicable accepted/approved delivery agreement",
+      "One eligible selected promotion/benefit against post-agreement fee",
+      "Separate agreement and promotion funding components/reservations",
+      "Independent driver quote and tip",
+      "Pinned full-cash allocation and journals"
+    ],
+    "compositionSource": "backend/wallet-service/src/deliveryPromotionSelection.ts:53",
+    "tipInvariant": true,
+    "baselineShortfall": "Platform baseline delivery subsidy when driver earning exceeds reference tariff. Do not charge merchant without an accepted funding term.",
+    "contractAndPromotionShortfall": "Their separately authorized funding terms apply to the actual savings, not a second charge to the driver or duplicate platform subsidy.",
+    "cashModel": "FULL_CASH_AT_DELIVERY_V1",
+    "cashEquations": [
+      "C=customer cash total; D=driver earning+tip",
+      "retained=min(C,D)",
+      "collateral=max(C-D,0)",
+      "additional wallet credit=max(D-C,0)"
+    ],
+    "cashSource": "backend/wallet-service/src/fullCashSettlement.ts:32",
+    "budgetAndLiquidity": "Use existing reservation/funding/liquidity guards. A low/free customer fee alone authorizes neither unfunded money nor a second wallet credit.",
+    "legacyPreservation": "No rewrite of existing quote snapshots, accepted driver offers, completed orders, ledgers, returns or funding evidence."
+  },
+  "newBranchReadiness": [
+    "Approved and active, accepting orders, no deletion/suspension/block",
+    "Verified owner and organization, existing accepted/approved active commercial agreement; specific delivery agreement optional",
+    "Own consistent numeric GPS inside active indexed pickup coverage; saved customer destination independently inside coverage",
+    "Valid explicit preparation settings for order admission; display route-only timing if preparation unknown",
+    "Declared minimum order or explicit no-minimum per existing minimum_order contract, not an invented default",
+    "Both customer and driver pricing resolvable; quote/funding/coverage ready; return policy follows existing rules"
+  ],
+  "missingSettings": {
+    "pricing": "Keep authenticated route distance and driving duration; price unavailable, never zero; no order until valid confirmed pricing.",
+    "preparation": "Keep road data, omit full arrival ETA; proposed admission readiness guard must block missing/invalid preparation before accepting orders. Current preview allows null and must not be represented as already enforcing this guard.",
+    "minimum": "Absence/null/0 currently means no minimum; malformed value is a readiness issue. Keep valid road data even when commerce metadata invalid.",
+    "coverage": "No road quote claimed outside verified origin/destination coverage; do not guess nearest region or copy Fattoush location.",
+    "route": "No straight-line value or fixed sample offered as a verified road route."
+  },
+  "colleagueRouteReview": {
+    "liveFunction": "WizzUser-DeliveryQuotes-staging",
+    "action": "storefront_route",
+    "codeSha256": "uxR+5tacm6o2iXyBGO3gJurJnxMbe+R/VwM2hSTlXBs=",
+    "separation": "Verified routeInformation resolves without pricing policy; authenticates saved-address owner and server branch GPS, rechecks coverage/identity; no financial reservation or order writer. Operational preview rate-counter writes are present.",
+    "remainingFindings": [
+      "Wrapper throws INVALID_PREPARATION_TIME for malformed prep and minimumOrderIqd can throw for malformed minimum: valid road information should remain independently available.",
+      "New route runtime and caller edits were not found in fetched integration or colleague bootstrap source refs during this audit. Commit/share original source, tests and publication evidence before bundling so they are not overwritten.",
+      "Phone installation and actual branch/address change/cache behavior remain device acceptance tests."
+    ],
+    "reviewedSourceLocation": "/private/tmp/pricing320/live-quotes (local audit only, not a source-of-truth deployment directory)"
+  },
+  "consumers": [
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "ERMb+QR9TUlgRLS1P1NnuxuZJcjElxPBHRTQzkCI2nY=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "staging-cod-integration",
+      "codeSha256": "DJD+wmZA6/9fgdV/ZRpOAsmSd8YnreUTtFzeG6634QA=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "lDP5ijE+1u7kcHlvT3BffVN5vDpzaAGwtQjPABxAnQQ=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "uxR+5tacm6o2iXyBGO3gJurJnxMbe+R/VwM2hSTlXBs=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "codeSha256": "S2kLjBFPrrWJo3nAx6PeMDK4c69tabLNhhrJ4PPv7UM=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "codeSha256": "jDIAsIg+b9hon0AEo4IKXgYX0RP9sJHj2nNaej/zNuA=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "pzzylCKyou+M3xlQiZxPVyiczfTR9+fS8FEeGkZNLRY=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "z+xgx7XOZgQDzIuF2f/6zpPLhWVsMCr9bZkhetCECGg=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "WaveSystem_StartWave",
+      "codeSha256": "EgQTLmG4SPpfRgbefIQQGklrlMPL3SmuF+drDWxhJKY=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "8TMcSHcc1mWjSkKkcxLTgaShorvJSWjJL/8vK3cRDyU=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "WaveSystem_HandleDriverAccept",
+      "codeSha256": "TsDBpLOxTGV4cs5XO49GzCukj3VIguMvEo0UpwgtliU=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "WaveSystem_HandleDriverReject",
+      "codeSha256": "uOxJ1t/rFR7grfuxhA+GGBpZCIK51vz7rrE/OEf93LE=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "codeSha256": "6UT1Gt8qFUepB5EXFh1Q0LCSkV8mYnY5qnzkncZdb0E=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    },
+    {
+      "function": "DriversApi-staging",
+      "codeSha256": "yuB12ZPbNGQEqLiRHTjvzPhWQaFL1aO3Z4erLxd+3AY=",
+      "generalReleaseMode": "REQUIRED",
+      "fundingCompositionRuntime": "UNSET"
+    }
+  ],
+  "compatibility": {
+    "generalReleaseMode": "All14 inspected hosts REQUIRED; mode alone does not supply default pricing rules.",
+    "simpleGlobalAddition": "Existing schema already supports GLOBAL. No blanket financial-runtime redeployment solely for adding supported rules; validate deployed readers and approve/publish the central bundle once.",
+    "codeChangesThatRequireCoordination": [
+      "Share and integrate routeInformation/storefrontRoute source and caller changes, resolve storefront wrapper metadata failure handling.",
+      "Add readiness validation/feedback in branch onboarding/order admission without inventing commercial agreements.",
+      "If scope semantics, funding schema, rounding mode or snapshots change, rebuild and selectively publish all affected readers/writers together; not a pricing-data-only operation."
+    ]
+  },
+  "files": {
+    "core": [
+      "backend/wallet-service/src/deliveryPricing.ts",
+      "backend/wallet-service/src/deliveryPricingContext.ts",
+      "backend/wallet-service/src/driverOfferContext.ts"
+    ],
+    "fundingAndOrders": [
+      "backend/wallet-service/src/deliveryPromotionSelection.ts",
+      "backend/wallet-service/src/deliveryFundingComposition.ts",
+      "backend/wallet-service/src/orderCommercialSource.ts",
+      "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "backend/wallet-service/src/fullCashSettlement.ts"
+    ],
+    "platform": [
+      "backend/staff-service/delivery-pricing.js",
+      "frontend/delivery-pricing.js",
+      "backend/staff-service/merchant-onboarding.js",
+      "backend/staff-service/commercial-management.js"
+    ],
+    "customer": [
+      "backend/src/functions/delivery-quotes/index.js",
+      "frontend/lib/services/storefront_pricing.dart",
+      "frontend/lib/screens/store_detail_screen.dart",
+      "frontend/lib/widgets/storefront_value.dart"
+    ],
+    "merchant": [
+      "backend/functions/business/branch_readiness.js",
+      "backend/functions/auth/commercial_agreements.js"
+    ],
+    "newReviewOnly": [
+      "scripts/review-general-pricing-320.cjs",
+      "scripts/test/general-pricing-review-320.test.cjs",
+      "docs/general-delivery-pricing-candidate-320.json"
+    ]
+  },
+  "acceptanceBeforeActivation": [
+    "Real other branch with approved commercial binding gets baseline; unbound Frouj gets explicit readiness outcome until contract completed by authorized parties.",
+    "Existing Fattoush branch override still wins; future eligible branch needs no new pricing code/rule.",
+    "Compare eight destination areas/actual branch GPS and unsupported boundaries,10km+1m and30min+1s.",
+    "Same scenario at preview/confirmed order/driver acceptance/completion with agreement+goods discount+delivery benefit; independent funding and unchanged tip.",
+    "Missing price/preparation/invalid minimum preserves available route; no order at guessed/zero price.",
+    "Change account/branch/address while delayed requests run; no old route, price, agreement or basket response published.",
+    "Replay/cancel concurrent requests preserves exactly-once order hold, benefit/campaign uses and funding capture/release.",
+    "Old confirmed quotes/accepted offers/completed and returned orders retain original evidence; test concurrent policy-version changes.",
+    "Device install and real UI acceptance on colleague phone; current local simulation does not claim live money-flow acceptance."
+  ],
+  "publicationPlan": [
+    "Review and explicitly approve scope expansion and readiness policy; current candidate GLOBAL rows remain DRAFT.",
+    "Share colleague uncommitted route/frontend source and reproduce builds, then integrate without overwriting current deployed modules.",
+    "Prepare ready non-Fattoush merchant through authorized organization/commercial contract workflow; do not clone Fattoush contract.",
+    "Recheck current policy version/hash and coverage; preserve existing branch rules; save draft/publish via central MFA/permissions/audited approval path with version compare-and-set.",
+    "Selectively deploy only necessary route/readiness UI code; adding supported GLOBAL rules alone is configuration.",
+    "Invalidate new quote/preview caches by policy/address/branch revision and TTL; preserve accepted snapshots.",
+    "Run staged acceptance for eligible branches and then verify new-branch auto-resolution across active coverage; no financial mutations by audit agent."
+  ],
+  "rollbackPlan": [
+    "Close new admissions to candidate policy/affected workflow using existing supported operational controls; do not remove driver fallback while admitted unassigned orders still need it.",
+    "Inventory/drain candidate quotes, pending orders and offers; accepted offers and completed orders retain evidence and original terms.",
+    "If reverting prices, publish a new approved policy version; never overwrite historical VERSION records or rewrite completed ledgers.",
+    "Retain compatible driver rules/versions for in-flight admitted orders; restoring only old Fattoush-only CURRENT could strand new restaurants.",
+    "Rollback route/frontend bundle independently to captured current-code hashes only if it does not remove the available-road-data requirement; merge changes rather than bulk overwrite."
+  ],
+  "verification": {
+    "testsPassed": 114,
+    "newReviewTests": 6,
+    "pricingRuntimeSyncCheck": "PASS",
+    "offlineOnly": true,
+    "realProviderCalls": 0,
+    "awsWrites": 0,
+    "financialWrites": 0,
+    "livePolicyUnchanged": true,
+    "policyStillVersion": 1,
+    "candidateRows": "DRAFT",
+    "noActivation": true,
+    "realNewBranchOrderCreated": false
+  },
+  "outstandingReviewInputs": [
+    "The colleague general-pricing draft has not been provided as a source artifact in fetched refs; this is an independent candidate using approved baseline59, not a claim of reviewing their exact draft.",
+    "No user agreement on final expanded scope has been inferred from historical price approval."
+  ],
+  "historicalReview": true,
+  "supersededBy": "docs/general-pricing-activation-321.json",
+  "followUp": "User authorized implementation after review. Part321 is active on staging, not a draft. Offline candidate320 was removed; see current source, deployment, activation and verification records."
+}

@@ -1,0 +1,77 @@
+{
+  "part": 290,
+  "status": "PUBLISHED_PERMISSION_VERIFIED_HUMAN_RETRY_PENDING",
+  "rootCause": "Missing dynamodb:ConditionCheckItem on the platform campaign table while committing a benefit-backed order",
+  "role": "WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+  "inlinePolicy": "PlatformBenefitEntitlements20261020",
+  "addedAction": "dynamodb:ConditionCheckItem",
+  "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+  "lambdaCodeChanged": false,
+  "hostingChanged": false,
+  "applicationDataWritten": false,
+  "orderSubmittedByAgent": false,
+  "beforePolicySha256": "8ac40dd8f865b28de81b71b843a5c4c99ba326d5ae72941aeb0c90f762b2c6a6",
+  "afterPolicySha256": "655513fa617532d315f8c221871dffa3dfd08e582a2cc80853b8769f445ea7a8",
+  "policySimulation": [
+    {
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+      "action": "dynamodb:ConditionCheckItem",
+      "before": "implicitDeny",
+      "after": "allowed"
+    },
+    {
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+      "action": "dynamodb:ConditionCheckItem",
+      "before": "implicitDeny",
+      "after": "implicitDeny"
+    },
+    {
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+      "action": "dynamodb:PutItem",
+      "before": "implicitDeny",
+      "after": "implicitDeny"
+    },
+    {
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+      "action": "dynamodb:PutItem",
+      "before": "implicitDeny",
+      "after": "implicitDeny"
+    },
+    {
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+      "action": "dynamodb:UpdateItem",
+      "before": "implicitDeny",
+      "after": "implicitDeny"
+    },
+    {
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+      "action": "dynamodb:UpdateItem",
+      "before": "implicitDeny",
+      "after": "implicitDeny"
+    },
+    {
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+      "action": "dynamodb:DeleteItem",
+      "before": "implicitDeny",
+      "after": "implicitDeny"
+    },
+    {
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+      "action": "dynamodb:DeleteItem",
+      "before": "implicitDeny",
+      "after": "implicitDeny"
+    }
+  ],
+  "liveDecision": "allowed",
+  "observedFailedAttempt": {
+    "lambdaRequestId": "3145c38a-dce0-4307-8e5f-06757b923bfa",
+    "timeUtc": "2026-10-22T19:27:57Z",
+    "code": "QUOTE_ORDER_UNAVAILABLE",
+    "internalCause": "AccessDeniedException",
+    "newCustomerOrders": 0,
+    "both500Benefits": {
+      "reservedUses": 0,
+      "usedUses": 0
+    }
+  }
+}

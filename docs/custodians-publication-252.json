@@ -1,0 +1,29 @@
+{
+  "part": 252,
+  "status": "PUBLISHED",
+  "scope": "All active administrative custodians, complete pagination, assignment separate from execution permission",
+  "businessDecisionsOrPaymentsByAgent": false,
+  "platformWalletFundingConditionAdded": false,
+  "companyCashAssetPostingAdded": false,
+  "iamChanged": false,
+  "function": {
+    "name": "staging-wizz-staff-service",
+    "baseCodeSha256": "J0esXnyiVwUNCvgnXqrBXVdBqMmNgFy7CWUf34OeVhI=",
+    "codeSha256": "uolvMz3Jv4zF3B/JYwsYZ8WdrR3OLZQdtoaJy1TAfY0=",
+    "changedFiles": [
+      "settlement-runtime.js"
+    ],
+    "unrelatedEntriesAndConfigurationPreserved": true
+  },
+  "hosting": {
+    "baseJobId": "141",
+    "jobId": "142",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-cashboxes.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

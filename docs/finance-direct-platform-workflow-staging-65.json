@@ -1,0 +1,287 @@
+{
+  "part": 65,
+  "environment": "Staging",
+  "date": "2026-10-17",
+  "decision": "User explicitly replaces independent staff approval with immediate authorized writes on this Staging version. Future restoration notes are internal only.",
+  "financialActivationPerformed": false,
+  "activationPerformed": false,
+  "directStaffWriteEnabled": true,
+  "operatorEmails": [
+    "g87_a@yahoo.com",
+    "moh.al.daash@gmail.com"
+  ],
+  "scope": [
+    "Staff assignments and invitations",
+    "Staff deletion scheduling with existing blockers",
+    "Delivery pricing and operating/deletion/onboarding settings",
+    "Commercial agreements and discount funding",
+    "Platform transfers and transfer settings",
+    "Existing promotions/slideshow publishing permissions"
+  ],
+  "implementation": {
+    "updateExistingRoutes": true,
+    "newTables": 0,
+    "thirdActorRequirementRemoved": true,
+    "ownerConsentStillRequired": true,
+    "realOwnerConsentPublishesRecordedWriterIntent": true,
+    "fundingPublicationRetryUsesExistingIdempotencyMarkers": true,
+    "permissionVersionAndDeletionFencesPreserved": true,
+    "balancesAndDailyLimitsPreserved": true,
+    "unrelatedLiveCodAndCampaignCodePreserved": true,
+    "humanRoleRowsNotChanged": true,
+    "administrativePermissionsForSelectedActors": "Live ACTIVE profile, existing global scope and explicitly allowlisted subject IDs; runtime access is scoped to DIRECT + staging and reverts when disabled."
+  },
+  "packages": {
+    "staff": {
+      "codeSha256": "RG4VQhwoxvIVex+X5AZu5VFYl/qFbs2o70q9O9Etxu0=",
+      "changedFiles": [
+        "index.js",
+        "catalog.js",
+        "delivery-pricing.js",
+        "commercial-management.js",
+        "operational-settings.js",
+        "invitations.js",
+        "account-deletion.js",
+        "write-workflow.js"
+      ],
+      "preservedFiles": 8018
+    },
+    "wallet": {
+      "codeSha256": "zCE3DC8W2d9f/Q0FqU4KD+xQwAMANmP2u4qt/2NU6z8=",
+      "changedFiles": [
+        "dist/transferSettings.js",
+        "dist/staffAccess.js",
+        "dist/writeWorkflow.js",
+        "dist/transferService.js"
+      ],
+      "preservedFiles": 11285
+    },
+    "authorizer": {
+      "codeSha256": "SK2Xu+UCOazrrt2PXx/fo1hiJjK8VhLWO7+BsnwebVI=",
+      "changedFiles": [
+        "staff_policy.py"
+      ],
+      "preservedFiles": 174
+    }
+  },
+  "frontend": {
+    "baseJobId": "80",
+    "changedFiles": [
+      "staff.js",
+      "delivery-pricing.js",
+      "commercial-management.js",
+      "settings.js",
+      "settings-delivery-operations.js",
+      "finance.js",
+      "pages/staff.html",
+      "pages/delivery-pricing.html",
+      "pages/settings.html",
+      "pages/merchants.html",
+      "pages/promotions.html",
+      "pages/finance.html"
+    ],
+    "preservedFiles": 176,
+    "codeSha256": "suToQl84EV5Slz32bejpuIIZ71BsQbGt/9TQ/beAVD0=",
+    "initialPublishedJobId": "80"
+  },
+  "verification": {
+    "staff": 176,
+    "wallet": 682,
+    "python": 23,
+    "newDirectService": 4,
+    "isolatedDynamo": {
+      "part": 65,
+      "isolatedTable": "staging-direct-workflow-test-65-aefba6ed-0852-4cee-bea4-69396367875c",
+      "applicationTableWrites": 0,
+      "humanWrites": 0,
+      "financialWrites": 0,
+      "ownerConsentThenDirectPublication": true,
+      "ownerAcceptanceReplaySafe": true,
+      "fundingSavePublishesAndReplays": true,
+      "pricingAtomicAndStaleRejected": true,
+      "liveActorFence": true,
+      "tableDeleted": true
+    },
+    "browser": {
+      "directSaveAndNoApprovalUi": true,
+      "pricingPreparedWithoutWrite": true,
+      "explicitSaveUsesExistingApi": true,
+      "savedDraftNotOverwritten": true,
+      "readOnlyHidden": true,
+      "agreementPrefilled": true,
+      "foreignBranchBlocked": true,
+      "noOwnerOrApprovalFabricated": true,
+      "realWrites": false
+    },
+    "publishedFrontendFilesMatched": 12,
+    "anonymousRejected": true
+  },
+  "humanActionsFabricated": false,
+  "existingPendingRequestsExecutedAutomatically": false,
+  "priorPart64ThirdActorQuestion": "Superseded by explicit user decision; do not request Outlook approval.",
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "cafbece7bded6fb43c8d1ca030bcd5a6a26e62cb0a4316b1cc0bbae270baeb2d",
+      "reason": "Part54 scoped confirmation binding is retained. Part63 validates whole-IQD preview arithmetic, quote delivery price and cash tip before durable consent; commercial-enabled retry/cancel/account-scope tests passed. Customer simulator updated with feature gates closed."
+    },
+    {
+      "path": "backend/wallet-service/src/money.ts",
+      "beforeSha256": "a650a50ed22593f5cee9c88df9ab01869acff4a32c234fef5ade9497dd39e90e",
+      "afterSha256": "c02c3752fc00f6088cd529bf617b0506fa8be4458da3e1bdd47d029a13865165",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication. Part63 now publishes the reviewed rounding and schema-2 reader blocks into the five existing consumers, preserving all unrelated published COD/SDK/handler code and keeping activation closed."
+    },
+    {
+      "path": "backend/wallet-service/src/deliveryPricing.ts",
+      "beforeSha256": "ee05af2c120e9052d25eeed4f898275ec5a734ac21be99f135e77d219535aab3",
+      "afterSha256": "154584f9ab57b2efc274bbdbe97e183c77b9c264cf3ea21da5ca7de745857da9",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication. Part63 now publishes the reviewed rounding and schema-2 reader blocks into the five existing consumers, preserving all unrelated published COD/SDK/handler code and keeping activation closed."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialPricing.ts",
+      "beforeSha256": "7a2c30ee07aa06ce1e00808a7b279973d6f21b634f5a5884bc5d0ca56866d690",
+      "afterSha256": "f83727625f3bb1c77439a85fa2f87caee17546021f4f0ef38abeb773d8bdaaf1",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published. Part63 now publishes the reviewed rounding and schema-2 reader blocks into the five existing consumers, preserving all unrelated published COD/SDK/handler code and keeping activation closed."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialSource.ts",
+      "beforeSha256": "4abde486156dd14be3c4812774113c299d56c9598e7320c1460c26036be220e8",
+      "afterSha256": "0b81190c88e902ee9613b7fa35889de0d20918a20724a9a01d3a8104f32bd875",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published. Part63 now publishes the reviewed rounding and schema-2 reader blocks into the five existing consumers, preserving all unrelated published COD/SDK/handler code and keeping activation closed."
+    },
+    {
+      "path": "backend/staff-service/delivery-pricing.js",
+      "beforeSha256": "cc5a0837d2509b74b8e4feec318c74e1788ef2405f12d41c14f97e7edc9c9865",
+      "afterSha256": "bbd134c24d2c29e8d655544c07cee6a3a493439eaef621eaca2fd67f81522e97",
+      "reason": "Part65 explicit user decision enables audited direct writes on Staging and preserves independent review outside the configured mode. Existing version, permission and financial fences retained."
+    }
+  ],
+  "futureRestoration": {
+    "location": "internal repository documentation only",
+    "steps": [
+      "Set PLATFORM_WRITE_MODE=REVIEW on staff, wallet and authorizer in a coordinated release; remove PLATFORM_DIRECT_OPERATOR_IDS.",
+      "Review actual role grants and policy access before removing temporary runtime operator access.",
+      "Restore staff-facing request/review labels and review screens in a coordinated frontend release.",
+      "Require independent actor and requester-version fences before re-enabling queued approvals.",
+      "Revalidate old pending proposals; never execute them automatically on switching mode.",
+      "Preserve immutable published policy versions, accepted agreements, balances and idempotency markers.",
+      "Owner consent remains separate and must not be manufactured or backfilled.",
+      "Run three-actor staff-role, pricing, funding, financial transfer and revocation tests on Staging before production."
+    ]
+  },
+  "remaining": [
+    "Continue sample pricing and real owner consent under direct workflow.",
+    "Coordinated financial test before scoped dispatch/financial rollout."
+  ],
+  "publication": {
+    "part": 65,
+    "financialActivationPerformed": false,
+    "humanRowsWritten": false,
+    "functions": [
+      {
+        "host": "staff",
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "RG4VQhwoxvIVex+X5AZu5VFYl/qFbs2o70q9O9Etxu0=",
+        "revisionId": "03000d02-70cb-4d4d-8c64-63e93ac52a75"
+      },
+      {
+        "host": "wallet",
+        "name": "staging-wizz-wallet-service",
+        "codeSha256": "zCE3DC8W2d9f/Q0FqU4KD+xQwAMANmP2u4qt/2NU6z8=",
+        "revisionId": "1ebd58f7-c97b-4424-a6d9-132a89120175"
+      },
+      {
+        "host": "authorizer",
+        "name": "staging-wizz-wallet-authorizer",
+        "codeSha256": "SK2Xu+UCOazrrt2PXx/fo1hiJjK8VhLWO7+BsnwebVI=",
+        "revisionId": "2812a24f-67e7-4f67-b4e4-c1ca439c5d5c"
+      }
+    ],
+    "configuration": [
+      {
+        "host": "wallet",
+        "name": "staging-wizz-wallet-service",
+        "revisionId": "c51cc2a3-7b4e-4395-a7e0-a04f930e1e93",
+        "changedEnvironmentKeys": [
+          "PLATFORM_ENVIRONMENT",
+          "PLATFORM_WRITE_MODE",
+          "PLATFORM_DIRECT_OPERATOR_IDS"
+        ],
+        "otherConfigurationPreserved": true
+      },
+      {
+        "host": "authorizer",
+        "name": "staging-wizz-wallet-authorizer",
+        "revisionId": "a13749a4-764b-4532-95df-1483c5d974c8",
+        "changedEnvironmentKeys": [
+          "PLATFORM_ENVIRONMENT",
+          "PLATFORM_WRITE_MODE",
+          "PLATFORM_DIRECT_OPERATOR_IDS"
+        ],
+        "otherConfigurationPreserved": true
+      },
+      {
+        "host": "staff",
+        "name": "staging-wizz-staff-service",
+        "revisionId": "32cecf4c-0349-4314-bfcd-3b3cfb8a92de",
+        "changedEnvironmentKeys": [
+          "PLATFORM_ENVIRONMENT",
+          "PLATFORM_WRITE_MODE",
+          "PLATFORM_DIRECT_OPERATOR_IDS"
+        ],
+        "otherConfigurationPreserved": true
+      }
+    ],
+    "amplify": {
+      "jobId": "81",
+      "status": "SUCCEED"
+    },
+    "verifiedAtUtc": "2026-10-17T13:28:31.924513+00:00",
+    "anonymousRejected": true,
+    "hostedFilesMatched": true
+  },
+  "postPublicationMetadataAudit": {
+    "functions": 30,
+    "hashDrift": [],
+    "centralPolicy": {
+      "version": 2,
+      "policyVersion": "dispatch-schema-v2-release50",
+      "dispatchSchemaVersion": 2,
+      "performanceMode": "LEGACY_METRICS",
+      "limits": {
+        "quoteMaxPerCustomerPerMinute": 5,
+        "driverOfferTtlSeconds": 60,
+        "driverPositionMaxAgeSeconds": 120,
+        "reassignmentWindowSeconds": 300,
+        "maximumWaves": 4
+      }
+    },
+    "readOnly": true,
+    "financialActivationPerformed": false
+  }
+}

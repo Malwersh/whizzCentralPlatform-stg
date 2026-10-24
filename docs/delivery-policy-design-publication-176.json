@@ -1,0 +1,19 @@
+{
+  "part": 176,
+  "baseJobId": "106",
+  "jobId": "107",
+  "changedFiles": [
+    "delivery-policy-management.js",
+    "pages/merchants.html"
+  ],
+  "otherFilesPreserved": true,
+  "financialRulesChanged": false,
+  "policySent": false,
+  "sha256": "43c36bbada31c4325311dddf4ca4e971f8b667378b26866ca525b2396840e793",
+  "status": "SUCCEED",
+  "hostedBytesVerified": true,
+  "chromeConditionalFieldsPassed": true,
+  "chromeMobileLayoutPassed": true,
+  "chromeEditAndRetryPassed": true,
+  "initialCdnPropagationDelay": true
+}

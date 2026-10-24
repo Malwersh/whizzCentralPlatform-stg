@@ -1,0 +1,45 @@
+{
+  "part": 221,
+  "status": "PUBLISHED_ACTIVE_CLIENT_INSTALLED_VERIFIED",
+  "scope": "Read-only merchant account and period print include verified zero-net completed orders without ledger fabrication",
+  "contract": {
+    "coverage": "POSTED_MERCHANT_LEDGER_MOVEMENTS",
+    "additionalCoverage": "INDEXED_ZERO_NET_COMPLETIONS",
+    "zeroNetState": "NO_PAYOUT_REQUIRED",
+    "pagination": "Posted ledger first, then strong bounded index pages containing supplemental zero-net rows; positive-net rows never duplicated",
+    "sourceRevision": "Wallet version/pending amount plus sealed global readiness and period range pins; rechecked after each page and whole print traversal",
+    "consistency": "Strong item reads, not an atomic frozen accounting snapshot. Statement-membership metadata can change during reading; frozen statement remains the settlement authority.",
+    "readiness": "Missing or invalid sealed index readiness fails closed; no partial coverage presented as complete"
+  },
+  "publication": "merchant-account-publication-221.json",
+  "hosting": "merchant-account-page-publication-221.json",
+  "liveRead": "merchant-account-live-read-221.json",
+  "verification": {
+    "walletServiceTests": 1146,
+    "actualPublishedEntry": "Offline positive and zero-net fixtures exercise staff and merchant routes, preserve auth rejection and no writes",
+    "browser": "Account UI plus whole-period print including zero-net state, source revision changes, final revalidation, duplicate/invalid money/revocation checks",
+    "nativeWidgetTests": 2,
+    "targetedAnalyzer": "No issues found",
+    "releaseBuild": 214,
+    "installedBundle": "com.whizz.merchants",
+    "installedAndRunning": true,
+    "processIdentifier": 62786,
+    "actualZeroNetOrderCreated": false
+  },
+  "financialDataChanged": false,
+  "iamOrEnvironmentChanged": false,
+  "perAccountTestGatesAdded": false,
+  "deferred": "Human cash payout218 and physical return/Live Activity219\u2013220 remain deferred; no Android device available.",
+  "sourceSha256": {
+    "backend/staff-service/merchant-account.js": "659e21b1e89e7c3e87b2ef1587f00212d66c0db510cbf7884b73ba1323449725",
+    "backend/staff-service/merchant-account-index-runtime.js": "0c729fcf535aa0323a36e3a4e7150549873b0400bfbafd52d51316ebe81a5a59",
+    "backend/wallet-service/src/merchantAccountIndexRuntime.ts": "7da64b7a79cb489ef60f47fc827f88d6bd7008a95284d67438b6476e4f3ed045",
+    "backend/wallet-service/test/merchant-account-zero-221.test.cjs": "e4ced10e0214be63acc2eb9a0731a7d0425899c2f78e020dc5d565ab683fad94",
+    "frontend/merchant-financial-account.js": "68b3e9d105df601dffe4a5340ee37637d77b29b6540df962eda4c3d66f58f3b2",
+    "frontend/merchant-period-print.js": "bcda124f7f0a32181dfc65ad4a618894b970afe4117306bd46033a2373a71b5e",
+    "scripts/build-merchant-account-index-221.cjs": "16e2e225c1d138eaaa5ed5b95e5da00ddf16efefdb9143d2a778a268d454fbee",
+    "scripts/publish-merchant-account-221.py": "94bc61d29a8d40bfb76f5ad80b4c67b1b0dce280b2625183b7b305176532d6c3",
+    "scripts/publish-merchant-account-page-221.py": "1693c10cb5fc53fd0c0ec0973b342f9e6ff9bb858b43ff6f68d2edbac2761f65",
+    "scripts/test-finance-entry-221.cjs": "71438f12956be0f47d53039503a564b634df47d8e3bf7e20bc6f19fb9a496ce0"
+  }
+}

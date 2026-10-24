@@ -1,0 +1,49 @@
+{
+  "part": 110,
+  "status": "LOCAL_TESTED_NOT_DEPLOYED",
+  "recordedAt": "2026-10-18T05:13:10.040864+00:00",
+  "scope": "Internal schedule proposal, owner consent, independent approval and immutable history selection",
+  "implemented": [
+    "Reuse finance.settings.request and finance.settings.approve with fresh verified platform principal, live MFA/session/profile and global scope checks",
+    "Pin active published commercial agreement and recorded owner commercial acceptance; schedule cannot outlive commercial agreement",
+    "Immutable proposal UUID/payload; explicit owner consent; different live authorized employee approval; requester permission rechecked",
+    "Single conditional publication of current, immutable version, proposal status and audit; replacement also writes immutable prior-version closure",
+    "Future effective period boundaries only; old schedule and new schedule must share cutover boundary",
+    "Preserve previous version bytes, bound history inventory without Scan, reject missing history and periods straddling cutover",
+    "Batch transaction pins current, historical version, successor and closure to prevent changes during statement creation",
+    "Lost publication reply retry reuses same proposal; ambiguous errors never claim failure or success"
+  ],
+  "verification": {
+    "typescriptBuildPassed": true,
+    "settlementTestsPassed": 69,
+    "catalogAndSettlementRetentionRegressionTestsPassed": 13,
+    "totalTestsPassed": 82,
+    "failures": 0,
+    "realDynamoDbVerification": false
+  },
+  "noLiveChanges": {
+    "publicationPerformed": false,
+    "permissionGrantChanged": false,
+    "walletOrLedgerChanged": false,
+    "newTablesCreated": false
+  },
+  "remainingBeforeActivation": [
+    "Wire authenticated HTTP adapters and administrative/merchant pending-consent interfaces",
+    "Archive new schedule proposals/versions/closure and schedule audit namespace before branch deletion",
+    "Review deployed bundle/dependency/IAM inventory and verify transactions with real staging DynamoDB",
+    "Coordinate activation gates; no default, implicit historical consent, or retroactive schedule created"
+  ],
+  "pausedTest": "Part103 still paused pending OTP restoration",
+  "sourceSha256": {
+    "backend/wallet-service/src/merchantSettlementScheduleWorkflow.ts": "202719400535593d5ca5f638ebe350eaf9c1f69a4a9a6cf3eda29577aa0ab8d5",
+    "backend/wallet-service/src/merchantSettlementScheduleHistory.ts": "041c7d8835f738a8235a84203fddca59053f07bb2bd65d06c1632a9fe5270b3e",
+    "backend/wallet-service/src/merchantSettlementBatch.ts": "681d24182e5afbe3118fa82f92b72d61268936f6f39b597e934275dd17ca50a1",
+    "backend/wallet-service/test/merchant-settlement-schedule-workflow.test.cjs": "b2e099989affa0f9641515f1f6eab9edf850c488f6645874e376d9e67afc2c6c",
+    "backend/wallet-service/test/merchant-settlement-batch.test.cjs": "d9afdeeca4147ce5e0a15eb088c1753576b2aa66c4344722db031afcd93d1fda"
+  },
+  "continuedBy": {
+    "part": 111,
+    "evidence": "finance-merchant-settlement-schedule-retention-111.json",
+    "scope": "Local schedule and audit archival before merchant deletion; deployment/route/UI gates remain"
+  }
+}

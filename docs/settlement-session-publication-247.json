@@ -1,0 +1,17 @@
+{
+  "part": 247,
+  "status": "PUBLISHED_VERIFIED",
+  "function": "staging-wizz-staff-service",
+  "codeSha256": "hKfor3RVh1MhuRWcMgp1vRBSD8mKRd/3RGxBYNscUaw=",
+  "changedFiles": [
+    "settlement-runtime.js"
+  ],
+  "existingStagingValidSessionPolicyHonored": true,
+  "jwtExpirationLiveRevocationMfaAndPermissionsPreserved": true,
+  "configurationAndIamUnchanged": true,
+  "businessRecordsOrMoneyChanged": false,
+  "tests": {
+    "settlement": 24,
+    "handlerLog": "/private/tmp/settlement-session-247-handler-tests.log"
+  }
+}

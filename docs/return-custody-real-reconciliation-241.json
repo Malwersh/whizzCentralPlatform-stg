@@ -1,0 +1,28 @@
+{
+  "part": 241,
+  "orderNumber": "ORD1792545370610",
+  "orderId": "bb728bfe-c2c4-5c95-8492-26ce81ee1ed1",
+  "status": "SYSTEM_RECEIPT_RECONCILIATION_VERIFIED",
+  "orderStatus": "returned",
+  "reviewStatus": "REVIEW_REQUIRED",
+  "custody": {
+    "verified": true,
+    "condition": "DAMAGED",
+    "state": "RETURNED_TO_MERCHANT",
+    "confirmedAt": "2026-10-21T14:38:31.512Z"
+  },
+  "driverStatus": "available",
+  "driverOnline": true,
+  "driverSearching": true,
+  "activeOrdersCount": 0,
+  "holdAmountIqd": 6250,
+  "holdStatus": "ACTIVE",
+  "financialStateUnchanged": true,
+  "originalMerchantReceiptPreserved": true,
+  "replayVerified": true,
+  "staffDecisionByAgent": false,
+  "paymentByAgent": false,
+  "driverUiObserved": true,
+  "at": "2026-10-21T15:35:36.976460+00:00",
+  "driverUiEvidence": "USER_CONFIRMED_HOME_AND_ONLINE"
+}

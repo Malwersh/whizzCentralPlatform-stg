@@ -1,0 +1,18 @@
+{
+  "publicBusinessApiVerified": true,
+  "publicOriginalMinimumIqd": 4000,
+  "publicAgreementProjectionPresent": true,
+  "newAgreementSent": false,
+  "customerProfileBuildPassed": true,
+  "customerPhysicalDeviceInstalled": true,
+  "customerPhysicalDeviceLaunched": true,
+  "merchantProfileBuildPassed": true,
+  "merchantPhysicalDeviceInstalled": true,
+  "serverTestsPassed": 1201,
+  "packagedRuntimeTestsPassed": 51,
+  "customerFlutterTestsPassed": 13,
+  "merchantFlutterTestsPassed": 11,
+  "actualHandlerTestsPassed": 6,
+  "chromeAgreementAndCampaignPassed": true,
+  "newAgreementPhysicalOrderAndSettlementPending": true
+}

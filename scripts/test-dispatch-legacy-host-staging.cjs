@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+'use strict';
+// Existing logical tables are routed into one disposable stream-free table.
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const wr=require('node:module').createRequire(require.resolve('../backend/wallet-service/package.json'));
+const {CreateTableCommand,DeleteTableCommand,waitUntilTableExists,waitUntilTableNotExists}=wr('@aws-sdk/client-dynamodb');
+const {STSClient,GetCallerIdentityCommand}=require('@aws-sdk/client-sts');
+const {physical,low,adapter}=require('./test-dispatch-cycle-staging.cjs');
+const {fixture}=require('../backend/wallet-service/test/helpers/dispatch-review-executor-fixture.cjs');
+const {createStagingDispatchReviewExecutor}=require('../backend/wallet-service/dist/dispatchReviewExecutor');
+const {createStagingDispatchLegacyHost}=require('../backend/wallet-service/dist/dispatchLegacyHost');
+const {createStagingLegacyWaveExecutor}=require('../backend/wallet-service/dist/dispatchLegacy');
+const {createStagingLegacyOfferSource}=require('../backend/wallet-service/dist/dispatchLegacySource');
+(async()=>{assert.equal((await new STSClient({region:'us-east-1'}).send(new GetCallerIdentityCommand({}))).Account,'699561669180');let created=false;const report={scope:'REAL_DYNAMODB_ISOLATED_LEGACY_PERIODIC_HOST',applicationTablesAccessed:false,published:false,realCognitoCalls:0,realNotifications:0,humanMoneyChanged:false};try{
+ await low.send(new CreateTableCommand({TableName:physical,BillingMode:'PAY_PER_REQUEST',AttributeDefinitions:[{AttributeName:'_testPk',AttributeType:'S'},{AttributeName:'_testSk',AttributeType:'S'}],KeySchema:[{AttributeName:'_testPk',KeyType:'HASH'},{AttributeName:'_testSk',KeyType:'RANGE'}]}));created=true;await waitUntilTableExists({client:low,maxWaitTime:60,minDelay:1,maxDelay:2},{TableName:physical});
+ const f=await fixture('RETRY_SEARCH'),a=adapter('host');for(const [k,r]of f.rows)await a.seed(k.split('|')[0],r);const wallets=await a.rows('staging-Wallets');await createStagingDispatchReviewExecutor({db:a.db,cognito:f.cognito,now:()=>f.time,mode:'SAFE_LEGACY_RETRY'}).process(f.decision().caseId);
+ const source=createStagingLegacyOfferSource({db:a.db,now:()=>f.time}),sent=[];const runner=createStagingLegacyWaveExecutor({db:a.db,now:()=>f.time,selectDrivers:async()=>['driver1','driver2'],prepareOffer:source.prepare,message:source.message,sendOffer:async(id,m)=>sent.push({id,m})});let invokes=0;
+ const host=createStagingDispatchLegacyHost({db:a.db,now:()=>f.time,mode:'REQUIRED',start:async s=>{invokes++;await runner.run({orderId:s.orderId,assignmentId:s.assignmentId,owner:'synthetic-wave-worker',leaseSeconds:10});}});
+ let budget=60000;const partial=createStagingDispatchLegacyHost({db:a.db,now:()=>f.time,mode:'REQUIRED',remainingMs:()=>budget,start:async s=>{invokes++;await runner.run({orderId:s.orderId,assignmentId:s.assignmentId,owner:'synthetic-wave-worker',leaseSeconds:10});budget=20000;}});const partialResult=await partial.tick('partial-tick');assert.equal(partialResult.complete,false);const partialCursor=await a.get('WizzDispatchJobs_staging',{orderId:'SYSTEM#DISPATCH_HOST',SK:'CURSOR#LEGACY'});assert(partialCursor.cursor.orderId&&partialCursor.cursor.SK);report.partialBudgetPersistsOriginalLastProcessedKey=true;
+ const key={orderId:'order1',SK:'METADATA'};async function pass(){let end=false;for(let page=0;page<60;page++){const r=await host.tick('tick-'+page);assert(!r.busy);assert.equal(r.failed,0);if(!r.hasContinuation){end=true;break;}}assert(end,'bounded synthetic full scan pass completed');}
+ await pass();assert.equal((await a.get('WizzDispatchJobs_staging',key)).currentWaveNumber,1);assert.equal(invokes,1);await pass();assert.equal(invokes,1);report.discoveryAndStoredCursorResumeStartOnce=true;
+ for(let n=2;n<=4;n++){f.time+=90001;await pass();assert.equal((await a.get('WizzDispatchJobs_staging',key)).currentWaveNumber,n);}assert.equal(invokes,4);assert.equal(sent.length,8);f.time+=90001;await pass();assert.equal((await a.get('WizzDispatchJobs_staging',key)).status,'no_driver_available');assert.equal((await a.get('WizzOrders',{PK:'ORDER#order1',SK:'META'})).status,'ready_for_pickup');report.wavesReachReviewWithoutCancellation=true;
+ const checkpoint=await a.get('WizzDispatchJobs_staging',{orderId:'SYSTEM#DISPATCH_HOST',SK:'CURSOR#LEGACY'});assert.equal(checkpoint.leaseUntil,0);assert.equal(checkpoint.cursor,null);report.persistedCheckpointReleasedAtEndOfPass=true;
+ assert.deepEqual(await a.rows('staging-Wallets'),wallets);assert.equal((await a.rows('staging-Holds')).length,0);assert.equal((await a.rows('staging-LedgerEntries')).length,0);report.noMoneyOrHoldWrites=true;
+ }finally{if(created){await low.send(new DeleteTableCommand({TableName:physical}));await waitUntilTableNotExists({client:low,maxWaitTime:60,minDelay:1,maxDelay:2},{TableName:physical});report.tableDeleted=true;}fs.writeFileSync('/private/tmp/dispatch47-host-result.json',JSON.stringify(report,null,2)+'\n');}console.log(JSON.stringify(report));})().catch(e=>{console.error(e.stack);process.exitCode=1;});

@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-23",
+  "timezone": "America/Chicago",
+  "branch": "feature/malwersh/bootstrap",
+  "purpose": "تسليم جميع تحديثات الجلسة للزميل عبر GitHub",
+  "scope": "Staging work only; legacy non-staging worktrees excluded",
+  "repositories": [
+    "whizzDrivers-stg",
+    "whizzMerchants-stg",
+    "wizzuser-stg",
+    "whizzCentralPlatform-stg"
+  ],
+  "pull": [
+    "git fetch origin",
+    "git switch feature/malwersh/bootstrap",
+    "git pull --ff-only origin feature/malwersh/bootstrap"
+  ],
+  "latestNativeDriverBuild": 258,
+  "latestDemandPalette": "Secondary navy and shades; supersedes temporary yellow palette",
+  "notes": [
+    "لا يجرى دمج تلقائي في staging-main أو integration؛ يسحب الزميل فرع التسليم ويدمج وفق عمله.",
+    "الرفع إلى GitHub لا يعيد تنفيذ الطلبات أو التسويات أو نشر الخدمات.",
+    "نقاط الاستئناف والتقارير توثّق النشر السابق على staging؛ ليست إعلان اكتمال الخطة المالية كلها."
+  ],
+  "repository": "whizzCentralPlatform-stg",
+  "sections": [
+    {
+      "area": "الخطة والتدقيق310",
+      "changes": [
+        "توثيق دورة معالجة مشكلات الاستلام الخمسة ضمن الخطة الأساسية كبند مؤجل صراحة.",
+        "تدقيق طلبYalla المنفذ بشريًا: تحصيل8500=استحقاق سائق2750+مستحق متجر5450+مساهمة منصة300.",
+        "خصم500 بتمويل المتجر استُخدم مرة، حجز5750مسوى، مستحق المتجرمقفل بانتظار التسوية وليس مدفوعًا.",
+        "العمولة15%؛27%مثال افتراضي سابق وليس سياسة منفذة.",
+        "توحيد نقاط الاستئناف حتى آخر نسخة258 ومراجع نشر/اختبار/حدود العمل في تطبيق السائق."
+      ],
+      "pending": [
+        "دورة إدارة البلاغات المؤجلة.",
+        "بقية اختبارات قبول الخطة المالية، بما فيها المسارات غير المثبتة بهذا الطلب الواحد.",
+        "السداد الفعلي لمستحق المتجر ليس جزءًا من تدقيق القراءة ولا ينفذ بالرفع."
+      ]
+    }
+  ],
+  "validation": {
+    "documentationOnly": true,
+    "diffWhitespacePassed": true,
+    "settlementAudit": "Read-only evidence310; no new financial invocation",
+    "secretPatternScan": "No credential patterns found in changed/new files",
+    "whitespaceCheck": "PASS"
+  }
+}

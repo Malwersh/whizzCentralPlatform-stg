@@ -1,0 +1,25 @@
+{
+  "policyPin": {
+    "policyId": "DLV-1e6705f4-9570-4df9-83cd-23204c9a18ef",
+    "version": 1,
+    "termsHash": "0a90bc561cca0c311a76cac997d31ef04f62880dcd845c92b8f6473061828056"
+  },
+  "active": true,
+  "staffAuthorityVerified": true,
+  "realMerchantConsentVerified": true,
+  "activationMode": "STAFF_SEND_MERCHANT_ACCEPT",
+  "customerDeliveryCapIqd": 1500,
+  "platformPerOrderIqd": 500,
+  "platformBudgetAvailableIqd": 500,
+  "effectiveFrom": "2026-10-19T13:30:00.967Z",
+  "effectiveTo": "2026-10-19T22:00:59.646Z",
+  "regionIds": [
+    "Rmhvcpnn3iy5f1"
+  ],
+  "roadLimitMeters": 10000,
+  "minimumGoodsIqd": 7000,
+  "minimumGoodsBasis": "GOODS_GROSS",
+  "perCustomerUses": 1,
+  "goodsDiscountStacking": "DENY",
+  "awsWrites": 0
+}

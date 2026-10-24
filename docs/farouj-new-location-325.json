@@ -1,0 +1,34 @@
+{
+  "part": 325,
+  "status": "UPDATED_VERIFIED",
+  "environment": "staging",
+  "businessId": "business_fcade368-5514-44bb-a421-b8adafdd6ec3",
+  "businessName": "فروج المدينة جديد",
+  "coordinates": {
+    "latitude": 31.88585,
+    "longitude": 44.480077
+  },
+  "regionId": "Rmhveqa2vrrj13",
+  "regionPath": [
+    "Rmhv8jq5w2bm3q",
+    "Rmhv8s11vr0sxq",
+    "Rmhvc7snfyul1f",
+    "Rmhveqa2vrrj13"
+  ],
+  "regionNames": [
+    "العراق",
+    "محافظة النجف",
+    "قضاء المناذرة",
+    "ناحية الحيرة"
+  ],
+  "indexedActiveCoverageVerified": true,
+  "generalDeliveryPolicyVersion": 2,
+  "topLevelAndAddressCoordinatesSynchronized": true,
+  "otherBranchNotModified": true,
+  "branchOperatingStatusUnchanged": true,
+  "commercialTermsUnchanged": true,
+  "ordersOrWalletsModified": false,
+  "textualStreetAddressPreserved": true,
+  "auditOperationId": "0c3cdcf7-72fb-4032-b5f6-23525eacc4c1",
+  "updatedAt": "2026-10-23T14:03:25.833Z"
+}

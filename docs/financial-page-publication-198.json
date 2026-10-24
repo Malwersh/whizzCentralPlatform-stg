@@ -1,0 +1,16 @@
+{
+  "part": 198,
+  "baseJobId": "110",
+  "jobId": "111",
+  "changedFiles": [
+    "pages/financial-management.html",
+    "financial-management.html",
+    "pages/finance.html",
+    "includes/sidebar.html"
+  ],
+  "otherFilesPreserved": true,
+  "financialRulesChanged": false,
+  "status": "SUCCEED",
+  "sha256": "7f3b6948532a9047a0f1109e87570b3f4b871ae29e6b8adee55a233ffba469b5",
+  "hostedBytesVerified": true
+}

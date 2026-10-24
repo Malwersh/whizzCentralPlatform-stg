@@ -1,0 +1,11 @@
+{
+  "part": 212,
+  "readOnly": true,
+  "verifiedAccrualCount": 7,
+  "reviewCount": 0,
+  "pendingWalletIqd": 43575,
+  "pendingAccrualsIqd": 43575,
+  "cursorAbsent": true,
+  "privateDriverWalletFieldsExposedToMerchant": false,
+  "financialMutationsPerformed": false
+}

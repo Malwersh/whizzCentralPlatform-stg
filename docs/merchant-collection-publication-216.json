@@ -1,0 +1,55 @@
+{
+  "part": 216,
+  "phases": {
+    "access": {
+      "status": "VERIFIED",
+      "stack": "staging-merchant-period-collection-access-216",
+      "stackStatus": "CREATE_COMPLETE",
+      "policySimulationCases": 18,
+      "newMoneyPermissions": false
+    },
+    "retention": {
+      "status": "VERIFIED",
+      "function": "staging-account-deletion-worker",
+      "baseCodeSha256": "wGmxkhNdz4he3f5V6/t5qhP52DO++gNE09wC3t783rY=",
+      "codeSha256": "P+xBzw1BVfCl8ZqqaNn5eJHmddwSTXBwHUjQnHoQPg0=",
+      "changedFiles": [
+        "settlement-retention.js",
+        "settlement-collection-inventory.js"
+      ],
+      "otherFilesAndConfigurationPreserved": true,
+      "publishedAt": "2026-10-20T14:26:42Z"
+    },
+    "consumer": {
+      "status": "VERIFIED",
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "Sg87Pn0908Z7ki4Jwh2Ivff22T1uRa31eGt0EbLctP4=",
+      "codeSha256": "9tn/1T5x3HAblZdgHNt6sCMDb1ho8TUwEZTzRgFXy3Y=",
+      "changedFiles": [
+        "settlement-schedules.js",
+        "settlement-runtime.js"
+      ],
+      "otherFilesAndConfigurationPreserved": true,
+      "publishedAt": "2026-10-20T14:27:31Z"
+    },
+    "producer": {
+      "status": "VERIFIED",
+      "function": "staging-driver-financial-accept",
+      "baseCodeSha256": "2+5P9bDxzUxzqvsTQEam0CD/2s0bR65zS2YA6zPKd5A=",
+      "codeSha256": "UGK7JsYiqSJ5T88OH4a+M9iuc2ezl6+CRZWiXc9QTMs=",
+      "changedFiles": [
+        "index.js"
+      ],
+      "otherFilesAndConfigurationPreserved": true,
+      "publishedAt": "2026-10-20T14:28:03Z"
+    }
+  },
+  "financialOperationsRequested": false,
+  "historicalMigration": {
+    "verifiedSources": 7,
+    "appendedIndexEntries": 7,
+    "merchantNetIqd": 43575,
+    "coverageCertified": true,
+    "balancesChanged": false
+  }
+}

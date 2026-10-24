@@ -1,0 +1,39 @@
+{
+  "part": 236,
+  "status": "PUBLISHED",
+  "scope": "STAGING_GENERAL_DISPATCH",
+  "functions": [
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "baseCodeSha256": "7xCo/xYi6ehKe+0gIsoiPkUO8Ns0C4qc11Qrnx+Dog8=",
+      "codeSha256": "5/0VGygEgQI0qNC+gveolAKfLuU+5g9jRRCE5OOa5Zg=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "UzH4W0XtDG181ap+HNvzfW3FHj22etACW7gd2nUB8eE=",
+      "codeSha256": "bDyvkcv95g2rAm803Ib/O/1jE+cPdGEXCOUVwSH0lxk=",
+      "changedFiles": [
+        "index.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "baseCodeSha256": "eDFupkO3O7kz5yiSGYqZmCyLxIXQk2ugZ74hwVOHOfQ=",
+      "codeSha256": "JAzFHB//bL8d6Abu9USPraLWuvYwUhp082WSmqmV5H8=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    }
+  ],
+  "moneyOrOrderWritesByAgent": false,
+  "iamChanges": false
+}

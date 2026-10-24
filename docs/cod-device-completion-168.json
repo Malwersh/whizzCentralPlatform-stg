@@ -1,0 +1,19 @@
+{
+  "orderNumber": "ORD1792384510305",
+  "status": "delivered",
+  "dispatchStatus": "completed",
+  "financialStatus": "SETTLED",
+  "cashCollectedIqd": 9500,
+  "driverCompensationIqd": 2000,
+  "capturedHoldIqd": 7500,
+  "driverAvailableBalanceIqd": 60000,
+  "driverLockedBalanceIqd": 0,
+  "merchantPayableIqd": 6300,
+  "merchantPayableStatus": "LOCKED_PENDING_SETTLEMENT",
+  "platformCommissionIqd": 700,
+  "platformServiceFeeIqd": 500,
+  "ledgerRowsVerified": 3,
+  "ledgerDeltaSum": 0,
+  "test": "COD_NO_DISCOUNT_NO_DELIVERY_SUBSIDY",
+  "fundedPromotionsAndLiveActivityBackgroundNotVerifiedByThisReceipt": true
+}

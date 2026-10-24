@@ -1,0 +1,13 @@
+{
+  "part": 205,
+  "status": "PUBLISHED_VERIFIED",
+  "changedEntries": [
+    "settlement-runtime.js"
+  ],
+  "purpose": "Expired session reports SCHEDULE_REAUTH_REQUIRED instead of SCHEDULE_PERMISSION_REQUIRED",
+  "testsPassed": 14,
+  "financialDataWrites": false,
+  "permissionsChanged": false,
+  "configurationChanged": false,
+  "codeSha256": "sdQ2xKjrDLeSWR1Bck6oOibL/+DFwYjZHq67GlqJev4="
+}

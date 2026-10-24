@@ -1,0 +1,10 @@
+{
+  "part": 146,
+  "scope": "local financial lifecycle runtime gates and platform delivery editor",
+  "checks": {"typescript": "passed", "runtimeSync": "passed", "driverRuntimeBundle": "built", "targetedTestsPassed": 78, "isolatedChromeSubmitAndRetry": "passed"},
+  "activationDefaults": {"financialDeliveryFunding": "OFF", "deliveryFundingManagement": false},
+  "deployed": false,
+  "financialMutations": false,
+  "iamChanges": false,
+  "remaining": ["pinned distribution V2 reader and snapshot wiring", "deployment permissions and coordinated release", "UI edit and stale-version browser scenarios", "original-share refunds and partial returns", "legacy coupon timestamp repair", "staging device verification"]
+}

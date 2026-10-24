@@ -1,0 +1,19 @@
+{
+  "part": 156,
+  "installed": false,
+  "flutterTestsPreviouslyPassed": 4,
+  "files": [
+    {
+      "path": "lib/services/financial_offer_reference.dart",
+      "sha256": "cc883977144bc843005017bbd495fb2eab0089bca14622a0933cfacebf310d3d"
+    },
+    {
+      "path": "lib/services/push_notifications_service.dart",
+      "sha256": "3e1b32f90573924534a121f6f06ea44f2f5c4e70ba3f8949b076e7be4c851794"
+    },
+    {
+      "path": "lib/features/home/spark_home_simple_arabic.dart",
+      "sha256": "686af4135ce1fa74adbe40c257bda4813967cc293c7f6cf4628d228ca83da0bc"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "part": 262,
+  "status": "PUBLISHED",
+  "scope": "staging",
+  "functions": [
+    {
+      "label": "merchant",
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "changedFiles": [
+        "order_returns.js"
+      ],
+      "baseCodeSha256": "/OKT/9rFhKv46HVl1GQuZ0Gr2E6vBZQ8OvdVhJwff1k=",
+      "packageSha256": "14d7ca4950cdabf8469781ffb7019c9a32d1c95a5532476c9c0d0ec6bed8050e",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "FNfKSVDNq/hGl4H/twGcmjLRyVpVMkdsnA0Oxr7YBQ4=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "baseCodeSha256": "/oqx2RE8yZNAlFOgMY1CVcXKuQdrtUEgtsvp8rwozAM=",
+      "packageSha256": "50d5f78c44529ad3da20f827fb1d41ae33b98fb8efa5b93b489afe7abe0ddd18",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "UNX3jERSmtPaIPgn+x1BrjO5j7jvpbk7SJr+er4N3Rg=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "changedFiles": [
+        "return-items-runtime-262.js",
+        "order-exception-runtime-229.js",
+        "index.js"
+      ],
+      "baseCodeSha256": "3TFDPWftvQVUnNk8ip+MsPS+r0nYPpchog6FMr/eBFY=",
+      "packageSha256": "8ddaa64603a21b2d8bc89d41cac85fc68b8e5900f13dfbb8088f1de7701b930b",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "jdqmRgOiGy2LyJ1ByshfxouOWQDxPfu4CI8d53Abkws=",
+      "configurationPreserved": true
+    }
+  ],
+  "iamChanged": false,
+  "financialOrCustodyAttestationsByAgent": false,
+  "existingCasesMigrated": false,
+  "historicalClosurePreserved": true,
+  "nativeBuild": 227,
+  "invalidTokenSmoke": {
+    "statusCode": 401,
+    "code": "UNAUTHORIZED"
+  },
+  "hosting": {
+    "baseJobId": "150",
+    "jobId": "151",
+    "changedFiles": [
+      "case-workflow.js",
+      "pages/order-exceptions.html"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

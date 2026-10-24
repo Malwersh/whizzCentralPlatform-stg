@@ -1,0 +1,81 @@
+{
+  "part": 242,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "RXnCXearO2n7uQrXTQW9IkGTAXRD6pxKu0uaVNVqLw0=",
+      "codeSha256": "iiHBi59ve18mfpwDqIFCZ5o2RCBgdd9sNkB3MKi6qeY=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "MR8X/pdPz3QQsyqfq1CcoYQQLIgkqBqRSkNRmf5RTEo=",
+      "codeSha256": "aJP4Go5PvaH3jAWuhdF+jvG7NsfRVusn/EXgY3AI00M=",
+      "changedFiles": [
+        "settlement-runtime.js",
+        "merchant-account-index-runtime.js",
+        "merchant-account.js",
+        "settlement-orders.js",
+        "settlement-evidence-fields.json",
+        "order-exception-cases.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-order-exception-sla-232",
+      "baseCodeSha256": "sKtMJxq7Wb0mr0jcbtqvplgIua1+sTSsqPlLNRjBDOI=",
+      "codeSha256": "quvpsgORn2vva/MlT3Z4c59iuCxmgM/2/V6spKYxdgo=",
+      "changedFiles": [
+        "index.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-wallet-service",
+      "baseCodeSha256": "lUoVjsJw4a8XQgMCdSqAFvDBY369mStj15O/xJZxbhM=",
+      "codeSha256": "lcBRl2rrSg24i61rkSmCekjHLdHcoBuQfPVH256AVco=",
+      "changedFiles": [
+        "dist/ledgerEffects.js",
+        "dist/reconciliation.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-wallet-lifecycle",
+      "baseCodeSha256": "p5G53HUMz0hvYcFSXEyzkV7D5+ctitGF/sx07vRtvQQ=",
+      "codeSha256": "5UdXAtKiLp5YHl69qJuzHeBU8edyv81hiGl0vKArEhw=",
+      "changedFiles": [
+        "dist/ledgerEffects.js",
+        "dist/reconciliation.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialDecisionsByAgent": false,
+  "wholeSpecificationComplete": false,
+  "hosting": {
+    "baseJobId": "134",
+    "jobId": "135",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "pages/order-exceptions.html",
+      "order-exception-cases.js",
+      "pages/finance.html",
+      "merchant-financial-account.js",
+      "merchant-period-print.js",
+      "merchant-payout-print.js"
+    ],
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

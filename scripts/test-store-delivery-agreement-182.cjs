@@ -1,0 +1,34 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict'),{spawnSync}=require('node:child_process');
+const root=path.resolve(__dirname,'..'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'delivery-agreement-182-'));
+const scripts=['delivery-policy-form.js','delivery-policy-management.js'].map(n=>fs.readFileSync(path.join(root,'frontend',n),'utf8')).join('\n');
+const html=`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><details open data-delivery-policies dir="rtl"><summary>عروض التوصيل</summary></details><script>
+window.commercialMerchantSource={status:'READY',items:[{businessId:'branch',businessName:'مطعم اختبار'}]};
+window.Auth={ensureSession:async()=>{},getToken:()=> 'synthetic'};window.WIZZCENTRAL_CONFIG={STAFF_API_BASE_URL:'https://local.invalid'};
+window.sent=[];window.fetch=async(url,options)=>{if(options.method==='POST'){sent.push(JSON.parse(options.body));return {ok:sent.length>1,status:sent.length===1?503:200,json:async()=>({saved:true})};}return {ok:true,json:async()=>url.includes('delivery-options')?{regions:[{id:'zone',label:'بغداد — المركز — المنطقة'}]}:{businessId:'branch',merchantId:'merchant',items:[],can:{deliveryEnabled:true,deliveryRequest:true}}};};
+</script><script>${scripts.replaceAll('</script','<\\/script')}</script><script>
+(async()=>{const wait=async(fn)=>{for(let i=0;i<30;i++){if(fn())return;await new Promise(r=>setTimeout(r,40));}throw Error('UI_TIMEOUT');};
+const check=(v,m)=>{if(!v)throw Error(m);};
+try{const root=document.querySelector('details'),branch=root.querySelector('select');branch.value='branch';branch.dispatchEvent(new Event('change'));root.querySelector('button').click();
+await wait(()=>[...root.querySelectorAll('button')].some(b=>b.textContent.includes('إعداد اتفاقية')));
+[...root.querySelectorAll('button')].find(b=>b.textContent.includes('إعداد اتفاقية')).click();
+await wait(()=>root.querySelector('form [name=rule]'));
+const form=root.querySelector('form'),set=(n,v)=>{form.elements.namedItem(n).value=v;};
+const visible=n=>getComputedStyle(form.elements.namedItem(n).parentElement).display!=='none';
+for(const n of ['merchantBudget','platformBudget','merchantPerOrder','platformPerOrder','perCustomerUses','maximumRoadMeters','basis','audience','stacking'])check(!visible(n),'CAMPAIGN_FIELD_VISIBLE_'+n);
+check(visible('commissionPercent'),'MISSING_COMMISSION');check(form.querySelectorAll('.offer-section').length===5,'MISSING_SECTIONS');check(document.documentElement.scrollWidth<=innerWidth,'MOBILE_OVERFLOW');
+set('rule','FIXED_TARIFF');form.elements.namedItem('rule').dispatchEvent(new Event('change'));check(visible('amount'),'FIXED_AMOUNT_HIDDEN');set('amount','1500');set('commissionPercent','5');set('minimumGoods','7000');
+set('funder','SHARED');form.elements.namedItem('funder').dispatchEvent(new Event('change'));check(visible('merchantPercent'),'SHARE_HIDDEN');set('merchantPercent','25');
+set('from','2026-10-20T12:00');set('to','2026-11-20T12:00');set('reason','اتفاقية تجارية لمدة شهر');form.elements.namedItem('regions').options[0].selected=true;check(form.checkValidity(),'INVALID_FORM');form.requestSubmit();
+await wait(()=>sent.length===1&&root.querySelector('[role=status]').textContent.includes('غير متاحة'));form.requestSubmit();
+await wait(()=>sent.length===2&&root.querySelector('[role=status]').textContent.includes('أُرسلت'));check(sent[0].requestId===sent[1].requestId,'RETRY_ID_CHANGED');
+const body=sent[0],p=body.values;check(p.schemaVersion===2&&!('limits'in p),'CAMPAIGN_CONTRACT');check(p.customerRule.kind==='FIXED_TARIFF'&&p.customerRule.amount.minorAmount===1500000,'WRONG_FIXED_PRICE');check(p.commission.rate.numerator===5,'WRONG_COMMISSION');check(p.funding.merchantNumerator===25&&!('merchantCap'in p.funding),'WRONG_FUNDING');check(p.eligibility.minimumGoods.minorAmount===7000000&&!('maximumRoadMeters'in p.eligibility),'WRONG_MINIMUM');
+document.body.dataset.testResult='PASS';document.body.dataset.action=body.action;
+}catch(e){document.body.dataset.testResult='FAIL';document.body.dataset.error=e.message;}})();
+</script>`;
+const file=path.join(dir,'test.html');fs.writeFileSync(file,html);
+const result=spawnSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--disable-background-networking','--disable-extensions','--disable-sync','--window-size=390,844','--user-data-dir='+path.join(dir,'profile'),'--virtual-time-budget=6000','--dump-dom','file://'+file],{encoding:'utf8',timeout:20000,maxBuffer:2000000});
+assert.equal(result.status,0,'Chrome failed: '+(result.error?.message||''));
+fs.writeFileSync(path.join(dir,'result.html'),result.stdout);
+assert.ok(/data-test-result="PASS"/.test(result.stdout),'UI failed: '+(result.stdout.match(/data-error="([^"]+)/)?.[1]||'no completion'));
+console.log('PASS: dated agreement, no campaign fields, fixed fee, commission, sharing, mobile layout and replay-safe submission');

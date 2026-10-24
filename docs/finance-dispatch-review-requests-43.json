@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_REVIEW_UI_AND_DECISION_REQUESTS_VERIFIED",
+  "published": false,
+  "liveFlagsChanged": false,
+  "liveIAMChanged": false,
+  "humanDataChanged": false,
+  "installedOnPhone": false,
+  "executedDecisions": 0,
+  "newApplicationTables": false,
+  "newMainNavigationTab": false,
+  "newApiPaths": [
+    "GET /staff/dispatch-reviews",
+    "POST /staff/dispatch-reviews/decisions"
+  ],
+  "gateway": "Existing staff proxy; no new Gateway resources",
+  "modeDefault": "OFF",
+  "verifiedMode": "REQUESTS_ONLY",
+  "executionReady": false,
+  "reused": [
+    "Existing Orders page and Staff auth/Cognito/MFA middleware",
+    "Existing orders.read/assign/cancel roles and region scope",
+    "Existing DispatchJobs, WizzOrders, branch, driver HOLD and lifecycle records",
+    "Existing staging-PlatformStaff table and AUDIT records"
+  ],
+  "cases": [
+    "Versioned no_driver_available search exhaustion",
+    "Current-cycle LEGACY_ACCEPTANCE_ATTEMPT pending/reservation/assignment/review states"
+  ],
+  "requests": [
+    "RETRY_SEARCH",
+    "CANCEL_BEFORE_PICKUP",
+    "CHECK_RESERVATION"
+  ],
+  "decisionStatus": "PENDING_EXECUTION",
+  "decisionIsExecution": false,
+  "decisionStorage": {
+    "table": "staging-PlatformStaff",
+    "pk": "DISPATCH_REVIEW#caseId",
+    "sk": "DECISION",
+    "oneRequestPerSourceCycleOrAttempt": true,
+    "idempotency": "Same request UUID, actor and exact content replays; conflicting content/request cannot overwrite",
+    "auditAtomic": true,
+    "containsRawOrdersOrWalletBalances": false
+  },
+  "readAndWriteGuards": [
+    "Active employee version, role, region and branch ownership bindings",
+    "MFA + recent authentication on request",
+    "Strong operational projections and final read-only transaction fence",
+    "Current source/order/driver-HOLD/branch/lifecycle snapshot for decision + audit transaction",
+    "Pending or unknown acceptance inventory fails closed; old-cycle attempts read-only",
+    "Pickup/delivery/cash/return/outcome/assigned state and unresolved driver hold block retry/cancel requests"
+  ],
+  "limits": {
+    "jobScanEvaluatedItemsPerPage": 25,
+    "acceptanceQueryEvaluatedItemsPerPage": 20,
+    "acceptanceQueryMaximumPages": 5,
+    "maximumAcceptanceAttempts": 50,
+    "transactionMaximumOperations": 100,
+    "transactionMaximumJsonBytes": 3500000
+  },
+  "uiBehavior": [
+    "Safe text rendering",
+    "No POST on initial load",
+    "Reason/action remain after failed submission; same content keeps request UUID",
+    "Changed content generates new request UUID",
+    "No execution success claim; explicit pending authorized execution",
+    "Read failure clears old cases and cursor",
+    "Empty filtered page with cursor is not treated as end",
+    "Changed auth token discards late response and clears visible cases"
+  ],
+  "tests": {
+    "staffPassed": 141,
+    "newReviewUnitTests": 13,
+    "scriptTestsPassed": 11,
+    "browser": {
+      "safeText": true,
+      "requestOnlyNoExecutionClaim": true,
+      "stableRequestAfterFailure": true,
+      "changedContentNewId": true,
+      "readOnly": true,
+      "emptyPageWithCursor": true,
+      "failedReadClearsCases": true,
+      "changedSessionDiscardsResponse": true,
+      "realWrites": false
+    },
+    "syntheticDynamoDB": {
+      "scope": "REAL_DYNAMODB_ISOLATED_REVIEW_REQUESTS_ONLY",
+      "applicationTablesAccessed": false,
+      "published": false,
+      "executedDecisions": 0,
+      "humanFundsChanged": false,
+      "conflictingRequestsCommitOnceWithAuditAndNoOrderWrite": true,
+      "sameRequestReplays": true,
+      "assignmentRaceRejectsBothIntentAndAudit": true,
+      "activeHoldBlocksCancellationRequest": true,
+      "tableDeleted": true
+    },
+    "javaScriptSyntax": true,
+    "yamlParsedAndGateOff": true,
+    "overlayBuild": true,
+    "whitespaceChecks": true,
+    "flutterChangedOrRerun": false,
+    "walletWritersChangedOrRerun": false,
+    "liveIAMPushedOrSimulated": false
+  },
+  "artifactManifest": {
+    "schemaVersion": 1,
+    "stage": "staging",
+    "mode": "OFF",
+    "runtimeModeWhenReviewed": "REQUESTS_ONLY",
+    "publicationReady": false,
+    "executionReady": false,
+    "overlayOnly": true,
+    "sourceSha256": {
+      "backend/staff-service/dispatch-reviews.js": "33757444569c96c88eebeaac2ed8f9bb1b048aec305ea15e6656d4e550f6e25d",
+      "frontend/dispatch-reviews.js": "feec79e802ad595142eef16ab145c602546f2c2a4c63e4a487fb46821667c993"
+    },
+    "existingUI": "frontend/pages/orders.html",
+    "existingStorage": "staging-PlatformStaff / DISPATCH_REVIEW#caseId / DECISION + existing AUDIT",
+    "newApplicationTables": false,
+    "permissions": [
+      "orders.read",
+      "orders.assign for retry/reservation-review requests",
+      "orders.cancel for cancellation requests"
+    ],
+    "financialWrites": false,
+    "proposedIAM": "backend/staff-service/template.yaml; not granted",
+    "blockers": [
+      "Live auth/index/package and Orders-page reconciliation; copy route only after review",
+      "Projected operational reads and conditional guards IAM verification",
+      "Decision executor with separate staff authority, money/return rules, retry and lifecycle/retention integration",
+      "Gateway/browser/device verification before deployment or mode activation"
+    ]
+  },
+  "limitations": [
+    "Recording intent only: no dispatch restart/cancellation/hold release, no owner or driver impersonation",
+    "Separate staff-authorized executor, full funding/return checks and stale/failed/executed UI lifecycle remain pending",
+    "Lifecycle/retention integration of decision requests must be settled before worker enablement; no retention period invented",
+    "Only driver HOLD is displayed; absence does not prove absence of promotion funding or all liabilities",
+    "Existing source contracts only; unsupported pricing errors are not yet persisted as review cases",
+    "Bounded Scan is a Staging bridge, not scalable indexed review feed",
+    "Browser test covers extracted section with mocked API, not full live RBAC or human employee workflow",
+    "Synthetic DynamoDB uses no Cognito human account, application tables or real financial commands",
+    "IAM/package/Gateway compatibility and coordinated device verification remain before publishing/activation"
+  ],
+  "sourceSha256": {
+    "backend/staff-service/dispatch-reviews.js": "33757444569c96c88eebeaac2ed8f9bb1b048aec305ea15e6656d4e550f6e25d",
+    "backend/staff-service/index.js": "a560367151ff047671cfeb68ed5f02909dd50c3c8dc3dedd1be12099e3d235b5",
+    "backend/staff-service/package.json": "241a33d8450229cfc68c8acb47a578698cef85a19fa7c7cfa2e2bf81880245ed",
+    "backend/staff-service/template.yaml": "7de881913d2aff17791de9d1e2adb9575fb5b5a5c41eede74ace26d9cd68d82b",
+    "backend/staff-service/test/dispatch-reviews.test.cjs": "c12438e6ed39414fa562f1b99e9099393a6d322f659ff062c5fe8b427ab3b10f",
+    "frontend/dispatch-reviews.js": "feec79e802ad595142eef16ab145c602546f2c2a4c63e4a487fb46821667c993",
+    "frontend/pages/orders.html": "94fedb7fb49278c0a7578686915d4da71f3124d08e2ed9410a9a0f30efbe15a6",
+    "scripts/build-dispatch-review-overlay.cjs": "817e14c15acba60560116970f01ca029cac2c34fb049ab1232721bbea185c468",
+    "scripts/test-dispatch-review-browser.cjs": "57fb9d15820d759f55423212cd00c7f00d38fd40b75986254126e99230e85551",
+    "scripts/test-dispatch-review-staging.cjs": "69d3a8097207814f61ac3f3a26e68287b9975f2822dfe87c3d50274429391dde",
+    "scripts/test-dispatch-cycle-staging.cjs": "1aeed59cd3c6ce240ff1a2b39467ee333e196ced8c1e1fe3cff3acbf68ad54c8"
+  },
+  "next": [
+    "Staff-authorized decision executor with idempotent outcome and fresh evidence/permission checks",
+    "Lifecycle/retention handling and execution status UI",
+    "Authenticated offer list, retry scheduling and coordinated IAM/provider/device checks"
+  ],
+  "docs": "finance-pricing-settlements-returns-unified-plan.md section 61"
+}

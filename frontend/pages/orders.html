@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
+<script src="../assets/js/wizz-locale.js?v=20261023-details1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WizzCentral Platform - Orders Management</title>
+    <title>ويز سنترال — إدارة الطلبات</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <!-- Security: DOMPurify for XSS Protection -->
@@ -18,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     <!-- Security Utilities -->
     <script src="../assets/js/security-utils.js"></script>
-    <script src="../assets/js/rbac.js"></script>
+    <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
     <style>
         /* Material 3 Orders Management Styles */
         .orders-stats {
@@ -359,13 +360,17 @@
     
             .filter-group {
                 justify-content: space-between;
+                flex-wrap: wrap;
+                min-width: 0;
             }
+            .filter-group > * { flex: 1 1 120px; min-width: 0; }
+            .search-box { min-width: 0; }
         }
     </style>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-</head>
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
 
 <body data-page="orders">
     <!-- Sidebar include placeholder -->
@@ -383,7 +388,7 @@
                         <i class="fas fa-shopping-bag"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-label">إجمالي الطلبات</div>
                         <div class="stat-value" id="total-orders">0</div>
                     </div>
                 </div>
@@ -393,7 +398,7 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Confirmed</div>
+                        <div class="stat-label">مؤكد</div>
                         <div class="stat-value" id="confirmed-orders">0</div>
                     </div>
                 </div>
@@ -403,7 +408,7 @@
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Pending</div>
+                        <div class="stat-label">قيد الانتظار</div>
                         <div class="stat-value" id="pending-orders">0</div>
                         </div>
                         </div>
@@ -413,29 +418,37 @@
                                 <i class="fas fa-times-circle"></i>
                             </div>
                             <div class="stat-info">
-                                <div class="stat-label">Cancelled</div>
+                                <div class="stat-label">ملغي</div>
                                 <div class="stat-value" id="cancelled-orders">0</div>
                             </div>
                         </div>
                         </div>
                         
-                        <!-- Search and Filter Controls -->
+                        <section id="dispatch-reviews" dir="rtl" style="background:white;padding:20px;margin:20px 0;border:1px solid #ddd;border-radius:12px">
+                            <h2>مراجعة تعذر الإسناد والقبول</h2>
+                            <p>انتهاء البحث لا يلغي الطلب ولا يحرر الحجز. القرارات هنا طلبات متابعة؛ لا تعني تنفيذ الإلغاء أو إعادة البحث.</p>
+                            <button id="dispatch-review-reload" type="button">تحديث حالات المراجعة</button>
+                            <button id="dispatch-review-more" type="button" hidden>المزيد من الحالات</button>
+                            <p id="dispatch-review-message" role="status" aria-live="polite"></p>
+                            <div id="dispatch-review-list"></div>
+                        </section>
+<!-- Search and Filter Controls -->
                         <div class="orders-controls">
                             <div class="controls-row">
                                 <div class="search-box">
                                     <!-- Removed inline onkeyup for CSP compliance -->
-                                    <input type="text" id="search-input" placeholder="Search orders by ID, customer name...">
+                                    <input type="text" id="search-input" placeholder="ابحث برقم الطلب أو اسم العميل..." dir="auto">
                                 </div>
                                 <div class="filter-group">
                                     <!-- Removed inline onchange for CSP compliance -->
                                     <select id="status-filter">
-                                        <option value="">All Statuses</option>
-                                        <option value="confirmed">Confirmed</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="cancelled">Cancelled</option>
+                                        <option value="">جميع الحالات</option>
+                                        <option value="confirmed">مؤكد</option>
+                                        <option value="pending">قيد الانتظار</option>
+                                        <option value="cancelled">ملغي</option>
                                     </select>
-                                    <input type="date" id="date-from" title="From Date">
-                                    <input type="date" id="date-to" title="To Date">
+                                    <input type="date" id="date-from" title="من تاريخ" dir="ltr">
+                                    <input type="date" id="date-to" title="إلى تاريخ" dir="ltr">
                     </div>
                 </div>
             </div>
@@ -443,22 +456,22 @@
             <!-- Orders Table -->
             <div class="orders-table">
                 <div class="table-header">
-                    <h3>Orders List</h3>
+                    <h3>قائمة الطلبات</h3>
                     <div id="table-status">
                         <span class="loading-spinner"></span>
-                        Loading orders...
+                        جارٍ تحميل الطلبات...
                     </div>
                 </div>
                 <div class="orders-grid">
                     <table>
                         <thead>
                             <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Status</th>
-                                <th>Total</th>
-                                <th>Date</th>
-                                <th>Actions</th>
+                                <th>رقم الطلب</th>
+                                <th>العميل</th>
+                                <th>الحالة</th>
+                                <th>الإجمالي</th>
+                                <th>التاريخ</th>
+                                <th>الإجراءات</th>
                                 </tr>
                                 </thead>
                         <tbody id="orders-tbody">
@@ -474,8 +487,8 @@
     <div id="orderModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Order Details</h2>
-                <button class="modal-close" data-action="close-order-modal">&times;</button>
+                <h2>تفاصيل الطلب</h2>
+                <button class="modal-close" data-action="close-order-modal" aria-label="إغلاق النافذة">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="order-details-content">
@@ -495,7 +508,7 @@
     <!-- Orders API -->
     <script src="../js/orders-api.js?v=20261011-session-fix2"></script>
     <!-- Sidebar -->
-    <script src="../assets/js/navigation.js"></script>
+    <script src="../assets/js/navigation.js?v=20261023-details1"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.navigationManager && typeof window.navigationManager.init === 'function') {
@@ -550,7 +563,7 @@
             renderOrdersTable();
 
             // SECURITY: Safe static content
-            tableStatus.innerHTML = `${allOrders.length} orders loaded from WizzOrders table`;
+            tableStatus.innerHTML = `${allOrders.length} طلب محمّل من النظام`;
         } catch (error) {
             console.error('Error loading orders:', error);
             
@@ -588,7 +601,7 @@
                             <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                             <div>Failed to load orders: ${safeErrorMessage}</div>
                             ${errorMessage.includes('Token expired') || errorMessage.includes('Invalid login token') ? 
-                                '<div style="margin-top: 1rem;"><a href="../index.html" style="color: var(--md-sys-color-primary);">Please log in again</a></div>' : ''}
+                                "<div style=\"margin-top: 1rem;\"><a href=\"../index.html\" style=\"color: var(--md-sys-color-primary);\">يرجى تسجيل الدخول مجددًا.</a></div>" : ''}
                         </td>
                     </tr>
                 `);
@@ -610,7 +623,7 @@
             }
 
             // Format as: Nov 4, 2025
-            return date.toLocaleDateString('en-US', {
+            return date.toLocaleDateString("ar-IQ", {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric'
@@ -679,63 +692,55 @@
         document.getElementById('cancelled-orders').textContent = stats.cancelled;
     }
 
-    // Render orders table
+    // Build table rows with DOM APIs: user text never becomes HTML, and table
+    // elements are not stripped by the general rich-text sanitizer.
     function renderOrdersTable() {
         const tbody = document.getElementById('orders-tbody');
-
-        if (filteredOrders.length === 0) {
-            // SECURITY: Safe static content
-            tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--md-sys-color-on-surface-variant);">
-                            <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                            <div>No orders found</div>
-                        </td>
-                    </tr>
-                `;
+        tbody.replaceChildren();
+        if (!filteredOrders.length) {
+            const cell = tbody.insertRow().insertCell();
+            cell.colSpan = 6;
+            cell.textContent = 'لا توجد طلبات مطابقة';
             return;
         }
-
-        // SECURITY: Sanitize all user-generated content before rendering
-        tbody.innerHTML = SecurityUtils.sanitizeHTML(
-            filteredOrders.map(order => {
-                const safeOrderId = SecurityUtils.escapeHTML(order.orderId);
-                const safeCustomerName = SecurityUtils.escapeHTML(order.customerName || 'N/A');
-                const safeCustomerEmail = SecurityUtils.escapeHTML(order.customerEmail || '');
-                const statusRaw = (order.status || '').toString();
-                const safeStatus = SecurityUtils.escapeHTML(statusRaw);
-                const safeStatusClass = SecurityUtils.escapeHTML(statusRaw.toLowerCase());
-                const safeFormattedDate = SecurityUtils.escapeHTML(order.formattedDate);
-                const safeCleanOrderId = SecurityUtils.escapeHTML(order.cleanOrderId);
-                const currency = order.currency || 'IQD';
-                const amountStr = formatCurrency(order.totalAmount || 0, currency);
-                const safeAmount = SecurityUtils.escapeHTML(amountStr);
-
-                return `
-                <tr>
-                    <td><span class="order-id" title="Order ID">${safeOrderId}</span></td>
-                    <td>
-                        <div class="customer-cell">
-                            <div class="customer-name">${safeCustomerName}</div>
-                            <div class="customer-meta">${safeCustomerEmail}</div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="status-badge status-${safeStatusClass}">
-                            ${safeStatus}
-                        </span>
-                    </td>
-                    <td class="amount-cell">${safeAmount}</td>
-                    <td>${safeFormattedDate}</td>
-                    <td>
-                        <button class="view-details-btn" data-order-id="${safeCleanOrderId}">
-                            View Details
-                        </button>
-                    </td>
-                </tr>
-                `;
-            }).join('')
-        );
+        for (const order of filteredOrders) {
+            const row = tbody.insertRow();
+            const text = (tag, value, className) => {
+                const node = document.createElement(tag);
+                node.textContent = value == null ? '' : String(value);
+                if (className) node.className = className;
+                return node;
+            };
+            const id = text('span', order.orderNumber || order.fullData?.orderNumber || order.orderId, 'order-id');
+            id.title = String(order.orderId || '');
+            row.insertCell().append(id);
+            const customer = document.createElement('div');
+            customer.className = 'customer-cell';
+            customer.append(text('div', order.customerName || 'غير محدد', 'customer-name'),
+                            text('div', order.customerEmail || '', 'customer-meta'));
+            row.insertCell().append(customer);
+            const status = String(order.status || '');
+            row.insertCell().append(text('span', status, 'status-badge status-' + status.toLowerCase().replace(/[^a-z_]/g, '')));
+            const amount = row.insertCell();
+            amount.className = 'amount-cell';
+            amount.textContent = formatCurrency(order.totalAmount || 0, order.currency || 'IQD');
+            row.insertCell().textContent = order.formattedDate || '';
+            const button = text('button', 'عرض التفاصيل', 'view-details-btn');
+            button.type = 'button';
+            button.dataset.orderId = String(order.cleanOrderId || order.orderId || '');
+            const actions = row.insertCell();
+            actions.append(button);
+            const manage = text('button', 'إدارة الطلب', 'view-details-btn');
+            manage.type = 'button';
+            manage.dataset.manageOrderId = String(order.cleanOrderId || order.orderId || '');
+            actions.append(manage);
+            if (order.status === 'ready_for_pickup' || order.status === 'جاهز للاستلام' || order.fullData?.status === 'ready_for_pickup') {
+                const review = text('button', 'مراجعة التوزيع', 'review-dispatch-btn');
+                review.type = 'button';
+                review.dataset.reviewOrderId = String(order.cleanOrderId || order.orderId || '');
+                actions.append(review);
+            }
+        }
     }
 
     // Filter orders
@@ -749,6 +754,7 @@
             // Text search
             const matchesSearch = !searchTerm ||
                 order.orderId.toLowerCase().includes(searchTerm) ||
+                String(order.orderNumber || order.fullData?.orderNumber || '').toLowerCase().includes(searchTerm) ||
                 (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) ||
                 (order.customerEmail && order.customerEmail.toLowerCase().includes(searchTerm));
 
@@ -765,7 +771,7 @@
 
         renderOrdersTable();
         // SECURITY: Safe static content
-        document.getElementById('table-status').innerHTML = `${filteredOrders.length} orders shown`;
+        document.getElementById('table-status').innerHTML = `${filteredOrders.length} طلبات معروضة`;
     }
 
     // Show order details
@@ -774,7 +780,7 @@
         const content = document.getElementById('order-details-content');
 
         // SECURITY: Safe static content
-        content.innerHTML = '<div style="text-align: center;"><span class="loading-spinner"></span> Loading order details...</div>';
+        content.innerHTML = "<div style=\"text-align: center;\"><span class=\"loading-spinner\"></span> جارٍ تحميل تفاصيل الطلب...</div>";
         modal.style.display = 'block';
 
         try {
@@ -822,7 +828,7 @@
                 }).join('');
 
                 itemsHtml = `
-                    <h4>Order Items</h4>
+                    <h4>منتجات الطلب</h4>
                     <div class="items-list">
                         ${safeItemsHtml}
                     </div>
@@ -835,56 +841,56 @@
             content.innerHTML = SecurityUtils.sanitizeHTML(`
                 <div class="order-detail-grid">
                     <div class="detail-item">
-                        <div class="detail-label">Order ID</div>
+                        <div class="detail-label">رقم الطلب</div>
                         <div class="detail-value">${safeOrderId}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Status</div>
+                        <div class="detail-label">الحالة</div>
                         <div class="detail-value">
                             <span class="status-badge status-${safeStatus}">${safeStatus}</span>
                         </div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Total Amount</div>
+                        <div class="detail-label">إجمالي المبلغ</div>
                         <div class="detail-value">${safeTotal}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Created Date</div>
+                        <div class="detail-label">تاريخ الإنشاء</div>
                         <div class="detail-value">${safeFormattedDate}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Customer Name</div>
+                        <div class="detail-label">اسم العميل</div>
                         <div class="detail-value">${safeCustomerName}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Customer Phone</div>
+                        <div class="detail-label">هاتف العميل</div>
                         <div class="detail-value">${safeCustomerPhone}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Store Name</div>
+                        <div class="detail-label">اسم المتجر</div>
                         <div class="detail-value">${safeStoreName}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Payment Method</div>
+                        <div class="detail-label">طريقة الدفع</div>
                         <div class="detail-value">${safePaymentMethod}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Delivery Address</div>
+                        <div class="detail-label">عنوان التوصيل</div>
                         <div class="detail-value">${safeDeliveryAddress}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Currency</div>
+                        <div class="detail-label">العملة</div>
                         <div class="detail-value">${safeCurrency}</div>
                     </div>
                     ${safeDriverId ? `
                     <div class="detail-item">
-                        <div class="detail-label">Driver ID</div>
+                        <div class="detail-label">معرّف السائق</div>
                         <div class="detail-value">${safeDriverId}</div>
                     </div>
                     ` : ''}
                     ${safeConfirmedAt ? `
                     <div class="detail-item">
-                        <div class="detail-label">Confirmed At</div>
+                        <div class="detail-label">وقت التأكيد</div>
                         <div class="detail-value">${safeConfirmedAt}</div>
                     </div>
                     ` : ''}
@@ -893,7 +899,7 @@
                 ${itemsHtml}
                 
                 <details style="margin-top: 20px;">
-                    <summary style="cursor: pointer; font-weight: bold;">Raw Order Data</summary>
+                    <summary style="cursor: pointer; font-weight: bold;">بيانات الطلب الأصلية</summary>
                     <div class="raw-data" style="max-height: 300px; overflow-y: auto;">${safeJsonData}</div>
                 </details>
             `);
@@ -979,5 +985,8 @@
         } catch (e) { console.warn('RBAC init failed', e); }
     })();
 </script>
+<script src="../commercial-platform-notices.js?v=81"></script>
+<script src="../dispatch-reviews.js?v=190"></script>
+<script src="../order-management.js?v=248"></script>
 </body>
 </html>

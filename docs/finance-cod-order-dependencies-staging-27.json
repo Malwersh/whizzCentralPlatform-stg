@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "status": "ORDER_DEPENDENCIES_PUBLISHED_FINANCIAL_GATES_CLOSED",
+  "financialActivation": "OFF",
+  "environmentMutation": false,
+  "iamMutation": false,
+  "apiMutation": false,
+  "functions": [
+    {
+      "name": "WizzUser-GetOrder-staging",
+      "handler": "functions/get-order/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "3664cc50-0df5-49ed-8c49-a46b4d34c272",
+      "baseCodeSha256": "mXECIfFwTPuieYG6lIKGAVGn3QnrwFGZSrKAfB0qQA4=",
+      "baseSourceSha256": "df2084ff003535d7865669ee6b54e32272d74dd278c1b0abc875a9010c0687c9",
+      "candidateSourceSha256": "bccca8cd707c25a0773104be084916bdc1958531f296f5be0abf12676f017bfa",
+      "legacySourcePrefixPreserved": true,
+      "codeSha256": "9G8zvn9XW9SzGC9TDibbdszjAN9cLCW17zEP2ykw+5s=",
+      "preservedFiles": 11373,
+      "replacedFiles": [
+        "functions/get-order/index.js"
+      ],
+      "addedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "published": {
+        "name": "WizzUser-GetOrder-staging",
+        "codeSha256": "9G8zvn9XW9SzGC9TDibbdszjAN9cLCW17zEP2ykw+5s=",
+        "revisionId": "507b7d8e-f779-41c6-9a4a-e1d838446d47",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-UpdateOrderStatus-staging",
+      "handler": "functions/update-order-status/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "8f64c5fe-decf-4f71-bd31-42e163179434",
+      "baseCodeSha256": "mXECIfFwTPuieYG6lIKGAVGn3QnrwFGZSrKAfB0qQA4=",
+      "baseSourceSha256": "e16b438f3b3d49c9c569d958967ac05f08bd3945fb1bde43e85de637640443a8",
+      "candidateSourceSha256": "ba4db5c60863c9b64d1e95099ea26713b66cb8eff73f9fc563bd8c521149c921",
+      "legacySourcePrefixPreserved": true,
+      "codeSha256": "02CrjmSqe+YW2s4Cby2BEQDy/d4mjDGkI6cnj/PqzBY=",
+      "preservedFiles": 11373,
+      "replacedFiles": [
+        "functions/update-order-status/index.js"
+      ],
+      "addedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "published": {
+        "name": "WizzUser-UpdateOrderStatus-staging",
+        "codeSha256": "02CrjmSqe+YW2s4Cby2BEQDy/d4mjDGkI6cnj/PqzBY=",
+        "revisionId": "96c1e964-d6d8-4a66-b6bd-88c92ba7f9b3",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-GetGuestOrders-staging",
+      "handler": "functions/get-guest-orders/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "c5f33834-d596-4c89-9f3a-2a225aa24f4b",
+      "baseCodeSha256": "mXECIfFwTPuieYG6lIKGAVGn3QnrwFGZSrKAfB0qQA4=",
+      "baseSourceSha256": "a7d96f2ec3aac25ecd89221409c2a157eaf06e5d3c2fb0972b0edeacdcfb17f0",
+      "candidateSourceSha256": "62c5e5406df8e4612b799f8c524fb1741c3781c312f7eb734aaa617c0904a83f",
+      "legacySourcePrefixPreserved": true,
+      "codeSha256": "dF6H9D51uYMTdOw3V5+Ng9M6sUjAW25rQC8SbLJeqPE=",
+      "preservedFiles": 11373,
+      "replacedFiles": [
+        "functions/get-guest-orders/index.js"
+      ],
+      "addedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "published": {
+        "name": "WizzUser-GetGuestOrders-staging",
+        "codeSha256": "dF6H9D51uYMTdOw3V5+Ng9M6sUjAW25rQC8SbLJeqPE=",
+        "revisionId": "bb57b0d1-13ba-4255-9268-73abf9739a3c",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "handler": "functions/create-order/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "bec2a707-48fe-41b8-8819-f76e35a4f72f",
+      "baseCodeSha256": "iEh5m7ooGUT84wXnXrANviRdEwxLje/EfsW8q30Nx3E=",
+      "baseSourceSha256": "1018def703b541d6d93ebc92fac14649132689051e6d5d03a561d4d6f33d3cdb",
+      "candidateSourceSha256": "f564fcb0fe92c2f20c9c559162e6082d21881c731a86a48f37e7c558554af791",
+      "legacySourcePrefixPreserved": true,
+      "codeSha256": "BH0BVDUwi8J8WASKlJtRyclEHvyNrYaFc5tLOGvLO7g=",
+      "preservedFiles": 11373,
+      "replacedFiles": [
+        "functions/create-order/index.js"
+      ],
+      "addedFiles": [
+        "functions/create-order/commercial-order-router.js",
+        "functions/create-order/commercial-runtime.js"
+      ],
+      "published": {
+        "name": "WizzUser-CreateOrder-staging",
+        "codeSha256": "BH0BVDUwi8J8WASKlJtRyclEHvyNrYaFc5tLOGvLO7g=",
+        "revisionId": "ba006c83-cd57-4685-829e-8a133d746f92",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "handler": "merchant_order_handler.handler",
+      "ownerStack": "Wizz-Merchants-staging",
+      "baseRevisionId": "9cf9ac1e-812a-4c13-bb96-cb19cea5a4e6",
+      "baseCodeSha256": "ZccqNe/J+g9PGf1TKEDUrWIqNJNHwoVFHSvVTquXCBw=",
+      "baseSourceSha256": "56656844ef770d4998fc1bc545b59b29c7a1deb7fe48b305b39cfc5797dd2808",
+      "candidateSourceSha256": "e99cea34179e9fb2a8706f093f637a4b02b8bdd5bda886e79a8a5cac7dce34af",
+      "legacySourcePrefixPreserved": false,
+      "codeSha256": "IYqNwRXXl33SmO9Al176QBoVkvt6tFJx8UQmcByvshk=",
+      "preservedFiles": 4251,
+      "replacedFiles": [
+        "merchant_order_handler.js",
+        "pos_forwarding_service.js"
+      ],
+      "addedFiles": [],
+      "published": {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "codeSha256": "IYqNwRXXl33SmO9Al176QBoVkvt6tFJx8UQmcByvshk=",
+        "revisionId": "529a4ed4-b35d-4c29-aaeb-984c5882a5f1",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-SearchOrderByNumber-staging",
+      "handler": "functions/search-order-by-number/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "704cc251-6c16-493e-86b7-5db5790c9f96",
+      "baseCodeSha256": "mXECIfFwTPuieYG6lIKGAVGn3QnrwFGZSrKAfB0qQA4=",
+      "baseSourceSha256": "599f3256d3f4c987ad7f878e9d381337ed0f90d5adf99f56cc5bf4f367bfc16f",
+      "candidateSourceSha256": "5a12422dd6cbe5d9b8dfa67cb5c7a2cf96ce7dead630b6b4a5750997c6f7fd02",
+      "legacySourcePrefixPreserved": true,
+      "codeSha256": "brkxLIkzWdxIoyyd5XWtHHeswRpHzhq/C88Yz/UDH3s=",
+      "preservedFiles": 11373,
+      "replacedFiles": [
+        "functions/search-order-by-number/index.js"
+      ],
+      "addedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "published": {
+        "name": "WizzUser-SearchOrderByNumber-staging",
+        "codeSha256": "brkxLIkzWdxIoyyd5XWtHHeswRpHzhq/C88Yz/UDH3s=",
+        "revisionId": "36e4e97d-1697-4f43-be35-f44f8ed964f2",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "handler": "functions/get-user-orders/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "bdb4af0e-9ce8-471f-a0bf-d013f16c6848",
+      "baseCodeSha256": "mXECIfFwTPuieYG6lIKGAVGn3QnrwFGZSrKAfB0qQA4=",
+      "baseSourceSha256": "c790446c6eb737d87a02c40de48ae0c2c821b0f8ae86b65aae7231d398a44eff",
+      "candidateSourceSha256": "89e715ca0907561cc35c5a251da7020c73d03f6e989367ddbbc3df5249113458",
+      "legacySourcePrefixPreserved": true,
+      "codeSha256": "AlUq+jF5JALW+utxHsKDpz4j8qB2i7rtY/Xcy3ZI2xk=",
+      "preservedFiles": 11373,
+      "replacedFiles": [
+        "functions/get-user-orders/index.js"
+      ],
+      "addedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "published": {
+        "name": "WizzUser-GetUserOrders-staging",
+        "codeSha256": "AlUq+jF5JALW+utxHsKDpz4j8qB2i7rtY/Xcy3ZI2xk=",
+        "revisionId": "b5d4b2cf-7712-4ae9-8f9b-661cfe36071a",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-CancelOrder-staging",
+      "handler": "functions/cancel-order/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "e9434095-3d5f-4e64-837e-9682ac21f5f9",
+      "baseCodeSha256": "mXECIfFwTPuieYG6lIKGAVGn3QnrwFGZSrKAfB0qQA4=",
+      "baseSourceSha256": "155791d5c21500ce9cb7ee0035c9a435ae57ec53c8be23cb8c670276a3ce6061",
+      "candidateSourceSha256": "bdff593e18a9c3e647f7f3a7a86324bcf33ca5ed387739913ad6284f7403c2f5",
+      "legacySourcePrefixPreserved": true,
+      "codeSha256": "yTPaMjstfPIwTamMIbrlPExL+5/7MTyvogALu5hYWvE=",
+      "preservedFiles": 11373,
+      "replacedFiles": [
+        "functions/cancel-order/index.js"
+      ],
+      "addedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "published": {
+        "name": "WizzUser-CancelOrder-staging",
+        "codeSha256": "yTPaMjstfPIwTamMIbrlPExL+5/7MTyvogALu5hYWvE=",
+        "revisionId": "7785c094-faf8-485f-b38d-66c904918b0d",
+        "environmentUnchanged": true
+      }
+    }
+  ],
+  "sourceHashes": {
+    "create-order/index.js": "02ca313081b4786794cd3019d2ef4a103cf604ea3a36cb99f40e5ebf3de509db",
+    "create-order/commercial-order-router.js": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+    "shared/customer-order-view.js": "e66b694ce82c2cc095d0a45aa4aba055e8a15ef7caa4e873a3e9d9166d85b29e"
+  },
+  "runtimeVerification": {
+    "functionsVerified": 8,
+    "financialActivation": "OFF",
+    "environmentMutation": false,
+    "probes": [
+      {
+        "name": "WizzUser-CancelOrder-staging",
+        "probe": "OPTIONS_NO_DATA_ACCESS",
+        "statusCode": 200
+      },
+      {
+        "name": "WizzUser-GetGuestOrders-staging",
+        "probe": "OPTIONS_NO_DATA_ACCESS",
+        "statusCode": 200
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "probe": "OPTIONS_NO_DATA_ACCESS",
+        "statusCode": 204
+      },
+      {
+        "name": "WizzUser-UpdateOrderStatus-staging",
+        "probe": "OPTIONS_NO_DATA_ACCESS",
+        "statusCode": 200
+      },
+      {
+        "name": "WizzUser-SearchOrderByNumber-staging",
+        "probe": "OPTIONS_NO_DATA_ACCESS",
+        "statusCode": 200
+      },
+      {
+        "name": "WizzUser-GetOrder-staging",
+        "probe": "OPTIONS_NO_DATA_ACCESS",
+        "statusCode": 200
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "probe": "OPTIONS_NO_DATA_ACCESS",
+        "statusCode": 200
+      },
+      {
+        "name": "WizzUser-GetUserOrders-staging",
+        "probe": "OPTIONS_NO_DATA_ACCESS",
+        "statusCode": 200
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "probe": "CLOSED_QUOTED_OR_PREVIEW_REQUEST",
+        "statusCode": 409
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "probe": "CLOSED_QUOTED_OR_PREVIEW_REQUEST",
+        "statusCode": 409
+      }
+    ],
+    "humanDataAccess": false,
+    "otpSent": false,
+    "pushSent": false
+  },
+  "finalVerification": {
+    "closedFinancialFunctions": [
+      {
+        "name": "DriversApi-staging",
+        "modes": {},
+        "absentModesDefaultOff": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "modes": {},
+        "absentModesDefaultOff": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "modes": {},
+        "absentModesDefaultOff": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "modes": {
+          "FINANCIAL_COD_RETURNS_MODE": "OFF",
+          "FINANCIAL_DISPATCH_MODE": "OFF",
+          "FINANCIAL_COD_COMPLETION_MODE": "OFF",
+          "FINANCIAL_COD_ASSIGNMENTS_MODE": "OFF"
+        },
+        "absentModesDefaultOff": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "modes": {
+          "FINANCIAL_COD_INTEGRATION_MODE": "OFF"
+        },
+        "absentModesDefaultOff": true
+      }
+    ],
+    "gatewayChecks": [
+      {
+        "method": "OPTIONS",
+        "url": "https://4jut6787c8.execute-api.us-east-1.amazonaws.com/staging/orders",
+        "statusCode": 200
+      },
+      {
+        "method": "POST",
+        "url": "https://4jut6787c8.execute-api.us-east-1.amazonaws.com/staging/orders",
+        "statusCode": 409
+      },
+      {
+        "method": "OPTIONS",
+        "url": "https://ie7z8r4wc0.execute-api.us-east-1.amazonaws.com/staging/merchant/orders/cod27-synthetic-probe",
+        "statusCode": 200
+      }
+    ],
+    "humanDataAccess": false,
+    "environmentOrApiMutation": false
+  },
+  "localVerification": {
+    "customerBackendTests": 22,
+    "merchantBackendTests": 191,
+    "liveDerivedMerchantCandidateTests": 5,
+    "commercialSourcePricingAndOrderHandlerTests": 40,
+    "bundledCanonicalCommercialHandlerLoadAndPreflight": "PASS",
+    "generatedOrderRuntimeSync": "PASS",
+    "javascriptPythonSyntax": "PASS"
+  },
+  "scope": [
+    "Existing legacy create-order source is preserved byte-for-byte and remains selected while modes are absent/OFF",
+    "Coordinated REQUIRED modes lazily load a bundle of the existing canonical commercial writer, not a new pricing implementation",
+    "Partial/invalid activation fails closed; closed-mode quote/preview/consent requests do not invoke the legacy writer",
+    "Seven customer response paths remove financialSnapshot, commercialPricing, financialAcceptance and codFinancialEvidence",
+    "Merchant reader exposes public financialAssignment selectors and return states; normalizes pricing thousandths to IQD exactly once for API, POS and central notification"
+  ],
+  "remainingBeforeActivation": [
+    "Quote API/table/credential/rate limits and cleanup activation",
+    "Commercial source IAM and approved source records",
+    "Authenticated preview API route",
+    "Legacy status writers need financial fencing before activation",
+    "Deployed-role financial transactions and coordinated application/device canary",
+    "Approved offer TTL, position freshness and reassignment window remain UNCONFIGURED",
+    "Canonical active-order terminal list must include returned/completed consistently with financial outcomes before enabling the new writer",
+    "Current legacy status endpoints must not mutate financial orders outside the atomic COD paths; this batch redacts their responses only",
+    "No positive authenticated commercial order, real merchant return or driver completion transaction through deployed Lambda/Gateway was executed",
+    "No real device checkout/return, quote routing/timer reassignment or FCM delivery verification in this batch"
+  ],
+  "humanOrdersOrFundsChanged": false,
+  "humanDataRead": false,
+  "otpOrPushSent": false,
+  "applicationBuildOrInstallation": false,
+  "rollback": "Prior ZIPs and private configurations are kept under /private/tmp/cod27-audit. Review and preserve financial fences, response privacy and closed gates before rollback or full parent-stack SAM deployment. Reconcile current CodeUri first."
+}

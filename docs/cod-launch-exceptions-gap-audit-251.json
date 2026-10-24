@@ -1,0 +1,482 @@
+{
+  "date": "2026-10-24",
+  "scope": "COD_FIRST_LAUNCH",
+  "userDecisions": {
+    "skipRepeatedMerchantPayoutHumanTest": true,
+    "skipNewPositiveMerchantAndDriverCancellationPayoutTest": true,
+    "skippedIsNotPassed": true,
+    "customerPreferredRemedy": "EXISTING_TARGETED_BENEFIT_OR_COUPON",
+    "driverRemedy": "CANONICAL_WALLET_CREDIT",
+    "merchantRemedy": "MERCHANT_PAYABLE_AND_EXISTING_SETTLEMENT_PAYOUT",
+    "prepaidCardChargeback": "DEFERRED_OUT_OF_FIRST_LAUNCH"
+  },
+  "verifiedCapabilities": {
+    "directGrants": true,
+    "fixedGoodsVoucher": true,
+    "promoCode": true,
+    "perCustomerLimits": true,
+    "voucherIsWalletCredit": false,
+    "voucherIsCashRefund": false,
+    "automaticallyLinkedToExceptionCase": false,
+    "ordinaryPromoCodeAutomaticallyExclusiveToCompensatedCustomer": false
+  },
+  "existingEvidence": {
+    "campaignsWithBenefits": 10,
+    "directBenefitCampaigns": 9,
+    "fixedGoodsBenefits": 5,
+    "campaignsWithPromoCode": 1,
+    "readOnly": true,
+    "currentCustomerBenefits": [
+      {
+        "sk": "BENEFIT#c90386ca-681f-455b-9454-8c543ff3e275",
+        "grantedUses": "1",
+        "usedUses": "0",
+        "reservedUses": "0",
+        "revoked": false
+      },
+      {
+        "sk": "BENEFIT#f688fc65-9f68-4b57-8756-31722a4a38d4",
+        "grantedUses": "1",
+        "usedUses": "1",
+        "reservedUses": "0",
+        "revoked": false
+      }
+    ]
+  },
+  "publishedFunctions": [
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "51N75PIVUj5yUWfEXG7xjTPhzY753T0HHFtZJDr0/Qc="
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "beulemti7t2x/h9Cofr8IFoxIwdGfktgW6CtT6p8vp4="
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "codeSha256": "XpsDlXebEE5mSpc2hmnnyQEq+uiJ+lbhCi43MO0kcAI="
+    }
+  ],
+  "tests": {
+    "financial": {
+      "passed": 186,
+      "failed": 0
+    },
+    "staff": {
+      "passed": 21,
+      "failed": 0
+    }
+  },
+  "scenarios": [
+    {
+      "id": "A01",
+      "scenario": "المستخدم يلغي قبل قبول المطعم",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/customer-cancellation-231.test.cjs",
+        "docs/cancellation-compensation-final-audit-250.json"
+      ]
+    },
+    {
+      "id": "A02",
+      "scenario": "المستخدم يلغي بعد القبول لكن قبل بدء التجهيز",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/customer-cancellation-231.test.cjs",
+        "docs/cancellation-compensation-final-audit-250.json"
+      ]
+    },
+    {
+      "id": "A03",
+      "scenario": "المستخدم يطلب الإلغاء بعد `PREPARING`",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/customer-cancellation-231.test.cjs",
+        "docs/cancellation-compensation-final-audit-250.json"
+      ]
+    },
+    {
+      "id": "A04",
+      "scenario": "المطعم يرفض أو لا يرد",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Merchant cancellation exists; automatic no-response outcome and all terminal paths not established.",
+      "evidence": []
+    },
+    {
+      "id": "A05",
+      "scenario": "نفاد صنف",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Pickup issue reporting exists; customer-authorized substitution/removal and price change not completed.",
+      "evidence": []
+    },
+    {
+      "id": "A06",
+      "scenario": "المطعم يتأخر",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Delay report exists; tracked communication, ETA commitment and final resolution incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "A07",
+      "scenario": "المطعم يلغي بعد تجهيز وقبل pickup",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/merchant-cancellation-234.test.cjs"
+      ]
+    },
+    {
+      "id": "A08",
+      "scenario": "لا سائق/انتهت الموجات",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Search/retry/admin intervention exist; every terminal compensation outcome not accepted end-to-end.",
+      "evidence": []
+    },
+    {
+      "id": "A09",
+      "scenario": "السائق يرفض العرض",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/cod-reassignment.test.cjs",
+        "../whizzDrivers-stg/frontend/test/active_assignment_guard_test.dart"
+      ]
+    },
+    {
+      "id": "A10",
+      "scenario": "السائق ينسحب قبل pickup",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/cod-reassignment.test.cjs",
+        "../whizzDrivers-stg/frontend/test/active_assignment_guard_test.dart"
+      ]
+    },
+    {
+      "id": "A11",
+      "scenario": "المطعم مغلق عند وصول السائق",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Store-closed report exists; tracked support resolution and cancellation integration incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "A12",
+      "scenario": "طلب مكرر/خطأ تسعير",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Admin cancellation exists; duplicate/price-error classification and complete resolution not dedicated.",
+      "evidence": []
+    },
+    {
+      "id": "B01",
+      "scenario": "المستخدم لا يرد",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/cod-return.test.cjs",
+        "backend/wallet-service/test/return-items-integration-262.test.cjs",
+        "backend/wallet-service/test/return-continuation-264.test.cjs"
+      ]
+    },
+    {
+      "id": "B02",
+      "scenario": "غير موجود/عنوان غير صحيح",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Failed delivery/return exists; address resolution and rerouting are incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "B03",
+      "scenario": "العنوان الجديد داخل/خارج المنطقة",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "No complete post-pickup address change with road/price/party confirmation contract established.",
+      "evidence": []
+    },
+    {
+      "id": "B04",
+      "scenario": "يرفض دون خطأ ظاهر",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/cod-return.test.cjs",
+        "backend/wallet-service/test/return-items-integration-262.test.cjs",
+        "backend/wallet-service/test/return-continuation-264.test.cjs"
+      ]
+    },
+    {
+      "id": "B05",
+      "scenario": "رفض بسبب أصناف خاطئة/ناقصة",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Reason/evidence and full return exist; substitute/partial delivery settlement missing.",
+      "evidence": []
+    },
+    {
+      "id": "B06",
+      "scenario": "تلف/تسرب/فقد",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Return damage/missing custody and responsibility exist; incident-specific journey acceptance incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "B07",
+      "scenario": "عطل مركبة/حادث",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Alternative custody exists; driver-to-driver authenticated transfer/incident handling incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "B08",
+      "scenario": "فقد اتصال السائق",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Monitoring/retry primitives exist; driver-disconnection recovery journey not completed.",
+      "evidence": []
+    },
+    {
+      "id": "B09",
+      "scenario": "طريق مغلق/ظرف أمني/طقس",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Return/support primitives exist; exceptional-road decision workflow incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "B10",
+      "scenario": "المطعم يرفض المرتجع",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/cod-return.test.cjs",
+        "backend/wallet-service/test/return-items-integration-262.test.cjs",
+        "backend/wallet-service/test/return-continuation-264.test.cjs"
+      ]
+    },
+    {
+      "id": "B11",
+      "scenario": "المطعم مغلق عند العودة",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/cod-return.test.cjs",
+        "backend/wallet-service/test/return-items-integration-262.test.cjs",
+        "backend/wallet-service/test/return-continuation-264.test.cjs"
+      ]
+    },
+    {
+      "id": "B12",
+      "scenario": "تحويل لسائق آخر",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Transfer to company custodian is implemented; this is not an authenticated driver-to-driver delivery handover.",
+      "evidence": []
+    },
+    {
+      "id": "B13",
+      "scenario": "تسليم جزء/إرجاع جزء",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Partial merchant-return receipt is implemented; partial CUSTOMER delivery/repricing/collection is separate and incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "B14",
+      "scenario": "استلام كل الأصناف والنقد الكامل",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/customer-cash-case-266.test.cjs",
+        "backend/wallet-service/test/cash-adjudication-278.test.cjs"
+      ]
+    },
+    {
+      "id": "B15",
+      "scenario": "استلام كامل لكن دفع أقل",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Top-up then full settlement tested by human; alternative administrative shortfall outcomes implemented, human acceptance pending.",
+      "evidence": [
+        "backend/wallet-service/test/customer-cash-case-266.test.cjs",
+        "backend/wallet-service/test/cash-adjudication-278.test.cjs"
+      ]
+    },
+    {
+      "id": "B16",
+      "scenario": "دفع أكثر من المطلوب",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Cash excess/refund machinery exists. Launch policy prefers customer-specific coupons; coupon issuance is not actual cash repayment.",
+      "evidence": [
+        "backend/wallet-service/test/customer-cash-case-266.test.cjs",
+        "backend/wallet-service/test/cash-adjudication-278.test.cjs"
+      ]
+    },
+    {
+      "id": "B17",
+      "scenario": "قبض ثم رفض/أعاد",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Cash-custody/refund and return machinery exist; coupon remedy must remain distinct from actual cash refund.",
+      "evidence": [
+        "backend/wallet-service/test/customer-cash-case-266.test.cjs",
+        "backend/wallet-service/test/cash-adjudication-278.test.cjs"
+      ]
+    },
+    {
+      "id": "B18",
+      "scenario": "ادعاء نجاح تسليم متناقض",
+      "implementation": "PARTIAL",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Evidence/responsibility/cash review exist; comprehensive contradictory delivery claim journey incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "C01",
+      "scenario": "صنف ناقص",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Goods coupon exists; item-level post-delivery claim with case-linked remedy not completed.",
+      "evidence": []
+    },
+    {
+      "id": "C02",
+      "scenario": "صنف خاطئ",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Goods coupon exists; wrong-item post-delivery claim with case-linked remedy not completed.",
+      "evidence": []
+    },
+    {
+      "id": "C03",
+      "scenario": "تلوث أو جودة غير آمنة",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "General evidence exists; end-to-end safety complaint triage/decision/resolution incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "C04",
+      "scenario": "تأخير مفرط",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Coupon exists; post-delivery delay claim and remedy tracking incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "C05",
+      "scenario": "المستخدم ينكر التسليم",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Delivery evidence exists; complete customer denial-of-delivery claim handling incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "C06",
+      "scenario": "نزاع نقد/باقٍ مستحق",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Implemented source and tests exist; not a claim that all subcases passed human acceptance.",
+      "evidence": [
+        "backend/wallet-service/test/customer-cash-case-266.test.cjs",
+        "backend/wallet-service/test/cash-adjudication-278.test.cjs"
+      ]
+    },
+    {
+      "id": "C07",
+      "scenario": "شكوى بعد ساعات",
+      "implementation": "INCOMPLETE",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Existing exceptions/appeal windows do not establish a generic late customer complaint intake/remedy journey.",
+      "evidence": []
+    },
+    {
+      "id": "C08",
+      "scenario": "نزاع التعويض بعد قرار",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Appeal/unchanged-rights review exists; a financially changed decision after payout needs a separate supported correction.",
+      "evidence": []
+    },
+    {
+      "id": "C09",
+      "scenario": "مرتجع كامل وسليم",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Real return case with merchant compensation6250 payout and financial closure previously verified.",
+      "evidence": [
+        "backend/wallet-service/test/cod-return.test.cjs",
+        "backend/wallet-service/test/return-items-integration-262.test.cjs",
+        "backend/wallet-service/test/return-continuation-264.test.cjs"
+      ]
+    },
+    {
+      "id": "C10",
+      "scenario": "مرتجع ناقص/تالف",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Quantity manifest, original receipt preservation, alternative custody and partial guarantee decisions implemented; not every branch human-tested.",
+      "evidence": [
+        "backend/wallet-service/test/cod-return.test.cjs",
+        "backend/wallet-service/test/return-items-integration-262.test.cjs",
+        "backend/wallet-service/test/return-continuation-264.test.cjs"
+      ]
+    },
+    {
+      "id": "C11",
+      "scenario": "رفض/تعذر العودة",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Authorized alternative custody/disposition exists; not every branch human-tested.",
+      "evidence": [
+        "backend/wallet-service/test/cod-return.test.cjs",
+        "backend/wallet-service/test/return-items-integration-262.test.cjs",
+        "backend/wallet-service/test/return-continuation-264.test.cjs"
+      ]
+    },
+    {
+      "id": "C12",
+      "scenario": "فشل تسوية أو اتصال مالي",
+      "implementation": "IMPLEMENTED",
+      "humanAcceptance": "NOT_EXHAUSTIVELY_PROVEN",
+      "notes": "Idempotent transactional posting/reconciliation covered in automated tests; human retry coverage not exhaustive.",
+      "evidence": []
+    }
+  ],
+  "additionalCompletedScenario": {
+    "scenario": "ADMIN_CANCEL_BEFORE_PICKUP_DRIVER_ONLY_COMPENSATION",
+    "evidence": "docs/cancellation-compensation-final-audit-250.json",
+    "humanAcceptance": "VERIFIED"
+  },
+  "nextImplementationOrder": [
+    "Link existing directed compensation grant to original order/case with evidence and current voucher state; no duplicate coupon engine",
+    "Complete pickup-report resolution (out-of-stock, closed store, delay, content mismatch, other)",
+    "Post-pickup address changes and driver-to-driver authenticated custody transfer",
+    "Partial customer delivery with approved item/price/cash allocation",
+    "Post-delivery customer claims and case-linked existing coupon remedy",
+    "Complete remaining automated failure/race cases; only request human tests where evidence is still materially missing"
+  ],
+  "businessWritesPerformed": false
+}

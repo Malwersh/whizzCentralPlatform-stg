@@ -1,0 +1,1110 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "Isolated ownership of Staging COD lifecycle; modes OFF; no existing API, table or schedule changes.",
+  "Parameters": {
+    "Cod26DriversApiFunctionRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "Cod26WaveSystemStartWaveFunctionRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "Cod26WaveSystemHandleWaveTimeoutFunctionRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "Cod26WalletNotificationWorkerRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "Cod26WalletServiceFunctionRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "Cod26FunctionRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "Cod26WorkerRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "Cod26FinancialExpiryRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "Cod26UnifiedAuthFunctionRoleName": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"
+    },
+    "MerchantRestApiId": {
+      "Type": "String",
+      "AllowedValues": [
+        "ie7z8r4wc0"
+      ]
+    },
+    "MerchantAuthParentResourceId": {
+      "Type": "String",
+      "AllowedPattern": "[a-z0-9]{1,20}"
+    },
+    "MerchantCognitoAuthorizerId": {
+      "Type": "String",
+      "AllowedPattern": "[a-z0-9]{1,20}"
+    }
+  },
+  "Conditions": {
+    "IsSandboxStaging": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "699561669180"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "DriverFinancialAcceptanceFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "FunctionName": "staging-driver-financial-accept",
+        "CodeUri": "./",
+        "Handler": "dist/driverFinancialRuntime.financialAcceptanceHandler",
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+        "MemorySize": 512,
+        "Environment": {
+          "Variables": {
+            "STAGE": "staging",
+            "FINANCIAL_DISPATCH_MODE": "OFF",
+            "FINANCIAL_COD_COMPLETION_MODE": "OFF",
+            "FINANCIAL_COD_RETURNS_MODE": "OFF",
+            "FINANCIAL_COD_ASSIGNMENTS_MODE": "OFF",
+            "FINANCIAL_OFFER_TTL_SECONDS": "60",
+            "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120",
+            "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "300",
+            "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+            "FINANCIAL_DELIVERY_FUNDING_MODE": "OFF"
+          }
+        },
+        "Policies": [
+          {
+            "Statement": [
+              {
+                "Sid": "FixedFinancialSources",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem"
+                ],
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_staging"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AccountDeletion"
+                  }
+                ]
+              },
+              {
+                "Sid": "PublishedPricingPolicy",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem"
+                ],
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff"
+                },
+                "Condition": {
+                  "ForAllValues:StringEquals": {
+                    "dynamodb:LeadingKeys": [
+                      "OPERATIONAL_SETTINGS#DELIVERY_PRICING",
+                      "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "FinancialAssignmentAndOutcome",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem",
+                  "dynamodb:UpdateItem"
+                ],
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzDispatchJobs_staging"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WaveOffers_staging"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzDriverLiveState_staging"
+                  }
+                ]
+              },
+              {
+                "Sid": "FinancialReceiptsAndOutbox",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem",
+                  "dynamodb:PutItem",
+                  "dynamodb:UpdateItem"
+                ],
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-Holds"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WalletLifecycle"
+                  }
+                ]
+              },
+              {
+                "Sid": "ExistingFundedWalletsOnly",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem",
+                  "dynamodb:UpdateItem"
+                ],
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-Wallets"
+                },
+                "Condition": {
+                  "ForAllValues:StringLike": {
+                    "dynamodb:LeadingKeys": [
+                      "WALLET#DRIVER#*",
+                      "WALLET#MERCHANT#*",
+                      "WALLET#PLATFORM"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "AppendFinancialEvidence",
+                "Effect": "Allow",
+                "Action": "dynamodb:PutItem",
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-LedgerEntries"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AuditLog"
+                  }
+                ]
+              },
+              {
+                "Sid": "LiveFinancialIdentities",
+                "Effect": "Allow",
+                "Action": "cognito-idp:AdminGetUser",
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_RGTqUXF5C"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_gtCR3ndzT"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "CodIntegrationWorker": {
+      "Type": "AWS::Serverless::Function",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "FunctionName": "staging-cod-integration",
+        "CodeUri": "./",
+        "Handler": "dist/codIntegrationRuntime.handler",
+        "Runtime": "nodejs22.x",
+        "Timeout": 60,
+        "MemorySize": 256,
+        "Environment": {
+          "Variables": {
+            "STAGE": "staging",
+            "FINANCIAL_COD_ACCOUNT_ID": {
+              "Ref": "AWS::AccountId"
+            },
+            "FINANCIAL_COD_INTEGRATION_MODE": "OFF",
+            "FINANCIAL_COD_NOTICE_DELIVERY": "HELD",
+            "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+            "DISPATCH_RESPONSE_NOTICE_DELIVERY": "HELD",
+            "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+            "DISPATCH_REVIEW_HOST_ACCOUNT_ID": "699561669180",
+            "DISPATCH_REVIEW_HOST_RULE_ARN": "arn:aws:events:us-east-1:699561669180:rule/staging-cod-lifecycle-CodIntegrationWorkerRetryInte-LlysduSg9yRo",
+            "FINANCIAL_DELIVERY_FUNDING_MODE": "OFF"
+          }
+        },
+        "Policies": [
+          {
+            "Statement": [
+              {
+                "Sid": "FinancialIntegrationEvents",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:UpdateItem",
+                  "dynamodb:ConditionCheckItem"
+                ],
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WalletLifecycle"
+                },
+                "Condition": {
+                  "ForAllValues:StringLike": {
+                    "dynamodb:LeadingKeys": [
+                      "CDA:*:EVENT",
+                      "COD:*:EVENT",
+                      "CR:*:EVENT",
+                      "CA:*:EVENT",
+                      "DR:*:EVENT"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "IntegrationQueueOnly",
+                "Effect": "Allow",
+                "Action": "dynamodb:Query",
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WalletLifecycle/index/ByDue"
+                },
+                "Condition": {
+                  "ForAllValues:StringEquals": {
+                    "dynamodb:LeadingKeys": [
+                      "COD_INTEGRATION",
+                      "DISPATCH_RESPONSE_INTEGRATION"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "IntegrationSourceProof",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem"
+                ],
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WaveOffers_staging"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-Holds"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_staging"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AccountDeletion"
+                  }
+                ]
+              },
+              {
+                "Sid": "DriverCompletionMetrics",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:UpdateItem"
+                ],
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzDriverPerformanceMetrics_staging"
+                },
+                "Condition": {
+                  "ForAllValues:StringLike": {
+                    "dynamodb:LeadingKeys": [
+                      "DRIVER#*"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "FinancialDriverInbox",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:PutItem",
+                  "dynamodb:GetItem"
+                ],
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-WalletNotifications"
+                },
+                "Condition": {
+                  "ForAllValues:StringLike": {
+                    "dynamodb:LeadingKeys": [
+                      "COD_EVENT:*",
+                      "DISPATCH_NOTICE:*"
+                    ]
+                  }
+                }
+              },
+              {
+                "Sid": "IntegrationAudit",
+                "Effect": "Allow",
+                "Action": "dynamodb:PutItem",
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AuditLog"
+                }
+              },
+              {
+                "Sid": "PinnedDispatchResponseProof",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+              },
+              {
+                "Sid": "PinnedDispatchOfferClosures",
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:Query",
+                  "dynamodb:GetItem",
+                  "dynamodb:UpdateItem",
+                  "dynamodb:ConditionCheckItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging"
+              },
+              {
+                "Sid": "PinnedDispatchResponseAck",
+                "Effect": "Allow",
+                "Action": "dynamodb:UpdateItem",
+                "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+                "Condition": {
+                  "Null": {
+                    "dynamodb:Attributes": "false"
+                  },
+                  "ForAllValues:StringEquals": {
+                    "dynamodb:Attributes": [
+                      "orderId",
+                      "SK",
+                      "kind",
+                      "state",
+                      "eventId",
+                      "eventType",
+                      "cycleId",
+                      "assignmentId",
+                      "offerId",
+                      "driverId",
+                      "subjectId",
+                      "branchId",
+                      "waveNumber",
+                      "createdAt",
+                      "integratedAt"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": "cognito-idp:AdminGetUser",
+                "Resource": "arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_wz7vwZZxz"
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem"
+                ],
+                "Resource": [
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": "dynamodb:Query",
+                "Resource": [
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": "dynamodb:UpdateItem",
+                "Resource": [
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+                  "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+                ]
+              },
+              {
+                "Effect": "Allow",
+                "Action": "dynamodb:PutItem",
+                "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:ConditionCheckItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+                "Condition": {
+                  "ForAllValues:StringLike": {
+                    "dynamodb:LeadingKeys": [
+                      "EMPLOYEE#*",
+                      "DISPATCH_REVIEW#*",
+                      "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS",
+                      "CONTROL#DISPATCH_REVIEW_HOST"
+                    ]
+                  }
+                }
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:PutItem",
+                  "dynamodb:UpdateItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+                "Condition": {
+                  "ForAllValues:StringLike": {
+                    "dynamodb:LeadingKeys": [
+                      "DISPATCH_REVIEW#*",
+                      "AUDIT",
+                      "CONTROL#DISPATCH_REVIEW_HOST"
+                    ]
+                  }
+                }
+              },
+              {
+                "Effect": "Allow",
+                "Action": "dynamodb:Scan",
+                "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+                "Condition": {
+                  "StringEquals": {
+                    "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+                  },
+                  "ForAllValues:StringEquals": {
+                    "dynamodb:Attributes": [
+                      "pk",
+                      "sk",
+                      "kind",
+                      "status"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "Events": {
+          "RetryIntegration": {
+            "Type": "Schedule",
+            "Properties": {
+              "Schedule": "rate(1 minute)",
+              "Enabled": false
+            }
+          }
+        }
+      }
+    },
+    "Cod26DriversApiFunctionGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-DriversApiFunction",
+        "Roles": [
+          {
+            "Ref": "Cod26DriversApiFunctionRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "lambda:InvokeFunction",
+              "Resource": "arn:aws:lambda:us-east-1:699561669180:function:staging-driver-financial-accept"
+            }
+          ]
+        }
+      }
+    },
+    "Cod26WaveSystemStartWaveFunctionGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-WaveSystemStartWaveFunction",
+        "Roles": [
+          {
+            "Ref": "Cod26WaveSystemStartWaveFunctionRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDriverLiveState_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff"
+              ],
+              "Condition": {
+                "ForAllValues:StringEquals": {
+                  "dynamodb:LeadingKeys": [
+                    "OPERATIONAL_SETTINGS#DELIVERY_PRICING",
+                    "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": "cognito-idp:AdminGetUser",
+              "Resource": "arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_RGTqUXF5C"
+            }
+          ]
+        }
+      }
+    },
+    "Cod26WaveSystemHandleWaveTimeoutFunctionGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-WaveSystemHandleWaveTimeoutFunction",
+        "Roles": [
+          {
+            "Ref": "Cod26WaveSystemHandleWaveTimeoutFunctionRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDriverLiveState_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff"
+              ],
+              "Condition": {
+                "ForAllValues:StringEquals": {
+                  "dynamodb:LeadingKeys": [
+                    "OPERATIONAL_SETTINGS#DELIVERY_PRICING"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": "cognito-idp:AdminGetUser",
+              "Resource": "arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_RGTqUXF5C"
+            },
+            {
+              "Sid": "RecordFinancialSearchReview",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:UpdateItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ORDER#*"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "ReadPriorFinancialAssignmentRelease",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds"
+            }
+          ]
+        }
+      }
+    },
+    "Cod26WalletNotificationWorkerGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-WalletNotificationWorker",
+        "Roles": [
+          {
+            "Ref": "Cod26WalletNotificationWorkerRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "Cod26WalletServiceFunctionGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-WalletServiceFunction",
+        "Roles": [
+          {
+            "Ref": "Cod26WalletServiceFunctionRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "Cod26FunctionGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-Function",
+        "Roles": [
+          {
+            "Ref": "Cod26FunctionRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:Scan"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "Cod26WorkerGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-Worker",
+        "Roles": [
+          {
+            "Ref": "Cod26WorkerRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:PutItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "Cod26FinancialExpiryGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-FinancialExpiry",
+        "Roles": [
+          {
+            "Ref": "Cod26FinancialExpiryRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "Cod26UnifiedAuthFunctionGuardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "PolicyName": "cod26-UnifiedAuthFunction",
+        "Roles": [
+          {
+            "Ref": "Cod26UnifiedAuthFunctionRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "lambda:InvokeFunction",
+              "Resource": "arn:aws:lambda:us-east-1:699561669180:function:staging-driver-financial-accept"
+            }
+          ]
+        }
+      }
+    },
+    "CodOrderReturns": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "MerchantRestApiId"
+        },
+        "ParentId": {
+          "Ref": "MerchantAuthParentResourceId"
+        },
+        "PathPart": "order-returns"
+      }
+    },
+    "CodOrderReturnsGET": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "MerchantRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "CodOrderReturns"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "MerchantCognitoAuthorizerId"
+        },
+        "AuthorizationScopes": [
+          "aws.cognito.signin.user.admin"
+        ],
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:order-receiver-regional-staging-unified-auth-v4-sam/invocations"
+          }
+        }
+      }
+    },
+    "CodOrderReturnsPOST": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "MerchantRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "CodOrderReturns"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "MerchantCognitoAuthorizerId"
+        },
+        "AuthorizationScopes": [
+          "aws.cognito.signin.user.admin"
+        ],
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:order-receiver-regional-staging-unified-auth-v4-sam/invocations"
+          }
+        }
+      }
+    },
+    "CodOrderReturnsOPTIONS": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "MerchantRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "CodOrderReturns"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Headers": false,
+              "method.response.header.Access-Control-Allow-Methods": false
+            }
+          }
+        ]
+      }
+    },
+    "CodOrderCancellation": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "MerchantRestApiId"
+        },
+        "ParentId": {
+          "Ref": "MerchantAuthParentResourceId"
+        },
+        "PathPart": "order-cancellation"
+      }
+    },
+    "CodOrderCancellationPOST": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "MerchantRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "CodOrderCancellation"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "MerchantCognitoAuthorizerId"
+        },
+        "AuthorizationScopes": [
+          "aws.cognito.signin.user.admin"
+        ],
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:order-receiver-regional-staging-unified-auth-v4-sam/invocations"
+          }
+        }
+      }
+    },
+    "CodOrderCancellationOPTIONS": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsSandboxStaging",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "MerchantRestApiId"
+        },
+        "ResourceId": {
+          "Ref": "CodOrderCancellation"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Headers": false,
+              "method.response.header.Access-Control-Allow-Methods": false
+            }
+          }
+        ]
+      }
+    },
+    "CodMerchantRoutesDeployment": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Condition": "IsSandboxStaging",
+      "DependsOn": [
+        "CodOrderReturnsGET",
+        "CodOrderReturnsPOST",
+        "CodOrderReturnsOPTIONS",
+        "CodOrderCancellationPOST",
+        "CodOrderCancellationOPTIONS"
+      ],
+      "Properties": {
+        "RestApiId": {
+          "Ref": "MerchantRestApiId"
+        },
+        "Description": "COD26 disabled merchant routes; stage switch is a separately verified deployment step"
+      }
+    }
+  },
+  "Outputs": {
+    "DriverFinancialAcceptanceFunctionArn": {
+      "Condition": "IsSandboxStaging",
+      "Value": {
+        "Fn::GetAtt": [
+          "DriverFinancialAcceptanceFunction",
+          "Arn"
+        ]
+      }
+    },
+    "CodIntegrationWorkerArn": {
+      "Condition": "IsSandboxStaging",
+      "Value": {
+        "Fn::GetAtt": [
+          "CodIntegrationWorker",
+          "Arn"
+        ]
+      }
+    },
+    "MerchantRoutesDeploymentId": {
+      "Condition": "IsSandboxStaging",
+      "Value": {
+        "Ref": "CodMerchantRoutesDeployment"
+      }
+    }
+  }
+}

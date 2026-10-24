@@ -1,0 +1,1135 @@
+{
+  "schemaVersion": 1,
+  "part": 54,
+  "environment": "Staging",
+  "preparedAtUtc": "2026-10-17T03:35:27.118251+00:00",
+  "status": "COORDINATED_CANDIDATES_AND_TEST_CHECKOUT_PREPARED_NOT_PUBLISHED",
+  "published": false,
+  "activated": false,
+  "publicationReady": false,
+  "IAMChanged": false,
+  "environmentChanged": false,
+  "cohortConfiguredInAWS": false,
+  "humanRowsRead": false,
+  "handlerInvocations": 0,
+  "financialWrites": 0,
+  "providerCalls": 0,
+  "phoneBuildOrInstall": false,
+  "phaseT1LiveVerificationComplete": false,
+  "infrastructurePolicyReconciliationPending": true,
+  "privateArtifactsDirectory": "/private/tmp/finance54-release5",
+  "privateCaptureDirectory": "/private/tmp/finance54-live",
+  "runtimeHosts": 13,
+  "privacyPackagesReviewed": 8,
+  "candidates": 21,
+  "rollbackPackages": 21,
+  "packagesWithSourceChanges": 20,
+  "captureAtUtc": "2026-10-17T03:25:57.058404+00:00",
+  "allPackagesMatchReviewed51Hashes": true,
+  "archiveVerification": {
+    "archives": 21,
+    "unchangedEntriesVerified": 137860,
+    "publishedFinancialSDKCompatible": true,
+    "providerCalls": 0,
+    "awsMutations": 0,
+    "published": false,
+    "activated": false
+  },
+  "functions": [
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "handler": "index.handler",
+      "runtime": "nodejs22.x",
+      "codeSha256": "9K9V6WLpY3/D/GixykDPAzu2t5ZJRtUchidVhVqSMXU=",
+      "revisionId": "e7e7ab15-a867-4737-a343-775c440ca391",
+      "role": "arn:aws:iam::699561669180:role/staging-delivery-quotes-DeliveryQuoteRole-ZBt492FUdXTr",
+      "environmentDigest": "3d60afa2076062cd1029422761f285e8a4df895085cab1a5e50d42fbbbaded95",
+      "candidateCodeSha256": "sWBR+njla6Tb/z3O0tPTA6w17R9EL9VWgiQOePWLcOE=",
+      "preservedFiles": 1,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "handler": "functions/create-order/index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "blAgb1fOElFm+nHCTIH7ggEUOeI6tyH12G6b1tyLmK4=",
+      "revisionId": "b4ea18be-73d0-41d0-bbd8-84dec9d9b421",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+      "environmentDigest": "4ff143d96949eddefde8be11d81c333ffb245a84d572b5002a92251c565a5565",
+      "candidateCodeSha256": "krrvCqW+Xl3ADD9WHtAow1TpclzfwKzjgy6qqxhrRXE=",
+      "preservedFiles": 11045,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js",
+        "functions/create-order/commercial-runtime.js"
+      ],
+      "addedFiles": [],
+      "proofs": [
+        {
+          "preservedLegacyEntrySha256": "ce27c821404d1a5ba4278cc6b50aabf20767c6c856c987eb7830b926eab695a5"
+        }
+      ]
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "handler": "index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+      "revisionId": "7f81c17d-8578-4055-a2da-cc875b44aff7",
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "environmentDigest": "d627b6bb3db66ec9ae83db8098e36dc5b56d1584814c502ee085e696d2a0576c",
+      "candidateCodeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+      "preservedFiles": 5850,
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js",
+        "index.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "handler": "index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "E4iRy4TrUBn++WygDOJMxymHy4vcvAi5WCKCDZ6zwMc=",
+      "revisionId": "ff32631b-bf2f-407f-87f2-3c5f48e2d61e",
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+      "environmentDigest": "d6b5ef9e8a512ef2d5dab67dd135b7d8a40678cccf0dc824647c512d7511b74b",
+      "candidateCodeSha256": "4f3vFrGiDOaXr044Uq99hbIwm6IYTCAeEr2Hgucc0ag=",
+      "preservedFiles": 2934,
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js",
+        "financial-runtime.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "proofs": [
+        {
+          "preservedMoneyPrefixSha256": "0a00917f7a35be7ce8c5a2cbbdec88857184ed5783ca6c7f86d2d1bceba20d3c",
+          "adapterFunctions": [
+            "configuration",
+            "clients",
+            "runFinancialWave",
+            "acceptFinancialOffer",
+            "authenticateFinancialDriver",
+            "completeFinancialCod",
+            "financialCodReturn",
+            "financialAssignmentTransition",
+            "exhaustFinancialSearch",
+            "expireFinancialWave",
+            "financialAcceptanceHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "handler": "index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "yOpcsKF1Jh4QFfh8jC9XqDk8qEv+4S6E/bwJZxoPPDk=",
+      "revisionId": "dcd72278-4bf8-4e66-88c4-ae6ff64339ab",
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "environmentDigest": "a3559ab86424c34a14182e6d84926e472b0d8e3ccfb6a1cafb3e2b8a0b4e0206",
+      "candidateCodeSha256": "l5vdj1VGicKqHlnrItafwmcnwZulHuwcGZjLq1GMJGs=",
+      "preservedFiles": 2930,
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js",
+        "financial-runtime.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "proofs": [
+        {
+          "preservedMoneyPrefixSha256": "0a00917f7a35be7ce8c5a2cbbdec88857184ed5783ca6c7f86d2d1bceba20d3c",
+          "adapterFunctions": [
+            "configuration",
+            "clients",
+            "runFinancialWave",
+            "acceptFinancialOffer",
+            "authenticateFinancialDriver",
+            "completeFinancialCod",
+            "financialCodReturn",
+            "financialAssignmentTransition",
+            "exhaustFinancialSearch",
+            "expireFinancialWave",
+            "financialAcceptanceHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "handler": "index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+      "revisionId": "8e7660ed-574e-43c5-8952-6f3c68f8be44",
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+      "environmentDigest": "d7dbc39659d89239bb283c0d2d685edeeae0834fb0001bb572c90ae84c176d3f",
+      "candidateCodeSha256": "2J7BvHTGk/Dnb3Va0Uu9QFdh751uxSkdiTxkL49gPcM=",
+      "preservedFiles": 3605,
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "handler": "index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+      "revisionId": "409b9744-7416-476e-9bfc-e1b88bf3220b",
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+      "environmentDigest": "90d4da793a597ffe933a103f429d6272157e9e7fa9575f1cdb06d7f787add1c2",
+      "candidateCodeSha256": "s5VY//RJOiuDFnauWZCw5SHcMN9aTR+SkN3kj4uaz0w=",
+      "preservedFiles": 4050,
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "DriversApi-staging",
+      "handler": "lambda_driver_api_v2.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+      "revisionId": "1ab30819-e7a4-466a-b059-590733dbaf01",
+      "role": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+      "environmentDigest": "c39f72fad3be4e3bbfef28e0dcf082eb47ac3d17b73184fd33b7fc6cfb3bc35f",
+      "candidateCodeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+      "preservedFiles": 11432,
+      "replacedFiles": [
+        "lambda_driver_api_v2.js",
+        "pinned-legacy-runtime.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "handler": "index.financialAcceptanceHandler",
+      "runtime": "nodejs22.x",
+      "codeSha256": "HalqAFH3dXm7fw7KHEvB38diX645Ae+HPf5Sk8oDsg0=",
+      "revisionId": "a8ec9038-2f56-4823-acba-11875c2633ca",
+      "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "environmentDigest": "e9236b440039f769603a5716ad88bfefb15f903c4fcb5c7caae64bc9e4a6389c",
+      "candidateCodeSha256": "WA/Hluge+mBHlh9SSZzV9FqAbzByy4rCPdIE/WRgIYU=",
+      "preservedFiles": 1,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "proofs": [
+        {
+          "preservedMoneyPrefixSha256": "0a00917f7a35be7ce8c5a2cbbdec88857184ed5783ca6c7f86d2d1bceba20d3c",
+          "adapterFunctions": [
+            "configuration",
+            "clients",
+            "runFinancialWave",
+            "acceptFinancialOffer",
+            "authenticateFinancialDriver",
+            "completeFinancialCod",
+            "financialCodReturn",
+            "financialAssignmentTransition",
+            "exhaustFinancialSearch",
+            "expireFinancialWave",
+            "financialAcceptanceHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "staging-cod-integration",
+      "handler": "index.handler",
+      "runtime": "nodejs22.x",
+      "codeSha256": "/3REFzxqSsEgpx5vRdaYQcKyuQuaAiJf6jnhA+0/V0k=",
+      "revisionId": "b79a0b4a-c242-4f89-9be1-e60fee31ae00",
+      "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+      "environmentDigest": "342f176ab65d7c949ab698726d38059b372602d6d640fefb7ece768cd1f1d53f",
+      "candidateCodeSha256": "zJdHVmIdhjbrGc+Ub7VrTJDJUE+aMTAioje8xgjLSpY=",
+      "preservedFiles": 0,
+      "replacedFiles": [
+        "dispatch-response-runtime.js",
+        "dispatch-review-host-runtime.js",
+        "index.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "proofs": [
+        {
+          "preservedOutsideAdapterSha256": "ead644cdcd2d44d7ab23d1c5fa4ded61e9228448682e6f5f979d0e9d05af7671"
+        }
+      ]
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "handler": "index.handler",
+      "runtime": "nodejs22.x",
+      "codeSha256": "J73EsBUMjqDGSz412MGaU+S2VYwDJGdxt9u1VWbiKb4=",
+      "revisionId": "f52dea21-e9aa-4dfc-bbc1-1c305599afe1",
+      "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "environmentDigest": "ca09cacb2edcb808a1cf6722406e4fc14bebd5618a578afc2885a7e8e225847e",
+      "candidateCodeSha256": "rxC2dzs9CPvcn7h80TKomaN/s1B4QbRlpdSDK94gBic=",
+      "preservedFiles": 4509,
+      "replacedFiles": [
+        "dispatch-reviews.js",
+        "index.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "proofs": []
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "handler": "index.handler",
+      "runtime": "nodejs22.x",
+      "codeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+      "revisionId": "ba936035-15b0-401d-bc05-aa818f2e1b02",
+      "role": "arn:aws:iam::699561669180:role/staging-wizz-wallet-servi-WalletNotificationWorkerR-65KXCbUPWrkw",
+      "environmentDigest": "dd04dec02f00c02ca8e33f909fd4c33dafe51fb7cd9f415c1ede86fa4a729f78",
+      "candidateCodeSha256": "wXACKH/twuCjnyshTtEe7qSRmjdkT6n8eRB2KhdJqQE=",
+      "preservedFiles": 8484,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "proofs": []
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "handler": "src/handlers/push-wave-offer.sendWaveOffer",
+      "runtime": "nodejs18.x",
+      "codeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+      "revisionId": "bc223ea3-a194-452e-b241-357692a8c3b4",
+      "role": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+      "environmentDigest": "a14a01ae0c4ef7f2c689889807e5c024ad672729c414d29bba6b849941a70316",
+      "candidateCodeSha256": "CsZasWT83HOAFSZVKFVtmsHRtwSVnZ1thiW+sXgDd6M=",
+      "preservedFiles": 10516,
+      "replacedFiles": [
+        "src/utils/pinned-wave-push-handler.js"
+      ],
+      "addedFiles": [
+        "src/utils/finance-rollout.js"
+      ],
+      "proofs": []
+    },
+    {
+      "name": "WizzUser-CancelOrder-staging",
+      "handler": "functions/cancel-order/index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "jWNNTtGTOOhkxLgNMrk7zUz5+gs10jSkVP0f6sIm75M=",
+      "revisionId": "c10b321c-62f4-42fe-b707-1432af9d0c44",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CancelOrderFunctionRole-C0liOPgxAyxw",
+      "environmentDigest": "d64ea56eb0933842ca0237351b1a26887503affb64ce2ac410611e5197d40c07",
+      "candidateCodeSha256": "jc2KR/PWZnvhh7VRAzKFQcWh/h8zq1bVjwAChXRfUJQ=",
+      "preservedFiles": 11375,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "WizzUser-GetGuestOrders-staging",
+      "handler": "functions/get-guest-orders/index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "YDQcJJMW5cdyxKV+l5FJlZCOnsCv0QeSpgEqqhi/l5U=",
+      "revisionId": "61d7bd57-01d7-4f85-b741-fda781311808",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-GetGuestOrdersFunctionRole-KPlKCrH2qUoS",
+      "environmentDigest": "8ec838255de751c3c647ba3dbbfed6ab95562dfbb98fb1bbaab62531e41cb00b",
+      "candidateCodeSha256": "R8APtYyaIsSZQcR4BrTMZMjfRUF0Do5jsnO4kyOoRIc=",
+      "preservedFiles": 11375,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "WizzUser-GetOrder-staging",
+      "handler": "functions/get-order/index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "y2S/Xf4cXytSDgVBPp/k8KjUdvkyx0dOMLCVkmp2EkY=",
+      "revisionId": "b2eb7571-15eb-41e4-bae2-e696829064bc",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-GetOrderFunctionRole-dHh4ZVxMGiym",
+      "environmentDigest": "7c63b8b34ee1733e1b29c69975cd365bb70b0865e91587122f61f0e65ba4b96b",
+      "candidateCodeSha256": "YpEsCBkJT7bxeQ/Z6WC0o1/ITPyB4fQLIBo3CJhCPwg=",
+      "preservedFiles": 11374,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "handler": "functions/get-user-orders/index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "3zENjGYf7a0P55bDvrKM+qA22s9j42kgYxFuTwptOAM=",
+      "revisionId": "c00d52f6-dedd-42fc-b7d5-1c7c351f1df1",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-GetUserOrdersFunctionRole-qKEH4fy0rJyv",
+      "environmentDigest": "8ec838255de751c3c647ba3dbbfed6ab95562dfbb98fb1bbaab62531e41cb00b",
+      "candidateCodeSha256": "svfJgDu1jMynFqJN0/kj4o8PVp795TjACAS0oWNJrqM=",
+      "preservedFiles": 11375,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "WizzUser-MerchantOrderStatusUpdate-staging",
+      "handler": "index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+      "revisionId": "27d08964-68ca-45e1-aabd-b555d1bb4b92",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-MerchantOrderStatusUpdateF-OccsQ2E40ncq",
+      "environmentDigest": "f24ddc346c533978bd8bde0e9494abf1f43102dbb8cc64a93a34071446259b7b",
+      "candidateCodeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+      "preservedFiles": 2,
+      "replacedFiles": [],
+      "addedFiles": [],
+      "proofs": [
+        {
+          "alreadyExplicitPublicResponse": true,
+          "unchangedEntrySha256": "4c42b46bac91493177d5c4323a21bd768449665ac89d6d90df3060e503959b82"
+        }
+      ]
+    },
+    {
+      "name": "WizzUser-SearchOrderByNumber-staging",
+      "handler": "functions/search-order-by-number/index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "brkxLIkzWdxIoyyd5XWtHHeswRpHzhq/C88Yz/UDH3s=",
+      "revisionId": "36e4e97d-1697-4f43-be35-f44f8ed964f2",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-SearchOrderByNumberFunctio-pMv73jCEsqJf",
+      "environmentDigest": "8ec838255de751c3c647ba3dbbfed6ab95562dfbb98fb1bbaab62531e41cb00b",
+      "candidateCodeSha256": "kmYIVO5x5kSDOE8EavmGA8wgAU/hKYn8eYd10OKGQaQ=",
+      "preservedFiles": 11374,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "WizzUser-UpdateOrderStatus-staging",
+      "handler": "functions/update-order-status/index.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "7BWYeeNfqyTw/crrbCJz+rbNNRx5SOlwb5G08LGHneY=",
+      "revisionId": "c07de4fa-85ba-4d8b-98de-2c613246bca4",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-UpdateOrderStatusFunctionR-JBebCS1wj3Tc",
+      "environmentDigest": "dd8e1473c0e521f7e0850ca7cb7e721066e0a0447201d1789cbf53834f9d6aed",
+      "candidateCodeSha256": "bPEHp0ymvlBcwCRn96rHo9ZvfoIFKTU9z026+1fY4+0=",
+      "preservedFiles": 11375,
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "handler": "merchant_order_handler.handler",
+      "runtime": "nodejs20.x",
+      "codeSha256": "2ekUkswQHJdLcalPxbCHct8PPROgw/uE107rQZ3imnI=",
+      "revisionId": "049e5683-6d8e-4753-8cc1-c21650a298c6",
+      "role": "arn:aws:iam::699561669180:role/Wizz-Merchants-staging-MerchantOrderFunctionRole-AZ12ipBY0zyt",
+      "environmentDigest": "bdb9a2cb98149d8f4d5e48ae8ddc9fd61eff71639bffe27d694f94412c8a0a4d",
+      "candidateCodeSha256": "Rw618DTegzVwUYoX/k9nKVxf3/wa9wVGXkR0SDdwl8M=",
+      "preservedFiles": 4253,
+      "replacedFiles": [
+        "merchant_order_handler.js"
+      ],
+      "addedFiles": [],
+      "proofs": []
+    }
+  ],
+  "currentIAMSimulation": {
+    "schemaVersion": 1,
+    "part": 54,
+    "checkedAtUtc": "2026-10-17T03:27:48.394494+00:00",
+    "account": "699561669180",
+    "region": "us-east-1",
+    "readOnly": true,
+    "IAMChanged": false,
+    "humanRowsRead": false,
+    "handlerInvocations": 0,
+    "attributes": [
+      "PK",
+      "SK",
+      "orderId",
+      "userSub",
+      "storeId",
+      "businessId",
+      "financeRollout",
+      "driverId",
+      "assignedDriverId"
+    ],
+    "functions": [
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+        "baseCodeSha256": "blAgb1fOElFm+nHCTIH7ggEUOeI6tyH12G6b1tyLmK4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "implicitDeny",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+        "baseCodeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+        "baseCodeSha256": "E4iRy4TrUBn++WygDOJMxymHy4vcvAi5WCKCDZ6zwMc=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+        "baseCodeSha256": "yOpcsKF1Jh4QFfh8jC9XqDk8qEv+4S6E/bwJZxoPPDk=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+        "baseCodeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+        "baseCodeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "DriversApi-staging",
+        "role": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+        "baseCodeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+        "baseCodeSha256": "HalqAFH3dXm7fw7KHEvB38diX645Ae+HPf5Sk8oDsg0=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-cod-integration",
+        "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+        "baseCodeSha256": "/3REFzxqSsEgpx5vRdaYQcKyuQuaAiJf6jnhA+0/V0k=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+        "baseCodeSha256": "J73EsBUMjqDGSz412MGaU+S2VYwDJGdxt9u1VWbiKb4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "implicitDeny",
+            "missingContext": [
+              "dynamodb:Select"
+            ],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "implicitDeny",
+            "missingContext": [
+              "dynamodb:Select"
+            ],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-wallet-servi-WalletNotificationWorkerR-65KXCbUPWrkw",
+        "baseCodeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "implicitDeny",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "role": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "baseCodeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "implicitDeny",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      "IAM simulation is not an actual DynamoDB/Gateway transaction.",
+      "Existing policies, boundaries, resource policies and organizational controls require deployment-time reconciliation.",
+      "This checks new order identity reads/fences only, not provider/device/funding readiness or every existing operation."
+    ]
+  },
+  "currentReviewDependencies": {
+    "readOnly": true,
+    "IAMChanged": false,
+    "checks": [
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:GetItem",
+        "decision": "implicitDeny"
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:Query",
+        "decision": "implicitDeny"
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:Scan",
+        "decision": "implicitDeny"
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "implicitDeny"
+      },
+      {
+        "table": "staging-Holds",
+        "action": "dynamodb:GetItem",
+        "decision": "implicitDeny"
+      },
+      {
+        "table": "staging-Holds",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "implicitDeny"
+      },
+      {
+        "table": "WhizzMerchants_Businesses",
+        "action": "dynamodb:GetItem",
+        "decision": "allowed"
+      },
+      {
+        "table": "WhizzMerchants_Businesses",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "implicitDeny"
+      },
+      {
+        "table": "staging-AccountDeletion",
+        "action": "dynamodb:GetItem",
+        "decision": "implicitDeny"
+      },
+      {
+        "table": "staging-AccountDeletion",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "allowed"
+      }
+    ]
+  },
+  "proposedIAMSimulation": {
+    "schemaVersion": 1,
+    "part": 54,
+    "checkedAtUtc": "2026-10-17T03:34:19.311239+00:00",
+    "account": "699561669180",
+    "region": "us-east-1",
+    "readOnly": true,
+    "IAMChanged": false,
+    "proposedPoliciesIncluded": true,
+    "humanRowsRead": false,
+    "handlerInvocations": 0,
+    "attributes": [
+      "PK",
+      "SK",
+      "orderId",
+      "userSub",
+      "storeId",
+      "businessId",
+      "financeRollout",
+      "driverId",
+      "assignedDriverId"
+    ],
+    "functions": [
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+        "baseCodeSha256": "blAgb1fOElFm+nHCTIH7ggEUOeI6tyH12G6b1tyLmK4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+        "baseCodeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+        "baseCodeSha256": "E4iRy4TrUBn++WygDOJMxymHy4vcvAi5WCKCDZ6zwMc=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+        "baseCodeSha256": "yOpcsKF1Jh4QFfh8jC9XqDk8qEv+4S6E/bwJZxoPPDk=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+        "baseCodeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+        "baseCodeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "DriversApi-staging",
+        "role": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+        "baseCodeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+        "baseCodeSha256": "HalqAFH3dXm7fw7KHEvB38diX645Ae+HPf5Sk8oDsg0=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-cod-integration",
+        "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+        "baseCodeSha256": "/3REFzxqSsEgpx5vRdaYQcKyuQuaAiJf6jnhA+0/V0k=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+        "baseCodeSha256": "J73EsBUMjqDGSz412MGaU+S2VYwDJGdxt9u1VWbiKb4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-wallet-servi-WalletNotificationWorkerR-65KXCbUPWrkw",
+        "baseCodeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "role": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "baseCodeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      }
+    ],
+    "reviewDependencyChecks": [
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:GetItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:Query",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:Scan",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "staging-Holds",
+        "action": "dynamodb:GetItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "staging-AccountDeletion",
+        "action": "dynamodb:GetItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "staging-Holds",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "WhizzMerchants_Businesses",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "allowed",
+        "missingContext": []
+      }
+    ],
+    "limitations": [
+      "IAM simulation is not an actual DynamoDB/Gateway transaction.",
+      "Existing policies, boundaries, resource policies and organizational controls require deployment-time reconciliation.",
+      "This checks new order identity reads/fences only, not provider/device/funding readiness or every existing operation."
+    ]
+  },
+  "proposedPolicySha256": "6038f470f5c09aeff55d042bb29009c2874b1b82dfeab47b9cdfe710886887bc",
+  "proposedRoles": 4,
+  "policiesApplied": false,
+  "testCheckout": {
+    "buildKey": "FINANCE_TEST_CHECKOUT_ATTEMPT",
+    "defaultEnabled": false,
+    "knownAPIOnly": true,
+    "stagingOnly": true,
+    "requiresQuotesAndCommercialPricing": true,
+    "onePreapprovedAttemptPerBuild": true,
+    "usesCanonicalOrderIdFor": true,
+    "doesNotAuthorizeCaller": true,
+    "pendingReplayNotReplacedByNewBuild": true
+  },
+  "tests": {
+    "checkoutDefaultPassed": 19,
+    "scopedCommercialCheckoutPassed": 5,
+    "preparationAndDeploymentAgreementPassed": 7,
+    "rolloutGuardPassed": 18,
+    "dartAnalysis": "No issues found",
+    "publishedFinancialSDKCompatible": true
+  },
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "535e6be012354b611903eaeba04d959b7be4259c574c8706f6c36c7eeb0d7b66",
+      "reason": "Part54 binds a Staging test confirmation to a preapproved request while retaining immutable pending replay and default UUID behavior; commercial approval flow is unchanged."
+    }
+  ],
+  "sourceSha256": {
+    "scripts/capture-finance-scoped-release-54.py": "1cad42b713323dc30d6982a3500d9c2f608e83131d205cd0bceae77a404e10b8",
+    "scripts/prepare-finance-scoped-release-54.cjs": "20965a23f0855432fe1d16eaeaef192cdd62241be3dd2070c194fa2c77c12e62",
+    "scripts/verify-finance-scoped-release-54.cjs": "cf2b9e23ae2c6ed7a02b94e1bc6b80231a2443ebe63687c53dcc59936548bd93",
+    "scripts/audit-finance-rollout-access-54.py": "9c2e6ebb8e22d89e7cf701d0eff7fcf654fee99f55f81d7fa57acc02c7cb2e9e",
+    "scripts/prepare-finance-rollout-access-54.cjs": "c5694e51d5fbd88a5b84119503541eb57c9551ca5b1d57148fffdbbae6b6570d",
+    "scripts/prepare-finance-test-attempt-54.cjs": "42b28ad78fad25223eef9907ec81fcd33429d59fbc6a4e7b65ae7bd227c1595e",
+    "scripts/test/finance-scoped-release-54.test.cjs": "df2d85a09500dbe82993549185ad84bd98153b0b258e0a9042f06156b636aaef",
+    "../wizzuser-stg/frontend/lib/services/scoped_checkout_attempt.dart": "06d80fbb58182f2625edada7fc59f6581354f95438edb0fddfcfa4360542e04a",
+    "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart": "535e6be012354b611903eaeba04d959b7be4259c574c8706f6c36c7eeb0d7b66",
+    "../wizzuser-stg/frontend/test/delivery_quote_checkout_test.dart": "c36cf1cc5c59a742e6fcad09e226b415eb27e1353a37ebc6dd39a3a334c2120c",
+    "../wizzuser-stg/frontend/test/commercial_quote_checkout_test.dart": "6524457124e00e913ead25831a5ed699d8b7d1b465ebef5b5b2bff78e2a4bbe6"
+  },
+  "remaining": [
+    "Fresh code/config RevisionId CAS and Infrastructure policy adoption before any publication",
+    "Apply reviewed narrow permissions and publish coordinated candidates with gates closed",
+    "Configure approved explicit cohort and verify real synthetic DynamoDB/Gateway execution and provider/funding/identity dependencies",
+    "Build scoped test client and verify four-app device flow before limited activation",
+    "Keep legacy settlement/drain guards and complete T2-T7 acceptance criteria; do not publish obsolete Part52 candidates"
+  ]
+}

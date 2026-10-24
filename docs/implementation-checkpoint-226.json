@@ -1,0 +1,24 @@
+{
+  "part": 226,
+  "status": "MERCHANT_SIMULATOR_215_INSTALLED_DEVICE_ACCEPTANCE_PENDING",
+  "finding": "GET/POST /auth/order-returns and POST cancellation require Cognito access-token scope aws.cognito.signin.user.admin. AppAuthService.getAccessToken returns ID token preferentially, so gateway rejects before Lambda.",
+  "repair": "OrderReturnsService default credential uses existing TokenRefreshService.getValidUserAccessToken; no ID fallback, gateway unchanged",
+  "tests": {
+    "merchantReturnFlow": 5,
+    "fail": 0,
+    "regression": "Secure-storage default provider with valid ID and access tokens selects access token on both GET and POST; stale session reply rejected",
+    "analyzer": "0 errors/warnings; 4 existing style infos"
+  },
+  "application": {
+    "bundle": "com.whizz.merchants",
+    "build": 215,
+    "device": "iPhone16Pro simulator 09DA4C20-FD4B-446E-8C2F-9D04E5CFC206",
+    "launchPid": 92959
+  },
+  "financialWrites": false,
+  "orderMutations": false,
+  "permissionsChanged": false,
+  "serverPublicationRequired": false,
+  "physicalMerchantInstall": false,
+  "acceptance": "Owner must reopen return receipt screen; no receipt submitted by agent"
+}

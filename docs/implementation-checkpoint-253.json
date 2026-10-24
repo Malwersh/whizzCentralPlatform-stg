@@ -1,0 +1,24 @@
+{
+  "part": 253,
+  "scope": "Names and administrative titles in custodian choices; contextual permission explanation",
+  "display": [
+    "Name plus Arabic role label only; UUID remains internal option value",
+    "Email-only or UUID-only names show explicit missing-name placeholder; no fabricated employee names",
+    "Arabic title derived from registered staff role labels because no separate job-title field exists in current staff model",
+    "Selected custodian shows whether finance.request is present; no automatic role assignment"
+  ],
+  "permissionsChanged": false,
+  "businessWrites": false,
+  "iamChanged": false,
+  "tests": {
+    "wallet": 1264,
+    "focused": 27,
+    "bundle": 27,
+    "browser": "PASS including option label and selected non-financial custodian guidance",
+    "liveReadOnly": "5 active administrative employees across 3 pages"
+  },
+  "references": [
+    "custodians-access-253.json",
+    "custodians-publication-253.json"
+  ]
+}

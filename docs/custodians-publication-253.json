@@ -1,0 +1,29 @@
+{
+  "part": 253,
+  "status": "PUBLISHED",
+  "scope": "Custodian names and role titles only, contextual finance permission guidance",
+  "businessDecisionsOrPaymentsByAgent": false,
+  "platformWalletFundingConditionAdded": false,
+  "companyCashAssetPostingAdded": false,
+  "iamChanged": false,
+  "function": {
+    "name": "staging-wizz-staff-service",
+    "baseCodeSha256": "uolvMz3Jv4zF3B/JYwsYZ8WdrR3OLZQdtoaJy1TAfY0=",
+    "codeSha256": "g9wFYEzKW0hd59e1vrpsZ+b1vEilPh7NVV8rnHxuB8A=",
+    "changedFiles": [
+      "settlement-runtime.js"
+    ],
+    "unrelatedEntriesAndConfigurationPreserved": true
+  },
+  "hosting": {
+    "baseJobId": "142",
+    "jobId": "143",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-cashboxes.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

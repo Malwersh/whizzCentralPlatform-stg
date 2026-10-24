@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WizzCentral Platform - New Order</title>
+    <title>ويز سنترال — طلب جديد</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
@@ -213,7 +214,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-</head>
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
 
 <body data-page="orders">
     <!-- Sidebar include placeholder -->
@@ -230,7 +231,7 @@
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-label">إجمالي الطلبات</div>
                         <div class="stat-value" id="totalOrders">0</div>
                     </div>
                 </div>
@@ -239,7 +240,7 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Confirmed Orders</div>
+                        <div class="stat-label">الطلبات المؤكدة</div>
                         <div class="stat-value" id="confirmedOrders">0</div>
                     </div>
                 </div>
@@ -248,7 +249,7 @@
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Pending Orders</div>
+                        <div class="stat-label">الطلبات قيد الانتظار</div>
                         <div class="stat-value" id="pendingOrders">0</div>
                     </div>
                 </div>
@@ -257,7 +258,7 @@
                         <i class="fas fa-times-circle"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Cancelled Orders</div>
+                        <div class="stat-label">الطلبات الملغاة</div>
                         <div class="stat-value" id="cancelledOrders">0</div>
                     </div>
                 </div>
@@ -266,29 +267,29 @@
             <!-- Filter Bar -->
             <div class="filter-bar">
                 <div class="filter-group">
-                    <label class="filter-label">Search Orders</label>
-                    <input type="text" class="filter-input" id="searchInput" placeholder="Search by order ID or customer name...">
+                    <label class="filter-label">البحث في الطلبات</label>
+                    <input type="text" class="filter-input" id="searchInput" placeholder="ابحث برقم الطلب أو اسم العميل..." dir="auto">
                 </div>
                 <div class="filter-group">
-                    <label class="filter-label">Status Filter</label>
+                    <label class="filter-label">تصفية بحسب الحالة</label>
                     <select class="filter-input" id="statusFilter">
-                        <option value="">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="">جميع الحالات</option>
+                        <option value="pending">قيد الانتظار</option>
+                        <option value="confirmed">مؤكد</option>
+                        <option value="cancelled">ملغي</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label class="filter-label">Date Range</label>
-                    <input type="date" class="filter-input" id="dateFrom" style="width: 140px;">
+                    <label class="filter-label">الفترة الزمنية</label>
+                    <input type="date" class="filter-input" id="dateFrom" style="width: 140px;" dir="ltr">
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">&nbsp;</label>
-                    <input type="date" class="filter-input" id="dateTo" style="width: 140px;">
+                    <input type="date" class="filter-input" id="dateTo" style="width: 140px;" dir="ltr">
                 </div>
                 <button class="btn-primary" onclick="applyFilters()" style="margin-top: 20px;">
                     <i class="fas fa-filter"></i>
-                    Apply Filters
+                    تطبيق التصفية
                 </button>
             </div>
 
@@ -297,20 +298,20 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Status</th>
-                            <th>Created At</th>
-                            <th>Confirmed At</th>
-                            <th>Channel</th>
-                            <th>Actions</th>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>الحالة</th>
+                            <th>وقت الإنشاء</th>
+                            <th>وقت التأكيد</th>
+                            <th>القناة</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTableBody">
                         <tr>
                             <td colspan="7" class="loading-state">
                                 <i class="fas fa-spinner fa-spin"></i>
-                                Loading orders...
+                                جارٍ تحميل الطلبات...
                             </td>
                         </tr>
                     </tbody>
@@ -323,7 +324,7 @@
     <div id="orderDetailsModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h2>Order Details</h2>
+                <h2>تفاصيل الطلب</h2>
                 <button class="modal-close" onclick="closeOrderDetailsModal()">&times;</button>
             </div>
             <div class="modal-body" id="orderDetailsContent">
@@ -333,7 +334,7 @@
     </div>
 
     <!-- Include required scripts -->
-    <script src="../assets/js/navigation.js"></script>
+    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
     <script>
         // Global variables
         let ordersData = [];
@@ -384,7 +385,7 @@
                 
             } catch (error) {
                 console.error('Error loading orders:', error);
-                showError(`Failed to load orders: ${error.message}`);
+                showError(`تعذّر تحميل الطلبات: ${window.WizzLocale.error(error.message)}`);
             }
         }
 
@@ -397,7 +398,7 @@
                     <tr>
                         <td colspan="7" style="text-align: center; padding: 40px; color: #6b7280;">
                             <i class="fas fa-inbox"></i><br>
-                            No orders found
+                            لا توجد طلبات مطابقة
                         </td>
                     </tr>
                 `;
@@ -439,7 +440,7 @@
                             <div class="action-buttons">
                                 <button class="btn-sm btn-view" onclick="viewOrderDetails('${safeOrderIdAttr}')">
                                     <i class="fas fa-eye"></i>
-                                    View
+                                    عرض
                                 </button>
                             </div>
                         </td>
@@ -522,7 +523,7 @@
                 
             } catch (error) {
                 console.error('Error loading order details:', error);
-                alert(`Failed to load order details: ${error.message}`);
+                alert(`تعذّر تحميل تفاصيل الطلب: ${window.WizzLocale.error(error.message)}`);
             }
         }
 
@@ -550,18 +551,18 @@
 
                 cancellationSection = `
                 <div style="margin-top: 20px;">
-                    <h3>Cancellation Information</h3>
+                    <h3>بيانات الإلغاء</h3>
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
-                            <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Cancelled At:</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">وقت الإلغاء:</td>
                             <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeCanceledAt}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Cancelled By:</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">أُلغي بواسطة:</td>
                             <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeCanceledBy}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Cancel Reason:</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">سبب الإلغاء:</td>
                             <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeCancelReason}</td>
                         </tr>
                     </table>
@@ -574,14 +575,14 @@
             content.innerHTML = SecurityUtils.sanitizeHTML(`
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div>
-                        <h3>Order Information</h3>
+                        <h3>بيانات الطلب</h3>
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Order ID:</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">رقم الطلب:</td>
                                 <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeOrderId}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Status:</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">الحالة:</td>
                                 <td style="padding: 8px; border-bottom: 1px solid #eee;">
                                     <span class="status-badge status-${safeStatus}">
                                         ${safeStatusLabel}
@@ -589,32 +590,32 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Channel:</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">القناة:</td>
                                 <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeChannel}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Created At:</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">وقت الإنشاء:</td>
                                 <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeCreatedAt}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Confirmed At:</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">وقت التأكيد:</td>
                                 <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeConfirmedAt}</td>
                             </tr>
                         </table>
                     </div>
                     <div>
-                        <h3>Customer Information</h3>
+                        <h3>بيانات العميل</h3>
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Name:</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">الاسم:</td>
                                 <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeCustomerName}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Email:</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">البريد الإلكتروني:</td>
                                 <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeCustomerEmail}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">Currency:</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: 500;">العملة:</td>
                                 <td style="padding: 8px; border-bottom: 1px solid #eee;">${safeCurrency}</td>
                             </tr>
                         </table>
@@ -624,7 +625,7 @@
                 ${cancellationSection}
                 
                 <div style="margin-top: 20px;">
-                    <h3>Raw Data</h3>
+                    <h3>البيانات الأصلية</h3>
                     <pre style="background: #f8f9fa; padding: 16px; border-radius: 4px; overflow: auto; max-height: 300px; font-size: 12px;">${safeOrderJson}</pre>
                 </div>
             `);
@@ -650,7 +651,7 @@
                         <br><br>
                         <button class="btn-primary" onclick="loadOrders()">
                             <i class="fas fa-retry"></i>
-                            Retry
+                            إعادة المحاولة
                         </button>
                     </td>
                 </tr>

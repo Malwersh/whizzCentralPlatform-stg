@@ -1,0 +1,13 @@
+{
+  "status": "LOCAL_SELECTION_SOURCE_AND_QUOTE_COMPOSITION_NOT_HOST_WIRED_OR_DEPLOYED",
+  "newModule": "backend/wallet-service/src/deliveryPromotionSelection.ts",
+  "sourceReuse": "existing orderCommercialSource, commercial calculator and platform cash funding builder",
+  "selection": "server-priced eligible lowest customer fee; deterministic identity tie break; guarded branch revision",
+  "atomicAdmission": ["order", "quote consumption", "campaign allowance/usage/reservation", "supplied cash and authority operations"],
+  "quoteCapabilityDefaultsDisabled": true,
+  "limits": {"discoveryEntries": 50, "activeCandidates": 8},
+  "verification": {"typescriptCompile": "PASS", "runtimeSync": "PASS", "newTests": 14, "targetedTestsPassed": 113},
+  "remaining": ["actual create-order/preview handler wiring and live customer/history facts", "mobile/API compatibility", "mixed-version integration/reporting", "post-delivery refunds", "platform UI and coordinated staging/device release"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

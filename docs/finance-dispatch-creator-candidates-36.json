@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_INITIAL_CREATOR_AND_SHARED_CANDIDATES_INTEGRATED_VERIFIED_ISOLATED",
+  "published": false,
+  "publicationReady": false,
+  "financialActivation": "OFF_UNCHANGED",
+  "livePolicyChanged": false,
+  "humanDataChanged": false,
+  "scope": [
+    "Deterministic initial stream-event identity and stable job input",
+    "Resume StartWave invocation after creation commit without replacing captured policy",
+    "Creator local PLAN_ONLY entry hook propagates failures for stream retry",
+    "Legacy Creator cannot replace pinned-cycle metadata",
+    "One shared Legacy filter/ranking implementation with captured-policy overrides",
+    "Bounded paginated candidate readers, strong profile/state hydration and strict metric units",
+    "Integrated pinned financial runner uses real shared candidate provider",
+    "Offline packaging includes required driver-selection module with digest"
+  ],
+  "tests": {
+    "typescriptBuild": true,
+    "walletPassed": 526,
+    "accountDeletionPassed": 213,
+    "newCreationSelectionTests": 12,
+    "generatedPolicyCheck": true,
+    "customerQuoteRuntimeCheck": true,
+    "offlineArtifactsBuilt": true,
+    "offlineRuntimeDefaultClosed": true,
+    "fourRepositoryWhitespaceChecks": true
+  },
+  "isolatedDynamoDB": {
+    "scope": "REAL_DYNAMODB_ISOLATED_CREATOR_AND_SHARED_SELECTION",
+    "applicationTablesAccessed": false,
+    "published": false,
+    "realOffersSent": 0,
+    "identityRoutesAndInvoke": "SYNTHETIC",
+    "logicalIndexQueries": "EMULATED_BY_ISOLATED_TABLE_SCAN_NOT_LIVE_GSI",
+    "deterministicCreationResumesInvocation": true,
+    "sharedSelectionAndExecutorIntegrated": true,
+    "capturedRepeatPolicyExcludesPriorRecipients": true,
+    "noFinancialJournalWrites": true,
+    "tableDeleted": true
+  },
+  "offlineRuntime": {
+    "schemaVersion": 1,
+    "mode": "OFF",
+    "executionReady": false,
+    "financialExecutorImplemented": true,
+    "creatorAdapterImplemented": true,
+    "candidateProviderImplemented": true,
+    "legacyExecutorImplemented": false,
+    "publicationReady": false,
+    "sha256": "1feceda75fb8a86681d19b26243ce54ec7e1ced3d6242fdee5b493e61360426d",
+    "requiredLocalFiles": {
+      "WaveSystem_StartWave": [
+        "driver-selection.js"
+      ]
+    },
+    "selectionModuleSha256": "5ec27d40d5e9efd6b787d31b4bfbdd732d7b1c0735df4340e77b9289196469e2",
+    "destinations": [
+      "WaveSystem_CreateDispatchJob",
+      "WaveSystem_StartWave",
+      "WaveSystem_HandleWaveTimeout",
+      "WaveSystem_HandleDriverReject"
+    ],
+    "blockers": [
+      "Legacy executor and coordinated live entry-point activation",
+      "Public legacy acceptance/decline adapters and financial deployment verification",
+      "Coordinated IAM and live-package verification",
+      "Central wave editor, recovery and full behavior compatibility"
+    ]
+  },
+  "notComplete": [
+    "Legacy wave executor and public accept/decline cycle adapters",
+    "Coordinated live execution wiring and IAM verification",
+    "Large ALL waves, retention and authorized reassignment/search cycles",
+    "Schema2 central editor, funded recovery and performance events",
+    "Real source index coverage, routing, invocation, notification and device verification"
+  ],
+  "verificationLimits": [
+    "One disposable table only; index queries are emulated as scoped scans, not real RegionStatusIndex",
+    "Identity, road routes, Invoke and offer sender are synthetic",
+    "Candidate reader is bounded to eight 250-row pages per source and fails closed beyond that limit",
+    "Legacy ranking defaults remain compatibility behavior, not v1.6 Score/Tiers or proven performance",
+    "No new financial journal writes, no live wallet mutations, no messages or deployment"
+  ],
+  "sourceDigests": [
+    {
+      "path": "backend/wallet-service/src/dispatchCreator.ts",
+      "sha256": "ed7b457f4f9129f9385548a2553c4ba7c10713ee6bd11ed224a80f7b27f73ba6"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCandidates.ts",
+      "sha256": "31abff4d2c21a2d3f29452dc7a0b7ba7faa567a8fcd3ce84b452b6bd947bb056"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchWaveExecutor.ts",
+      "sha256": "d90077327d470fcd669a1718652cf49df1feb1e7fb8c83839388d480c77cd097"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCoordinatorRuntime.ts",
+      "sha256": "c60e1e3524ad1cfcec94da2a71055e79df3b873c1b5aecdd0bceaacbc9ec0303"
+    },
+    {
+      "path": "lambda/WaveSystem_CreateDispatchJob/index.js",
+      "sha256": "2dc922df51e2674ed474833cec1acc47c9652c0aa6170924e1f5e865a01b898f"
+    },
+    {
+      "path": "lambda/WaveSystem_StartWave/index.js",
+      "sha256": "07d17166cf86c25d5a73c919b45996405b06e768e5dd632251dad240fe34e2f6"
+    },
+    {
+      "path": "lambda/WaveSystem_StartWave/driver-selection.js",
+      "sha256": "5ec27d40d5e9efd6b787d31b4bfbdd732d7b1c0735df4340e77b9289196469e2"
+    },
+    {
+      "path": "backend/wallet-service/test/dispatch-creation-selection.test.cjs",
+      "sha256": "86bf688888bfba95f02b1c670ac345dfe94e8e1fb27a5554e1ea0ff76072f872"
+    },
+    {
+      "path": "scripts/build-dispatch-coordinator-runtime.cjs",
+      "sha256": "ebce80eeb68b02121890e5d18e59cc3927502d02c71152b999b4890e43234691"
+    },
+    {
+      "path": "scripts/prepare-cod-staging-release.cjs",
+      "sha256": "d09f88ef02c9c893819816874e7cbdbaa8f1d54b6729ecca8264f65c21563528"
+    },
+    {
+      "path": "scripts/test-dispatch-creation-selection-staging.cjs",
+      "sha256": "6cd0533eea88adf5e6ea244d1eac7fdf42b8c2e1b28cb6034a6dcb79abb1d4bf"
+    },
+    {
+      "path": "scripts/test-dispatch-cycle-staging.cjs",
+      "sha256": "59143d1dc106a78f3853663891a238bfd39fbd074d87e3580a396deaeb804396"
+    }
+  ]
+}

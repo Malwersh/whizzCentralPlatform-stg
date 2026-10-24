@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "part": 58,
+  "environment": "Staging",
+  "status": "PROPOSAL_NOT_APPROVED",
+  "publishesPolicy": false,
+  "performsFinancialWrites": false,
+  "simulationOnly": true,
+  "usesLiveRoadRequests": false,
+  "rulesForReview": {
+    "deliveryRules": [
+      {
+        "version": 1,
+        "scope": {
+          "type": "BRANCH",
+          "id": "REVIEW_BRANCH"
+        },
+        "priority": 1,
+        "status": "DRAFT",
+        "effectiveFrom": "2026-10-17T00:00:00.000Z",
+        "effectiveTo": null,
+        "rounding": "HALF_AWAY_FROM_ZERO",
+        "vehicleType": null,
+        "minimum": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 2000000
+        },
+        "maximum": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 6000000
+        },
+        "fallbackPolicyId": null,
+        "longDistance": {
+          "afterMeters": 10000,
+          "flat": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          },
+          "perKm": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          }
+        },
+        "peaks": [],
+        "id": "REVIEW_CUSTOMER",
+        "base": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 1000000
+        },
+        "perKm": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 500000
+        },
+        "tiers": [],
+        "coverage": {
+          "enabled": true,
+          "maxRoadMeters": 10000,
+          "maxDurationSeconds": 1800,
+          "supportedZoneIds": [
+            "Rmhvcpnn3iy5f1"
+          ]
+        }
+      }
+    ],
+    "driverRules": [
+      {
+        "version": 1,
+        "scope": {
+          "type": "BRANCH",
+          "id": "REVIEW_BRANCH"
+        },
+        "priority": 1,
+        "status": "DRAFT",
+        "effectiveFrom": "2026-10-17T00:00:00.000Z",
+        "effectiveTo": null,
+        "rounding": "HALF_AWAY_FROM_ZERO",
+        "vehicleType": null,
+        "minimum": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 1500000
+        },
+        "maximum": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 8000000
+        },
+        "fallbackPolicyId": null,
+        "longDistance": {
+          "afterMeters": 10000,
+          "flat": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          },
+          "perKm": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          }
+        },
+        "peaks": [],
+        "id": "REVIEW_DRIVER",
+        "base": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 1000000
+        },
+        "pickupPerKm": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 250000
+        },
+        "pickupIncludedMeters": 1000,
+        "deliveryPerKm": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 400000
+        },
+        "perMinute": {
+          "currency": "IQD",
+          "scale": 1000,
+          "moneySchemaVersion": 1,
+          "minorAmount": 0
+        }
+      }
+    ]
+  },
+  "proposedFinalRounding": {
+    "customerFeeQuantumIqd": 250,
+    "driverEarningQuantumIqd": 250,
+    "commissionQuantumIqd": 1,
+    "mode": "HALF_AWAY_FROM_ZERO",
+    "implementedInRuntime": false,
+    "stage": "Before quote/offer/consent hashes, never at wallet commit or after acceptance"
+  },
+  "merchantCommissionExamples": [
+    {
+      "merchant": "A",
+      "percent": 10
+    },
+    {
+      "merchant": "B",
+      "percent": 7
+    },
+    {
+      "merchant": "C",
+      "percent": 0,
+      "explicitExemption": true
+    }
+  ],
+  "globalDefaultCommission": null,
+  "customerServiceFeeIqd": 500,
+  "routeScenarios": [
+    {
+      "deliveryMeters": 811,
+      "pickupMeters": 500,
+      "customerFeeRawIqd": "2000",
+      "driverEarningRawIqd": "1500",
+      "customerFeeProposedIqd": "2000",
+      "driverEarningProposedIqd": "1500",
+      "deliveryDifferenceIqd": "500"
+    },
+    {
+      "deliveryMeters": 2000,
+      "pickupMeters": 500,
+      "customerFeeRawIqd": "2000",
+      "driverEarningRawIqd": "1800",
+      "customerFeeProposedIqd": "2000",
+      "driverEarningProposedIqd": "1750",
+      "deliveryDifferenceIqd": "250"
+    },
+    {
+      "deliveryMeters": 3331,
+      "pickupMeters": 700,
+      "customerFeeRawIqd": "2665.5",
+      "driverEarningRawIqd": "2332.4",
+      "customerFeeProposedIqd": "2750",
+      "driverEarningProposedIqd": "2250",
+      "deliveryDifferenceIqd": "500"
+    },
+    {
+      "deliveryMeters": 5000,
+      "pickupMeters": 1000,
+      "customerFeeRawIqd": "3500",
+      "driverEarningRawIqd": "3000",
+      "customerFeeProposedIqd": "3500",
+      "driverEarningProposedIqd": "3000",
+      "deliveryDifferenceIqd": "500"
+    },
+    {
+      "deliveryMeters": 8000,
+      "pickupMeters": 2000,
+      "customerFeeRawIqd": "5000",
+      "driverEarningRawIqd": "4450",
+      "customerFeeProposedIqd": "5000",
+      "driverEarningProposedIqd": "4500",
+      "deliveryDifferenceIqd": "500"
+    },
+    {
+      "deliveryMeters": 10000,
+      "pickupMeters": 1000,
+      "customerFeeRawIqd": "6000",
+      "driverEarningRawIqd": "5000",
+      "customerFeeProposedIqd": "6000",
+      "driverEarningProposedIqd": "5000",
+      "deliveryDifferenceIqd": "1000"
+    },
+    {
+      "deliveryMeters": 5000,
+      "pickupMeters": 5000,
+      "customerFeeRawIqd": "3500",
+      "driverEarningRawIqd": "4000",
+      "customerFeeProposedIqd": "3500",
+      "driverEarningProposedIqd": "4000",
+      "deliveryDifferenceIqd": "-500"
+    }
+  ],
+  "orderScenarios": [
+    {
+      "id": "merchant-A",
+      "commissionPercent": 10,
+      "goodsIqd": 10000,
+      "customerDeliveryFeeIqd": 2000,
+      "driverEarningIqd": 1750,
+      "tipIqd": 1000,
+      "discountIqd": 0,
+      "rawCommissionIqd": "1000",
+      "customerTotalIqd": "13500",
+      "merchantPayableIqd": "9000",
+      "merchantCommissionIqd": "1000",
+      "driverEarningEntitlementIqd": "1750",
+      "driverTipEntitlementIqd": "1000",
+      "driverTotalEntitlementIqd": "2750",
+      "driverWalletHoldIqd": "10750",
+      "driverCashRetainedIqd": "2750",
+      "driverWalletCreditTotalIqd": "0",
+      "deliverySubsidyIqd": "0",
+      "platformGoodsDiscountFundingIqd": "0",
+      "platformNetContributionIqd": "1750"
+    },
+    {
+      "id": "merchant-B",
+      "commissionPercent": 7,
+      "goodsIqd": 10000,
+      "customerDeliveryFeeIqd": 2000,
+      "driverEarningIqd": 1750,
+      "tipIqd": 1000,
+      "discountIqd": 0,
+      "rawCommissionIqd": "700",
+      "customerTotalIqd": "13500",
+      "merchantPayableIqd": "9300",
+      "merchantCommissionIqd": "700",
+      "driverEarningEntitlementIqd": "1750",
+      "driverTipEntitlementIqd": "1000",
+      "driverTotalEntitlementIqd": "2750",
+      "driverWalletHoldIqd": "10750",
+      "driverCashRetainedIqd": "2750",
+      "driverWalletCreditTotalIqd": "0",
+      "deliverySubsidyIqd": "0",
+      "platformGoodsDiscountFundingIqd": "0",
+      "platformNetContributionIqd": "1450"
+    },
+    {
+      "id": "merchant-exempt",
+      "commissionPercent": 0,
+      "goodsIqd": 10000,
+      "customerDeliveryFeeIqd": 2000,
+      "driverEarningIqd": 1750,
+      "tipIqd": 1000,
+      "discountIqd": 0,
+      "rawCommissionIqd": "0",
+      "customerTotalIqd": "13500",
+      "merchantPayableIqd": "10000",
+      "merchantCommissionIqd": "0",
+      "driverEarningEntitlementIqd": "1750",
+      "driverTipEntitlementIqd": "1000",
+      "driverTotalEntitlementIqd": "2750",
+      "driverWalletHoldIqd": "10750",
+      "driverCashRetainedIqd": "2750",
+      "driverWalletCreditTotalIqd": "0",
+      "deliverySubsidyIqd": "0",
+      "platformGoodsDiscountFundingIqd": "0",
+      "platformNetContributionIqd": "750"
+    },
+    {
+      "id": "funded-discount",
+      "commissionPercent": 10,
+      "goodsIqd": 10000,
+      "customerDeliveryFeeIqd": 2000,
+      "driverEarningIqd": 1750,
+      "tipIqd": 0,
+      "discountIqd": 1000,
+      "rawCommissionIqd": "950",
+      "customerTotalIqd": "11500",
+      "merchantPayableIqd": "8550",
+      "merchantCommissionIqd": "950",
+      "driverEarningEntitlementIqd": "1750",
+      "driverTipEntitlementIqd": "0",
+      "driverTotalEntitlementIqd": "1750",
+      "driverWalletHoldIqd": "9750",
+      "driverCashRetainedIqd": "1750",
+      "driverWalletCreditTotalIqd": "0",
+      "deliverySubsidyIqd": "0",
+      "platformGoodsDiscountFundingIqd": "500",
+      "platformNetContributionIqd": "1200"
+    },
+    {
+      "id": "far-pickup",
+      "commissionPercent": 10,
+      "goodsIqd": 10000,
+      "customerDeliveryFeeIqd": 3500,
+      "driverEarningIqd": 4000,
+      "tipIqd": 1000,
+      "discountIqd": 0,
+      "rawCommissionIqd": "1000",
+      "customerTotalIqd": "15000",
+      "merchantPayableIqd": "9000",
+      "merchantCommissionIqd": "1000",
+      "driverEarningEntitlementIqd": "4000",
+      "driverTipEntitlementIqd": "1000",
+      "driverTotalEntitlementIqd": "5000",
+      "driverWalletHoldIqd": "10500",
+      "driverCashRetainedIqd": "4500",
+      "driverWalletCreditTotalIqd": "500",
+      "deliverySubsidyIqd": "500",
+      "platformGoodsDiscountFundingIqd": "0",
+      "platformNetContributionIqd": "1000"
+    },
+    {
+      "id": "fractional-commission",
+      "commissionPercent": 10,
+      "goodsIqd": 3499,
+      "customerDeliveryFeeIqd": 2000,
+      "driverEarningIqd": 1500,
+      "tipIqd": 0,
+      "discountIqd": 0,
+      "rawCommissionIqd": "349.9",
+      "customerTotalIqd": "5999",
+      "merchantPayableIqd": "3149",
+      "merchantCommissionIqd": "350",
+      "driverEarningEntitlementIqd": "1500",
+      "driverTipEntitlementIqd": "0",
+      "driverTotalEntitlementIqd": "1500",
+      "driverWalletHoldIqd": "4499",
+      "driverCashRetainedIqd": "1500",
+      "driverWalletCreditTotalIqd": "0",
+      "deliverySubsidyIqd": "0",
+      "platformGoodsDiscountFundingIqd": "0",
+      "platformNetContributionIqd": "1350"
+    }
+  ],
+  "requiredBeforePublication": [
+    "User review of candidate values and cohort; no global merchant default",
+    "Implement and verify final whole-IQD rounding consistently in pricing, commercial calculation, simulation, quote, offer and settlement contracts",
+    "Authenticated independent pricing approval and real merchant agreement acceptance/approval",
+    "Funded-discount approval and verified budget source before enabling that scenario"
+  ],
+  "sourceSha256": {
+    "backend/staff-service/pricing-runtime/deliveryPricing.js": "9affe6aa03a520eea67bfb75cb8ca34ce95792f5749bb379b7a5e4a0bbb28005",
+    "backend/staff-service/pricing-runtime/money.js": "969f2816d29177b26173476ddbd089387de88c38a39379ca163b9f009d2e2c58",
+    "backend/wallet-service/dist/orderCommercialPricing.js": "52b0d09b1d031695a39be0371bb5bdd2747ca13fc2b10f9755bbec75d04c06b8",
+    "backend/wallet-service/dist/orderAllocation.js": "440e72ff4403e344bbcc9db69a8f000ae7dbc35371682a694f4b60cf2c16fb6c",
+    "backend/wallet-service/dist/money.js": "c4b7cae925823f17451885892c6fba616cc345157667589b924244f8b56b922a",
+    "backend/wallet-service/src/orderCommercialPricing.ts": "7a2c30ee07aa06ce1e00808a7b279973d6f21b634f5a5884bc5d0ca56866d690",
+    "backend/wallet-service/src/orderAllocation.ts": "2f6d20eafa945b83570d5831476f938f34c87008597fce64b440d6b428ddf47d",
+    "backend/wallet-service/src/driverOffer.ts": "e0a636a12d51002e695e841ea4cf0b20b3a3e4063b3881aac9477e312ce933ba",
+    "backend/wallet-service/src/codCompletion.ts": "b760491d5d30f3fc859d6baa044506035885797f7795979e773a6bdefa462fb4"
+  }
+}

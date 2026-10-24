@@ -1,0 +1,7 @@
+'use strict';
+const fs=require('fs'),Module=require('module'),path=require('path'),sdk=require('../backend/wallet-service/node_modules/@aws-sdk/lib-dynamodb');
+const p=path.resolve('backend/.tmp/order-exceptions-work/settlement-242-gl');
+function load(file){const id=path.join(p,file),m=new Module(id,module);m.filename=id;m.paths=Module._nodeModulePaths(path.resolve('backend/wallet-service'));m._compile(fs.readFileSync(id,'utf8'),id);return m.exports;}
+const api=load('order-exception-runtime-229.js');
+function wrap(factory){return options=>factory({...options,db:{send:c=>{const type=c.constructor.name.replace(/\d+$/,'');if(!sdk[type])throw Error('UNEXPECTED_COMMAND '+type);return options.db.send(c instanceof sdk[type]?c:new sdk[type](c.input));}}});}
+for(const [file,names]of [['codReturn',['createStagingCodReturn']],['returnOperations',['createReturnOperations','createReturnRoadRouter']],['returnCustody',['createReturnCustodyReconciler']],['exceptionFinancials',['createExceptionFinancials']],['exceptionFinancialClosure',['createExceptionFinancialClosure']],['returnGuaranteeReview',['createReturnGuaranteeReview']],['returnDisposition',['createReturnDisposition']],['exceptionCaseAdministration',['createExceptionCaseAdministration']]]){const id=require.resolve('../backend/wallet-service/dist/'+file);require(id);for(const name of names)require.cache[id].exports[name]=name==='createReturnRoadRouter'?api[name]:wrap(api[name]);}

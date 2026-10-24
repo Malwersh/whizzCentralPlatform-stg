@@ -1,0 +1,183 @@
+# Addendum v1.2 — Driver Tips & Gratuity Management
+
+هذه إضافة إلزامية إلى مواصفات Master Implementation Specification وAddendum v1.1، ويجب دمجها مع محرك التسعير ومحفظة السائق والتسويات وسياسات الإلغاء والإرجاع.
+
+## 1. Driver Tips
+
+أضف نظام إكراميات اختياري للسائق في شاشة Checkout، يدعم الدفع النقدي (COD) والدفع الإلكتروني (Card / Wallet).
+
+المبدأ الأساسي:
+- 100% من الإكرامية المستحقة للسائق.
+- لا تأخذ المنصة عمولة من الإكرامية.
+- لا تدخل الإكرامية في وعاء عمولة التاجر.
+- لا تدخل الإكرامية في وعاء رسوم الخدمة.
+- لا تستخدم الإكرامية لتخفيض أجرة السائق الأساسية.
+- الإكرامية اختيارية وقيمتها الافتراضية صفر.
+
+## 2. Checkout UI
+
+أضف قسم Driver Tip يحتوي على:
+- No Tip.
+- 500 IQD.
+- 1,000 IQD.
+- 2,000 IQD.
+- Custom Amount.
+
+هذه قيم مبدئية قابلة للتعديل من لوحة الإدارة وليست مبالغ ثابتة داخل الكود.
+
+يجب عرض العبارة:
+"الإكرامية اختيارية، وتذهب بالكامل إلى السائق."
+
+يجب تحديث إجمالي الطلب مباشرة عند اختيار الإكرامية.
+
+Customer Total =
+Products Subtotal
+- Discounts
++ Delivery Fee
++ Service Fee
++ Other Applicable Fees
++ Driver Tip
+
+يجب إرسال المبلغ المختار إلى Backend والتحقق منه من جديد قبل تأكيد الطلب.
+
+## 3. Admin Tip Settings
+
+أضف إعدادات مركزية تشمل:
+- Tips Enabled.
+- Suggested Tip Amounts.
+- Custom Tip Enabled.
+- Minimum Custom Tip.
+- Maximum Tip.
+- Tip Increment.
+- Tips Allowed for COD.
+- Tips Allowed for Prepaid.
+- Tip Refund Rules.
+- Tip Payment and Settlement Rules.
+
+يجب حفظ رقم إصدار إعدادات الإكرامية التي استخدمت لحساب الطلب.
+
+لا يجوز تعديل نسبة ملكية الإكرامية بحيث تصبح إيراداً للمنصة؛ السياسة المعتمدة أن 100% من الإكرامية تذهب للسائق عند استحقاقها.
+
+## 4. COD Tip Handling
+
+مثال:
+Products = 10,000 IQD.
+Service Fee = 500 IQD.
+Delivery Fee = 3,000 IQD.
+Driver Tip = 1,000 IQD.
+
+Customer Total = 14,500 IQD.
+
+Driver Wallet Hold = 10,500 IQD.
+
+Driver Cash Retained = 4,000 IQD.
+
+عند التسليم:
+- يحصل السائق على 14,500 IQD نقداً.
+- يخصم 10,500 IQD من المبلغ المحجوز في محفظته.
+- يحتفظ بـ3,000 IQD أجرة التوصيل.
+- يحتفظ بـ1,000 IQD إكرامية.
+- لا يتم إضافة أي جزء من الإكرامية النقدية مرة أخرى إلى محفظته.
+
+لا تدخل الإكرامية ضمن COD Wallet Hold لأنها مبلغ يستحق للسائق مباشرة.
+
+## 5. Prepaid Tip Handling
+
+مثال:
+Products = 10,000 IQD.
+Service Fee = 500 IQD.
+Delivery Fee = 3,000 IQD.
+Driver Tip = 1,000 IQD.
+
+Customer Electronic Payment = 14,500 IQD.
+
+عند التسليم الناجح:
+- يعتمد استحقاق التاجر بصورة مستقلة.
+- تُضاف أجرة السائق 3,000 IQD إلى محفظته.
+- تُضاف الإكرامية 1,000 IQD إلى محفظته بقيد منفصل.
+- يظهر مجموع أرباح السائق للطلب = 4,000 IQD.
+- يتم تسجيل الإكرامية باعتبارها أموالاً محصلة لصالح السائق، وليست إيراداً للمنصة.
+
+يجب دعم الفصل بين المبلغ المستحق للسائق والرصيد القابل للسحب إذا كانت أموال مزود الدفع لم تُسوَّ بعد.
+
+## 6. Cancellation & Return Rules
+
+- في COD الذي لم تُحصّل فيه الأموال، لا تُنشأ إكرامية مستحقة.
+- في الدفع الإلكتروني الملغى قبل التنفيذ، تُعاد الإكرامية ضمن الاسترجاع المستحق.
+- في حالة رفض الزبون استلام طلب مدفوع إلكترونياً، لا يتم دفع الإكرامية تلقائياً للسائق.
+- تتم مراجعة الإكرامية بصورة مستقلة عن أجرة إعادة الطلب.
+- عند ثبوت خطأ التاجر أو السائق، تعالج الإكرامية وفق حقوق الزبون وسياسة الاسترجاع.
+- لا يجوز الاحتفاظ بإكرامية لم يستحقها السائق وتحويلها إلى إيرادات للمنصة بصورة تلقائية.
+- إذا لم تُصرف إكرامية مستحقة، يجب أن تبقى مسجلة كالتزام مالي حتى صرفها أو ردها وفق قرار مشروع.
+
+تظل أجرة السائق عن إرجاع الطلب المدفوع إلكترونياً مستحقة وفق سياسة الإرجاع السابقة، بعد تأكيد التاجر أو الإدارة استلام الطلب.
+
+## 7. Driver App
+
+اعرض في تفاصيل كل رحلة:
+- Base Driver Earning.
+- Distance/Time Incentives.
+- Driver Tip.
+- Return Compensation.
+- Total Driver Earnings.
+- Payment Method.
+- Tip Payment Status.
+
+يجب التمييز بصرياً بين الإكرامية النقدية التي يحتفظ بها السائق والإكرامية الإلكترونية المضافة إلى محفظته.
+
+## 8. Financial Ledger
+
+أضف قيوداً مستقلة للإكراميات:
+- DRIVER_TIP_COLLECTED.
+- DRIVER_TIP_PAYABLE.
+- DRIVER_TIP_CASH_RETAINED.
+- DRIVER_TIP_WALLET_CREDITED.
+- DRIVER_TIP_REFUNDED.
+- DRIVER_TIP_ADJUSTED.
+
+يجب منع:
+- Double Tip Credit.
+- Duplicate Tip Refund.
+- Tip Included in Merchant Commission.
+- Tip Included in Service Fee Calculation.
+- Double Counting of COD Cash Tips.
+
+كل قيد يجب أن يكون مرتبطاً بالطلب والسائق وعملية الدفع.
+
+## 9. Reassignment
+
+إذا تغير السائق قبل التسليم:
+- لا تُدفع الإكرامية للسائق الأول تلقائياً.
+- تُنسب الإكرامية إلى السائق المستحق فعلياً وفق سياسة تنفيذ الرحلة.
+- لا يجوز تحويل الإكرامية مرتين.
+- إذا تعدد السائقون فعلياً، تُحال الحالات التي تحتاج توزيعاً إلى سياسة واضحة أو مراجعة إدارية.
+
+## 10. Testing
+
+أضف اختبارات تشمل:
+- No Tip.
+- Suggested Tip.
+- Custom Tip.
+- Invalid Tip Amount.
+- COD Tip.
+- Prepaid Tip.
+- Driver Reassignment.
+- COD Return Without Collection.
+- Prepaid Customer Refusal.
+- Tip Refund.
+- Duplicate Completion.
+- Duplicate Payment Webhook.
+- Duplicate Tip Credit.
+- Merchant Commission Excludes Tip.
+- Service Fee Excludes Tip.
+- Driver Tip Ledger Reconciliation.
+
+## 11. Implementation
+
+افحص Checkout ومحرك التسعير ونظام المحافظ والسجلات المالية الحالية.
+
+ادمج الإكرامية في إجمالي الطلب مع الحفاظ على الفصل المحاسبي.
+
+لا تنشئ محرك دفع مستقل للإكراميات إذا كان يمكن استخدام المحرك المالي الموجود.
+
+نفذ اختبارات جميع طرق الدفع والإلغاء والاسترجاع وإعادة تعيين السائق قبل اعتماد الوظيفة للإنتاج.

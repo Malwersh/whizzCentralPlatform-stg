@@ -1,0 +1,12 @@
+{
+  "status": "LOCAL_V2_ALLOCATION_PROPOSAL_NOT_DEPLOYED",
+  "module": "backend/wallet-service/src/deliveryFundedAllocation.ts",
+  "reuses": "allocateOrder V1 goods, commission, customer total, COD/PREPAID driver arithmetic",
+  "version": "ORDER_ALLOCATION_V2_DELIVERY_FUNDING",
+  "checks": ["funding shares equal subsidy", "customer fee matches allocation", "merchant payable cannot become negative", "economic conservation", "driver entitlement independent", "baseline cost gap distinct from promotion"],
+  "verification": {"typescriptCompile": "PASS", "newAllocationTests": 9, "matrixCombinations": 162, "targetedTestsPassed": 87},
+  "v2LiveAdmissionEnabled": false,
+  "remaining": ["offer and assignment proof versions", "cash capture/release and accrual", "trusted order composition", "UI and staging verification"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

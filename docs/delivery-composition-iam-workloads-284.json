@@ -1,0 +1,602 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_RESERVATION#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_ORDER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_FUNDING#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_BUDGET#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "DELIVERY_USAGE#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "table": "staging-PlatformStaff",
+      "keyPattern": "EMPLOYEE#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "USER#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_REQUEST#*",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_REQUEST#*",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "table": "staging-WizzOfferJourney",
+      "keyPattern": "BENEFIT_REQUEST#*",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    }
+  ],
+  "iamChanged": false,
+  "scope": "Actual mutation hosts; quote preview read-only keys; staff grant keys. Dispatch allocators are pure and receive no new permissions."
+}

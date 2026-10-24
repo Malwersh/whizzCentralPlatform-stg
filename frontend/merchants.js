@@ -25,6 +25,14 @@ let allMerchants = [];
 let merchantsData = [];
 let filteredMerchants = [];
 
+// Reuse the same completed merchant inventory for the commercial branch selector.
+function publishCommercialMerchantSource(status,items=[]) {
+    window.commercialMerchantSource={status,items:items.map(r=>({businessId:r.businessId||r.id,businessName:r.businessName||r.name||r.title,branchName:r.branchName,address:r.address,regionNames:r.regionNames,city:r.city,district:r.district,ownerId:r.ownerId||r.cognitoUserId,organizationId:r.organizationId,isDeleted:r.isDeleted,deletedAt:r.deletedAt,deletionRequestId:r.deletionRequestId}))};
+    window.dispatchEvent(new Event('commercial-merchants-updated'));
+}
+publishCommercialMerchantSource('LOADING');
+
+
 // Utility to add a timeout to a promise
 function withTimeout(promise, ms, operationName = 'Unnamed operation') {
     let timeoutId;
@@ -115,6 +123,7 @@ const onDomReady = async function () {
         }
 
     } catch (error) {
+        publishCommercialMerchantSource('ERROR');
         console.error('❌ Error loading merchants from database:', error);
         document.getElementById('merchantsTableBody').innerHTML = `<tr><td colspan="9" class="text-center p-8 text-red-600 bg-red-50">${error.message}</td></tr>`;
         updateDataSourceIndicator('error', `Error: ${error.message}`);
@@ -144,6 +153,7 @@ async function fetchMerchantsFromApi() {
         throw new Error(data.message || 'Failed to fetch merchants from API');
     }
     merchantsData = data.merchants || data;
+    publishCommercialMerchantSource('READY',merchantsData);
     filteredMerchants = [...merchantsData];
 }
 
@@ -200,6 +210,7 @@ function updateDataSourceIndicator(status, message) {
 
 // Function to refresh merchants data (for refresh button)
 async function refreshMerchantsData() {
+    publishCommercialMerchantSource('LOADING');
     showLoader(true, 'Refreshing merchants data...');
     updateDataSourceIndicator('loading', 'Refreshing data from database...');
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -223,6 +234,7 @@ async function refreshMerchantsData() {
             showMessage('No merchants to display.', 'info');
         }
     } catch (error) {
+        publishCommercialMerchantSource('ERROR');
         console.error('Refresh failed:', error);
         if (isLocal) {
             const errorMessage = `Failed to refresh data: ${error.message}. Check console for details.`;
@@ -243,10 +255,12 @@ async function refreshMerchantsData() {
 
 // Export for global access
 window.refreshMerchantsData = refreshMerchantsData;
+window.reloadCommercialMerchants = refreshMerchantsData;
 window.onDomReady = onDomReady;
 
 // Load merchants data from DynamoDB using AWS SDK
 async function loadMerchantsFromDynamoDB() {
+    publishCommercialMerchantSource('LOADING');
     console.log('DEBUG: Executing DynamoDB scan on WhizzMerchants_Businesses...');
     console.log('DEBUG: MERCHANTS_TABLE constant value:', MERCHANTS_TABLE);
 
@@ -269,6 +283,7 @@ async function loadMerchantsFromDynamoDB() {
         console.log('DynamoDB scan result:', data);
 
         if (data && Array.isArray(data.Items)) {
+            publishCommercialMerchantSource('READY',data.Items);
             merchantsData = data.Items.map(item => ({
                 id: item.businessId || item.id || `merchant-${Date.now()}-${Math.random()}`,
                 name: item.businessName || item.name || item.title || 'Unknown Business',
@@ -278,6 +293,9 @@ async function loadMerchantsFromDynamoDB() {
                 // Updated status detection - use isActive for status since there's no status field
                 status: item.status || (item.isActive === false ? 'pending' : (item.isActive === true ? 'approved' : 'unknown')),
                 isActive: item.isActive !== undefined ? item.isActive : true,
+                updatedAtRaw: item.updatedAt ?? null,
+                platformSuspended: item.platformSuspended === true,
+                ordersBlocked: item.ordersBlocked === true,
                 // Updated address handling for the actual table structure with proper fallbacks
                 address: buildAddressFromData(item),
                 owner: item.ownerName || item.owner || item.contactName || 'N/A',
@@ -296,7 +314,8 @@ async function loadMerchantsFromDynamoDB() {
                 district: item.district || 'N/A',
                 country: item.country || 'N/A',
                 lastStatusUpdate: item.lastStatusUpdate || item.updatedAt || null,
-                fullData: item
+                fullData: item,
+                ...window.MerchantBranchView.normalize(item)
             }));
 
             console.log(`✅ Successfully loaded and mapped ${merchantsData.length} merchants from WhizzMerchants_Businesses!`);
@@ -308,12 +327,14 @@ async function loadMerchantsFromDynamoDB() {
             console.log('Final merchants data for rendering:', merchantsData);
             return;
         } else {
+            publishCommercialMerchantSource('READY',[]);
             console.log('No merchants found in DynamoDB');
             showMessage('The database is currently empty. No merchants to display.', 'info');
             merchantsData = [];
             return;
         }
     } catch (error) {
+        publishCommercialMerchantSource('ERROR');
         console.error('Error loading merchants from DynamoDB:', error);
         // Provide a more specific error message if it's a credential issue.
         if (error.code === 'CredentialsError' || error.message.includes('Missing credentials')) {
@@ -540,92 +561,7 @@ function setupEventListeners() {
 
 // Render the merchants table with the provided data
 function renderMerchantsTable() {
-    const tableBody = document.getElementById('merchantsTableBody');
-    if (!tableBody) {
-        console.error('Cannot render table: tbody element not found.');
-        return;
-    }
-
-    if (filteredMerchants.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="9" class="text-center p-8">No merchants match the current filters.</td></tr>';
-        return;
-    }
-
-    const rows = filteredMerchants.map(merchant => {
-        const statusInfo = MERCHANT_STATUSES[merchant.status] || MERCHANT_STATUSES['unknown'];
-
-        // Use the address that was already built from individual fields
-        let displayAddress = merchant.address || 'N/A';
-
-        // SECURITY: Sanitize all user-generated content to prevent XSS
-        const safeName = SecurityUtils.escapeHTML(merchant.name || 'N/A');
-        const safeOwner = SecurityUtils.escapeHTML(merchant.owner || 'N/A');
-        const safeCategory = SecurityUtils.escapeHTML(merchant.category || 'Business');
-        const safeCity = SecurityUtils.escapeHTML(merchant.city || 'Unknown City');
-        const safeEmail = SecurityUtils.escapeHTML(merchant.email || 'N/A');
-        const safePhone = SecurityUtils.escapeHTML(merchant.phone || 'N/A');
-        const safeAddress = SecurityUtils.escapeHTML(displayAddress);
-        const safeAvatar = SecurityUtils.sanitizeURL(merchant.avatar);
-        const safeId = SecurityUtils.escapeHTML(merchant.id || '');
-        const safeStatus = SecurityUtils.escapeHTML(merchant.status || 'unknown');
-        const safeStatusLabel = SecurityUtils.escapeHTML(statusInfo.label);
-
-        // Format accepting orders status
-        const acceptingOrdersStatus = merchant.acceptingOrders ?
-            '<span class="status-badge approved" style="background-color: #10b98120; color: #10b981;">Accepting</span>' :
-            '<span class="status-badge pending" style="background-color: #f59e0b20; color: #f59e0b;">Not Accepting</span>';
-
-        // Format last update time
-        const lastUpdate = merchant.lastStatusUpdate ?
-            new Date(merchant.lastStatusUpdate).toLocaleDateString() :
-            (merchant.joinDate !== 'N/A' ? merchant.joinDate : 'N/A');
-        const safeLastUpdate = SecurityUtils.escapeHTML(lastUpdate);
-
-        return `
-            <tr data-merchant-row="${safeId}">
-                <td>
-                    <div class="business-info">
-                        <img src="${safeAvatar}" alt="${safeName}" class="business-avatar" loading="lazy">
-                        <div class="business-details">
-                            <h4>${safeName}</h4>
-                            <p>${safeCategory} • ${safeCity}</p>
-                        </div>
-                    </div>
-                </td>
-                <td>${safeOwner}</td>
-                <td>
-                    <span class="status-badge ${statusInfo.class}" style="background-color: ${statusInfo.color}20; color: ${statusInfo.color};">
-                        ${safeStatusLabel}
-                    </span>
-                </td>
-                <td>${acceptingOrdersStatus}</td>
-                <td>${safeEmail}</td>
-                <td>${safePhone}</td>
-                <td><div class="address-info">${safeAddress}</div></td>
-                <td>${safeLastUpdate}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-action" data-action="view-details" data-id="${safeId}" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn-view-products" data-action="view-products" data-id="${safeId}" title="View Products">
-                            <i class="fas fa-box"></i>
-                        </button>
-                        <button class="btn-action" data-action="edit" data-id="${safeId}" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-toggle-status ${merchant.status === 'approved' ? 'approved' : 'pending'}" 
-                                data-action="toggle-status" data-id="${safeId}" data-status="${safeStatus}" 
-                                title="${merchant.status === 'approved' ? 'Suspend Merchant' : 'Approve Merchant'}">
-                            <i class="fas ${merchant.status === 'approved' ? 'fa-pause' : 'fa-check'}"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }).join('');
-
-    tableBody.innerHTML = SecurityUtils.sanitizeHTML(rows);
+    window.MerchantBranchView.renderTable(filteredMerchants);
     attachMerchantsDelegatedEvents();
 }
 
@@ -678,141 +614,30 @@ function updateMerchantStats() {
 }
 
 // Toggle merchant status between approved and pending
-async function toggleMerchantStatus(merchantId, legacyStatusParam) {
-    // Determine current status from data arrays if not explicitly passed
-    let merchant = merchantsData.find(m => m.id === merchantId) || filteredMerchants.find(m => m.id === merchantId);
-    if (!merchant) {
-        console.warn('toggleMerchantStatus: merchant not found', merchantId);
-        return;
-    }
-    const currentStatus = legacyStatusParam || merchant.status || 'pending';
-    console.log(`🔄 Toggling status for merchant ${merchantId} from ${currentStatus}`);
+async function toggleMerchantStatus(merchantId) {
+    const merchant=merchantsData.find(m=>m.id===merchantId);
+    if(!merchant)return;
+    const action=window.prompt('إجراء المنصة: 1 منع الطلبات الجديدة، 2 رفع منع الطلبات، 3 تعليق النشاط، 4 رفع التعليق. رفع المنع لا يشغّل الاستقبال تلقائيًا.','1');
+    const actions={'1':'PAUSE_ORDERS','2':'RESUME_ORDERS','3':'SUSPEND','4':'UNSUSPEND'};
+    if(!actions[action])return;
+    const reason=window.prompt('سبب الإجراء — خمسة أحرف على الأقل');if(!reason)return;
     try {
-        // Find button via data attributes
-        const button = document.querySelector(`button[data-action="toggle-status"][data-id="${merchantId}"]`);
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        }
-        const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
-        const newIsActive = newStatus === 'approved';
-        console.log(`📝 Updating merchant ${merchantId} to status: ${newStatus}, isActive: ${newIsActive}`);
-        const dynamoDB = await AWSUtils.getDynamoDBClient();
-        const updateParams = {
-            TableName: 'WhizzMerchants_Businesses',
-            Key: { businessId: merchantId },
-            UpdateExpression: 'SET #status = :status, #isActive = :isActive, #lastStatusUpdate = :timestamp, #statusUpdatedBy = :updatedBy, #statusSource = :source',
-            ExpressionAttributeNames: {
-                '#status': 'status',
-                '#isActive': 'isActive',
-                '#lastStatusUpdate': 'lastStatusUpdate',
-                '#statusUpdatedBy': 'statusUpdatedBy',
-                '#statusSource': 'statusSource'
-            },
-            ExpressionAttributeValues: {
-                ':status': newStatus,
-                ':isActive': newIsActive,
-                ':timestamp': new Date().toISOString(),
-                ':updatedBy': sessionStorage.getItem('userEmail') || 'admin',
-                ':source': 'admin_dashboard'
-            },
-            ReturnValues: 'ALL_NEW'
-        };
-        const result = await dynamoDB.update(updateParams).promise();
-        console.log('✅ Status update successful:', result);
-        // Update local objects
-        merchant.status = newStatus;
-        merchant.isActive = newIsActive;
-        const globalIdx = merchantsData.findIndex(m => m.id === merchantId); if (globalIdx !== -1) { merchantsData[globalIdx].status = newStatus; merchantsData[globalIdx].isActive = newIsActive; }
-        const filteredIdx = filteredMerchants.findIndex(m => m.id === merchantId); if (filteredIdx !== -1) { filteredMerchants[filteredIdx].status = newStatus; filteredMerchants[filteredIdx].isActive = newIsActive; }
-        renderMerchantsTable();
-        updateMerchantStats();
-        showMessage(`Merchant status updated to ${newStatus} successfully!`, 'success');
-        setTimeout(() => hideMessage(), 3000);
-    } catch (error) {
-        console.error('❌ Error updating merchant status:', error);
-        const button = document.querySelector(`button[data-action="toggle-status"][data-id="${merchantId}"]`);
-        if (button) {
-            button.disabled = false;
-            const icon = (merchant.status === 'approved') ? 'fa-pause' : 'fa-check';
-            button.innerHTML = `<i class="fas ${icon}"></i>`;
-        }
-        showMessage(`Error: ${error.message || 'Failed to update merchant status'}`, 'error');
-        setTimeout(() => hideMessage(), 5000);
-    }
+      await window.Auth.ensureSession();
+      const r=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/merchants/control',{method:'POST',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},body:JSON.stringify({businessId:merchantId,baseUpdatedAt:merchant.updatedAtRaw,action:actions[action],reason})});
+      const d=await r.json();if(!r.ok)throw Error(({PERMISSION_REQUIRED:'لا تملك صلاحية التحكم بالنشاط.',VERSION_OR_STATE_CONFLICT:'تغيرت بيانات النشاط. حدّث القائمة.',INVALID_CONTROL_REQUEST:'اكتب سببًا من خمسة أحرف على الأقل.'})[d.error]||'تعذر تنفيذ الإجراء.');
+      Object.assign(merchant,{updatedAtRaw:d.updatedAt,...d});renderMerchantsTable();showMessage('تم حفظ إجراء المنصة. تشغيل الاستقبال يبقى بيد المالك بعد رفع الحظر.','success');
+    } catch(e){showMessage(e.message,'error');}
 }
 
 // Modal functions for merchant management
 function viewMerchantDetails(merchantId) {
-    const merchant = filteredMerchants.find(m => m.id === merchantId);
-    if (!merchant) {
-        console.error('Merchant not found:', merchantId);
-        return;
-    }
-
-    // Use the address that was already built from individual fields
-    let displayAddress = merchant.address || 'Not provided';
-
-    // SECURITY: Sanitize all user-generated content for modal display
-    const safeName = SecurityUtils.escapeHTML(merchant.name || 'N/A');
-    const safeCategory = SecurityUtils.escapeHTML(merchant.category || 'Business');
-    const safeOwner = SecurityUtils.escapeHTML(merchant.owner || 'N/A');
-    const safeEmail = SecurityUtils.escapeHTML(merchant.email || 'N/A');
-    const safePhone = SecurityUtils.escapeHTML(merchant.phone || 'N/A');
-    const safeAddress = SecurityUtils.escapeHTML(displayAddress);
-    const safeAvatar = SecurityUtils.sanitizeURL(merchant.avatar);
-    const safeStatusLabel = SecurityUtils.escapeHTML(MERCHANT_STATUSES[merchant.status]?.label || 'Unknown');
-
-    const modalBody = document.getElementById('merchantDetailsBody');
-    if (modalBody) {
-        modalBody.innerHTML = SecurityUtils.sanitizeHTML(`
-            <div style="display: grid; gap: 1rem;">
-                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
-                    <img src="${safeAvatar}" alt="${safeName}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
-                    <div>
-                        <h4 style="margin: 0; color: #1e293b;">${safeName}</h4>
-                        <p style="margin: 0; color: #64748b; font-size: 0.9rem;">${safeCategory}</p>
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div><strong>Owner:</strong> ${safeOwner}</div>
-                    <div><strong>Status:</strong> <span class="status-badge ${MERCHANT_STATUSES[merchant.status]?.class || 'unknown'}">${safeStatusLabel}</span></div>
-                    <div><strong>Email:</strong> ${safeEmail}</div>
-                    <div><strong>Phone:</strong> ${safePhone}</div>
-                    <div style="grid-column: 1 / -1;"><strong>Address:</strong> ${safeAddress}</div>
-                    <div><strong>Join Date:</strong> ${merchant.joinDate ? new Date(merchant.joinDate).toLocaleDateString() : 'N/A'}</div>
-                    <div><strong>Commission:</strong> ${merchant.commission || 0}%</div>
-                </div>
-            </div>
-        `);
-
-        document.getElementById('viewMerchantModal').style.display = 'flex';
-    }
+    const merchant=filteredMerchants.find(m=>m.id===merchantId);
+    if(merchant)window.MerchantBranchView.showDetails(merchant);
 }
 
 function editMerchant(merchantId) {
-    const merchant = filteredMerchants.find(m => m.id === merchantId);
-    if (!merchant) {
-        console.error('Merchant not found:', merchantId);
-        showEditFormMessage('Merchant not found', 'error');
-        return;
-    }
-
-    console.log('Editing merchant:', merchant.name || merchant.businessName);
-    console.log('Merchant data:', merchant);
-    console.log('Merchant status:', merchant.status);
-
-    // Clear any previous messages
-    hideEditFormMessage();
-
-    // Populate form fields with current merchant data
-    populateEditForm(merchant);
-
-    // Store the merchant ID for submission
-    document.getElementById('editMerchantForm').setAttribute('data-merchant-id', merchantId);
-
-    // Show the modal
-    document.getElementById('editMerchantModal').style.display = 'flex';
+    // Data/name/location review and commercial terms use their dedicated authorized workflows.
+    viewMerchantDetails(merchantId);
 }
 
 // Product view functions

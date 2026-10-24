@@ -1,0 +1,71 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "scope": "COD-01 existing personal voucher/case linkage",
+  "publication": {
+    "backendFunction": "staging-wizz-staff-service",
+    "baseCodeSha256": "51N75PIVUj5yUWfEXG7xjTPhzY753T0HHFtZJDr0/Qc=",
+    "codeSha256": "fhkTRSLiw7z0qda09VLlA4gVqZH91qe9esbNDyCAITs=",
+    "backendChangedFiles": [
+      "_discount_review/central-staff/index.js",
+      "customer-benefit-compensation-runtime.js"
+    ],
+    "businessActionsExecuted": false,
+    "iamChanges": false,
+    "status": "PUBLISHED_VERIFIED",
+    "baseHostingJobId": "189",
+    "hostingJobId": "190",
+    "frontendChangedFiles": [
+      "customer-benefit-compensation.js",
+      "cancellation-compensation.js",
+      "cancellation-compensation-link.js",
+      "pages/cancellation-compensation.html",
+      "order-management.js",
+      "settlement-statements.js",
+      "order-exception-cases.js",
+      "pages/order-exceptions.html",
+      "pages/orders.html"
+    ],
+    "hostedBytesMatched": true
+  },
+  "validation": {
+    "staffRegressionTestsPassed": 368,
+    "deployedRuntimeTestsPassed": 8,
+    "browserMock": {
+      "reviewRequired": true,
+      "stableRequestIdOnRetry": true,
+      "mobile390NoOverflow": true,
+      "realBusinessWrites": 0
+    },
+    "iamChecksAllowed": 14,
+    "iamChanges": false,
+    "sourceCompatibility": {
+      "sourceCompatibility": "PASS",
+      "schemaReadOnly": true,
+      "authenticatedApiAcceptance": false,
+      "actualCaseClosed": true,
+      "canRecord": false,
+      "existingCustomerCompensation": null,
+      "reads": 5,
+      "mutationsBlocked": true
+    }
+  },
+  "humanAuthenticatedAcceptance": "PENDING_NEW_OPEN_CASE",
+  "cashRefundPerformed": false,
+  "newGrantCreated": false,
+  "couponConsumed": false,
+  "caseFinancialClosureChanged": false,
+  "nextWorkPackage": "COD-02 pickup issue resolution",
+  "cashReviewInterface": {
+    "status": "PUBLISHED_VERIFIED",
+    "baseHostingJobId": "190",
+    "hostingJobId": "191",
+    "changedFiles": [
+      "customer-benefit-compensation.js",
+      "customer-cash-review.js",
+      "pages/order-exceptions.html",
+      "pages/customer-cash-review.html"
+    ],
+    "hostedBytesMatched": true,
+    "businessActionsExecuted": false
+  }
+}

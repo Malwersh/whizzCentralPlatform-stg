@@ -297,9 +297,9 @@ async function loadCustomersData() {
                 totalOrders: 0, // Will be populated from orders table if available
                 totalSpent: 0,  // Will be populated from orders table if available
                 points: 0, // Will be calculated based on totalSpent
-                lastOrder: user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never',
+                lastOrder: user.lastLoginAt || 'Never',
                 segment: segment,
-                joinDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown',
+                joinDate: user.createdAt || null,
                 avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&size=40&background=4f46e5&color=fff`,
                 isActive: !!user.isActive,
 
@@ -468,7 +468,7 @@ function renderCustomersTable() {
                     <div class="customer-avatar">${customer.name.charAt(0)}</div>
                     <div class="customer-details">
                         <h4>${customer.name}</h4>
-                        <p>ID: ${customer.id}</p>
+                        <p>المعرّف: ${customer.id}</p>
                     </div>
                 </div>
             </td>
@@ -487,26 +487,26 @@ function renderCustomersTable() {
                 <div class="metric-value">${customer.totalOrders}</div>
             </td>
             <td>
-                <div class="currency-value">${customer.totalSpent.toLocaleString()} IQD</div>
+                <div class="currency-value">${window.WizzLocale.iqd(customer.totalSpent)}</div>
             </td>
             <td>
                 <div class="points-display">
-                    <span class="points-value">${customer.points.toLocaleString()}</span>
-                    <small style="color: #666; display: block;">points</small>
+                    <span class="points-value">${customer.points.toLocaleString('ar-IQ')}</span>
+                    <small style="color: #666; display: block;">نقطة</small>
                 </div>
             </td>
             <td>${formatDate(customer.lastOrder)}</td>
             <td>
                 <span class="segment-badge ${customer.segment}">
-                    ${customer.segment.toUpperCase()}
+                    ${({vip:'مميز',regular:'اعتيادي',new:'جديد',inactive:'غير نشط'})[customer.segment] || customer.segment}
                 </span>
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="action-btn view" onclick="viewCustomer('${customer.id}')" title="View Details">
+                    <button class="action-btn view" onclick="viewCustomer('${customer.id}')" title="عرض التفاصيل">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="action-btn edit" onclick="editCustomer('${customer.id}')" title="Edit Customer">
+                    <button class="action-btn edit" onclick="editCustomer('${customer.id}')" title="تعديل العميل">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="action-btn toggle" onclick="toggleCustomerStatus('${customer.id}')" title="Toggle Status">
@@ -573,12 +573,8 @@ function updatePagination() {
 
 // Utility functions
 function formatDate(dateString) {
-    if (!dateString || dateString === 'Never') return 'Never';
-    try {
-        return new Date(dateString).toLocaleDateString();
-    } catch {
-        return 'Invalid Date';
-    }
+    if (!dateString || dateString === 'Never') return 'لا يوجد';
+    return window.WizzLocale.date(dateString);
 }
 
 // Customer action functions
@@ -656,24 +652,24 @@ function viewCustomer(customerId) {
         const tierElement = document.getElementById('viewTier');
         if (tierElement) {
             if (customer.vipStatus || customer.tier === 'vip') {
-                tierElement.innerHTML = '<span style="background: rgba(255, 215, 0, 0.2); color: #b8860b; padding: 4px 12px; border-radius: 12px; font-weight: 600;">⭐ VIP</span>';
+                tierElement.innerHTML = '<span style="background: rgba(255, 215, 0, 0.2); color: #b8860b; padding: 4px 12px; border-radius: 12px; font-weight: 600;">⭐ مميز</span>';
             } else {
-                tierElement.textContent = customer.tierLevel || customer.tier || 'Regular';
+                tierElement.textContent = window.WizzLocale.t(customer.tierLevel || customer.tier || 'Regular');
             }
         }
         
         setTextContent('viewLanguage', getLanguageName(customer.preferredLanguage));
-        setTextContent('viewMarketing', customer.marketingConsent || customer.marketing_consent ? '✓ Yes' : '✗ No');
+        setTextContent('viewMarketing', customer.marketingConsent || customer.marketing_consent ? '✓ نعم' : '✗ لا');
         
         // Populate Order & Points Statistics
         setTextContent('viewTotalOrders', customer.totalOrders || customer.total_orders || 0);
-        setTextContent('viewTotalSpent', `${(customer.totalSpent || customer.total_spent || 0).toLocaleString()} IQD`);
-        setTextContent('viewLoyaltyPoints', (customer.points || customer.loyalty_points || 0).toLocaleString());
-        setTextContent('viewLastOrderDate', customer.lastOrder || customer.last_order_date || 'Never');
+        setTextContent('viewTotalSpent', window.WizzLocale.iqd(customer.totalSpent || customer.total_spent || 0));
+        setTextContent('viewLoyaltyPoints', (customer.points || customer.loyalty_points || 0).toLocaleString('ar-IQ'));
+        setTextContent('viewLastOrderDate', formatDate(customer.lastOrder || customer.last_order_date));
         
         // Populate System Information
         setTextContent('viewSysCustomerId', customer.id || customer.userId || 'N/A');
-        setTextContent('viewJoinedDate', customer.joinDate || formatDateTime(customer.createdAt) || 'N/A');
+        setTextContent('viewJoinedDate', formatDateTime(customer.createdAt || customer.joinDate));
         setTextContent('viewUpdatedDate', formatDateTime(customer.updatedAt) || 'N/A');
         
         console.log('✅ All fields populated, opening modal...');
@@ -733,7 +729,7 @@ async function editCustomer(customerId) {
     
     // Populate read-only information
     document.getElementById('viewCustomerId').textContent = customer.id || 'N/A';
-    document.getElementById('viewJoinDate').textContent = customer.joinDate || 'N/A';
+    document.getElementById('viewJoinDate').textContent = formatDate(customer.joinDate);
     document.getElementById('viewLastUpdated').textContent = customer.updatedAt 
         ? formatDateTime(customer.updatedAt) 
         : 'N/A';
@@ -752,28 +748,9 @@ async function editCustomer(customerId) {
 }
 
 function formatDateTime(timestamp) {
-    if (!timestamp) return 'N/A';
-    try {
-        let date;
-        if (typeof timestamp === 'number') {
-            date = new Date(timestamp * 1000); // Unix timestamp
-        } else {
-            date = new Date(timestamp); // ISO string
-        }
-        
-        if (isNaN(date.getTime())) return 'Invalid Date';
-        
-        return date.toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (e) {
-        console.error('Error formatting date:', e);
-        return 'N/A';
-    }
+    if (!timestamp) return '—';
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return window.WizzLocale.dateTime(date);
 }
 
 function openEditCustomerModal() {
@@ -942,7 +919,7 @@ function exportCustomers() {
                 customer.status,
                 customer.totalOrders,
                 customer.totalSpent.toFixed(2),
-                customer.lastOrder,
+                formatDate(customer.lastOrder),
                 customer.segment,
                 formatDate(customer.joinDate)
             ].join(','))
@@ -1117,7 +1094,7 @@ async function viewCustomerPointsHistory(customerId) {
                                     <tbody>
                                         ${transactions.map(transaction => `
                                             <tr>
-                                                <td style="padding: 0.8rem; border-bottom: 1px solid #eee;">${new Date(transaction.timestamp).toLocaleDateString()}</td>
+                                                <td style="padding: 0.8rem; border-bottom: 1px solid #eee;">${window.WizzLocale.date(transaction.timestamp)}</td>
                                                 <td style="padding: 0.8rem; border-bottom: 1px solid #eee;">
                                                     <span style="background: ${transaction.transactionType === 'earned' ? '#e8f5e8' : '#ffeaea'}; color: ${transaction.transactionType === 'earned' ? '#27ae60' : '#e74c3c'}; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
                                                         ${transaction.transactionType === 'earned' ? '+ Earned' : '- Redeemed'}
@@ -1182,7 +1159,7 @@ async function showRedeemPointsModal(customerId) {
                 
                 <div class="customer-info" style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
                     <div><strong>Customer:</strong> ${customer.name}</div>
-                    <div><strong>Available Points:</strong> <span style="color: #e74c3c; font-weight: bold;">${customer.points.toLocaleString()}</span></div>
+                    <div><strong>Available Points:</strong> <span style="color: #e74c3c; font-weight: bold;">${customer.points.toLocaleString('ar-IQ')}</span></div>
                     <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">1 point = 1 IQD discount</div>
                 </div>
                 

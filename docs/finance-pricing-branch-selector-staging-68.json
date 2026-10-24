@@ -1,0 +1,26 @@
+{
+  "baseJobId": "83",
+  "jobId": "84",
+  "changedFiles": [
+    "delivery-pricing.js",
+    "pages/delivery-pricing.html"
+  ],
+  "sha256": "e66671d6fc46a2ca7985cd82b674a4df0ff84a2bec4eea400c738a8512954ed4",
+  "status": "SUCCEED",
+  "hostedFilesMatched": true,
+  "part": 68,
+  "date": "2026-10-17",
+  "environment": "Staging",
+  "applicationDataWrites": false,
+  "financialActivation": false,
+  "tests": {
+    "branchSelectionBrowser": true,
+    "pricingRegressionBrowser": true,
+    "finalRoundingBrowser": true,
+    "realTestWrites": false
+  },
+  "sourceSha256": {
+    "delivery-pricing.js": "07074e44e63a954cd32995d72514546a7742d413fc7bbd55192624442f3006ad",
+    "pages/delivery-pricing.html": "980c05e211118aed9572a4966032f61be54f2bacd563083b0aeada75d722fb14"
+  }
+}

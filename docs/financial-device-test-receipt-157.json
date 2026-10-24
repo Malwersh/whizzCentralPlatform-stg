@@ -1,0 +1,43 @@
+{
+  "part": 157,
+  "at": "2026-10-19T03:35:44.535216+00:00",
+  "driver": {
+    "built": true,
+    "installed": true,
+    "launched": true,
+    "bundleId": "com.wiz.wizdriverapp",
+    "mode": "profile",
+    "device": "iMohammed",
+    "processPresenceVerified": true
+  },
+  "customer": {
+    "built": true,
+    "installed": true,
+    "bundleId": "com.wiz.wizuserapp",
+    "mode": "profile",
+    "explicitCheckoutAttempt": true
+  },
+  "activation": {
+    "scopeId": "fattoush-financial-host-157",
+    "replacedScopeUnusedAndExpired": true,
+    "historicalDrainScopesPreserved": true,
+    "orderCount": 1,
+    "verifiedHosts": 15,
+    "admitUntil": "2026-10-19T04:28:49.605Z",
+    "newOrderNotCreated": true
+  },
+  "wallet": {
+    "available": "67500",
+    "locked": "0",
+    "written": false
+  },
+  "newIamChanges": false,
+  "tableWrites": false,
+  "remaining": [
+    "Manual customer final-total review before order submission",
+    "Merchant preparation and financial-wave notification/acceptance test",
+    "Delivery completion and financial reconciliation",
+    "Delivery funding offer proposal/owner acceptance before a subsidized V2 case",
+    "Original-share refunds/partial returns"
+  ]
+}

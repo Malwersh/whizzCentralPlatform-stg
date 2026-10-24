@@ -1,3 +1,8 @@
+async function driverStaffApi(path,body) {
+    await window.Auth.ensureSession();
+    const response=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+    const data=await response.json();if(!response.ok)throw Object.assign(Error(data.error||'تعذر تحميل بيانات السائقين'),{code:data.error});return data;
+}
 // Drivers Management JavaScript with Direct Authentication
 
 // Use centralized AWS utilities
@@ -42,21 +47,9 @@ async function loadDriversData() {
             return;
         }
 
-        // Initialize DynamoDB using centralized AWSUtils (handles tokens/config)
-        const dynamoDB = await AWSUtils.getDynamoDBClient();
-        if (!dynamoDB) {
-            throw new Error('AWS is not initialized (missing idToken). Please login again.');
-        }
-        
-        const params = { 
-            TableName: DRIVERS_TABLE,
-            Limit: 100
-        };
-        
-        console.log('Scanning drivers table with params:', params);
-        const result = { Items: await AWSUtils.scanAll(DRIVERS_TABLE) };
-        
-        console.log('DynamoDB scan result:', result);
+        await window.RBAC.ensure();
+        const result=await driverStaffApi('/staff/drivers');
+        result.Items=result.items;
         const items = (result && Array.isArray(result.Items)) ? result.Items : [];
         
         console.log(`Found ${items.length} drivers in table`);
@@ -115,6 +108,7 @@ function purgeMockRows(forceSpinner = false) {
 
 // Create a new driver record in DynamoDB (real integration)
 async function createDriverInDB(driverInput) {
+    if(!window.RBAC.staff?.employee.roles.includes('bootstrap_admin'))throw Error('إنشاء حساب السائق يتم من تطبيق السائق');
     // Ensure authenticated and AWS initialized
     const dynamoDB = await AWSUtils.getDynamoDBClient();
     if (!dynamoDB) {
@@ -233,22 +227,9 @@ function mapVehicleType(dbVehicleType) {
 
 // Helper function to format dates
 function formatDate(timestamp) {
-    if (!timestamp) return 'N/A';
-    try {
-        // Handle both timestamp and ISO string formats
-        const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
-        if (isNaN(date.getTime())) {
-            return timestamp.toString(); // Return original if can't parse
-        }
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    } catch (e) {
-        console.warn(`Could not parse date: ${timestamp}`);
-        return timestamp.toString();
-    }
+    if (!timestamp) return '—';
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return window.WizzLocale.date(date);
 }
 
 // Generate avatar URL for driver
@@ -391,9 +372,9 @@ function renderDriversTable(driversList = drivers) {
                     <span class="rating-value">${ratingValue}</span>
                 </div>
             </td>
-            <td>$${earningsValue}</td>
+            <td>${window.RBAC.staff?.employee.roles.includes('bootstrap_admin')?'$'+earningsValue:'—'}</td>
             <td>
-                <div class="actions">${viewAction}${editAction}${toggleAction}</div>
+                <div class="actions">${viewAction}${window.RBAC.staff?.permissions.includes('drivers.edit')?editAction:''}${window.RBAC.staff?.employee.roles.includes('bootstrap_admin')?toggleAction:''}</div>
             </td>
         </tr>`;
     }).join('');
@@ -402,7 +383,7 @@ function renderDriversTable(driversList = drivers) {
     tbody.innerHTML = rows || `<tr><td colspan="8" class="text-center" style="padding:2rem;">No drivers found</td></tr>`;
 
     // Attach event listeners for actions (delegation)
-    tbody.addEventListener('click', function(e){
+    tbody.onclick = function(e){
         const btn = e.target.closest('button');
         if(!btn) return;
         const id = btn.getAttribute('data-driver-id');
@@ -413,7 +394,7 @@ function renderDriversTable(driversList = drivers) {
             const currentStatus = btn.getAttribute('data-current-status');
             toggleDriverStatus(id, currentStatus);
         }
-    }, { once: true });
+    };
 }
 
 function generateStars(rating) {
@@ -783,22 +764,8 @@ async function displayDriverDocuments(driver) {
 
 function formatDateTime(timestamp) {
     if (!timestamp) return null;
-    try {
-        // Handle both ISO string and Unix timestamp
-        const date = typeof timestamp === 'string' ? new Date(timestamp) : new Date(timestamp * 1000);
-        if (isNaN(date.getTime())) return null;
-        
-        return date.toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (e) {
-        console.warn(`Could not parse datetime: ${timestamp}`);
-        return null;
-    }
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return window.WizzLocale.dateTime(date);
 }
 
 let driverRegionModel = null;
@@ -826,7 +793,7 @@ async function loadCitiesDropdown() {
     error.textContent = 'جاري تحميل المناطق…';
     driverRegionModel = null;
     try {
-        const [base, derived] = await Promise.all([AWSUtils.scanAll('WizzCentral_Regions'), AWSUtils.scanAll('WizzCentral_RegionsDerived_staging')]);
+        const {base,derived}=await driverStaffApi('/staff/drivers/regions');
         if (version !== editorLoadVersion) return;
         driverRegionModel = DriverRegions.hierarchy(base, derived);
         const driver = drivers.find(d => d.id === document.getElementById('editDriverId').value);
@@ -839,6 +806,7 @@ async function loadCitiesDropdown() {
 }
 
 function openEditDriverModal() {
+    document.getElementById('editDriverStatus').disabled=!window.RBAC.staff?.employee.roles.includes('bootstrap_admin');
     const modal = document.getElementById('editDriverModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -872,14 +840,14 @@ async function handleEditDriver(e) {
         const driver = drivers.find(d => d.id === driverId);
         if (!driver || !driverRegionModel) throw Error('تعذر تحميل بيانات السائق أو المناطق');
         const name = String(formData.get('name') || '').trim();
-        const status = String(formData.get('status'));
+        const status = String(formData.get('status')||document.getElementById('editDriverStatus').dataset.initialStatus);
         if (!name || !['PENDING_REVIEW','ACTIVE','SUSPENDED','REJECTED'].includes(status)) throw Error('تحقق من الاسم وحالة الحساب');
         const values = DriverRegions.updateValues(driver.fullData, {
             name, governorateId:formData.get('governorate_id'),regionId:formData.get('work_region_id'),
             vehicleType:formData.get('vehicleType'),landmark:String(formData.get('landmark') || '')
         }, driverRegionModel);
         if (!values.home_address_text) throw Error('أدخل أقرب نقطة دالة');
-        if (Number(driver.fullData?.profileSchemaVersion) !== 2) {
+        if (window.RBAC.staff?.employee.roles.includes('bootstrap_admin') && Number(driver.fullData?.profileSchemaVersion) !== 2) {
             values.licenseNumber = String(formData.get('licenseNumber') || '');
             values.nationalId = String(formData.get('nationalId') || '');
         }
@@ -899,9 +867,13 @@ async function handleEditDriver(e) {
         if (driver.fullData?.updatedAt !== undefined) {
             condition += ' AND #updatedAt = :originalUpdatedAt'; attributes[':originalUpdatedAt'] = driver.fullData.updatedAt;
         }
+        if(window.RBAC.staff.employee.roles.includes('bootstrap_admin')) {
         const dynamoDB = await AWSUtils.getDynamoDBClient();
         await dynamoDB.update({TableName:DRIVERS_TABLE,Key:{driverId},UpdateExpression:'SET '+updates.join(', '),
             ConditionExpression:condition,ExpressionAttributeNames:names,ExpressionAttributeValues:attributes}).promise();
+        } else {
+            await driverStaffApi('/staff/drivers/edit',{driverId,values,expectedUpdatedAt:driver.fullData.updatedAt});
+        }
 
         // Refresh data from database
         await loadDriversData();
@@ -973,6 +945,7 @@ async function toggleDriverStatus(driverId, currentStatus) {
             return;
         }
 
+        if(!window.RBAC.staff?.employee.roles.includes('bootstrap_admin'))throw Error('صلاحية الموافقة والإيقاف غير متاحة لهذا الدور');
         // Get DynamoDB client
         const dynamoDB = await AWSUtils.getDynamoDBClient();
 

@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "allWritesBlockedInDiagnostic": true,
+  "currentPayoutStatus": "PROCESSING",
+  "currentAmountIqd": 6250,
+  "cashboxInDiagnostic": "LOCAL_SYNTHETIC_NOT_SAVED",
+  "transactionOperations": [
+    {
+      "table": "staging-PlatformStaff",
+      "action": "ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "WhizzMerchants_Businesses",
+      "action": "ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-AccountDeletion",
+      "action": "ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-AccountDeletion",
+      "action": "ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-AuditLog",
+      "action": "PutItem",
+      "decision": "allowed"
+    }
+  ]
+}

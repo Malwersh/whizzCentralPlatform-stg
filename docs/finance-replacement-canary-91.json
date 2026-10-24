@@ -1,0 +1,20 @@
+{
+  "part": 91,
+  "status": "ready_for_human_checkout",
+  "userDecision": "Cancel old and run a new order; user instead manually deleted canonical old order row.",
+  "audit": {
+    "oldCanonicalOrderExists": false,
+    "oldWaveOffers": 0,
+    "oldWaveState": "PREPARING",
+    "oldWaveExpired": true,
+    "oldWaveDelivered": 0,
+    "driverCurrentOrder": null,
+    "driverActiveOrdersCount": 0,
+    "driverWalletAvailableIqd": 25000,
+    "driverWalletLockedIqd": 0
+  },
+  "changes": "Preserve old scope membership in DRAIN; add separate one-order SCOPED identity and compile matching checkout request in customer simulator. No wallet, order, ledger, actor or consent mutation.",
+  "oldOrderCancellationRecorded": false,
+  "remaining": "Human adds two 3500 items without discount/add-ons, cash, reviews actual server total, then explicitly confirms.",
+  "validation": "All 13 hosts published matching scope with unchanged code/gates. Customer simulator signed debug build installed and launched on iPhone 16 Pro. Driver live position is fresh, online, no current order, wallet 25000 available/0 locked. Replacement order absent."
+}
