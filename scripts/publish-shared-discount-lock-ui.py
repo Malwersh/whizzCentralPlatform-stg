@@ -15,7 +15,7 @@ with zipfile.ZipFile(O/'frontend.base.zip') as old:
  for name in old.namelist():
   if not name.endswith('.html'):continue
   body=old.read(name).decode();updated=body
-  for script in files:updated=re.sub(r'('+re.escape(script)+r')(?:\?[^"\s<>]*)?(?=")',r'\1?v=shared-lock-238',updated)
+  for script in files:updated=re.sub(r'('+re.escape(script)+r')(?:\?[^"\s<>]*)?(?=")',r'\1?v=shared-lock-239',updated)
   if body!=updated:changes[name]=updated.encode()
  with zipfile.ZipFile(O/'frontend.candidate.zip','w',zipfile.ZIP_DEFLATED) as out:
   for item in old.infolist():out.writestr(copy.copy(item),changes.get(item.filename,old.read(item.filename)))
@@ -27,5 +27,9 @@ for _ in range(90):
  time.sleep(2)
 assert status=='SUCCEED',status
 for n in files:
- actual=urllib.request.urlopen('https://staging.d2vmebm1e1n95m.amplifyapp.com/'+n+'?v=shared-lock-238',timeout=30).read();assert actual==changes[n],n
+ for attempt in range(20):
+  actual=urllib.request.urlopen('https://staging.d2vmebm1e1n95m.amplifyapp.com/'+n+'?v=shared-lock-239',timeout=30).read()
+  if actual==changes[n]:break
+  time.sleep(2)
+ else:raise AssertionError('HOSTED_BYTES_MISMATCH '+n)
 report.update(status='PUBLISHED_VERIFIED',hostedBytesMatched=True);save();print(json.dumps(report))

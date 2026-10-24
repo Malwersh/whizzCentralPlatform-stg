@@ -1,0 +1,35 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "jobId": "181",
+  "baseJobId": "180",
+  "changedFiles": [
+    "commercial-management.js",
+    "data-service.js",
+    "promotions-workspace.js",
+    "campaign-creator.html",
+    "platform-discount-creator.html",
+    "pages/merchants.html",
+    "pages/drivers.html",
+    "pages/dashboard.html",
+    "pages/promotions.html"
+  ],
+  "businessDataWritten": false,
+  "hostedBytesMatched": true,
+  "verifiedAt": "2026-10-24T02:40:14.049469+00:00",
+  "diagnosis": [
+    "Screenshot used the old badge wording from a previously loaded page",
+    "Approval-event refresh reloaded sharing records but retained stale campaign options"
+  ],
+  "fix": [
+    "Refresh sharing records and current campaign options together on window focus, page visibility and every 30 seconds while visible",
+    "Preserve unsaved form input and open cards",
+    "Failed refresh removes green approval badges until verified again",
+    "Source HTML cache keys now match deployed assets to prevent reversion on later builds"
+  ],
+  "tests": {
+    "activeStalePausedInactiveStates": 4,
+    "focusReloadDetectsStoppedCampaign": true,
+    "unsavedReasonPreserved": true
+  },
+  "backendChanged": false
+}

@@ -2,7 +2,7 @@
 // Existing Merchants/Promotions sections. Server authorization is authoritative.
 (()=>{
  const root=document.querySelector('[data-commercial-kind]');if(!root)return;
- let campaignChoices=[],readShare=null,focusedSharing=null,lastApprovalEvents='',refreshing=false;
+ let campaignChoices=[],readShare=null,focusedSharing=null,refreshing=false;
  root.dir='rtl';const kind=root.dataset.commercialKind;let state=null,selected=null,busy=false,generation=0,pending=null;
  const node=(tag,text)=>{const n=document.createElement(tag);if(text)n.textContent=text;return n;};
  const styles=node('style');styles.textContent=`
@@ -49,8 +49,8 @@
 
  const reload=node('button','تحميل الاتفاقيات والتمويل');reload.type='button';reload.className='btn btn-primary';retrySource.className='btn btn-secondary';controls.style.maxWidth='720px';for(const input of [branch,search]){input.style.cssText='display:block;width:100%;max-width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin-top:8px;box-sizing:border-box;background:white;color:inherit;font:inherit';}reload.style.marginTop='12px';controls.append(reload);
  const errors={SHARED_DISCOUNT_TERMS_LOCKED:'شروط المشاركة المعتمدة مقفلة. أوقف الخصم وأنشئ بديلًا بموافقة جديدة.',REASON_REQUIRED:'اكتب سببًا من خمسة أحرف على الأقل.',COMMERCIAL_MANAGEMENT_DISABLED:'الإدارة التجارية لم تُفتح بعد على هذه البيئة.',PERMISSION_REQUIRED:'تحتاج صلاحية الاتفاقيات والتمويل ونطاق جميع المناطق.',REAUTH_REQUIRED:'لم يكتمل الإجراء. سجّل الخروج ثم ادخل مجددًا، وراجع الحالة ثم أعد الحفظ.',ENROLLMENT_REQUIRED:'أكمل تفعيل حساب الموظف.',SELF_APPROVAL_FORBIDDEN:'يحتاج اعتماد المسودة موظفًا آخر.',OWNER_ACCEPTANCE_REQUIRED:'لم يوافق المالك على هذه النسخة بعد.',FUNDING_TERMS_CHANGED:'تغيرت شروط التمويل. احفظ مسودة جديدة ليوافق عليها المالك.',CAMPAIGN_VERSION_REQUIRED:'الحملة لا تحمل إصدارًا ماليًا مطابقًا؛ يلزم استكمال ربطها أولًا.',VERSION_OR_STATE_CONFLICT:'تغير الإصدار أو حالة الفرع. أعد التحميل.',ORGANIZATION_UNAVAILABLE:'يلزم ربط النشاط بالجهة المالكة المعتمدة أولًا.',REQUESTER_PERMISSION_REVOKED:'سُحبت صلاحية مُعد المسودة.',BUSINESS_UNAVAILABLE:'الفرع غير متاح.',CAMPAIGN_PERIOD_CHANGED:'تغيرت مدة الخصم. أعد تحميله ومراجعة المشاركة.',NEW_SHARING_REQUIRED:'أنشئ مشاركة جديدة لاختيار خصم آخر.',SHARING_POLICY_EXISTS:'توجد مشاركة لهذا الخصم والفرع؛ عدّل النسخة الموجودة.',FUNDING_SEPARATE_FROM_AGREEMENT:'تدار المشاركة بصورة مستقلة عن الاتفاقية.',FUNDING_POLICY_UNAVAILABLE:'سياسة التمويل غير متاحة لهذا النطاق.'};
- async function api(body,businessId){await window.Auth.ensureSession();const r=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/commercial'+(body?'':'?businessId='+encodeURIComponent(businessId)),{method:body?'POST':'GET',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const d=await r.json();if(!r.ok)throw Error(errors[d.error]||'تعذر تنفيذ العملية. راجع القيم والصلاحيات وأعد المحاولة.');return d;}
- function clear(){lastApprovalEvents='';generation++;state=null;selected=null;list.replaceChildren();form.replaceChildren();form.hidden=true;}
+ async function api(body,businessId){await window.Auth.ensureSession();const r=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/commercial'+(body?'':'?businessId='+encodeURIComponent(businessId)),{method:body?'POST':'GET',cache:'no-store',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const d=await r.json();if(!r.ok)throw Error(errors[d.error]||'تعذر تنفيذ العملية. راجع القيم والصلاحيات وأعد المحاولة.');return d;}
+ function clear(){generation++;state=null;selected=null;list.replaceChildren();form.replaceChildren();form.hidden=true;}
  branch.onchange=()=>{clear();message.textContent=branch.value?'تم اختيار '+choices.find(c=>c.id===branch.value)?.label+'؛ اضغط تحميل الاتفاقيات والتمويل.':'اختر المتجر أو الفرع.';syncControls();};
  async function run(fn){if(busy)return;busy=true;root.querySelectorAll('button,input,select').forEach(n=>n.disabled=true);try{message.style.color='';message.style.backgroundColor='';message.style.padding='';message.dataset.state='info';await fn();}catch(e){message.textContent=e.message;message.dataset.state='error';message.style.color='#b3261e';message.style.backgroundColor='#fce8e6';message.style.padding='12px';message.setAttribute('aria-live','assertive');message.scrollIntoView({block:'nearest'});}finally{busy=false;root.querySelectorAll('button,input,select').forEach(n=>n.disabled=n.dataset.locked==='true');syncControls();}}
  async function load(){const id=branch.value.trim();clear();const epoch=generation;if(!choices.some(c=>c.id===id))throw Error('اختر متجرًا أو فرعًا من القائمة.');const data=await api(null,id);const campaigns=kind==='FUNDING'?await window.CommercialFundingPicker.load(id):[];if(epoch!==generation||id!==branch.value.trim())return;state=data;campaignChoices=campaigns;render();message.textContent='تم تحميل بيانات الفرع. راجع الشروط المحفوظة قبل تعديلها.';}
@@ -123,15 +123,18 @@
  function openBranch(id){clear();search.value='';options();root.open=true;root.scrollIntoView();if(sourceStatus==='LOADING'){requestedBranch=id;message.textContent='بانتظار تحميل قائمة المتاجر.';return;}if(!choices.some(c=>c.id===id)){message.textContent='هذا المتجر غير متاح في القائمة الحالية. أعد تحميل المتاجر.';syncControls();return;}branch.value=id;syncControls();run(load);}
  window.commercialForBranch=openBranch;
  window.addEventListener('commercial-approval-open',e=>{if(e.detail.kind!==kind)return;focusedSharing=e.detail.sharingId;openBranch(e.detail.businessId);});
- window.addEventListener('commercial-approval-events',async e=>{
+ async function refreshSnapshot(){
   if(!state||busy||refreshing||document.hidden)return;
-  const id=state.businessId,epoch=generation,matching=e.detail.items.filter(x=>x.businessId===id),signature=matching.map(x=>x.eventId+':'+(x.publicationVersion||0)).join('|');
-  if(!signature||signature===lastApprovalEvents)return;
-  refreshing=true;
-  try{const next=await api(null,id);if(epoch!==generation||branch.value!==id)return;state=next;lastApprovalEvents=signature;render(true);}
-  catch{message.textContent='تعذر تحديث حالة الموافقة تلقائيًا؛ ستتم إعادة المحاولة.';}
+  const id=state.businessId,epoch=generation;refreshing=true;
+  try{const [next,campaigns]=await Promise.all([api(null,id),kind==='FUNDING'?window.CommercialFundingPicker.load(id):Promise.resolve([])]);if(epoch!==generation||branch.value!==id)return;state=next;campaignChoices=campaigns;render(true);if(message.textContent.startsWith('تعذر تحديث الحالة؛'))message.textContent='تم تحديث الحالة.';}
+  catch{if(epoch!==generation||branch.value!==id)return;message.textContent='تعذر تحديث الحالة؛ لا تعتمد على الحالة السابقة حتى ينجح التحديث.';list.querySelectorAll('.commercial-badge').forEach(b=>{b.classList.remove('approved');b.textContent='الحالة بحاجة إلى تحديث';});}
   finally{refreshing=false;}
- });
+ }
+ window.addEventListener('commercial-approval-events',refreshSnapshot);
+ window.addEventListener('focus',refreshSnapshot);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSnapshot();});
+ setInterval(refreshSnapshot,30000);
+
 
  form.hidden=true;
  const query=new URLSearchParams(location.search);focusedSharing=query.get('commercialSharingId');
