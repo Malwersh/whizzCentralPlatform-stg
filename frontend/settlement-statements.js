@@ -9,7 +9,7 @@ window.renderMerchantStatements=({host,branchId,branchName,orders,amount,minor,f
  const date=el('input');date.type='date';date.required=!offCycle;kind.hidden=offCycle;const dateLabel=el('label','يوم ضمن الفترة · بتوقيت بغداد');dateLabel.append(date);dateLabel.hidden=offCycle;
  const selected=new Set(),list=el('div');for(const row of orders){
   const label=el('label'),check=el('input');check.type='checkbox';check.disabled=!!row.statementId;
-  label.style.display='flex';label.style.alignItems='center';label.append(check,el('span',(row.sourceKind==='MERCHANT_EXCEPTION_ACCRUAL'?'تعويض مرتجع · ':'')+row.orderNumber+' — '+amount(row,'merchantNet')+(row.statementId?' · ضمن كشف محفوظ':'')));list.append(label);
+  label.style.display='flex';label.style.alignItems='center';label.append(check,el('span',(row.sourceKind==='MERCHANT_EXCEPTION_ACCRUAL'?'تعويض معتمد · ':'')+row.orderNumber+' — '+amount(row,'merchantNet')+(row.statementId?' · ضمن كشف محفوظ':'')));list.append(label);
   check.onchange=()=>{if(check.checked&&selected.size>=10){check.checked=false;message.textContent='يمكن تثبيت ١٠ طلبات في الكشف الواحد.';return;}if(check.checked)selected.add(row.orderId);else selected.delete(row.orderId);generation++;result.replaceChildren();};
  }
  const previewButton=el('button','معاينة الكشف'),loadHistory=el('button','عرض الكشوف السابقة');previewButton.type='submit';loadHistory.type='button';message.setAttribute('role','status');

@@ -466,3 +466,76 @@ Customer now prepares/caches a scoped invoice early and reuses its quote/request
 نُشرت الحماية على staging في staff/auth/owner، والواجهة job182، والمطعم239 مثبت على المحاكيين ومفتوح علىiPhone16. راجع discount-usage-limits-240.json. أضيفت حقول «عدد الاستخدامات لكل زبون» و«إجمالي استخدامات العرض لجميع الزبائن» وسقف خصم الطلب للنسبة المئوية، مع دعم الأرقام العربية. الحقل usageLimit أصبح يُرسل فعلًا بدل maxUsage وحده، وperCustomerLimit محفوظ ومطبق عبر عدادات الاستفادة الأصلية. اعتماد المشاركة يرفض غياب الحد الإجمالي أو السقف قبل الموافقة، بما في ذلك المسار المضمن الفعلي.
 
 العرض الحالي FiftyFifty، id4b7647df-6dc6-43b8-ae53-677fdf6927e9، مبلغ500 وحده الأدنى10000، معتمد لكنه بلاusage_limit؛ لذلك فشلت الفاتورة برمزPLATFORM_GOODS_EXPOSURE_LIMIT_REQUIRED. لا تغير العرض المعتمد أو الموافقة بأثر رجعي. يلزم أن ينشئ المستخدم بديلًا غير مفعّل ويختار حدوده ثم يعيد اعتماد مشاركة50/50 ويُفعله ويجري طلبًا جديدًا. لا أعداد أعمال افتراضية وضعها الوكيل، ولا خصومات/موافقات/طلبات/أرصدة كُتبت بواسطة الوكيل. اختبار المناصفة المالي ما زال منتظرًا.
+
+
+### 2026-10-24 — Order management entry (247)
+
+- Added and published “إدارة الطلب” to every Orders row (Amplify job 183).
+- Staff can initiate a pre-pickup cancellation case without a customer/merchant-originated issue. Request remains pending until owner retention proof and the established administrative decision; no fabricated merchant consent.
+- Staff can unassign an eligible pre-pickup driver and enqueue redispatch using the same atomic COD release path. Original customer price, tip and goods funding remain pinned. Staff reason and actor are archived; orders.assign and orders.cancel are separately enforced.
+- Current human cancellation test: ORD1792849495126 / bb2c4170-63ec-56eb-86df-723ea5c629f4, last read arrived_at_store, no pickup, ACTIVE hold 12000 IQD, customer total 14000 including tip 500; shared goods discount 500 (250/250). Agent has not cancelled or unassigned it.
+- Next: user refreshes Orders, opens management, begins cancellation, owner records retention proof, user approves cancellation in case UI, then read-only audit of hold and funding release. Test remains INCOMPLETE.
+- Publication evidence: docs/order-management-publication-247.json and docs/order-management-ui-publication-247.json.
+
+
+### 2026-10-24 — Merchant handover + administrative cancellation (248)
+
+- User rejected approval-dependent administrative cancellation. Platform management now executes CANCEL_ORDER before recorded pickup/handover without awaiting merchant retention proof; reason/current employee authority and full atomic financial release are retained. Existing pending administrative request can be completed from management.
+- Merchant card has “تم تسليم الطلب للسائق”, pinned to current financial offer, driver and assignment attempt. Owner confirms physical handover; record is permanent for that assignment and is displayed on card and central management. It does not impersonate driver pickup or alter driver workflow status.
+- Both merchant handover and driver pickup evidence block pre-pickup cancellation/unassignment. Exact absent-field fences serialize custody evidence and release; no owner proof is manufactured for admin override. Compensation review remains separate.
+- Four backend packages published with configurations and unrelated files preserved; UI Amplify job 184. No real cancellation/handover/unassignment was performed by the agent.
+- Next human action: refresh Orders, open ORD1792849495126, use “إلغاء الطلب بقرار الإدارة”, then audit hold/funding release. Do not press merchant handover for this cancellation test.
+- Validation: 26 targeted financial/custody tests, 83 bundled regression tests, 3 merchant widget tests, TypeScript compile and browser workflow passed.
+
+
+### Human administrative cancellation verified — 2026-10-24
+
+- ORD1792849495126 is CANCELLED with one canonical operation shared by outcome, hold release, assignment archive and goods funding commitment.
+- Driver hold 12000 IQD released; AVAILABLE 18500 → 30500, LOCKED 12000 → 0, exactly two matching FULL_CASH_RELEASED ledger entries.
+- Platform goods funding commitment 250 IQD RELEASED. No merchant payable created. Customer cancellation fee zero.
+- Dispatch job CANCELLED; driver currentOrderId null, activeOrdersCount zero, available again.
+- Administrative override recorded with employee and reason. No owner retention approval or physical handover/pickup recorded.
+- Financial case remains REVIEW for driver fare / merchant preparation compensation; no compensation approved or paid. Cancellation test passed for release; compensation closure and promotion usage restoration still need separate review.
+- Evidence: docs/admin-cancellation-final-audit-248.json.
+
+
+### 2026-10-24 — Cancellation compensation review and execution (249)
+
+- Published backend and clear Arabic assessment → review/approve without payment → execute → financial closure workflow for cancelled-before-pickup cases. Exact Lambda publication evidence: docs/cancellation-compensation-publication-249.json.
+- Amplify job 186, based on current job 185, verified exact hosted bytes. Latest job 185 had dropped order-management.js and the Orders management button; restored only those hooks while preserving its new shell/table styling. Evidence: docs/cancellation-compensation-ui-publication-249.json.
+- Current case page: pages/cancellation-compensation.html?orderId=bb2c4170-63ec-56eb-86df-723ea5c629f4&caseKey=CUSTOMER_CANCELLATION. Read-only compatibility confirmed ARRIVED, driver fare cap 1500 excluding tip, merchant accepted goods cap 11750, released hold 12000. No decision or compensation posted by agent.
+- Awards require actual driver effort / documented food loss and explicit staff reason. Platform funds by default; merchant contribution needs existing independently supported responsibility evidence and available balance. No customer collateral charge. Approval alone moves no money.
+- Execution credits driver AVAILABLE and creates merchant LOCKED payable, with balanced platform GL and idempotent transactions. Closure requires verified merchant payout/reconciliation when owed; unassigned orders supported without a fabricated driver offer. Existing return paths preserved.
+- Validation passed: 20 tests against candidate financial and actual settlement bundles (including assigned/unassigned and periodic/off-cycle payouts); 360 staff tests; TypeScript compile; browser mocked review/execute/closure and narrow viewport; mutation-blocked source compatibility read for actual case. No real approval, wallet credit, payout or closure performed.
+- Next: human opens compensation page, enters real cancellation facts, loss and proposed awards, reviews and approves; separately executes. Then perform read-only audit. Merchant payable still needs actual payout before financial closure. Do not auto-fill/fabricate loss, evidence, funding agreement or approval. Promotion usage restoration remains a separate pending audit.
+
+
+### 2026-10-24 — Human compensation execution and closure verified (250)
+
+Read-only strong audit of ORD1792849495126 confirms human APPROVE → EXECUTE → CLOSE. Assessment customer phone cancellation, food RECOVERABLE with zero loss, driver1km/15minutes; driver award500 IQD, merchant0, platform funds500. Exactly one matching compensation credit: driver AVAILABLE30500→31000, LOCKED0. Journal debit/credit500 balanced; merchant payable absent as zero award. Original hold12000 and platform goods funding250 remain RELEASED. Case settlementStatus RESOLVED, financialClosure recorded, queue pointer CLOSED/RESOLVED. Driver currentOrderId null, count0, available/searchingtrue. No financial writes by agent. Evidence docs/cancellation-compensation-final-audit-250.json. This closes the tested before-pickup administrative cancellation+driver-only compensation scenario; positive merchant compensation/payout was tested offline but has not been exercised on this live order. Promotion usage restoration still separate pending audit.
+
+
+### 2026-10-24 — COD-first launch policy and 42-scenario gap audit (251)
+
+User explicitly skipped repeating merchant payout acceptance and the new combined merchant+driver cancellation award/payout test. Preserve prior evidence; skipped is not a new live PASS. First launch COD only. Customer remedy via EXISTING targeted benefits/fixed goods vouchers/promo codes; driver via existing canonical wallet credit; merchant via existing accrual/settlement payout. Do not rebuild those engines or introduce cards/Prepaid/Chargeback into launch scope. Coupon grant is not a cash refund posting.
+
+Read-only captured current staff, financial and create-order packages. Current campaigns include10benefit campaigns,9DIRECT,5GOODS_AMOUNT and1code campaign. Current order customer has2direct grants, one used1/reserved0 and another unused1/reserved0. Source and live packages confirm targeted benefit engine and promo code; ordinary code is not automatically customer-exclusive. Grant endpoint/form currently do not carry orderId/caseId, so case-linked compensation lifecycle remains an actual gap.207existing tests pass (186financial/21staff), no business writes. Matrix all42 A/B/C scenarios:20implemented mechanisms,13partial,9incomplete, no blanket E2E claim. Added admin cancellation driver-only live verified scenario separately. Evidence docs/cod-launch-exceptions-gap-audit-251.json and cod-launch-exceptions-matrix-251.csv; unified plan latest directive updated.
+
+Next bounded implementation: link existing customer-specific grant to original order/case, prevent reuse as compensation for another case, show available/used/revoked/expired truthfully; do not build a second coupon wallet, auto-grant, or falsely mark cash refunded. Then finish pickup issue resolution (user has now asked completion of all these launch exceptions), postpickup address changes, authenticated driver-to-driver transfer, partial customer delivery/repricing/cash, and customer claims. Broader finance plan and human merchant employee test remain outstanding. No Lambda/frontend deployment performed for this audit.
+
+
+### 2026-10-24 — Main-plan execution tracker + first COD completion package252
+
+User authorized adding all gap work to main plan and starting precise orderly implementation. Added seven packages with explicit DoD and all42scenario IDs in docs/cod-launch-execution-tracker.json and detailed main plan section. COD-01 is now PUBLISHED_VERIFIED_HUMAN_ACCEPTANCE_PENDING. New /staff/customer-benefit-compensation GET/POST links existing unused one-use DIRECT GOODS_AMOUNT grant to actual order customer/case, requires finance+promotions permissions and approval amount, atomically fences source/case/profile/deletion/campaign/grant, prevents duplicate case compensation or voucher reuse, preserves counters and original case state. Link/history stored in existing benefit table, not a new wallet; case table read/condition only. No IAM expansion needed. Existing GRANT/REVOKE preserves compensationReference. Current availability/used/reserved/revoked/expired shown; no grant creation, cash refund, case closure or money by agent.
+
+368staff and8actual bundle tests passed, browser390 review/retry stableid/nooverflow passed, all14required IAM checks allowed,5actual source reads with all mutations/scans programmatically blocked confirm current case closed and unmodifiable by new flow. Live source check is not authenticated API acceptance. Staff SHA fhkTRSLiw7z0qda09VLlA4gVqZH91qe9esbNDyCAITs=. Hosting190 over189 exact bytes verified. Job189 had dropped order-management.js/buttons and all cancellation-compensation UI files; restored missing features only, preserving189shell/style. Publication initially completed backend but paused at frontend missing-hook assertion; resumed backend-idempotently after inspecting189, no repeated backend update or financial operation. Evidence docs/customer-benefit-compensation-{publication,verification}-252.json.
+
+Next implementation COD-02 pickup issue resolution: inspect reporting-only driver-pickup-issues.js, implement assigned owner/deadlines/contact/decision/terminal resolution for five reports via canonical cancel/unassign/approved item change paths. Then COD-03 address, COD-04 driver-driver custody, COD-05 partial customer delivery, COD-06 postdelivery claims, COD-07 full42scenario reconciliation. First package human link acceptance requires NEW OPEN case with existing unused directed grant; never reopen closed case, grant/consume/fabricate evidence to force test. Repeated merchant payout/combined cancellation payout test SKIPPED by user, not PASS. FirstlaunchCOD; no Prepaid/card/Chargeback scope creep. Merchant staff financial test remains deferred.
+
+
+استكمال واجهة252b: أُضيفت لوحة ربط المنحة نفسها إلى صفحة مراجعة النقد أيضًا، لأن تبويب القضايا يحوّل قضايا النقد إلى صفحة مستقلة. يحافظ ذلك على تغطية الإلغاء/الإرجاع/النقد دون خلط التعويض بمنحة مع رد النقد. تتجدد بيانات اللوحة عند تغير نسخة القضية. اختبار الهاتف والمراجعة وإعادة المحاولة على موضع صفحة النقد نجح؛ نُشرت الواجهة191فوق190وتطابقتبايتاتالملفاتالأربعة،دونتغييرالخادمأوأيبياناتأعمال. مرجعcustomer-benefit-compensation-cash-ui-252b.json؛ التاليCOD-02،وقبولالربطالبشرييبقىمتبقيًاعلىقضيةمفتوحةجديدة.
+
+
+## GitHub handoff and product/import delegation — 2026-10-24
+
+User requested all four staging repos on feature/malwersh/bootstrap ready for colleague pull, with detailed commit messages and GitHub commit comments. docs/github-handoff-2026-10-24.json records repository changes, validation, pull instructions and scope. Full manual products/CSV/Excel/menu/options/images/catalog/stock/branch/versioned publish work delegated to colleague; canonical handoff docs/merchant-products-import-colleague-handoff-2026-10-24.txt in Central and Merchants. Main plan and transition/product plans mark DELEGATED_TO_COLLEAGUE, not complete. Agent must not implement a parallel importer; coordinate order/pricing/stock/COD contracts. No new AWS deployment/business action as part of upload. Next ongoing COD work remains pickup issue resolution, respecting delegated menu/item-change ownership.

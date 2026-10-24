@@ -1,0 +1,59 @@
+{
+  "orderNumber": "ORD1792849495126",
+  "orderId": "bb2c4170-63ec-56eb-86df-723ea5c629f4",
+  "orderStatus": "cancelled",
+  "caseSettlementStatus": "RESOLVED",
+  "closedAt": "2026-10-24T15:53:44.284Z",
+  "assessment": {
+    "requester": "CUSTOMER",
+    "reference": "الزبون اتصل الساعه ١٠ صباحا",
+    "driverEffortReference": "طريق ١ كم وانتطار ربع ساعه",
+    "foodState": "RECOVERABLE",
+    "channel": "PHONE",
+    "foodLossIqd": "0",
+    "foodLossReference": ""
+  },
+  "driverCompensationIqd": 500,
+  "driverCreditCount": 1,
+  "driverCreditBeforeIqd": "30500",
+  "driverCreditAfterIqd": "31000",
+  "driverWalletNow": {
+    "availableBalance": "31000",
+    "lockedBalance": "0"
+  },
+  "merchantCompensationIqd": 0,
+  "merchantPayableCreated": false,
+  "platformExpenseIqd": 500,
+  "merchantFundingIqd": 0,
+  "customerCancellationFeeIqd": "0",
+  "holdReleasedIqd": "12000",
+  "goodsFundingReleasedIqd": 250,
+  "balancedJournal": true,
+  "caseQueueStatus": "CLOSED",
+  "driverLive": {
+    "currentOrderId": null,
+    "activeOrdersCount": "0",
+    "status": "available",
+    "isSearching": true
+  },
+  "compensationEvents": [
+    {
+      "action": "CANCELLATION_COMPENSATION_EXECUTE",
+      "createdAt": "2026-10-24T15:53:24.864Z",
+      "financialPosting": true
+    },
+    {
+      "action": "CANCELLATION_COMPENSATION_CLOSE",
+      "createdAt": "2026-10-24T15:53:44.284Z",
+      "financialPosting": false
+    },
+    {
+      "action": "CANCELLATION_COMPENSATION_APPROVE",
+      "createdAt": "2026-10-24T15:53:17.323Z",
+      "financialPosting": false
+    }
+  ],
+  "operationId": "EXF:51bd04cb7c2942ee4c8323ac52eceddad6c9f9ac32a2e9f5",
+  "readOnly": true,
+  "checks": "PASS"
+}
