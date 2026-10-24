@@ -37,3 +37,31 @@ test('delivery with photo proof preserves exact SS condition, posts once and ret
  assert.equal((await f.complete({db})).replayed,true);
  assert.equal([...f.rows.values()].filter(x=>x.kind==='FULL_CASH_ACCOUNTING_JOURNAL').length,1);
 });
+
+test('photo delivery reaches final database transport through rollout guard with SS intact',async()=>{
+ const f=fixture();const order=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ order.userSub='customer1';
+ const {scopeEnv,scopePin}=require('./helpers/finance-rollout-fixture.cjs');
+ const env=scopeEnv({orders:[{orderId:'order1',branchId:'branch1',customerSubjectId:order.userSub}],drivers:[{driverId:'driver1',subjectId:'driver1'}]});
+ env.FINANCE_GENERAL_RELEASE_MODE='REQUIRED';env.FINANCIAL_SETTLEMENT_MODEL='FULL_CASH_AT_DELIVERY_V1';
+ order.financeRollout=scopePin(env,'order1');order.deliveryProofIds=new Set(['photo1']);order.deliveryProofs=[{proofId:'photo1',key:'private-proof'}];
+ let transported=0;
+ const raw={send:async c=>{
+  if(c.constructor.name==='TransactWriteCommand'){
+   const u=c.input.TransactItems.find(x=>x.Update?.TableName==='WizzOrders').Update;
+   const alias=Object.entries(u.ExpressionAttributeNames).find(([,v])=>v==='deliveryProofIds')[0];
+   const value=u.ExpressionAttributeValues[':v'+alias.slice(2)];
+   assert.ok(value instanceof Set,'final database transport lost photo SS after rollout wrapping');
+   assert.deepEqual(require('@aws-sdk/util-dynamodb').marshall({proofs:value}).proofs,{SS:['photo1']});
+   assert.match(u.ConditionExpression,/#roll/);transported++;
+  }
+  return f.db.send(c);
+ }};
+ const rollout=require('../dist/financeRollout').createFinanceRollout({db:raw,env,now:()=>Date.parse(at)});
+ await rollout.order('order1','DRAIN');
+ await f.complete({db:rollout.db});
+ assert.equal(transported,1);
+ assert.equal((await f.complete({db:rollout.db})).replayed,true);
+ assert.equal(transported,1);
+ assert.deepEqual([...f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).deliveryProofIds],['photo1']);
+});

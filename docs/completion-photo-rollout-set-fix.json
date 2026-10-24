@@ -1,0 +1,29 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "function": "staging-driver-financial-accept",
+  "changedEntries": [
+    "index.js",
+    "finance-rollout.js",
+    "customer-cash-runtime-266.js"
+  ],
+  "codeSha256": "hqOOk5J6sElTGb22P8S7gFiBgFjbne0Cn5R38iMlNh4=",
+  "allBytesVerified": true,
+  "unrelatedEntriesPreserved": true,
+  "configurationAndIamUnchanged": true,
+  "invalidEnvelopeBootCheck": 409,
+  "diagnosis": "Finance rollout transaction copy lost DynamoDB set again after initial guard fix; full final transport now uses structuredClone",
+  "liveOrderProbe": "Read-only actual patched factory through actual rollout wrapper; 29 reads, final raw transport intercepted; SS retained",
+  "orderNumber": "ORD1792804837572",
+  "orderId": "4f0b538e-7211-57b0-8db4-83011a5ff992",
+  "agentFinancialOrOrderWrites": false,
+  "humanDeliveryRetry": "PENDING",
+  "nativeRebuildRequired": false,
+  "publishedAt": "2026-10-24T01:46:11.261079+00:00",
+  "tests": {
+    "wallet": 1500,
+    "fullTransportRegression": "Fails with old JSON transaction copy, passes with structuredClone through rollout and final DB marshaling",
+    "actualPublishedHostPatchReproducible": true
+  },
+  "previousFixLimitation": "Guard preservation was fixed but rollout copy still dropped Set before raw DB transport; prior isolated factory test missed that boundary",
+  "failureDiagnostics": "Bounded error name and cancellation code/index/table only; no payloads, credentials or personal data"
+}

@@ -220,7 +220,13 @@ export function createFullCashCompletion(options: {
     if (operations.length > 100 || Buffer.byteLength(JSON.stringify(operations)) > 3500000) return fail('FULL_CASH_TRANSACTION_TOO_LARGE');
     if (!equal(actor, await options.authenticateDriver())) return fail('UNAUTHORIZED');
     try { await db.send(new TransactWriteCommand({ TransactItems: operations as any, ClientRequestToken: financialTransactionToken(operations) })); }
-    catch { const recovered = prior(await strongGet(db, T.holds, outcomeKey)); if (recovered && equal(actor, await options.authenticateDriver())) return recovered; return fail('FULL_CASH_CONFLICT_OR_UNKNOWN_OUTCOME_RETRY'); }
+    catch (error) {
+      const failure=error as {name?:unknown;CancellationReasons?:{Code?:string}[]};
+      console.error('FULL_CASH_TRANSACTION_REJECTED', {
+        name:typeof failure?.name==='string'?failure.name:'UnknownError',
+        cancellations:Array.isArray(failure?.CancellationReasons)?failure.CancellationReasons.map((reason,index)=>({index,code:reason.Code??'Unknown',table:Object.values(operations[index]??{})[0]?.TableName})):[],
+      });
+      const recovered = prior(await strongGet(db, T.holds, outcomeKey)); if (recovered && equal(actor, await options.authenticateDriver())) return recovered; return fail('FULL_CASH_CONFLICT_OR_UNKNOWN_OUTCOME_RETRY'); }
     return receipt;
   }
   return Object.freeze({complete:(value:unknown)=>run(value),
