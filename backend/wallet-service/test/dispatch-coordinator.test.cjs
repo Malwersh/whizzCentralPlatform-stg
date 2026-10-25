@@ -71,3 +71,32 @@ test('START delegates preparation-deadline review to timeout host without commit
  assert.equal(result.action,'STOP');assert.equal(result.reason,'REVIEW_REQUIRES_TIMEOUT_HOST');assert.deepEqual([...f.rows],before);
  assert.equal((await f.plan('TIMEOUT')).action,'REVIEW');assert.equal(f.job().status,'no_driver_available');
 });
+
+test('released accepted financial offer permits next wave only with matching immutable unassignment',async()=>{
+ const f=await setup('FINANCIAL');await f.plan();await f.ready(['financial_accepted','financial_declined']);
+ const offer=f.get('WaveOffers_staging',{orderId:'order1',SK:'FINANCIAL#driver1#WAVE#1'});
+ const {resolveFinancialOffer}=require('../dist/financialOfferVersion');const offerId=resolveFinancialOffer(offer.financialOffer).offerId;
+ Object.assign(f.get('WizzOrders',orderKey),{assignmentAttemptCounter:1,holdAmount:0,holdStatus:'NONE',financialRelease:{attempt:1,offerId,operationId:'release1'}});
+ Object.assign(f.job(),{financialRedispatch:{waveNumber:2,excludeDriverIds:['driver1'],operationId:'release1'},expiresAt:new Date(f.time+300000).toISOString()});
+ await assert.rejects(f.plan(),/DRIVER_OFFER_ORDER_UNAVAILABLE/);
+ f.put('staging-Holds',{orderId:'order1',sk:'ASSIGNMENT_RELEASE#1',kind:'COD_ASSIGNMENT_RELEASE',outcome:'UNASSIGNED',attempt:1,offerId,operationId:'release1',driverId:'driver1',branchId:'branch1',snapshotDigest:require('../dist/deliveryQuoteRecord').quoteHash(f.get('WizzOrders',orderKey).financialSnapshot)});
+ f.time+=61000;const p=await f.plan();assert.equal(p.action,'START_WAVE');assert.equal(p.waveNumber,2);
+ await f.ready(['financial_declined','financial_declined']);f.job().financialRedispatch=null;f.time+=61000;
+ assert.equal((await f.plan()).waveNumber,3);
+});
+test('expired released search enters administrative review without cancelling customer order',async()=>{
+ const f=await setup('FINANCIAL');await f.plan();await f.ready(['financial_declined','financial_declined']);
+ Object.assign(f.get('WizzOrders',orderKey),{assignmentAttemptCounter:1,holdAmount:0,holdStatus:'NONE',financialRelease:{attempt:1,offerId:'offer1',operationId:'release1'}});
+ Object.assign(f.job(),{financialRedispatch:{waveNumber:2,excludeDriverIds:['driver1'],operationId:'release1'},expiresAt:new Date(f.time+1000).toISOString()});
+ f.put('staging-Holds',{orderId:'order1',sk:'ASSIGNMENT_RELEASE#1',kind:'COD_ASSIGNMENT_RELEASE',outcome:'UNASSIGNED',attempt:1,offerId:'offer1',operationId:'release1',driverId:'driver1',branchId:'branch1',snapshotDigest:require('../dist/deliveryQuoteRecord').quoteHash(f.get('WizzOrders',orderKey).financialSnapshot)});
+ f.time+=1001;assert.equal((await f.plan()).action,'REVIEW');assert.equal(f.job().status,'no_driver_available');assert.equal(f.get('WizzOrders',orderKey).status,'ready_for_pickup');
+});
+
+test('late unassignment cannot extend the original captured cycle and reaches review',async()=>{
+ const f=await setup('FINANCIAL');await f.plan();await f.ready(['financial_declined','financial_declined']);
+ const o=f.get('WizzOrders',orderKey),offerId='offer1';Object.assign(o,{assignmentAttemptCounter:1,holdAmount:0,holdStatus:'NONE',financialRelease:{attempt:1,offerId,operationId:'release1'}});
+ f.put('staging-Holds',{orderId:'order1',sk:'ASSIGNMENT_RELEASE#1',kind:'COD_ASSIGNMENT_RELEASE',outcome:'UNASSIGNED',attempt:1,offerId,operationId:'release1',driverId:'driver1',branchId:'branch1',snapshotDigest:require('../dist/deliveryQuoteRecord').quoteHash(o.financialSnapshot)});
+ f.time=Date.parse(f.job().dispatchCycle.searchDeadline)+1000;
+ Object.assign(f.job(),{financialRedispatch:{waveNumber:2,excludeDriverIds:['driver1'],operationId:'release1'},expiresAt:new Date(f.time+300000).toISOString()});
+ assert.equal((await f.plan()).action,'REVIEW');assert.equal(f.job().status,'no_driver_available');
+});

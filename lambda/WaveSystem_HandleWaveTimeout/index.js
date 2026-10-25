@@ -275,6 +275,14 @@ async function processExpiredWave(orderId, offers, now) {
   
   try {
     const financialJob = await getDispatchJob(orderId);
+    if (financialJob?.financialRedispatch && financialJob.dispatchCycle?.engine==='FINANCIAL' && process.env.DISPATCH_FINANCIAL_HOST_MODE==='REQUIRED') {
+      const resumed=await require('./dispatch-cycle-runtime').resumeHostedFinancialUnassignment(orderId,async selectors=>{
+        const response=await lambda.invoke({FunctionName:START_WAVE_LAMBDA,InvocationType:'RequestResponse',Payload:JSON.stringify({orderId:selectors.orderId,dispatchJobId:selectors.assignmentId,cycleId:selectors.cycleId})}).promise();
+        if(response.FunctionError)throw Error('DISPATCH_HOST_START_UNKNOWN');
+        const answer=JSON.parse(response.Payload||'{}');if(answer.statusCode!==200)throw Error('DISPATCH_HOST_START_UNKNOWN');return answer;
+      });
+      result.dispatchAction=resumed.action??resumed.skipped;result.nextWaveStarted=resumed.action==='START_ATTEMPTED';return result;
+    }
     if (financialJob && Object.prototype.hasOwnProperty.call(financialJob,'dispatchCycle')) {
       if((process.env.DISPATCH_FINANCIAL_HOST_MODE==='REQUIRED'&&financialJob.dispatchCycle?.engine==='FINANCIAL')||(process.env.DISPATCH_LEGACY_HOST_MODE==='REQUIRED'&&financialJob.dispatchCycle?.engine==='LEGACY')){result.dispatchAction='HOST_MANAGED';return result;}
       const plan=await require('./dispatch-cycle-runtime').coordinateUnifiedDispatch({orderId,assignmentId:financialJob.dispatchJobId,source:'TIMEOUT'});

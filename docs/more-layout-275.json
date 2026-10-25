@@ -1,0 +1,31 @@
+{
+  "status": "RELEASE275_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_DEFERRED",
+  "build": 275,
+  "scope": "Driver More presentation and existing wallet navigation",
+  "features": [
+    "Neutral grouped sections and unified navy icons replace rainbow borders",
+    "White header with profile refresh and pull-to-refresh",
+    "Profile name, verified rating/count, verification status and Arabic join date separated without fabricated fallback date/rating",
+    "Performance and authenticated-support routes retained",
+    "Existing real WalletHomeScreen replaces construction placeholder",
+    "Instant pay placeholder explicitly disabled; developer preview items debug-only",
+    "Existing account, vehicle, safety, legal, settings and sign-out actions retained",
+    "Mounted guards protect late async profile completion"
+  ],
+  "verification": {
+    "flutterChecks": 29,
+    "portraitVisualInspection": "PASS_FIXTURE_NOT_DEVICE_SCREENSHOT",
+    "narrowViewport": 320,
+    "largeTextScale": 1.6,
+    "navigationTests": "Wallet/performance/support destinations verified without mounting service screens",
+    "staticAnalysis": "NO_ISSUES",
+    "nativeReleaseBuild": "PASS"
+  },
+  "backendChanges": false,
+  "businessWritesByAgent": 0,
+  "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "nextOperationalScope": "Delay exception evidence resolution; verified quality/rating review and appeals remain open.",
+  "installed": true,
+  "launched": true,
+  "updatedAtUTC": "2026-10-25T04:49:01.365535+00:00"
+}

@@ -4,7 +4,7 @@ const {QueryCommand,ScanCommand}=require('@aws-sdk/lib-dynamodb');
 const {fixture}=require('./helpers/dispatch-cycle-fixture.cjs');
 const {createStagingDispatchCreator}=require('../dist/dispatchCreator');
 const {createStagingDispatchCoordinator}=require('../dist/dispatchCoordinator');
-const {createStagingDispatchCandidates}=require('../dist/dispatchCandidates');
+const createStagingDispatchCandidates=process.env.ELIGIBILITY_CANDIDATES_RUNTIME?require(process.env.ELIGIBILITY_CANDIDATES_RUNTIME).__eligibilityCandidates:require('../dist/dispatchCandidates').createStagingDispatchCandidates;
 const orderKey={PK:'ORDER#order1',SK:'META'},source='arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders/stream/2026-10-16T00:00:00.000';
 function record(f){const current=f.get('WizzOrders',orderKey);return {eventName:'MODIFY',eventSource:'aws:dynamodb',eventSourceARN:source,eventID:'event1',dynamodb:{SequenceNumber:'123',Keys:marshall(orderKey),OldImage:marshall({...current,status:'preparing'}),NewImage:marshall(current)}};}
 test('stream replay after lost Invoke acknowledgement uses one deterministic job and captured policy',async()=>{
@@ -66,3 +66,5 @@ test('Creator entry point propagates new-mode failure for stream retry and block
 test('legacy Creator cannot overwrite a pinned job when mode is off',async()=>{
  const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),s=fs.readFileSync(path.join(__dirname,'../../../lambda/WaveSystem_CreateDispatchJob/index.js'),'utf8');const a=s.indexOf('async function createDispatchJobForOrder('),b=s.indexOf('\nasync function ',a+30),ctx={DISPATCH_JOBS_TABLE:'jobs',dynamodb:{get:q=>{assert.equal(q.ConsistentRead,true);return {promise:async()=>({Item:{dispatchCycle:null}})};}}};vm.runInNewContext(s.slice(a,b)+'\nthis.run=createDispatchJobForOrder;',ctx);await assert.rejects(ctx.run({orderId:'order1'}),/UNIFIED_DISPATCH_NOT_READY/);
 });
+
+test('a disabled approved driver is excluded while legacy missing flag remains eligible',async()=>{const f=await selection();f.get('WhizzDrivers_staging',{driverId:'driver1'}).isActive=false;assert.deepEqual(await f.select(),['driver2']);});

@@ -1,0 +1,67 @@
+{
+  "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+  "scope": "Support only; no customer-merchant-driver direct messaging",
+  "ratingReview": {
+    "ref": "origin/feature/order-ratings-20261024",
+    "backendTestsPassed": 29,
+    "humanAcceptance": "NOT_VERIFIED",
+    "mealRatings": "NOT_FOUND_IN_REVIEWED_IMPLEMENTATION"
+  },
+  "supportFindings": [
+    {
+      "path": "frontend/lib/features/more/screens/live_chat_screen.dart",
+      "confirmed": "More tab opens a screen generating test/fallback driver profiles",
+      "fix": "Local exploratory change withdrawn after user instructed to use colleague latest support implementation",
+      "deployment": "NOT_DEPLOYED"
+    },
+    {
+      "path": "backend/src/handlers/chat-bridge.js",
+      "confirmed": "Source accepts static application key and sender metadata",
+      "remaining": "Verify active gateway authorizers and session ownership before judging deployed authorization"
+    }
+  ],
+  "next": [
+    "Identify colleague latest support branch",
+    "Verify deployed support authentication and participant isolation across all apps",
+    "Integrate verified customer rating source with performance metrics",
+    "Add More performance page after metric contract audit",
+    "Resume vehicle, documents and region audit"
+  ],
+  "financialWrites": false,
+  "colleagueLatestCentralSupportCommit": "64cb391",
+  "performanceUi": {
+    "menu": "More / أدائي",
+    "files": [
+      "../whizzDrivers-stg/frontend/lib/features/more/screens/driver_performance_screen.dart",
+      "../whizzDrivers-stg/frontend/lib/models/driver_performance_snapshot.dart"
+    ],
+    "changes": [
+      "No synthetic 75%/30 accepts/10 declines on metric API failures",
+      "Removed ungrounded local post-decline ratio forecast",
+      "Customer rating/count transported through DriverService instead of replaced by 0",
+      "Colleague verified rating/count model integrated with invalid aggregate safeguards"
+    ],
+    "testsPassed": 17,
+    "analyzerNewFiles": "No issues",
+    "backendDeployed": true,
+    "installed": true,
+    "backendTestsPassed": 14
+  },
+  "supportRuntime": {
+    "api": "vzvnqu5jhl",
+    "driverConfiguredApi": "igcrhwc84c",
+    "driverBuiltChatOverridesFound": false,
+    "driverBridgeTarget": "DriversApi-staging",
+    "functions": [
+      "wizzcentral-websocket-staging-websocketConnect",
+      "wizzcentral-websocket-staging-liveChatConnect",
+      "wizzcentral-websocket-staging-liveChatMessage"
+    ],
+    "codeSha256": "1o1grci+/L335p8YKTyOAtmmaAQpZ60lY9duC9Jg26Y=",
+    "authorization": "JWT verified in handler, role/expiry/session ownership checks; API gateway NONE alone is not missing authorization",
+    "accessAssertionsPassed": 8,
+    "remaining": "Human acceptance from the installed Release271; no agent support messages sent. Basic read-only performance endpoint published with exact scoped read permissions after explicit user approval."
+  },
+  "wholePerformanceComplete": false,
+  "completionEvidence": "docs/driver-performance-support-ready.json"
+}

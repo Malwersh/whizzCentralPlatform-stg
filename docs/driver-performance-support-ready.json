@@ -1,0 +1,74 @@
+{
+  "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+  "scope": "Driver basic performance display and authenticated support integration; not full v1.6 rollout",
+  "performance": {
+    "endpoint": "GET /driver/performance",
+    "rulesVersion": "OBSERVED_DRIVER_PERFORMANCE_V1",
+    "window": "Up to last 100 verified explicit personal responses and last 100 verified financial acceptances, separately",
+    "acceptance": "Accepted / (accepted + explicitly declined); undelivered/unconfirmed expiries never become declines. This is provisional observed acceptance when unknown history exists, not a claimed full delivered-offer rate.",
+    "completion": "(Settled deliveries + confirmed settled returns) / (fulfilled commitments + cancellations with confirmed 100% driver responsibility)",
+    "fairness": "In-progress, unknown/reassigned and mixed responsibility excluded, shown separately; client/admin cancellation alone never establishes driver fault",
+    "reading": "Paginated GSI discovery, strong row/order/case reads, deduped offer and commitment identities, bounded time/pages; incomplete coverage marked provisional",
+    "ratings": "Verified customer average/count, no fabricated legacy rating; fixes DriverService dropping fields",
+    "dispatch": "No writes to legacy metrics/live snapshots and no policy/eligibility/ranking changes",
+    "deferred": [
+      "Device delivery ACK event pipeline",
+      "Legacy history migration and attribution",
+      "Shared-fault weighting policy",
+      "On-time and quality scores",
+      "Rewards tiers",
+      "v1.6 shadow/ranking rollout"
+    ]
+  },
+  "support": {
+    "endpoint": "wss://vzvnqu5jhl.execute-api.us-east-1.amazonaws.com/staging",
+    "protocol": "Colleague deployed JWT/role/session-owner guarded support service",
+    "client": "Signed-in identity only; token in Authorization header; isolated saved sessions; server-confirmed handshake and message receipts; idempotent uncertain-send retry; history cursor/retry; session-closed and resume handling; subscriptions/timers disposed",
+    "entryPoints": [
+      "More LiveChatScreen",
+      "Existing DriverSupportChatScreen compatibility entry"
+    ],
+    "production": "Requires explicit SUPPORT_CHAT_WS_URL; no automatic fallback to staging outside staging",
+    "scopeLimit": "Text support and receipt/history recovery. Existing image references are identified; image upload/view expansion is not claimed here.",
+    "liveMessagesSentByAgent": 0
+  },
+  "checks": {
+    "backendTests": 14,
+    "flutterTests": 17,
+    "capturedSupportAccessAssertions": 8,
+    "realRead": {
+      "rows": 26,
+      "accepted": 21,
+      "declined": 0,
+      "unconfirmedExcluded": 5,
+      "completed": 17,
+      "returned": 1,
+      "reviewExcluded": 3,
+      "driverFailures": 0,
+      "elapsedMs": 4379
+    },
+    "sourceAnalysis": "No errors/warnings in new support/performance files; style informational lints remain",
+    "ios": {
+      "configuration": "Release",
+      "build": "271",
+      "environment": "staging",
+      "testLocationPreserved": true,
+      "installed": true,
+      "launch": "PASS"
+    },
+    "businessWrites": 0,
+    "capturedBackendTests": 14,
+    "unauthenticatedHttpStatus": 401
+  },
+  "publication": {
+    "state": "PUBLISHED_STAGING_VERIFIED",
+    "blockedBy": null,
+    "reviewablePackage": "/private/tmp/driver-performance-support-release/candidate.zip",
+    "manifest": "docs/driver-performance-publication.json",
+    "policy": "docs/driver-performance-read-policy.json",
+    "requestedChange": "Add two-file read-only performance endpoint to DriversApi-staging and exact GetItem/Query permissions for WaveOffers_staging and its driver index; preserve all other bundle entries and configuration",
+    "userApproval": true,
+    "publishedHash": "cqqGl1C377pSrQb3ENo+SDB7e3MJQRHU4Mi4+GxSau0="
+  },
+  "humanAcceptance": "Pending after approved publication and installation"
+}

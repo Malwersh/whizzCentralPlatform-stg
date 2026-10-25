@@ -60,6 +60,19 @@ RBAC_RULES = {
     'GET /wallet/funding/config': ['driver', 'admin'],
     'POST /wallet/funding/receipt': ['driver'],
     'POST /wallet/funding/payment': ['driver'],
+    'GET /wallet/funding/zaincash/config': ['driver'],
+    'GET /wallet/funding/zaincash/payments': ['driver'],
+    'POST /wallet/funding/zaincash/payment': ['driver'],
+    'POST /wallet/funding/zaincash/check': ['driver'],
+    'GET /wallet/funding/admin/zaincash': ['admin'],
+    'PUT /wallet/funding/admin/zaincash': ['admin'],
+    'POST /wallet/funding/admin/zaincash/test': ['admin'],
+    'POST /wallet/funding/admin/zaincash/import-uat': ['admin'],
+    'POST /wallet/funding/admin/zaincash/accept': ['admin'],
+    'POST /wallet/funding/admin/zaincash/pilot': ['admin'],
+    'POST /wallet/funding/admin/zaincash/recover': ['admin'],
+    'POST /wallet/funding/admin/zaincash/resolve-uncreated': ['admin'],
+    'GET /wallet/funding/admin/zaincash/payments': ['admin'],
     'GET /wallet/funding/sandbox/config': ['driver'],
     'GET /wallet/funding/sandbox': ['driver'],
     'POST /wallet/funding/sandbox/payment': ['driver'],
@@ -262,7 +275,7 @@ def lambda_handler(event, context):
         print(f"Checking endpoint: {endpoint}")
 
         # Money transfers accept only access tokens from the designated app client.
-        if '/transfer' in normalized_path:
+        if '/transfer' in normalized_path or normalized_path.startswith('/wallet/funding/zaincash/'):
             expected_client = os.environ.get({'driver':'DRIVER_CLIENT_ID','admin':'ADMIN_CLIENT_ID','customer':'CUSTOMER_CLIENT_ID','merchant':'MERCHANT_CLIENT_ID'}.get(user_type,''))
             if not expected_client or payload.get('token_use') != 'access' or payload.get('client_id') != expected_client:
                 raise Exception('Forbidden')
@@ -279,7 +292,7 @@ def lambda_handler(event, context):
             raise Exception('Forbidden')
 
         mobile_attributes = {}
-        if '/transfers/' in normalized_path and user_type in ('driver', 'customer', 'merchant'):
+        if ('/transfers/' in normalized_path or normalized_path.startswith('/wallet/funding/zaincash/')) and user_type in ('driver', 'customer', 'merchant'):
             mobile_attributes = verify_live_mobile(token, payload) or {}
 
         financial_endpoint = (normalized_path.startswith('/wallet/funding/admin/') or normalized_path == '/wallet/topup/requests' or normalized_path in ('/wallet/topup/{id}/approve', '/wallet/topup/{id}/reject'))

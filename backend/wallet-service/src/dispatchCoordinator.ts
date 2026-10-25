@@ -26,9 +26,10 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
   const jobKey={orderId,SK:'METADATA'},orderKey={PK:'ORDER#'+orderId,SK:'META'};
   const job=await strongGet(db,T.jobs,jobKey);if(!job||job.dispatchJobId!==assignmentId)return fail();
   const cycle=validateDispatchCycle(job.dispatchCycle);
-  if(cycle.orderId!==orderId||cycle.assignmentId!==assignmentId||job.financialDispatch!==(cycle.engine==='FINANCIAL')||job.expiresAt!==cycle.searchDeadline||job.maxWaves!==cycle.policy.values.dispatch!.profiles[cycle.engine].normalWaves.length)return fail();
+  if(cycle.orderId!==orderId||cycle.assignmentId!==assignmentId||job.financialDispatch!==(cycle.engine==='FINANCIAL')||job.maxWaves!==cycle.policy.values.dispatch!.profiles[cycle.engine].normalWaves.length)return fail();
   const order=await strongGet(db,T.orders,orderKey);
   if(!order||order.orderId!==orderId||order.deliveryJobId!==assignmentId||![order.storeId,order.businessId].some(v=>v===job.restaurantId)||[order.storeId,order.businessId].some(v=>v!==undefined&&v!==job.restaurantId)||isFinancialOrder(order)!==(cycle.engine==='FINANCIAL'))return fail();
+  if(job.expiresAt!==cycle.searchDeadline&&!(cycle.engine==='FINANCIAL'&&order.financialRelease&&ms(job.expiresAt)>ms(cycle.startedAt)))return fail();
   const stop=job.status==='assigned'||order.driverId!=null||order.assignedDriverId!=null?'ASSIGNED':
    isTerminalOrderStatus(order.status)||isTerminalOrderStatus(order.orderStatus)?'ORDER_TERMINAL':null;
   if(stop)return {stop,job,cycle,order,jobKey,orderKey,guards:[] as Row[]};
@@ -73,7 +74,11 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
    else if(offer.dispatchJobId!==c.cycle.assignmentId||offer.dispatchCycleId!==c.cycle.id)return fail();
    const pending=financial?'financial_pending':'pending',declined=financial?'financial_declined':'rejected',expired=financial?'financial_expired':'expired',winner=financial?'financial_accepted':'accepted';
    if(![pending,declined,expired,winner].includes(offer.responseStatus))return fail();
-   if(offer.responseStatus===winner)accepted=true;
+   if(offer.responseStatus===winner){
+    const release=c.order.financialRelease,archive=financial&&release?await strongGet(db,'staging-Holds',{orderId:c.cycle.orderId,sk:'ASSIGNMENT_RELEASE#'+release.attempt}):null;
+    if(archive?.kind==='COD_ASSIGNMENT_RELEASE'&&archive.outcome==='UNASSIGNED'&&archive.driverId===driverId&&archive.offerId===resolveFinancialOffer(offer.financialOffer,options.enableDeliveryFunding,options.enableFullCash).offerId&&archive.operationId===release.operationId&&archive.offerId===release.offerId&&archive.attempt===release.attempt){/* bound() already fences this exact release through the verified order reader. */}
+    else accepted=true;
+   }
    if(offer.responseStatus!==declined)allDeclined=false;
    const deadline=ms(offer.expiresAt);if(deadline>ms(prior.record.waveDeadline))return fail();latest=Math.max(latest,deadline);
    if(offer.responseStatus===pending&&deadline<=now())expire.push(updateChecked(exactCheck(T.offers,key,offer),'SET #state=:state',{'#state':'responseStatus'},{':state':expired}));
@@ -96,7 +101,15 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
    let progress:DispatchProgress={currentWave:0,assigned:false,terminal:false,waveState:'NONE',waveDeadline:null},waveGuards:Row[]=[],expire:Row[]=[];
    if(prior&&['PENDING','LEASED'].includes(prior.record.state)){progress={currentWave:prior.record.waveNumber,assigned:false,terminal:false,waveState:'PREPARING',waveDeadline:prior.record.waveDeadline};}
    if(!prior||prior.record.state==='APPLIED'){const evidence=await progressFor(c,prior);progress=evidence.progress;waveGuards=evidence.guards;expire=evidence.expire;}
-   const decision=decideDispatchTransition(c.cycle,progress,iso(time));
+   let decision=decideDispatchTransition(c.cycle,progress,iso(time));
+   if(c.job.financialRedispatch&&c.cycle.engine==='FINANCIAL'){
+    const r=c.job.financialRedispatch,release=c.order.financialRelease;
+    if(!release||r.operationId!==release.operationId||r.waveNumber!==c.job.currentWaveNumber+1||!Array.isArray(r.excludeDriverIds)||!r.excludeDriverIds.every(quoteEntityIdValid))return fail();
+   }
+   if(c.cycle.engine==='FINANCIAL'&&c.order.financialRelease){
+    if(time>=ms(c.job.expiresAt))decision={action:'REVIEW',reason:'SEARCH_DEADLINE'};
+    else if(decision.action==='START_WAVE')decision={...decision,deadline:iso(Math.min(ms(decision.deadline),ms(c.job.expiresAt)))};
+   }
    if(input.source==='START'&&decision.action==='REVIEW')return {handled:true,action:'STOP',reason:'REVIEW_REQUIRES_TIMEOUT_HOST'};
    if(!['START_WAVE','REVIEW'].includes(decision.action))return {handled:true,...decision};
    const target=decision.action==='START_WAVE'?decision.waveNumber:0,intentId='DT:'+quoteHash({cycle:c.cycle.id,assignment:c.cycle.assignmentId,wave:target,action:decision.action}).slice(0,48);

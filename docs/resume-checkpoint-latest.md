@@ -539,3 +539,261 @@ Next implementation COD-02 pickup issue resolution: inspect reporting-only drive
 ## GitHub handoff and product/import delegation — 2026-10-24
 
 User requested all four staging repos on feature/malwersh/bootstrap ready for colleague pull, with detailed commit messages and GitHub commit comments. docs/github-handoff-2026-10-24.json records repository changes, validation, pull instructions and scope. Full manual products/CSV/Excel/menu/options/images/catalog/stock/branch/versioned publish work delegated to colleague; canonical handoff docs/merchant-products-import-colleague-handoff-2026-10-24.txt in Central and Merchants. Main plan and transition/product plans mark DELEGATED_TO_COLLEAGUE, not complete. Agent must not implement a parallel importer; coordinate order/pricing/stock/COD contracts. No new AWS deployment/business action as part of upload. Next ongoing COD work remains pickup issue resolution, respecting delegated menu/item-change ownership.
+
+
+### 2026-10-24 — Priority pivot: Android+iOS cash-first launch; pickup minimum253
+
+User explicitly prioritized essential launch capability over completing all advanced features. Async answer: Android AND iPhone together. Main plan latest directive and tracker now P0 core cash journey/exceptions/manual orderable catalog/authority/session/GPS/push/release builds/ops, P1 postpickup address change, driver-driver transfer, partial customer delivery and advanced automation. Product/import delegation to colleague unchanged; reliable manual launch assortment required, bulk import can proceed in parallel without blocking a sufficiently prepared manual launch. No production readiness claimed from staging/simulator.
+
+Implemented and published /staff/pickup-issues and pages/pickup-issues.html. Source is immutable driver pickupIssueReports. Bounded cursor scan queue (actor/version-bound, report carry pagination), ORD lookup, current staff claim/deadline, staff-recorded reached/no-answer contact trail, follow-up, evidence-gated operational closure. Same order/assignment/pre-handover and reached merchant+driver required to confirm ORIGINAL_ORDER_CONTINUES unchanged. CANCELLED must exist in server order; UNASSIGNED needs matching immutable archive. Delivery/return terminal observation may close operational report only; compensation/finance separate. Only existing staff table workflow/audit writes; orders/holds checked/read only. No new grant, monetary journal, consent, contact or notification created by agent. Driver report helper now also fences merchantHandover absence to prevent pre-pickup reporting after owner handover or during its race. Staff SHA JjtxIlNuQZ3aYPhkPmxQfzjuBOIBpH6xBm1s3UlRu5I=; DriversApi SHA YnSIzfgrCYQphIhgxEQoLyHEET/c4YHnL/Nfg+9kLoU=; Hosting192 then UI253b updates per report, preserving prior features.
+
+Validation377staff,9actual runtime,12driver reporting, mobile390 browser review/stable retry/rejected false cancellation/session change protection.9IAM checks allowed with no expansion. Mutation-blocked actual queue read:30scanned,0visible in THAT bounded page, nextCursor true,217ms; not proof no reports or production performance. Native project/SDK existence check passes all three repos; release signing and physical background push not tested by it. Human fresh report + operator acceptance still pending. Advanced item change/repricing, automated notification, higher-volume queue indexing not completed. Initial UI hidden-attribute CSS interaction corrected, duplicate self-claim removed, and old-session forms cleared/blocked; final hosting in docs/pickup-workflow-ui-253b.json. Next focus P0 human exception smoke + Android/iOS build/session/real-GPS/push release review. Do not resume deferred advanced COD03/04/05 just because numeric order suggests them. Do not fake a report/contact/cancellation to test.
+
+
+إتمام253: الواجهة النهائية194فوق193تطابقتبايتاتها،والمسارمتاحمنالطلبات←بلاغاتالاستلامالمفتوحةأومنإدارةالطلب. أُصلح احترامhiddenللأزراروالحقول،وأُخفيتخطوةتوليالمتابعةالمكررةللموظفنفسه،ويُمسحالنموذجالقديمويُمنعإرسالهإذااختلفتجلسةالإدارةعنقراءةالبلاغ. اختباراتالمتصفحلهذهالحالاتنجحت. الحالة P0_MINIMUM_PUBLISHED_HUMAN_ACCEPTANCE_PENDING،وليستإطلاقًاكاملاًأوإتمامًاحديثًالجميعCOD02. التاليبواباتP0لبناء/تثبيتAndroidوiPhoneوالجلسةوGPSالحقيقيوالإشعاربالخلفية/القفل،معاختباربلاغومتابعةفعلييندونانتحال. لمتُغيَّرصلاحياتIAMأوأموال/طلبات/بلاغاتحقيقيةبواسطةالوكيل.
+
+
+### تصحيح ترتيب التنفيذ بتوجيه المستخدم — 2026-10-24
+
+الأولوية الآن إكمال الأجزاء التشغيلية الضرورية المتبقية واختبارها، قبل فحص البناء والتثبيت وتسجيل الدخول والموقع الحقيقي والإشعارات بالخلفية على Android وiPhone. يبقى الإطلاق على النظامين معًا، وتبقى هذه الفحوص بوابات لازمة قبل الإطلاق، لكنها ليست الخطوة الحالية. هذا التوجيه يحل محل أي فقرة سابقة تجعل فحص النظامين التالي مباشرة.
+
+ترتيب العمل الحالي: تدقيق وإكمال الحد الضروري لشكاوى ما بعد التسليم وربطها بالطلب والتعويض الموجه القائم (COD-06)، مع استكمال القبول الفعلي لربط التعويض (COD-01) وبلاغات الاستلام (COD-02)، ثم مطابقة أدلة بقية الإلغاء وفك الإسناد والإرجاع والنزاع النقدي ضمن COD-07 وسد أي نقص تشغيلي ضروري يظهر. لا يعد النشر أو نجاح الاختبار الآلي قبولًا بشريًا، ولا يعاد تصنيف الاختبارات التي طلب المستخدم تجاوزها إلى ناجحة.
+
+بعد إتمام واختبار هذه المسارات ننتقل لفحوص النظامين، ثم بوابات التشغيل والإطلاق النهائية. تبقى إدارة المنتجات والاستيراد محالة إلى الزميل، وتبقى الأعمال المؤجلة مسجلة في الخطة.
+
+
+### الدفعة254 — فك الإسناد بعد عطل السيارة وإعادة البحث
+
+اختبار المستخدم ORD1792870714924 كشف نجاح تحرير السائق وضمانه مع بقاء نية الموجة الثانية دون تنفيذ. أصل التعارض: codReassignment يسجل financialRedispatch ويقصر المهلة، بينما المضيف الموحد يتجاوز مسار الاستئناف القديم والمنسق يرى العرض المقبول السابق أو اختلاف المهلة تعارضًا. أضيف استئناف عبر المضيف القائم من المسح المجدول نفسه، وإثبات أرشيف فك الإسناد الموافق للسائق والعرض والمحاولة والعملية قبل تجاوز القبول السابق، مع حارس الأرشيف الموجود أصلًا في قارئ الطلب. لا إعادة كتابة للعرض المقبول ولا تحرير أموال جديد. بقيت مهلة إعادة البحث مقيدة بالدورة الأصلية؛ عند استنفاد أي منهما ينتقل الطلب إلى مراجعة تعذر العثور على سائق ولا يلغى تلقائيًا.
+
+النتيجة الحية: العامل المجدول حوّل الطلب الحالي تلقائيًا عند 2026-10-24T19:51:49.055Z إلى no_driver_available / REQUIRED بعد انتهاء المهلة، بينما بقي ready_for_pickup وإجماليه14000وضمانه0. السائق available/isSearching=true/currentOrderId=null/activeOrdersCount=0. لم يُعد الوكيل ضبط الطلب أو يسجل قرار موظف أو تعويضًا. هذا يثبت معالجة انتهاء المهلة فعليًا؛ استلام سائق بديل لطلب جديد بعد الإصلاح يحتاج قبولًا بشريًا ولا يعد ناجحًا من اختبارات المنطق وحدها.
+
+تحسين الواجهة: الزبون والمطعم يميزان البحث عن سائق بديل عن تعذر العثور عليه؛ لا يعرض تقدير السائق السابق أثناء البحث. تحفظ الإشارة في الذاكرة وتزول عند الإسناد الجديد. بُني وثُبت وشُغل تصحيح الزبون247علىiPhone16Proوالمطعم242علىiPhone16؛ هذا تحديث تجربة التشغيل الحالية، وليس استئناف فحوص جاهزية إصدار Android/iPhone المؤجلة بتوجيه المستخدم.
+
+المراجع: redispatch-publication-254.json وredispatch-live-verification-254.json وdispatch-unassignment-live-audit-254.json. متابعة العمل بعد تجربة الاستئناف: COD-06 وبقية P0 التشغيلية وفق ترتيب الخطة المصحح.
+
+
+### الدفعة255 — اختبار تعويض المطعم بعد فك إسناد السائق
+
+طلب المستخدم معالجة ORD1792870714924 الملحق بتعويض المطعم. القراءة وجدت CUSTOMER_CANCELLATION بحالةREQUESTED ونسخة1، أنشأها موظف الإدارة في2026-10-24T20:09:56.049Z، والطلب لم يلغ بعد. كشف التدقيق رفض prepareFullCashRelease سجلHOLDالمحرر للمحاولة السابقة، إذ كان يشترط عدم وجود أي سجل عند عدم الإسناد. أضيف قبول الدليل المحرر فقط للإلغاء النهائي بلا سائق أو ضمان نشط، مع مطابقة أرشيفUNASSIGNED والمحاولة والعرض والعملية والفرع وبصمةSnapshotوسجلreleasedHoldحرفيًا، وتثبيت الشرطين في المعاملة. لا حذف للسجل أو إعادة تحرير الضمان أو قيد للمحفظة. لم تتغير شروط التمويل.
+
+نجحت24حالة مصدر و10علىحزمةالإدارةالمرشحة. قراءة الخطة من سجلات الطلب الفعلية بقارئ يمنع الكتابات نجحت:3قراءات،3عملياتمخططة،0أسطرمحفظة،0كتابات. هذا ليس إلغاءً فعليًا من موظف موثق. المراجع cancellation-after-unassignment-publication-255.json وcancellation-after-unassignment-verification-255.json.
+
+القبول البشري معلق: يعيد المستخدم تنفيذ الإلغاء الإداري من القضية القائمة؛ ثم يحدد مقدار تعويض المطعم والجهة المتحملة وحالة الطعام والخسارة المثبتة. لم يختر الوكيل مبلغًا أو يثبت تلفًا أو احتفاظ المطعم بالطعام نيابة عنه. بعد اعتماد وتنفيذ القيد يظهر مستحق المطعم؛ يبقى الصرف النقدي والإغلاق منفصلين وفق التسويات القائمة. تبقى أولويةCOD-06وبقيةP0بعد إتمام الاختبار الجاري.
+
+
+### الدفعة256 — استكمال إلغاء الطلب غير المدعوم بعد ظهور الخطأ مجددًا
+
+أظهر المستخدم فشل الإلغاء مرة أخرى. إعادة إنتاج مسار adminCancelUnassigned كاملًا على قراءة حقيقية للطلب ORD1792870714924 بقارئ يمنع كل الكتابات أعطت CANCELLATION_FINANCIAL_REVIEW_REQUIRED: commercialPricing.schemaVersion=1 بلا حقلdeliveryFunding، بينما financialSnapshot.deliveryFunding=null. فحص255عالج الضمان المحرر لكنه اختبر خطة التحرير وحدها ولم يغطِّ هذا الشرط السابق لها. صُححت مطابقة الحقل الغائب إلىnull فقط مع بقاء التحقق الدقيق من التمويل الموجود ونسخة السياسة.
+
+أُضيف اختبار الطلب غير المدعوم بعد فك الإسناد إلى جانب المدعوم، مع رفض تغيير التمويل الفعلي وإثبات إعادة المحاولة دون تكرار. نجحت25حالة مصدر و11علىحزمةالإدارة؛ مسار الإلغاء الكامل على بيانات الطلب وصل إلى المعاملة النهائية:14عمليةمخططة/9قراءات/0كتابات. الهوية في الاختبار تشخيصية وليست تنفيذًا من موظف حقيقي. النشر يغير تعبيرًا واحدًا في staff-order-management-runtime.js فوق حزمة255 مع تطابق بقية الملفات والإعدادات والصلاحيات. المرجع cancellation-null-funding-publication-256.json.
+
+أكد المستخدم أن الطعام بقي بالمطعم ولم يسلم للسائق وتلف جزئيًا. القرار المراد اختباره: تعويض المطعم6000د.ع تتحمله المنصة؛ لم يُسجل الاعتماد أو القيد أو الصرف بواسطة الوكيل. يبقى استكمال الإلغاء من جلسة الإدارة والقبول المالي البشري معلقين، ثم فحص مستحق المطعم والتسويات دون تكرار.
+
+
+قبول بشري256: ألغى المستخدم الطلب ORD1792870714924 من الإدارة؛ القراءة المتسقة أثبتت cancelled وقضيةCANCELLED/version2/settlementStatusREVIEW وFINANCIAL_OUTCOMEواحدبلاjournalLinesوسجلHOLD12500RELEASEDوتمويلRELEASED، دونMERCHANT_PAYABLEأوقرارتعويضبعد. السائق بلاطلبنشط وعداده0، لكنهoffline/isSearching=falseحاليًا؛ لا يُدعى أنهمتصلفيوقتالفحص. التالي اعتماد6000د.عللمطعمبسببالتلفالجزئيعلىالمنصة،ثمتنفيذالقيدوالصرفوالتحقق.
+
+
+### استئناف الأولويات بعد قيد تعويض المطعم — 2026-10-24
+
+طلب المستخدم ترك قيد المطعم6000د.ع كماهوحاليًا؛ يبقى مستحقًا بانتظار الصرف ولا تغلق القضية أو يعدل تقييم الخسارة بواسطة الوكيل. ذكّر المستخدم بتعديلات تطبيق السائق ضمن الخطة؛ أُضيف مسار صريح في cod-launch-execution-tracker.json لمطابقة ضروريات تطبيق السائق قبل إعلان اكتمالP0. التالي تدقيق دورة المهمة/الاعتذار/الموجات/العودةوالنزاع/المحفظةوشحنضمانالنقدوأيحقوقواجبةالصرف،وتحديدالتنفيذالمنشورمقابلالنقصوالقبولالمعلق.
+
+لا يعاد بناء الرحلات311والأرباح312والتوقعات314-318وحارستحريرالمهمة261كأنهاغيرمنفذة. تبقى Score/Tiersوالمقاييسالجديدةv1.6والإنقاذالممولوالأتمتةالمتقدمةلأرباحPrepaidأعمالًالاحقة؛ لا يدعى اكتمالها من وجود رسومبيانيةأومحفظةأساسية. لايسقطCOD-06أوCOD-07أواختبارقبولسائقبديلمنالمتابعة. فحوصجاهزيةالبناءوالأجهزةوالإشعاراتعلىالنظامينتبقىبعدإكمالالتشغيلالضروريحسبتوجيهالمستخدم.
+
+
+## المراجعة الشاملة لجميع التطبيقات — تصحيح توجيه المستخدم 2026-10-24
+
+المطلوب كل الخطة الأساسية والملاحق وخطتيالتاجر/الحذف، لاCODفقطولاالسائقفقط. المرجع الآن main-plan-all-apps-priority-review-2026-10-24.json وCSVالمرافق، والقسمالجديدبختامالخطةالموحدة:61بندًابحالةومرجعومتبقٍ،127قسممواصفةوالحزم14مربوطةبالجرد. راجعالمصفوفةقبلبدءأيقدرةجديدة؛ ملفاتالدليلقديمةبعضهاولايثبتوحدهااكتمالالحالةالحية.
+
+التالي الدفعة1الموحدة: تدقيقنواقصالإطلاقالنقديبحسبالتبعياتوالخطرعبرالمحفظةوالأهليةومتابعةالإسنادوالشكوىوالسياساتوالنطاقوالأجهزة،ثمقبولالموجودوإغلاقالمطابقةوالاحتفاظوالإشعارات؛ بعدهفقطفحوصجاهزيةالنظامين. لم يبدأ تنفيذ ميزة جديدة بهذه المراجعة. Products/importمحالللزميلكاملًا؛ كلماعداهمازالضمنالخطةبأولوياته. استحقاق6000الحالييُترككماهوولايتابعالوكيلصرفهأوتعديلتقييمه.
+
+
+## الدفعة258 — بدء الدفعة التشغيلية الأولى: أمان استعادة شحن محفظة السائق
+
+بدأ التنفيذ منF02/F03ضمنجردجميعالتطبيقات،لاكتغييرأولويةإلىتطبيقواحد. فُحصمصدرالشحنوالأرصدةوالقبولالماليوالإعدادالمنشورقراءةً:اليدويمفعل/حد25000،الدفعالمباشرزينكاشوالبطاقةمعطلان. لايعادبناءمحركالشحنالموجود. النقصالمثبتفيالعميلكانغيابحفظالمحاولةعندفقدالرد/إغلاقالتطبيقوغيابربطتحميلالمستلموالوصلوالإرسالبالحسابنفسه.
+
+أضيفتخدمةاتصالعميلمحدودةWalletFundingServiceيعيداستعمالواجهاتالمحفظةالقائمة،ويحفظالطلبالثابتبمفتاححسابمعزولقبلالإرسال،ويستأنفنفسالمبلغ/الوصل/المرجع/نسخةالإعداد/هويةالمحاولة. لايخزنالتوكنأورابطS3الموقع. عندالنتيجةالمجهولةتُخفىحقولطلبجديدوتظهرخياراتالتحديثوإعادةالطلبنفسه. مطابقةقائمةالطلباتتشترطصاحبالطلبوالوصوللمرجعووصلمبلغمتطابقين،ولايفسرالغيابمنأحدث50نتيجةبأنالطلبلميسجل. تغييرالحسابيمسحالبياناتالمرئيةويمنعطلبًاأوردًاأجنبيًا،ولا يمنع تجديد توكن الحساب نفسه.
+
+نجح15اختبارFlutterمنها10جديدةللخدمةوالواجهة،و10اختباراتخادمالشحنالقائم. لاAPIماليأوإعدادأوصلاحيةأومبلغتغير،ولاطلبشحنأوقبضأووصلتمتسجيلهبواسطةالوكيل. نسخةمحاكي262قيدالتجهيزمعنفسأعلامGPSالتجريبية؛هذاتحديثاختبارتشغيليوليسبدءبواباتإطلاقالنظامينالمؤجلة. مرجعالدليل operational-funding-hardening-258.json ونسخةالسائق wallet-funding-hardening-258.json.
+
+لايعدF02مكتملًابشريًامنالاختبارات. الباقي: قبولالشحنالفعلينفسهبإثباتقبضومراجعةبشريين،وتدقيقصفحاتالتاريخوالاستردادالقديم،وF05صرفالحقوقوالأرصدةالمؤهلة،وD01الأهليةوالوثائقوالمركبة،ثمبقيةحزمالدفعةالموحدة. يبقىاستحقاقالمطعم6000كماهومعلّقًاللصرفبطلبالمستخدم.
+
+
+إتمام تجهيز258: نجح بناء محاكي السائق262 وثُبت وشُغل علىiPhone16معالحفاظعلىبياناتالتطبيقوأعلامالموقعالتجريبيالسابقة. لم يُنشأ طلبشحنأووصلأوتحويلأوقيدمالي. دليل15اختبارFlutterو10اختباراتخادم،وقبولالشحنالبشريوبقيةالدفعةمعلقان. جرد61بندًاوCSVمحدثانبحالةF02بعدهذاالإصلاح.
+
+
+## تجهيز شحن المحفظة بالوصل وبوابة زين كاش — 260
+
+بناءً على طلب المستخدم، جُهّز F02 بمساريه مع إعدادات مركزية قابلة للتشغيل عند استلام بيانات الشركة. المرجع المفصل ودليل الحقول وخطوات التشغيل: `docs/zaincash-readiness-260.json`، وأدلة النشر والفحص وتهيئة UAT المرافقة. الطلبات للزبون تبقى نقدية؛ هذا ربط لشحن محفظة السائق، ولا يفعّل الدفع المسبق للزبون أو Qi الحقيقي أو صرف المطعم الآلي.
+
+مسار الوصل القائم محفوظ، مع استعادة الطلب قبل فحص إعداد المستلم المتغيّر وإرجاع الحالة الحالية، وصفحات تاريخ إضافية للسائق والإدارة. مسار البوابة يحفظ محاولة ثابتة بالحساب والمبلغ والبيئة وUUID قبل الإرسال؛ لا يعيد إنشاء دفع عند غموض النتيجة. يتأكد الخادم من توقيع الإشعار ثم يستعلم من الشركة ويطابق العملية والمرجع والمبلغ والعملة. تسوية LIVE ذرية في المحفظتين والقيود والإشعار وسجل المراجعة مع حارس دائم يمنع التكرار. UAT لا يمس الرصيد الفعلي.
+
+الإعدادات تفرق بين حساب التحويل اليدوي وبيانات API. المفاتيح تحفظ بإصدارات سرية مستقلة في Secrets Manager ولا تعاد للواجهة. توجد تجربة تشغيل فعلية حتى خمسة سائقين يُختارون بالاسم والهاتف، ثم اعتماد عام مشروط بإثبات UAT وإشعار فعلي موقّع لدفعة ناجحة وبمطابقة نسخة مفاتيح الاستعلام والتوقيع. تعطيل استقبال دفعات جديدة لا يوقف معالجة القديم. توجد متابعة مجدولة وصفحات ومرشح مراجعة واستعلام إداري وإغلاق موثّق لحالة أكدت الشركة عدم إنشائها. تراجع حالات الاسترجاع أو تغير الدفعة التي سبق شحنها ماليًا ولا تُحسم تلقائيًا؛ أتمتة Refund/Chargeback تبقى E02.
+
+شملت الحماية حذف الحساب أثناء الدفع المعلق، والاحتفاظ المالي، وتبديل المفاتيح، والإشعارات المتأخرة بعد إغلاق حالة سابقة مع عدم فك محاولة أحدث. تبويب المحفظة يتحدث عند الرجوع واستئناف التطبيق والإشعار، وزر السجل يعمل؛ أزيل الخلط بين الرصيد المرجعي للتنبيه وضمان قبول الطلب. نسخة محاكي السائق النهائية 264 مع أعلام GPS السابقة. رابط العودة معرف في Android وiOS، لكن جولة أصلية مصادقة لم تكتمل؛ المحاكي يحتاج تسجيل دخول. اختبارات جاهزية الإصدار والجهازين تبقى R01 بعد التشغيل كما طلب المستخدم.
+
+التحقق: 51 اختبار Node للشحن والبوابة، و30 اختبار حذف/احتفاظ، و16 اختبار صلاحيات Python، و22 اختبار Flutter، وفحص واجهة ومتصفح وربط قالب البنية. نُشرت الوظائف وAPI والمتابعة باستخدام أدوار استدعاء محدودة، دون حذف صلاحيات Lambda القائمة. حُفظ تصميم المنصة الأحدث وإصلاح مهلة HTTP الموجودان على hosting، مع مطابقة ملفات النشر. فحوص البيئة المنشورة تؤكد رفض الوصول غير المصادق والإشعار غير الصالح والحجم الزائد، وأن LIVE معطل. بيانات UAT السابقة أُعدّت ووُثّقت بهوية إعداد AWS الحقيقية؛ نجحت مصادقة OAuth فقط دون إنشاء أي دفعة.
+
+**لا يعد F02 مكتمل القبول كليًا بعد.** يلزم تحويل يدوي مثبت ومراجعة بشرية، ودفع UAT مكتمل من حساب مصادق، ثم بيانات الشركة وموافقتها وتسجيل webhook ودفع LIVE تجريبي وإشعاره قبل التفعيل العام. لم ينشئ الوكيل وصلًا أو عملية دفع أو اعتماد قبض أو قيد شحن فعلي. لم يغيّر أي طلب أو استحقاق المطعم 6000 المطلوب تركه كما هو. جرد 61 بندًا و127 قسمًا باقٍ مرجع الأولويات، وProducts/import يبقى للزميل؛ F03/F05/D01/A02/C05 وباقي الدفعة لم تسقط من الخطة.
+
+
+## Operational resumption271 — D01 active profile guard
+Two failing regression tests proved approved profiles with explicit isActive=false passed candidate/offer checks. Source dispatchCandidates and driverOfferContext now reject explicitly non-active values and fence the field for offer creation/acceptance.47 source and59 captured runtime tests pass. Scoped single-file patches published to staging-driver-financial-accept index.js and START/TIMEOUT dispatch-cycle-runtime.js, keeping all other entries/config/IAM. No order/profile/wallet mutations, no client rebuild. docs/driver-eligibility-271.json is current runtime SHA evidence. Authoritative JSON/CSV and generator F02/F03/F04/D01 statuses updated. FullD01 not closed: next audit vehicle/document expiry/region and who can change those fields. F05 owed-credit payout scope, A02 and C05 remain in dependency queue.
+
+
+Driver performance/support basic implementation: see docs/driver-performance-support-ready.json. Read-only observed response/commitment windows and More performance view, verified customer rating transport and colleague authenticated support protocol implemented locally.14 backend+17 Flutter checks and8 captured support-access assertions pass; real driver read21acceptances/17deliveries/1return/3review, no penalty inferred for unknown expiry or cancellation. Release271 prepared. Automatic approval review rejected shared DriversApi deployment plus exact offer GetItem/Query IAM permissions pending explicit user approval; NOT published or installed. Candidate manifest/policy are in whizzDrivers-stg/docs/driver-performance-publication.json and driver-performance-read-policy.json. No business writes, support messages, dispatch policy or legacy metric changes. Fullv1.6 ACK/attribution/score/tier/ranking work remains open; after this minimum acceptance resume vehicle/documents/region.
+
+
+Explicit user approval received: performance/support publication is now COMPLETE on staging, not awaiting approval. DriversApi downloaded package SHA cqqGl1C377pSrQb3ENo+SDB7e3MJQRHU4Mi4+GxSau0= verified, all other entries/config unchanged; exact offer GetItem/Query policy applied.14 captured-runtime tests pass, anonymous /driver/performance returns401. Release271 installed and launched on real iMohammed B8850CE6-BCC2-551D-B930-3E108456B23F without uninstall. No live support message or business/financial write. Human acceptance of More > performance and support remains pending; advanced v1.6 is not claimed complete. See driver-performance-support-ready.json.
+
+
+Performance policy272 FIRST PHASE is prepared, NOT PUBLISHED/INSTALLED. User approved the design separating performance from compensation and asked to begin. Implemented sidecar DISPLAY_ACK receipts (no financial-offer mutation), authenticated server-time display proof, displayed-expiry nonacceptance with V1 compatibility, explicit case-linked/per-attempt COUNT_FAILURE/EXCUSED/PENDING_REVIEW, independent evidence/reason/version/supersession/audit/account-lifecycle fences, appeal protection, readable future driver unassignment reason, Arabic case UI.70 source backend,46 candidate/captured,20 Flutter checks, full current-page browser PASS; old235 browser harness lacked required workflow mount and was superseded. Release272 built with same test location. Auto-review REJECTED deployment to DriversApi/financialaccept/staff + Amplify and permanent receipt-row IAM writes because previous explicit approval was READ ONLY. Need explicit user approval; do not retry/bypass rejection. See docs/driver-performance-policy-272.json, driver-performance-packages-272.json and driver-offer-receipt-policy-272.json. No cloud/business writes;271 stays active. After publication test actual timeout and admin decision, then punctuality/quality/activity, per-indicator detail and performance review/appeal ownership; advanced score/tiers/ranking stay deferred.
+
+
+Superseding publication checkpoint272: explicit user publication approval received. All three tested Lambda candidates published and downloaded byte-identical; IAM receipt policy exact/simulated allowed; hosted job203 SUCCEED with all four changed files byte-verified. Release272 installed and launched on real iMohammed without uninstall; anonymous new routes401. No live case decision, wallet/ledger write or support message by agent. Human displayed-timeout and independent case performance decision tests remain PENDING. This completes phase1 publication only: punctuality, quality, activity, indicator history/review and appeals remain open; no new hard eligibility/ranking/score/tier policy. See driver-performance-publication-272.json.
+
+
+User deferred manual acceptance tests to an ordered queue; NOT PASSED. See driver-performance-ordered-acceptance-tests.json. Continue automated checks and operational implementation: original-target punctuality/exceptions, quality/rating/activity, indicator details/review, then vehicle/documents/region. All-app hardware gates stay after operations; no repetition of skipped finance tests.
+
+
+Performance273 published/installed on staging with byte-verified financial/driver Lambda candidates and unchanged config, no new IAM or financial calculations. Original timing per accepted attempt, first progress timestamps/attempt fences, observation-only punctuality, bounded thirty-day acceptance activity and Arabic event details.78 source backend,89 captured checks,22 Flutter checks, TS and Release273 build pass. Human tests remain DEFERRED_NOT_PASSED by user. Potential pickup waiting delays remain review; no automatic fault/excuse from reports or compensation. Next: verified quality/rating review and evidence-backed delay resolution, then vehicle/documents/region. Full metrics and v1.6 score/tiers/ranking remain OPEN. See driver-performance-timing-273.json.
+
+
+Presentation274 complete: compact grouped performance rows (value/sample/status), tap for existing explanations/events, collapsed bottom definitions/eligibility guide, Baghdad update time and responsive narrow/large-text layout.23 regression widget checks plus1 portrait preview check, clean page analysis and Release274 build PASS. Installed and launched on real iMohammed without uninstall. No backend or metric formula change. Human acceptance stays deferred/not passed; next operational scope remains delay review and quality/rating moderation/appeals. See driver-performance-layout-274.json.
+
+
+More presentation275 implemented, Release275 installed and launched on real iMohammed without uninstall. Neutral grouped menu/profile styling replaces rainbow borders. Verified rating/count and Arabic join date separated; no manufactured date/rating; profile refresh + mounted guards; performance and authenticated support routes retained. Real WalletHomeScreen replaces old construction placeholder. Unimplemented instant-pay option disabled explicitly, developer preview menus debug-only.29 widget checks including route targets (without mounting service screens), narrow/large text and screenshot fixture pass; page analysis clean; Release build pass. No backend or agent business writes. Human acceptance deferred under MORE_UI_275 in ordered test queue; continue original operational delay/quality/rating review scope. See more-layout-275.json.
+
+
+More functional audit276 supersedes assumptions that all menu actions were real.22 entry source audit; earnings menu had static-data EarningsTab, now same live EarningsScreen as main tab. Disabled legacy placeholder payment methods, equipment, phone change, emergency/safety, More identity submit, UI-only settings, draft policies and no-op stop availability callback. Actual main-home stop remains the path. Account legacy password form replaced with unavailable notice; real deletion retained. About fictitious old build metadata removed. Account basic read/update partly real but profilePhoto not allowed by current backend; vehicle read partly real with synthetic empty-field defaults. These remain open requirements, not completed by disabling.39 widget checks and clean More analysis plus Release276 build pass; installed/launched on real phone. Human tests deferred; no backend/business writes. See more-functional-audit-276.json; integrate findings into operational prioritization before launch.
+
+
+Navigation277 complete: earnings removed from primary bottom bar/IndexedStack, retained solely in More -> modern EarningsScreen. Five visible tabs retain original route IDs0,1,2,4,5 for notification/wallet compatibility; DriverTabs maps IDs to bar/stack positions and old earnings id3 to More.18 navigation/More/earnings checks and mapping analysis pass; Release277 built, installed and launched on real iMohammed without uninstall. No backend/business writes; manual acceptance deferred; operational backlog unchanged. See navigation-277.json.
+
+
+Location notice278 complete: static untappable more-orders advice replaced with actual device service/permission check. Hidden for enabled service+Always; distinct off/denied/whileInUse/unknown or failure states. Tap opens Geolocator OS location/application settings, returns false/errors show truthful retry. Resumed/settings return refresh; stale async/disposal guards. Does not request permissions, change driver availability/dispatch/ranking/test coordinates or prove background GPS tracking.52 widget checks including10 notice cases and regression navigation/More/earnings/performance/support/rating pass; clean component analysis; Release278 built/installed/launched on real iMohammed without uninstall. Real-device permissions/background location tests remain deferred in LOCATION_NOTICE_278 and existing launch gates. Backend unchanged; operational backlog unchanged. See location-permission-notice-278.json.
+
+
+## المرحلة279 — مراجعة التأخير
+
+نُفذت مراجعة مرتبطة بمحاولة السائق والمواعيد الأصلية: أدلة وتعليل ومالك متابعة وقرار واعتراض وسجل محفوظ. لا تغيير مالي أو عقوبة أهلية تلقائية. اختبارات المصدر والحزمة والمصنع الفعلي والمتصفح وFlutter ناجحة. Release279 مثبت ومشغل. النشر قيد التحقق؛ راجع driver-timing-review-publication-279.json قبل اعتباره منشورًا. الاختبارات العملية مؤجلة وغير ناجحة بعد. التالي: جودة ومراجعة التقييمات مع الحفاظ على مصدر الزميل، ثم المركبة والوثائق والمنطقة. لا مساس بالمنتجات المحالة للزميل أو المستحقات المالية التي طلب إبقاءها.
+
+تأكيد279: نُشرت وظائف المراجعة الثلاث وتحققت الحزم المنشورة بايتًا ببايت؛ نشر الواجهة204 ناجح وملفاته متطابقة. Release279 مثبت ومشغل على iMohammed. لا IAM جديد ولا قرار على طلب حقيقي ولا حركة مال بواسطة الوكيل. التالي جودة ومراجعة التقييمات، ثم المركبة والوثائق والمنطقة. القبول العملي مؤجل بطلب المستخدم.
+
+تأكيد الواجهة279a: نشر205 ناجح، وأعيد التحقق بعد انتشار CDN من مطابقة أسماء حالات المراجعة العربية وملف الصفحة للنسخة المختبرة.
+
+
+## المرحلة280 — مراجعة تقييم السائق جاهزة بانتظار الموافقة
+
+التنفيذ والاختبارات جاهزة؛ لم تنشر280. رفضت مراجعة الموافقة الآلية نشر الخدمات الأربع وتوسيع دور خدمة القبول المالي لصلاحيات GetItem/PutItem/ConditionCheckItem على جدول whizz-order-ratings-staging لأن هذا التغيير المحدد غير مصرح به صراحةً. لا تحاول تجاوزه. اطلب موافقة نهائية بعد تجهيز النسخة. راجع driver-rating-review-280.json وdriver-rating-review-policy-280.json والحزم ذات البصمات. المنشور ما زال279 والواجهة205، ولا قرار مراجعة/مال/سجل تقييم حقيقي نُفذ بواسطة الوكيل. المصدر يحافظ على عمل الزميل الأصلي ويفصل متوسط السائق عن المطعم والأموال. نافذةآخر100 وحوادث الجودة المستقلة ثم المركبة والوثائق والمنطقة تبقى مفتوحة. كل الاختبارات العملية مؤجلة وغير ناجحة.
+
+
+## تأكيد نشر280 بعد موافقة المستخدم الصريحة
+
+الموافقة «نعم اوافق» حسمت رفض النشر السابق. طُبّقت DriverRatingReview280 لقراءة/كتابة/تحقق مشروط على جدول التقييمات وحده؛ نُشرت الخدمات الأربع والواجهة206 وتحققت الحزم المنشورة بايتًا ببايت والإعدادات. Release280 مثبت ومشغل مع حفظ الجلسة والموقع الاختباري. لا قرارات على تقييمات حقيقية ولا حركة مال بواسطة الوكيل. انظر driver-rating-review-publication-280.json. كل الاختبارات العملية مؤجلة وغير ناجحة بعد. التالي نافذة آخر100تقييم صالح وحوادث الجودة والسلامة الموثقة، ثم المركبة والوثائق والمنطقة؛ لا مساس بجزء المنتجات المحال للزميل.
+
+
+## 281 — جاهزة ومختبرة؛ النشر متوقف على موافقة الفهرس والصلاحية الجديدة
+
+87اختبارحزمة و21اختبارFlutter ناجحة؛ Release281 مبني وغيرمثبت. الجديد مصدرV4 لآخر100تقييم صالح مع الترتيب الزمني والتحقق القوي والملء من الأقدم ووسم نقص التغطية. لا تغيير للنجوم/التعليقات/متوسط السجل الكامل/المال. معاينةCFN موجودة ولم تنفذ؛ الجدول لا يستبدل، وفقط الفهرس مصدر تعديل مباشر مع إعادة تقييم تبعياتARN الحالية. رفضت الموافقة الآلية نشر281 لأنه يضيف بنية وصلاحية قراءة جديدة خارج الموافقة السابقة. لا تتجاوز الرفض؛ يلزم موافقة المستخدم على DriverRatingWindow281 والفهرس وإعداد المفاتيح المشتقة المشروط ونشرالخدمتين. الحالي280والمنصة206؛ لا IAMأوبياناتأوLambdaتغيرت ل281، فقط إنشاءمعاينة. راجعdriver-rating-window-281.jsonوالحزم والمعاينة والسياسة. حوادثالجودة ثمالمركبةوالوثائقوالمنطقة مازالت مفتوحة. الاختبارات العملية مؤجلة وغيرناجحة.
+
+تحديث جارٍ281 بعد موافقة المستخدم: الفهرسACTIVEوالبنيةUPDATE_COMPLETE؛ لا تعِد تنفيذ المعاينة أو التهيئة. تعثرSDKالمحلي لأن رمزSSOالمخزن عنده انتهى، بينماAWSCLIلنفسالملف صالح. الاستئناففيscripts/resume-driver-rating-window-281.py يستخدم اعتمادات الدور المؤقتة منCLIفيالذاكرة دون حفظ أسرار، ويتابعفحصالمصدر ثم قارئالسائق فقط. راجعإيصالالنشرلمعرفةالمرحلة قبلأيإعادةمحاولة.
+
+
+## تأكيد281 بعد الموافقة الصريحة
+
+تم تنفيذ معاينة الفهرس مع التبعيات الحالية دون استبدال الجدول، والتحقق منACTIVEوتغطية المصدر وصلاحيةGetItem/Query المحدودة لدورالسائق. نُشرت خدمتاالتقييمات/السائق وتحققت الحزم بايتًا ببايت والإعدادات؛ Release281 مثبت ومشغل مع حفظ الجلسة والموقعالاختباري. الأصواتوالتعليقات ومتوسطالسجل الكامل والأموال محفوظة. لا قرارات على تقييماتحقيقية بواسطةالوكيل. راجعdriver-rating-window-publication-281.json. اختبارنافذة100 مؤجل وغيرناجح عمليًا بعد. التالي حوادثالجودةوالسلامة الموثقة والمراجعةوالاعتراض، ثمأهليةالمركبة/الوثائق/المنطقة؛ لا تعديل لاستيرادالمنتجات المحالل للزميل ولاScoreأومستويات أوعقوباتتلقائية.
+
+
+## 282 — ملف السائق وربط التقييم
+أوقف المستخدم الانتقال لحوادث الجودة مؤقتًا. أعيد تصميم الملف الشخصي بالعربية وتصحيح القراءة وحصر الحفظ بالاسم والمدينة. 12 اختبارًا آليًا ناجحًا؛ البناء جارٍ والقبول اليدوي مؤجل. لم تُنشأ تقييمات أو نجوم؛ قرار بيانات اختبار معلّمة أو تقييم حقيقي من الزبون ينتظر رده. ربط عرض التقييم للزبون والمطعم غير مكتمل ومسجل قبل استئناف الجودة. الدليل: `docs/driver-account-rating-audit-282.json`.
+
+تحديث282: نجح بناء وتثبيت وتشغيل Release282 على iMohammed. اختار المستخدم تقييمًا حقيقيًا من الزبون بعد التسليم، لا بيانات مصطنعة. فحص مصدر wizzuser-stg وجد زر تقييم الطلب ما زال TODO برسالة قريبًا؛ شاشة وخدمة تقييم الزميل موجودتان في origin/feature/order-ratings-20261024 وغير مدمجتين في النسخة المحلية الحالية. لا تدّع جاهزية اختبار تقييم الزبون قبل دمج ضيق وفحص وتثبيت النسخة.
+
+
+### تقييم الزبون283
+بموافقة المستخدم دُمجت شاشة وخدمة واختبارات تقييم زميله من الفرع 30dc40f1df8f89a952ff6803a458f5ffc1b367f8 دمجًا انتقائيًا مع تعديل زر الطلب المسلّم وحقول متوسط المطعم وعدد التقييمات في النموذج والتخزين. 14اختبارًا ناجحًا وفحص الملفات دون مشاكل. لم يُنشأ أي تقييم أو طلب. بناء Release283 جارٍ؛ اختبار المستخدم بتقييم حقيقي بعد التسليم ما زال غير منفذ. دليل `docs/customer-rating-integration-283.json`.
+
+تحديث283: اكتمل بناء وتثبيت وتشغيل تطبيق الزبون Release283 على iMohammed دون حذف التطبيق. اختبارات14 ناجحة. انتظار تجربة تقييم حقيقية بعد التسليم؛ لم يُنشأ طلب أو تقييم آلي.
+
+
+### تحقق تقييم حقيقي بعد دمج283
+أرسل المستخدم تقييمًا حقيقيًا: المطعم4 والسائق5 للطلب96cd4249-41af-5ebb-885a-d7dae2c321d0. القراءة القوية أكدت السجل الأصلي ومتوسط السائق5/5 وعدد1 ومجموع5 وملفه المطابق، ووجود السجل في فهرس281. لا كتابة من الوكيل. هذا يثبت تقديم التقييم وتجميع السائق فقط؛ عرض الزبون/المطعم وواجهة السائق بعد تحديثها وسيناريوهات المراجعة لا تزال منفصلة. دليل `docs/customer-real-rating-verification-284.json`.
+
+
+### 285 — قائمة الحذف وربط تقييم المطعم
+أعيد تنسيق تأكيد حذف الطبق RTL بأيقونة48 وأزرار أصغر وألوان الأصفر والكحلي. تحديث285 مثبت ومشغّل على محاكي الزبون. تدقيق حي: قائمة المطاعم كانت محدثة، لكن دالة التفاصيل مساعدها قديم وتُرجعnull للتقييم وعدده رغم متوسط4 وعدد1 في السجل. تجهيز إصلاح مساعد واحد فقط داخل الحزمتين دون تغيير IAM أوإعدادات أو بيانات؛ النشر جارٍ. نموذجreviews والخريطة500+ صُححا، وتفاصيل المطعم تجلب تقييمًا حديثًا عند الفتح/العودة. اختبارات6 خادم و14 تطبيق ناجحة. دليل `docs/restaurant-rating-and-cart-sheet-285.json`.
+
+إغلاق285: نُشر المساعد فقط في GetBusinesses/GetBusiness مع CodeSHA موثق وإعدادات محفوظة. طلباHTTPعامان بعد النشر أكدا للمطعم الحقيقي rating4 وreviewCount1 في القائمة والتفاصيل. لم تتغير أي بيانات تقييم أوصلاحيات أوإعدادات مالية. تحديث285 مشغّل على المحاكي. القبول البصري اليدوي لم يُسجّل كناجح.
+
+
+### 286 — شارة تقييم السائق
+بطلب المستخدم: المزيد تعرض نجمة ذهبية واضحة ورقم التقييم فقط، وعدد التقييمات يبقى داخل الملف الشخصي في سطر منفصل. نفس مصدر customerRating الموثق دون تغيير الحسابات أوالبيانات. نجحت9اختبارات بما فيها عرض320 مع تكبيرالنص1.6. Release286 قيد البناء. دليل `docs/driver-rating-badge-286.json`.
+
+إغلاق286: نجح بناء وتثبيت وتشغيلRelease286 علىiMohammed مع الحفاظ على جلسة السائق وإعدادات موقعه الاختباري. فحص الكود دون ملاحظات واختبارات9 ناجحة.
+
+
+### 287 — عرض التقييم غير المتوفر
+طلب المستخدم شرطة بدل0.0 للمطعم والسائق. توحيد تسميات العرض إلى— مع إبقاء القيم الرقمية الداخلية للفرز دون تعديل التقييمات. صُحح نص500+ ثابت آخر في بطاقة الخريطة إلى العدد الفعلي إن كان موجبًا. اختبارات16زبون و9سائق ناجحة. بناء محاكي الزبون وRelease287للسائق جارٍ. دليل `docs/unrated-display-287.json`.
+
+إغلاق287: نجح بناء وتثبيت وتشغيل الزبون287على المحاكي والسائقRelease287علىiMohammed. اختبارات25ناجحة،لا تعديل بيانات تقييم.
+
+
+### 288 — تنسيق التقييم
+طلب المستخدم إزالة الخلفية الصفراء الفاتحة وتصغير رقم التقييم في المزيد والملف الشخصي. أزيلت الزخرفة وأصبح الرقم17 والنجمة19 دون تغيير البيانات؛ اختبارات العرض والبناء قيد التنفيذ.
+
+إغلاق288: نجحت اختبارات9 والبناء والتثبيت والتشغيل علىiMohammed بنسخةRelease288.
+
+
+### 289 — استئناف حوادث الجودة والسلامة
+أنشئ مسار إداري مستقل للقضايا والأدلة والقرار والاعتراض، مرتبط بمحاولة قبول موثقة ويستمر على السائق الأصلي بعد إعادة الإسناد. 35اختبارمصدر/تراجع و9علىالحزمة المعدة للنشر واختبارمتصفح390ناجحة؛ النشر جارٍ. لا أموال أو تقييم أو أهلية تتغير تلقائيًا ولا حوادث أنشأها الوكيل. خطة التجارب أضيفت مؤجلة. عرض الحوادث والاعتراض مباشرة للسائق، بدء حادث لمحاولة محررة سابقة، واحتفاظ القضايا أثناء حذف الحساب ما زالت مفتوحة ولا يدّعى اكتمالها.
+
+إغلاق جزء الإدارة289: نُشرت الحزمتان staging-driver-financial-accept وstaging-wizz-staff-service وتأكدت مطابقتهما بايتًا للحزم المختبرة مع بقاء الإعدادات كما هي؛ واجهةAmplify207و6ملفاتمغيرة تحققت بايتًا. طلب دون جلسة رفض401. لاحوادث أوأموال كتبهاالوكيل. المسار: الطلبات←إدارة←تسجيل حادث جودة أو سلامة، والمتابعة في قضايا الطلبات. التالي داخل البند نفسه: عرض الحوادث والاعتراض للسائق وتدقيق احتفاظ القضايا أثناء حذف الحساب وبدء حادث لمحاولة محررة سابقة؛ ثمD01. لا إغلاق لكاملD09/D10 أوادعاء درجة جودة رقمية.
+
+
+### 290 — حوادث السائق والاعتراض والمحاولات السابقة والاحتفاظ
+المصدر والواجهة جاهزان ومختبران: 38 اختبار خادم، و272 لحذف الحساب، و16 على حزمة القضايا والاعتراض، و13 على حزم الاحتفاظ، و13 اختبار Flutter. فحص Flutter دون ملاحظات. نسخة Release 290 مبنية وغير مثبتة.
+
+أفاد المستخدم بعدم وجود سياسة احتفاظ معتمدة؛ لا تُستخدم مدة السجلات المالية للقضايا غير المالية. يوقف وجود قضية جودة أو سلامة حذف الحساب عند مراجعة واضحة للسياسة. المحاولات السابقة ترتبط بأرشيف التحرير وحدثه الأصلي والعرض المقبول، دون صلاحية Query جديدة للخدمة المالية.
+
+رفضت المراجعة الآلية إضافة Query على staging-Holds لدور DriversApi لأن الجدول مشترك وحساس ويحتاج موافقة محددة. لم تُضف الصلاحية ولم يُنشر DriversApi أو تُثبّت النسخة. نشر الأجزاء المستقلة فقط جارٍ عبر scripts/publish-driver-quality-core-290.py. يلزم انتظار الموافقة الصريحة ثم إكمال النشر؛ لا تُنشأ قضايا أو اعتراضات فعلية كاختبارات آلية.
+
+إغلاق الجزء المتاح من 290: نُشرت الخدمة المالية وخدمة طلبات الحذف وعامل الحذف، وتحققت الحزم بايتًا مع حفظ الإعدادات. DriversApi لم يُنشر وRelease 290 غير مثبتة؛ موافقة المستخدم على Query فقط على staging-Holds هي المتطلب المتبقي للنشر. ملف السياسة: docs/driver-quality-read-policy-290.json. عند الموافقة الصريحة استخدم scripts/finish-driver-quality-self-service-290.py --approved-read-policy؛ يتحقق من عدم تغير الحزم ويضيف الصلاحية المحددة ثم ينشر DriversApi ويثبت ويشغّل Release 290. لا تعاود نشر الخدمات الثلاث ولا تنشئ أي قضايا فعلية.
+
+
+### إكمال نشر290 وفحص الطلب ORD1792911323338
+وافق المستخدم صراحة على Query للقراءة فقط على staging-Holds لدور DriversApi. أُضيفت السياسة المحددة وتحقق السماح، ثم نُشرت الحزمة وتحققت بايتًا مع بقاء الإعدادات، وثُبّت وشُغّل Release290 على iMohammed. طلبا قائمة القضايا والاعتراض دون جلسة رُفضا401. لا إعادة نشر للخدمات الثلاث السابقة.
+
+طلب المستخدم فحص الطلب أولًا واختار تنفيذ أزرار المنصة بنفسه. القراءة القوية: السائق اعتذر Emergency وفُك إسناده، ثم الإدارة ألغت الطلب؛ الضمان محرر، والأجرة والتعويض صفر منفّذان، والقضيةv4 ما زالت بلا قرار مسؤولية أوأداء وإغلاق مالي. معدل الإكمال المبدئي100% من19رحلة محسومة (18تسليم+1إرجاع)، و4مراجعة؛ احتساب المحاولة الأولى وحدها فشلًا يُتوقع أن يجعل النسبة95% (19/20). لم يغيّر الوكيل أي قيد أعمال لهذه القضية.
+
+صُحح خلل واجهة العهدة للإلغاء قبل الاستلام، وربط إغلاقه بصفحة الإلغاء لا زر الإرجاع؛ نُشر ملفان فقط فيAmplify208 وتحققا بايتًا. عند إبلاغ المستخدم بإتمام الأزرار، أعد القراءة عبر scripts/inspect-order-driver-performance-20261025.cjs وتحقق منfindingوCOUNT_FAILUREوالإغلاق والنسبة؛ لا تستنتج الخطأ من تعويضصفر أو سببالطوارئ وحده. دليل docs/cancellation-case-progress-20261025.json.
+
+
+2026-10-25 case evidence save: financial runtime229 strongGet/exactCheck JSON cloning corrupted DynamoDB sets; narrowly patched both to structuredClone and published staging. Two captured-runtime tests pass; full order condition verified via read-only Query, zero business writes. Receipt case-evidence-set-fix-20261025.json. User must retry ADD_CASE_EVIDENCE for ORD1792911323338; manual responsibility/completion failure/closure still pending. Financial latest hash is in new receipt. Unpublished frontend error-copy edit remains local.
+
+2026-10-25 performance section visibility: original assignment archive verified via read-only DynamoDB; local reader returns one attempt, case version7. Browser reproduction shows old section at page end. Moved section directly after case-next-step, with explicit missing-attempt and read-only permission text instead of silently hiding it. Test scripts/test-performance-case-placement-20261025.cjs passed; narrow hosting publication in progress, receipt docs/performance-case-placement-20261025.json when complete. No case, financial, or performance decisions written. User still needs COUNT_FAILURE then cancellation financial closure.
+
+2026-10-25 actual missing performance assignment root cause fixed: staff index.handler loads _discount_review/central-staff/index.js (bundled historical reader), not the newer root order-exception-cases.js. Narrowly patched actual bundle reader to include assignment archives, existing performance decisions/events. Published byte verified, config/permissions unchanged. Three tests run against extracted actual module pass; live-order read-only module call returns attempt1, case7. Receipt performance-case-reader-20261025.json. Earlier UI placement change alone did not fix missing API fields. User must refresh then manually save COUNT_FAILURE before financial closure.
+
+
+## نقطة التوقف بطلب المستخدم — 2026-10-25
+
+توقف المستخدم لليوم وطلب حفظ التقدم. لم يؤكد بعد تجربة حفظ قرار الأداء بعد آخر إصلاح؛ لا يُعتبر الاختبار مكتملًا.
+
+الطلب الجاري: ORD1792911323338، معرفه 36ed20c9-aab6-592b-8722-221834cd2724، القضية CUSTOMER_CANCELLATION، السائق 34d8e408-1021-7076-6055-7325644f97cb، المحاولة الأولى.
+
+- أكد المستخدم تسجيل الإفادة ثم تسجيل قرار المسؤولية. آخر قراءة للقضية: الإصدار 7.
+- عولج فشل حفظ الإفادة: الملف المنشور runtime229 كان يحوّل DynamoDB Set إلى كائن عند JSON cloning. نُشر إصلاح structuredClone، واختُبر شرط الطلب الحقيقي بقراءة فقط. المرجع case-evidence-set-fix-20261025.json.
+- نُقل قسم أثر الحالة على أداء السائق تحت ملخص الحالة، وأضيف توضيح عند غياب المحاولة أو الصلاحية. استضافة staging رقم209؛ المرجع performance-case-placement-20261025.json.
+- الصورة التالية أثبتت غياب المحاولة من الاستجابة. اكتُشف أن index.handler يشغّل _discount_review/central-staff/index.js المجمّع القديم، لا ملف القارئ الأحدث الموجود بجانبه.
+- نُشر إصلاح ضيق على القارئ المجمّع الفعلي يعيد المحاولات المؤرشفة وقرارات الأداء السابقة وأحداثها. نجحت 3 اختبارات على الوحدة الفعلية، وتحقق القراءة فقط يعيد محاولة واحدة لهذا الطلب، دون تغيير القضية أو المال أو الأداء. المرجع performance-case-reader-20261025.json.
+
+الاستئناف غدًا:
+1. يحدّث المستخدم الصفحة ويفتح عرض ومراجعة. يتأكد من ظهور المحاولة الأولى.
+2. المستخدم يسجّل عدم إكمال يُحتسب COUNT_FAILURE بالأدلة والتعليل، من حساب الإدارة بنفسه. لا ينفذ الوكيل إجراءات القضية بالنيابة عنه.
+3. نتحقق بقراءات فقط من القرار واحتساب معدل الإكمال؛ المتوقع إذا لم تتغير بقية الرحلات 19 نجاحًا من20 =95٪. لا نعلن النسبة مؤكدة قبل القراءة.
+4. المستخدم يفتح تقييم وتعويض الإلغاء، يراجع القرار المنفذ سابقًا بصفر تعويض، ثم يغلق المراجعة المالية بتعليل. لا يعاد تنفيذ القيد أو أي تعويض.
+5. نتحقق من الإغلاق والضمان وعدم ازدواج القيود، ونحدّث اختبار القبول إلى ناجح فقط بعد إثباته.
+6. نعود للخطة التشغيلية الأساسية: اعتماد المركبة وصلاحية الوثائق والمنطقة المسموح بها، مع حفظ بقية بنود الجودة والسلامة وحذف الحساب غير المحسومة. اختبارات الأجهزة والإطلاق مؤجلة حتى إكمال التشغيل؛ عمل المنتجات/CSV/Excel محال للزميل.
+
+لا توجد سياسة معتمدة لحفظ قضايا الجودة والسلامة؛ لا نخترع مدة. لا تغييرات أخرى أو نشر أو اختبارات تشغيلية أثناء توقف المستخدم. يوجد تعديل محلي غير منشور لنص أخطاء order-exception-cases.js؛ النسخة المنشورة تحوي timeout يجب الحفاظ عليه عند أي دمج لاحق.

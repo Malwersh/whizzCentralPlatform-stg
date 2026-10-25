@@ -1,0 +1,59 @@
+{
+  "part": 258,
+  "scope": "FIRST_DEPENDENCY_PACKAGE_OF_ALL_APPS_OPERATIONAL_P0",
+  "mainPlanReview": "main-plan-all-apps-priority-review-2026-10-24.json",
+  "workItems": [
+    "F02",
+    "F03"
+  ],
+  "status": "IMPLEMENTED_TESTED_INSTALLED_HUMAN_FUNDING_ACCEPTANCE_PENDING",
+  "reviewed": [
+    "Driver topup form and wallet balance model",
+    "Wallet funding API and receipt validation",
+    "Topup creation, idempotency, approval, staff and balance guards",
+    "Current staging wallet configuration"
+  ],
+  "liveReadOnly": {
+    "function": "staging-wizz-wallet-service",
+    "codeSha256": "F8Dh/EBRg/5CsWz33hRNyqk8E/wkQcTZBFZwcF6hFqA=",
+    "manualEnabled": true,
+    "minimumIqd": 25000,
+    "directZainEnabled": false,
+    "cardEnabled": false
+  },
+  "provenGap": "Client did not persist an uncertain topup across restart or bind all funding operations/results to one account",
+  "implemented": [
+    "New account-scoped transport reuses existing funding/config,receipt,topup/request,my-requests APIs",
+    "Persist immutable retry payload before sending, including original config version and retry key, without storing token or signed upload URL",
+    "Restore pending attempt for same authenticated subject; reject other-account and late old-account responses; allow same-sub token refresh",
+    "Resolve only by exact owned receipt/reference/amount saved request or matching successful response",
+    "Unknown outcome freezes new form and offers list refresh or exact retry; absent row within latest50 is not treated as failure",
+    "Definite precreation validation rejection unlocks only a new attempt without prior unknown response",
+    "No backend financial contract, approval, funding recipient, minimum, wallet balance or driver live state changes"
+  ],
+  "tests": {
+    "driverFlutterPassed": 15,
+    "newFundingServiceTests": 8,
+    "newFundingScreenTests": 2,
+    "existingWalletRegressionTests": 5,
+    "backendFundingTestsPassed": 10,
+    "failed": 0,
+    "analyzer": "No errors/warnings; five brace style info notices"
+  },
+  "nativeSimulator": {
+    "build": 262,
+    "status": "BUILT_INSTALLED_LAUNCHED",
+    "existingTrialGpsFlagsPreserved": true,
+    "notReleaseAcceptance": true,
+    "device": "iPhone16"
+  },
+  "humanAcceptance": "PENDING_DRIVER_FORM_AND_REAL_VERIFIED_FUNDING_FLOW; no transfer or receipt fabricated",
+  "knownRemaining": [
+    "Existing backend history exposes latest50 without cursor; UI now explicitly states limitation, older request recovery still requires further audit",
+    "Driver withdrawability and owed-credit payout scope F05 remains open; Available is not proof of withdrawability",
+    "Driver account/vehicle/document/category hard-eligibility coverage D01 remains open",
+    "Other all-app operational P0 packages remain tracked"
+  ],
+  "agentDirectBusinessWrites": false,
+  "cloudCodeOrIamOrConfigChanged": false
+}

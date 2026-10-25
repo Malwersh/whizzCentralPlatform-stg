@@ -18,7 +18,7 @@ const FINANCIAL=[
  ['WizzOrders',{keys:['PK','SK'],owners:['driverId','assignedDriverId'],kind:'order'}],
  ['staging-LedgerEntries',{keys:['walletId','sk'],owners:['walletId'],kind:'ledger'}],
  ['staging-TopupRequests',{keys:['topupId','sk'],owners:['walletId','driverId'],kind:'topup'}],
- ['staging-IdempotencyKeys',{keys:['idempotencyKey','sk'],owners:['sourceWalletId','recipientWalletId','requestedBy'],kind:'transfer'}],
+ ['staging-IdempotencyKeys',{keys:['idempotencyKey','sk'],owners:['sourceWalletId','recipientWalletId','requestedBy','driverId'],kind:'transfer'}],
  ['staging-AuditLog',{keys:['datePartition','sk'],owners:['sourceWalletId','recipientWalletId','walletId','actorId','driverId','subjectId'],kind:'audit'}],
  ['staging-SandboxPayments',{keys:['pk','sk'],owners:['driverId'],ownerPrefix:'DRIVER#',kind:'sandbox'}],
 ];

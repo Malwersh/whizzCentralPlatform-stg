@@ -38,7 +38,7 @@ export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumen
    const ids=[...new Set(rows.map(r=>r.driverId))];if(!ids.every(quoteEntityIdValid))return fail();
    const live:Row[]=[];
    for(const driverId of ids){const [state,driver]=await Promise.all([strongGet(db,LIVE,{driverId}),strongGet(db,'WhizzDrivers_staging',{driverId})]);
-    if(!state||!driver||!isDriverApproved(driver)||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null||driver.isSuspended===true||driver.isBanned===true)continue;
+    if(!state||!driver||(driver.isActive!==undefined&&driver.isActive!==true)||!isDriverApproved(driver)||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null||driver.isSuspended===true||driver.isBanned===true)continue;
     if(c.engine==='FINANCIAL'&&(![driver.status,driver.registrationStatus].some(s=>['APPROVED','VERIFIED'].includes(String(s).toUpperCase()))||state.isActive!==true||state.currentOrderId!=null||(state.activeOrdersCount??0)!==0))continue;
     const observed=Date.parse(state.locationUpdatedAt);if(profile.positionMaxAgeSeconds!==null&&(!Number.isFinite(observed)||observed>now()||observed+profile.positionMaxAgeSeconds*1000<=now()))continue;
     if(['metricsSnapshot_acceptanceRate','metricsSnapshot_completionRate','metricsSnapshot_responseRate'].some(k=>state[k]!=null&&(!Number.isFinite(state[k])||state[k]<0||state[k]>1)))continue;

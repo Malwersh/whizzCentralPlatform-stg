@@ -1,3 +1,4 @@
+const {buildTimingPlan}=require('../../shared/driver-performance-timing-273');
 import {retainFullCashFundingCommitment} from './fullCashFundingCommitment';
 import {financialWaveSK} from './financialDispatchKeys';
 import { prepareDeliveryFundingRetention } from './deliveryFundingRetention';
@@ -112,6 +113,16 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     orderUpdate.UpdateExpression+=', #arrivalTime=:arrivalTime, #arrivalEstimate=:arrivalEstimate';
     Object.assign(orderUpdate.ExpressionAttributeNames,{'#arrivalTime':'estimatedDeliveryTime','#arrivalEstimate':'deliveryEstimate'});
     Object.assign(orderUpdate.ExpressionAttributeValues,{':arrivalTime':arrival.estimatedDeliveryTime,':arrivalEstimate':arrival.deliveryEstimate});
+    const performanceTiming=buildTimingPlan({orderId,driverId:actor.driverId,offerId,attempt:references.order.nextAssignmentAttempt,acceptedAt:timestamp,
+      pickupSeconds:offer.calculation.pickupRoute.durationSeconds,deliverySeconds:offer.calculation.deliveryRoute.durationSeconds,estimatedReadyAt:readyAt??null});
+    orderUpdate.UpdateExpression+=', #performanceTiming=:performanceTiming REMOVE #oldStoreArrival, #oldPickup, #oldCustomerArrival, #oldHeadingStore, #oldHeadingCustomer';
+    Object.assign(orderUpdate.ExpressionAttributeNames,{'#performanceTiming':'performanceTiming','#oldStoreArrival':'arrivedAtStoreAt','#oldPickup':'pickedUpAt','#oldCustomerArrival':'arrivedAtCustomerAt','#oldHeadingStore':'startHeadingToStoreAt','#oldHeadingCustomer':'startHeadingToCustomerAt'});
+    Object.assign(orderUpdate.ExpressionAttributeValues,{':performanceTiming':performanceTiming});
+    const acceptedOfferUpdate=ops.find(op=>op.Update?.TableName===tables.offers)?.Update;
+    if(!acceptedOfferUpdate)return fail('FINANCIAL_ACCEPTANCE_UNAVAILABLE');
+    acceptedOfferUpdate.UpdateExpression+=', #performanceTiming=:performanceTiming';
+    Object.assign(acceptedOfferUpdate.ExpressionAttributeNames,{'#performanceTiming':'performanceTiming'});
+    Object.assign(acceptedOfferUpdate.ExpressionAttributeValues,{':performanceTiming':performanceTiming});
     ops.push(codIntegrationEvent({kind:'COD_ACCEPTANCE_OUTBOX',financialOperationId:codAcceptanceOperation(orderId,offerId,references.order.nextAssignmentAttempt),
       orderId,driverId:actor.driverId,subjectId:actor.subjectId,branchId:offer.branchId,offerId,attempt:references.order.nextAssignmentAttempt,waveNumber,createdAt:timestamp}));
     const walletFence=exactCheck(tables.wallets,walletKey,wallet,['walletId','sk','ownerType','ownerId','status','currency','availableBalance','lockedBalance','version','deletionRequestId']);

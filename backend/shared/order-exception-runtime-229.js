@@ -73907,7 +73907,7 @@ var quoteHash = (v5) => (0, import_node_crypto6.createHash)("sha256").update(quo
 var detach = (v5) => JSON.parse(JSON.stringify(v5));
 var equal = (a8, b8) => quoteCanonical(a8) === quoteCanonical(b8);
 async function strongGet(db, TableName, Key) {
-  return detach((await db.send(new import_lib_dynamodb.GetCommand({ TableName, Key, ConsistentRead: true }))).Item ?? null);
+  return structuredClone((await db.send(new import_lib_dynamodb.GetCommand({ TableName, Key, ConsistentRead: true }))).Item ?? null);
 }
 function exactCheck(TableName, Key, saved, fields2 = Object.keys(saved)) {
   const names = {}, values = {}, conditions = [];
@@ -73915,7 +73915,7 @@ function exactCheck(TableName, Key, saved, fields2 = Object.keys(saved)) {
     names["#f" + i8] = field;
     if (saved[field] === void 0) conditions.push(`attribute_not_exists(#f${i8})`);
     else {
-      values[":v" + i8] = detach(saved[field]);
+      values[":v" + i8] = structuredClone(saved[field]);
       conditions.push(`#f${i8}=:v${i8}`);
     }
   });
@@ -77541,3 +77541,15 @@ module.exports=((previous)=>({...previous,createExceptionCaseAdministration:opti
 
 // Continuation 264: authenticated custody execution and appeals, isolated from existing monetary implementations.
 module.exports=((previous,runtime)=>({...previous,createReturnContinuation:runtime.createReturnContinuation,createExceptionCaseAdministration:options=>{const original=previous.createExceptionCaseAdministration(options),disposition=previous.createExceptionCaseAdministration({...options,db:runtime.guardReturnDispositionDb(options.db)}),financial=previous.createExceptionCaseAdministration({...options,db:runtime.guardReturnCaseFinancialDb(options.db)}),continuation=runtime.createReturnContinuation({...options,authenticate:options.authority.authenticate}),plan=runtime.createReturnItemCustodyPlan(options);return value=>runtime.RETURN_CONTINUATION_ACTIONS.includes(value?.action)?continuation.execute(value,"STAFF"):value?.action==="AUTHORIZE_RETURN_ITEM_PLAN"?plan(value):["CLOSE_EXCEPTION_FINANCIALS","APPROVE_EXCEPTION_ENTITLEMENTS","EXECUTE_EXCEPTION_ENTITLEMENTS","APPROVE_EXCEPTION_GUARANTEE","EXECUTE_EXCEPTION_GUARANTEE","RELEASE_RETURN_GUARANTEE"].includes(value?.action)?financial(value):value?.action==="AUTHORIZE_RETURN"?disposition(value):original(value);},createStagingCodReturn:options=>runtime.decorateReturnFactory(options,previous.createStagingCodReturn(options),previous.createStagingCodReturn)}))(module.exports,require("./return-continuation-runtime-265.js"));
+
+// Driver performance272: operational attribution independent of financial decisions.
+module.exports=((previous,runtime)=>({...previous,createExceptionCaseAdministration:options=>{const original=previous.createExceptionCaseAdministration(options),performance=runtime.createDriverPerformanceDecision(options);return value=>value?.action==="SET_DRIVER_PERFORMANCE"?performance(value):original(value);}}))(module.exports,require("./driver-performance-decision-runtime-272.js"));
+
+// Timing review279: scoped operational review; preserve all financial handlers.
+module.exports=((previous,runtime)=>({...previous,createExceptionCaseAdministration:options=>{const original=previous.createExceptionCaseAdministration(options),timing=runtime.createDriverTimingReview(options);return value=>runtime.DRIVER_TIMING_ACTIONS.includes(value?.action)?timing(value):original(value);}}))(module.exports,require("./driver-timing-review-runtime-279.js"));
+
+// Driver rating review280: preserve original customer review and isolate rating aggregate changes from finance.
+module.exports=((previous,runtime)=>({...previous,createExceptionCaseAdministration:options=>{const original=previous.createExceptionCaseAdministration(options),rating=runtime.createDriverRatingReview(options);return value=>runtime.DRIVER_RATING_ACTIONS.includes(value?.action)?rating(value):original(value);}}))(module.exports,require("./driver-rating-review-runtime-280.js"));
+
+// Driver quality review289: evidence case only; preserve all existing financial actions.
+module.exports=((previous,runtime)=>({...previous,createExceptionCaseAdministration:options=>{const original=previous.createExceptionCaseAdministration(options),quality=runtime.createDriverQualityReview(options);return value=>runtime.DRIVER_QUALITY_ACTIONS.includes(value?.action)?quality(value):original(value);}}))(module.exports,require("./driver-quality-review-runtime-289.js"));

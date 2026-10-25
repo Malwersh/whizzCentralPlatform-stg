@@ -1,0 +1,68 @@
+{
+  "status": "EXECUTED_STACK_UPDATE_COMPLETE_INDEX_ACTIVE",
+  "changeSetName": "driver-rating-window-281-20261025055119",
+  "changeSetId": "arn:aws:cloudformation:us-east-1:699561669180:changeSet/driver-rating-window-281-20261025055119/05f5bb50-3518-4b1f-b1a4-f1dfdab62e35",
+  "changes": [
+    {
+      "Action": "Modify",
+      "LogicalResourceId": "ApiGatewayMethodOrdersOrderidVarRatingGet",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "Replacement": "False",
+      "Scope": [
+        "Properties"
+      ]
+    },
+    {
+      "Action": "Modify",
+      "LogicalResourceId": "ApiGatewayMethodOrdersOrderidVarRatingPost",
+      "ResourceType": "AWS::ApiGateway::Method",
+      "Replacement": "False",
+      "Scope": [
+        "Properties"
+      ]
+    },
+    {
+      "Action": "Modify",
+      "LogicalResourceId": "IamRoleLambdaExecution",
+      "ResourceType": "AWS::IAM::Role",
+      "Replacement": "False",
+      "Scope": [
+        "Properties"
+      ]
+    },
+    {
+      "Action": "Modify",
+      "LogicalResourceId": "RatingsLambdaFunction",
+      "ResourceType": "AWS::Lambda::Function",
+      "Replacement": "False",
+      "Scope": [
+        "Properties"
+      ]
+    },
+    {
+      "Action": "Modify",
+      "LogicalResourceId": "RatingsLambdaPermissionApiGateway",
+      "ResourceType": "AWS::Lambda::Permission",
+      "Replacement": "Conditional",
+      "Scope": [
+        "Properties"
+      ]
+    },
+    {
+      "Action": "Modify",
+      "LogicalResourceId": "RatingsTable",
+      "ResourceType": "AWS::DynamoDB::Table",
+      "Replacement": "False",
+      "Scope": [
+        "Properties"
+      ]
+    }
+  ],
+  "onlyDirectlyModifiedResource": "RatingsTable",
+  "otherResourceTemplatesUnchanged": true,
+  "newIndex": "DriverRatingChronology281",
+  "dependencyReevaluations": "Existing table ARN, IAM policy reference, Lambda role and API integration/permission only; no Code, environment, function-name, table-name or primary-key change.",
+  "guardTests": "PASS real preview plus rejection of table replacement, code modification and unrelated resource.",
+  "indexStatus": "ACTIVE",
+  "executed": true
+}
