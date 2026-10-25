@@ -24,6 +24,7 @@ function blockers(actor,scope,evidence){
  if(evidence.activeOrders?.length)issues.push({code:'ACTIVE_ORDERS',action:actor.type==='DRIVER'?'FINISH_OR_REASSIGN':'RESOLVE_ORDERS'});
  if(evidence.pendingTransfers?.length)issues.push({code:'PENDING_TRANSFERS',action:'RESOLVE_TRANSFERS'});
  if(evidence.externalAssets?.length)issues.push({code:'EXTERNAL_ASSET_ACCESS_REQUIRED',action:'VERIFY_LEGACY_STORAGE_ACCESS'});
+ if(evidence.pendingReviews?.length)issues.push({code:'QUALITY_CASE_REVIEW_REQUIRED',action:'REVIEW_NONFINANCIAL_CASE_AND_RETENTION_POLICY'});
  if(evidence.pendingPayments?.length)issues.push({code:'PENDING_PAYMENTS',action:'RESOLVE_PAYMENTS'});
  if(evidence.activeHolds?.length)issues.push({code:'ACTIVE_HOLDS',action:'RESOLVE_ORDER_HOLDS'});
  for(const wallet of evidence.wallets||[]){
@@ -34,6 +35,7 @@ function blockers(actor,scope,evidence){
  return issues;
 }
 function decision(issues,settings){
+ if(issues.length&&issues.every(i=>i.code==='QUALITY_CASE_REVIEW_REQUIRED'))return 'PENDING_POLICY';
  if(issues.length&&issues.every(i=>i.code==='EXTERNAL_ASSET_ACCESS_REQUIRED'))return 'PENDING_EXTERNAL_ASSET';
  if(issues.length)return 'PENDING_SETTLEMENT';
  if(!settings?.inventoryApproved||!settings?.retentionPolicyVersion)return 'PENDING_POLICY';

@@ -43,6 +43,28 @@ import { fundingError, referenceHash } from './fundingService';
  * - Querying requests
  */
 export class TopupService {
+  /** Replay is checked before mutable recipient configuration or receipt access. */
+  async replayManualRequest(driverId: string, data: any): Promise<CreateTopupRequestResponse | undefined> {
+    if (typeof data.idempotencyKey !== 'string' || !/^[a-zA-Z0-9-]{16,80}$/.test(data.idempotencyKey)) throw fundingError('مرجع الطلب غير صالح');
+    const saved = await docClient.send(new GetCommand({TableName:TABLES.IDEMPOTENCY_KEYS,Key:{idempotencyKey:`TOPUP_CREATE#${driverId}#${data.idempotencyKey}`,sk:'META'},ConsistentRead:true}));
+    const row=saved.Item?.result?.topupRequest;
+    if (!row) return undefined;
+    if(row.driverId!==driverId || row.amount!==data.amount || row.evidenceRef!==data.evidenceRef || row.transferReference!==data.transferReference || data.method!=='MANUAL_VERIFICATION') throw fundingError('مرجع الطلب مستخدم ببيانات مختلفة','IDEMPOTENCY_CONFLICT',409);
+    const current=await docClient.send(new GetCommand({TableName:TABLES.TOPUP_REQUESTS,Key:{topupId:row.topupId,sk:'META'},ConsistentRead:true}));
+    if(!current.Item || current.Item.driverId!==driverId)throw fundingError('يلزم مراجعة سجل الشحن','FUNDING_REVIEW_REQUIRED',409);
+    return {success:true,topupRequest:current.Item as TopupRequest,message:'تم استعادة الطلب المحفوظ'};
+  }
+
+  private historyCursor(raw: string | undefined, field: string, value: string) {
+    if(!raw)return undefined;
+    try {
+      if(raw.length>2000)throw Error();
+      const k=JSON.parse(Buffer.from(raw,'base64url').toString());
+      if(k[field]!==value || typeof k.topupId!=='string' || k.sk!=='META')throw Error();
+      return k;
+    }catch{throw fundingError('مؤشر صفحة الشحن غير صالح');}
+  }
+
   /**
    * Create a topup request
    * 
@@ -146,7 +168,6 @@ export class TopupService {
                 sk: 'META',
                 processedAt: timestamp,
                 result: response,
-                ttl: Math.floor(Date.now() / 1000) + 86400, // 24 hours
               },
               ConditionExpression: 'attribute_not_exists(idempotencyKey)',
             },
@@ -570,10 +591,11 @@ export class TopupService {
    * 
    * Admin can view all pending requests
    */
-  async getTopupRequests(status?: string): Promise<GetTopupRequestsResponse> {
+  async getTopupRequests(status?: string, cursor?: string): Promise<GetTopupRequestsResponse> {
     const params: any = {
       TableName: TABLES.TOPUP_REQUESTS,
       IndexName: 'byStatus',
+      ExclusiveStartKey:this.historyCursor(cursor,'status',status||'PENDING'),
       KeyConditionExpression: '#status = :status',
       ExpressionAttributeNames: {
         '#status': 'status',
@@ -593,16 +615,18 @@ export class TopupService {
       success: true,
       requests,
       count: requests.length,
+      cursor:result.LastEvaluatedKey?Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString('base64url'):undefined,
     };
   }
 
   /**
    * Get driver's topup requests
    */
-  async getMyTopupRequests(driverId: string): Promise<GetTopupRequestsResponse> {
+  async getMyTopupRequests(driverId: string, cursor?: string): Promise<GetTopupRequestsResponse> {
     const params: any = {
       TableName: TABLES.TOPUP_REQUESTS,
       IndexName: 'byDriver',
+      ExclusiveStartKey:this.historyCursor(cursor,'driverId',driverId),
       KeyConditionExpression: 'driverId = :driverId',
       ExpressionAttributeValues: {
         ':driverId': driverId,
@@ -619,6 +643,7 @@ export class TopupService {
       success: true,
       requests,
       count: requests.length,
+      cursor:result.LastEvaluatedKey?Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString('base64url'):undefined,
     };
   }
 }

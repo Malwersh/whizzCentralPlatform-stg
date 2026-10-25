@@ -5,6 +5,7 @@ with open(os.path.join(os.path.dirname(__file__), 'staff-roles.json')) as source
     STAFF_ROLES = json.load(source)
 
 def required_permissions(method, path):
+    if '/wallet/funding/admin/zaincash' in path and method != 'GET': return ['finance.settings.request']
     if path.endswith('/lifecycle/retry'): return ['finance.approve']
     if method == 'GET' or path.endswith('/receipt'): return ['finance.read']
     if path.endswith('/transfer-settings/approve'): return ['finance.settings.approve']

@@ -102,3 +102,9 @@ export async function runHostedFinancialWave(input:{orderId:string;assignmentId:
  const sendOffer=createStagingFinancialOfferDelivery({db,enableDeliveryFunding,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',beforeSend:async(orderId,driverId)=>{await rollout.order(orderId,'SEND');rollout.driver(orderId,driverId);},postSocket:transport.postSocket,postPush:transport.postPush});
  return createStagingPinnedFinancialRunner({db,cognito,router,enableDeliveryFunding,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',sendOffer}).run({orderId:input.orderId,assignmentId:input.assignmentId,owner,leaseSeconds:20});
 }
+
+/** Resume a durable unassignment discovered by the existing scheduled timeout scan. */
+export async function resumeHostedFinancialUnassignment(orderId:string,invokeStart:(input:{orderId:string;assignmentId:string;cycleId:string})=>Promise<unknown>){
+ hostedFinancialScope();const enableDeliveryFunding=deliveryFundingCapability();
+ return createStagingDispatchFinancialHost({db:hostDB(),enableDeliveryFunding,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',start:invokeStart}).processOrder(orderId);
+}

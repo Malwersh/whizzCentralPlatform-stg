@@ -2,6 +2,7 @@ import {settlePlatformBenefit} from './platformBenefits';
 import {DynamoDBDocumentClient} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal,updateChecked} from './driverFinancialTransaction';
 import {toWholeIqdExact} from './money';
+import {quoteHash} from './deliveryQuoteRecord';
 import {createStagingDeliveryCampaignBudget} from './deliveryCampaignBudget';
 type Row=Record<string,any>;
 const fail=():never=>{throw Error('FULL_CASH_RELEASE_CONFLICT');};
@@ -15,8 +16,13 @@ export async function prepareFullCashRelease(db:Pick<DynamoDBDocumentClient,'sen
   if(!hold||hold.financialSchemaVersion!==4||hold.settlementModel!=='FULL_CASH_AT_DELIVERY_V1'||hold.status!==(H?'ACTIVE':'NOT_REQUIRED')||hold.holdId!==order.holdId||hold.amount!==H||hold.walletId!=='WALLET#DRIVER#'+order.driverId||hold.metadata?.offerDigest!==offer.digest||hold.metadata?.assignmentAttempt!==order.assignmentAttemptCounter)return fail();
   operations.push(set(exactCheck('staging-Holds',holdKey,hold),{status:'RELEASED',statusCreatedAt:'RELEASED#'+at,updatedAt:at,releaseOperationId:operationId}));
  }else{
-  if(H||hold||order.driverId!=null||order.holdId!=null)return fail();
-  operations.push({ConditionCheck:{TableName:'staging-Holds',Key:holdKey,ConditionExpression:'attribute_not_exists(orderId)'}});
+  if(H||order.driverId!=null||order.assignedDriverId!=null||order.holdId!=null)return fail();
+  if(hold){
+   const r=order.financialRelease,key={orderId,sk:'ASSIGNMENT_RELEASE#'+r?.attempt},archive=r?await strongGet(db,'staging-Holds',key):null;
+   if(!terminal||!r||!Number.isSafeInteger(r.attempt)||r.attempt<1||order.assignmentAttemptCounter!==r.attempt||!archive||archive.kind!=='COD_ASSIGNMENT_RELEASE'||archive.outcome!=='UNASSIGNED'||archive.orderId!==orderId||archive.attempt!==r.attempt||archive.offerId!==r.offerId||archive.operationId!==r.operationId||archive.branchId!==order.storeId||archive.snapshotDigest!==quoteHash(order.financialSnapshot)||hold.financialSchemaVersion!==4||hold.status!=='RELEASED'||hold.releaseOperationId!==r.operationId||hold.metadata?.assignmentAttempt!==r.attempt||hold.metadata?.offerId!==r.offerId||hold.walletId!=='WALLET#DRIVER#'+archive.driverId||!equal(hold,archive.releasedHold))return fail();
+   // The previous attempt was already released. Fence its evidence; never credit it twice.
+   operations.push(exactCheck('staging-Holds',holdKey,hold),exactCheck('staging-Holds',key,archive));
+  }else operations.push({ConditionCheck:{TableName:'staging-Holds',Key:holdKey,ConditionExpression:'attribute_not_exists(orderId)'}});
  }
  if(H){
   const walletKey={walletId:hold!.walletId,sk:'META'},wallet=await strongGet(db,'staging-Wallets',walletKey);

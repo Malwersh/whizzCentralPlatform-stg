@@ -1,0 +1,20 @@
+{
+  "status": "SET_PRESERVATION_FIX_PUBLISHED",
+  "function": "staging-driver-financial-accept",
+  "hash": "QZ+8CPaZtcutNK9zhIHXr37C8DzYGQBpo0LJDgy8ho8=",
+  "revision": "d3ff2cc3-25c5-44ae-8ab7-511d75db6520",
+  "configurationPreserved": true,
+  "changedEntries": [
+    "order-exception-runtime-229.js"
+  ],
+  "businessWrites": false,
+  "logsContainNoTokensOrPayloads": true,
+  "caseEvidenceStillRequiresUserRetry": true,
+  "rootCause": "Published exception runtime used JSON cloning on DynamoDB string sets, changing pickupIssueReportIds into a map and failing the full order condition.",
+  "verification": {
+    "capturedRuntimeRegressionTests": 2,
+    "liveFullOrderGuardReadOnlyMatched": true,
+    "businessWritesSent": 0,
+    "userSavePending": true
+  }
+}

@@ -4,8 +4,8 @@ let {createCustomerCancellation}=require('../dist/customerCancellation');
 if(process.env.CANCELLATION_RUNTIME_231){const sdk=require('@aws-sdk/lib-dynamodb'),runtime=require(process.env.CANCELLATION_RUNTIME_231);createCustomerCancellation=options=>runtime.createCustomerCancellation({...options,db:{send:command=>options.db.send(new sdk[command.constructor.name.replace(/\d+$/,'')](command.input))}});}
 const {createOrderExceptionPolicy}=require('../dist/orderExceptionPolicy');
 const request={orderId:'order1',reason:'تغيير الطلب قبل التجهيز',idempotencyKey:'12345678-1234-4123-8123-123456789abc'};
-async function fixture(status='pending'){
- const f=await ready(),o=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});o.createdAt=new Date(f.time).toISOString();o.userSub='customer1';o.paymentMethod='COD';o.exceptionPolicy=createOrderExceptionPolicy(o.createdAt);f.put('staging-PlatformStaff',{pk:'OPERATIONAL_SETTINGS#ORDER_EXCEPTION_CASES',sk:'CURRENT',version:1,policyVersion:'case-v1',values:require('../dist/exceptionCasePolicy').CASE_POLICY_DEFAULTS});o.status=o.orderStatus=status;o.storeId='branch1';o.storeStatus='branch1#'+status+'#b0';o.commercialPricing={...o.commercialPricing,schemaVersion:2,deliveryFunding:o.financialSnapshot.deliveryFunding,funding:{amount:o.financialSnapshot.order.allocation.platformGoodsDiscount}};
+async function fixture(status='pending',deliveryFunded=true){
+ const f=await ready({deliveryFunded}),o=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});o.createdAt=new Date(f.time).toISOString();o.userSub='customer1';o.paymentMethod='COD';o.exceptionPolicy=createOrderExceptionPolicy(o.createdAt);f.put('staging-PlatformStaff',{pk:'OPERATIONAL_SETTINGS#ORDER_EXCEPTION_CASES',sk:'CURRENT',version:1,policyVersion:'case-v1',values:require('../dist/exceptionCasePolicy').CASE_POLICY_DEFAULTS});o.status=o.orderStatus=status;o.storeId='branch1';o.storeStatus='branch1#'+status+'#b0';o.commercialPricing={...o.commercialPricing,schemaVersion:deliveryFunded?2:1,...(deliveryFunded?{deliveryFunding:o.financialSnapshot.deliveryFunding}:{}),funding:{amount:o.financialSnapshot.order.allocation.platformGoodsDiscount}};
  if(status==='pending'){
   for(const k of ['driverId','assignedDriverId','financialAcceptance','holdId','holdAmount','holdStatus','confirmedAt','preparingAt','preparationStartedAt','readyAt'])delete o[k];
   for(const [k,r]of f.rows)if(k.startsWith('staging-Holds|')&&r.sk==='HOLD')f.rows.delete(k);
@@ -34,4 +34,23 @@ test('management completes existing pending administrative cancellation without 
  const x=await fixture('arrived_at_store'),actor={kind:'STAFF',subjectId:'operator1'},guard={ConditionCheck:{TableName:'staging-PlatformStaff',Key:{pk:'EMPLOYEE#operator1',sk:'PROFILE'},ConditionExpression:'attribute_not_exists(pk)'}};
  await createCustomerCancellation({...x.options,authenticate:async()=>actor,authorizeStaff:async()=>[guard]}).request(request);
  const authority={authenticate:async()=>actor,read:async()=>({employee:{roles:['operations'],scope:{allRegions:true}}}),cancel:async()=>[guard]};const manage=require('../dist/staffOrderManagement').createStaffOrderManagement({db:x.f.db,authority,rollout:{order:async()=>{}},enableFullCash:true,enableDeliveryFunding:true});const result=await manage({action:'CANCEL_ORDER',orderId:'order1',reason:'قرار إلغاء إداري مباشر',idempotencyKey:'87654321-1234-4123-8123-123456789abc'});assert.equal(result.kind,'COD_CANCELLED');assert.equal(x.f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).status,'cancelled');assert.equal(x.f.get('staging-Holds',{orderId:'order1',sk:'HOLD'}).status,'RELEASED');
+});
+for(const funded of [true,false])test('admin cancellation after driver unassignment preserves released collateral; delivery funded='+funded,async()=>{
+ const x=await fixture('arrived_at_store',funded),o=x.f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ await require('../dist/codReassignment').createStagingCodReassignment({db:x.f.db,now:()=>x.f.time,enableFullCash:true,enableDeliveryFunding:true,reassignmentWindowSeconds:60,authenticate:async()=>({kind:'DRIVER',subjectId:'driver1'})}).unassign({orderId:'order1',offerId:o.financialAcceptance.offerId,attempt:1,cashCollected:false,reason:'Emergency'});
+ const hold=structuredClone(x.f.get('staging-Holds',{orderId:'order1',sk:'HOLD'}));const wallet=structuredClone(x.f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}));
+ const actor={kind:'STAFF',subjectId:'operator1'},guard={ConditionCheck:{TableName:'staging-PlatformStaff',Key:{pk:'EMPLOYEE#operator1',sk:'PROFILE'},ConditionExpression:'attribute_not_exists(pk)'}};
+ const api=createCustomerCancellation({...x.options,administrativeCancellation:true,authenticate:async()=>actor,authorizeStaff:async()=>[guard]});
+ const r=await api.request(request);const decision={orderId:'order1',requestId:r.cancellationRequestId,expectedVersion:1,decisionId:'decision-after-release',reason:'إلغاء إداري بعد تعذر العثور على بديل',cashCollected:false};
+ const archive=x.f.get('staging-Holds',{orderId:'order1',sk:'ASSIGNMENT_RELEASE#1'}),operation=archive.operationId;archive.operationId='tampered';await assert.rejects(api.adminCancelUnassigned(decision));archive.operationId=operation;
+ const liveOrder=x.f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});const originalFunding=liveOrder.commercialPricing.deliveryFunding;liveOrder.commercialPricing.deliveryFunding=funded?null:{invalid:true};
+ await assert.rejects(api.adminCancelUnassigned(decision),/CANCELLATION_FINANCIAL_REVIEW_REQUIRED/);
+ if(funded)liveOrder.commercialPricing.deliveryFunding=originalFunding;else delete liveOrder.commercialPricing.deliveryFunding;
+ await api.adminCancelUnassigned(decision);
+ assert.equal((await api.adminCancelUnassigned(decision)).replayed,true);
+ assert.equal(x.f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).status,'cancelled');
+ assert.deepEqual(x.f.get('staging-Holds',{orderId:'order1',sk:'HOLD'}),hold);assert.deepEqual(x.f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}),wallet);
+ assert.equal(x.f.get('staging-Holds',{orderId:'order1',sk:'CUSTOMER_CANCELLATION'}).settlementStatus,'REVIEW');
+ assert.equal(x.f.get('staging-Holds',{orderId:'order1',sk:'FULL_CASH_FUNDING_COMMITMENT'}).status,'RELEASED');
+ assert.equal(x.f.get('staging-Holds',{orderId:'order1',sk:'MERCHANT_PAYABLE'}),undefined);
 });

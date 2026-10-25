@@ -10,7 +10,7 @@ const clone=structuredClone;
 function setup(earning='3000',transform=()=>{},orderId='order1',flowOptions={}){
  const rows=new Map(),calls=[],sent=[],source=input(earning);let time=Date.parse(at);
  source.order.orderId=orderId;transform(source);
- const keys=(table,r)=> table==='WizzOrders'?{PK:r.PK,SK:r.SK}:table==='WizzDispatchJobs_staging'||table==='WaveOffers_staging'?{orderId:r.orderId,SK:r.SK}:
+ const keys=(table,r)=> table==='whizz-order-ratings-staging'?{pk:r.pk}:table==='WizzOrders'?{PK:r.PK,SK:r.SK}:table==='WizzDispatchJobs_staging'||table==='WaveOffers_staging'?{orderId:r.orderId,SK:r.SK}:
   table==='staging-Wallets'||table==='staging-LedgerEntries'?{walletId:r.walletId,sk:r.sk}:table==='staging-Holds'?{orderId:r.orderId,sk:r.sk}:
   table==='staging-WalletNotifications'?{eventId:r.eventId}:table==='WizzDriverPerformanceMetrics_staging'?{PK:r.PK,SK:r.SK}:table==='staging-AuditLog'?{datePartition:r.datePartition,sk:r.sk}:table==='staging-WalletLifecycle'?{operationId:r.operationId}:
   table==='WizzUser_users_staging'?{userId:r.userId}:['WhizzMerchants_Discounts','WizzCentral_Platform_Discounts'].includes(table)?{discountId:r.discountId}:table==='WhizzMerchants_Businesses'?{businessId:r.businessId}:['WhizzDrivers_staging','WizzDriverLiveState_staging'].includes(table)?{driverId:r.driverId}:{pk:r.pk,sk:r.sk};

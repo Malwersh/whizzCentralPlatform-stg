@@ -1,0 +1,55 @@
+{
+  "status": "LIVE_STAGING_READ_ONLY_CHECKS_PASSED",
+  "externalProbes": [
+    {
+      "path": "/wallet/funding/zaincash/config",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/wallet/funding/admin/zaincash",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/wallet/funding/zaincash/notification",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/wallet/funding/zaincash/notification",
+      "method": "POST",
+      "status": 413
+    },
+    {
+      "path": "/wallet/funding/admin/zaincash",
+      "method": "OPTIONS",
+      "status": 200
+    }
+  ],
+  "publicConfig": {
+    "enabled": false,
+    "pilot": false,
+    "mode": "UAT",
+    "minimum": 25000,
+    "maximum": 500000
+  },
+  "diagnosticUsedRealAuthenticatedDriver": false,
+  "uatOAuthVerified": true,
+  "uatEnabled": false,
+  "liveEnabled": false,
+  "scheduledReconciliationEnabled": true,
+  "existingLambdaResourcePolicyUnchanged": true,
+  "businessPaymentOrBalanceMutations": false,
+  "humanCheckoutPending": true,
+  "finalWalletCodeSha256": "m2nfCOkGpN1FrkSinOSqxk24SD3poT5s+zYgmVpv918=",
+  "compiledModuleMatchesActualDeployedBytes": true,
+  "finalHostedFilesMatchSource": true,
+  "currentHostingJobId": "200",
+  "finalMode": "UAT",
+  "finalNewPaymentCreationEnabled": false,
+  "nodeTestsPassed": 51,
+  "flutterTestsPassed": 22,
+  "driverSimulatorBuild": 264,
+  "actualAuthenticatedNativeWalletWalkthrough": false
+}

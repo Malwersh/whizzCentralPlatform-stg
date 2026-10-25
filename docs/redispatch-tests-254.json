@@ -1,0 +1,35 @@
+{
+  "part": 254,
+  "backendTests": {
+    "passed": 221,
+    "failed": 0
+  },
+  "capturedBundleCoordinatorTests": {
+    "passed": 13,
+    "failed": 0
+  },
+  "customerFlutterTests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "merchantFlutterTests": {
+    "passed": 3,
+    "failed": 0
+  },
+  "dartAnalysis": "NO_ERRORS_OR_WARNINGS; existing informational lint notices remain",
+  "typeScriptBuild": "PASS",
+  "customerSimulator": {
+    "build": 247,
+    "device": "iPhone16Pro",
+    "installedAndLaunched": true
+  },
+  "merchantSimulator": {
+    "build": 242,
+    "device": "iPhone16",
+    "installedAndLaunched": true
+  },
+  "liveEvidence": "redispatch-live-verification-254.json",
+  "freshReplacementDriverHumanAcceptance": "PENDING",
+  "platformReleaseReadiness": "DEFERRED_UNTIL_OPERATIONAL_P0_COMPLETE",
+  "directOrderOrFinancialWritesByAgent": false
+}

@@ -1,0 +1,18 @@
+{
+  "status": "RELEASE_283_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_PENDING",
+  "sourceBranch": "origin/feature/order-ratings-20261024",
+  "sourceCommit": "30dc40f1df8f89a952ff6803a458f5ffc1b367f8",
+  "integration": "Selective new screen/service/test plus rating navigation and restaurant aggregate/cache fields; no branch merge or unrelated checkout changes",
+  "testsPassed": 14,
+  "analysis": "No issues found in rating screen/service/business model",
+  "customerRatingCreated": false,
+  "manualAcceptance": "READY_NOT_EXECUTED",
+  "remaining": "Complete delivered cash order as customer, submit separate merchant/driver rating, verify original row and aggregates then driver and public display; customer/merchant assigned-driver average projections remain separate open item.",
+  "release": {
+    "build": 283,
+    "buildPassed": true,
+    "device": "iMohammed",
+    "installPassed": true,
+    "launchPassed": true
+  }
+}

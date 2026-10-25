@@ -1,0 +1,64 @@
+service: whizz-order-ratings
+configValidationMode: error
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: us-east-1
+  stage: ${opt:stage, 'staging'}
+  timeout: 20
+  memorySize: 256
+  environment:
+    ORDERS_TABLE: WizzOrders
+    CUSTOMERS_TABLE: WizzUser_users_staging
+    MERCHANTS_TABLE: WhizzMerchants_Businesses
+    DRIVERS_TABLE: WhizzDrivers_staging
+    RATINGS_TABLE: whizz-order-ratings-${self:provider.stage}
+    CUSTOMERS_USER_POOL_ID: ${env:CUSTOMERS_USER_POOL_ID}
+    CUSTOMERS_CLIENT_ID: ${env:CUSTOMERS_CLIENT_ID}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/WizzOrders
+            - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/WizzUser_users_staging
+        - Effect: Allow
+          Action: [dynamodb:GetItem, dynamodb:UpdateItem, dynamodb:ConditionCheckItem]
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/WhizzMerchants_Businesses
+            - arn:aws:dynamodb:${self:provider.region}:${aws:accountId}:table/WhizzDrivers_staging
+        - Effect: Allow
+          Action: [dynamodb:GetItem, dynamodb:PutItem]
+          Resource:
+            Fn::GetAtt: [RatingsTable, Arn]
+functions:
+  ratings:
+    handler: src/handlers/order-ratings.handler
+    events:
+      - http: {path: 'orders/{orderId}/rating', method: get}
+      - http: {path: 'orders/{orderId}/rating', method: post}
+package:
+  patterns: ['!**/*', 'src/handlers/order-ratings.js', 'src/shared/driver-rating-chronology-281.js', 'node_modules/**']
+resources:
+  Resources:
+    RatingsTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
+      Properties:
+        TableName: whizz-order-ratings-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - {AttributeName: pk, AttributeType: S}
+          - {AttributeName: driverRatingKey, AttributeType: S}
+          - {AttributeName: driverRatingSort, AttributeType: S}
+        KeySchema: [{AttributeName: pk, KeyType: HASH}]
+        GlobalSecondaryIndexes:
+          - IndexName: DriverRatingChronology281
+            KeySchema:
+              - {AttributeName: driverRatingKey, KeyType: HASH}
+              - {AttributeName: driverRatingSort, KeyType: RANGE}
+            Projection: {ProjectionType: KEYS_ONLY}
+        PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+        SSESpecification: {SSEEnabled: true}

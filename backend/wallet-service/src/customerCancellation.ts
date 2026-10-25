@@ -33,7 +33,7 @@ export function createCustomerCancellation(options:{db:Pick<DynamoDBDocumentClie
   if(o.driverId!=null||o.assignedDriverId!=null||o.financialAcceptance!=null||o.holdId!=null||o.walletPendingHoldId!=null||Number(o.holdAmount??0)!==0||['ACTIVE','SETTLED','CAPTURED'].includes(o.holdStatus))return fail('CANCELLATION_ASSIGNED_REVIEW_REQUIRED');
   const snapshot=o.financialSnapshot,rebuilt=prepareFullCashOrderSnapshot({order:snapshot.order,deliveryFunding:snapshot.deliveryFunding});
   if(snapshot.deliveryFunding&&options.enableDeliveryFunding!==true)return fail('CANCELLATION_FINANCIAL_REVIEW_REQUIRED');
-  if(!equal(snapshot,rebuilt)||snapshot.order.orderId!==o.orderId||snapshot.order.branchId!==o.storeId||snapshot.order.merchantId!==o.merchantId||snapshot.order.allocation.paymentMethod!=='COD'||o.commercialPricing?.schemaVersion!==(snapshot.deliveryFunding?2:1)||!equal(o.commercialPricing.deliveryFunding,snapshot.deliveryFunding))return fail('CANCELLATION_FINANCIAL_REVIEW_REQUIRED');
+  if(!equal(snapshot,rebuilt)||snapshot.order.orderId!==o.orderId||snapshot.order.branchId!==o.storeId||snapshot.order.merchantId!==o.merchantId||snapshot.order.allocation.paymentMethod!=='COD'||o.commercialPricing?.schemaVersion!==(snapshot.deliveryFunding?2:1)||!equal(o.commercialPricing.deliveryFunding??null,snapshot.deliveryFunding))return fail('CANCELLATION_FINANCIAL_REVIEW_REQUIRED');
   const funding=readMoney(o.commercialPricing.funding?.amount);
   if(!equal(funding,readMoney(snapshot.order.allocation.platformGoodsDiscount)))return fail('CANCELLATION_FINANCIAL_REVIEW_REQUIRED');
   const release=await prepareCodRelease(db,{...o,holdId:null,holdAmount:0,holdStatus:'NOT_REQUIRED'},

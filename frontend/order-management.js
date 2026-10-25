@@ -1,5 +1,6 @@
 (() => {
 'use strict';
+const ordersTable=document.getElementById('orders-tbody')?.closest('table');if(ordersTable){const inbox=document.createElement('a');inbox.href='pickup-issues.html';inbox.textContent='بلاغات الاستلام المفتوحة';inbox.style.cssText='display:inline-block;margin:12px;padding:12px 18px;background:#082c63;color:white;border-radius:10px;text-decoration:none';ordersTable.before(inbox);}
 let current=null,busy=false,epoch=0,pending=null;
 const text=(tag,value)=>{const n=document.createElement(tag);n.textContent=value;return n;};
 const dialog=document.createElement('dialog');dialog.dir='rtl';dialog.setAttribute('aria-label','إدارة الطلب');dialog.style.cssText='width:min(650px,90vw);max-height:85vh;overflow:auto;border:1px solid #dce4ef;border-radius:20px;padding:24px;color:#082c63';document.body.append(dialog);
@@ -26,6 +27,10 @@ function render(item){
  if(item.canUnassign)content.append(button('فك إسناد السائق وإعادة البحث بالموجات',()=>confirmAction('UNASSIGN_REDISPATCH',reason.value,item)));
  if(item.merchantHandover?.state==='HANDED_TO_DRIVER')content.append(text('p','أكد المطعم تسليم الطلب للسائق؛ لا يُحرر الضمان باعتباره طلبًا لم يُستلم.'));
  if(item.status==='cancelled'&&item.cancellation){const a=text('a','تقييم وتعويض الإلغاء');a.href='cancellation-compensation.html?'+new URLSearchParams({orderId:item.orderId,caseKey:'CUSTOMER_CANCELLATION'});content.append(a,text('p','التعويض مستقل عن تحرير الضمان.'));}
+ const pickupLink=text('a','بلاغات الاستلام ومتابعتها');pickupLink.href='pickup-issues.html?'+new URLSearchParams({orderId:item.orderId});content.append(pickupLink);
+ if(Number.isSafeInteger(item.attempt)&&item.attempt>0){const quality=text('a','تسجيل حادث جودة أو سلامة');quality.href='driver-quality-review.html?'+new URLSearchParams({orderId:item.orderId,attempt:item.attempt});content.append(text('p',''),quality);}
+ if(['delivered','completed'].includes(item.status)&&Number.isSafeInteger(item.attempt)){const review=text('a','مراجعة التأخير وأثره على أداء السائق');review.href='driver-timing-review.html?'+new URLSearchParams({orderId:item.orderId,attempt:item.attempt});content.append(text('p',''),review);}
+ if(['delivered','completed'].includes(item.status)){const review=text('a','مراجعة تقييم السائق');review.href='driver-rating-review.html?'+new URLSearchParams({orderId:item.orderId});content.append(text('p',''),review);}
  content.append(button('تحديث الحالة',()=>open(item.orderId)),link(item.orderId));
 }
 async function confirmAction(action,reason,item){

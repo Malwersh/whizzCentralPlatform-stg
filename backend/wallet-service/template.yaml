@@ -15,6 +15,16 @@ Globals:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
 
 Parameters:
+  ZaincashReturnUrl:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|https://[^ ]+$'
+    Description: Public HTTPS return page. Never includes secrets.
+  ZaincashWebhookUrl:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|https://[^ ]+$'
+    Description: Public wallet/funding/zaincash/notification URL registered with provider.
   PlatformWriteMode:
     Type: String
     Default: REVIEW
@@ -771,6 +781,8 @@ Resources:
       Description: Centralized wallet service for Wizz platform
       Environment:
         Variables:
+          ZAINCASH_RETURN_URL: !Ref ZaincashReturnUrl
+          ZAINCASH_WEBHOOK_URL: !Ref ZaincashWebhookUrl
           PLATFORM_ENVIRONMENT: !Ref Environment
           PLATFORM_WRITE_MODE: !Ref PlatformWriteMode
           PLATFORM_DIRECT_OPERATOR_IDS: !Ref PlatformDirectOperatorIds
@@ -783,6 +795,7 @@ Resources:
           TRANSFER_OTP_SECRET_ARN: !If [IsSandboxStaging, 'arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ', '']
           CUSTOMER_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_TpyyrVkEE', '']
           MERCHANT_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_gtCR3ndzT', '']
+          CUSTOMERS_TABLE: !If [IsSandboxStaging, 'WizzUser_users_staging', '']
           MERCHANTS_TABLE: !If [IsSandboxStaging, 'WhizzMerchants_Businesses', '']
           DRIVERS_TABLE: !If [IsSandboxStaging, 'WhizzDrivers_staging', '']
           SANDBOX_PAYMENTS_TABLE: !If [IsSandboxStaging, !Ref SandboxPaymentsTable, '']
@@ -813,6 +826,10 @@ Resources:
               Action: secretsmanager:GetSecretValue
               Resource: arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ
           - !Ref AWS::NoValue
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:Scan]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_users_staging
         - Statement:
             - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:ConditionCheckItem]
@@ -852,6 +869,11 @@ Resources:
                 Action: secretsmanager:GetSecretValue
                 Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:wizz/staging/payments/*/sandbox-*'
           - !Ref AWS::NoValue
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: [secretsmanager:CreateSecret, secretsmanager:GetSecretValue]
+              Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:wizz/${Environment}/payments/zaincash/gateway-*'
         - DynamoDBCrudPolicy:
             TableName: !Ref WalletNotificationsTable
         - Version: '2012-10-17'
@@ -1024,6 +1046,16 @@ Resources:
             RestApiId: !Ref WalletServiceApi
             Auth:
               Authorizer: WalletAuthorizer
+        ZaincashReconciliation:
+          Type: ScheduleV2
+          Properties:
+            Name: !Sub '${Environment}-zaincash-wallet-reconciliation'
+            ScheduleExpression: rate(1 minute)
+            FlexibleTimeWindow: {Mode: 'OFF'}
+            State: ENABLED
+            RoleArn: !GetAtt ZaincashSchedulerInvokeRole.Arn
+            RetryPolicy: {MaximumRetryAttempts: 2, MaximumEventAgeInSeconds: 300}
+            Input: '{"source":"aws.events","detail":{"worker":"zaincash"}}'
         FundingPayment:
           Type: Api
           Properties:
@@ -1265,9 +1297,177 @@ Resources:
               Authorizer: WalletAuthorizer  # Driver settlements
 
   # API Gateway
+  ZaincashApiInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${Environment}-zaincash-api-invoke'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: apigateway.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeWalletOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt WalletServiceFunction.Arn
+
+  ZaincashSchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${Environment}-zaincash-scheduler-invoke'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: scheduler.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeWalletOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt WalletServiceFunction.Arn
+
   WalletServiceApi:
     Type: AWS::Serverless::Api
     Properties:
+      MergeDefinitions: true
+      DefinitionBody:
+        swagger: '2.0'
+        info: {title: ZainCash operational funding routes, version: '260'}
+        paths:
+          /wallet/funding/zaincash/config:
+            get:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/zaincash/payments:
+            get:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/zaincash/payment:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/zaincash/check:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/zaincash/notification:
+            post:
+              security: []
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash:
+            get:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+            put:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/test:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/import-uat:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/accept:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/pilot:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/recover:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/resolve-uncreated:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/payments:
+            get:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
       # Explicit imported device resources share this API with the existing SAM routes.
       # Merge preserves those routes during a reviewed future OpenAPI update.
       Name: !Sub ${Environment}-wizz-wallet-api

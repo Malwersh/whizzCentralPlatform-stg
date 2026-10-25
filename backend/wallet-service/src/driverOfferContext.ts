@@ -14,7 +14,7 @@ const tables = { assignment: 'WizzDispatchJobs_staging', driver: 'WhizzDrivers_s
   position: 'WizzDriverLiveState_staging', policy: 'staging-PlatformStaff', branch: 'WhizzMerchants_Businesses', deletion: 'staging-AccountDeletion' };
 const fields = {
   assignment: ['orderId','SK','dispatchJobId','restaurantId','status','currentWaveNumber','expiresAt','assignedDriverId','driverId','deletionRequestId','financialExcludedDriverIds','financialRedispatch','dispatchCycle','dispatchTransition'],
-  driver: ['driverId','cognitoSub','status','registrationStatus','vehicleType','deletionRequestId','deletedAt','isDeleted','isSuspended','isBanned'],
+  driver: ['isActive','driverId','cognitoSub','status','registrationStatus','vehicleType','deletionRequestId','deletedAt','isDeleted','isSuspended','isBanned'],
   position: ['driverId','status','isActive','isSearching','lat','lng','locationUpdatedAt','currentOrderId','activeOrdersCount'],
   policy: ['pk','sk','version','values'],
   branch: ['businessId','ownerId','cognitoUserId','organizationId','status','deletionRequestId','deletedAt','isDeleted']
@@ -94,7 +94,7 @@ export function createStagingDriverOfferContext(options: {
     const blocked = ['BANNED','SUSPENDED','REJECTED','PENDING_REVIEW','PENDING_PROFILE','PENDING_DOCS'];
     const statuses = [driver.status,driver.registrationStatus].filter(v => v !== undefined).map(v => String(v).toUpperCase());
     const subjectId = driver.cognitoSub ?? driverId;
-    if (driver.driverId !== driverId || !quoteEntityIdValid(subjectId) || !quoteEntityIdValid(driver.vehicleType) ||
+    if ((driver.isActive !== undefined && driver.isActive !== true) || driver.driverId !== driverId || !quoteEntityIdValid(subjectId) || !quoteEntityIdValid(driver.vehicleType) ||
         !statuses.some(v => ['APPROVED','VERIFIED'].includes(v)) || statuses.some(v => blocked.includes(v)) ||
         driver.deletionRequestId != null || driver.deletedAt != null || (driver.isDeleted !== undefined && driver.isDeleted !== false) ||
         (driver.isSuspended !== undefined && driver.isSuspended !== false) || (driver.isBanned !== undefined && driver.isBanned !== false)) return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');

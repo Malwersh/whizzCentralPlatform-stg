@@ -1,0 +1,34 @@
+{
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "functions": [
+    {
+      "label": "driver",
+      "function": "DriversApi-staging",
+      "before": "H38DxQ7aMkh6hU6mLH9JmVJY6WQEVYMcw4RiREcqKOo=",
+      "revision": "f125bcd0-5986-4a2d-9111-85d34c76e956",
+      "candidate": "PnEYJQVLtKzTdffA6hFOb9R7BLl9HebY1ekDbj6lqJ4=",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "driver-performance.js",
+        "driver-performance-timing-273.js",
+        "driver-performance-progress.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "before": "3IW/aG+/69UW+kUFZAEsMrmPFIHg53V4rkeKrezzl8g=",
+      "revision": "2515fa45-24c3-4be0-aaf9-5e8349072e6c",
+      "candidate": "jXVI7KaMKeI+GMdTL1twyqmBDbhmI7SgqRC6Sv89KQQ=",
+      "changedFiles": [
+        "index.js",
+        "driver-acceptance-eta98.js",
+        "driver-performance-timing-273.js"
+      ],
+      "allOtherEntriesIdentical": true
+    }
+  ],
+  "newPermissions": false,
+  "financialCalculationChanged": false
+}

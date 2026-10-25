@@ -43,8 +43,10 @@ async function pendingCod({db,driverIds=[],branchId,orderIds=[],maxPages=100}){
  const owned=r=>driverIds.includes(r.driverId)||driverIds.includes(r.subjectId)||branchId&&r.branchId===branchId||orderIds.includes(r.orderId);
  const events=(await scan(db,EVENTS,maxPages)).filter(r=>isEvent(r)&&!doneEvent(r)&&owned(r)).map(r=>({operationId:r.operationId,status:'COD_INTEGRATION_PENDING'}));
  const dispatch=(await scan(db,'WizzDispatchJobs_staging',maxPages)).filter(r=>isDispatch(r)&&!dispatchDone(r)&&owned(r)).map(r=>({operationId:r.eventId||r.attemptId||r.restartId||r.cycleId,orderId:r.orderId,status:'DISPATCH_INTEGRATION_PENDING'}));
- const cash=(await scan(db,'staging-Holds',maxPages)).filter(r=>cashRetention.pending(r)&&owned(r)).map(r=>({orderId:r.orderId,operationId:r.caseId,status:'CUSTOMER_CASH_REVIEW_PENDING'}));
- return [...events,...dispatch,...cash];
+ const holdRows=await scan(db,'staging-Holds',maxPages);
+ const cash=holdRows.filter(r=>cashRetention.pending(r)&&owned(r)).map(r=>({orderId:r.orderId,operationId:r.caseId,status:'CUSTOMER_CASH_REVIEW_PENDING'}));
+ const reviews=require('./quality-review-retention-290').pendingQualityReviews(holdRows,driverIds);
+ return [...events,...dispatch,...cash,...reviews];
 }
 
 async function reviewRows(db,maxPages){

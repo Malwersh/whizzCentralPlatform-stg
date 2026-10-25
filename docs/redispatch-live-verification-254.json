@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-10-24T19:53:25.534731+00:00",
+  "orderNumber": "ORD1792870714924",
+  "orderId": "f6b187f1-1046-5bb9-8ec1-472e777164f0",
+  "order": {
+    "status": "ready_for_pickup",
+    "driverId": null,
+    "dispatchStatus": "no_driver_available",
+    "financialSearch": {
+      "reason": "SEARCH_WINDOW_EXPIRED",
+      "reviewStatus": "REQUIRED",
+      "observedAt": "2026-10-24T19:51:49.055Z",
+      "status": "no_driver_available"
+    },
+    "holdStatus": "NONE",
+    "holdAmount": "0",
+    "total": "14000"
+  },
+  "dispatch": {
+    "status": "no_driver_available",
+    "currentWaveNumber": "1",
+    "dispatchReview": {
+      "cycleId": "DC:3d7de64644a24e55289ff1c59f5ebc6ce0130dc1fa3c66a6207bbb884971bcc9",
+      "reason": "SEARCH_WINDOW_EXPIRED",
+      "intentId": "DT:f738d18c46a4c34214caf1576eb7c9459c4865aa0abb108b",
+      "reviewStatus": "REQUIRED",
+      "observedAt": "2026-10-24T19:51:49.055Z",
+      "status": "no_driver_available"
+    }
+  },
+  "driver": {
+    "status": "available",
+    "isActive": true,
+    "isSearching": true,
+    "currentOrderId": null,
+    "activeOrdersCount": "0"
+  },
+  "verifiedBy": "CONSISTENT_READ_AFTER_REAL_SCHEDULED_WORKER",
+  "agentDirectBusinessWrites": false
+}

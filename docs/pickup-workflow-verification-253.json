@@ -1,0 +1,86 @@
+{
+  "status": "PUBLISHED_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+  "publication": {
+    "businessActionsExecuted": false,
+    "iamChanges": false,
+    "functions": {
+      "staff": {
+        "function": "staging-wizz-staff-service",
+        "baseCodeSha256": "fhkTRSLiw7z0qda09VLlA4gVqZH91qe9esbNDyCAITs=",
+        "codeSha256": "JjtxIlNuQZ3aYPhkPmxQfzjuBOIBpH6xBm1s3UlRu5I=",
+        "changedFiles": [
+          "_discount_review/central-staff/index.js",
+          "pickup-issue-workflow-runtime.js"
+        ]
+      },
+      "driver": {
+        "function": "DriversApi-staging",
+        "baseCodeSha256": "yuB12ZPbNGQEqLiRHTjvzPhWQaFL1aO3Z4erLxd+3AY=",
+        "codeSha256": "YnSIzfgrCYQphIhgxEQoLyHEET/c4YHnL/Nfg+9kLoU=",
+        "changedFiles": [
+          "driver-pickup-issues.js"
+        ]
+      }
+    },
+    "status": "PUBLISHED_VERIFIED",
+    "baseHostingJobId": "191",
+    "hostingJobId": "192",
+    "frontendChangedFiles": [
+      "pickup-issues.js",
+      "pages/pickup-issues.html",
+      "order-management.js",
+      "pages/orders.html"
+    ],
+    "hostedBytesMatched": true
+  },
+  "validation": {
+    "staffTestsPassed": 377,
+    "actualRuntimeTestsPassed": 9,
+    "driverReportingTestsPassed": 12,
+    "browserMock": {
+      "reviewBeforeWrite": true,
+      "stableRequestIdOnRetry": true,
+      "unprovedClosureRejected": true,
+      "sessionChangeClearsAndBlocksOldForm": true,
+      "mobile390NoOverflow": true,
+      "realBusinessWrites": 0
+    },
+    "iamAllowedChecks": 9,
+    "iamExpansion": false,
+    "sourceReadOnly": {
+      "sourceCompatibility": "PASS",
+      "schemaReadOnly": true,
+      "authenticatedApiAcceptance": false,
+      "visibleReports": 0,
+      "hasNextPage": true,
+      "coverage": "BOUNDED_PAGE",
+      "scanned": 30,
+      "reads": 4,
+      "elapsedMs": 217,
+      "mutationsBlocked": true
+    }
+  },
+  "nativeBuildNeededForThisServerWebChange": false,
+  "humanAuthenticatedAcceptance": "PENDING_NEW_REAL_REPORT_AND_STAFF_FOLLOW_UP",
+  "fullAutomaticPickupIssueResolution": false,
+  "limits": [
+    "Bounded queue pages; no complete global count or production load claim",
+    "Explicit recorded staff follow-up, no automatic notifications/contact or invented party consent",
+    "No item substitution/removal/repricing",
+    "Operational closure separate from compensation/financial closure",
+    "Advanced address changes, driver-to-driver transfer and partial customer delivery deferred and remain unsupported",
+    "Android+iOS release signing/physical background push/GPS journeys still require separate acceptance"
+  ],
+  "businessActionsExecuted": false,
+  "effectiveFrontendPublication": {
+    "status": "PUBLISHED_VERIFIED",
+    "baseHostingJobId": "193",
+    "hostingJobId": "194",
+    "changedFiles": [
+      "pickup-issues.js",
+      "pages/pickup-issues.html"
+    ],
+    "hostedBytesMatched": true,
+    "businessActionsExecuted": false
+  }
+}

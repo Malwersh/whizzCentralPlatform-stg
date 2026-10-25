@@ -25,6 +25,19 @@ class FinanceAuthorization(unittest.TestCase):
             self.assertTrue(result['context']['financeManager'])
             self.assertEqual(self.invoke('driver',['finance_manager'],path,method)['policyDocument']['Statement'][0]['Effect'], 'Deny')
 
+    def test_gateway_requires_driver_access_token_and_designated_client(self):
+        os.environ['DRIVER_CLIENT_ID']='driver-app'
+        original=auth.verify_live_mobile
+        auth.verify_live_mobile=lambda token,payload: {}
+        try:
+            for claims,expected in [({'token_use':'id','client_id':'driver-app'},'Deny'),({'token_use':'access','client_id':'other'},'Deny'),({'token_use':'access','client_id':'driver-app'},'Allow')]:
+                auth.verify_token=lambda token: ('driver',{'sub':'test-actor',**claims})
+                result=auth.lambda_handler({'headers':{'Authorization':'Bearer fixture'},'httpMethod':'POST','path':'/wallet/funding/zaincash/payment','methodArn':'arn:aws:execute-api:us-east-1:123:api/staging/POST/wallet/funding/zaincash/payment'},None)
+                self.assertEqual(result['policyDocument']['Statement'][0]['Effect'],expected)
+        finally:
+            auth.verify_live_mobile=original
+            del os.environ['DRIVER_CLIENT_ID']
+
     def test_driver_receipts_and_config(self):
         self.assertEqual(self.invoke('driver',[], '/wallet/funding/receipt','POST')['context']['driverId'], 'test-actor')
         self.invoke('driver',[], '/wallet/funding/config','GET')

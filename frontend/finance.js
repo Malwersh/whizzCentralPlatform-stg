@@ -3,7 +3,7 @@
 const base='https://z14s5f8oxh.execute-api.us-east-1.amazonaws.com/staging';
 let config,staffProfile=null;
 const can=permission=>staffProfile?.permissions?.includes(permission)||permission==='bootstrap.only'&&staffProfile?.employee?.roles?.includes('bootstrap_admin');
-async function staffAccess(){const url=window.WIZZCENTRAL_CONFIG?.STAFF_API_BASE_URL;if(!url)throw Error('تعذر تحميل صلاحيات الموظف. أعد تسجيل الدخول.');const response=await fetch(url+'/staff/me',{headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken')}});staffProfile=await response.json();if(!response.ok||!can('finance.read'))throw Error('صلاحية مالية مطلوبة. تحقق من الحساب وأعد تسجيل الدخول.');for(const [id,permission] of Object.entries({'transfer-create':'finance.request','transfer-settings-propose':'finance.settings.request','save':'bootstrap.only','sandbox-save':'bootstrap.only'}))el(id).hidden=!can(permission);}
+async function staffAccess(){const url=window.WIZZCENTRAL_CONFIG?.STAFF_API_BASE_URL;if(!url)throw Error('تعذر تحميل صلاحيات الموظف. أعد تسجيل الدخول.');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);let response;try{response=await fetch(url+'/staff/me',{signal:controller.signal,headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken')}});}finally{clearTimeout(timer);}staffProfile=await response.json();if(!response.ok||!can('finance.read'))throw Error('صلاحية مالية مطلوبة. تحقق من الحساب وأعد تسجيل الدخول.');for(const [id,permission] of Object.entries({'transfer-create':'finance.request','transfer-settings-propose':'finance.settings.request','save':'bootstrap.only','sandbox-save':'bootstrap.only'}))el(id).hidden=!can(permission);}
 let sandbox;
 let transferPolicy=null,settingsPending=null;
 const el=id=>document.getElementById(id);
@@ -12,9 +12,11 @@ async function call(path,method='GET',body){
  if(window.Auth?.ensureSession) await window.Auth.ensureSession();
  const token=window.Auth?.getToken?.('accessToken') || sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
  if(!token)throw Error('يرجى تسجيل الدخول مجدداً');
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
  let r;
- try { r=await fetch(base+path,{method,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}); }
+ try { r=await fetch(base+path,{method,signal:controller.signal,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}); }
  catch (_) { throw Error('تعذر الاتصال بخدمة المحفظة. تحقق من الاتصال وأعد المحاولة.'); }
+ finally{ clearTimeout(timer); }
  const d=await r.json();
  if(r.status===401)throw Error('انتهت جلسة الدخول. سجّل الخروج ثم الدخول مجدداً.');
  if(r.status===403 && ['REAUTH_REQUIRED','SECOND_APPROVER_REQUIRED'].includes(d.error?.code))throw Error(d.error.message);
@@ -24,9 +26,11 @@ async function call(path,method='GET',body){
 }
 function cell(row,text){const c=document.createElement('td');c.textContent=text;row.append(c);return c;}
 function button(parent,label,action){const b=document.createElement('button');b.textContent=label;b.onclick=async()=>{b.disabled=true;try{await action();}catch(e){message(e.message);}finally{b.disabled=false;}};parent.append(b);}
-async function loadRequests(){
- const data=await call('/wallet/topup/requests?status='+el('status').value);
- el('requests').replaceChildren();
+let topupCursor=null;
+async function loadRequests(more=false){
+ const data=await call('/wallet/topup/requests?status='+el('status').value+(more&&topupCursor?'&cursor='+encodeURIComponent(topupCursor):''));
+ topupCursor=data.cursor;el('topup-more').hidden=!topupCursor;
+ if(!more)el('requests').replaceChildren();
  for(const r of data.requests || []){
   const row=document.createElement('tr');
   cell(row,`${r.topupId}\n${r.driverId}`);cell(row,`${r.amount} د.ع`);
@@ -69,6 +73,7 @@ async function init(){
  }catch(e){message(e.message);el('retry').hidden=false;}
 }
 el('save').onclick=async()=>{el('save').disabled=true;try{config=await call('/wallet/funding/admin/config','PUT',{version:config.version,manual:{phone:el('phone').value,name:el('name').value,enabled:el('enabled').checked}});message('تم حفظ الإعدادات');}catch(e){message(e.message);}finally{el('save').disabled=false;}};
+el('topup-more').onclick=()=>loadRequests(true).catch(e=>message(e.message));
 el('refresh').onclick=()=>loadRequests().catch(e=>message(e.message));
 el('status').onchange=()=>loadRequests().catch(e=>message(e.message));
 function fillSandboxAccounts(){
@@ -96,12 +101,28 @@ el('sandbox-save').onclick=async()=>{
 let walletsCursor=null;
 let owners=new Map();
 let selectedWallet=null,ledgerCursor=null,ledgerGeneration=0;
-const types={DRIVER:'سائق',CUSTOMER:'مستخدم',MERCHANT:'مطعم',PLATFORM:'المنصة',ACTIVE:'نشطة',SUSPENDED:'موقوفة',CLOSED:'مغلقة',HOLD_CREATED:'حجز مؤقت',HOLD_RELEASED:'فك الحجز',HOLD_CAPTURED:'تثبيت الحجز',TOPUP:'شحن',SETTLEMENT_RECEIVED:'تسوية واردة',CREDIT:'إضافة',DEBIT:'خصم'};
+const types={DRIVER:'سائق',CUSTOMER:'زبون',MERCHANT:'متجر / مطعم',PLATFORM:'المنصة',ACTIVE:'نشطة',SUSPENDED:'موقوفة',CLOSED:'مغلقة',HOLD_CREATED:'حجز مؤقت',HOLD_RELEASED:'فك الحجز',HOLD_CAPTURED:'تثبيت الحجز',TOPUP:'شحن',SETTLEMENT_RECEIVED:'تسوية واردة',CREDIT:'إضافة',DEBIT:'خصم'};
 async function loadOwners(){
  const data=await call('/wallet/funding/admin/owners');
- owners=new Map((data.owners||[]).map(d=>[d.ownerId,{name:d.name || 'اسم غير متوفر',phone:d.phone || 'رقم غير متوفر'}]));
+ owners=new Map();
+ for(const d of data.owners||[]){const owner={name:d.name||'',phone:d.phone||'',type:d.ownerType};owners.set(`${d.ownerType}:${d.ownerId}`,owner);if(!owners.has(d.ownerId))owners.set(d.ownerId,owner);}
 }
-let recipientsLoading=false;
+let recipientsLoading=false,recipientWallets=[];
+const recipientOwner=w=>owners.get(`${w.ownerType}:${w.ownerId}`)||owners.get(w.ownerId);
+const recipientText=v=>String(v||'').normalize('NFKC').toLowerCase().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[\s+()\-]/g,'');
+function renderRecipients(previous=''){
+ const select=el('transfer-recipient'),query=recipientText(el('transfer-recipient-search').value),type=el('transfer-recipient-type').value;
+ const identified=recipientWallets.filter(w=>{const o=recipientOwner(w);return o?.name&&o?.phone&&!/^(business_|[a-f0-9]{8}-)/i.test(o.name);});
+ const matches=identified.filter(w=>(!type||w.ownerType===type)&&(!query||recipientText(recipientOwner(w).name).includes(query)||recipientText(recipientOwner(w).phone).includes(query))).sort((a,b)=>recipientOwner(a).name.localeCompare(recipientOwner(b).name,'ar'));
+ select.replaceChildren();const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=matches.length?'اختر المستلم من النتائج':'لا توجد نتائج مطابقة';select.append(placeholder);
+ for(const w of matches.slice(0,50)){const o=recipientOwner(w),option=document.createElement('option');option.value=w.walletId;option.textContent=`${o.name} — ${types[w.ownerType]} — ${o.phone}`;select.append(option);}
+ if([...select.options].some(o=>o.value===previous))select.value=previous;
+ select.disabled=!matches.length;
+ el('transfer-create').disabled=!can('finance.request')||!transferPolicy?.enabled||!select.value;
+ const missing=recipientWallets.length-identified.length;
+ el('transfer-recipient-message').textContent=`${matches.length} نتيجة. ${matches.length>50?'تظهر أول ٥٠ نتيجة؛ اكتب الاسم أو الهاتف لتضييق البحث. ':''}${missing?'استُبعدت '+missing+' محفظة ناقصة الاسم أو الهاتف؛ يجب استكمال بياناتها قبل اختيارها.':''}`;
+}
+for(const id of ['transfer-recipient-search','transfer-recipient-type'])el(id).addEventListener(id.endsWith('search')?'input':'change',()=>renderRecipients());
 async function loadRecipients(){
  if(recipientsLoading)return;
  recipientsLoading=true;
@@ -118,13 +139,8 @@ async function loadRecipients(){
    if(!cursor)break;
   }
   if(cursor)throw Error('القائمة كبيرة؛ تعذر إكمال تحميل المستلمين.');
-  const eligible=wallets.filter(w=>['DRIVER','CUSTOMER','MERCHANT'].includes(w.ownerType) && w.status==='ACTIVE');
-  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=eligible.length?'اختر المستلم':'لا توجد محافظ مستلمة نشطة';select.append(placeholder);
-  for(const wallet of eligible){const owner=owners.get(wallet.ownerId);const option=document.createElement('option');option.value=wallet.walletId;option.textContent=`${owner?.name || wallet.ownerId} — ${owner?.phone || 'رقم غير متوفر'}`;select.append(option);}
-  if(eligible.some(w=>w.walletId===previous))select.value=previous;
-  select.disabled=!eligible.length;
-  el('transfer-create').disabled=!can('finance.request')||!select.value;
-  el('transfer-recipient-message').textContent=eligible.length?'اختر صاحب المحفظة من القائمة. رصيد المستلم الصفري لا يمنع استقبال التحويل.':'لا توجد محافظ نشطة قابلة للاختيار.';
+  recipientWallets=wallets.filter(w=>['DRIVER','CUSTOMER','MERCHANT'].includes(w.ownerType) && w.status==='ACTIVE');
+  renderRecipients(previous);
  }catch(e){el('transfer-recipient-message').textContent=e.message;}
  finally{recipientsLoading=false;el('transfer-recipients-retry').disabled=false;}
 }
@@ -195,7 +211,7 @@ async function loadTransfers(more=false){
  if(!more)el('transfer-requests').replaceChildren();
  for(const request of data.requests){
   const row=document.createElement('tr');cell(row,request.transferId);cell(row,owners.get(request.recipientWalletId.replace('WALLET#DRIVER#',''))?.name || request.recipientWalletId);cell(row,`${request.amount} د.ع`);cell(row,request.reason);cell(row,request.status==='COMPLETED'?'مكتمل':request.expiresAt<=Date.now()/1000?'انتهت المهلة':'بانتظار اعتماد مستقل');
-  if(request.status==='PENDING_APPROVAL' && request.expiresAt>Date.now()/1000 && can('finance.approve') && (staffProfile?.directWrite||request.requestedBy!==staffProfile?.employee?.employeeId) && (can('bootstrap.only')||request.amount<=(staffProfile?.employee?.approvalLimit||0)))button(cell(row,''),staffProfile?.directWrite?'اعتماد التحويل':'اعتماد من مدير آخر',async()=>{if(!confirm(`اعتماد تحويل ${request.amount} دينار إلى ${request.recipientWalletId}؟`))return;await call('/wallet/funding/admin/transfer/approve','POST',{requestId:request.transferId});el('transfer-message').textContent='تم التحويل';await loadTransfers();});else cell(row,'—');
+  if(request.status==='PENDING_APPROVAL' && request.expiresAt>Date.now()/1000 && can('finance.approve') && (staffProfile?.directWrite||request.requestedBy!==staffProfile?.employee?.employeeId) && (can('bootstrap.only')||request.amount<=(staffProfile?.employee?.approvalLimit||0)))button(cell(row,''),staffProfile?.directWrite?'اعتماد التحويل':'اعتماد من مدير آخر',async()=>{if(!confirm(`اعتماد تحويل ${request.amount} دينار إلى ${owners.get(request.recipientWalletId.replace(/^WALLET#(?:DRIVER|CUSTOMER|MERCHANT)#/,''))?.name||'المستلم المحدد'}؟`))return;await call('/wallet/funding/admin/transfer/approve','POST',{requestId:request.transferId});el('transfer-message').textContent='تم التحويل';await loadTransfers();});else cell(row,'—');
   el('transfer-requests').append(row);
  }
  transferCursor=data.nextCursor;el('transfer-more').hidden=!transferCursor;

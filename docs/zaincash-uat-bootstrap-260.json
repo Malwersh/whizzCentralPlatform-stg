@@ -1,0 +1,12 @@
+{
+  "status": "DISABLED_UAT_PREPARED",
+  "oauthAuthenticationPassed": true,
+  "configuredFromExistingServerSecret": true,
+  "credentialsPrintedOrSavedLocally": false,
+  "realAwsSetupProvenance": true,
+  "uatPaymentsCreated": 0,
+  "livePaymentsCreated": 0,
+  "walletCredits": 0,
+  "liveEnabled": false,
+  "uatEnabled": false
+}

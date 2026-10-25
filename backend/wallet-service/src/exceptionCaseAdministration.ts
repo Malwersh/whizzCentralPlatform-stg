@@ -1,3 +1,7 @@
+import {DRIVER_QUALITY_ACTIONS,createDriverQualityReview} from './driverQualityReview';
+import {DRIVER_RATING_ACTIONS,createDriverRatingReview} from './driverRatingReview';
+import {createDriverTimingReview,DRIVER_TIMING_ACTIONS} from './driverTimingReview';
+import {createDriverPerformanceDecision} from './driverPerformanceDecision';
 import {createReturnContinuation,RETURN_CONTINUATION_ACTIONS} from './returnContinuation';
 import {guardReturnCaseFinancialDb,guardReturnDispositionDb} from './returnContinuationRuntime264';
 import {createReturnItemCustodyPlan} from './returnItemCustodyPlan';
@@ -20,6 +24,10 @@ const fail=(code='EXCEPTION_CASE_CONFLICT'):never=>{throw Object.assign(Error(co
 export function createExceptionCaseAdministration(options:{db:Pick<DynamoDBDocumentClient,'send'>;authority:ReturnType<typeof createExceptionStaffAuthority>;now?:()=>number;enableFullCash?:boolean;enableDeliveryFunding?:boolean}){
  const {db,authority}=options,now=options.now??Date.now;
  return async function execute(v:Row){
+  if(DRIVER_QUALITY_ACTIONS.includes(v?.action))return createDriverQualityReview({db,authority,now})(v);
+  if(DRIVER_RATING_ACTIONS.includes(v?.action))return createDriverRatingReview({db,authority,now})(v);
+  if(DRIVER_TIMING_ACTIONS.includes(v?.action))return createDriverTimingReview({db,authority,now})(v);
+  if(v?.action==='SET_DRIVER_PERFORMANCE')return createDriverPerformanceDecision({db,authority,now})(v);
   if(RETURN_CONTINUATION_ACTIONS.includes(v?.action))return createReturnContinuation({...options,authenticate:authority.authenticate}).execute(v,'STAFF');
   const financialOptions={...options,db:guardReturnCaseFinancialDb(db)};
   if(v?.action==='AUTHORIZE_RETURN_ITEM_PLAN')return createReturnItemCustodyPlan({db,authority,now})(v);

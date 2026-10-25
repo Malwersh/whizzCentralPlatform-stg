@@ -1,0 +1,103 @@
+{
+  "checkedAt": "2026-10-24T20:59:06.214107+00:00",
+  "orderNumber": "ORD1792870714924",
+  "journal": {
+    "accountingLines": [
+      {
+        "account": "MERCHANT_COMPENSATION_EXPENSE",
+        "side": "DEBIT",
+        "amount": "6000"
+      },
+      {
+        "account": "MERCHANT_WALLET_PAYABLE",
+        "side": "CREDIT",
+        "amount": "6000"
+      }
+    ],
+    "cancellationCompensation": {
+      "assessment": {
+        "requester": "DRIVER",
+        "reference": "الابلاغات في تطبيق السائق",
+        "driverEffortReference": "",
+        "foodState": "READY",
+        "channel": "APP",
+        "foodLossIqd": "12000",
+        "foodLossReference": "المطعم اكد هذا مع الاداره"
+      },
+      "schemaVersion": "1",
+      "cancellationOperationId": "CAN:3c6d6205af89fc57d03a845dab5dcf924bf70810956831bb",
+      "merchantCapIqd": "12000",
+      "caseId": "OEX:b6c03ab6e9eafcc11d778f6978f4cc202bb28d2248b96168",
+      "driverFareCapIqd": "0",
+      "caseKey": "CUSTOMER_CANCELLATION"
+    },
+    "caseId": "OEX:b6c03ab6e9eafcc11d778f6978f4cc202bb28d2248b96168",
+    "walletLines": [
+      {
+        "delta": "6000",
+        "walletId": "WALLET#MERCHANT#business_1791634772438_p2hlg6w5qii",
+        "balanceAfter": "43500",
+        "unit": "IQD_WHOLE",
+        "balanceType": "LOCKED",
+        "balanceBefore": "37500"
+      }
+    ],
+    "driverFareIqd": "0",
+    "findingId": null,
+    "merchantCompensationIqd": "6000",
+    "state": "POSTED",
+    "settlementModel": "EXCEPTION_ACCRUAL_GL_V1",
+    "kind": "ORDER_EXCEPTION_ENTITLEMENTS_JOURNAL",
+    "agreement": {
+      "version": "1",
+      "id": "AGR-00d3e71b-f742-47c1-941e-3b3ee570bbfc",
+      "termsHash": "22d2080cf465d34ed54ca2124a37db1e23c4e2045e1721e307b1a366a654b5a9"
+    },
+    "actorId": "f40834f8-4091-7054-0e20-dba35a2793ce",
+    "offerDigest": "2e71a2ae61bfcf4d9d3f95a6792597c7668eafb6661da3bae5bb9c3a33386741",
+    "platformFundingIqd": "6000",
+    "operationId": "EXF:fc82f5c8b0546101482d8a6119479e0e94c4265a6b76da89",
+    "sk": "EXCEPTION_ENTITLEMENTS",
+    "debit": "6000",
+    "platformNetIqd": "-6000",
+    "digest": "c9c5f13cd1b7872fa8e083247a435c1eb95545197229ab40b77aa8ef714423ff",
+    "createdAt": "2026-10-24T20:58:12.980Z",
+    "credit": "6000",
+    "subjectId": null,
+    "orderId": "f6b187f1-1046-5bb9-8ec1-472e777164f0",
+    "agreementReference": "المنصه تعوض المطعم عن الجزء التالف من الطعام",
+    "driverId": null,
+    "decisionId": "927f0eee-d18a-4fb0-b5d9-bd15d8d99488",
+    "branchId": "business_1791634772438_p2hlg6w5qii",
+    "merchantFundingIqd": "0"
+  },
+  "merchantLedger": [
+    {
+      "balanceAfter": "43500",
+      "category": "ORDER_EXCEPTION_FINANCIAL",
+      "sk": "ts#2026-10-24T20:58:12.980Z#LOCKED#EXF:fc82f5c8b0546101482d8a6119479e0e94c4265a6b76da89",
+      "createdAt": "2026-10-24T20:58:12.980Z",
+      "metadata": {
+        "operationId": "EXF:fc82f5c8b0546101482d8a6119479e0e94c4265a6b76da89",
+        "balanceType": "LOCKED",
+        "orderId": "f6b187f1-1046-5bb9-8ec1-472e777164f0",
+        "financialSchemaVersion": "5"
+      },
+      "relatedEntityType": "ORDER",
+      "balanceBefore": "37500",
+      "type": "CREDIT",
+      "amount": "6000",
+      "relatedEntityId": "f6b187f1-1046-5bb9-8ec1-472e777164f0",
+      "walletId": "WALLET#MERCHANT#business_1791634772438_p2hlg6w5qii",
+      "transactionId": "EXF:fc82f5c8b0546101482d8a6119479e0e94c4265a6b76da89"
+    }
+  ],
+  "merchantWallet": {
+    "availableBalance": "0",
+    "lockedBalance": "43500",
+    "status": "ACTIVE"
+  },
+  "merchantCashPayment": "PENDING_SETTLEMENT",
+  "assessmentNote": "User entered foodLossIqd=12000, foodState=READY; compensation6000. Earlier narrative says partial spoilage; amounts are distinct.",
+  "agentDirectBusinessWrites": false
+}

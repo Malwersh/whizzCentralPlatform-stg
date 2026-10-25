@@ -1,0 +1,56 @@
+{
+  "status": "BACKEND_PUBLISHED",
+  "before": "Ra9+f6VRPuTv3X8raxtOAwa5sDSe4y/vQHfbVNne3Rc=",
+  "after": "fGDV5qegH4WptxZiuGOE7qLdKCS8MlOww5Rs9oQqg+4=",
+  "modules": [
+    "dist/index.js",
+    "dist/monthlyWalletHistory.js"
+  ],
+  "unrelatedModulesPreserved": true,
+  "financialWrites": 0,
+  "route": "GET /wallet/me/transactions?month=YYYY-MM",
+  "timeZone": "Asia/Baghdad",
+  "sameAuthenticatedDriverOnly": true,
+  "snapshotCutoffAcrossPages": true,
+  "partialTotalsNeverDisplayed": true,
+  "openingClosingBalances": "NOT_INFERRED_FROM_INCOMPLETE_LEGACY_SNAPSHOTS",
+  "manualAndGatewaySettingsChanged": false,
+  "actualReadOnlyVerification": {
+    "month": "2026-10",
+    "rawLedgerRows": 76,
+    "credits": 106500,
+    "debits": 137250,
+    "netChange": -30750,
+    "matchesRawLedgerNet": true,
+    "isCurrentBalance": false
+  },
+  "driverBuild": 266,
+  "tests": {
+    "backend": 2,
+    "flutterWithFundingRegression": 24,
+    "finalTargeted": 9
+  },
+  "deviceInstall": "INSTALLED_AND_LAUNCHED_VERIFIED",
+  "deviceInstalledBuild": 266,
+  "nativeStatementAndCsvAcceptance": "AWAITING_USER_WALKTHROUGH",
+  "driverReleaseFollowup": {
+    "installedBuild": 267,
+    "mode": "RELEASE",
+    "environment": "staging",
+    "installedAndLaunched": true,
+    "processVerifiedRunningAfterLaunch": true,
+    "previousDebugColdLaunchFailure": "USER_REPORTED"
+  },
+  "scopedTestLocationFollowup268": {
+    "installedBuild": 268,
+    "mode": "RELEASE",
+    "environment": "staging",
+    "useTestLocation": true,
+    "testDriverId": "34d8e408-1021-7076-6055-7325644f97cb",
+    "latitude": 31.913292,
+    "longitude": 44.476014,
+    "generatedBuildFlagsVerified": true,
+    "installedAndLaunched": true,
+    "mapVisualAcceptance": "AWAITING_USER"
+  }
+}

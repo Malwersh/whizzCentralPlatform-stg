@@ -15,3 +15,10 @@ test('redispatch retry preserves intent on invocation failure and never expires 
  await assert.rejects(ctx.run('o',[],'2026-10-16T00:00:00Z'),/FINANCIAL_REDISPATCH_PENDING/);assert.equal(job.financialRedispatch.waveNumber,5);
  fail=false;assert.equal((await ctx.run('o',[],'2026-10-16T00:00:01Z')).nextWaveStarted,true);assert.equal(calls,2);
 });
+test('hosted financial unassignment is processed directly rather than skipped as host managed',async()=>{
+ for(const action of ['START_ATTEMPTED','REVIEW']){
+  let calls=0;const ctx={console:quiet,process:{env:{DISPATCH_FINANCIAL_HOST_MODE:'REQUIRED'}},getDispatchJob:async()=>({financialRedispatch:{waveNumber:2},dispatchCycle:{engine:'FINANCIAL'}}),require:()=>({resumeHostedFinancialUnassignment:async id=>{assert.equal(id,'order1');calls++;return {action};}})};
+  vm.runInNewContext(fn('processExpiredWave')+'\nthis.run=processExpiredWave;',ctx);
+  const r=await ctx.run('order1',[],'2026-10-24T00:00:00Z');assert.equal(calls,1);assert.equal(r.dispatchAction,action);assert.equal(r.nextWaveStarted,action==='START_ATTEMPTED');
+ }
+});

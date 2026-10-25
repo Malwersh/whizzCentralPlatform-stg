@@ -1,0 +1,16 @@
+{
+  "status": "RELEASE286_INSTALLED_LAUNCHED",
+  "moreHeader": "Filled gold star plus verified all-time score only; no review count or long explanatory sentence",
+  "profile": "Same star/score treatment with separate customer review count and all-time label",
+  "ratingSource": "Existing customerRating/customerRatingCount; no score writes or calculation changes",
+  "testsPassed": 9,
+  "manualAcceptance": "NOT_RUN",
+  "analysis": "No issues found",
+  "release": {
+    "build": 286,
+    "device": "iMohammed",
+    "buildPassed": true,
+    "installPassed": true,
+    "launchPassed": true
+  }
+}

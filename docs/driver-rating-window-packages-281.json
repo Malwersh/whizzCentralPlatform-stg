@@ -1,0 +1,31 @@
+{
+  "status": "PREPARED_NOT_PUBLISHED",
+  "functions": [
+    {
+      "label": "ratings",
+      "function": "whizz-order-ratings-staging-ratings",
+      "before": "4yIo91qR4/VXBabzQbvsVbIZBNzaVFqeW5OSLUh/aG4=",
+      "revision": "c6977628-df5a-4c20-bace-95a32e172fea",
+      "candidate": "TExkU8KW3yQ11SmkqcrapE9srrratabJpjCCp9OIUik=",
+      "changedFiles": [
+        "src/handlers/order-ratings.js",
+        "src/shared/driver-rating-chronology-281.js"
+      ],
+      "otherEntriesByteIdentical": true
+    },
+    {
+      "label": "driver",
+      "function": "DriversApi-staging",
+      "before": "CCMoVuCWcxx7S7t2ifwCknrG605CPkPbg5aPtrPna7I=",
+      "revision": "1c9e90ee-5eb8-4a0e-b02c-2b98545c9e98",
+      "candidate": "hXBZjqz2e2Na9kvAsmG1iRSWprSnEPxTdWwGYX9cU8g=",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "driver-performance.js",
+        "driver-rating-window-281.js",
+        "driver-rating-chronology-281.js"
+      ],
+      "otherEntriesByteIdentical": true
+    }
+  ]
+}

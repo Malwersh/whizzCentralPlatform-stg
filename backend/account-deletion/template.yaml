@@ -92,6 +92,13 @@ Resources:
         - DynamoDBCrudPolicy: {TableName: !Ref Requests}
         - Statement:
             - Effect: Allow
+              Action: dynamodb:ConditionCheckItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-IdempotencyKeys
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['ZC#ACTIVE#*']
+        - Statement:
+            - Effect: Allow
               Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:Query]
               Resource:
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging

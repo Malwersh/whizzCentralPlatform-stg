@@ -1,0 +1,60 @@
+{
+  "phase": 280,
+  "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+  "scope": "Driver customer-rating validity moderation, aggregate-safe review and appeal. All-time basis remains; last100 window and independent safety-quality incidents remain open.",
+  "colleagueWork": "Captured published rating handler exactly matches origin/feature/order-ratings-20261024. Retained originals and customer API contract. Narrow change supports zero included ratings and preserves review/exclusion counters.",
+  "implementation": {
+    "entry": "Orders > Manage delivered order > Review driver rating; public order number accepted; open cases in operational case queue",
+    "source": "Original ORDER# rating, own delivered order/driver/customer binding, immutable original stars and comment",
+    "review": "Opening or appeal excludes driver rating temporarily; KEEP restores original stars; EXCLUDE preserves original opinion but removes its aggregate contribution; PENDING remains excluded",
+    "evidence": "Received claims explicitly do not establish fault. Restoring reviewed rating requires two distinct source parties. Reason, owner, decision supersession and immutable event journal. Driver or customer appeal may be recorded by authorized staff.",
+    "concurrency": "Order, staff, driver lifecycle, rating source, review version, driver profile and rating aggregate exact guards in one transaction; same UUID receipt handles uncertain retry. Customer aggregate additions retain moderation counters.",
+    "counterConservation": "Included + underReview + excluded preserves total received driver ratings; zero included produces null mean, not zero stars.",
+    "money": "No wallets, ledger or order edits. Merchant rating aggregate never modified by this service. No agent business-case decisions.",
+    "policy": "No new automatic eligibility, safety fault or wave ranking policy"
+  },
+  "tests": {
+    "reviewAndExistingPerformanceSource": 32,
+    "colleagueCustomerRatingRegression": 32,
+    "capturedRuntimeIncludingActualSharedFactory": 85,
+    "staffProjectionAndPublicOrderNumber": 2,
+    "flutterPerformanceAndMore": 19,
+    "browser": "PASS authenticated Arabic evidence/decision, UUID reuse on uncertain retry, no extra actor/score fields, narrow layout",
+    "typescript": "PASS"
+  },
+  "publication": {
+    "executed": true,
+    "permissionRequired": "Explicit approval for four staging Lambda updates and hosted admin UI plus DriverRatingReview280 role policy limited to whizz-order-ratings-staging GetItem, PutItem, ConditionCheckItem.",
+    "policy": "docs/driver-rating-review-policy-280.json",
+    "candidateManifest": "docs/driver-rating-review-packages-280.json",
+    "currentLive": "Phase280; hosted job 206",
+    "businessWritesByAgent": 0,
+    "cloudWritesByThisPhase": "Explicitly approved IAM policy, four Lambda packages and hosting deployment",
+    "explicitApproval": {
+      "authorized": true,
+      "userReply": "نعم اوافق",
+      "scope": "Four staging Lambda services, admin hosting, and DriverRatingReview280 limited to GetItem/PutItem/ConditionCheckItem on whizz-order-ratings-staging",
+      "recordedAt": "2026-10-25T05:37:30.354260+00:00"
+    },
+    "approvalEvidence": "docs/driver-rating-review-approval-280.json",
+    "previousAutoReviewRejection": "Automatic approval review rejected deployment and persistent financial Lambda role expansion because exact IAM change and blast radius were not explicitly authorized.",
+    "status": "PUBLISHED_STAGING",
+    "evidence": "docs/driver-rating-review-publication-280.json",
+    "approvalResolved": true
+  },
+  "driverRelease": {
+    "number": 280,
+    "build": "RELEASE_BUILD_PASSED",
+    "installed": true,
+    "currentInstalled": 280,
+    "launched": true
+  },
+  "manualAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "remaining": [
+    "Last100 valid rating window with queryable verified source, chronology and exclusion refill; current metric is explicitly all-time",
+    "Independent evidenced safety/quality incidents, review and appeal; no invented Quality Score",
+    "Vehicle approval, document expiry and allowed area eligibility",
+    "Ordered manual acceptance and final Android/iPhone gates"
+  ],
+  "colleagueProductsScopeUntouched": true
+}

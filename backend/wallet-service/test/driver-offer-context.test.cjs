@@ -1,7 +1,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {AdminGetUserCommand}=require('@aws-sdk/client-cognito-identity-provider');
-const {createStagingDriverOfferContext:create}=require('../dist/driverOfferContext');
+const create=process.env.ELIGIBILITY_CONTEXT_RUNTIME?require(process.env.ELIGIBILITY_CONTEXT_RUNTIME).__eligibilityContext:require('../dist/driverOfferContext').createStagingDriverOfferContext;
 const {createStagingDriverOfferStore:store}=require('../dist/driverOfferStore');
 const {prepareDriverOfferFinancialSnapshot:envelope}=require('../dist/driverOfferOrderReader');
 const {input,at,route}=require('./helpers/driver-offer-fixture.cjs');
@@ -71,6 +71,10 @@ test('driver approval and live Cognito identity fail closed',async()=>{
  for(const patch of [{Enabled:false},{UserStatus:'UNCONFIRMED'},{Username:'other'},{UserAttributes:[{Name:'sub',Value:'other'}]}]){
   const f=setup();Object.assign(f.identity,patch);await rejected(f.prepare(),'DRIVER_OFFER_DRIVER_UNAVAILABLE');assert.equal(f.routeCalls,0);
  }
+});
+test('an explicitly disabled profile cannot issue or accept an offer, and disabling after preparation invalidates its guard',async()=>{
+ for(const flag of [false,null,0,'true']){const f=setup();f.rows.WhizzDrivers_staging.isActive=flag;await rejected(f.prepare(),'DRIVER_OFFER_DRIVER_UNAVAILABLE');assert.equal(f.routeCalls,0);}
+ const f=setup(),r=await f.prepare();f.rows.WhizzDrivers_staging.isActive=false;await assert.rejects(f.store.save(r));assert.equal(f.saved,undefined);
 });
 test('busy, stale, future, malformed and out-of-range positions are rejected',async()=>{
  for(const patch of [{status:'busy'},{isSearching:false},{isActive:false},{currentOrderId:'other'},{activeOrdersCount:1},{lat:91},{lng:'44'},
