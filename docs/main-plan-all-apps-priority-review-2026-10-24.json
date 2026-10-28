@@ -24,7 +24,8 @@
     "Merchant financial employee human test deferred by user",
     "No new driver-only priority lane overriding the whole plan",
     "No native platform release checks before operational P0",
-    "Do not implement delegated products/import work"
+    "Do not implement delegated products/import work",
+    "2026-10-28: user authorized reviewing and integrating colleague product implementation; this supersedes delegation-only restriction for integration corrections. Remaining delegated scope retained."
   ],
   "workItems": [
     {
@@ -1408,13 +1409,14 @@
         "CUSTOMER"
       ],
       "name": "المنتجات والقوائم والإدخال اليدوي وCSV/Excelوالخيارات والصور والمخزون والنشر",
-      "currentStatus": "DELEGATED",
+      "currentStatus": "REVIEWED_CODE_INTEGRATION_RUNTIME_ACCEPTANCE_PENDING",
       "priority": "EXCLUDED_COLLEAGUE",
-      "remaining": "كاملنطاقالتسليممحالللمستخدمالزميل؛ يراقبعقدالتكاملفقطولايبدأتنفيذموازٍ. ليسمكتملًاولامحذوفًامنالخطة",
+      "remaining": "رُوجع تنفيذ الزميل وأُدمج نطاق المنتجات وCSV/XLSX والأقسام والخيارات والنشر مع إصلاحات المراجعة. بقي نشر API/IAM واختبار staging البشري، والصور الجماعية وكميات المخزون وربط الأعمدة غير مكتملة. راجع تقرير 335؛ لا يُعد كامل نطاق التسليم منجزًا.",
       "sourceOrEvidence": [
-        "docs/merchant-products-import-colleague-handoff-2026-10-24.txt"
+        "docs/merchant-products-import-colleague-handoff-2026-10-24.txt",
+        "docs/products-import-review-335.json"
       ],
-      "freshRuntimeAuditRequired": false,
+      "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
     }
   ],

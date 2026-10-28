@@ -125,6 +125,7 @@ function readBranchOptionSelection(value) {
 
 // backend/wallet-service/src/orderGoodsPricing.ts
 var TABLE = "WhizzMerchants_Products";
+var PLATFORM = "staging-MerchantPlatform";
 var knownFields = [
   "productId",
   "businessId",
@@ -146,7 +147,8 @@ var knownFields = [
   "allergens",
   "preparationTime",
   "rating",
-  "reviewCount"
+  "reviewCount",
+  "publishedCategory"
 ];
 var unsupported = [
   "stock",
@@ -203,6 +205,13 @@ function createStagingOrderGoodsPricing(options) {
       return { productId: item.productId, quantity: item.quantity, ...selectedOptions ? { selectedOptions } : {} };
     });
     if (new Set(selections.map((i) => quoteHash({ productId: i.productId, selectedOptions: i.selectedOptions ?? {} }))).size !== selections.length) return fail("INVALID_GOODS_SELECTION");
+    let activeMenu;
+    try {
+      activeMenu = (await options.db.send(new import_lib_dynamodb.GetCommand({ TableName: PLATFORM, Key: { pk: "BRANCH#" + branchId, sk: "MENU_VERSION#ACTIVE" }, ConsistentRead: true }))).Item;
+    } catch {
+      return fail("GOODS_PRICING_UNAVAILABLE");
+    }
+    const publishedVersion = typeof activeMenu?.publishedVersion === "string" ? activeMenu.publishedVersion : void 0;
     const lines = [];
     const products = /* @__PURE__ */ new Map(), pinnedProducts = /* @__PURE__ */ new Set();
     const conditions = [], categories = /* @__PURE__ */ new Set();
@@ -210,9 +219,17 @@ function createStagingOrderGoodsPricing(options) {
     for (const item of selections) {
       let product;
       try {
-        product = products.get(item.productId) ?? (await options.db.send(new import_lib_dynamodb.GetCommand({ TableName: TABLE, Key: { productId: item.productId }, ConsistentRead: true }))).Item;
+        if (products.has(item.productId)) product = products.get(item.productId);
+        else if (publishedVersion) {
+          const live = (await options.db.send(new import_lib_dynamodb.GetCommand({ TableName: TABLE, Key: { productId: item.productId }, ConsistentRead: true }))).Item;
+          if (!live || live.businessId !== branchId || live.isAvailable !== true || live.isDeleted === true || live.deletedAt != null) return fail("GOODS_UNAVAILABLE");
+          if (live.stock != null) return fail("GOODS_PRICING_UNSUPPORTED");
+          const snapshot = (await options.db.send(new import_lib_dynamodb.GetCommand({ TableName: PLATFORM, Key: { pk: "BRANCH#" + branchId, sk: `MENU_VERSION#${publishedVersion}#PRODUCT#${item.productId}` }, ConsistentRead: true }))).Item;
+          product = snapshot?.version === publishedVersion ? snapshot.product : void 0;
+        } else product = (await options.db.send(new import_lib_dynamodb.GetCommand({ TableName: TABLE, Key: { productId: item.productId }, ConsistentRead: true }))).Item;
         if (product) products.set(item.productId, product);
-      } catch {
+      } catch (error) {
+        if (error instanceof OrderGoodsPricingError) throw error;
         return fail("GOODS_PRICING_UNAVAILABLE");
       }
       if (!product || product.productId !== item.productId || product.businessId !== branchId || product.isAvailable !== true) return fail("GOODS_UNAVAILABLE");
@@ -250,7 +267,7 @@ function createStagingOrderGoodsPricing(options) {
           expressions.push(`${alias} = :g${i}`);
         }
       }
-      const condition = { ConditionCheck: {
+      const condition = publishedVersion ? { ConditionCheck: { TableName: PLATFORM, Key: { pk: "BRANCH#" + branchId, sk: `MENU_VERSION#${publishedVersion}#PRODUCT#${item.productId}` }, ConditionExpression: "#version=:version AND attribute_exists(#product)", ExpressionAttributeNames: { "#version": "version", "#product": "product" }, ExpressionAttributeValues: { ":version": publishedVersion } } } : { ConditionCheck: {
         TableName: TABLE,
         Key: { productId: item.productId },
         ConditionExpression: expressions.join(" AND "),
@@ -261,6 +278,7 @@ function createStagingOrderGoodsPricing(options) {
         conditionBytes += Buffer.byteLength(JSON.stringify(condition));
         if (conditionBytes > 2e5) return fail("GOODS_PRICING_UNSUPPORTED");
         conditions.push(condition);
+        if (publishedVersion) conditions.push({ ConditionCheck: { TableName: TABLE, Key: { productId: item.productId }, ConditionExpression: "businessId=:b AND isAvailable=:yes AND attribute_not_exists(deletedAt) AND (attribute_not_exists(isDeleted) OR isDeleted=:no)", ExpressionAttributeValues: { ":b": branchId, ":yes": true, ":no": false } } });
         pinnedProducts.add(item.productId);
       }
       lines.push({ ...item, ...item.selectedOptions ? { lineId: "CONFIG#" + quoteHash({ productId: item.productId, selectedOptions: item.selectedOptions }) } : {}, unitPrice, lineTotal });
@@ -298,6 +316,7 @@ function createStagingOrderGoodsPricing(options) {
         categories.add(product.categoryId);
       }
     }
+    if (publishedVersion) conditions.unshift({ ConditionCheck: { TableName: PLATFORM, Key: { pk: "BRANCH#" + branchId, sk: "MENU_VERSION#ACTIVE" }, ConditionExpression: "publishedVersion=:version", ExpressionAttributeValues: { ":version": publishedVersion } } });
     const result = { schemaVersion: 1, kind: "SERVER_GOODS_PRICE_PROPOSAL", sourceContract: usesOptionCatalog ? "BRANCH_PRODUCTS_OPTIONS_IQD_V1" : "SIMPLE_MANUAL_PRODUCTS_IQD_V1", branchId, lines, goodsGross };
     const fingerprint = quoteHash({ ...result, lines: [...lines].sort((a, b) => (a.lineId ?? a.productId).localeCompare(b.lineId ?? b.productId)) });
     return copy({

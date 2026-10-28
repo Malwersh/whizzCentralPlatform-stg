@@ -6,10 +6,11 @@ import {readBranchProductOptions,readBranchOptionSelection} from './branchProduc
 
 type Row = Record<string, any>;
 const TABLE = 'WhizzMerchants_Products';
+const PLATFORM = 'staging-MerchantPlatform';
 // The two existing manual product writers store price in IQD in this table, not order pricing's minor units.
 const knownFields = ['productId', 'businessId', 'globalProductId', 'name', 'description', 'price', 'categoryId',
   'imageUrl', 'barcode', 'isAvailable', 'searchableName', 'createdAt', 'updatedAt',
-  'optionGroups', 'imageUrls', 'images', 'nutritionalInfo', 'allergens', 'preparationTime', 'rating', 'reviewCount'];
+  'optionGroups', 'imageUrls', 'images', 'nutritionalInfo', 'allergens', 'preparationTime', 'rating', 'reviewCount','publishedCategory'];
 const unsupported = ['stock', 'inventory', 'trackInventory', 'unit', 'unitPrice', 'salePrice', 'discountPrice',
   'options', 'modifiers', 'variants', 'sizes', 'isDeleted', 'deletedAt', 'deletionStatus', 'isActive'];
 const fencedFields = ['productId', 'businessId', 'price', 'categoryId', 'isAvailable', 'updatedAt', 'optionGroups', ...unsupported];
@@ -44,14 +45,23 @@ export function createStagingOrderGoodsPricing(options: { db: Pick<DynamoDBDocum
       return { productId: item.productId as string, quantity: item.quantity as number,...(selectedOptions?{selectedOptions}:{}) };
     });
     if (new Set(selections.map(i => quoteHash({productId:i.productId,selectedOptions:i.selectedOptions??{}}))).size !== selections.length) return fail('INVALID_GOODS_SELECTION');
+    let activeMenu:Row|undefined;
+    try { activeMenu=(await options.db.send(new GetCommand({TableName:PLATFORM,Key:{pk:'BRANCH#'+branchId,sk:'MENU_VERSION#ACTIVE'},ConsistentRead:true}))).Item; }
+    catch { return fail('GOODS_PRICING_UNAVAILABLE'); }
+    const publishedVersion=typeof activeMenu?.publishedVersion==='string'?activeMenu.publishedVersion:undefined;
     const lines: Row[] = [];
     const products = new Map<string,Row>(), pinnedProducts=new Set<string>();
     const conditions: Row[] = [], categories = new Set<string>();
     let goodsGross = moneyFromMinor(0), conditionBytes = 0, usesOptionCatalog = false;
     for (const item of selections) {
       let product: Row | undefined;
-      try { product = products.get(item.productId) ?? (await options.db.send(new GetCommand({ TableName: TABLE, Key: { productId: item.productId }, ConsistentRead: true }))).Item;if(product)products.set(item.productId,product); }
-      catch { return fail('GOODS_PRICING_UNAVAILABLE'); }
+      try {
+        if(products.has(item.productId))product=products.get(item.productId);
+        else if(publishedVersion){const live=(await options.db.send(new GetCommand({TableName:TABLE,Key:{productId:item.productId},ConsistentRead:true}))).Item;if(!live||live.businessId!==branchId||live.isAvailable!==true||live.isDeleted===true||live.deletedAt!=null)return fail('GOODS_UNAVAILABLE');if(live.stock!=null)return fail('GOODS_PRICING_UNSUPPORTED');const snapshot=(await options.db.send(new GetCommand({TableName:PLATFORM,Key:{pk:'BRANCH#'+branchId,sk:`MENU_VERSION#${publishedVersion}#PRODUCT#${item.productId}`},ConsistentRead:true}))).Item;product=snapshot?.version===publishedVersion?snapshot.product:undefined;}
+        else product=(await options.db.send(new GetCommand({ TableName: TABLE, Key: { productId: item.productId }, ConsistentRead: true }))).Item;
+        if(product)products.set(item.productId,product);
+      }
+      catch (error) { if(error instanceof OrderGoodsPricingError)throw error;return fail('GOODS_PRICING_UNAVAILABLE'); }
       if (!product || product.productId !== item.productId || product.businessId !== branchId || product.isAvailable !== true) return fail('GOODS_UNAVAILABLE');
       // An unfamiliar schema may carry additional pricing or inventory constraints. Never silently drop it.
       if (Object.keys(product).some(k => !knownFields.includes(k)) || !quoteEntityIdValid(product.categoryId)) return fail('GOODS_PRICING_UNSUPPORTED');
@@ -83,19 +93,21 @@ export function createStagingOrderGoodsPricing(options: { db: Pick<DynamoDBDocum
         if (product[field] === undefined) expressions.push(`attribute_not_exists(${alias})`);
         else { values[':g' + i] = copy(product[field]); expressions.push(`${alias} = :g${i}`); }
       }
-      const condition = { ConditionCheck: { TableName: TABLE, Key: { productId: item.productId },
+      const condition = publishedVersion?{ConditionCheck:{TableName:PLATFORM,Key:{pk:'BRANCH#'+branchId,sk:`MENU_VERSION#${publishedVersion}#PRODUCT#${item.productId}`},ConditionExpression:'#version=:version AND attribute_exists(#product)',ExpressionAttributeNames:{'#version':'version','#product':'product'},ExpressionAttributeValues:{':version':publishedVersion}}}:{ ConditionCheck: { TableName: TABLE, Key: { productId: item.productId },
         ConditionExpression: expressions.join(' AND '), ExpressionAttributeNames: names, ExpressionAttributeValues: values } };
       if(!pinnedProducts.has(item.productId)){
       conditionBytes += Buffer.byteLength(JSON.stringify(condition));
       if (conditionBytes > 200000) return fail('GOODS_PRICING_UNSUPPORTED');
-      conditions.push(condition);pinnedProducts.add(item.productId);
+      conditions.push(condition);
+      if(publishedVersion)conditions.push({ConditionCheck:{TableName:TABLE,Key:{productId:item.productId},ConditionExpression:'businessId=:b AND isAvailable=:yes AND attribute_not_exists(deletedAt) AND (attribute_not_exists(isDeleted) OR isDeleted=:no)',ExpressionAttributeValues:{':b':branchId,':yes':true,':no':false}}});
+      pinnedProducts.add(item.productId);
       }
       lines.push({ ...item,...(item.selectedOptions?{lineId:'CONFIG#'+quoteHash({productId:item.productId,selectedOptions:item.selectedOptions})}:{}),unitPrice,lineTotal });
       if (!categories.has(product.categoryId)) {
         const categoryFields = ['categoryId', 'businessId', 'isActive', 'is_active'];
         const categoryNames = Object.fromEntries(categoryFields.map((f, i) => ['#c' + i, f]));
         let category: Row | undefined;
-        try { category = (await options.db.send(new GetCommand({ TableName: 'WhizzMerchants_Categories',
+        try { category=(await options.db.send(new GetCommand({ TableName: 'WhizzMerchants_Categories',
           Key: { categoryId: product.categoryId }, ConsistentRead: true, ProjectionExpression: Object.keys(categoryNames).join(', '),
           ExpressionAttributeNames: categoryNames }))).Item; }
         catch { return fail('GOODS_PRICING_UNAVAILABLE'); }
@@ -112,6 +124,7 @@ export function createStagingOrderGoodsPricing(options: { db: Pick<DynamoDBDocum
         categories.add(product.categoryId);
       }
     }
+    if(publishedVersion)conditions.unshift({ConditionCheck:{TableName:PLATFORM,Key:{pk:'BRANCH#'+branchId,sk:'MENU_VERSION#ACTIVE'},ConditionExpression:'publishedVersion=:version',ExpressionAttributeValues:{':version':publishedVersion}}});
     const result = { schemaVersion: 1, kind: 'SERVER_GOODS_PRICE_PROPOSAL', sourceContract: usesOptionCatalog?'BRANCH_PRODUCTS_OPTIONS_IQD_V1':'SIMPLE_MANUAL_PRODUCTS_IQD_V1', branchId, lines, goodsGross };
     // Order-independent identity: reordering selectors must not create a different economic proposal.
     const fingerprint = quoteHash({ ...result, lines: [...lines].sort((a, b) => (a.lineId??a.productId).localeCompare(b.lineId??b.productId)) });

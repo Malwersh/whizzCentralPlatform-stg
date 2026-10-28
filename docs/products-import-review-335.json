@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-28",
+  "task": "Review and integrate colleague merchant products CSV/XLSX work",
+  "sourceBranch": "origin/integration/discounts-settlements-20261022",
+  "provenance": {
+    "merchant": [
+      "03beb6faf62d581134119dc067819979299254d3",
+      "a38e32d",
+      "88fc37e",
+      "781358c2b54081fa59ebced1ad2b0fa1e743ff77"
+    ],
+    "customer": [
+      "0dad961",
+      "76772c4"
+    ],
+    "central": [
+      "27955bd"
+    ]
+  },
+  "integrationScope": "Product changes selectively applied to current feature branches; unrelated integration-branch UI and financial changes excluded. No driver changes required.",
+  "reviewedImplemented": [
+    "Manual branch product editing and option groups",
+    "CSV and first worksheet XLSX preview; bounded files and row validation",
+    "Selected additions/updates, resumable batches, idempotency and safe error export",
+    "Branch category management with scope guards",
+    "Immutable published menus and explicit rollback",
+    "Customer paginated menu reader and authoritative published-price order pricing"
+  ],
+  "reviewCorrections": [
+    "Expired import sessions blocked before TTL cleanup",
+    "Preview hashes and conditional writes prevent stale overwrite",
+    "Stable category request fingerprint independent of timestamps",
+    "Draft revision fences publication; strong bounded source reads replace eventual GSI snapshot",
+    "Monotonic publication cache version and unchanged publish request persistence",
+    "Current product availability checked and atomically fenced while published price remains authoritative",
+    "Customer availability overlay cannot resurrect removed products; published content no longer falls back to mutable shared catalog",
+    "XLSX archive preflight before inflation, macro/encryption/path/size limits and workbook relationship sheet ordering",
+    "Preserve saved import session across transient network failures",
+    "Clear first-publication prerequisite and recoverable network errors in publish/status/rollback UI",
+    "Customer quote runtime regenerated from current canonical TypeScript, including existing commercial agreement checks; parity test passes"
+  ],
+  "testEvidence": {
+    "merchantNode": {
+      "passed": 47,
+      "failed": 0
+    },
+    "centralNode": {
+      "passed": 65,
+      "failed": 0
+    },
+    "customerNode": {
+      "passed": 11,
+      "failed": 0
+    },
+    "merchantFlutter": {
+      "passed": 22,
+      "failed": 0
+    },
+    "flutterAnalysis": "No compile errors or warnings in targeted analysis; informational lint/deprecation findings remain.",
+    "runtimePackageParity": {
+      "passed": 2,
+      "failed": 0
+    },
+    "merchantIosSimulatorBuild": "PASS: flutter build ios --simulator --debug --no-pub, including native file_picker pods"
+  },
+  "remainingNotClaimedComplete": [
+    "Bulk image attachment/upload/import mapping is not supplied by current importer (no image CSV column)",
+    "Inventory quantities/reservations are unsupported and rejected rather than silently ignored",
+    "Header mapping wizard beyond required canonical template is not implemented",
+    "Human staging acceptance: initialize existing/empty branch menu, import mixed file, interrupted resume, publish, customer refresh, options, hidden/deleted item, rollback, permission isolation",
+    "AWS API route and IAM/code rollout has NOT been performed by this review; infrastructure changes are prepared in repository",
+    "Strong publication scan is bounded at 20000 scanned rows/1000 branch products; replace with strongly consistent branch manifest before larger catalog scale",
+    "First publication required before mutation to freeze legacy visible baseline; onboarding must publish current/empty baseline once"
+  ],
+  "protectedMain": "Existing pull requests require colleague approval; no bypass or force-push",
+  "businessMutationsExecuted": false,
+  "secretsIncluded": false,
+  "deploymentPerformed": false
+}

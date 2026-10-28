@@ -10,8 +10,8 @@ test('existing branch product IQD price is converted once and used with selected
  const r=setup(),out=await r.price(selection());assert.equal(formatIqd(out.goodsGross),'5000');assert.deepEqual(out.lines[0].unitPrice,m('2500'));
  assert.equal(out.lines[0].unitPrice.minorAmount,2500000);assert.equal(out.performsWrites,false);assert.equal(out.completeFinancialSnapshot,false);
  assert.equal(out.requiresAtomicComposition,true);assert.equal(out.requiresBranchAndAccountGuards,true);
- assert.equal(r.calls.length,2);for(const c of r.calls){assert.ok(c instanceof GetCommand);assert.equal(c.input.ConsistentRead,true);assert.equal(c.input.IndexName,undefined);}
- assert.deepEqual(r.calls[0].input.Key,{productId:'p1'});assert.equal(r.calls[0].input.TableName,'WhizzMerchants_Products');
+ assert.equal(r.calls.length,3);for(const c of r.calls){assert.ok(c instanceof GetCommand);assert.equal(c.input.ConsistentRead,true);assert.equal(c.input.IndexName,undefined);}
+ assert.deepEqual(r.calls[1].input.Key,{productId:'p1'});assert.equal(r.calls[1].input.TableName,'WhizzMerchants_Products');
  assert.equal(out.name,undefined);assert.equal(out.lines[0].name,undefined);
 });
 test('decimal product prices preserve three decimals and never use binary multiplication rounding',async()=>{
@@ -86,4 +86,17 @@ test('different configurations share one catalog read and fence but retain disti
 test('empty groups cannot disguise duplicate configurations',async()=>{
  const input=[{productId:'p1',quantity:1},{productId:'p1',quantity:1,selectedOptions:{empty:[]}}];
  const r=setup();await rejects(r.price(selection(input)),'INVALID_GOODS_SELECTION');assert.equal(r.calls.length,0);
+});
+test('published menu pricing reads and fences the same immutable version seen by the customer',async()=>{
+ const calls=[],p={...product(),publishedCategory:{categoryId:'cat1',businessId:'branch1',isActive:true}};
+ const out=await create({db:{async send(c){calls.push(c);if(c.input.TableName==='WhizzMerchants_Products')return {Item:product('p1',9999)};if(c.input.TableName==='WhizzMerchants_Categories')return {Item:{categoryId:'cat1',businessId:'branch1',isActive:true}};if(c.input.Key.sk==='MENU_VERSION#ACTIVE')return {Item:{publishedVersion:'v1',menuVersion:4}};if(c.input.Key.sk==='MENU_VERSION#v1#PRODUCT#p1')return {Item:{version:'v1',product:p}};return {};}}}).price(selection());
+ assert.equal(formatIqd(out.goodsGross),'5000');assert.equal(calls.some(c=>c.input.TableName==='WhizzMerchants_Products'),true);assert.equal(calls.some(c=>c.input.TableName==='WhizzMerchants_Categories'),true);
+ assert.equal(out.conditions[0].ConditionCheck.Key.sk,'MENU_VERSION#ACTIVE');assert.equal(out.conditions[1].ConditionCheck.Key.sk,'MENU_VERSION#v1#PRODUCT#p1');
+});
+
+test('published snapshot cannot resurrect deleted or unavailable live products',async()=>{
+ for(const live of [undefined,{...product(),isAvailable:false},{...product(),deletedAt:'now'},{...product(),businessId:'other'}]){
+ const r=create({db:{async send(c){if(c.input.Key.sk==='MENU_VERSION#ACTIVE')return {Item:{publishedVersion:'v1'}};if(c.input.TableName==='WhizzMerchants_Products')return {Item:live};return {Item:{version:'v1',product:product()}};}}});
+ await rejects(r.price(selection()),'GOODS_UNAVAILABLE');
+ }
 });
