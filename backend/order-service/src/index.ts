@@ -50,6 +50,7 @@ export async function handler(
     // This branch never invokes cancellation, notifications or the legacy writer.
     if(httpMethod==='POST'&&path==='/order/cancel'){
       const input=parseBody(event.body);
+      if(input.workflow==='CUSTOMER_POST_DELIVERY'){try{return buildSuccessResponse(await require('../customer-order-complaint-client').invokeCustomerOrderComplaint(event,input),200);}catch(e:any){return buildErrorResponse(e.status||503,e.status?e.message:'COMPLAINT_UNAVAILABLE','تعذر تأكيد متابعة الشكوى؛ حدّث الحالة قبل إعادة المحاولة');}}
       if(input.workflow==='CUSTOMER_CASH_REVIEW'){
         try{return buildSuccessResponse(await require('../customer-cash-case-client').invokeCustomerCashCase(event,input),200);}
         catch(e:any){return buildErrorResponse(e.status||503,e.status?e.message:'CASH_REVIEW_UNAVAILABLE','تعذر تأكيد مراجعة النقد؛ حدّث الحالة قبل إعادة المحاولة');}

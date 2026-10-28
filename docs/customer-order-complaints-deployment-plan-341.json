@@ -1,0 +1,141 @@
+{
+  "part": 341,
+  "status": "REVIEWABLE_PACKAGE_READY_EXPLICIT_PUBLICATION_APPROVAL_REQUIRED",
+  "approvalGranted": false,
+  "rejectedAction": "Persistent IAM role policy update plus five Lambda deployments",
+  "reason": "Automatic approval review requires explicit authorization for the security/deployment scope beyond general C05 implementation",
+  "scope": "staging only",
+  "functions": [
+    {
+      "tag": "financial",
+      "name": "staging-driver-financial-accept",
+      "beforeCodeSha256": "RqYrCBBhRduVZeqYBXBWWcgHiIrSJmzcqi5tvmfPzU4=",
+      "candidateSHA256": "853cce67800544ad0cf0bd4a8ededf61c24334504803f6d8e598982689e117d3",
+      "changedFiles": [
+        "index.js",
+        "customer-order-complaint-runtime-341.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "tag": "staff",
+      "name": "staging-wizz-staff-service",
+      "beforeCodeSha256": "H16hja/MWDIImoWhaLeJhxHrbAXWs53F5bc5FQhKQEw=",
+      "candidateSHA256": "9f97ef6b1dc7bdddc791f43031d7b83e1a0c98a00b512e516247a8d474bbfeaa",
+      "changedFiles": [
+        "order-exception-cases.js",
+        "order-exception-case-client.js",
+        "customer-benefit-compensation-runtime.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "tag": "order",
+      "name": "OrderService-staging",
+      "beforeCodeSha256": "g3C5H8RpTzB1sMwYvQFn+wWZUgs3sDnUdci8EQs6VQU=",
+      "candidateSHA256": "3f11c1f7bd443e9b4b9d7b85423657dbae9c60786fa60c34c0aa270ff0d0bffa",
+      "changedFiles": [
+        "dist/index.js",
+        "customer-order-complaint-client.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "tag": "deletion",
+      "name": "staging-account-deletion-requests",
+      "beforeCodeSha256": "gVa1f4Z9+BowcxT8xGMiUpfzDj+mRrPtVSomQ3BEmoI=",
+      "candidateSHA256": "ebbda43ab656f2ab754e985c2a309ac40f1ccec1d32c989829d501d2e9303984",
+      "changedFiles": [
+        "cod-retention.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "tag": "deletionworker",
+      "name": "staging-account-deletion-worker",
+      "beforeCodeSha256": "siEjcL6JyhluClm5PiDBpsBWYbH7CPwvVYaRKjm+Sw4=",
+      "candidateSHA256": "c80b0b1ec1570d8570451e43eda5a39c11fbd7885df617df6fd82ea01ed53548",
+      "changedFiles": [
+        "cod-retention.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ],
+  "hosting": {
+    "part": 341,
+    "baseJob": "219",
+    "baseArtifactSHA256": "124bb46771a97b8cab638b2d0242c6a04ea607ef84b8a8d3a16e3af6f414be78",
+    "candidateSHA256": "c01b331dc92fece529d3c96da2d0735f6814a40225aa98917d5b7a71f196bc3f",
+    "changedFiles": [
+      "customer-order-complaint.js",
+      "customer-order-complaint.css",
+      "pages/customer-order-complaint.html",
+      "order-exception-cases.js",
+      "pages/order-exceptions.html",
+      "pages/support.html"
+    ],
+    "sourceHashes": {
+      "customer-order-complaint.js": "0bf0a56e86fdfe576b76f07f47c05eafd640cc128292c8db517610c5c95edd26",
+      "customer-order-complaint.css": "6b2a7216aa8360f0373132a2376bb6dc5edfc1d7d8b255447b709619df3f2e93",
+      "pages/customer-order-complaint.html": "875a57ce780592329b3ac7fb1c9509cd1f138604775c5c4aa9565a4207290086",
+      "order-exception-cases.js": "7310297b493079ac0f2779475849d5ac1e995d2449d65ac8c0ae920239f97439",
+      "pages/order-exceptions.html": "eeef1c5d6fb452cda1f7088d97431b0deaaf8989138ca05ae4cd522f94303aab",
+      "pages/support.html": "f8e1e4d3e2c9749e17e7589d1b3752d6cb5e5d71506441993e7975a4ff38fba7"
+    },
+    "candidateEntryHashes": {
+      "customer-order-complaint.js": "0bf0a56e86fdfe576b76f07f47c05eafd640cc128292c8db517610c5c95edd26",
+      "customer-order-complaint.css": "6b2a7216aa8360f0373132a2376bb6dc5edfc1d7d8b255447b709619df3f2e93",
+      "pages/customer-order-complaint.html": "875a57ce780592329b3ac7fb1c9509cd1f138604775c5c4aa9565a4207290086",
+      "order-exception-cases.js": "7310297b493079ac0f2779475849d5ac1e995d2449d65ac8c0ae920239f97439",
+      "pages/order-exceptions.html": "eeef1c5d6fb452cda1f7088d97431b0deaaf8989138ca05ae4cd522f94303aab",
+      "pages/support.html": "c0d299def55f7dbe9665e68a5ff2a1e49aa1027365045f9f4ecc8f4d4bf5b08b"
+    },
+    "baseChangedFileHashes": {
+      "order-exception-cases.js": "e6e82669dc085a7be545b4e07d76b761ac5cdeace9d666735585a546eaa21378",
+      "pages/order-exceptions.html": "aee8e55bf67da55c10b8e3ad6b040d5a0fe8e028e733e7a2f53ff180374efa9a",
+      "pages/support.html": "8dd82fc19b6c871bc91558d41f487bc2865f053203786711b6ca990d6906623f"
+    },
+    "unrelatedEntriesPreserved": true,
+    "publishedCaseWorkflowVersionReferencesPreserved": true
+  },
+  "customerApplication": "wizzuser-stg/frontend: new delivered-order complaint entry, existing support adapter, private image picker/receipt/view, decisions and appeal",
+  "iam": {
+    "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+    "policyName": "CustomerOrderComplaints341",
+    "readAndConditionalProofTables": [
+      "chat-sessions-staging",
+      "chat-messages-staging",
+      "support-attachments-staging",
+      "staging-WizzOfferJourney",
+      "WizzCentral_Platform_Discounts",
+      "WizzUser_users_staging",
+      "staging-PlatformStaff"
+    ],
+    "sessionWrite": {
+      "table": "chat-sessions-staging",
+      "action": "dynamodb:PutItem",
+      "leadingKeyPattern": "complaint_*"
+    },
+    "newFinancialPermissions": false,
+    "policyFile": "docs/customer-order-complaints-iam-341.json",
+    "readRestrictions": "No scans; complaint_* support session/message partitions, USER#* benefit proofs, exact case-policy/employee key families; other reads only private attachment, campaign and already-verified customer records."
+  },
+  "preservation": {
+    "existingFinancialExecutors": true,
+    "existingSupportService": true,
+    "lambdaConfigurations": true,
+    "unrelatedHostingFiles": true
+  },
+  "operationalLimits": [
+    "Closed complaint retention policy remains within X02; cleanup is conservatively blocked pending review, no arbitrary retention duration or purge.",
+    "Images use existing support availability and authorization; expired images are explicitly unavailable and may be resubmitted.",
+    "Cash refund and merchant/driver settled-money adjustments are not executed by complaint intake/decision. Customer remedy is a linked existing personal goods discount.",
+    "Human acceptance and native installation remain queued, not passed."
+  ],
+  "cloudChangesPerformed": false
+}

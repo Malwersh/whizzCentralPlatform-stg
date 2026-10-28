@@ -71,7 +71,8 @@
     "dispatch-followup.js",
     "dispatch-followup-core.js",
     "dispatch-followup-monitor.js",
-    "dispatch-followup-runtime.js"
+    "dispatch-followup-runtime.js",
+    "customer-order-complaints.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",

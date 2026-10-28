@@ -4,6 +4,7 @@ const TARGET='arn:aws:lambda:us-east-1:699561669180:function:staging-driver-fina
 async function invoke(accessToken,body,client=new LambdaClient({region:'us-east-1'})){
  if(typeof accessToken!=='string'||!accessToken)throw Object.assign(Error('UNAUTHORIZED'),{status:401});
  let action='exception_case_admin',input=body;
+ if(body?.caseKey==='CUSTOMER_POST_DELIVERY'){const {caseKey,caseId,...rest}=body;input=rest;action='staff_order_complaint';}
  if(body?.caseKey==='CUSTOMER_CASH_REVIEW'){
   const {caseKey,caseId,...rest}=body;input=rest;action='staff_cash_case';
  }

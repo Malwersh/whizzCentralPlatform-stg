@@ -1,3 +1,4 @@
+import {customerOrderComplaintHandler} from './customerOrderComplaintRuntime341';
 import {handler as driverCashPayoutHandler} from './driverCashPayoutRuntime';
 import {handler as driverQualityHandler} from './driverQualityDriverRuntime';
 import {handler as cancellationCompensationHandler} from './cancellationCompensation';
@@ -200,6 +201,7 @@ export async function readFinancialOffer(body:Row,accessToken:string){
  */
 export async function financialAcceptanceHandler(event:Row) {
  if(['driver_cash_payout','staff_driver_cash_payout'].includes(event?.action))return driverCashPayoutHandler(event);
+ if(['customer_order_complaint','staff_order_complaint'].includes(event?.action))return customerOrderComplaintHandler(event);
  if(event?.action==='driver_quality_case')return driverQualityHandler(event);
  if(event?.action==='cancellation_compensation')return cancellationCompensationHandler(event);
  if(event?.action==='merchant_handover')return merchantHandoverHandler(event);

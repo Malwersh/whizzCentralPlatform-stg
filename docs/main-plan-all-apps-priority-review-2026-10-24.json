@@ -205,12 +205,15 @@
         "ADMIN"
       ],
       "name": "شكوى مرتبطة بطلب مسلّم وصور وتذكرة وحالة وقرار وسبب وإعادة مراجعة",
-      "currentStatus": "P0_GAP_NOT_END_TO_END",
+      "currentStatus": "LOCAL_IMPLEMENTED_TESTED_STAGING_APPROVAL_REQUIRED_341",
       "priority": "P0-OPS",
-      "remaining": "توسعة الدعم الموجود إلى دورة شكوى مرتبطة بالطلب ومسؤول ومهلة وسلامة وقرار وتعويض؛ لا قناة دعم موازية",
+      "remaining": "جهزت دورة الشكوى المرتبطة بالطلب المسلّم ومحادثة الدعم والصور والمسؤول والمهل والقرار والتعويض الموجه والاعتراض. النشر متوقف حتى الموافقة الصريحة على نطاق IAM وخمس خدمات staging بعد رفض المراجعة الآلية. الاختبارات البشرية محفوظة ولم تسجل ناجحة. حفظ أدلة القضايا المغلقة مرتبط ببند X02؛ لا مدة حفظ أو حذف تلقائي جديدة.",
       "sourceOrEvidence": [
         "docs/cod-launch-execution-tracker.json",
-        "docs/finance-reference/master-implementation-v1.0-ar.txt"
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/customer-order-complaints-341.json",
+        "docs/customer-order-complaints-deployment-plan-341.json",
+        "docs/customer-order-complaints-human-acceptance-341.csv"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -224,7 +227,7 @@
       "name": "ربط التعويض الموجه القائم بصاحب الطلب والقضية وحالة الاستخدام",
       "currentStatus": "PUBLISHED_HUMAN_ACCEPTANCE_PENDING",
       "priority": "P0-OPS",
-      "remaining": "اختبار منحة موجودة مؤهلة في قضية مفتوحة؛ توسيع ربطها بشكوى ما بعد التسليم عند تنفيذC05، دون اعتبارها رد نقد",
+      "remaining": "اختبار منحة موجودة مؤهلة في قضية مفتوحة؛ توسيع ربطها بشكوى ما بعد التسليم عند تنفيذC05، دون اعتبارها رد نقد جهز ربط الخصم بقيمة قرار C05 محليًا مع منع الإغلاق قبل إثبات المنحة؛ النشر والاختبار البشري لم يكتملَا.",
       "sourceOrEvidence": [
         "docs/customer-benefit-compensation-verification-252.json",
         "backend/staff-service/customer-benefit-compensation.js"
@@ -1252,10 +1255,11 @@
       "name": "الحذف والاحتفاظ وأرشفة الأدلة وحواجز الأموال والجلسات القديمة",
       "currentStatus": "PUBLISHED_FOUNDATION_NEW_ENTITY_COVERAGE_AUDIT",
       "priority": "P0-OPS",
-      "remaining": "تغطيةالقضاياوالمنحوالمتابعاتوالصوروالنياتالجديدةوالمهامالمعلقةبعدالتحديثات؛ لا حذفبشريآليللاختبار",
+      "remaining": "تغطيةالقضاياوالمنحوالمتابعاتوالصوروالنياتالجديدةوالمهامالمعلقةبعدالتحديثات؛ لا حذفبشريآليللاختبار يشمل ذلك قضايا ما بعد التسليم وأدلة الصور في C05؛ يمنع النشر المقترح تنظيف الحساب إلى حين مراجعة الحفظ، ولا يضع مدة احتفاظ تلقائية جديدة.",
       "sourceOrEvidence": [
         "docs/account-deletion-audit-and-plan.md",
-        "docs/account-deletion-retention-operations.md"
+        "docs/account-deletion-retention-operations.md",
+        "docs/customer-order-complaints-341.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -3051,6 +3055,14 @@
       "evidence": "docs/dispatch-followup-340.json",
       "humanAcceptance": "DEFERRED_ORDERED_NOT_PASSED",
       "next": "C05_COMPLETED_ORDER_COMPLAINT_EXISTING_SUPPORT"
+    },
+    {
+      "id": "CUSTOMER_ORDER_COMPLAINTS_341",
+      "status": "LOCAL_IMPLEMENTED_TESTED_STAGING_APPROVAL_REQUIRED",
+      "evidence": "docs/customer-order-complaints-341.json",
+      "humanAcceptance": "DEFERRED_ORDERED_NOT_PASSED",
+      "cloudChanged": false,
+      "blockedBy": "Explicit IAM and five-Lambda staging publication approval after automatic review rejection"
     }
   ],
   "orderedDeferredDriverAcceptance": {
