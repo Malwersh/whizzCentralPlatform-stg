@@ -1,0 +1,80 @@
+{
+  "status": "UPDATE_COMPLETE",
+  "userApproval": "EXPLICIT_STAGING_INFRASTRUCTURE_APPROVAL_RECEIVED",
+  "stack": "staging-driver-performance-projection",
+  "changeSet": "projection-291-20261025154100",
+  "changeSetArn": "arn:aws:cloudformation:us-east-1:699561669180:changeSet/projection-291-20261025154100/8967f3a1-36ee-407d-a7ce-2614b81ca7c9",
+  "sourceStreams": {
+    "WaveOffers_staging": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging/stream/2026-01-02T06:19:13.779",
+    "WizzOrders": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders/stream/2026-10-09T16:02:28.064",
+    "staging-Holds": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds/stream/2026-10-25T15:40:12.450",
+    "WhizzDrivers_staging": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging/stream/2026-10-11T20:48:06.808",
+    "whizz-order-ratings-staging": "arn:aws:dynamodb:us-east-1:699561669180:table/whizz-order-ratings-staging/stream/2026-10-25T15:40:35.441"
+  },
+  "thirdOrderStreamReaderAdded": false,
+  "sourceBusinessWrites": 0,
+  "resources": [
+    {
+      "id": "Failures",
+      "type": "AWS::SQS::Queue"
+    },
+    {
+      "id": "ProjectionCollectorDrivers",
+      "type": "AWS::Lambda::EventSourceMapping"
+    },
+    {
+      "id": "ProjectionCollectorEventInvokeConfig",
+      "type": "AWS::Lambda::EventInvokeConfig"
+    },
+    {
+      "id": "ProjectionCollectorHolds",
+      "type": "AWS::Lambda::EventSourceMapping"
+    },
+    {
+      "id": "ProjectionCollectorOffers",
+      "type": "AWS::Lambda::EventSourceMapping"
+    },
+    {
+      "id": "ProjectionCollectorRatings",
+      "type": "AWS::Lambda::EventSourceMapping"
+    },
+    {
+      "id": "ProjectionCollectorRole",
+      "type": "AWS::IAM::Role"
+    },
+    {
+      "id": "ProjectionCollector",
+      "type": "AWS::Lambda::Function"
+    },
+    {
+      "id": "ProjectionWorkerReconcilePermission",
+      "type": "AWS::Lambda::Permission"
+    },
+    {
+      "id": "ProjectionWorkerReconcile",
+      "type": "AWS::Events::Rule"
+    },
+    {
+      "id": "ProjectionWorkerRole",
+      "type": "AWS::IAM::Role"
+    },
+    {
+      "id": "ProjectionWorkerWork",
+      "type": "AWS::Lambda::EventSourceMapping"
+    },
+    {
+      "id": "ProjectionWorker",
+      "type": "AWS::Lambda::Function"
+    },
+    {
+      "id": "Snapshots",
+      "type": "AWS::DynamoDB::Table"
+    },
+    {
+      "id": "WorkQueue",
+      "type": "AWS::SQS::Queue"
+    }
+  ],
+  "verifiedAt": "2026-10-25T16:22:07.822126+00:00",
+  "orderForwardReady": true
+}

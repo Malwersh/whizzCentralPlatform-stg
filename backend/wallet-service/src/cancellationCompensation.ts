@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {CognitoIdentityProviderClient} from '@aws-sdk/client-cognito-identity-provider';
@@ -32,7 +33,7 @@ export function createCancellationCompensation({db,authority,now=Date.now}:any){
  for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+order.storeId,'ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId])guards.push({ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}});
  let allocation:Row,offerDigest:string,subjectId:string|null=null,driverFareCap=0;
  if(order.financialAcceptance){
-  const offerKey={orderId:v.orderId,SK:`FINANCIAL#${order.driverId}#WAVE#${order.assignmentWaveNumber}`},offer=await strongGet(db,'WaveOffers_staging',offerKey),archiveKey={orderId:v.orderId,sk:'ASSIGNMENT_RELEASE#'+order.assignmentAttemptCounter},archive=await strongGet(db,H,archiveKey);
+  const offerKey={orderId:v.orderId,SK:await financialOfferSK(db,v.orderId,order.driverId,order.assignmentWaveNumber)},offer=await strongGet(db,'WaveOffers_staging',offerKey),archiveKey={orderId:v.orderId,sk:'ASSIGNMENT_RELEASE#'+order.assignmentAttemptCounter},archive=await strongGet(db,H,archiveKey);
   if(!archive||archive.outcome!=='CANCELLED'||archive.operationId!==outcome.operationId||archive.driverId!==order.driverId||archive.offerId!==order.financialAcceptance.offerId||archive.releasedHold?.holdId!==hold?.holdId||!quoteEntityIdValid(archive.subjectId))return fail('CANCEL_COMPENSATION_SOURCE_REQUIRED');
   const driverKey={driverId:order.driverId},driver=await strongGet(db,'WhizzDrivers_staging',driverKey);if(!driver||(driver.cognitoSub||driver.driverId)!==archive.subjectId||driver.deletedAt!=null||driver.deletionRequestId!=null||driver.isDeleted===true)return fail('CANCEL_COMPENSATION_SOURCE_REQUIRED');guards.push(exactCheck('WhizzDrivers_staging',driverKey,driver,[...new Set([...Object.keys(driver),'deletedAt','deletionRequestId','isDeleted'])]));for(const pk of new Set(['ACCOUNT_LIFECYCLE#DRIVER#'+order.driverId,'ACCOUNT_LIFECYCLE#DRIVER#'+archive.subjectId]))guards.push({ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}});
   const verified=verifyFullCashAssignment(order,offer!,archive.subjectId);allocation=verified.settlement.allocation;offerDigest=verified.digest;subjectId=archive.subjectId;driverFareCap=toWholeIqdExact(allocation.driverEarningEntitlement);guards.push(exactCheck('WaveOffers_staging',offerKey,offer!),exactCheck(H,archiveKey,archive));

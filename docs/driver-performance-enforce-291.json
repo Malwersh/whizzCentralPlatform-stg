@@ -1,0 +1,21 @@
+{
+  "userRequestedImmediateEnforcement": true,
+  "source": "DriverPerformanceSnapshots_staging",
+  "thresholdSource": "captured central operational settings",
+  "thresholdsChanged": false,
+  "functions": [
+    {
+      "name": "WaveSystem_StartWave",
+      "mode": "ENFORCE",
+      "hash": "Y4KUsfsAhtgmk+ftWxKA2m+IRNrHBZn/KG8mp7Xlc7Q=",
+      "capturedRuntimeTests": 15
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "mode": "ENFORCE",
+      "hash": "eT09SBMwoAO+g+mIZFNYFEn2HZoTk2N+QqNRI5o2Js0=",
+      "capturedRuntimeTests": 15
+    }
+  ],
+  "verifiedAt": "2026-10-25T16:31:36.009780+00:00"
+}

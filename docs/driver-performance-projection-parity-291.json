@@ -1,0 +1,15 @@
+{
+  "status": "LIVE_SOURCE_PARITY_PASSED_LOCAL_PROJECTION_ONLY",
+  "driverId": "34d8e408-1021-7076-6055-7325644f97cb",
+  "asOf": "2026-10-25T15:36:16.112Z",
+  "sourceReadRequests": 151,
+  "awsWrites": 0,
+  "awsProjectionTableCreated": false,
+  "acceptanceRate": 0.92,
+  "completionRate": 0.95,
+  "consecutiveRejections": 1,
+  "rejectionCoverageComplete": true,
+  "computedPayloadBytes": 3206,
+  "detailBytes": 14567,
+  "apiAndWaveReadSameValues": true
+}

@@ -9,7 +9,7 @@ test('preview reads selected evidence consistently, checks authorization twice a
  const {f}=await proof({platform:1000}),r=reader(f),before=JSON.stringify([...f.rows]),calls=f.calls.length;
  const p=await r.preview(request);assert.equal(r.checks(),2);assert.equal(p.summary.amounts.merchantNet.minorAmount,9000000);
  assert.equal(p.coverage,'EXPLICIT_ORDER_SELECTION_ONLY');assert.equal(p.canPay,false);assert.equal(p.canReserve,false);
- assert.equal(JSON.stringify([...f.rows]),before);assert.equal(f.calls.length-calls,4);
+ assert.equal(JSON.stringify([...f.rows]),before);assert.equal(f.calls.length-calls,5);
  assert.ok(f.calls.slice(calls).every(c=>c.constructor.name==='GetCommand'&&c.input.ConsistentRead===true));
  assert.deepEqual(await r.preview(request),p);
 });

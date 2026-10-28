@@ -48,6 +48,7 @@ resources:
       UpdateReplacePolicy: Retain
       Properties:
         TableName: whizz-order-ratings-${self:provider.stage}
+        StreamSpecification: {StreamViewType: NEW_AND_OLD_IMAGES}
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - {AttributeName: pk, AttributeType: S}

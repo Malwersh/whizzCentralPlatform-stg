@@ -137,7 +137,7 @@ window.RBAC = {
             if(['pricing.html','delivery-pricing.html'].includes(pageName))return this.staff.permissions.includes('pricing.read');
             if(['merchants.html','promotions.html'].includes(pageName)&&this.staff.permissions.includes('commercial.read'))return true;
             if(pageName==='settings.html')return this.staff.permissions.includes('settings.read')||this.staff.permissions.includes('finance.read');
-            const permission={'staff.html':'staff.read','finance.html':'finance.read','financial-management.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read'}[pageName];
+            const permission={'staff.html':'staff.read','finance.html':'finance.read','financial-management.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read','regions.html':'regions.read'}[pageName];
             return pageName==='account-security.html'||pageName==='index.html'||(!!permission&&this.staff.permissions.includes(permission));
         }
         console.log('🔍 Checking page access for:', pageName);

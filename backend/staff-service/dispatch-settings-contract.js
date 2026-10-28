@@ -41,7 +41,7 @@ function integer(value, min, max) {
 }
 function validateDispatchPolicy(value) {
   const root = object(value, ["schemaVersion", "performanceMode", "profiles"]);
-  if (root.schemaVersion !== 2 || root.performanceMode !== "LEGACY_METRICS") return invalid();
+  if (root.schemaVersion !== 2 || !["LEGACY_METRICS","VERIFIED_SNAPSHOT_V1"].includes(root.performanceMode)) return invalid();
   const profiles = object(root.profiles, ["LEGACY", "FINANCIAL"]);
   for (const engine of ["LEGACY", "FINANCIAL"]) {
     const p = object(profiles[engine], ["normalWaves", "offerTtlSeconds", "waveDurationSeconds", "totalDispatchSeconds", "reassignmentWindowSeconds", "positionMaxAgeSeconds", "newDriverExemption", "repeatOffers", "recovery"]);

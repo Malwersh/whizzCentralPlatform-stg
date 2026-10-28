@@ -1,0 +1,1 @@
+{"Version":"2012-10-17","Statement":[{"Sid":"ReadOnlyDriverMapSettings","Effect":"Allow","Action":"dynamodb:GetItem","Resource":"arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff","Condition":{"ForAllValues:StringEquals":{"dynamodb:LeadingKeys":["OPERATIONAL_SETTINGS#DRIVER_MAP_TOOLS"]}}}]}

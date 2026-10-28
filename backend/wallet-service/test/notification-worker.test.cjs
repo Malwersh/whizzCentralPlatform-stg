@@ -73,3 +73,11 @@ test('dispatch closure uses existing sender with stable remove-offer event and n
 test('dispatch notice gate is independent from COD and deletion suppresses delivery',async()=>{const off=await dispatchNotice({mode:'OFF'});assert.equal(off.sends.length,0);assert.equal(off.writes.at(-1).ExpressionAttributeValues[':status'],'PENDING');for(const option of [{deleted:true},{marker:true}]){const f=await dispatchNotice(option);assert.equal(f.sends.length,0);assert.equal(f.writes.at(-1).ExpressionAttributeValues[':status'],'SUPPRESSED');}});
 
 test('a notice for an order outside the cohort is skipped before taking a lease or contacting the provider',async()=>{const f=await runCod({orderId:'foreign'});assert.equal(f.sends.length,0);assert.equal(f.error,undefined);assert.ok(!f.writes.some(q=>q.UpdateExpression));});
+test('driver payout notice refreshes wallet and suppresses a closing driver account',async()=>{
+ for(const closing of [false,true]){
+  const sends=[],writes=[],notice={...item(),eventId:'DRIVER_PAYOUT#test#2',type:'wallet_cash_payout',payoutId:'DPO:'+'a'.repeat(48)};
+  const client={send:async c=>{const q=c.input;writes.push(q);if(c.constructor.name==='GetCommand'){if(q.TableName==='WhizzDrivers_staging')return {Item:{driverId:'driver',cognitoSub:'driver'}};if(q.TableName==='staging-AccountDeletion')return {Item:closing?{pk:'closing'}:undefined};return {Item:notice};}if(c.constructor.name==='UpdateCommand'&&q.ReturnValues)return {Attributes:notice};if(c.constructor.name==='QueryCommand')return {Items:[{app:'driver',token:'driver-token'}]};return {};}};
+  await createWorker(client,async()=>({send:async m=>sends.push(m)}),()=>1700000000000).processEvent(notice.eventId);
+  assert.equal(sends.length,closing?0:1);if(!closing)assert.equal(sends[0].data.action,'open_wallet');
+ }
+});

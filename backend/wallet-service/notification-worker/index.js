@@ -16,6 +16,12 @@ async function getMessaging(){
 }
 const digest=token=>createHash('sha256').update(token).digest('hex');
 async function codNoticeAllowed(client,item,at){
+ if(item.type==='wallet_cash_payout'){
+  if(typeof item.driverId!=='string'||!/^[A-Za-z0-9_-]{1,150}$/.test(item.driverId)||!/^DPO:[a-f0-9]{48}$/.test(item.payoutId||''))return false;
+  const {Item:driver}=await client.send(new GetCommand({TableName:'WhizzDrivers_staging',Key:{driverId:item.driverId},ConsistentRead:true,ProjectionExpression:'driverId,cognitoSub,isDeleted,deletedAt,deletionRequestId'}));
+  if(!driver||(driver.cognitoSub??driver.driverId)!==item.driverId||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null)return false;
+  return !(await client.send(new GetCommand({TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+item.driverId,sk:'META'},ConsistentRead:true,ProjectionExpression:'pk,sk'}))).Item;
+ }
  const dispatch=item.type==='dispatch_offer_closed';
  if(item.type!=='wallet_cod_lifecycle'&&!dispatch)return true;
  const mode=dispatch?process.env.DISPATCH_RESPONSE_NOTIFICATIONS_MODE:process.env.FINANCIAL_COD_NOTIFICATIONS_MODE;

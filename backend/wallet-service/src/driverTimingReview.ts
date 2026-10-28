@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal} from './driverFinancialTransaction';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
@@ -24,7 +25,7 @@ export function createDriverTimingReview(options:{db:Pick<DynamoDBDocumentClient
   const ok={PK:'ORDER#'+v.orderId,SK:'META'},ck={orderId:v.orderId,sk:'DRIVER_SERVICE#'+v.attempt};
   const order=await strongGet(db,'WizzOrders',ok),row=await strongGet(db,'staging-Holds',ck);
   if(!order||order.orderId!==v.orderId||order.deletedAt!=null||order.deletionRequestId!=null||order.isDeleted===true||order.assignmentAttemptCounter!==v.attempt||!quoteEntityIdValid(order.driverId)||!quoteEntityIdValid(order.financialAcceptance?.offerId)||!Number.isSafeInteger(order.assignmentWaveNumber)||!['delivered','completed'].includes(order.status)||order.walletFinancialStatus!=='SETTLED'||!order.financialOutcome)return fail('DRIVER_TIMING_ATTEMPT_UNAVAILABLE');
-  const fk={orderId:v.orderId,SK:'FINANCIAL#'+order.driverId+'#WAVE#'+order.assignmentWaveNumber},offer=await strongGet(db,'WaveOffers_staging',fk);
+  const fk={orderId:v.orderId,SK:await financialOfferSK(db,v.orderId,order.driverId,order.assignmentWaveNumber)},offer=await strongGet(db,'WaveOffers_staging',fk);
   if(!offer||offer.kind!=='FINANCIAL_DRIVER_OFFER'||offer.schemaVersion!==2||offer.orderId!==v.orderId||offer.driverId!==order.driverId||offer.offerId!==order.financialAcceptance.offerId||offer.responseStatus!=='financial_accepted'||offer.isWinner!==true||offer.financialReceipt?.success!==true||offer.financialReceipt.assignmentAttempt!==v.attempt||offer.financialReceipt.offerId!==offer.offerId||offer.financialReceipt.driverId!==offer.driverId||offer.financialReceipt.orderId!==offer.orderId)return fail('DRIVER_TIMING_ATTEMPT_UNAVAILABLE');
   const at=new Date(now()).toISOString(),observation=classifyTiming(offer,order,at),fingerprint=sourceFingerprint(offer,order);
   if(row&&(row.kind!=='DRIVER_SERVICE_REVIEW'||row.schemaVersion!==1||row.dimension!=='TIMING'||row.orderId!==v.orderId||row.driverId!==order.driverId||row.offerId!==offer.offerId||row.attempt!==v.attempt||!uuid(row.caseId)))return fail();

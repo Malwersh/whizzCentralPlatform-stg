@@ -3,7 +3,9 @@ function runtime(mode,model){
  const trace=[],seen=[],db={},factory=(name,service)=>o=>{seen.push({name,options:o});return ['return','reassign','continuation'].includes(name)?Object.fromEntries(Object.entries(service).map(([k,f])=>[k,async(...args)=>{await o.authenticate();return f(...args);}])):service;};
  const result={},noop=()=>{},methods={run:async()=>({}),accept:async()=>({}),decline:async()=>({}),complete:async()=>({}),requestReturn:async()=>({}),arriveReturn:async()=>({}),readReturn:async()=>({}),confirmReceipt:async()=>({}),cancelBeforePickup:async()=>({}),unassign:async()=>({}),exhaust:async()=>({}),expire:async()=>({})};
  const operating={version:1,values:{driverOfferTtlSeconds:60,driverPositionMaxAgeSeconds:120,reassignmentWindowSeconds:120,maximumWaves:4},condition:null};
+ const unsupported=()=>{throw Error('UNEXPECTED_UNRELATED_RUNTIME_CALL');};
  const modules={
+ './driverQualityDriverRuntime':{handler:unsupported},'./cancellationCompensation':{handler:unsupported},'./merchantHandover':{handler:unsupported},'./staffOrderManagement':{handler:unsupported},
  './returnContinuation':{createReturnContinuation:factory('continuation',{execute:async()=>({})})},
  './returnCustody':{createReturnCustodyReconciler:()=>async()=>({closed:false})},
  './returnOperations':{createReturnOperations:()=>({}),createReturnRoadRouter:()=>({})},

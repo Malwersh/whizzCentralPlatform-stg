@@ -1,0 +1,1 @@
+{"name":"wizz-driver-performance-projection","private":true,"version":"1.0.0","scripts":{"test":"node --test test/*.test.cjs"},"dependencies":{"@aws-sdk/client-lambda":"^3.896.0","@aws-sdk/client-cloudwatch":"^3.896.0","@aws-sdk/client-sqs":"^3.896.0","@aws-sdk/client-dynamodb":"^3.896.0","@aws-sdk/lib-dynamodb":"^3.896.0","@aws-sdk/util-dynamodb":"^3.896.0"}}

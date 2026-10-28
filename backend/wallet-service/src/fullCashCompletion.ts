@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {settlePlatformBenefit} from './platformBenefits';
 import {cashReportsDigest,cashAdjudicationAdjustment} from './cashAdjudication';
 import {prepareMerchantAccrualIndex} from './merchantAccrualIndex';
@@ -86,7 +87,7 @@ export function createFullCashCompletion(options: {
         order.assignmentAttemptCounter > 1000 || order.financialAcceptance?.paymentMethod !== 'COD' ||
         [...(administrative?[]:['openPaymentClaimId']), 'financialOutcome', 'returnStatus', 'returnCaseId', 'cancellationStatus', 'cancellationRequestId',
           'deletionStatus', 'deletionRequestId', 'deletedAt'].some(k => order[k] != null) || order.isDeleted === true) return fail();
-    const offerKey = { orderId, SK: `FINANCIAL#${actor.driverId}#WAVE#${order.assignmentWaveNumber}` };
+    const offerKey = { orderId, SK: await financialOfferSK(db,orderId,actor.driverId,order.assignmentWaveNumber) };
     const saved = await strongGet(db, T.offers, offerKey);
     if (!saved || saved.orderId !== orderId || saved.driverId !== actor.driverId || saved.SK !== offerKey.SK) return fail();
     const offer = verifyFullCashAssignment(order, saved, actor.subjectId), a = offer.settlement.allocation;

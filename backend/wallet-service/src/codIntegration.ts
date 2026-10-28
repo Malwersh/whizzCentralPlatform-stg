@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import { DynamoDBDocumentClient, QueryCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { COD_EVENT_KINDS, COD_INTEGRATION_QUEUE, codIntegrationEvent, codAcceptanceOperation, CodIntegrationInput } from './codIntegrationEvent';
 import { equal, exactCheck, strongGet, updateChecked, FinancialRow as Row } from './driverFinancialTransaction';
@@ -132,7 +133,7 @@ export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocument
     try {
       const acceptance = saved.kind === 'COD_ACCEPTANCE_OUTBOX';
       const journalTable = acceptance ? T.offers : T.holds;
-      const journalKey: Row = acceptance ? {orderId:saved.orderId,SK:`FINANCIAL#${saved.driverId}#WAVE#${saved.waveNumber}`} : { orderId: saved.orderId, sk: saved.kind === 'COD_UNASSIGN_OUTBOX' ? 'ASSIGNMENT_RELEASE#' + saved.attempt : 'FINANCIAL_OUTCOME' };
+      const journalKey: Row = acceptance ? {orderId:saved.orderId,SK:await financialOfferSK(db,saved.orderId,saved.driverId,saved.waveNumber)} : { orderId: saved.orderId, sk: saved.kind === 'COD_UNASSIGN_OUTBOX' ? 'ASSIGNMENT_RELEASE#' + saved.attempt : 'FINANCIAL_OUTCOME' };
       const journal = await strongGet(db, journalTable, journalKey);
       const orderKey = { PK: 'ORDER#' + saved.orderId, SK: 'META' }, order = await strongGet(db, T.orders, orderKey);
       const driverKey = { driverId: saved.driverId }, driver = await strongGet(db, T.drivers, driverKey);
@@ -212,7 +213,7 @@ export function createStagingCodIntegration(options: { db: Pick<DynamoDBDocument
         ExpressionAttributeValues: { ':queue': COD_INTEGRATION_QUEUE, ':now': Math.floor(now() / 1000) }, Limit: 25, ExclusiveStartKey: cursor }));
       for (const row of result.Items ?? []) {
         try { const result = await processEvent(row.operationId); if (result.status === 'INTEGRATION_REVIEW_REQUIRED') review++; }
-        catch { failed++; /* Continue the batch; scheduler summary exposes unresolved entries. */ }
+        catch (error:any) { failed++; console.error('COD_INTEGRATION_EVENT_FAILED',JSON.stringify({name:error?.name,code:error?.code,message:String(error?.message??'').replace(/[A-Za-z0-9_+\/=:.\-]{90,}/g,'[long-value]').slice(0,300)})); }
         processed++;
       }
       cursor = result.LastEvaluatedKey; if (!cursor) break;

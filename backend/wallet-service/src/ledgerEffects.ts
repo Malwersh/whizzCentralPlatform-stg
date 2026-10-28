@@ -1,7 +1,7 @@
 /** Read-only interpretation of the entry shapes produced by this service.
  * Unknown or contradictory shapes remain unclassified; no ledger is rewritten.
  */
-export const EFFECT_RULE_VERSION = 'LEDGER_EFFECTS_V7';
+export const EFFECT_RULE_VERSION = 'LEDGER_EFFECTS_V8';
 type Bucket = 'AVAILABLE' | 'LOCKED';
 type Effect = {status:'CLASSIFIED';bucket:Bucket;delta:number} | {status:'UNCLASSIFIED';reason:'UNKNOWN_SHAPE'|'INVALID_VALUES'};
 export function ledgerEffect(row:Record<string,any>):Effect {
@@ -30,6 +30,12 @@ export function ledgerEffect(row:Record<string,any>):Effect {
     if(row.balance!==undefined&&(!validBalance||beforeAfter&&row.balance!==row.balanceAfter))return invalid;
     return {status:'CLASSIFIED',bucket,delta};
   }
+  if(['DRIVER_PAYOUT_RESERVED','DRIVER_PAYOUT_RELEASED','DRIVER_PAYOUT_PAID'].includes(row.category)) {
+    const m=row.metadata,bucket=m?.balanceType;
+    if(m?.financialSchemaVersion!==1||!['AVAILABLE','LOCKED'].includes(bucket)||row.relatedEntityType!=='DRIVER_PAYOUT'||row.walletId!=='WALLET#DRIVER#'+m.driverId||!/^DPO:[a-f0-9]{48}$/.test(m.payoutId||'')||row.relatedEntityId!==m.payoutId||!/^DPC:[a-f0-9-]{36}$/.test(row.transactionId||'')||row.type!==(amount>0?'CREDIT':'DEBIT')||!String(row.sk).endsWith('#'+bucket+'#'+row.transactionId.slice(4)))return invalid;
+    const validSign=row.category==='DRIVER_PAYOUT_RESERVED'?(bucket==='AVAILABLE'?amount<0:amount>0):row.category==='DRIVER_PAYOUT_RELEASED'?(bucket==='AVAILABLE'?amount>0:amount<0):bucket==='LOCKED'&&amount<0;
+    return validSign?result(bucket,amount,true):invalid;
+  }
   if(['COD_COMPLETED','COD_RETURN_RELEASED','COD_ASSIGNMENT_RELEASED'].includes(row.category)){
     const bucket=row.metadata?.balanceType,operation=row.metadata?.operationId;
     if(![2,3].includes(row.metadata?.financialSchemaVersion)||!['AVAILABLE','LOCKED'].includes(bucket)||
@@ -54,6 +60,11 @@ export function ledgerEffect(row:Record<string,any>):Effect {
   if(row.category==='PLATFORM_FEE'){
     if(amount<0||!['DEBIT','CREDIT'].includes(row.type))return invalid;
     return result('AVAILABLE',row.type==='DEBIT'?-amount:amount,true);
+  }
+  if(row.category==='HOLD_CREATED'&&row.relatedEntityType==='HOLD'&&[2,4].includes(row.metadata?.financialSchemaVersion)){
+    const m=row.metadata,bucket=m.balanceType,id=m.holdId;
+    if(!['AVAILABLE','LOCKED'].includes(bucket)||typeof id!=='string'||!(m.financialSchemaVersion===4?/^FCH:[a-f0-9]{48}$/:/^FH:[a-f0-9]{48}$/).test(id)||row.transactionId!==id||row.relatedEntityId!==m.orderId||!String(row.sk).endsWith('#'+bucket+'#'+id)||row.type!==(bucket==='LOCKED'?'CREDIT':'DEBIT')||!(bucket==='LOCKED'?amount>0:amount<0))return invalid;
+    return result(bucket,amount,true);
   }
   if(row.category==='HOLD_CREATED'&&row.relatedEntityType==='HOLD'){
     if(row.type==='DEBIT'&&amount<0&&typeof row.transactionId==='string'&&row.transactionId.length>0&&typeof row.sk==='string'&&row.sk.endsWith('#HOLD_DEBIT#'+row.transactionId))return result('AVAILABLE',amount,true);

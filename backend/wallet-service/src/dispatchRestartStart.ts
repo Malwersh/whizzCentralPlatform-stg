@@ -35,7 +35,7 @@ export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocum
    const guards:Row[]=[exactCheck(JOBS,jobKey,job),exactCheck(ORDERS,orderKey,order,[...new Set([...Object.keys(order),'deletedAt','deletionStatus','isDeleted','deletionRequestId'])])];
    if(job.dispatchJobId!==row!.assignmentId||job.dispatchRestart?.restartId!==restartId||order.deliveryJobId!==row!.assignmentId)return {stale:true,guards};
    const cycle=validateDispatchCycle(job.dispatchCycle);
-   if(cycle.engine!==engine||(row!.engine??'LEGACY')!==engine||cycle.keyVersion!==2||cycle.id!==row!.cycleId||cycle.digest!==row!.cycleDigest||cycle.assignmentId!==row!.assignmentId||cycle.orderId!==orderId||job.restaurantId!==row!.branchId)return fail();
+   if(cycle.engine!==engine||(row!.engine??'LEGACY')!==engine||![2,3].includes(cycle.keyVersion??0)||cycle.id!==row!.cycleId||cycle.digest!==row!.cycleDigest||cycle.assignmentId!==row!.assignmentId||cycle.orderId!==orderId||job.restaurantId!==row!.branchId)return fail();
    const decisionKey={pk:'DISPATCH_REVIEW#'+row!.caseId,sk:'DECISION'},decision=await strongGet(db,'staging-PlatformStaff',decisionKey);
    if(!decision||decision.status!=='EXECUTED'||decision.resultCode!=='SEARCH_RESTART_QUEUED'||decision.requestId!==row!.requestId||decision.receipt?.restartId!==restartId||decision.receipt?.cycleId!==cycle.id||decision.receipt?.assignmentId!==cycle.assignmentId)return fail();
    guards.push(exactCheck('staging-PlatformStaff',decisionKey,decision));

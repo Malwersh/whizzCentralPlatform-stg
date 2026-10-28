@@ -47,3 +47,13 @@ test('competing legacy executors cannot both own delivery and an expired lease c
  const f=await setup();const result=await Promise.allSettled([f.run('one'),f.run('two')]);assert.equal(result.filter(r=>r.status==='fulfilled'&&r.value.action==='LEASE_BUSY').length,1);assert.equal(f.sent.length,2);
  const g=await setup();g.send=async(id,message)=>{g.sent.push({id,message});g.time+=11000;};await assert.rejects(g.run());assert.equal(g.sent.length,1);assert.deepEqual(g.wave().delivered,[]);
 });
+test('a pre-cutover pending legacy offer cannot create a reservation after vehicle review',async()=>{
+ const f=await setup();await f.run();const core=require('../../shared/driver-vehicles-308'),p=f.get('WhizzDrivers_staging',{driverId:'driver1'});
+ Object.assign(p,{vehicleType:'car',vehiclePlate:'308',work_region_id:'zone1',registrationPaperUrl:'reg',drivingLicenseUrl:'license',nationalIdUrl:'id'});
+ const review=documentUrl=>({status:'APPROVED',documentUrl,reviewedBy:'admin',reviewedAt:new Date(f.time).toISOString(),expiresAt:'2027-01-01T21:00:00.000Z',reason:'verified'});
+ const v={id:'v',type:'car',plateNumber:'308',make:'',model:'',color:'',registrationUrl:'reg'};v.review={...review('reg'),fingerprint:core.fingerprint(v)};
+ p.vehicleRegistry={schemaVersion:1,version:1,activeId:'v',items:{v},events:[]};p.personalDocumentReview={drivingLicense:review('license'),nationalId:review('id')};
+ const service=createStagingLegacyResponses({db:f.db,now:()=>f.time,authenticateDriver:async()=>({driverId:'driver1',subjectId:'driver1'})});
+ await assert.rejects(service.inspect({orderId:'order1',offerId:f.offer('driver1').offerId,waveNumber:1}),/LEGACY_DRIVER_UNAVAILABLE/);
+ assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'HOLD'}),undefined);
+});

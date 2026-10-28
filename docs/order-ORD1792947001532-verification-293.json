@@ -1,0 +1,81 @@
+{
+  "orderNumber": "ORD1792947001532",
+  "orderId": "90b60570-c1ed-5b7b-8df0-d408769657a7",
+  "status": "delivered",
+  "financialOutcome": "FCS:ce67fff3c569a316074e830e2df68ee9072b1c6b33977e5c",
+  "settlement": "POSTED_BALANCED",
+  "cashCollectedIqd": 17000,
+  "driverCashEarningIqd": 1500,
+  "settledCollateralIqd": 15500,
+  "merchantPayableIqd": 11250,
+  "merchantPayableStatus": "LOCKED_PENDING_SETTLEMENT",
+  "platformNetContributionIqd": 4250,
+  "ledgerEntriesVerified": 2,
+  "merchantAccrualVerified": true,
+  "completionIntegration": {
+    "status": "INTEGRATED",
+    "keys": [
+      "integrationSchemaVersion",
+      "notificationEventId",
+      "integrationAttempts",
+      "integrationVersion",
+      "integratedAt"
+    ]
+  },
+  "performance": {
+    "acceptanceRate": 0.9230769230769231,
+    "completionRate": 0.9523809523809523,
+    "acceptance": {
+      "windowComplete": true,
+      "declined": 2,
+      "unconfirmedExcluded": 6,
+      "accepted": 24,
+      "expiredDelivered": 0,
+      "sampleSize": 26,
+      "withdrawnExcluded": 0,
+      "basis": "VERIFIED_RESPONSES_AND_DEVICE_DISPLAYED_TIMEOUTS"
+    },
+    "completion": {
+      "reviewExcluded": 3,
+      "windowComplete": true,
+      "inProgress": 0,
+      "noFaultExcluded": 0,
+      "acceptedCommitments": 24,
+      "completed": 19,
+      "driverFailures": 1,
+      "returned": 1,
+      "sampleSize": 21
+    },
+    "consecutiveRejections": 0,
+    "version": 84,
+    "computedAt": "2026-10-25T16:51:28.622Z"
+  },
+  "driverAvailable": true,
+  "wave": 1,
+  "websocketAccepted": true,
+  "pushAccepted": false,
+  "sourceBusinessWrites": 0,
+  "audio": {
+    "humanTest292": "FAILED_FOREGROUND",
+    "release293": "INSTALLED_AND_LAUNCHED_AUDIBILITY_PENDING",
+    "testControl": "المزيد ← اختبار صوت العروض"
+  },
+  "push": {
+    "previousReceipt": false,
+    "fixPublication": "docs/wave-push-timeout-publication-293.json",
+    "timeoutMs": 8000,
+    "newOrderUat": "PENDING"
+  },
+  "followup": {
+    "issue": "FCS event-prefix missing in role LeadingKeys",
+    "policyFix": "docs/cod-integration-fcs-policy-293.json",
+    "result": "INTEGRATED",
+    "financialReplay": false
+  },
+  "deferredInThisAcceptedOrder": [
+    "Rejection impact human check",
+    "Displayed expiry counting",
+    "Background sound"
+  ],
+  "checkedAt": "2026-10-25T17:12:56.114442+00:00"
+}

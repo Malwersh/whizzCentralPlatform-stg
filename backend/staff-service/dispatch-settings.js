@@ -12,6 +12,7 @@ async function route(ctx,actor,method,path,input){
   const current=(await ctx.db.send(new GetCommand({TableName:ctx.table,Key:{pk:PK,sk:'CURRENT'},ConsistentRead:true}))).Item;
   if(request&&current?.values?.dispatch&&!Object.prototype.hasOwnProperty.call(input?.values||{},'dispatch'))throw Object.assign(Error('DISPATCH_POLICY_REQUIRED'),{status:409});
   const change=approve&&typeof input?.changeId==='string'?(await ctx.db.send(new GetCommand({TableName:ctx.table,Key:{pk:PK,sk:'CHANGE#'+input.changeId},ConsistentRead:true}))).Item:null;
+  await require('../driver-performance-projection/policy-guard').assertCutoverReady({db:ctx.db,GetCommand,values:request?input?.values:change?.values});
   if(approve&&current?.values?.dispatch&&!change?.values?.dispatch)throw Object.assign(Error('DISPATCH_POLICY_REQUIRED'),{status:409});
  }
  const result=await require('./operational-settings').route({...ctx,allowed:(person,permission)=>person.scope?.allRegions===true&&ctx.allowed(person,permission),settingsSpec:{pk:PK,validate,actionPrefix:'DELIVERY_OPERATIONS'}},actor,method,path.replace(PATH,'/staff/settings/account-deletion'),input);

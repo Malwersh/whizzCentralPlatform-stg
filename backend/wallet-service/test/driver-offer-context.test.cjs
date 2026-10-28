@@ -110,3 +110,32 @@ test('a temporary stop of NEW orders does not cancel dispatch of an existing pre
 test('reference failures never use delivery-fee fallback or partial source results',async()=>{
  const f=setup();f.failTable='staging-PlatformStaff';await rejected(f.prepare(),'DRIVER_OFFER_REFERENCE_UNAVAILABLE');assert.equal(f.routeCalls,0);
 });
+function reviewedVehicle(f){
+ const m=require('../../shared/driver-vehicles-308'),p=f.rows.WhizzDrivers_staging;
+ Object.assign(p,{vehicleType:'car',vehiclePlate:'308',work_region_id:'zone1',registrationPaperUrl:'s3://bucket/drivers/driver1/registration',drivingLicenseUrl:'s3://bucket/drivers/driver1/license',nationalIdUrl:'s3://bucket/drivers/driver1/id'});
+ const review=url=>({status:'APPROVED',documentUrl:url,reviewedBy:'admin',reviewedAt:at,expiresAt:'2027-01-01T21:00:00.000Z',reason:'verified'});
+ const v={id:'vehicle',type:'car',plateNumber:'308',make:'',model:'',color:'',registrationUrl:p.registrationPaperUrl};v.review={...review(v.registrationUrl),fingerprint:m.fingerprint(v)};
+ p.vehicleRegistry={schemaVersion:1,version:1,activeId:v.id,items:{vehicle:v},events:[]};p.vehicleOperational=p.vehicleRegistry;p.personalDocumentReview={drivingLicense:review(p.drivingLicenseUrl),nationalId:review(p.nationalIdUrl)};
+ return p;
+}
+test('reviewed vehicle identity is pinned into the issued offer and profile guard',async()=>{
+ const f=setup();reviewedVehicle(f);const r=await f.prepare();await f.store.save(r);
+ assert.equal(f.saved.driverVehicleSnapshot.id,'vehicle');assert.equal(f.saved.driverVehicleSnapshot.plateNumber,'308');
+ assert.ok(Object.values(r.guards.driver.ConditionCheck.ExpressionAttributeNames).includes('vehicleOperational'));
+});
+test('unapproved vehicle, replaced document or expired evidence cannot prepare an offer',async()=>{
+ for(const change of [p=>p.vehicleRegistry.items.vehicle.review.status='REJECTED',p=>p.drivingLicenseUrl='replaced',p=>p.personalDocumentReview.drivingLicense.expiresAt=at]){
+  const f=setup(),p=reviewedVehicle(f);change(p);await rejected(f.prepare(),'DRIVER_OFFER_DRIVER_UNAVAILABLE');assert.equal(f.routeCalls,0);
+ }
+});
+test('offer cannot survive a vehicle switch after preparation even with unchanged location',async()=>{
+ const f=setup(),p=reviewedVehicle(f),r=await f.prepare();p.vehicleRegistry.activeId='another';await assert.rejects(f.store.save(r));assert.equal(f.saved,undefined);
+});
+test('offer deadline is bounded by reviewed document expiry',async()=>{
+ const f=setup(),p=reviewedVehicle(f);p.personalDocumentReview.drivingLicense.expiresAt='2026-10-15T12:00:30.000Z';
+ const r=await f.prepare();assert.ok(Date.parse(r.offer.expiresAt)<=Date.parse(p.personalDocumentReview.drivingLicense.expiresAt));
+});
+test('strict cutover cannot accept an old account approval as vehicle review',async()=>{
+ const old=process.env.DRIVER_VEHICLE_REGISTRY_ENFORCE;process.env.DRIVER_VEHICLE_REGISTRY_ENFORCE='true';
+ try{const f=setup();await rejected(f.prepare(),'DRIVER_OFFER_DRIVER_UNAVAILABLE');assert.equal(f.routeCalls,0);}finally{if(old===undefined)delete process.env.DRIVER_VEHICLE_REGISTRY_ENFORCE;else process.env.DRIVER_VEHICLE_REGISTRY_ENFORCE=old;}
+});

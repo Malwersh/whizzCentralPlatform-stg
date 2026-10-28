@@ -112,12 +112,15 @@
         "ADMIN"
       ],
       "name": "سحب السائق وصرف الرصيد المستحق ونوع الرصيد المؤهل",
-      "currentStatus": "PARTIAL_NOT_END_TO_END",
-      "priority": "P0-SCOPE-CHECK",
-      "remaining": "تحديد الحد الضروري للرصيد المستحق في الإطلاق النقدي ومسار صرفه الموثق؛ لا إعلان كل Available قابلًا للسحب. أتمتة Pending/Withdrawable المرتبطة بالدفع المسبق لاحقة",
+      "currentStatus": "PUBLISHED_ENABLED_STAGING_HUMAN_CASH_ACCEPTANCE_PENDING",
+      "priority": "P0-OPS",
+      "remaining": "تثبيت تطبيق السائق وتوثيقه؛ قبول بشري مرتب لطلب الصرف من تعويض معتمد ورصيد شحن غير مستخدم، والمراجعة والتسليم من الصندوق وتأكيد الاستلام والمطابقة، والإلغاء وعدم الاستلام. محفظة الاختبار القديمة تحتاج مراجعة فرق مطابقة تاريخي؛ لا إصلاح تلقائي ولا قيد افتتاحي مختلق. أجرة COD المحتفظ بها لا تصرف ثانية.",
       "sourceOrEvidence": [
         "docs/finance-pricing-settlements-returns-unified-plan.md",
-        "docs/finance-plan-reconciliation-2026-10-20.json"
+        "docs/finance-plan-reconciliation-2026-10-20.json",
+        "docs/driver-payout-readiness-audit-20261027.json",
+        "docs/driver-cash-payout-v1-review.json",
+        "docs/driver-cash-payout-publication-v1.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -271,16 +274,18 @@
         "ADMIN"
       ],
       "name": "أهلية الحساب والمركبة والوثائق والمنطقة والموقع وفئة الطلب",
-      "currentStatus": "ACTIVE_PROFILE_GUARD_PUBLISHED_REMAINING_ELIGIBILITY_AUDIT_OPEN",
+      "currentStatus": "ORDINARY_ORDER_VEHICLE_SCOPE_AUDITED_LIVE_ENFORCEMENT_VERIFIED_ORDERED_HUMAN_ACCEPTANCE_PENDING",
       "priority": "P0-OPS",
-      "remaining": "نُشر إصلاح استبعاد الملف غير النشط وحماية إصدار العرض والقبول على بدء الموجات والمهلة والقبول؛ 47اختبارمصدر و59علىالحزم ناجحة. المتبقي: عقد اعتماد المركبة والوثائق وانتهائها والمنطقة وملكية تعديل حقول الأهلية وإثباتها الحي؛ كامل D01 مفتوح.",
+      "remaining": "تدقيق توافق فئة الطلب والمركبة مكتمل ضمن نطاق الإطلاق الذي أكده المستخدم: مطاعم ومتاجر بطلبات معتادة، سيارة أو دراجة معتمدتان. تبقى التجارب البشرية المرتبة لصلاحية الوثائق والمناطق والتزامن؛ لا ندعي نجاحها. البضائع الكبيرة خارج هذا الاعتماد وتحتاج متطلبات مستقلة قبل تفعيلها.",
       "sourceOrEvidence": [
         "backend/wallet-service/src/dispatchCandidates.ts",
         "docs/driver-performance-v1.6-gap-analysis-and-integration.md",
-        "docs/driver-eligibility-271.json"
+        "docs/driver-eligibility-271.json",
+        "docs/driver-ordinary-delivery-compatibility-20261027.json"
       ],
       "freshRuntimeAuditRequired": true,
-      "humanAcceptanceSeparate": true
+      "humanAcceptanceSeparate": true,
+      "latestEvidence": "docs/driver-work-region-publication-311.json"
     },
     {
       "id": "D02",
@@ -792,7 +797,7 @@
         "ADMIN"
       ],
       "name": "ترتيب العروض بوقت الوصول والأداء والفرص العادلة وShadow",
-      "currentStatus": "LEGACY_METRICS_ACTIVE_NEW_RANKING_PENDING",
+      "currentStatus": "UNIFIED_PERFORMANCE_SNAPSHOTS_ENFORCED_NEW_RANKING_PENDING",
       "priority": "P1",
       "remaining": "ربط تفسير وأثر الأوزان ومقارنةظل وإعفاءالجديد وسهولةالإيقاف دون تعطيل الأهلية",
       "sourceOrEvidence": [
@@ -800,7 +805,8 @@
         "backend/wallet-service/src/dispatchPolicy.ts"
       ],
       "freshRuntimeAuditRequired": true,
-      "humanAcceptanceSeparate": true
+      "humanAcceptanceSeparate": true,
+      "currentSourceClarification": "المصدر المحفوظ الحديث مفعل بالفعل؛ البند المتبقي خوارزمية الترتيب الجديدة، ولا يعني العودة للمؤشرات القديمة."
     },
     {
       "id": "D13",
@@ -3034,5 +3040,390 @@
     "reference": "docs/driver-performance-ordered-acceptance-tests.json",
     "status": "DEFERRED_BY_USER_ORDERED_NOT_PASSED",
     "requiredBeforeLaunch": true
+  },
+  "driverWorkRegion311": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "rule": "Approved work_region_id plus directed priority0/1 neighbors; base+derived ancestry explicitly active; current coordinates inside actual polygon; no Bronze/Silver/Gold expansion or live-array authorization",
+    "source": "backend/shared/driver-work-region-311.js",
+    "receipt": "docs/driver-work-region-publication-311.json",
+    "tests": {
+      "core": 12,
+      "packagedDelegates": 56,
+      "actualLocationUpdate": "PASS",
+      "liveCoordinatesReadOnly": "PASS"
+    },
+    "humanTestsDeferredInOrder": [
+      "Approved own region: start, offer, accept, complete",
+      "Allowed priority0/1 neighbor; priority1 excluded in first wave",
+      "Outside approved scope; verify no new offers and active delivery preserved",
+      "Disable region/ancestor or change neighbor relation before offer/acceptance",
+      "Expiry/document replacement/vehicle switch boundaries from308 list"
+    ],
+    "userVerified310": "User reports adding a second vehicle works correctly; no fabricated additional human test results",
+    "wholeD01Complete": false,
+    "next": "Preserve ordered human acceptance and audit remaining D01 order-class/vehicle constraints against active launch services before marking whole D01 complete"
+  },
+  "regionManagement312": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "hostingJob": "214",
+    "receipt": "docs/region-management-publication-312.json",
+    "validation": "docs/region-management-validation-312.json",
+    "tests": {
+      "service": 16,
+      "coverageRegression": 13,
+      "actualStaffHandler": "PASS",
+      "actualCustomerHandler": "PASS",
+      "realLeafletHostedCandidate": "PASS"
+    },
+    "businessRegionDataMutated": false,
+    "existingBoundaryHumanReviewRequired": true,
+    "humanTestsDeferredInOrder": [
+      "Review red drawing errors and fix geometry",
+      "Save versioned draft without live change",
+      "Review disputed actual boundaries before explicit publication",
+      "Verify index/derived/neighbors and publication history",
+      "Check region closure and reopening through search/offer/accept while preserving active delivery"
+    ],
+    "next": "Remaining D01 order-class/vehicle compatibility audit; preserve colleague product/import delegation",
+    "wholeD01Complete": false
+  },
+  "customerMerchantRegions313": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "receipt": "docs/region-consumers-publication-313.json",
+    "customerBuild": 313,
+    "merchantBuild": 313,
+    "tests": {
+      "customerBackend": 11,
+      "merchantBackend": 16,
+      "customerFlutter": 6,
+      "merchantFlutter": 4
+    },
+    "businessRegionDataMutated": false,
+    "humanAcceptance": "PENDING_IN_ORDER",
+    "knownFollowUp": "Dedicated business spatial index before large-scale expansion; existing seven boundary reviews remain human-owned",
+    "next": "Resume remaining D01 order-class and vehicle compatibility after address acceptance",
+    "wholeD01Complete": false
+  },
+  "customerMapSelection314": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "build": 314,
+    "receipt": "docs/region-boundary-publication-314.json",
+    "tests": {
+      "backend": 12,
+      "flutter": 15,
+      "analyzer": "PASS"
+    },
+    "nativeGestureHumanAcceptance": "PENDING_USER_TEST",
+    "regionDataMutated": false,
+    "wholeD01Complete": false
+  },
+  "customerAddressSave315": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "build": 315,
+    "receipt": "docs/address-save-publication-315.json",
+    "tests": {
+      "backend": 16,
+      "flutter": 21,
+      "analyzerErrors": 0,
+      "analyzerWarnings": 0
+    },
+    "humanCapacityFlowAcceptance": "PENDING_USER_TEST",
+    "existingAddressesDeleted": false,
+    "businessDataMutated": false,
+    "wholeD01Complete": false,
+    "gateAutomaticSaveSupersededBy": 316
+  },
+  "customerBrowsingAddress316": {
+    "status": "PUBLISHED_VERIFIED_STAGING_NATIVE_ACCEPTANCE_PENDING",
+    "build": 316,
+    "receipt": "../wizzuser-stg/docs/browsing-address-publication-316.json",
+    "regionOnlyIsAddressBookWrite": false,
+    "actualPointRequiredAtCheckout": true,
+    "neighborhoodAndLandmarkRequired": true,
+    "saveToBookIsOptional": true,
+    "tests": {
+      "backend": 21,
+      "flutterCurrent": 87,
+      "skipped": 1,
+      "analyzerErrors": 0,
+      "analyzerWarnings": 0,
+      "legacyQuoteTestsNeedingApprovedConsentFixtureUpdate": 19
+    },
+    "existingAddressesDeleted": false,
+    "businessDataMutated": false,
+    "wholeD01Complete": false,
+    "humanAcceptance": [
+      "TREE_DIRECT_HOME",
+      "CHECKOUT_GPS_MAP_CORRECTION",
+      "REQUIRED_HOOD_LANDMARK",
+      "REQUEST_ONLY_NO_BOOK_SLOT",
+      "EXPLICIT_SAVE_CAPACITY",
+      "SEARCH_GPS_SAVED_ADDRESS",
+      "OUTSIDE_REGION_AND_ACCOUNT_SWITCH",
+      "LOST_RESPONSE_RETRY"
+    ],
+    "earlySelectionSupersededBy": 317
+  },
+  "customerEarlyDeliveryPoint317": {
+    "status": "PUBLISHED_VERIFIED_STAGING_NATIVE_ACCEPTANCE_PENDING",
+    "supersedes": "316 area-only browsing for new selection",
+    "agreedFlow": {
+      "startup": "Nonblocking foreground GPS acquisition with permission; never replace an explicit saved/confirmed destination",
+      "gps": "Resolve current real point to canonical active region; enter home",
+      "regionTree": "Open detailed map; fixed pin; confirm real point inside selected region before entering home",
+      "googleSearch": "Open map at search result coordinates; correct and confirm point; resolve canonical region",
+      "header": "Always canonical platform region name",
+      "map": "No polygons, no show-boundary button, no automatic full-region zoom-out over a real point; internal coverage validation retained",
+      "pricing": "Read-only point preview for guests and registered users when restaurant opens, same pricing policy/agreement precedence; no address-book insert",
+      "checkout": "Reuse chosen point; require neighborhood and landmark, explicit optional address-book save; retain final owned-address/account/invoice guards"
+    },
+    "acceptance": [
+      "ALL_THREE_SELECTION_PATHS",
+      "GUEST_AND_REGISTERED_EARLY_FEES",
+      "FIXED_TARIFF_AND_DISTANCE_AND_MINIMUM",
+      "GPS_DENIED_AND_LOW_ACCURACY",
+      "PIN_CAMERA_TARGET_ALIGNMENT",
+      "OUTSIDE_SELECTED_REGION",
+      "CANCEL_NO_SELECTION_CHANGE",
+      "ACCOUNT_AND_DESTINATION_CHANGE_STALE_RESPONSE",
+      "NO_AUTOSAVE_OR_CAPACITY_CONSUMPTION",
+      "CHECKOUT_SAME_DESTINATION_AND_REPRICE_ON_CHANGE"
+    ],
+    "scopePreserved": [
+      "colleague products/import excluded",
+      "no pricing amount changes",
+      "no automatic orders/ratings/settlements",
+      "D01 remains open"
+    ],
+    "receipt": "../wizzuser-stg/docs/point-preview-publication-317.json",
+    "build": 317,
+    "tests": {
+      "nodeCore": 42,
+      "nodeHandler": 3,
+      "flutter": 87,
+      "skippedExisting": 1,
+      "typescript": "PASS"
+    },
+    "publicInformationalPath": "/storefront-point-preview",
+    "protectedFinancialQuotePath": "/delivery-quotes",
+    "newRateTable": "staging-StorefrontPointPreviewRate",
+    "savedAddressWrites": false,
+    "financialWrites": false,
+    "livePricingCases": [
+      {
+        "mode": "CALCULATED",
+        "feeIqd": 5500,
+        "distanceMeters": 11967,
+        "minimumIqd": 10000
+      },
+      {
+        "mode": "FIXED_TARIFF",
+        "feeIqd": 1500,
+        "distanceMeters": 10628,
+        "minimumIqd": 7000
+      }
+    ],
+    "nativeAcceptance": "PENDING_USER",
+    "mapInitialViewportFix318": {
+      "build": 318,
+      "status": "IMPLEMENTED_SIMULATOR_NATIVE_ACCEPTANCE_PENDING",
+      "receipt": "../wizzuser-stg/docs/map-initial-viewport-318.json",
+      "tests": 23
+    }
+  },
+  "customerAddressLifecycle319": {
+    "status": "STAGING_PUBLISHED_CUSTOMER_SIMULATOR_319_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+    "scope": [
+      "save timeout and uncertain result replay across restarts",
+      "atomic single-default and capacity under concurrent mutations",
+      "saved book versus checkout-only address separation",
+      "active destination versus persistent default",
+      "restore authoritative saved coordinates; edit/delete/default propagation",
+      "account scoped cache and in-flight response fences"
+    ],
+    "observedEvidence": {
+      "serverCreateDurationMs": 17979.67,
+      "clientCreateTimeoutMs": 15000,
+      "serverPreHandlerLoadMs": 12059,
+      "legacyDefaultMutations": "separate clears then update; not atomic",
+      "localPersistence": "placeholder; implicit first-address fallback",
+      "actualAttemptSaved": false,
+      "existingSavedCount": 10,
+      "rootCause": "Slow initialization hid ADDRESS_LIMIT_REACHED behind 15-second client timeout"
+    },
+    "businessMutationsExecuted": false,
+    "implemented": [
+      "Standalone SDK v3 address handlers and 512 MB; 35-second friendly client timeout",
+      "Atomic account-fenced address book metadata in existing Users profile: revision, up to ten saved IDs, one default",
+      "Durable account/payload idempotency key for uncertain saves across restarts",
+      "Canonical region revalidation on create/edit/default; single-address reads require live authenticated ownership",
+      "Server-authoritative edit/delete/default propagation; active selection kept separate from default",
+      "Account-scoped cached saved book and selected ID; old unauthenticated address endpoints removed",
+      "Request-only checkout records remain hidden, expire after seven days, and never consume slots/default"
+    ],
+    "tests": {
+      "node": 23,
+      "flutterRegression": 70,
+      "flutterSkippedPreexisting": 1,
+      "targetAnalyzerErrors": 0,
+      "targetAnalyzerWarnings": 0
+    },
+    "publicationReceipt": "../wizzuser-stg/docs/address-lifecycle-publication-319.json",
+    "humanTestsPending": [
+      "At ten saved addresses unchecked save-to-book allows request-only checkout; checked save gives capacity reason",
+      "Delete an explicitly chosen old address, then save new; no automatic deletion",
+      "Switch default A to B and verify home region, delivery pricing, and restart",
+      "Select another saved address for current order without changing persistent default",
+      "Edit active coordinates/details; verify checkout and pricing update",
+      "Delete active/default/last; verify no deleted address is restored",
+      "Lost response retry and account switching; no duplicate or cross-account address"
+    ],
+    "simulator": {
+      "model": "iPhone 16 Pro",
+      "build": 319,
+      "launched": true,
+      "dataPreserved": true
+    }
+  },
+  "serviceFeePreview320": {
+    "status": "STAGING_PUBLISHED_CUSTOMER_SIMULATOR_320_INSTALLED",
+    "scope": "Preload trusted branch base service charge at restaurant entry; show explicitly basic fee until final invoice replaces it. No assumed number, routing or address dependency. Short-lived branch cache. Final checkout invoice/approval mandatory.",
+    "source": "Same canonical accepted and independently approved commercial agreement reader extracted without changing financial source behavior",
+    "liveReadBaseIqd": 300,
+    "receipt": "../wizzuser-stg/docs/service-fee-preview-320.json",
+    "tests": {
+      "node": 35,
+      "flutter": 39,
+      "preexistingFlutterSkipped": 1
+    },
+    "humanAcceptancePending": true,
+    "businessMutations": false
+  },
+  "pointInvoice321": {
+    "status": "RESOLVED_323_LIVE_COMPLETE_INVOICE_SUCCESS",
+    "scope": "Complete server-priced point+basket invoice before neighborhood/landmark entry; no basic-fee placeholder. Detail text excluded from pricing key; final order still requires complete saved owned address and current approved invoice.",
+    "review": "../wizzuser-stg/docs/point-invoice-review-321.json",
+    "approvalRequired": {
+      "environment": "staging",
+      "function": "WizzUser-CreateOrder-staging",
+      "memoryMB": {
+        "before": 128,
+        "after": 512
+      },
+      "newEnvironment": [
+        "POINT_INVOICE_ENABLED=true",
+        "MAPBOX_SECRET_ARN=same existing server routing ARN from DeliveryQuotes configuration"
+      ],
+      "newIAM": [
+        {
+          "action": "secretsmanager:GetSecretValue",
+          "resource": "exact existing routing secret ARN only"
+        },
+        {
+          "action": "dynamodb:Query",
+          "resource": "WizzCentral_RegionIndex_staging/index/h3-index only"
+        }
+      ],
+      "apiAuthorizerUnchanged": true,
+      "legacyFinancialBundleUnchanged": true
+    },
+    "tests": {
+      "readonlyBoundaryNode": 3,
+      "existingPointHandlerNode": 3,
+      "flutter": 45,
+      "preexistingFlutterSkipped": 1,
+      "targetAnalyzerErrors": 0,
+      "targetAnalyzerWarnings": 0,
+      "iosSimulator321Build": "PASS_NOT_INSTALLED"
+    },
+    "liveUnchanged": false,
+    "businessWrites": false,
+    "userExplicitlyApproved": true,
+    "publicationReceipt": "../wizzuser-stg/docs/point-invoice-publication-321.json",
+    "native": {
+      "build": 321,
+      "device": "iPhone16Pro",
+      "installed": true,
+      "launched": true,
+      "dataPreserved": true
+    },
+    "existingFinancialRuntimePreserved": true,
+    "humanAcceptancePending": true
+  },
+  "pointInvoice322": {
+    "status": "RESOLVED_READS_APPLIED_323_LIVE_PRICE_SUCCESS",
+    "review": "../wizzuser-stg/docs/point-invoice-read-permissions-review-322.json",
+    "tests": {
+      "realQuoteAndOrderPreparationPlusBoundaries": 5,
+      "financialCompatibility": 50,
+      "iamPositiveNegative": 6
+    },
+    "scope": {
+      "function": "WizzUser-CreateOrder-staging",
+      "action": "dynamodb:GetItem",
+      "tables": [
+        "WizzCentral_RegionsDerived_staging",
+        "staging-AccountDeletion restricted to merchant account/business lifecycle prefixes"
+      ]
+    },
+    "mobileUpdateRequired": false,
+    "businessWrites": false,
+    "userExplicitlyApproved": true,
+    "permissionsPublication": "../wizzuser-stg/docs/point-invoice-read-permissions-publication-322.json"
+  },
+  "basketInvoice323": {
+    "status": "PUBLISHED_AUTHENTICATED_POINT_INVOICE_SUCCESS_NATIVE323_INSTALLED",
+    "receipt": "../wizzuser-stg/docs/basket-invoice-publication-323.json",
+    "behavior": [
+      "Debounced background point invoice preparation on basket and destination changes",
+      "Shared account/branch/point/basket/benefit/tip cache across cart and checkout; unpriced display metadata excluded from keys",
+      "Cart Continue joins an in-flight invoice and refreshes a near-expiry snapshot before navigating",
+      "Address-bound invoice is prepared for final review or actual offer eligibility, not repeatedly for ordinary screen navigation",
+      "A single retry message, with no duplicate point and legacy invoice errors",
+      "Existing active order does not block read-only price previews; one-active-order creation guard unchanged"
+    ],
+    "tests": {
+      "completePointAndBoundary": 6,
+      "financialCompatibility": 51,
+      "flutter": 53,
+      "preexistingSkipped": 1,
+      "targetAnalyzerErrors": 0
+    },
+    "liveObservedCustomerTotalIqd": 17000,
+    "businessWritesPerformed": false,
+    "newIAM": false,
+    "humanTestsPending": [
+      "Add/adjust basket in restaurant, open cart, then Continue; complete total should be reused immediately",
+      "Type neighborhood/landmark without repricing",
+      "Change tip/discount/point; expect only one new shared calculation",
+      "With active order, price preview remains available; actual second order stays blocked",
+      "Navigate near quote expiry; prepare fresh display before entering checkout"
+    ]
+  },
+  "ordinaryOrderVehicleCompatibility20261027": {
+    "status": "AUDITED_EXISTING_ENFORCED_IMPLEMENTATION",
+    "receipt": "docs/driver-ordinary-delivery-compatibility-20261027.json",
+    "scope": "USER_CONFIRMED_RESTAURANTS_AND_STORES_ORDINARY_ORDERS",
+    "allowedVehicleTypes": [
+      "car",
+      "motorcycle"
+    ],
+    "automatedTestsPassed": 42,
+    "liveServicesEnforced": 9,
+    "humanTests": "PRESERVED_DEFERRED_NOT_PASSED",
+    "wholeD01Complete": false
+  },
+  "driverPayoutReadiness20261027": {
+    "status": "AUDIT_COMPLETE_IMPLEMENTATION_REQUIRED",
+    "receipt": "docs/driver-payout-readiness-audit-20261027.json",
+    "businessWrites": false,
+    "next": "Choose launch disbursement method; implement source-backed driver payout and reconciliation, not generic wallet transfer"
+  },
+  "driverMapTools329": {
+    "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+    "evidence": "docs/driver-map-tools-review-329.json",
+    "publication": "docs/driver-map-tools-publication-329.json",
+    "humanAcceptanceDeferredAndListed": true,
+    "doesNotCloseOtherMainPlanItems": true
   }
 }

@@ -1,0 +1,154 @@
+{
+  "revision": 308,
+  "environment": "staging",
+  "businessDataMutatedByAgent": false,
+  "items": [
+    {
+      "id": "V01",
+      "requirement": "سجل مستقل لكل مركبة ونوعها ولوحتها وسنويتها",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "V02",
+      "requirement": "إضافة أكثر من مركبة وحالة انتظار المراجعة",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "V03",
+      "requirement": "وثائق السائق مستقلة عن المركبات",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "V04",
+      "requirement": "مراجعة الإدارة مع سبب وصلاحية أو عدم انتهاء موثق",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "V05",
+      "requirement": "اختيار مركبة معتمدة واحدة دون اتصال أو طلب جارٍ",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "V06",
+      "requirement": "تحديث السنوية يبطل اعتماد الدليل السابق",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "V07",
+      "requirement": "إزالة المركبة تمنع استخدامها وتحفظ السجل",
+      "status": "IMPLEMENTED"
+    },
+    {
+      "id": "V08",
+      "requirement": "تهيئة الحسابات الحالية بمراجعة صريحة دون موافقات مخترعة",
+      "status": "PUBLISHED_AWAITING_EXPLICIT_INITIAL_REVIEW"
+    },
+    {
+      "id": "V09",
+      "requirement": "توحيد البدء والترشيح وتجهيز العرض والقبول",
+      "status": "PUBLISHED_ENFORCED_STAGING"
+    },
+    {
+      "id": "V10",
+      "requirement": "حفظ مركبة الطلب ومنع قبول عرض بمركبة أخرى",
+      "status": "IMPLEMENTED_TESTED"
+    },
+    {
+      "id": "V11",
+      "requirement": "إدارة في تبويب السائقون وعدّاد وفلتر للمراجعات",
+      "status": "IMPLEMENTED_BROWSER_TESTED"
+    },
+    {
+      "id": "V12",
+      "requirement": "التزامن والصلاحيات وملكية الصور وإعادة المحاولة",
+      "status": "AUTOMATED_TESTS_PASSING"
+    },
+    {
+      "id": "V13",
+      "requirement": "نشر الحزم الفعلية والتحقق من مداخل التنفيذ",
+      "status": "PUBLISHED_LIVE_HASH_VERIFIED_9_FUNCTIONS_HOSTING_213"
+    },
+    {
+      "id": "V14",
+      "requirement": "تثبيت Release308 مع الموقع التجريبي",
+      "status": "RELEASE_308_INSTALLED_LAUNCHED_REAL_IPHONE"
+    },
+    {
+      "id": "V15",
+      "requirement": "الاختبارات البشرية من التطبيقات والمنصة",
+      "status": "HUMAN_TESTS_ORDERED_NOT_EXECUTED"
+    },
+    {
+      "id": "V16",
+      "requirement": "إيقاف الاستقبال المؤكد من مركباتي وتحديث الرئيسية دون فقد طلب جارٍ",
+      "status": "IMPLEMENTED_TESTED"
+    },
+    {
+      "id": "V17",
+      "requirement": "الوصول لتصحيح الوثائق من شاشة انتظار المراجعة والحساب المعلق",
+      "status": "INSTALLED_CORRECTION_ACCESS"
+    },
+    {
+      "id": "V18",
+      "requirement": "رقم لوحة المركبة عند التسجيل الأول وحفظه في المسار نفسه",
+      "status": "PUBLISHED_VERIFIED_REGISTRATION_PLATE"
+    }
+  ],
+  "storage": {
+    "registry": "Existing WhizzDrivers_staging driver profile, server-controlled vehicleRegistry",
+    "operational": "Small vehicleOperational projection updated in same transaction, used by offers/candidates",
+    "history": "All before/after events retained with no silent truncation. Bounded aggregate refuses further changes above260KB and requests explicit archive handling; max12 live vehicles,60 total records. Archive expansion remains planned before reaching capacity.",
+    "atomicity": "Profile version/evidence conditions; offline live-state conditions; staff guard/audit; account deletion guard"
+  },
+  "initialMigration": "Every current account requires explicit first review; no agent-generated vehicle, plate, expiry, approval or selection",
+  "deferredSeparateD01": [
+    "Authoritative work-region and neighbor permission unification, including removal of old tier fallback; does not vanish from plan",
+    "Human acceptance tests retained in order"
+  ],
+  "publication": "PUBLISHED_VERIFIED: nine existing staging functions with strict vehicle/document eligibility, hosting213 byte verified, Release308 installed and launched on real iPhone. No IAM expansion or direct driver/finance data mutations.",
+  "automatedVerification": {
+    "serviceAndStaffRegression": 27,
+    "offerSelectionAndAcceptanceSourceRegression": 86,
+    "actualPackagedDelegates": 64,
+    "actualActiveStaffRouteAndSdk": "PASS",
+    "browserManagementModalAndDecisionPayload": "PASS",
+    "flutter": 30,
+    "typeCheck": "PASS",
+    "guardedStopEndpoint": "PASS normal/active-order/race",
+    "registrationProfileEndpoint": "PASS plate persistence/validation/approved bypass/foreign document"
+  },
+  "humanAcceptanceOrder": [
+    "في السائقون: إدارة السائق، فتح الوثائق الفعلية، تهيئة السجل مع رقم اللوحة الصحيح",
+    "مراجعة إجازة السوق والبطاقة الوطنية والسنوية مع تواريخها الفعلية أو عدم انتهاء مبرر؛ اعتماد الحساب إن كان جديدًا",
+    "في مركباتي: إيقاف الاستقبال المؤكد ثم اختيار المركبة المعتمدة؛ بدء استقبال الطلبات",
+    "إضافة مركبة ثانية ومراجعتها مع بقاء المركبة الحالية صالحة",
+    "التبديل بعد الإيقاف ورفض التبديل أثناء طلب جارٍ",
+    "تجديد سنوية المركبة وتحقق توقف أهلية النسخة القديمة حتى مراجعتها",
+    "إزالة المركبة والتحقق من حفظ سجل الطلبات والمركبة المؤرشفة",
+    "إكمال طلب نقدي والتحقق من بيانات المركبة المحفوظة مع الطلب؛ لا تُعد هذه التجارب ناجحة مسبقًا"
+  ],
+  "installation": {
+    "build": 308,
+    "mode": "release",
+    "bundleId": "com.wiz.wizdriverapp",
+    "device": "iMohammed",
+    "installed": true,
+    "launched": true,
+    "testCoordinatesPreserved": true
+  },
+  "finalEvidence": [
+    "driver-vehicle-publication-308.json",
+    "driver-vehicle-ui-publication-308.json"
+  ],
+  "smokeChecks": {
+    "liveHashesAndStrictFlags": 9,
+    "driverUnauthenticatedGet": 401,
+    "staffUnauthenticatedGet": 401
+  },
+  "explicitLimits": {
+    "liveVehicles": 12,
+    "retainedVehicleRecords": 60,
+    "historyBytes": 260000,
+    "capacityBehavior": "Refuse further mutation with clear archive-required error; never silently truncate history. Expansion remains in plan."
+  }
+}

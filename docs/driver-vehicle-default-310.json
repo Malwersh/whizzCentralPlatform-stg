@@ -1,0 +1,38 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "functions": [
+    {
+      "name": "DriversApi-staging",
+      "beforeHash": "+gzeqDVBfSThxgPdZwBQFt7zmEZc4HsRI4pyozkhnEk=",
+      "hash": "YNzHiQFuMFSuoD6twHG9F659e0SwVZJEUrAySCEAkl4=",
+      "changedFiles": [
+        "driver-vehicles-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "beforeHash": "l60Aprg+yz/cALqVtHrzojIGgkFpVhfQicpByeRg2HU=",
+      "hash": "Z6FRLLSg8/DSTohH5uplAOx0Nu/CMrVZ1H9Hxbk+T+w=",
+      "changedFiles": [
+        "driver-vehicles-core-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ],
+  "businessDataMutatedDirectly": false,
+  "rule": "Sole nonremoved approved vehicle becomes default; existing selection and multi-vehicle choice never changed automatically",
+  "tests": {
+    "core": 24,
+    "flutterVehicleManagement": 5,
+    "activeStaffRoute": "PASS"
+  },
+  "ios": {
+    "release": 310,
+    "installed": true,
+    "launched": true,
+    "scopedStagingTestLocationPreserved": true
+  }
+}

@@ -1,3 +1,4 @@
+import {historicalFinancialOfferSK} from './financialOfferKey';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {CognitoIdentityProviderClient} from '@aws-sdk/client-cognito-identity-provider';
 import {authenticateFinancialIdentity} from './financialIdentity';
@@ -16,7 +17,7 @@ export function createDriverQualityAppeal(options:{db:Pick<DynamoDBDocumentClien
   if(!profile||profile.driverId!==actor.subjectId||profile.isDeleted===true||profile.deletedAt!=null||profile.deletionRequestId!=null)return fail('UNAUTHORIZED');
   const ck={orderId:v.orderId,sk:'DRIVER_QUALITY#'+v.incidentId},row=await strongGet(db,'staging-Holds',ck);
   if(!row||row.driverId!==actor.subjectId)return fail('DRIVER_QUALITY_CASE_UNAVAILABLE');
-  const offer=await strongGet(db,'WaveOffers_staging',{orderId:v.orderId,SK:'FINANCIAL#'+actor.subjectId+'#WAVE#'+row.wave});
+  const offer=await strongGet(db,'WaveOffers_staging',{orderId:v.orderId,SK:await historicalFinancialOfferSK(db,v.orderId,actor.subjectId,row.wave,row.offerId,row.offerStorageKey)});
   if(!validCase(row,offer,actor.subjectId))return fail('DRIVER_QUALITY_CASE_UNAVAILABLE');
   const ek={orderId:v.orderId,sk:'QUALITY_REVIEW_EVENT#'+v.idempotencyKey},digest=quoteHash({...v,actorId:actor.subjectId}),prior=await strongGet(db,'staging-Holds',ek);
   if(prior){if(prior.requestDigest!==digest||prior.actorKind!=='DRIVER'||prior.actorId!==actor.subjectId)return fail();return {...prior.receipt,replayed:true};}
@@ -30,7 +31,7 @@ export function createDriverQualityAppeal(options:{db:Pick<DynamoDBDocumentClien
   const {Key:_key,...fence}=exactCheck('staging-Holds',ck,row).ConditionCheck;
   const index=await exceptionCaseIndexOperation(db,{caseId:row.caseId,orderId:v.orderId,caseKey:ck.sk,caseType:'DRIVER_QUALITY_REVIEW',state:'APPEAL_OPEN',open:true,at,branchId:row.branchId||offer!.branchId});
   if(!equal(actor,await authenticate()))return fail('UNAUTHORIZED');
-  try{await db.send(new TransactWriteCommand({TransactItems:[exactCheck('WhizzDrivers_staging',pk,profile),exactCheck('WaveOffers_staging',{orderId:v.orderId,SK:'FINANCIAL#'+actor.subjectId+'#WAVE#'+row.wave},offer!),exactCheck('staging-Holds',{orderId:v.orderId,sk:'QUALITY_REVIEW_EVENT#'+row.decision.id},decisionEvent!),{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+actor.subjectId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},index,{Put:{...fence,Item:next}},{Put:{TableName:'staging-Holds',Item:event,ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.idempotencyKey,logId:v.idempotencyKey,action:'SUBMIT_DRIVER_QUALITY_APPEAL',caseId:row.caseId,orderId:v.orderId,actorKind:'DRIVER',actorId:actor.subjectId,createdAt:at,financialPosting:false},ConditionExpression:'attribute_not_exists(sk)'}}] as any}));}catch(error){const saved=await strongGet(db,'staging-Holds',ek);if(saved?.requestDigest===digest&&saved.actorId===actor.subjectId)return {...saved.receipt,replayed:true};throw error;}
+  try{await db.send(new TransactWriteCommand({TransactItems:[exactCheck('WhizzDrivers_staging',pk,profile),exactCheck('WaveOffers_staging',{orderId:v.orderId,SK:await historicalFinancialOfferSK(db,v.orderId,actor.subjectId,row.wave,row.offerId,row.offerStorageKey)},offer!),exactCheck('staging-Holds',{orderId:v.orderId,sk:'QUALITY_REVIEW_EVENT#'+row.decision.id},decisionEvent!),{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+actor.subjectId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},index,{Put:{...fence,Item:next}},{Put:{TableName:'staging-Holds',Item:event,ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.idempotencyKey,logId:v.idempotencyKey,action:'SUBMIT_DRIVER_QUALITY_APPEAL',caseId:row.caseId,orderId:v.orderId,actorKind:'DRIVER',actorId:actor.subjectId,createdAt:at,financialPosting:false},ConditionExpression:'attribute_not_exists(sk)'}}] as any}));}catch(error){const saved=await strongGet(db,'staging-Holds',ek);if(saved?.requestDigest===digest&&saved.actorId===actor.subjectId)return {...saved.receipt,replayed:true};throw error;}
   return receipt;
  };
 }

@@ -137,3 +137,10 @@ for(const kind of ['GOODS_AMOUNT','FREE_DELIVERIES'])test('actual full-cash hand
  const r=await f.invoke(confirmed);assert.equal(r.statusCode,201,JSON.stringify(r.json));const order=[...f.orders.values()][0];assert.equal(order.financialSnapshot.schemaVersion,3);const grant=f.journey.get('USER#sub1|BENEFIT#test-gift');assert.equal(grant.reservedUses,1);assert.equal(grant.usedUses,0);
  assert.equal((await f.invoke(confirmed)).statusCode,200);assert.equal(f.journey.get('USER#sub1|BENEFIT#test-gift').reservedUses,1);
 });
+
+test('read-only invoice preview remains available with an active order, but sending another order is still blocked',async()=>{
+ const f=await setup();f.enableCommercial();
+ f.orders.set('ORDER#active|META',{orderId:'active',userId:'u1',status:'confirmed'});
+ const r=await f.invoke({action:'preview_commercial'});assert.equal(r.statusCode,200,JSON.stringify(r.json));assert(r.json.commercial.customerTotal);assert.equal(f.orders.size,1);
+ const sent=await f.invoke({commercialConsent:{digest:r.json.commercial.digest,customerTotalMinor:r.json.commercial.customerTotal.minorAmount}});assert.equal(sent.statusCode,409);assert.equal(f.orders.size,1);
+});

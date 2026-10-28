@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {financialWaveSK} from './financialDispatchKeys';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,updateChecked,equal,FinancialRow as Row} from './driverFinancialTransaction';
@@ -20,7 +21,7 @@ export function createStagingFinancialOfferDelivery(options:{db:Pick<DynamoDBDoc
   if(!quoteEntityIdValid(driverId)||message?.type!=='financial_wave_offer'||!message.offer||message.eventId!==message.offer.offerId||message.waveNumber!==message.offer.waveNumber)return fail();
   const {orderId,offerId,waveNumber}=message.offer;
   if(![orderId,offerId].every(quoteEntityIdValid)||!Number.isSafeInteger(waveNumber)||waveNumber<1||waveNumber>1000)return fail();
-  const key={orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`};
+  const key={orderId,SK:await financialOfferSK(db,orderId,driverId,waveNumber)};
   async function fence(){const f=await readStagingFinancialOfferDelivery(options,{orderId,offerId,waveNumber,dispatchDriverId:driverId});if(!equal(message,f.message))return fail();return f;}
   function ack(row:Row,reference:Row){
    const digest=quoteHash(reference),a=row.financialDeliveryAck;
@@ -58,7 +59,7 @@ export function createStagingFinancialOfferDelivery(options:{db:Pick<DynamoDBDoc
 export async function readStagingFinancialOfferDelivery(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean},selector:{orderId:string;offerId:string;waveNumber:number;dispatchDriverId:string}){
  const {db}=options,now=options.now??Date.now,{orderId,offerId,waveNumber,dispatchDriverId:driverId}=selector;
  if(Object.keys(selector).sort().join(',')!=='dispatchDriverId,offerId,orderId,waveNumber'||![orderId,offerId,driverId].every(quoteEntityIdValid)||!Number.isSafeInteger(waveNumber)||waveNumber<1||waveNumber>1000)return fail();
- const key={orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`};
+ const key={orderId,SK:await financialOfferSK(db,orderId,driverId,waveNumber)};
    const saved=await strongGet(db,OFFERS,key),job=await strongGet(db,JOBS,{orderId,SK:'METADATA'}),waveKey={orderId,SK:financialWaveSK(job,waveNumber)},wave=await strongGet(db,JOBS,waveKey);
    if(!job||!saved||saved.responseStatus!=='financial_pending'||saved.isWinner!==false||saved.offerId!==offerId||saved.driverId!==driverId)return fail();
    const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash),cycle=validateDispatchCycle(job?.dispatchCycle);

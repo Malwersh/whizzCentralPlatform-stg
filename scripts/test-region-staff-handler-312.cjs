@@ -1,0 +1,16 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),ts=require('../backend/wallet-service/node_modules/typescript');const {fixture}=require('../backend/region-management/test/fixture.cjs');
+const file='backend/.tmp/regions-312/staff-inner-candidate.js',code=fs.readFileSync(file,'utf8'),ast=ts.createSourceFile(file,code,99,true);let handler;function visit(n){if(ts.isFunctionDeclaration(n)&&n.name?.text==='handler')handler=n.getText(ast);ts.forEachChild(n,visit);}visit(ast);assert(handler?.includes('region-management-api-312.js'));
+process.env.PLATFORM_ENVIRONMENT='staging';process.env.REGION_MANAGEMENT_ENABLED='true';process.env.REGION_COMPOSITE_READERS_READY='false';
+const api=require('../backend/.tmp/regions-312/region-management-api-312.js'),f=fixture();let identity=f.actor,valid=true;class AdminGetUserCommand{constructor(input){this.input=input;}}
+const claims={sub:'admin',username:'admin',auth_time:Math.floor(Date.now()/1000)};
+const context={__name:fn=>fn,process:{env:{USER_POOL_ID:'pool'}},console,require:name=>{assert.equal(name,'../../region-management-api-312.js');return api;},db:f.ctx.db,table:'staff',require_dist_cjs60:()=>f.ctx.sdk,verifier:{verify:async()=>{if(!valid)throw Error();return claims;}},employee:async()=>identity,cognito:{send:async()=>({Enabled:true,UserStatus:'CONFIRMED',UserAttributes:[{Name:'sub',Value:'admin'}],UserMFASettingList:['SOFTWARE_TOKEN_MFA']})},AdminGetUserCommand,allowed:f.ctx.allowed,guard:f.ctx.guard,audit:f.ctx.audit,recent:f.ctx.recent,effective:a=>a.permissions,direct:()=>true,response:(statusCode,data)=>({statusCode,body:JSON.stringify(data)}),fail:(code,status=403)=>Object.assign(Error(code),{status}),randomUUID:()=> 'id'};
+vm.runInNewContext(handler+';this.run=handler',context);
+const event=(method,path,body)=>({httpMethod:method,path,headers:{Authorization:'Bearer test'},body:body?JSON.stringify(body):undefined});
+(async()=>{const before=f.calls.length;valid=false;assert.equal((await context.run(event('GET','/staff/regions/manage'))).statusCode,401);assert.equal(f.calls.length,before);valid=true;
+ const read=await context.run(event('GET','/staff/regions/manage'));assert.equal(read.statusCode,200);const c=JSON.parse(read.body);assert.equal(c.regions.length,4);
+ const region=require('../backend/region-management/model').editable(f.get('WizzCentral_Regions',{regionId:'a'}));region.name_ar='اسم تمت مراجعته';
+ const save=await context.run(event('POST','/staff/regions/manage/draft',{region,catalogDigest:c.digest,expectedDraftVersion:0,reason:'اختبار مسار الإدارة الفعلي'}));assert.equal(save.statusCode,200);assert.equal(f.get('staff',{pk:'REGIONS_PLAN#admin',sk:'DRAFT#a'}).version,1);
+ assert.equal((await context.run(event('POST','/staff/regions/manage/publish',{}))).statusCode,503);
+ identity={...f.actor,permissions:['regions.read']};assert.equal((await context.run(event('POST','/staff/regions/manage/draft',{region,catalogDigest:c.digest,expectedDraftVersion:1,reason:'اختبار منع الصلاحية'}))).statusCode,403);
+ console.log('PASS actual patched staff handler: existing authentication, scoped role denial, host SDK factory, audited/versioned draft, composite-reader rollout gate');
+})().catch(e=>{console.error(e);process.exitCode=1;});

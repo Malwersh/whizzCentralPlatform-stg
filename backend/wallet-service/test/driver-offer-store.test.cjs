@@ -20,6 +20,7 @@ function fixture(){
  const calls=[]; let time=Date.parse(at), lose=false, conflict=false, unavailable=false, onOrder, cancellationReasons;
  const db={async send(c){calls.push(c);
   if(c instanceof GetCommand){
+   if(c.input.TableName==='WizzDispatchJobs_staging')return {Item:{orderId:'order1',dispatchJobId:input().assignment.id}};
    if(c.input.TableName==='WaveOffers_staging'){if(unavailable)throw Error('private details');return {Item:clone(saved)};}
    if(c.input.TableName==='WizzOrders'){if(onOrder)onOrder();return {Item:clone(order)};}
    throw Error('unexpected read');

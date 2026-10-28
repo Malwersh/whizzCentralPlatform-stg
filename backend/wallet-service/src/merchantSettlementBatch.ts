@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {merchantOffCyclePeriod} from './merchantOffCyclePeriod';
 import {merchantOpeningPeriod} from './merchantOpeningPeriod';
 import { DynamoDBDocumentClient, QueryCommand, TransactWriteCommand, TransactWriteCommandInput } from '@aws-sdk/lib-dynamodb';
@@ -202,7 +203,7 @@ export function createMerchantSettlementBatchService(options: {
         if(source.cashAdjudicationJournal)operations.push(exactCheck(T.holds,{orderId,sk:'CASH_ADJUDICATION_JOURNAL'},source.cashAdjudicationJournal));
         if(source.accountingJournal)operations.push(exactCheck(T.records,{pk:'FULL_CASH_JOURNAL#'+orderId,sk:'META'},source.accountingJournal));
         operations.push(exactCheck(T.orders, { PK: 'ORDER#' + orderId, SK: 'META' }, source.order, orderFields),
-          ...(source.order.status==='cancelled'&&!source.order.financialAcceptance?[]:[exactCheck(T.offers, { orderId, SK: `FINANCIAL#${source.order.driverId}#WAVE#${source.order.assignmentWaveNumber}` }, source.acceptedOffer)]),
+          ...(source.order.status==='cancelled'&&!source.order.financialAcceptance?[]:[exactCheck(T.offers, { orderId, SK: await financialOfferSK(db,orderId,source.order.driverId,source.order.assignmentWaveNumber) }, source.acceptedOffer)]),
           exactCheck(T.holds, source.outcomeKey, source.outcome),
           updateChecked(exactCheck(T.holds, { orderId, sk: 'MERCHANT_PAYABLE' }, source.payable, [...Object.keys(source.payable), ...claims]),
             'SET #batch=:batch,#line=:line,#claimed=:claimed',
