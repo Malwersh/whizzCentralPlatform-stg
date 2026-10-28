@@ -2,7 +2,9 @@
 from pathlib import Path
 import base64,datetime,hashlib,json,subprocess,os
 R=Path(__file__).resolve().parents[1];P=Path('/private/tmp/customer-complaints-341');B=['aws','--profile','Wizz_stg_UserApp','--region','us-east-1'];ACCOUNT='699561669180'
-def aws(*args):return json.loads(subprocess.check_output(B+list(args)+['--output','json']))
+def aws(*args):
+ raw=subprocess.check_output(B+list(args)+['--output','json'])
+ return json.loads(raw) if raw.strip() else {}
 if os.environ.get('C05_STAGING_PUBLISH_APPROVED')!='YES':raise SystemExit('Explicit user approval required before staging publication')
 review=json.loads((P/'package-review.json').read_text());assert review['financialExecutorsPreserved']and review['supportServiceUnchanged']
 for r in review['functions']:

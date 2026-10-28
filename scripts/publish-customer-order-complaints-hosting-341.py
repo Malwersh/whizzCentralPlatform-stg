@@ -2,7 +2,9 @@
 from pathlib import Path
 import hashlib,json,os,subprocess,time,urllib.request
 R=Path(__file__).resolve().parents[1];P=Path('/private/tmp/customer-complaints-341');B=['aws','--profile','Wizz_stg_UserApp','--region','us-east-1'];APP='d2vmebm1e1n95m'
-def aws(*args):return json.loads(subprocess.check_output(B+list(args)+['--output','json']))
+def aws(*args):
+ raw=subprocess.check_output(B+list(args)+['--output','json'])
+ return json.loads(raw) if raw.strip() else {}
 def sha(b):return hashlib.sha256(b).hexdigest()
 if os.environ.get('C05_STAGING_PUBLISH_APPROVED')!='YES':raise SystemExit('Explicit user approval required before staging publication')
 r=json.loads((R/'docs/customer-order-complaints-publication-341.json').read_text());assert r['status']=='BACKEND_PUBLISHED_VERIFIED'

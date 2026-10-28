@@ -1,9 +1,7 @@
 {
   "part": 341,
-  "status": "REVIEWABLE_PACKAGE_READY_EXPLICIT_PUBLICATION_APPROVAL_REQUIRED",
-  "approvalGranted": false,
-  "rejectedAction": "Persistent IAM role policy update plus five Lambda deployments",
-  "reason": "Automatic approval review requires explicit authorization for the security/deployment scope beyond general C05 implementation",
+  "status": "APPROVED_PUBLISHED_STAGING_BYTE_VERIFIED",
+  "approvalGranted": true,
   "scope": "staging only",
   "functions": [
     {
@@ -137,5 +135,12 @@
     "Cash refund and merchant/driver settled-money adjustments are not executed by complaint intake/decision. Customer remedy is a linked existing personal goods discount.",
     "Human acceptance and native installation remain queued, not passed."
   ],
-  "cloudChangesPerformed": false
+  "cloudChangesPerformed": true,
+  "approvalSource": "Explicit user reply: نعم اوافق",
+  "initialReviewRejection": {
+    "action": "Persistent IAM role policy update plus five Lambda deployments",
+    "reason": "Automatic approval review requires explicit authorization for the security/deployment scope beyond general C05 implementation",
+    "resolvedBy": "Explicit user approval covering reviewed IAM and five-Lambda scope"
+  },
+  "publicationEvidence": "docs/customer-order-complaints-publication-341.json"
 }
