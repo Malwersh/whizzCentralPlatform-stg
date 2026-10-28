@@ -1,0 +1,111 @@
+{
+  "part": 343,
+  "date": "2026-10-28",
+  "scope": "C07 customer COD cancellation/return disclosure and policy version recording",
+  "status": "IMPLEMENTED_TESTED_PACKAGE_READY_NOT_PUBLISHED_OWNER_TEXT_REVIEW_PENDING",
+  "approvalReason": "Customer-facing operational policy wording is being changed; owner review of the concrete text precedes publication. This is not a new monetary rule or a legal compliance certification.",
+  "reviewText": "docs/customer-order-policy-343-review.txt",
+  "policySource": "backend/shared/customer-order-policy-343.json",
+  "policyPin": {
+    "policyId": "CASH_ORDER_CUSTOMER",
+    "version": 1,
+    "digest": "69033a3a53645485bf9de66ed024f4e8924ed52b3ae66d40a09fcb380c41e2e6"
+  },
+  "findings": [
+    "Historical 179 evidence was a commercial pricing reader publication, not proof of customer cancellation terms coverage",
+    "Old customer terms promised payment before preparation, five-minute free cancellation, electronic refunds in 3-7 days and hard-coded unverified support contacts",
+    "Actual cash route cancels immediately only while pending without preparation, assignment or conflicting state; after acceptance a review request does not stop the order",
+    "Return, custody, responsibility, fare and merchant compensation are independent reviewed decisions; no automatic customer cash refund or extra return fee",
+    "Food perishability and other goods require case-specific review; no automatic eligibility for all categories",
+    "Claim, appeal and response timing remain with existing applicable case policy and server eligibility; no new numerical promise invented"
+  ],
+  "liveReadOnlyAudit": {
+    "createOrder": {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "d20s3Hr4khgJ/6Ue9z+k55u499qlxZQwtYWjsMAIjxY=",
+      "handler": "functions/create-order/index.handler",
+      "matchesCapturedAudit": true
+    },
+    "caseServices": [
+      {
+        "name": "staging-driver-financial-accept",
+        "codeSha256": "hTzOZ4AFRK0M8L1Kjt7fYcJDNFBIA/bY5ZiYJonhF9M=",
+        "matches341": true,
+        "status": "Successful"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "n5fvax3Hvd3HkfQwMde4PhoMmKALUS5RYkeo1HS7/qo=",
+        "matches341": true,
+        "status": "Successful"
+      },
+      {
+        "name": "OrderService-staging",
+        "codeSha256": "PxHB971EPptLnXuFQjZX266cYHhvpgw0wKonD/DQv/o=",
+        "matches341": true,
+        "status": "Successful"
+      }
+    ]
+  },
+  "implementation": {
+    "customer": [
+      "Replace inaccurate static payment/cancellation/refund text and fictitious support contacts",
+      "Readable navy text and white/light cards; no yellow text on white",
+      "Policy link in checkout and exact server policy document in confirmation sheet",
+      "Server supplies policy document with canonical hash; client validates hash and shows matching version",
+      "Explicit commercial review carries only policy pin in persisted account-scoped order attempt",
+      "Policy change forces another review even if prices unchanged",
+      "Prepared invoice Arabic policy uses UTF-8 and avoids redundant preview"
+    ],
+    "backend": [
+      "Validate optional pin against current server policy before new order commit",
+      "Store immutable full document, subject, server creation time and commercial digest with acknowledged new-client order",
+      "Older clients without pin remain compatible and are explicitly marked NOT_RECORDED_BY_CLIENT; never fabricate acknowledgement",
+      "Existing retries keep original order outcome and record; no rewriting historical orders",
+      "No extra tables, financial postings, charges, IAM grants, environment changes or SLA changes"
+    ],
+    "merchantDriverAdmin": [
+      "Audited operational return/custody/fare/compensation wording and backend rules; no contradictory consumer refund promise located in active operational components searched",
+      "Existing commercial agreements, driver statements and administrative case policy snapshots remain separate from consumer text",
+      "Legacy email signup terms checkboxes exist; their route activation and full partner onboarding terms coverage are not claimed verified by this targeted C07 task"
+    ]
+  },
+  "verification": {
+    "flutterPassed": 44,
+    "flutterSkipped": 1,
+    "nodePassed": 37,
+    "dartErrors": 0,
+    "dartWarnings": 0,
+    "existingInfoLintsRemain": true,
+    "sharedContractSync": "PASS",
+    "jsSyntax": "PASS",
+    "archiveOtherEntriesIdentical": true
+  },
+  "package": {
+    "part": 343,
+    "function": "WizzUser-CreateOrder-staging",
+    "baseCodeSha256": "d20s3Hr4khgJ/6Ue9z+k55u499qlxZQwtYWjsMAIjxY=",
+    "candidateCodeSha256": "9SzCccuC396cFhTq1hSQYW3Wt068YNoVHEAT3zOtK+Q=",
+    "changedEntries": [
+      "functions/create-order/index.js",
+      "functions/shared/customer-order-policy-343.js",
+      "functions/shared/customer-order-policy-343.json"
+    ],
+    "otherEntriesIdentical": true,
+    "iamChanges": false,
+    "configurationChanges": false,
+    "businessWritesByBuilder": 0,
+    "status": "BUILT_NOT_PUBLISHED"
+  },
+  "businessDataMutationsExecuted": false,
+  "awsWritesExecuted": false,
+  "nativeInstallationExecuted": false,
+  "humanAcceptance": "QUEUED_NOT_RUN",
+  "remaining": [
+    "Owner review and publication of exact text and code package",
+    "Install updated customer app and complete ordered human acceptance",
+    "Broader partner signup terms/consent route audit remains separate and tracked",
+    "X-TEST-342 historical fixture debt remains open; targeted 343 passing tests do not clear it"
+  ],
+  "customerSourceCommit": "db3c2b2"
+}

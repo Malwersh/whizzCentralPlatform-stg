@@ -248,14 +248,17 @@
         "ADMIN"
       ],
       "name": "سياسات الإلغاء والعودة ومسؤولية الأطراف وإظهار الشروط وحفظ الإصدار",
-      "currentStatus": "EXISTING_POLICY_COVERAGE_AUDIT_REQUIRED",
+      "currentStatus": "CASH_CUSTOMER_DISCLOSURE_VERSION_RECORDING_IMPLEMENTED_TESTED_343_PENDING_TEXT_REVIEW_PUBLICATION",
       "priority": "P0-OPS",
-      "remaining": "مطابقة النصوص والروابط قبل الطلب ومعنى النقد والتعويض والمهل والطعام مقابل غير الغذائي مع التنفيذ؛ لا افتراض رسوم غير معلنة",
+      "remaining": "اكتمل محليًا تصحيح نصوص الإطلاق النقدي وإظهار سياسة الطلب قبل التأكيد وحفظ نصها وإصدارها مع إقرار الزبون، مع توافق النسخ السابقة دون ادعاء موافقة لم تحصل. نجح 44 اختبار Flutter و37 اختبار خادم. الحزمة جاهزة ولم تُنشر؛ ننتظر مراجعة صاحب المنصة للنص قبل إظهاره للزبائن، ثم نشره وتثبيت نسخة الزبون والاختبارات البشرية المرتبة. تدقيق شمول شروط التسجيل للشركاء ومسارات الموافقة الأقدم ما زال منفصلًا ولا يُعد مثبتًا بهذا الجزء.",
       "sourceOrEvidence": [
         "docs/checkout-policy-publication-179.json",
-        "docs/finance-reference/master-implementation-v1.0-ar.txt"
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/customer-order-policy-343.json",
+        "docs/customer-order-policy-343-review.txt",
+        "docs/customer-order-policy-human-acceptance-343.csv"
       ],
-      "freshRuntimeAuditRequired": true,
+      "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
     },
     {
@@ -3501,5 +3504,12 @@
     "financialGuards": "UNCHANGED",
     "next": "C07 policy audit",
     "regressionDebt": "19 legacy Flutter failures reproduced at HEAD; 6 unmodified backend handler fixture failures; repair tracked, not marked PASS"
+  },
+  "customerOrderPolicy343": {
+    "evidence": "docs/customer-order-policy-343.json",
+    "status": "IMPLEMENTED_TESTED_PACKAGE_READY_NOT_PUBLISHED_OWNER_TEXT_REVIEW_PENDING",
+    "publishScope": "Only three create-order zip entries; no IAM or financial-rule changes",
+    "humanAcceptance": "QUEUED_NOT_RUN",
+    "partnerSignupScope": "SEPARATE_ROUTE_AND_CONSENT_COVERAGE_AUDIT_REQUIRED"
   }
 }
