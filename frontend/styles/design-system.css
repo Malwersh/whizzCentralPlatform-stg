@@ -364,7 +364,7 @@ p, .text {
 /* Button Variants */
 .btn-primary {
     background-color: var(--primary-600);
-    color: var(--neutral-0);
+    color: #00296b;
 }
 
 .btn-primary:hover {

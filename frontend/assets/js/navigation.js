@@ -1,3 +1,10 @@
+// Shared contrast repair is loaded once for existing and dynamically inserted controls.
+(function(){
+ if(window.__wizzContrastLoading||window.WizzControlContrast)return;
+ const source=document.currentScript?.src;if(!source)return;
+ window.__wizzContrastLoading=true;
+ const script=document.createElement('script');script.src=new URL('contrast-controls.js',source).href;script.defer=true;document.head.appendChild(script);
+})();
 // Apply before authentication or asynchronous sidebar loading to avoid an LTR first frame.
 document.documentElement.lang = 'ar';
 document.documentElement.dir = 'rtl';
