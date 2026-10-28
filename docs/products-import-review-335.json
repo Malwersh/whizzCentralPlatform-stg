@@ -75,5 +75,7 @@
   "protectedMain": "Existing pull requests require colleague approval; no bypass or force-push",
   "businessMutationsExecuted": false,
   "secretsIncluded": false,
-  "deploymentPerformed": false
+  "deploymentPerformed": false,
+  "supersededBy": "docs/products-import-completion-336.json",
+  "historicalStatusNote": "The remaining items recorded in review 335 were implemented and deployed as release 336. See completion evidence; review 335 retained as historical provenance."
 }

@@ -25,7 +25,8 @@
     "No new driver-only priority lane overriding the whole plan",
     "No native platform release checks before operational P0",
     "Do not implement delegated products/import work",
-    "2026-10-28: user authorized reviewing and integrating colleague product implementation; this supersedes delegation-only restriction for integration corrections. Remaining delegated scope retained."
+    "2026-10-28: user authorized reviewing and integrating colleague product implementation; this supersedes delegation-only restriction for integration corrections. Remaining delegated scope retained.",
+    "2026-10-28: user explicitly requested completion of colleague product scope including bulk images, column mapping, inventory and actual staging deployment; completed as release 336. Delegation-only restriction superseded for this scope."
   ],
   "workItems": [
     {
@@ -1409,14 +1410,18 @@
         "CUSTOMER"
       ],
       "name": "المنتجات والقوائم والإدخال اليدوي وCSV/Excelوالخيارات والصور والمخزون والنشر",
-      "currentStatus": "REVIEWED_CODE_INTEGRATION_RUNTIME_ACCEPTANCE_PENDING",
-      "priority": "EXCLUDED_COLLEAGUE",
-      "remaining": "رُوجع تنفيذ الزميل وأُدمج نطاق المنتجات وCSV/XLSX والأقسام والخيارات والنشر مع إصلاحات المراجعة. بقي نشر API/IAM واختبار staging البشري، والصور الجماعية وكميات المخزون وربط الأعمدة غير مكتملة. راجع تقرير 335؛ لا يُعد كامل نطاق التسليم منجزًا.",
+      "currentStatus": "IMPLEMENTED_DEPLOYED_STAGING_AUTOMATED_UAT_336",
+      "priority": "P0-OPS",
+      "remaining": "اكتمل نطاق المنتجات والاستيراد والصور وربط الأعمدة وكميات المخزون والنشر على staging مع اختبارات DynamoDB الفعلية وAPI من المحاكي. لا توجد أجزاء تنفيذ مؤجلة في هذا النطاق. التوقيع البشري واختبارات إطلاق Android/iOS محفوظة ضمن بوابات الإطلاق العامة ولا تُسجّل كاختبار بشري ناجح.",
       "sourceOrEvidence": [
         "docs/merchant-products-import-colleague-handoff-2026-10-24.txt",
-        "docs/products-import-review-335.json"
+        "docs/products-import-review-335.json",
+        "docs/products-import-completion-336.json",
+        "docs/products-336-staging-publication.json",
+        "docs/products-336-isolated-staging-uat.json",
+        "docs/products-336-native-api-uat.json"
       ],
-      "freshRuntimeAuditRequired": true,
+      "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
     }
   ],
@@ -2922,13 +2927,12 @@
     "specificationSectionsMapped": 127,
     "historicalPackagesMapped": 14,
     "priorityCounts": {
-      "P0-OPS": 41,
-      "P0-SCOPE-CHECK": 3,
+      "P0-OPS": 43,
       "P1": 9,
+      "P0-SCOPE-CHECK": 2,
       "P0-IF-ENABLED": 1,
       "P2-PROVIDER": 3,
-      "P0-RELEASE-AFTER-OPS": 3,
-      "EXCLUDED_COLLEAGUE": 1
+      "P0-RELEASE-AFTER-OPS": 3
     }
   },
   "executionUpdates": [

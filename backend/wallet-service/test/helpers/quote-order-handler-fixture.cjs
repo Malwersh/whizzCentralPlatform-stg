@@ -71,6 +71,7 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   './quote-runtime/money':require('../../dist/money'),
   './quote-runtime/orderExceptionPolicy':require('../../dist/orderExceptionPolicy'),
   './quote-runtime/orderGoodsPricing':require('../../dist/orderGoodsPricing'),
+  './quote-runtime/productInventory':require('../../dist/productInventory'),
   '../shared/discount-engine':fs.existsSync(path.resolve(path.dirname(handlerPath),'../shared/discount-engine.js'))?require(path.resolve(path.dirname(handlerPath),'../shared/discount-engine.js')):{},
   uuid:{v4:()=>require('node:crypto').randomUUID()},https:{request:()=>{f.externalCalls++;throw Error('external call prohibited');}}
  };

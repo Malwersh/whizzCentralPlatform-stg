@@ -28,7 +28,7 @@ test('missing, foreign and unavailable products never fall back to client prices
  for(const p of [null,{...product(),businessId:'other'},{...product(),isAvailable:false},{...product(),isAvailable:undefined}])await rejects(setup(p?[p]:[]).price(selection()),'GOODS_UNAVAILABLE');
 });
 test('advanced and unknown product schemas are rejected rather than dropping stock or pricing constraints',async()=>{
- for(const patch of [{stock:10},{stock:null},{options:[]},{sizes:[]},{unit:'kg'},{salePrice:100},{modifiers:[]},{isDeleted:false},{futurePricing:{base:1}}])await rejects(setup([{...product(),...patch}]).price(selection()),'GOODS_PRICING_UNSUPPORTED');
+ for(const patch of [{stock:null},{options:[]},{sizes:[]},{unit:'kg'},{salePrice:100},{modifiers:[]},{isDeleted:false},{futurePricing:{base:1}}])await rejects(setup([{...product(),...patch}]).price(selection()),'GOODS_PRICING_UNSUPPORTED');
 });
 test('shared category is read/fenced once for several products, with no duplicate transaction targets',async()=>{
  const out=await setup([product(),product('p2',1000)]).price(selection([{productId:'p1',quantity:2},{productId:'p2',quantity:3}]));
@@ -99,4 +99,10 @@ test('published snapshot cannot resurrect deleted or unavailable live products',
  const r=create({db:{async send(c){if(c.input.Key.sk==='MENU_VERSION#ACTIVE')return {Item:{publishedVersion:'v1'}};if(c.input.TableName==='WhizzMerchants_Products')return {Item:live};return {Item:{version:'v1',product:product()}};}}});
  await rejects(r.price(selection()),'GOODS_UNAVAILABLE');
  }
+});
+
+test('tracked stock supports bounded inventory and sums configurations before quoting',async()=>{
+ const p={...optionProduct(),stock:2};p.optionGroups[0].options[1].isAvailable=true;
+ assert.equal((await setup([p]).price(selection([{productId:'p1',quantity:2,selectedOptions:{sides:['salad']}}]))).goodsGross.minorAmount,5500000);
+ await rejects(setup([p]).price(selection([{productId:'p1',quantity:2,selectedOptions:{sides:['salad']}},{productId:'p1',quantity:1,selectedOptions:{sides:['rice']}}])),'GOODS_UNAVAILABLE');
 });
