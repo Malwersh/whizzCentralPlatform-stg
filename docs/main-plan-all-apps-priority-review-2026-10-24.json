@@ -205,16 +205,18 @@
         "ADMIN"
       ],
       "name": "شكوى مرتبطة بطلب مسلّم وصور وتذكرة وحالة وقرار وسبب وإعادة مراجعة",
-      "currentStatus": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED_341",
+      "currentStatus": "PUBLISHED_341_MODERN_GUEST_APPLICABILITY_AUDITED_LOCAL_CONTINUATION_342_HUMAN_QUEUED",
       "priority": "P0-OPS",
-      "remaining": "نُشرت دورة الشكوى المرتبطة بالطلب المسلّم والدعم والصور والمسؤول والمهل والقرار والتعويض الموجه والاعتراض على staging بعد الموافقة الصريحة. نجحت فحوص النشر والصلاحيات والحماية. تبقى نسخة تطبيق الزبون المحدثة والاختبارات البشرية الثمانية المؤجلة؛ حفظ أدلة القضايا المغلقة ما زال ضمن X02 دون مدة احتفاظ أو حذف آلي مبتدعة. المسار المنشور للمستخدم المسجل صاحب الطلب؛ رحلة شكوى الضيف وإثبات ملكية طلبه لم تُنفذ ضمن 341.",
+      "remaining": "الخادم المنشور لا يقبل إنشاء طلب ضيف جديد في المسار الحديث؛ أُصلحت متابعة الضيف محليًا بطلب التحقق والحفاظ على السلة والنقطة والعودة لإتمام الطلب المرتبط بالحساب. مسار الشكوى 341 منشور للمستخدم المسجل صاحب الطلب. تبقى نسخة التطبيق والاختبارات البشرية المؤجلة، وإثبات ملكية طلبات الضيوف التاريخية فجوة منفصلة لا تُحل برمز ضيف قديم أو رقم هاتف غير موثق. حفظ الأدلة ضمن X02. ظهرت إخفاقات قديمة في اختبارات الفاتورة وسُجل إصلاحها دون إضعاف اشتراط مراجعة الإجمالي.",
       "sourceOrEvidence": [
         "docs/cod-launch-execution-tracker.json",
         "docs/finance-reference/master-implementation-v1.0-ar.txt",
         "docs/customer-order-complaints-341.json",
         "docs/customer-order-complaints-deployment-plan-341.json",
         "docs/customer-order-complaints-human-acceptance-341.csv",
-        "docs/customer-order-complaints-publication-341.json"
+        "docs/customer-order-complaints-publication-341.json",
+        "docs/guest-checkout-identity-audit-342.json",
+        "docs/guest-checkout-human-acceptance-342.csv"
       ],
       "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
@@ -1433,6 +1435,38 @@
       "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true,
       "adminImportStatus": "NOT_IMPLEMENTED_VERIFIED_SOURCE_2026_10_28"
+    },
+    {
+      "id": "X-GUEST-LEGACY-342",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "إثبات ملكية طلبات الضيوف التاريخية إن وجدت قبل فتح الشكوى الخاصة",
+      "currentStatus": "SCOPE_AND_SECURE_IDENTITY_LINK_DESIGN_REQUIRED",
+      "priority": "P0-SCOPE-CHECK",
+      "remaining": "لا يوجد إنشاء طلب ضيف جديد في المسار الحديث. عند الحاجة لخدمة طلبات ضيوف تاريخية يجب إثبات ملكيتها عبر هوية موثقة وتصميم مستقل قبل إتاحة بياناتها أو تعويضها؛ لا اعتماد لرمز الضيف القديم وحده ولا تعديل ملكية القيود المالية.",
+      "sourceOrEvidence": [
+        "docs/guest-checkout-identity-audit-342.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X-TEST-342",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "تحديث اختبارات الفاتورة القديمة لعقد مراجعة الإجمالي ومسار إنشاء الطلب الحالي",
+      "currentStatus": "BASELINE_FAILURES_DOCUMENTED_REPAIR_REQUIRED",
+      "priority": "P0-OPS",
+      "remaining": "19 إخفاقًا قديمًا في delivery_quote_checkout_test أُعيدت على HEAD السابق، و6 في quote-order-handler.test دون تعديل مصدر الخادم. إصلاح تجهيزات الاختبار وفحص أي سبب فعلي دون إسقاط التحقق أو مراجعة الإجمالي؛ لا تُعد هذه الاختبارات ناجحة.",
+      "sourceOrEvidence": [
+        "docs/guest-checkout-identity-audit-342.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
     }
   ],
   "originalSpecificationSectionCoverage": [
@@ -3458,5 +3492,14 @@
     "publication": "docs/driver-map-tools-publication-329.json",
     "humanAcceptanceDeferredAndListed": true,
     "doesNotCloseOtherMainPlanItems": true
+  },
+  "guestCheckoutIdentity342": {
+    "evidence": "docs/guest-checkout-identity-audit-342.json",
+    "modernGuestOrderCreation": "NOT_ADMITTED_BY_PUBLISHED_REQUIRED_ROUTE",
+    "frontendContinuation": "LOCAL_AUTOMATED_VERIFIED_NATIVE_INSTALLATION_PENDING",
+    "legacyGuestHistoricalClaims": "OPEN_SEPARATE_IDENTITY_LINK_GAP",
+    "financialGuards": "UNCHANGED",
+    "next": "C07 policy audit",
+    "regressionDebt": "19 legacy Flutter failures reproduced at HEAD; 6 unmodified backend handler fixture failures; repair tracked, not marked PASS"
   }
 }
