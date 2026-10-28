@@ -67,7 +67,11 @@
     "financial-compatibility.js",
     "company-accounts.js",
     "company-accounting.js",
-    "company-chart.js"
+    "company-chart.js",
+    "dispatch-followup.js",
+    "dispatch-followup-core.js",
+    "dispatch-followup-monitor.js",
+    "dispatch-followup-runtime.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",

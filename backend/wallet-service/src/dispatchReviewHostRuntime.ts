@@ -11,5 +11,7 @@ export async function handler(event:Record<string,unknown>,context:{awsRequestId
  if(!rule||!rule.startsWith('arn:aws:events:us-east-1:699561669180:rule/')||event.source!=='aws.events'||event['detail-type']!=='Scheduled Event'||event.account!=='699561669180'||event.region!=='us-east-1'||!Array.isArray(event.resources)||event.resources.length!==1||event.resources[0]!==rule)throw Error('DISPATCH_REVIEW_HOST_TRIGGER_INVALID');
  if(context.getRemainingTimeInMillis()<20000)return {deferred:true};
  const rawDb=DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'}),{marshallOptions:{removeUndefinedValues:true}}),db=createFinanceRollout({db:rawDb}).db,cognito=new CognitoIdentityProviderClient({region:'us-east-1'});
- return createStagingDispatchReviewHost({db,cognito,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',remainingMs:()=>context.getRemainingTimeInMillis!()}).tick(context.awsRequestId);
+ const review=await createStagingDispatchReviewHost({db,cognito,enableFullCash:process.env.FINANCIAL_SETTLEMENT_MODEL==='FULL_CASH_AT_DELIVERY_V1',remainingMs:()=>context.getRemainingTimeInMillis!()}).tick(context.awsRequestId);
+ const followup=process.env.DISPATCH_FOLLOWUP_MODE==='REQUIRED'&&context.getRemainingTimeInMillis()>20000?await require('../../staff-service/dispatch-followup-monitor').createMonitor({db:rawDb,remainingMs:()=>context.getRemainingTimeInMillis!(),historicalContainsOrder:createFinanceRollout({db:rawDb}).containsOrder}).tick(context.awsRequestId):{deferred:true};
+ return {...review,followup};
 }

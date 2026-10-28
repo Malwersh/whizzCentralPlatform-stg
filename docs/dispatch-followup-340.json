@@ -1,0 +1,56 @@
+{
+  "part": 340,
+  "scope": "A02 operational followup of exhausted dispatch search",
+  "status": "IMPLEMENTED_PUBLISHED_STAGING_AUTOMATED_VERIFIED",
+  "humanAcceptance": "DEFERRED_ORDERED_NOT_PASSED",
+  "implementation": {
+    "discovery": "Existing scheduled integration worker, indexed no_driver_available query; strong source reread and conditional writes",
+    "index": {
+      "table": "WizzDispatchJobs_staging",
+      "name": "DispatchReviewStatus340",
+      "partition": "status",
+      "sort": "orderId",
+      "projection": "KEYS_ONLY"
+    },
+    "activeInbox": "staging-PlatformStaff: DISPATCH_FOLLOWUP_INBOX#OPEN queried by partition; no scan of staff audit or all orders",
+    "caseRecord": "DISPATCH_REVIEW#<caseId> / FOLLOWUP, isolated per dispatch cycle",
+    "ownership": "Self-claim, note and release under live regional orders.assign, employee version, recent authentication and MFA; revoked/unavailable owners may be replaced with an owner-profile guard",
+    "deadlines": "Default review 5 minutes, escalation 15 minutes; policy copied to new cases only, never extended by claim or note",
+    "policy": "Central settings /staff/settings/dispatch-followup uses the existing settings request/approval or DIRECT workflow",
+    "notice": "Persistent in-platform banner on authenticated platform pages, scoped by live order region; no email/SMS/mobile push claim",
+    "resolution": "Only on authoritative assignment, durable DISPATCH_RESTART STARTED acknowledgement, terminal order or source closure; financial case and compensation closure remain independent",
+    "ui": "Existing order management button retained; actual SEARCH_RESUMED / DRIVER_ASSIGNED / ORDER_CLOSED states; review refresh pauses for typed notes",
+    "discoveryBudget": "Up to 5 indexed pages per source per existing one-minute tick, 50 items/page with remaining-time stop and durable cursor",
+    "activation": "Required and live, not shadow-only",
+    "pendingRestart": "A decision atomically seeds a notice if discovery has not run; queued, unconfirmed or failed restarts keep the original owner and deadlines until durable STARTED acknowledgement."
+  },
+  "safety": {
+    "automaticCancellation": false,
+    "automaticReleaseOfMoney": false,
+    "newFinancialPermissions": false,
+    "existingExecutorPackagePreserved": true,
+    "cancelledOrderCannotBeRestartedByFollowup": true,
+    "existingDecisionDigestComparedWithPublishedBundle": true,
+    "operatorIntentDoesNotEqualExecutedSearch": true
+  },
+  "tests": {
+    "staffFollowupAndSettingsPassed": 53,
+    "existingRetryExecutorAndFullCashPassed": 34,
+    "browserReviewCasesPassed": 8,
+    "browserAlertsCasesPassed": 4,
+    "publishedReaderCompatibilityCasesPassed": 6,
+    "iamSimulationCasesPassed": 8,
+    "typescriptBuild": "PASS",
+    "candidateUnauthenticatedSettings": "401",
+    "candidateDisabledMonitor": "NO_WRITES"
+  },
+  "testMaintenance": "The older full-cash retry fixture requested recovery at the first wave timeout. It now advances its synthetic clock to the original cycle search deadline, preserving all financial, funding-revocation and duplicate-offer assertions. Both tests pass; production search timing was not changed.",
+  "publicationEvidence": "docs/dispatch-followup-publication-340.json",
+  "manualTests": "docs/dispatch-followup-human-acceptance-340.csv",
+  "pendingLimits": [
+    "Human multi-account and actual fresh order acceptance remains queued, not marked PASS",
+    "Automated discovery targets search exhaustion; the existing acceptance/reservation review remains available with manual followup controls",
+    "Record retention and deletion coverage stays within the existing X02 audit; no automatic retention duration or TTL was invented"
+  ],
+  "nextMainPlanItem": "C05: completed-order complaint through existing support, linked responsibility/decision/compensation"
+}

@@ -1,3 +1,5 @@
+// Authenticated, region-scoped operational notices on platform pages.
+(function(){if(window.__dispatchAlertLoading340)return;const source=document.currentScript?.src;if(!source)return;window.__dispatchAlertLoading340=true;const script=document.createElement('script');script.src=new URL('../../dispatch-review-alerts.js?v=340',source).href;script.defer=true;document.head.append(script);})();
 // Shared contrast repair is loaded once for existing and dynamically inserted controls.
 (function(){
  if(window.__wizzContrastLoading||window.WizzControlContrast)return;

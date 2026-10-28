@@ -7,13 +7,17 @@ const errors={DISPATCH_REVIEW_DISABLED:'مراجعة الإسناد غير مف�
 const decisionTitles={PENDING_EXECUTION:'طلب قرار مسجل — بانتظار التنفيذ المخوّل',EXECUTED:'تم إلغاء الطلب دون حجز أو تحرير أموال',STALE:'لم يُنفذ القرار — تغيرت الأدلة',AUTHORIZATION_CHANGED:'لم يُنفذ القرار — تغير تفويض الموظف',BLOCKED_DEPENDENCY:'القرار ينتظر استكمال اعتماد التنفيذ',NEEDS_REVIEW:'القرار يحتاج مراجعة الحجز والأدلة',SUPPRESSED_DELETION:'أُوقف القرار بسبب إغلاق المصدر أو حذف صاحبه'};
 const resultLabels={BRANCH_UNAVAILABLE_FOR_SEARCH:'الفرع غير متاح لبدء البحث؛ راجع حالة التفعيل أو حظر المنصة.',RESPONSE_INTEGRATION_PENDING:'تنتظر إعادة البحث استكمال معالجة ردود العروض السابقة.',RETRY_EXECUTION_DISABLED:'تنفيذ إعادة البحث غير مفعل بعد.',SEARCH_RESTART_QUEUED:'حُفظت دورة بحث جديدة؛ بدء إرسال العروض بانتظار تأكيد المنفّذ، ولم تُحرر أموال.',CYCLE_NAMESPACE_REQUIRED:'إعادة البحث تنتظر عزل سجلات الدورة السابقة.',FINANCIAL_OR_SOURCE_WORKFLOW_REQUIRED:'هذه الحالة تحتاج مسارها المالي المثبت قبل الإلغاء.',GOODS_OR_RESERVATION_UNCONFIRMED:'حالة البضاعة أو الحجز غير محسومة.',ORDER_HAS_FINANCIAL_RECORDS:'توجد سجلات حجز أو تمويل تحتاج معالجة مستقلة.',RESERVATION_REQUIRES_RECONCILIATION:'نتيجة الحجز تحتاج مطابقة؛ لم يُحرر أي مبلغ.',SOURCE_CHANGED:'تغيرت الحالة قبل التنفيذ.',EMPLOYEE_AUTHORITY_CHANGED:'لم يعد تفويض الموظف مطابقًا للطلب.',SOURCE_UNAVAILABLE:'مصدر الحالة لم يعد متاحًا.',CANCELLED_WITHOUT_RESERVATION:'أُلغي الطلب قبل الاستلام بعد التحقق من خلوه من سجلات الحجز والتمويل.'};
 Object.assign(resultLabels,{PRIOR_OFFER_STILL_ACTIVE:'بانتظار انتهاء صلاحية العروض السابقة قبل بدء دورة جديدة.',PRIOR_FINANCIAL_INTEGRATION_PENDING:'بانتظار اكتمال تسجيل فك الإسناد والضمان السابق؛ ستُعاد المحاولة تلقائيًا.',PRIOR_ACCEPTANCE_NOT_RELEASED:'يوجد قبول سابق لم يثبت فك إسناده وضمانه؛ يلزم تدقيقه أولًا.',PRIOR_GUARANTEE_RELEASE_PROOF_REQUIRED:'تعذر مطابقة الضمان مع سجل فك الإسناد؛ يلزم تدقيقه.',GOODS_ALREADY_HANDED_OVER:'سُجل تسليم الطلب للسائق؛ إعادة البحث قبل الاستلام غير متاحة.',RETRY_INVENTORY_REQUIRES_EXTENDED_REVIEW:'عدد المحاولات السابقة يحتاج مراجعة موسعة قبل إعادة البحث.'});
+Object.assign(labels,{RESTART_PENDING:'دورة البحث مسجلة — بانتظار تأكيد تشغيل العروض',RESTART_NEEDS_REVIEW:'تعذر بدء دورة البحث — يلزم تدخل الإدارة',SEARCH_RESUMED:'أُعيد الطلب إلى البحث عن سائق',DRIVER_ASSIGNED:'أُسند الطلب إلى سائق',ORDER_CLOSED:'أُغلق الطلب؛ لا توجد متابعة توزيع نشطة'});
 function renderDecision(box,d){const title=d.status==='EXECUTED'&&d.resultCode==='SEARCH_RESTART_QUEUED'?'سُجلت دورة بحث جديدة — بانتظار تأكيد التشغيل':d.status==='EXECUTED'&&d.resultCode!=='CANCELLED_WITHOUT_RESERVATION'?'نتيجة تحتاج تحققًا':decisionTitles[d.status]||'حالة قرار غير معروفة؛ حدّث البيانات.';box.append(text('strong',title),text('p',labels[d.action]||'طلب مراجعة'),text('p',d.reason||'لا يتوفر نص السبب.'),text('p','المرجع: '+d.requestId));if(d.resultCode)box.append(text('p',resultLabels[d.resultCode]||'راجع سجل القرار للتحقق من النتيجة.'));if(d.stale)box.append(text('p','تغيرت الأدلة بعد تسجيل الطلب؛ يحتاج المنفّذ إعادة التحقق.'));}
 const text=(tag,value)=>{const n=document.createElement(tag);n.textContent=value;return n;};
 function lock(on){busy=on;el('reload').disabled=on;el('more').disabled=on;for(const n of el('list').querySelectorAll('button,textarea,select'))n.disabled=on;}
 async function api(suffix='',method='GET',body){await window.Auth.ensureSession();const base=window.WIZZCENTRAL_CONFIG?.STAFF_API_BASE_URL,token=window.Auth.getToken('accessToken');if(!base||!token)throw Error('تعذر تهيئة جلسة الموظف.');const response=await fetch(base+path+suffix,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json();if(window.Auth.getToken('accessToken')!==token){epoch++;cursor=null;requests.clear();el('list').replaceChildren();el('more').hidden=true;el('message').textContent='تغيرت جلسة الموظف. حدّث القائمة من حسابك الحالي.';lock(false);throw Error('EMPLOYEE_CHANGED');}if(!response.ok)throw Error(errors[data.error]||'تعذر تنفيذ الطلب. لم تُؤكد نتيجته؛ أعد المحاولة بالمحتوى نفسه.');return data;}
 function card(item){const box=document.createElement('article');box.style.cssText='border:1px solid #ddd;padding:16px;margin:12px 0';
  box.append(text('h3',(item.branchName||item.branchId)+' — '+item.orderId));
- for(const value of [labels[item.phase]||'حالة مراجعة',labels[item.reason]||'سبب يحتاج مراجعة',labels[item.goodsState]||'حالة البضاعة غير مؤكدة',labels[item.holdState]||'حالة الحجز غير مؤكدة'])box.append(text('p',value));
+ const shownPhase=item.followup?.active&&item.followup.restartState?(item.followup.restartState==='NEEDS_REVIEW'||item.followup.restartState==='STALE'||item.followup.restartState==='SUPPRESSED_DELETION'?'RESTART_NEEDS_REVIEW':'RESTART_PENDING'):item.phase;
+ for(const value of [labels[shownPhase]||'حالة مراجعة',labels[item.reason]||'سبب يحتاج مراجعة',labels[item.goodsState]||'حالة البضاعة غير مؤكدة',labels[item.holdState]||'حالة الحجز غير مؤكدة'])box.append(text('p',value));
+ const manage=text('button','فتح إدارة الطلب');manage.type='button';manage.dataset.manageOrderId=item.orderId;box.append(manage);
+ if(item.followup&&window.DispatchFollowupUI)box.append(window.DispatchFollowupUI.render(item,()=>openOrder(item.orderId)));
  if(item.attemptId)box.append(text('p','مرجع المحاولة: '+item.attemptId));
  if(item.pendingAcceptance)box.append(text('p','توجد محاولة قبول معلقة؛ إعادة البحث والإلغاء غير متاحين حتى تدقيقها.'));
  if(item.decision){renderDecision(box,item.decision);return box;}
@@ -31,13 +35,15 @@ function card(item){const box=document.createElement('article');box.style.cssTex
   finally{if(run===epoch)lock(false);}
  });return box;
 }
-async function load(more=false){if(busy)return;const run=++epoch;lock(true);el('message').textContent='جارٍ تحميل حالات المراجعة…';if(!more){cursor=null;el('list').replaceChildren();}el('more').hidden=true;
+let selectedReviewOrder=null;
+async function load(more=false){if(busy)return;const run=++epoch;lock(true);el('message').textContent='جارٍ تحميل حالات المراجعة…';if(!more){selectedReviewOrder=null;cursor=null;el('list').replaceChildren();}el('more').hidden=true;
  try{const r=await api(cursor&&more?'?cursor='+encodeURIComponent(cursor):'');if(run!==epoch)return;for(const item of r.items||[])el('list').append(card(item));cursor=r.nextCursor||null;el('more').hidden=!cursor;el('message').textContent=el('list').children.length?'طلبات القرار لا تُعد تنفيذًا ماليًا أو إلغاءً.':cursor?'لا توجد حالات مطابقة في هذه الصفحة؛ يمكن متابعة القراءة.':'لا توجد حالات مراجعة متاحة ضمن نطاقك.';}
  catch(e){if(run===epoch){el('list').replaceChildren();cursor=null;el('more').hidden=true;el('message').textContent=e.message;}}
  finally{if(run===epoch)lock(false);}
 }
 async function openOrder(orderId){
  if(busy||typeof orderId!=='string'||!orderId)return;
+ selectedReviewOrder=orderId;
  const run=++epoch;lock(true);cursor=null;el('more').hidden=true;el('list').replaceChildren();
  el('message').textContent='جارٍ تحميل مراجعة الطلب المحدد…';
  root.scrollIntoView({block:'start',behavior:'smooth'});
@@ -51,6 +57,7 @@ document.getElementById('orders-tbody')?.addEventListener('click',event=>{
  if(button)openOrder(button.dataset.reviewOrderId);
 });
 el('reload').addEventListener('click',()=>load());el('more').addEventListener('click',()=>load(true));
-window.addEventListener('pagehide',()=>{epoch++;requests.clear();el('list').replaceChildren();});
-load();
+const refreshTimer=setInterval(()=>{if(busy||document.hidden||[...root.querySelectorAll('textarea')].some(n=>n.value.trim()))return;if(selectedReviewOrder)openOrder(selectedReviewOrder);else load();},30000);
+window.addEventListener('pagehide',()=>{clearInterval(refreshTimer);epoch++;requests.clear();el('list').replaceChildren();});
+load().then(()=>{const order=new URLSearchParams(location.search).get('dispatchReviewOrder');if(order&&/^[A-Za-z0-9_:#.-]{1,150}$/.test(order))openOrder(order);});
 })();

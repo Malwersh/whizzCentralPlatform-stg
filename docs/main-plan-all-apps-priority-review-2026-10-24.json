@@ -1060,14 +1060,17 @@
         "CUSTOMER"
       ],
       "name": "تعثر الإسناد وملكية متابعة ومهلة وتصعيد وقرار مخول",
-      "currentStatus": "EXISTING_REVIEW_MINIMUM_COMPLETENESS_AUDIT",
+      "currentStatus": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED_340",
       "priority": "P0-OPS",
-      "remaining": "عدمتركالمراجعةانتظارًامجهولًا؛ تدقيقالمسؤولوالإشعاروالتوقيتوالمؤشرواكتشافالحالاتوالإجراءالنهائي",
+      "remaining": "اكتمل تنفيذ المتابعة: فهرس تعثر فعلي، صندوق تنبيهات داخل المنصة، مسؤول متابعة وملاحظة موثقة، مهل مراجعة وتصعيد قابلة للتحكم وتحفظ لكل حالة، وإغلاق التنبيه وفق الحالة الفعلية فقط. الاختبارات البشرية الستة محفوظة بالترتيب ولم تسجل ناجحة. لا إلغاء آلي أو تحرير أموال من المراقب، ولا تغيير لمنفذ قرارات الإدارة المالي.",
       "sourceOrEvidence": [
         "frontend/dispatch-reviews.js",
-        "backend/wallet-service/src/dispatchReviewExecutor.ts"
+        "backend/wallet-service/src/dispatchReviewExecutor.ts",
+        "docs/dispatch-followup-340.json",
+        "docs/dispatch-followup-publication-340.json",
+        "docs/dispatch-followup-human-acceptance-340.csv"
       ],
-      "freshRuntimeAuditRequired": true,
+      "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
     },
     {
@@ -3041,6 +3044,13 @@
       "backgroundGPSValidated": false,
       "operationalBacklogUnchanged": true,
       "manualAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "DISPATCH_FOLLOWUP_340",
+      "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED_340",
+      "evidence": "docs/dispatch-followup-340.json",
+      "humanAcceptance": "DEFERRED_ORDERED_NOT_PASSED",
+      "next": "C05_COMPLETED_ORDER_COMPLAINT_EXISTING_SUPPORT"
     }
   ],
   "orderedDeferredDriverAcceptance": {
