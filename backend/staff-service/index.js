@@ -48,6 +48,12 @@ async function handler(event){
   if((actor.minimumAuthTime||0)>(claims.auth_time||0))throw fail('REAUTH_REQUIRED');
   const method=event.httpMethod,path=event.path;const requirePermission=p=>{if(!allowed(actor,p))throw fail('PERMISSION_REQUIRED');};
   if(method==='GET'&&path==='/staff/me')return response(200,{employee:actor,permissions:effective(actor),directWrite:direct()});
+  if(path==='/staff/regions/manage'||path.startsWith('/staff/regions/manage/')){
+   let regionInput={};if(method==='POST'){try{regionInput=JSON.parse(event.body||'{}');if(!regionInput||typeof regionInput!=='object'||Array.isArray(regionInput))throw Error();}catch{throw fail('INVALID_BODY',400);}}
+   try{return response(200,await require('../region-management/api-entry').route({db,table,sdk:require('@aws-sdk/lib-dynamodb'),allowed,guard,audit,recent,claims},actor,method,path,regionInput));}
+   catch(error){return response(error.status||503,{error:error.code||'REGION_MANAGEMENT_UNAVAILABLE',...(error.details?{details:error.details}:{})});}
+  }
+
   if(method==='GET'&&path==='/staff/regions'){requirePermission('staff.read');let items=[],cursor,pages=0;do{const result=await db.send(new ScanCommand({TableName:process.env.REGIONS_TABLE,ExclusiveStartKey:cursor,Limit:100,ProjectionExpression:'regionId, #n, name_ar, parent_id, #l',ExpressionAttributeNames:{'#n':'name','#l':'level'}}));items.push(...(result.Items||[]));cursor=result.LastEvaluatedKey;if(++pages>100)throw fail('REGIONS_INCOMPLETE',503);}while(cursor);return response(200,{items});}
   if(method==='GET'&&path==='/staff/catalog'){requirePermission('staff.read');return response(200,{roles:Object.keys(ROLES).filter(r=>r!=='bootstrap_admin').map(id=>({id,label:LABELS[id],permissions:ROLES[id]}))});}
   if(method==='GET'&&(path==='/staff/employees'||path==='/staff/changes'||path==='/staff/audit')){
@@ -56,6 +62,7 @@ async function handler(event){
    const result=await db.send(new ScanCommand({TableName:table,Limit:100,ExclusiveStartKey:cursor,FilterExpression:'begins_with(pk, :prefix)',ExpressionAttributeValues:{':prefix':prefix}}));
    return response(200,{items:result.Items||[],nextCursor:result.LastEvaluatedKey?Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString('base64url'):null});
   }
+  if(method==='GET'&&/^\/staff\/drivers\/[^/]+\/vehicles$/.test(path))return response(200,await require('./driver-vehicles').route({db,driversTable:process.env.DRIVERS_TABLE,guard,audit,id:randomUUID},actor,method,path));
   if(method==='GET'&&path.startsWith('/staff/drivers'))return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE},actor,method,path));
   let input;try{input=JSON.parse(event.body||'{}');if(!input||typeof input!=='object'||Array.isArray(input))throw Error();}catch(_){throw fail('INVALID_BODY',400);}
   if(path==='/staff/offers'||path.startsWith('/staff/offers/'))return response(200,await require('./offers').route({db,table,guard,audit,query:event.queryStringParameters},actor,method,path,input));
@@ -64,6 +71,7 @@ async function handler(event){
   if(path==='/staff/pickup-issues')return response(200,await require('./pickup-issue-workflow').route({db,guard,audit,enrolled,recent,claims,allowed},actor,method,method==='GET'?event.queryStringParameters||{}:input));
   if(path==='/staff/customer-benefit-compensation')return response(200,await require('./customer-benefit-compensation').route({db,guard,audit,enrolled,recent,claims},actor,method,method==='GET'?event.queryStringParameters||{}:input));
   if(path==='/staff/cancellation-compensation')return response(200,await require('./cancellation-compensation').route({allowed,enrolled,recent,claims,query:event.queryStringParameters,accessToken:token},actor,method,path,input));
+  if(path==='/staff/driver-cash-payouts'&&method==='POST')return response(200,await require('./driver-cash-payouts').route({db,allowed,enrolled,recent,claims,accessToken:token},actor,input));
   if(path==='/staff/order-management')return response(200,await require('./order-management').route({db,allowed,enrolled,recent,claims,query:event.queryStringParameters,accessToken:token},actor,method,path,input));
   if(path==='/staff/order-exceptions'||path.startsWith('/staff/order-exceptions/'))return response(200,await require('./order-exception-cases').route({db,table,employee,guard,audit,enrolled,recent,claims,allowed,query:event.queryStringParameters,accessToken:token},actor,method,path,input));
   if(path==='/staff/dispatch-reviews'||path.startsWith('/staff/dispatch-reviews/')){const rollout=require('./finance-rollout').createFinanceRollout({db});return response(200,await require('./dispatch-reviews').route({...require('./dispatch-reviews').reviewAccess({db,rollout}),table,employee,guard,audit,enrolled,recent,claims,query:event.queryStringParameters},actor,method,path,input));}
@@ -81,9 +89,11 @@ async function handler(event){
   if(path.startsWith('/staff/merchants/'))return response(200,await require('./merchant-onboarding').route({db,table,guard,audit,query:event.queryStringParameters},actor,method,path,input));
   if(path==='/staff/deletions'||path.startsWith('/staff/deletions/'))return response(200,await deletionRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,enrolled,allowed,query:event.queryStringParameters},actor,method,path,input));
   if(path==='/staff/settings/onboarding'||path.startsWith('/staff/settings/onboarding/'))return response(200,await settingsRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled,settingsSpec:{pk:'OPERATIONAL_SETTINGS#MERCHANT_ONBOARDING',validate:onboardingPolicy.validate,actionPrefix:'ONBOARDING',directSave:true}},actor,method,path.replace('/staff/settings/onboarding','/staff/settings/account-deletion'),input));
+  if(path==='/staff/settings/driver-map'||path.startsWith('/staff/settings/driver-map/'))return response(200,await require('./driver-map-settings-329').route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled},actor,method,path,input));
   if(path==='/staff/settings/delivery-operations'||path.startsWith('/staff/settings/delivery-operations/'))return response(200,await require('./dispatch-settings').route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled},actor,method,path,input));
   if(path==='/staff/settings/notification-sounds'||path.startsWith('/staff/settings/notification-sounds/'))return response(200,await require('./notification-settings-contract').route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled},actor,method,path,input));
   if(path.startsWith('/staff/settings/'))return response(200,await settingsRoutes.route({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled},actor,method,path,input));
+  if(method==='POST'&&/^\/staff\/drivers\/[^/]+\/vehicles$/.test(path))return response(200,await require('./driver-vehicles').route({db,driversTable:process.env.DRIVERS_TABLE,guard,audit,id:randomUUID},actor,method,path,input));
   if(method==='POST'&&path==='/staff/drivers/edit')return response(200,await driverRoutes.route({db,driversTable:process.env.DRIVERS_TABLE,regionsTable:process.env.REGIONS_TABLE,derivedTable:process.env.DERIVED_REGIONS_TABLE,guard,audit,id:randomUUID},actor,method,path,input));
   const invitationContext={db,cognito,table,pool:process.env.USER_POOL_ID,guard,audit,validateRegions};
   if(method==='POST'&&path==='/staff/invitations'){

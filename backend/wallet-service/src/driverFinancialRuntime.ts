@@ -1,3 +1,4 @@
+import {handler as driverCashPayoutHandler} from './driverCashPayoutRuntime';
 import {handler as driverQualityHandler} from './driverQualityDriverRuntime';
 import {handler as cancellationCompensationHandler} from './cancellationCompensation';
 import {handler as merchantHandoverHandler} from './merchantHandover';
@@ -198,6 +199,7 @@ export async function readFinancialOffer(body:Row,accessToken:string){
  * a caller-supplied subject/hold/amount is never accepted. Never log event or credentials.
  */
 export async function financialAcceptanceHandler(event:Row) {
+ if(['driver_cash_payout','staff_driver_cash_payout'].includes(event?.action))return driverCashPayoutHandler(event);
  if(event?.action==='driver_quality_case')return driverQualityHandler(event);
  if(event?.action==='cancellation_compensation')return cancellationCompensationHandler(event);
  if(event?.action==='merchant_handover')return merchantHandoverHandler(event);

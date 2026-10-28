@@ -173,6 +173,7 @@ function processDriversItems(items) {
             vehicleRegistration: item.registrationPaperUrl || item.vehicleRegistration || null,
             nonCriminalRecord: item.nonCriminalRecord || null
         },
+        vehicleReviewSummary: item.vehicleReviewSummary,
         fullData: item
     }));
 
@@ -374,7 +375,7 @@ function renderDriversTable(driversList = drivers) {
             </td>
             <td>${window.RBAC.staff?.employee.roles.includes('bootstrap_admin')?'$'+earningsValue:'—'}</td>
             <td>
-                <div class="actions">${viewAction}${window.RBAC.staff?.permissions.includes('drivers.edit')?editAction:''}${window.RBAC.staff?.employee.roles.includes('bootstrap_admin')?toggleAction:''}</div>
+                <div class="actions">${window.RBAC.staff?.permissions.includes('finance.read')?`<button class="btn-action" data-driver-id="${safeId}" data-action="cash-payouts" title="صرف رصيد السائق">صرف الرصيد</button>`:''}${window.RBAC.staff?.permissions.includes('drivers.documents.read')?`<button class="btn-action" data-driver-id="${safeId}" data-action="vehicles" title="إدارة المركبات والوثائق">إدارة${driver.vehicleReviewSummary?.pendingTotal?' · '+Number(driver.vehicleReviewSummary.pendingTotal):''}</button>`:''}${viewAction}${window.RBAC.staff?.permissions.includes('drivers.edit')?editAction:''}${window.RBAC.staff?.employee.roles.includes('bootstrap_admin')?toggleAction:''}</div>
             </td>
         </tr>`;
     }).join('');
@@ -388,6 +389,8 @@ function renderDriversTable(driversList = drivers) {
         if(!btn) return;
         const id = btn.getAttribute('data-driver-id');
         const action = btn.getAttribute('data-action');
+        if(action === 'cash-payouts') { window.openDriverCashPayouts(id); return; }
+        if(action === 'vehicles') { window.openDriverVehicleManagement(id); return; }
         if(action === 'view') { viewDriver(id); return; }
         if(action === 'edit') { editDriver(id); return; }
         if(btn.classList.contains('btn-toggle-status')) {
@@ -432,7 +435,7 @@ function filterDrivers() {
             driver.id.toLowerCase().includes(searchTerm) ||
             driver.phone.includes(searchTerm);
 
-        const matchesStatus = !statusFilter || driver.status === statusFilter;
+        const matchesStatus = !statusFilter || (statusFilter==='vehicle_review' ? (driver.vehicleReviewSummary?.pendingTotal??0)>0 : driver.status === statusFilter);
 
         const matchesRating = !ratingFilter ||
             (ratingFilter === '5' && driver.rating >= 5) ||
@@ -851,11 +854,8 @@ async function handleEditDriver(e) {
             values.licenseNumber = String(formData.get('licenseNumber') || '');
             values.nationalId = String(formData.get('nationalId') || '');
         }
-        // Preserve administrative state on ordinary edits; explicit status changes update approval together.
         if (status !== document.getElementById('editDriverStatus').dataset.initialStatus) {
-            values.status = status;
-            values.registrationStatus = status === 'ACTIVE' ? 'APPROVED' : status;
-            values.isVerified = status === 'ACTIVE';
+            throw Error('استخدم إدارة المركبات والوثائق لمراجعة الأهلية؛ تعديل البيانات لا يغيّر اعتماد الحساب.');
         }
         values.updatedAt = new Date().toISOString();
         const names = {}, attributes = {}, updates = [];
@@ -917,130 +917,9 @@ async function handleEditDriver(e) {
 
 // Toggle driver status between approved and suspended
 async function toggleDriverStatus(driverId, currentStatus) {
-    console.log(`🔄 Toggling status for driver ${driverId} from ${currentStatus}`);
-
-    try {
-        // Show loading state
-        const button = document.querySelector(`button[onclick="toggleDriverStatus('${driverId}', '${currentStatus}')"]`);
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        }
-
-        // Determine new status based on current status
-        const newStatus = (currentStatus === 'online' || currentStatus === 'approved') ? 'pending' : 'online';
-        const dbStatus = newStatus === 'online' ? 'APPROVED' : 'PENDING_REVIEW';
-
-        console.log(`📝 Updating driver ${driverId} to status: ${newStatus} (DB: ${dbStatus})`);
-        
-        // Show confirmation for critical actions
-        if (newStatus === 'pending' && !confirm(`Are you sure you want to change ${driverId} status to pending review?`)) {
-            // Reset button state
-            const button = document.querySelector(`button[onclick="toggleDriverStatus('${driverId}', '${currentStatus}')"]`);
-            if (button) {
-                button.disabled = false;
-                const icon = currentStatus === 'online' ? 'fa-pause' : 'fa-check';
-                button.innerHTML = `<i class="fas ${icon}"></i>`;
-            }
-            return;
-        }
-
-        if(!window.RBAC.staff?.employee.roles.includes('bootstrap_admin'))throw Error('صلاحية الموافقة والإيقاف غير متاحة لهذا الدور');
-        // Get DynamoDB client
-        const dynamoDB = await AWSUtils.getDynamoDBClient();
-
-        // Update the item in DynamoDB (write both status fields for compatibility)
-        const baseUpdate = {
-            ConditionExpression: 'attribute_exists(driverId)',
-            UpdateExpression: 'SET #status = :status, #reg = :status, #isVerified = :isVerified, #updatedAt = :timestamp',
-            ExpressionAttributeNames: {
-                '#status': 'status',
-                '#reg': 'registrationStatus',
-                '#isVerified': 'isVerified',
-                '#updatedAt': 'updatedAt'
-            },
-            ExpressionAttributeValues: {
-                ':status': dbStatus,
-                ':isVerified': newStatus === 'online',
-                ':timestamp': Math.floor(Date.now() / 1000)
-            },
-            ReturnValues: 'ALL_NEW'
-        };
-
-        let result;
-        try {
-            const updateParams1 = {
-                TableName: DRIVERS_TABLE,
-                Key: { driverId: driverId },
-                ...baseUpdate
-            };
-            result = await dynamoDB.update(updateParams1).promise();
-        } catch (e1) {
-            // Fallback: try with 'id' as key if schema differs
-            if (e1?.code === 'ValidationException' || /key element does not match/i.test(e1?.message || '')) {
-                console.warn('Primary key driverId update failed, retrying with id key');
-                const updateParams2 = {
-                    TableName: DRIVERS_TABLE,
-                    Key: { id: driverId },
-                    ...baseUpdate
-                };
-                result = await dynamoDB.update(updateParams2).promise();
-            } else {
-                throw e1;
-            }
-        }
-
-        console.log('✅ Driver status update successful:', result);
-
-        // Update local data (optimistic)
-        const driverIndex = drivers.findIndex(d => d.id === driverId);
-        if (driverIndex !== -1) {
-            drivers[driverIndex].status = newStatus;
-        }
-
-        // Refresh from DB to ensure UI reflects persisted state
-        await loadDriversData();
-
-        // Refresh the table and stats
-        renderDriversTable();
-        updateDriverStats();
-
-        // Show success message
-        const driver = drivers.find(d => d.id === driverId);
-        const driverName = driver ? driver.name : 'Driver';
-        const statusMessage = newStatus === 'online' ? 'approved and activated' : 'suspended';
-
-        if (window.dashboardFunctions) {
-            window.dashboardFunctions.showNotification(`${driverName} has been ${statusMessage}.`, 'success');
-        }
-
-        console.log(`✅ Driver ${driverId} status changed from ${currentStatus} to ${newStatus}`);
-
-    } catch (error) {
-        console.error('❌ Error updating driver status:', error);
-
-        // Reset button state
-        const button = document.querySelector(`button[onclick*="toggleDriverStatus('${driverId}'"]`);
-        if (button) {
-            button.disabled = false;
-            const icon = currentStatus === 'online' ? 'fa-pause' : 'fa-check';
-            button.innerHTML = `<i class="fas ${icon}"></i>`;
-        }
-
-        let errorMessage = 'Failed to update driver status';
-        if (error.code === 'ResourceNotFoundException') {
-            errorMessage = 'Driver not found in database';
-        } else if (error.code === 'ValidationException') {
-            errorMessage = 'Invalid data provided';
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
-
-        if (window.dashboardFunctions) {
-            window.dashboardFunctions.showNotification(`Error: ${errorMessage}`, 'error');
-        }
-    }
+    await window.openDriverVehicleManagement(driverId);
 }
+
 
 // Close modals when clicking outside
 window.addEventListener('click', function (e) {

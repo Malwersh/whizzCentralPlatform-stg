@@ -1,0 +1,204 @@
+{
+  "role": "staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+  "policy": "CodIntegrationWorkerRolePolicy0",
+  "change": "Add FCS:*:EVENT to FinancialIntegrationEvents leading-key allowlist only",
+  "actionsUnchanged": true,
+  "resourcesUnchanged": true,
+  "sourceBusinessWritesByAgent": 0,
+  "before": {
+    "Statement": [
+      {
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "CDA:*:EVENT",
+              "COD:*:EVENT",
+              "CR:*:EVENT",
+              "CA:*:EVENT"
+            ]
+          }
+        },
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:ConditionCheckItem"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle",
+        "Effect": "Allow",
+        "Sid": "FinancialIntegrationEvents"
+      },
+      {
+        "Condition": {
+          "ForAllValues:StringEquals": {
+            "dynamodb:LeadingKeys": [
+              "COD_INTEGRATION",
+              "DISPATCH_RESPONSE_INTEGRATION"
+            ]
+          }
+        },
+        "Action": "dynamodb:Query",
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle/index/ByDue",
+        "Effect": "Allow",
+        "Sid": "IntegrationQueueOnly"
+      },
+      {
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:ConditionCheckItem"
+        ],
+        "Resource": [
+          "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion"
+        ],
+        "Effect": "Allow",
+        "Sid": "IntegrationSourceProof"
+      },
+      {
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "DRIVER#*"
+            ]
+          }
+        },
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDriverPerformanceMetrics_staging",
+        "Effect": "Allow",
+        "Sid": "DriverCompletionMetrics"
+      },
+      {
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "COD_EVENT:*"
+            ]
+          }
+        },
+        "Action": "dynamodb:PutItem",
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletNotifications",
+        "Effect": "Allow",
+        "Sid": "FinancialDriverInbox"
+      },
+      {
+        "Action": "dynamodb:PutItem",
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AuditLog",
+        "Effect": "Allow",
+        "Sid": "IntegrationAudit"
+      }
+    ]
+  },
+  "after": {
+    "Statement": [
+      {
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "CDA:*:EVENT",
+              "COD:*:EVENT",
+              "CR:*:EVENT",
+              "CA:*:EVENT",
+              "FCS:*:EVENT"
+            ]
+          }
+        },
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:ConditionCheckItem"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle",
+        "Effect": "Allow",
+        "Sid": "FinancialIntegrationEvents"
+      },
+      {
+        "Condition": {
+          "ForAllValues:StringEquals": {
+            "dynamodb:LeadingKeys": [
+              "COD_INTEGRATION",
+              "DISPATCH_RESPONSE_INTEGRATION"
+            ]
+          }
+        },
+        "Action": "dynamodb:Query",
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle/index/ByDue",
+        "Effect": "Allow",
+        "Sid": "IntegrationQueueOnly"
+      },
+      {
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:ConditionCheckItem"
+        ],
+        "Resource": [
+          "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion"
+        ],
+        "Effect": "Allow",
+        "Sid": "IntegrationSourceProof"
+      },
+      {
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "DRIVER#*"
+            ]
+          }
+        },
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDriverPerformanceMetrics_staging",
+        "Effect": "Allow",
+        "Sid": "DriverCompletionMetrics"
+      },
+      {
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "COD_EVENT:*"
+            ]
+          }
+        },
+        "Action": "dynamodb:PutItem",
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletNotifications",
+        "Effect": "Allow",
+        "Sid": "FinancialDriverInbox"
+      },
+      {
+        "Action": "dynamodb:PutItem",
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AuditLog",
+        "Effect": "Allow",
+        "Sid": "IntegrationAudit"
+      }
+    ]
+  },
+  "contextualPermissionVerification": [
+    {
+      "keyClass": "FCS",
+      "decisions": [
+        "allowed",
+        "allowed",
+        "allowed"
+      ]
+    },
+    {
+      "keyClass": "unrelated",
+      "decisions": [
+        "implicitDeny",
+        "implicitDeny",
+        "implicitDeny"
+      ]
+    }
+  ],
+  "status": "PREFIX_DELTA_PUBLISHED_VERIFIED"
+}

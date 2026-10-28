@@ -1,3 +1,4 @@
+import {financialOfferSK,historicalFinancialOfferSK} from './financialOfferKey';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal} from './driverFinancialTransaction';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
@@ -30,11 +31,11 @@ export function createDriverQualityReview(options:{db:Pick<DynamoDBDocumentClien
     if(!archive||archive.kind!=='COD_ASSIGNMENT_RELEASE'||archive.orderId!==v.orderId||archive.attempt!==v.attempt||!quoteEntityIdValid(archive.driverId)||!quoteEntityIdValid(archive.offerId)||archive.acceptedTerms?.offerId!==archive.offerId||archive.receipt?.success!==true||archive.receipt.orderId!==v.orderId||archive.receipt.offerId!==archive.offerId||archive.receipt.attempt!==v.attempt)return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
     const archivedEvent=await strongGet(db,'staging-WalletLifecycle',{operationId:archive.operationId+':EVENT'});
     if(!archivedEvent||archivedEvent.integrationSchemaVersion!==1||!['COD_UNASSIGN_OUTBOX','COD_CANCEL_OUTBOX'].includes(archivedEvent.kind)||archivedEvent.financialOperationId!==archive.operationId||archivedEvent.orderId!==v.orderId||archivedEvent.driverId!==archive.driverId||archivedEvent.offerId!==archive.offerId||archivedEvent.attempt!==v.attempt||!Number.isSafeInteger(archivedEvent.waveNumber)||archivedEvent.waveNumber<1)return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
-    historical={driverId:archive.driverId,offerId:archive.offerId,wave:archivedEvent.waveNumber,event:archivedEvent};
+    historical={driverId:archive.driverId,offerId:archive.offerId,wave:archivedEvent.waveNumber,offerStorageKey:archive.offerStorageKey,event:archivedEvent};
   }
   const driverId=row?.driverId??historical?.driverId??order.driverId,wave=row?.wave??historical?.wave??order.assignmentWaveNumber,offerId=row?.offerId??historical?.offerId??order.financialAcceptance?.offerId;
   if(!quoteEntityIdValid(driverId)||!quoteEntityIdValid(offerId)||!Number.isSafeInteger(wave))return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
-  const fk={orderId:v.orderId,SK:'FINANCIAL#'+driverId+'#WAVE#'+wave},offer=await strongGet(db,'WaveOffers_staging',fk);
+  const fk={orderId:v.orderId,SK:row||historical?await historicalFinancialOfferSK(db,v.orderId,driverId,wave,offerId,row?.offerStorageKey??historical?.offerStorageKey):await financialOfferSK(db,v.orderId,driverId,wave)},offer=await strongGet(db,'WaveOffers_staging',fk);
   if(!offer||offer.kind!=='FINANCIAL_DRIVER_OFFER'||offer.schemaVersion!==2||offer.orderId!==v.orderId||offer.driverId!==driverId||offer.offerId!==offerId||offer.responseStatus!=='financial_accepted'||offer.isWinner!==true||offer.financialReceipt?.success!==true||typeof offer.financialReceipt.acceptedAt!=='string'||!Number.isFinite(Date.parse(offer.financialReceipt.acceptedAt))||offer.financialReceipt.assignmentAttempt!==v.attempt||offer.financialReceipt.offerId!==offer.offerId||offer.financialReceipt.driverId!==offer.driverId||offer.financialReceipt.orderId!==offer.orderId)return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
   const at=new Date(now()).toISOString(),fingerprint=quoteHash({orderId:v.orderId,driverId,offerId,attempt:v.attempt,wave,acceptedAt:offer.financialReceipt.acceptedAt});
   if(row&&(row.kind!=='DRIVER_QUALITY_REVIEW'||row.schemaVersion!==1||row.dimension!=='QUALITY_SAFETY'||row.orderId!==v.orderId||row.driverId!==driverId||row.offerId!==offer.offerId||row.attempt!==v.attempt||row.caseId!==v.incidentId||!uuid(row.caseId)))return fail();
@@ -44,7 +45,7 @@ export function createDriverQualityReview(options:{db:Pick<DynamoDBDocumentClien
   if(row&&row.sourceFingerprint!==fingerprint)return fail('DRIVER_QUALITY_SOURCE_NOT_REVIEWABLE');
   if(open?(!!row||v.expectedVersion!==0):(!row||row.version!==v.expectedVersion||row.caseId!==v.caseId))return fail();
   if((row?.history||[]).length>=100||(row?.evidence||[]).length>=30&&evidence)return fail('DRIVER_QUALITY_REVIEW_LIMIT');
-  const next:Row=open?{...ck,kind:'DRIVER_QUALITY_REVIEW',schemaVersion:1,dimension:'QUALITY_SAFETY',caseId:v.incidentId,category:v.category,severity:v.severity,wave,branchId:offer.branchId,driverName:historical?'سائق المحاولة السابقة':order.driverName||'السائق',orderId:v.orderId,driverId,offerId:offer.offerId,attempt:v.attempt,actorKind:'STAFF',ownerId:actor.subjectId,ownerLabel:access.employee?.name||access.employee?.fullName||'فريق العمليات',state:'OPEN',version:1,sourceFingerprint:fingerprint,createdAt:at,evidence:[],history:[],appeals:[]}:{...row,version:row!.version+1};
+  const next:Row=open?{...ck,kind:'DRIVER_QUALITY_REVIEW',schemaVersion:1,offerStorageKey:fk.SK,dimension:'QUALITY_SAFETY',caseId:v.incidentId,category:v.category,severity:v.severity,wave,branchId:offer.branchId,driverName:historical?'سائق المحاولة السابقة':order.driverName||'السائق',orderId:v.orderId,driverId,offerId:offer.offerId,attempt:v.attempt,actorKind:'STAFF',ownerId:actor.subjectId,ownerLabel:access.employee?.name||access.employee?.fullName||'فريق العمليات',state:'OPEN',version:1,sourceFingerprint:fingerprint,createdAt:at,evidence:[],history:[],appeals:[]}:{...row,version:row!.version+1};
   const selected=(decide||close)?next.evidence.filter((e:Row)=>v.evidenceIds.includes(e.id)):[];
   if((decide||close)&&selected.length!==v.evidenceIds.length)return fail('EXCEPTION_EVIDENCE_REQUIRED');
   const independent=new Set(selected.map((e:Row)=>e.party)).size;

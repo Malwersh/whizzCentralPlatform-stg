@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {DynamoDBClient}=require('@aws-sdk/client-dynamodb'),sdk=require('@aws-sdk/lib-dynamodb');
+const {readPerformance}=require('../../whizzDrivers-stg/backend/driver-performance');
+const {readIncidents}=require('../../whizzDrivers-stg/backend/driver-quality-incidents-290');
+const {buildProjection}=require('../backend/driver-performance-projection/model');
+const {POLICY,TABLE,readSnapshot,dispatchMetrics}=require('../backend/driver-performance-projection/contract');
+(async()=>{const raw=sdk.DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'})),driverId='34d8e408-1021-7076-6055-7325644f97cb',asOf=Date.now();let reads=0;
+ const db={send:c=>{if(!(c instanceof sdk.GetCommand)&&!(c instanceof sdk.QueryCommand))throw Error('SOURCE_WRITES_BLOCKED');reads++;return raw.send(c);}};
+ const performance=await readPerformance({db,...sdk,driverId,now:()=>asOf,rulesVersion:4,tables:{offers:'WaveOffers_staging',orders:'WizzOrders',holds:'staging-Holds',drivers:'WhizzDrivers_staging',ratings:'whizz-order-ratings-staging',ratingIndex:'DriverRatingChronology281'}});
+ const quality=await readIncidents({db,...sdk,driverId}),built=buildProjection(performance,quality,asOf),row={pk:'DRIVER#'+driverId,sk:'STATE',driverId,schemaVersion:1,policyVersion:POLICY,generation:1,builtGeneration:1,computedAt:performance.updatedAt,validUntil:built.validUntil,detailsKey:'DETAILS#1#local-proof',snapshot:built.snapshot},health={policyVersion:POLICY,healthy:true,updatedAt:new Date(asOf).toISOString()};
+ const local={send:async c=>{assert(c instanceof sdk.GetCommand);assert.equal(c.input.TableName,TABLE);return {Item:c.input.Key.pk==='CONTROL'?health:c.input.Key.sk==='STATE'?row:{policyVersion:POLICY,version:1,details:built.details}};}};
+ const savedView=await readSnapshot({db:local,GetCommand:sdk.GetCommand,driverId,now:()=>asOf}),wave=dispatchMetrics(row,health,asOf);
+ assert(wave);for(const k of ['acceptanceRate','completionRate','customerRating','customerRatingCount'])assert.equal(savedView[k],performance[k]);assert.equal(wave.metricsSnapshot_completionRate,performance.completionRate);assert.equal(wave.metricsSnapshot_consecutiveRejections,performance.rejections.consecutive);assert.deepEqual(savedView.details,performance.details);
+ fs.mkdirSync('/private/tmp/driver-performance-projection-291',{recursive:true});fs.writeFileSync('/private/tmp/driver-performance-projection-291/comparison.private.json',JSON.stringify({row,health,details:built.details}));
+ const report={status:'LIVE_SOURCE_PARITY_PASSED_LOCAL_PROJECTION_ONLY',driverId,asOf:new Date(asOf).toISOString(),sourceReadRequests:reads,awsWrites:0,awsProjectionTableCreated:false,acceptanceRate:performance.acceptanceRate,completionRate:performance.completionRate,consecutiveRejections:performance.rejections.consecutive,rejectionCoverageComplete:performance.rejections.windowComplete,computedPayloadBytes:Buffer.byteLength(JSON.stringify(row)),detailBytes:Buffer.byteLength(JSON.stringify(built.details)),apiAndWaveReadSameValues:true};fs.writeFileSync('docs/driver-performance-projection-parity-291.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
+})().catch(e=>{console.error(e.code||e.name,e.message);process.exitCode=1;});

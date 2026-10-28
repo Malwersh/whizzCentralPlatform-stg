@@ -1,0 +1,440 @@
+{
+  "revision": 308,
+  "status": "PUBLISHED_VERIFIED",
+  "environment": "staging",
+  "iamChanged": false,
+  "businessDataMutatedDirectly": false,
+  "functions": [
+    {
+      "name": "staging-wizz-staff-service",
+      "beforeHash": "Wh+qPnqVqFG9KEYoxoGZHS4vxZXo4B4WctWNgvZ93ck=",
+      "hash": "Hv3AMHK52oFyJoSUixD3iRQsfT9utFQ5IS7nSy34eQY=",
+      "changedFiles": [
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js",
+        "_discount_review/central-staff/index.js",
+        "driver-vehicles.js",
+        "driver-vehicles-core-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE",
+        "DRIVER_DOCUMENTS_BUCKET"
+      ]
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "beforeHash": "amboAVQaAB/rTeScfmJ7dRTO0/pFBLob3sGrnFmjxbI=",
+      "hash": "rCmx+CmegXJMAQ3XpULBULomfvfQMQKkP2wZm84ZOZA=",
+      "changedFiles": [
+        "driver-acceptance-eta98.js",
+        "index.js",
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE"
+      ]
+    },
+    {
+      "name": "DriversApi-staging",
+      "beforeHash": "BCGhHONyUZAQF5P6c+Xj5i5OZCDX7lEEcjFyHQfT4w4=",
+      "hash": "3vaxUB8TNSiGmqrtVDx/uyBCfHO1xdaZ0ioNXI9os58=",
+      "changedFiles": [
+        "pinned-legacy-runtime.js",
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js",
+        "lambda_driver_api_v2.js",
+        "driver-vehicles-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE"
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "beforeHash": "8d6i+IA0KtiFXG/7dIzukEoY9XYraPMUCo5r/3PcH4I=",
+      "hash": "crKEIPb+Elp/eykp8/t42hDkTP523rvgwve5yb4AIEk=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE"
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "beforeHash": "86VUg2Wlcg4YzRVHOrLOvjuMJSxVdk+woR1b3hH/4RU=",
+      "hash": "6uUByhjSNuvo0iyH6nCW9pJg4fSs9YHFgQFGYx7KtL0=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE"
+      ]
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "beforeHash": "atOp3HptP5ndWab++DFmfveBxqVE6TfIX5UOm5teH58=",
+      "hash": "6zNpBjv2HOwYwb8bp3z6LpB9a4yTICsKBP/GqLLp2WE=",
+      "changedFiles": [
+        "financial-runtime.js",
+        "dispatch-cycle-runtime.js",
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE"
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "beforeHash": "GZ5Lp9577CgTKrGhj/ec+JgN1Iy8V0RIxup7ZRHJR2M=",
+      "hash": "r+YzXTM5sUvqdhpO5CHpTE4iIqwrrkmieOg6DSvHav0=",
+      "changedFiles": [
+        "financial-runtime.js",
+        "dispatch-cycle-runtime.js",
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE"
+      ]
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "beforeHash": "0vNE+BhI8f3CO4U2cjfYTbW5hm/bN8+MvY8301jMKB8=",
+      "hash": "GH3PhG+hmNT6hrBXXxIHmXwHPWqLZhRBfXIyH/ZNcCw=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE"
+      ]
+    },
+    {
+      "name": "staging-cod-integration",
+      "beforeHash": "dUmTbMKxTn5qrw3RFdToFatuFXW0XU7gfcnxxUpGBh8=",
+      "hash": "ovyL5NWgORh4m5xhAIdhs/9S25ptIH1seszcLDYsEqQ=",
+      "changedFiles": [
+        "admin-retry-runtime-298.js",
+        "driver-vehicles-runtime-308.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true,
+      "configurationPreservedDuringCodeUpdate": true,
+      "strictCutover": true,
+      "environmentKeysChanged": [
+        "DRIVER_VEHICLE_REGISTRY_ENFORCE"
+      ]
+    }
+  ],
+  "migration": "Explicit administrative document and vehicle review required. No approval, vehicle data, expiry or selection generated by agent.",
+  "coreRefinement": {
+    "status": "PUBLISHED_VERIFIED",
+    "reason": "Strict malformed flags and explicit account suspension/reactivation consistency",
+    "functions": [
+      {
+        "name": "staging-wizz-staff-service",
+        "beforeHash": "01IbK1a4lBZZscwGcJcMHRmlEer9GmdUUXEeAaDBfY4=",
+        "hash": "1PYQphZA+lZLEe16jnpkAfOSXbDKoXrK/9APqVvqjEs=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js",
+          "driver-vehicles-core-308.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "beforeHash": "yaIFQG6w/NH/97CPykHLmssJeppf4ZN2459w7z9Aidw=",
+        "hash": "bIdsisBgSvUk+qPLE5sPdxJAoSoG1rAq29WtRx9P6eU=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "beforeHash": "CWqEAulJ/l1jLhlU2WhG6KfWXNX2HsTnowP1G2MwlqU=",
+        "hash": "J/PlezLSr8QLICPCTjhi/pe0ChDvrn4Nm0wDhxcZgIU=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js",
+          "driver-vehicles-308.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "beforeHash": "NS58kykGOV5bof8Xy8mugM7KuPsng3AsE+GKr7fzGCI=",
+        "hash": "25vsuQ4ZvJ8wJz92R7IJq5FWZ63b60ioRXyC4aFpBkk=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "beforeHash": "rQ+dFGtiCtHVsMFX3VQ1YihwJ9nW3Oqd3N12PHIKFhU=",
+        "hash": "WRdzhYt5NutvDtXNQRs30CTGadaV6IyBIMf7ev+CPeA=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "beforeHash": "5/TUspTZNBeROlm9+tJkV1GCxj1Xg8+yXDXCdIlHLTc=",
+        "hash": "X6PyAMt7613byZgcqjv+EoJY44bIkETJqZP7E9AgPko=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "beforeHash": "YmAlSp/WlZYKUIh4fppEnBGzPwkjjiCQep6OiHBgONE=",
+        "hash": "N3yI9RG0pKhdg8venIW3OsyU5JHO7tSMecplYMwoOOU=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "beforeHash": "vjGBsHKV2OS3W+YED4OtloOla9zEiCX5o7MB9A7IffI=",
+        "hash": "3Ce6Z8hg95QTo/VCYx6qss4Pp4ydZIcOF12Xkt+hyEI=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "beforeHash": "gEVSDtSZkY5S0Pg/mxyAz1cHvDpDCuBAVaRqbMlI/tY=",
+        "hash": "8QsPpO6W3uppWKIM2wWZMjhRYHZqaQ7fqbyZ94KYlqM=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true
+      }
+    ]
+  },
+  "stopSearchFence": {
+    "status": "PUBLISHED_VERIFIED",
+    "beforeHash": "J/PlezLSr8QLICPCTjhi/pe0ChDvrn4Nm0wDhxcZgIU=",
+    "hash": "47TygIOwBulVFpqY3EX8utQfsEEC2RDjhKEyjS8QQUA=",
+    "changedFiles": [
+      "lambda_driver_api_v2.js"
+    ],
+    "otherEntriesPreserved": true,
+    "configurationPreserved": true,
+    "regression": "normal stop, active order rejection and concurrent acceptance guarded"
+  },
+  "legacyInspectionFence": {
+    "status": "PUBLISHED_VERIFIED",
+    "reason": "Reject pending pre-cutover vehicle-unbound legacy offers before reserving a hold",
+    "tests": 64,
+    "functions": [
+      {
+        "name": "staging-wizz-staff-service",
+        "beforeHash": "1PYQphZA+lZLEe16jnpkAfOSXbDKoXrK/9APqVvqjEs=",
+        "hash": "l60Aprg+yz/cALqVtHrzojIGgkFpVhfQicpByeRg2HU=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js",
+          "driver-vehicles-core-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "beforeHash": "bIdsisBgSvUk+qPLE5sPdxJAoSoG1rAq29WtRx9P6eU=",
+        "hash": "SC87bU7EOzkBDN37ADZipPkUIJRlqmit1i/C0/7aebI=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "beforeHash": "47TygIOwBulVFpqY3EX8utQfsEEC2RDjhKEyjS8QQUA=",
+        "hash": "pFhHFe1fIny1KDnjkXChSQW2y1SVyifbO6BMZDnd1Bk=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js",
+          "driver-vehicles-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "beforeHash": "25vsuQ4ZvJ8wJz92R7IJq5FWZ63b60ioRXyC4aFpBkk=",
+        "hash": "F9+YUDOq5BCN17b/Qx67oL/VVj/eD3bFw8Qku5nzcqI=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "beforeHash": "WRdzhYt5NutvDtXNQRs30CTGadaV6IyBIMf7ev+CPeA=",
+        "hash": "OGAkqQilfNt9cNjz06afYfN145RTo6m0szuKAp61OkE=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "beforeHash": "X6PyAMt7613byZgcqjv+EoJY44bIkETJqZP7E9AgPko=",
+        "hash": "2Ow4NPSPGY9flhWo2AtzzBj+AMqmOVlJcO9E+FHnptQ=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "beforeHash": "N3yI9RG0pKhdg8venIW3OsyU5JHO7tSMecplYMwoOOU=",
+        "hash": "QLXtntFVZZeG7mqcLjoyzYZa3nFswfPBkjQvuKbBLLo=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "beforeHash": "3Ce6Z8hg95QTo/VCYx6qss4Pp4ydZIcOF12Xkt+hyEI=",
+        "hash": "5lz6vszuaEgIRoq3Ipwg2dGEH2Ik/zT8HJ0zlfOPJHE=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "beforeHash": "8QsPpO6W3uppWKIM2wWZMjhRYHZqaQ7fqbyZ94KYlqM=",
+        "hash": "/6eHajrE1F745ckmbzkhcwdk8t0k7e04HoSj+thIzkQ=",
+        "changedFiles": [
+          "driver-vehicles-runtime-308.js"
+        ],
+        "configurationPreserved": true,
+        "otherEntriesPreserved": true
+      }
+    ]
+  },
+  "registrationPlate": {
+    "status": "PUBLISHED_VERIFIED",
+    "beforeHash": "pFhHFe1fIny1KDnjkXChSQW2y1SVyifbO6BMZDnd1Bk=",
+    "hash": "+gzeqDVBfSThxgPdZwBQFt7zmEZc4HsRI4pyozkhnEk=",
+    "changedFiles": [
+      "lambda_driver_api_v2.js"
+    ],
+    "otherEntriesPreserved": true,
+    "configurationPreserved": true
+  },
+  "finalVerification": {
+    "status": "MATCHED_LIVE",
+    "functions": [
+      {
+        "name": "staging-wizz-staff-service",
+        "hash": "l60Aprg+yz/cALqVtHrzojIGgkFpVhfQicpByeRg2HU=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "hash": "SC87bU7EOzkBDN37ADZipPkUIJRlqmit1i/C0/7aebI=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "hash": "+gzeqDVBfSThxgPdZwBQFt7zmEZc4HsRI4pyozkhnEk=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "hash": "F9+YUDOq5BCN17b/Qx67oL/VVj/eD3bFw8Qku5nzcqI=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "hash": "OGAkqQilfNt9cNjz06afYfN145RTo6m0szuKAp61OkE=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "hash": "2Ow4NPSPGY9flhWo2AtzzBj+AMqmOVlJcO9E+FHnptQ=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "hash": "QLXtntFVZZeG7mqcLjoyzYZa3nFswfPBkjQvuKbBLLo=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "hash": "5lz6vszuaEgIRoq3Ipwg2dGEH2Ik/zT8HJ0zlfOPJHE=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "hash": "/6eHajrE1F745ckmbzkhcwdk8t0k7e04HoSj+thIzkQ=",
+        "strictVehicleEligibility": true,
+        "updateSuccessful": true
+      }
+    ],
+    "iamChanged": false,
+    "businessDataMutatedDirectly": false
+  }
+}

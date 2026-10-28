@@ -38,3 +38,14 @@ test('full cash posted lines classify exact buckets and never accept old model t
  assert.equal(ledgerEffect({...row,metadata:{...row.metadata,financialSchemaVersion:2}}).status,'UNCLASSIFIED');
  assert.equal(ledgerEffect({...row,balanceAfter:1}).status,'UNCLASSIFIED');
 });
+
+test('current financial wave hold creation v2/v4 is a balanced movement, never new income',()=>{
+ const {ledgerEffect}=require('../dist/ledgerEffects');
+ for(const schema of [2,4])for(const bucket of ['AVAILABLE','LOCKED']){
+  const holdId=(schema===4?'FCH:':'FH:')+'a'.repeat(48),locked=bucket==='LOCKED';
+  const row={walletId:'WALLET#DRIVER#d',sk:'ts#2026-10-27#'+bucket+'#'+holdId,transactionId:holdId,type:locked?'CREDIT':'DEBIT',category:'HOLD_CREATED',amount:locked?5000:-5000,balanceBefore:locked?0:10000,balanceAfter:5000,relatedEntityType:'HOLD',relatedEntityId:'order1',metadata:{orderId:'order1',holdId,balanceType:bucket,financialSchemaVersion:schema}};
+  assert.deepEqual(ledgerEffect(row),{status:'CLASSIFIED',bucket,delta:row.amount});
+  assert.equal(ledgerEffect({...row,transactionId:'wrong'}).status,'UNCLASSIFIED');
+  assert.equal(ledgerEffect({...row,balanceAfter:6000}).status,'UNCLASSIFIED');
+ }
+});

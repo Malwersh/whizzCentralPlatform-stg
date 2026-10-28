@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {financialWaveSK} from './financialDispatchKeys';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {quoteEntityIdValid} from './deliveryQuoteRecord';
@@ -30,7 +31,7 @@ export function createStagingFinancialSearch(options:{db:Pick<DynamoDBDocumentCl
    if(wave.assignmentId!==job.dispatchJobId||!Array.isArray(wave.driverIds)||wave.driverIds.length>25)throw Error('FINANCIAL_SEARCH_CONFLICT');
    checks.push(updateChecked(exactCheck('WizzDispatchJobs_staging',{orderId,SK:wave.SK},wave),'SET #ws=:ws',{'#ws':'state'},{':ws':'EXPIRED'}));
    for(const driverId of wave.driverIds){
-    const offerKey={orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`},offer=await strongGet(db,'WaveOffers_staging',offerKey);
+    const offerKey={orderId,SK:await financialOfferSK(db,orderId,driverId,waveNumber)},offer=await strongGet(db,'WaveOffers_staging',offerKey);
     if(!offer||['financial_declined','financial_expired'].includes(offer.responseStatus))continue;
     if(offer.responseStatus!=='financial_pending')throw Error('FINANCIAL_SEARCH_CONFLICT');
     checks.push(updateChecked(exactCheck('WaveOffers_staging',offerKey,offer),'SET #os=:os',{'#os':'responseStatus'},{':os':'financial_expired'}));

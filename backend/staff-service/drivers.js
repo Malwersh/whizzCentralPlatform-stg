@@ -4,12 +4,18 @@ const {allowed}=require('./catalog');
 const regions=require('./driver-regions');
 const fail=(message,status=403)=>Object.assign(Error(message),{status});
 const fields=['driverId','id','name','fullName','phoneNumber','phone','email','status','registrationStatus','isVerified','isOnline','vehicleType','governorate_id','governorate_name','work_region_id','work_region_name','home_region_id','home_region_name','parent_district_id','parent_district_name','city','home_address_text','profileSchemaVersion','updatedAt','createdAt','ordersCompleted','rating'];
-const visible=d=>Object.fromEntries(fields.filter(k=>d[k]!==undefined).map(k=>[k,d[k]]));
+const visible=d=>({...Object.fromEntries(fields.filter(k=>d[k]!==undefined).map(k=>[k,d[k]])),...(d.status||d.vehicleRegistry?{vehicleReviewSummary:require('../shared/driver-vehicles-308').reviewSummary(d)}:{})});
 const inScope=(actor,d)=>allowed(actor,'drivers.read',typeof d.work_region_id==='string'?d.work_region_id:null);
 async function all(db,table){let items=[],cursor;for(let page=0;page<100;page++){const r=await db.send(new ScanCommand({TableName:table,ExclusiveStartKey:cursor,Limit:100}));items.push(...r.Items||[]);cursor=r.LastEvaluatedKey;if(!cursor)return items;}throw fail('DATA_INCOMPLETE',503);}
 async function route(ctx,actor,method,path,input){
  if(!allowed(actor,'drivers.read'))throw fail('PERMISSION_REQUIRED');
- if(method==='GET'&&path==='/staff/drivers')return {items:(await all(ctx.db,ctx.driversTable)).filter(d=>inScope(actor,d)).map(d=>actor.roles.includes('bootstrap_admin')?d:visible(d))};
+ if(method==='GET'&&path==='/staff/drivers')return {items:(await all(ctx.db,ctx.driversTable)).filter(d=>inScope(actor,d)).map(d=>{if(!actor.roles.includes('bootstrap_admin'))return visible(d);const {vehicleRegistry,vehicleOperational,...rest}=d;return {...rest,vehicleReviewSummary:require('../shared/driver-vehicles-308').reviewSummary(d)};})};
+ const performancePath=path.match(/^\/staff\/drivers\/([A-Za-z0-9_.:-]+)\/performance$/);
+ if(method==='GET'&&performancePath){
+  const driverId=performancePath[1],profile=(await ctx.db.send(new GetCommand({TableName:ctx.driversTable,Key:{driverId},ConsistentRead:true}))).Item;
+  if(!profile||!inScope(actor,profile))throw fail('DRIVER_UNAVAILABLE',404);
+  return require('../shared/driver-performance-snapshot').readSnapshot({db:ctx.db,GetCommand,driverId});
+ }
  if(method==='GET'&&path==='/staff/drivers/regions')return {base:await all(ctx.db,ctx.regionsTable),derived:await all(ctx.db,ctx.derivedTable)};
  if(method!=='POST'||path!=='/staff/drivers/edit')throw fail('NOT_FOUND',404);
  if(!allowed(actor,'drivers.edit'))throw fail('PERMISSION_REQUIRED');

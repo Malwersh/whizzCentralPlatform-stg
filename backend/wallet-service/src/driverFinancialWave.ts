@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {financialWaveSK} from './financialDispatchKeys';
 import {DeliveryOperationsValues} from './deliveryOperationsPolicy';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
@@ -42,7 +43,7 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
   if(wave.state==='PREPARING'){
    for(const driverId of driverIds){
     const offerId='FINO:'+quoteHash({orderId,assignmentId:wave.assignmentId,waveNumber,driverId}).slice(0,48);
-    const key={orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`},saved=await strongGet(db,offers,key);
+    const key={orderId,SK:await financialOfferSK(db,orderId,driverId,waveNumber)},saved=await strongGet(db,offers,key);
     if(saved){
      if(saved.offerId!==offerId||saved.financialOffer?.assignmentId!==wave.assignmentId||saved.responseStatus!=='financial_pending')return conflict();
      versionedFinancialOfferView(saved.financialOffer,driverId,resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash).driverSubjectId,new Date(now()).toISOString(),options.enableDeliveryFunding,options.enableFullCash);
@@ -68,7 +69,7 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
    wave=await strongGet(db,jobs,waveKey);
    if(!wave||wave.state!=='READY')return conflict();
    if(wave.delivered.includes(driverId))continue;
-   const saved=await strongGet(db,offers,{orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`});
+   const saved=await strongGet(db,offers,{orderId,SK:await financialOfferSK(db,orderId,driverId,waveNumber)});
    // A notification can be received and declined before its send ACK is saved.
    // The durable response is authoritative; skip it without inventing a delivery ACK.
    if(options.pinnedTransitionId&&saved&&(['financial_declined','financial_expired'].includes(saved.responseStatus)||(saved.responseStatus==='financial_pending'&&Date.parse(saved.expiresAt)<=now())))continue;
@@ -100,7 +101,7 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
      {':uDelivered':[...wave.delivered,driverId],':uVersion':wave.version+1})] as any}));}
    catch{const latest=await strongGet(db,jobs,waveKey);if(!latest?.delivered?.includes(driverId))throw Error('FINANCIAL_DELIVERY_ACK_UNCERTAIN');}
   }
-  const finalOffers=await Promise.all(driverIds.map(driverId=>strongGet(db,offers,{orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`})));
+  const finalOffers=await Promise.all(driverIds.map(async driverId=>strongGet(db,offers,{orderId,SK:await financialOfferSK(db,orderId,driverId,waveNumber)})));
   const deadlines=finalOffers.map(row=>Date.parse(row?.expiresAt));
   if(deadlines.some(n=>!Number.isFinite(n)))return conflict();
   const timeoutAt=new Date(Math.min(Date.parse(wave.expiresAt),deadlines.length?Math.max(...deadlines):now())).toISOString();
@@ -113,7 +114,7 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
   if(!wave||wave.kind!=='FINANCIAL_WAVE'||job?.status!=='searching'||job.dispatchJobId!==wave.assignmentId)return conflict();
   if(wave.state==='EXPIRED')return {expired:true,driverIds:wave.driverIds};
   if(!['PREPARING','READY'].includes(wave.state)||job.currentWaveNumber!==(wave.state==='READY'?waveNumber:waveNumber-1))return conflict();
-  const rows=await Promise.all(wave.driverIds.map((driverId:string)=>strongGet(db,offers,{orderId,SK:`FINANCIAL#${driverId}#WAVE#${waveNumber}`})));
+  const rows=await Promise.all(wave.driverIds.map(async(driverId:string)=>strongGet(db,offers,{orderId,SK:await financialOfferSK(db,orderId,driverId,waveNumber)})));
   const deadline=wave.state==='PREPARING'?Date.parse(wave.expiresAt):(rows.length?Math.max(...rows.map((r:Row)=>Date.parse(r?.expiresAt))):Date.parse(wave.createdAt));
   if(!Number.isFinite(deadline)||deadline>now())return {expired:false,assigned:false};
   const writes:Row[]=[updateChecked(exactCheck(jobs,jobKey,job),'SET #uWave=:uWave',{'#uWave':'currentWaveNumber'},{':uWave':waveNumber}),

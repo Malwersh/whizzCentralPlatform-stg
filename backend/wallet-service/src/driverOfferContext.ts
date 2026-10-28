@@ -1,3 +1,5 @@
+const workRegions=require('../../shared/driver-work-region-311');
+const vehicleRegistry=require('../../shared/driver-vehicles-308');
 import {buildFullCashOffer} from './fullCashOffer';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { AdminGetUserCommand, CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
@@ -14,8 +16,8 @@ const tables = { assignment: 'WizzDispatchJobs_staging', driver: 'WhizzDrivers_s
   position: 'WizzDriverLiveState_staging', policy: 'staging-PlatformStaff', branch: 'WhizzMerchants_Businesses', deletion: 'staging-AccountDeletion' };
 const fields = {
   assignment: ['orderId','SK','dispatchJobId','restaurantId','status','currentWaveNumber','expiresAt','assignedDriverId','driverId','deletionRequestId','financialExcludedDriverIds','financialRedispatch','dispatchCycle','dispatchTransition'],
-  driver: ['isActive','driverId','cognitoSub','status','registrationStatus','vehicleType','deletionRequestId','deletedAt','isDeleted','isSuspended','isBanned'],
-  position: ['driverId','status','isActive','isSearching','lat','lng','locationUpdatedAt','currentOrderId','activeOrdersCount'],
+  driver: ['isActive','driverId','cognitoSub','status','registrationStatus','vehicleType','deletionRequestId','deletedAt','isDeleted','isSuspended','isBanned','vehicleOperational','personalDocumentReview','vehiclePlate','registrationPaperUrl','drivingLicenseUrl','nationalIdUrl','work_region_id','home_region_id'],
+  position: ['driverId','status','isActive','isSearching','lat','lng','locationUpdatedAt','currentOrderId','activeOrdersCount','current_work_region_id'],
   policy: ['pk','sk','version','values'],
   branch: ['businessId','ownerId','cognitoUserId','organizationId','status','deletionRequestId','deletedAt','isDeleted']
 };
@@ -98,6 +100,9 @@ export function createStagingDriverOfferContext(options: {
         !statuses.some(v => ['APPROVED','VERIFIED'].includes(v)) || statuses.some(v => blocked.includes(v)) ||
         driver.deletionRequestId != null || driver.deletedAt != null || (driver.isDeleted !== undefined && driver.isDeleted !== false) ||
         (driver.isSuspended !== undefined && driver.isSuspended !== false) || (driver.isBanned !== undefined && driver.isBanned !== false)) return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');
+    if(vehicleRegistry.enforce(driver)&&!vehicleRegistry.eligibility(driver,time).eligible)return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');
+    const regionAccess=workRegions.enforced()?await workRegions.create({db,GetCommand}).check(driver,position.current_work_region_id,order.snapshot.zoneId,waveNumber===1?0:1,{lat:position.lat,lng:position.lng}):null;
+    if(regionAccess&&!regionAccess.allowed)return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');
     const observed = date(position.locationUpdatedAt);
     if (position.driverId !== driverId || position.status !== 'available' || position.isActive !== true || position.isSearching !== true ||
         position.currentOrderId != null || (position.activeOrdersCount !== undefined && position.activeOrdersCount !== 0) ||
@@ -119,7 +124,7 @@ export function createStagingDriverOfferContext(options: {
     const deleted = await Promise.all(locks.map(pk => get(tables.deletion,{pk,sk:'META'},['pk','sk'])));
     if (deleted.some(v => Object.keys(v).length)) return fail('DRIVER_OFFER_REFERENCE_UNAVAILABLE');
     await identity(subjectId);
-    return copy({request,order,assignment,driver,position,policy,bundle,subjectId,observed,guards:{assignment:fence(tables.assignment,aKey,assignment,fields.assignment),
+    return copy({request,order,assignment,driver,position,policy,bundle,subjectId,observed,regionGuards:regionAccess?.guards??[],guards:{assignment:fence(tables.assignment,aKey,assignment,fields.assignment),
       driver:fence(tables.driver,dKey,driver,fields.driver),position:fence(tables.position,dKey,position,fields.position),
       policy:fence(tables.policy,pKey,policy,fields.policy),branch:fence(tables.branch,bKey,branch,fields.branch),
       deletions:locks.map(pk => ({ConditionCheck:{TableName:tables.deletion,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}))}});
@@ -137,7 +142,7 @@ export function createStagingDriverOfferContext(options: {
       const offer = buildDriverOffer({schemaVersion:1,offerId:request.offerId,
         assignment:{id:assignment.dispatchJobId,version:request.waveNumber,expiresAt:new Date(Math.min(date(assignment.expiresAt),date(options.offerDeadline??assignment.expiresAt))).toISOString()},
         driver:{id:request.driverId,subjectId,vehicleType:driver.vehicleType,positionVersion:observed,point,
-          observedAt:position.locationUpdatedAt,expiresAt:new Date(observed+positionMaxAgeSeconds*1000).toISOString()},
+          observedAt:position.locationUpdatedAt,expiresAt:new Date(Math.min(observed+positionMaxAgeSeconds*1000,...(vehicleRegistry.enforce(driver)&&vehicleRegistry.eligibility(driver,now()).validUntil?[Date.parse(vehicleRegistry.eligibility(driver,now()).validUntil)]:[]))).toISOString()},
         order:order.snapshot,policy:{version:policy.version,rules:bundle.driverRules},pickupRoute,deliveryRoute,
         at:new Date(now()).toISOString(),ttlSeconds:offerTtlSeconds});
       return copy({offer:order.settlementModel==='FULL_CASH_AT_DELIVERY_V1'?buildFullCashOffer({schemaVersion:3,base:offer.source,deliveryFunding:order.deliveryFunding??null}):order.deliveryFunding?buildDeliveryFundedOffer({schemaVersion:2,base:offer.source,deliveryFunding:order.deliveryFunding}):offer,waveNumber:request.waveNumber,guards:r.guards});

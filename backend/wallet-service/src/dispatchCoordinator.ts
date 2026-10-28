@@ -98,6 +98,19 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
    if(c.job.status==='no_driver_available'&&prior?.record.action==='REVIEW')return receipt(prior.record,false);
    if(c.job.status!=='searching')return fail();
    if(prior&&prior.record.action==='START_WAVE'&&['PENDING','LEASED'].includes(prior.record.state)&&time<Math.min(ms(c.cycle.searchDeadline),ms(prior.record.waveDeadline)))return receipt(prior.record,false);
+   // No wave means no offer has been issued by the fenced producer. A delayed
+   // performance refresh may retry preparation without spending a wave or
+   // extending the original search/offer budget. Never reset a persisted plan.
+   if(c.cycle.engine==='FINANCIAL'&&prior&&prior.record.action==='START_WAVE'&&['PENDING','LEASED'].includes(prior.record.state)&&time>=ms(prior.record.waveDeadline)&&time<Math.min(ms(c.cycle.searchDeadline),ms(c.job.expiresAt))&&c.job.currentWaveNumber===prior.record.waveNumber-1){
+    const waveKey={orderId:input.orderId,SK:dispatchWaveSK(c.cycle,prior.record.waveNumber)},wave=await strongGet(db,T.jobs,waveKey);
+    if(!wave){
+     const profile=c.cycle.policy.values.dispatch!.profiles.FINANCIAL,deadline=iso(Math.min(time+profile.waveDurationSeconds*1000,ms(c.cycle.searchDeadline),ms(c.job.expiresAt)));
+     const next={...prior.record,state:'PENDING',firstCreatedAt:prior.record.firstCreatedAt??prior.record.createdAt,createdAt:iso(time),waveDeadline:deadline,leaseUntil:iso(time),preparationRetries:(prior.record.preparationRetries??0)+1};
+     const write=updateChecked(exactCheck(T.jobs,prior.key,prior.record),'SET #s=:s,#at=:at,#first=:first,#deadline=:deadline,#until=:until,#retries=:retries',{'#s':'state','#at':'createdAt','#first':'firstCreatedAt','#deadline':'waveDeadline','#until':'leaseUntil','#retries':'preparationRetries'},{':s':'PENDING',':at':next.createdAt,':first':next.firstCreatedAt,':deadline':deadline,':until':next.leaseUntil,':retries':next.preparationRetries});
+     await commit([write,exactCheck(T.jobs,c.jobKey,c.job),...c.guards,{ConditionCheck:{TableName:T.jobs,Key:waveKey,ConditionExpression:'attribute_not_exists(orderId)'}}]);
+     return receipt(next,false);
+    }
+   }
    let progress:DispatchProgress={currentWave:0,assigned:false,terminal:false,waveState:'NONE',waveDeadline:null},waveGuards:Row[]=[],expire:Row[]=[];
    if(prior&&['PENDING','LEASED'].includes(prior.record.state)){progress={currentWave:prior.record.waveNumber,assigned:false,terminal:false,waveState:'PREPARING',waveDeadline:prior.record.waveDeadline};}
    if(!prior||prior.record.state==='APPLIED'){const evidence=await progressFor(c,prior);progress=evidence.progress;waveGuards=evidence.guards;expire=evidence.expire;}

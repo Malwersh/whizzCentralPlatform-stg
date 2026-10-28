@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {verifyFullCashAssignment} from './fullCashOffer';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { verifyDeliveryFundedAssignment } from './deliveryFundedOffer';
@@ -16,7 +17,7 @@ export function createCodFlowContext(options:{db:Pick<DynamoDBDocumentClient,'se
    order.deletedAt!=null||order.deletionStatus!=null||order.deletionRequestId!=null||order.isDeleted===true||!quoteEntityIdValid(order.driverId))return fail();
   const driverKey={driverId:order.driverId},driver=await strongGet(db,T.driver,driverKey),subject=driver?.cognitoSub??driver?.driverId;
   if(!driver||!quoteEntityIdValid(subject)||driver.deletionRequestId!=null||driver.deletedAt!=null||driver.isDeleted===true)return fail();
-  const offerKey={orderId:v.orderId,SK:`FINANCIAL#${order.driverId}#WAVE#${order.assignmentWaveNumber}`},saved=await strongGet(db,T.offers,offerKey);
+  const offerKey={orderId:v.orderId,SK:await financialOfferSK(db,v.orderId,order.driverId,order.assignmentWaveNumber)},saved=await strongGet(db,T.offers,offerKey);
   let offer:Row;
   if(order.financialAcceptance?.schemaVersion===3){if(options.enableFullCash!==true)return fail('FULL_CASH_RELEASE_DISABLED');const verified=verifyFullCashAssignment(order,saved!,subject);offer={...verified.baseOffer,digest:verified.digest,allocation:verified.settlement.allocation};}
   else if(order.financialAcceptance?.schemaVersion===2){if(options.enableDeliveryFunding!==true)return fail('DELIVERY_FUNDED_RELEASE_DISABLED');const verified=verifyDeliveryFundedAssignment(order,saved!,subject);offer={...verified.baseOffer,digest:verified.digest,allocation:verified.allocation};}
@@ -35,7 +36,7 @@ export function createCodFlowContext(options:{db:Pick<DynamoDBDocumentClient,'se
   const record=await strongGet(db,T.holds,returnKey);
   if(record&&(record.kind!=='COD_RETURN_CASE'||record.schemaVersion!==1||record.orderId!==v.orderId||record.sk!==returnKey.sk||record.returnId!==returnId||record.driverId!==order.driverId||record.driverSubjectId!==subject||record.branchId!==offer.branchId||record.attempt!==v.attempt||record.offerId!==v.offerId||record.offerDigest!==offer.digest||record.cashCollected!==false||!Number.isSafeInteger(record.version)||record.version<1||record.version>=Number.MAX_SAFE_INTEGER))return fail();
   if(!Number.isSafeInteger(now())||Date.parse(order.financialAcceptance.acceptedAt)>now())return fail();
-  return {actor,key,order,driver,branch,subject,offer,guards,returnId,returnKey,record,timestamp:new Date(now()).toISOString()};
+  return {actor,key,order,driver,branch,subject,offer,offerKey,guards,returnId,returnKey,record,timestamp:new Date(now()).toISOString()};
  }
  return context;
 }

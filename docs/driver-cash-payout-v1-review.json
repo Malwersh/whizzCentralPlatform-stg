@@ -1,0 +1,75 @@
+{
+  "scope": "DRIVER_CASH_PAYOUT_V1",
+  "userApprovedEligibleSources": [
+    "APPROVED_COMPENSATION",
+    "VERIFIED_UNUSED_TOPUPS"
+  ],
+  "normalCodFarePaidTwice": false,
+  "sharedMerchantCashboxAndVoucherEngine": true,
+  "driverSeparateNamespace": true,
+  "stateFlow": [
+    "UNDER_REVIEW",
+    "APPROVED",
+    "PROCESSING",
+    "AWAITING_RECEIPT",
+    "RECEIPT_CONFIRMED",
+    "PAID"
+  ],
+  "tests": {
+    "backendPassed": 98,
+    "flutterPassed": 14,
+    "iosReleaseUnsignedBuild": 327,
+    "browserMockedFlowPassed": true,
+    "fiveCandidatePackagesPassed": true
+  },
+  "publicationReceipt": "docs/driver-cash-payout-publication-v1.json",
+  "realPayoutExecutedByAgent": false,
+  "legacyTestWallet": {
+    "status": "RECONCILIATION_REQUIRED",
+    "walletIqd": 2750,
+    "ledgerNetIqd": -84000,
+    "differenceIqd": 86750,
+    "balanceOrLedgerRepaired": false
+  },
+  "orderedHumanAcceptance": [
+    "Verified unused topup source: create one driver request; repeat request response must not reserve twice",
+    "Staff approves without cash movement, prepares delivery from an authorized shared cashbox",
+    "Staff records physical cash delivery and voucher; admin cannot impersonate driver receipt",
+    "Driver confirms actual receipt; staff reconciles once; locked liability debited once",
+    "Cancel/reject before delivery releases only payout reservation",
+    "Report nonreceipt after delivery; keep locked until documented return to cashbox and resolution",
+    "Concurrent accepted-order collateral and payout reservation remain separate",
+    "Approved compensation uses the same path; unknown credits and UAT payment never qualify"
+  ],
+  "notCompleted": [
+    "Human physical cash acceptance",
+    "Legacy test-wallet source reconciliation",
+    "Android installation validation"
+  ],
+  "publicationStatus": "PUBLISHED_ENABLED_STAGING",
+  "hostingJob": "215",
+  "publicDriverRouteUnauthenticatedStatus": 401,
+  "iosDevice": {
+    "releaseBuild": 328,
+    "signed": true,
+    "installed": true,
+    "device": "iMohammed iPhone 17 Pro Max",
+    "existingAppDataPreserved": true
+  },
+  "blockedEligibilityExplanation": {
+    "releaseBuild": 328,
+    "states": [
+      "RECONCILIATION_REQUIRED",
+      "HISTORY_OR_SOURCE_REVIEW",
+      "WALLET_UNAVAILABLE",
+      "WALLET_CHANGED",
+      "TEMPORARY_VERIFICATION_FAILURE",
+      "ZERO_ELIGIBLE_BALANCE",
+      "ACTIVE_PAYOUT"
+    ],
+    "reasonVisibleAboveDisabledAmount": true,
+    "financialEligibilityBypassed": false,
+    "focusedTestsPassed": 6,
+    "deviceInstallation": "INSTALLED_AND_LAUNCHED_RELEASE_328"
+  }
+}

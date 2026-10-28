@@ -68,3 +68,57 @@ test('legacy Creator cannot overwrite a pinned job when mode is off',async()=>{
 });
 
 test('a disabled approved driver is excluded while legacy missing flag remains eligible',async()=>{const f=await selection();f.get('WhizzDrivers_staging',{driverId:'driver1'}).isActive=false;assert.deepEqual(await f.select(),['driver2']);});
+
+test('explicit enforce cutover replaces obsolete live metrics even for legacy source labels while retaining captured thresholds',async()=>{
+ const {POLICY}=require('../../shared/driver-performance-snapshot');const f=await selection(v=>{v.dispatch.performanceMode='LEGACY_METRICS';});
+ for(const id of ['driver1','driver2']){
+  Object.assign(f.get('WizzDriverLiveState_staging',{driverId:id}),{metricsSnapshot_totalTrips:4,metricsSnapshot_acceptanceRate:0,metricsSnapshot_completionRate:.19});
+  const row={pk:'DRIVER#'+id,sk:'STATE',driverId:id,schemaVersion:1,policyVersion:POLICY,generation:3,builtGeneration:3,validUntil:new Date(f.time+3600000).toISOString(),snapshot:{acceptanceRate:1,completionRate:.95,acceptance:{accepted:20,declined:0,sampleSize:20,windowComplete:true},completion:{completed:18,returned:1,windowComplete:true},rejections:{consecutive:0,windowComplete:true},customerRating:5}};
+  f.put('DriverPerformanceSnapshots_staging',row);
+ }
+ f.put('DriverPerformanceSnapshots_staging',{pk:'CONTROL',sk:'HEALTH',policyVersion:POLICY,healthy:true,updatedAt:new Date(f.time).toISOString()});
+ const select=()=>createStagingDispatchCandidates({db:f.db,now:()=>f.time,performanceMode:'ENFORCE'})({job:f.job(),intent:f.intent()});
+ assert.deepEqual(await select(),['driver1','driver2']);
+ f.get('DriverPerformanceSnapshots_staging',{pk:'DRIVER#driver1',sk:'STATE'}).generation++;
+ assert.deepEqual(await select(),['driver2']);
+ f.get('DriverPerformanceSnapshots_staging',{pk:'DRIVER#driver1',sk:'STATE'}).generation--;
+ f.get('DriverPerformanceSnapshots_staging',{pk:'DRIVER#driver1',sk:'STATE'}).snapshot.rejections.consecutive=3;
+ assert.deepEqual(await select(),['driver2']);
+ f.get('DriverPerformanceSnapshots_staging',{pk:'DRIVER#driver2',sk:'STATE'}).generation++;
+ await assert.rejects(select(),/DISPATCH_PERFORMANCE_REFRESH_PENDING/);
+});
+
+test('shadow observes unified differences without changing legacy recipients or writing state',async()=>{
+ const f=await selection();const before=await f.select();
+ const {POLICY}=require('../../shared/driver-performance-snapshot');
+ f.put('DriverPerformanceSnapshots_staging',{pk:'CONTROL',sk:'HEALTH',policyVersion:POLICY,healthy:true,updatedAt:new Date(f.time).toISOString()});
+ f.put('DriverPerformanceSnapshots_staging',{pk:'DRIVER#driver1',sk:'STATE',driverId:'driver1',schemaVersion:1,policyVersion:POLICY,generation:1,builtGeneration:1,validUntil:new Date(f.time+3600000).toISOString(),snapshot:{acceptanceRate:0,completionRate:0,acceptance:{accepted:0,declined:20,sampleSize:20,windowComplete:true},completion:{completed:0,returned:0,windowComplete:true},rejections:{consecutive:20,windowComplete:true},experience:{totalFulfilled:20}}});
+ const send=f.db.send;let writes=0;f.db.send=async c=>{if(!['GetCommand','QueryCommand','ScanCommand'].includes(c.constructor.name))writes++;return send(c);};
+ const logs=[],prior=console.info;console.info=(...args)=>logs.push(args);
+ try{assert.deepEqual(await createStagingDispatchCandidates({db:f.db,now:()=>f.time,performanceMode:'SHADOW'})({job:f.job(),intent:f.intent()}),before);}finally{console.info=prior;}
+ assert.equal(writes,0);assert.equal(logs[0][0],'DRIVER_PERFORMANCE_SHADOW');assert.deepEqual(logs[0][1],{checked:2,current:1,different:1,pending:1});
+});
+test('unreviewed or expired registered vehicle excludes driver despite healthy old live-state metrics',async()=>{
+ const f=await selection();const p=f.get('WhizzDrivers_staging',{driverId:'driver1'});
+ p.vehicleRegistry={schemaVersion:1,version:1,activeId:'v',items:{v:{id:'v',type:'car',plateNumber:'308',registrationUrl:'u',review:null}},events:[]};p.vehicleOperational=p.vehicleRegistry;
+ assert.equal((await f.select()).includes('driver1'),false);
+ assert.equal((await f.select()).includes('driver2'),true);
+});
+
+test('authoritative work-region scope includes permitted neighbors despite local drivers and ignores forged live arrays',async()=>{
+ const original=process.env.DRIVER_WORK_REGION_ENFORCE;process.env.DRIVER_WORK_REGION_ENFORCE='true';
+ try{
+  const f=await selection(),T=require('../../shared/driver-work-region-311').TABLES,refs=new Map();
+  const ref=(table,key,row)=>refs.set(table+'|'+JSON.stringify(key),row);
+  for(const [id,parent,level]of [['country',null,0],['gov','country',1],['district','gov',2],['zone1','district',3],['neighbor','district',3]]){
+   ref(T.base,{regionId:id},{regionId:id,parent_id:parent,level,is_active:true,geometry:{type:'Polygon',coordinates:[[[43,30],[45,30],[45,32],[43,32],[43,30]]]}});
+   ref(T.derived,{regionId:id},{regionId:id,effective_is_active:1});
+  }
+  for(const [source,target]of [['zone1','neighbor'],['neighbor','zone1']]){const pair=source+'#'+target;ref(T.neighbors,{neighbor_pair_id:pair},{neighbor_pair_id:pair,source_region_id:source,target_region_id:target,source_level:3,target_level:3,expansion_priority:0});}
+  for(const id of ['driver1','driver2']){f.get('WhizzDrivers_staging',{driverId:id}).work_region_id='zone1';const state=f.get('WizzDriverLiveState_staging',{driverId:id});state.allowed_region_ids=[];state.allowed_region_ids_priority0=[];}
+  f.get('WizzDriverLiveState_staging',{driverId:'driver2'}).current_work_region_id='neighbor';
+  const send=f.db.send;f.db.send=async c=>{const row=refs.get(c.input.TableName+'|'+JSON.stringify(c.input.Key));if(Object.values(T).includes(c.input.TableName))return {Item:row?structuredClone(row):undefined};return send(c);};
+  assert.deepEqual(await f.select(),['driver1','driver2']);assert.equal(f.queries[0].FilterExpression,'#s=:available');
+  refs.delete(T.neighbors+'|'+JSON.stringify({neighbor_pair_id:'zone1#neighbor'}));assert.deepEqual(await f.select(),['driver1']);
+ }finally{if(original===undefined)delete process.env.DRIVER_WORK_REGION_ENFORCE;else process.env.DRIVER_WORK_REGION_ENFORCE=original;}
+});

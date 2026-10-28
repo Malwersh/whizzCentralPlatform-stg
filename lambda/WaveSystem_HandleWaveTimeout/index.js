@@ -290,6 +290,7 @@ async function processExpiredWave(orderId, offers, now) {
       result.dispatchAction=plan.action;
       return result;
     }
+    if(process.env.DISPATCH_FINANCIAL_HOST_MODE==='REQUIRED'&&process.env.FINANCE_GENERAL_RELEASE_MODE==='REQUIRED'){result.skipped='UNPINNED_LEGACY_CYCLE_DISABLED';return result;}
     if (financialJob?.financialDispatch === true) {
       const scopes=require('./finance-rollout').readFinanceRollout().scopes;
       if(!scopes.some(scope=>scope.orders.some(o=>o.orderId===orderId&&o.branchId===financialJob.restaurantId))){result.skipped='OUT_OF_FINANCIAL_SCOPE';return result;}

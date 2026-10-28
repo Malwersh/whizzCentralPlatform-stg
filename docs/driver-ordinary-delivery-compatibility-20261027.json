@@ -1,0 +1,105 @@
+{
+  "status": "AUDITED_EXISTING_ENFORCED_IMPLEMENTATION",
+  "scope": "USER_CONFIRMED_RESTAURANTS_AND_STORES_ORDINARY_ORDERS",
+  "allowedApprovedActiveVehicleTypes": [
+    "car",
+    "motorcycle"
+  ],
+  "sizeWeightRestrictionsAdded": false,
+  "runtimeChanged": false,
+  "publishedNewCode": false,
+  "businessWrites": false,
+  "sourceReviewed": [
+    "backend/wallet-service/src/dispatchCandidates.ts",
+    "backend/wallet-service/src/driverOfferContext.ts",
+    "backend/wallet-service/src/driverOfferAcceptance.ts",
+    "backend/shared/driver-vehicles-308.js"
+  ],
+  "tests": {
+    "passed": 42,
+    "failed": 0,
+    "skipped": 0,
+    "newCases": 7,
+    "build": "npm run build PASS"
+  },
+  "verifiedBehaviors": [
+    "Both approved active vehicle types can be issued and accept ordinary offers",
+    "Expiry before issuance prevents offer",
+    "Expiry after issuance prevents acceptance without collateral reservation",
+    "Switching to another approved vehicle prevents acceptance of old offer",
+    "Accepted order retains original vehicle snapshot",
+    "Unknown vehicle types fail registry approval"
+  ],
+  "liveEnforcement": [
+    {
+      "name": "staging-wizz-staff-service",
+      "enforced": true,
+      "state": "Active",
+      "hash": "Hv3AMHK52oFyJoSUixD3iRQsfT9utFQ5IS7nSy34eQY="
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "enforced": true,
+      "state": "Active",
+      "hash": "rCmx+CmegXJMAQ3XpULBULomfvfQMQKkP2wZm84ZOZA="
+    },
+    {
+      "name": "DriversApi-staging",
+      "enforced": true,
+      "state": "Active",
+      "hash": "3vaxUB8TNSiGmqrtVDx/uyBCfHO1xdaZ0ioNXI9os58="
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "enforced": true,
+      "state": "Active",
+      "hash": "crKEIPb+Elp/eykp8/t42hDkTP523rvgwve5yb4AIEk="
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "enforced": true,
+      "state": "Active",
+      "hash": "6uUByhjSNuvo0iyH6nCW9pJg4fSs9YHFgQFGYx7KtL0="
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "enforced": true,
+      "state": "Active",
+      "hash": "6zNpBjv2HOwYwb8bp3z6LpB9a4yTICsKBP/GqLLp2WE="
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "enforced": true,
+      "state": "Active",
+      "hash": "r+YzXTM5sUvqdhpO5CHpTE4iIqwrrkmieOg6DSvHav0="
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "enforced": true,
+      "state": "Active",
+      "hash": "GH3PhG+hmNT6hrBXXxIHmXwHPWqLZhRBfXIyH/ZNcCw="
+    },
+    {
+      "name": "staging-cod-integration",
+      "enforced": true,
+      "state": "Active",
+      "hash": "ovyL5NWgORh4m5xhAIdhs/9S25ptIH1seszcLDYsEqQ="
+    }
+  ],
+  "livePackageInspection": {
+    "WaveSystem_StartWave": [
+      "dispatch-cycle-runtime.js delegates candidate selection to driver-vehicles-runtime-308",
+      "financial-runtime.js delegates offer preparation to driver-vehicles-runtime-308"
+    ],
+    "staging-driver-financial-accept": [
+      "index.js delegates offer references to driver-vehicles-runtime-308",
+      "driver-acceptance-eta98.js delegates acceptance to driver-vehicles-runtime-308"
+    ]
+  },
+  "humanAcceptance": "Deferred ordered tests remain required; no new human pass claimed",
+  "outOfScope": [
+    "Oversize/heavy goods",
+    "New vehicle categories",
+    "Product import delegated to colleague"
+  ]
+}

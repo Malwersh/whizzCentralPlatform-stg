@@ -49,6 +49,7 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   return shared[name]=module.exports;
  }
  const modules={
+  './point-invoice-321':require(path.join(path.dirname(handlerPath),'point-invoice-321')),
   './checkout-pricing-reads':require('../../../../../wizzuser-stg/backend/src/functions/create-order/checkout-pricing-reads'),
   '../shared/branch-minimum-order':loadShared('branch-minimum-order'),
   '../shared/discount-contract':loadShared('discount-contract'),
@@ -73,9 +74,10 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   '../shared/discount-engine':fs.existsSync(path.resolve(path.dirname(handlerPath),'../shared/discount-engine.js'))?require(path.resolve(path.dirname(handlerPath),'../shared/discount-engine.js')):{},
   uuid:{v4:()=>require('node:crypto').randomUUID()},https:{request:()=>{f.externalCalls++;throw Error('external call prohibited');}}
  };
- vm.runInNewContext(fs.readFileSync(handlerPath,'utf8'),{exports,require:n=>{if(n.startsWith('../shared/')&&/^\.\.\/shared\/[a-z0-9-]+$/.test(n))return modules[n]??loadShared(n.slice('../shared/'.length));if(!(n in modules))throw Error('unexpected require '+n);return modules[n];},process:{env},Buffer,Date:class extends Date{constructor(...args){super(...(args.length?args:[f.time]));}static now(){return f.time;}},console:{log(){},error(){},warn(){}}});
+ vm.runInNewContext(fs.readFileSync(handlerPath,'utf8')+'\nexports.__readOnlyTestRun=handleOrder321;',{exports,require:n=>{if(n.startsWith('../shared/')&&/^\.\.\/shared\/[a-z0-9-]+$/.test(n))return modules[n]??loadShared(n.slice('../shared/'.length));if(!(n in modules))throw Error('unexpected require '+n);return modules[n];},process:{env},Buffer,Date:class extends Date{constructor(...args){super(...(args.length?args:[f.time]));}static now(){return f.time;}},console:{log(){},error(){},warn(){}}});
  const claims={sub:'sub1',iss:'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_TpyyrVkEE',client_id:'staging-client',token_use:'access'};
  const token='header.'+Buffer.from(JSON.stringify(claims)).toString('base64url')+'.signature';
+ f.runReadOnlyTest=exports.__readOnlyTestRun;f.token=token;
  f.body={userId:'u1',storeId:'b1',storeName:'Synthetic',storeAddress:'Test',deliveryAddress:{id:'a1',latitude:31.925,longitude:44.457,fullAddress:'Test'},paymentMethod:'cod',items:[{id:'p1',name:'Test',price:3500,quantity:1}],quoteId:quote.quoteId,idempotencyKey:'abcdefab-1234-4123-8123-123456789abc',deliveryFee:999999};
  f.invoke=async (patch={})=>{const r=await exports.handler({httpMethod:'POST',resource:patch.action==='preview_commercial'?'/orders/commercial-preview':'/orders',headers:{Authorization:'Bearer '+token},body:JSON.stringify({...f.body,...patch})});return {...r,json:JSON.parse(r.body)};};
  f.enableCommercial=()=>{

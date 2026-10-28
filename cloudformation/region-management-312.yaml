@@ -1,0 +1,176 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Durable scoped staging region publication without financial permissions
+Parameters:
+  ArtifactBucket:
+    Type: String
+  WorkerCodeKey:
+    Type: String
+  Enabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  DirectOperatorIds:
+    Type: String
+    Default: ''
+    NoEcho: true
+Conditions:
+  Active: !Equals [!Ref Enabled, 'true']
+Resources:
+  DeadLetters:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: staging-region-publication-deadletters
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 1209600
+  Publications:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: staging-region-publication
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 360
+      MaximumMessageSize: 1024
+      MessageRetentionPeriod: 1209600
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DeadLetters.Arn
+        maxReceiveCount: 5
+  WorkerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: staging-region-publication-worker
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: RegionPublicationOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/staging-region-publication-worker:*
+              - Effect: Allow
+                Action: [sqs:ReceiveMessage, sqs:DeleteMessage, sqs:GetQueueAttributes, sqs:ChangeMessageVisibility, sqs:SendMessage]
+                Resource: !GetAtt Publications.Arn
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:PutItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_Regions
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionsDerived_staging
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionNeighbors_staging
+              - Effect: Allow
+                Action: [dynamodb:BatchWriteItem, dynamodb:DeleteItem, dynamodb:GetItem]
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionIndex_staging
+              - Effect: Allow
+                Action: [dynamodb:Query]
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionIndex_staging/index/region-id-index
+              - Effect: Allow
+                Action: [dynamodb:PutItem]
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzCentral_RegionAudit_staging
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:PutItem, dynamodb:DeleteItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['REGION_JOB#*', 'REGIONS_*']
+              - Effect: Allow
+                Action: [dynamodb:PutItem]
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+                Condition:
+                  ForAllValues:StringEquals:
+                    dynamodb:LeadingKeys: ['AUDIT']
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['EMPLOYEE#*']
+  Logs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/staging-region-publication-worker
+      RetentionInDays: 30
+  Worker:
+    Type: AWS::Lambda::Function
+    DependsOn: Logs
+    Properties:
+      FunctionName: staging-region-publication-worker
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Role: !GetAtt WorkerRole.Arn
+      MemorySize: 1024
+      Timeout: 60
+      ReservedConcurrentExecutions: 3
+      Code:
+        S3Bucket: !Ref ArtifactBucket
+        S3Key: !Ref WorkerCodeKey
+      Environment:
+        Variables:
+          STAFF_TABLE: staging-PlatformStaff
+          REGION_MANAGEMENT_ENABLED: !Ref Enabled
+          REGION_COMPOSITE_READERS_READY: !Ref Enabled
+          REGION_PUBLICATION_QUEUE_URL: !Ref Publications
+          REGION_PUBLICATION_QUEUE_ARN: !GetAtt Publications.Arn
+          REGION_RECOVERY_RULE_ARN: !Sub arn:aws:events:${AWS::Region}:${AWS::AccountId}:rule/staging-region-publication-recovery
+          PLATFORM_ENVIRONMENT: staging
+          PLATFORM_WRITE_MODE: DIRECT
+          PLATFORM_DIRECT_OPERATOR_IDS: !Ref DirectOperatorIds
+  QueueConsumer:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt Publications.Arn
+      FunctionName: !Ref Worker
+      BatchSize: 1
+      FunctionResponseTypes: [ReportBatchItemFailures]
+      Enabled: !If [Active, true, false]
+      ScalingConfig:
+        MaximumConcurrency: 2
+  Recovery:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: staging-region-publication-recovery
+      Description: Recover durable region publication outbox after lost enqueue or worker interruption
+      ScheduleExpression: rate(1 minute)
+      State: !If [Active, ENABLED, DISABLED]
+      Targets:
+        - Id: RegionPublicationRecovery
+          Arn: !GetAtt Worker.Arn
+  RecoveryPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Worker
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt Recovery.Arn
+  DeadLetterAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: staging-region-publication-deadletters
+      AlarmDescription: Region publication needs review; no automatic changes to disputed boundaries
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt DeadLetters.QueueName
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      Period: 60
+      Statistic: Maximum
+      TreatMissingData: notBreaching
+Outputs:
+  WorkerArn:
+    Value: !GetAtt Worker.Arn
+  WorkerRoleArn:
+    Value: !GetAtt WorkerRole.Arn
+  QueueUrl:
+    Value: !Ref Publications
+  QueueArn:
+    Value: !GetAtt Publications.Arn
+  DeadLetterArn:
+    Value: !GetAtt DeadLetters.Arn
+  RecoveryRuleArn:
+    Value: !GetAtt Recovery.Arn

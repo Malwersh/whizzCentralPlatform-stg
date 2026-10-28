@@ -1,0 +1,33 @@
+{
+  "status": "PUBLISHED_BYTE_VERIFIED",
+  "observedPushHandlerDurationMs": 4322.26,
+  "previousHttpTimeoutMs": 3000,
+  "newHttpTimeoutMs": 8000,
+  "boundedByOfferExpiry": true,
+  "iamChanged": false,
+  "businessDataWritten": false,
+  "functions": [
+    {
+      "name": "WaveSystem_StartWave",
+      "beforeHash": "RnkPAA7rD6mxbkHuKfR1Sx1hU92g9nDB+rnbKyWxAbw=",
+      "hash": "N6JYQD61+JP1JT75EXbO8g+X2ztr9xnbxOL1RSLHC7A=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "wave-offer-transport-293.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "beforeHash": "sgGsMkJMZI5GkclE1Tu7bGGFdcYW13nO/fgC3k6eX/o=",
+      "hash": "pBf8axN/sA1DJSGOs34nV9pf70+PPFqLQBPyGK/Q9Js=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "wave-offer-transport-293.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ]
+}

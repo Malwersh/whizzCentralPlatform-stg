@@ -1,0 +1,33 @@
+{
+  "revision": 297,
+  "recordedAt": "2026-10-25T20:29:19.084671+00:00",
+  "deviceEvidence296": {
+    "playing": false,
+    "reason": "APP_NOT_ACTIVE",
+    "selectedFile": "driver_original.wav",
+    "recordedAt": "2026-10-25T20:26:58.820329Z"
+  },
+  "rootCause": "GlobalAppStateManager replaced SystemChannels.lifecycle handler, preventing Flutter binding and observers from receiving lifecycle events. DriverOfferAudio blocked playback before reaching the native bridge with APP_NOT_ACTIVE.",
+  "fix": [
+    "Replace raw lifecycle message handler with WidgetsBindingObserver",
+    "Remove duplicate home forwarding to global manager",
+    "Dispose observer without clearing Flutter lifecycle channel"
+  ],
+  "proof": {
+    "oldImplementationRegressionTest": "FAIL: framework lifecycle stayed null after paused platform message",
+    "correctedImplementation": "PASS: paused/resumed lifecycle delivery, foreground preview playback, background cue blocked, framework lifecycle survives manager disposal",
+    "combinedFlutterTests": 7,
+    "diffCheck": "PASS",
+    "targetedStaticAnalysis": "PASS: No issues found"
+  },
+  "release": {
+    "build": 297,
+    "status": "INSTALLED_AND_LAUNCHED",
+    "hardwareAudibility": "USER_CONFIRMED_PREVIEW_AUDIBLE",
+    "installedAt": "2026-10-25T20:30:59.151817+00:00"
+  },
+  "remainingTests": [
+    "Real incoming offer while foreground",
+    "Background or locked-screen incoming offer"
+  ]
+}

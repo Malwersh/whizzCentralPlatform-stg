@@ -1,5 +1,8 @@
+const workRegions=require('../../shared/driver-work-region-311');
+const vehicleRegistry=require('../../shared/driver-vehicles-308');
+const {TABLE:PERFORMANCE_TABLE,dispatchMetrics}=require('../../shared/driver-performance-snapshot');
 const {dispatchWaveSK}=require('../../src/utils/dispatch-cycle-keys');
-import {DynamoDBDocumentClient,ScanCommand} from '@aws-sdk/lib-dynamodb';
+import {DynamoDBDocumentClient,ScanCommand,GetCommand} from '@aws-sdk/lib-dynamodb';
 import {validateDispatchCycle} from './dispatchCycle';
 import {createStagingDriverOfferOrderReader} from './driverOfferOrderReader';
 import {strongGet,equal,FinancialRow as Row} from './driverFinancialTransaction';
@@ -12,7 +15,7 @@ const fail=():never=>{throw Error('DISPATCH_CANDIDATES_UNAVAILABLE');};
  * New-cycle readers finish all bounded pages, fail closed, then strongly hydrate
  * current state/profile before applying the captured rule. No offers or money.
  */
-export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean}) {
+export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;performanceMode?:'OFF'|'SHADOW'|'ENFORCE'}) {
  const {db}=options,now=options.now??Date.now;
  return async(input:{job:Row;intent:Row})=>{
   const {job,intent}=input,c=validateDispatchCycle(job.dispatchCycle),profile=c.policy.values.dispatch!.profiles[c.engine],rule=profile.normalWaves[intent.waveNumber-1];
@@ -22,6 +25,15 @@ export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumen
   else{const branch=await strongGet(db,'WhizzMerchants_Businesses',{businessId:job.restaurantId});if(!branch||branch.status!=='approved')return fail();point={latitude:job.restaurantLat??branch.latitude,longitude:job.restaurantLng??branch.longitude};regionId=job.restaurantRegionId??branch.regionId;}
   if(!quoteEntityIdValid(regionId)||!Number.isFinite(point.latitude)||Math.abs(point.latitude)>90||!Number.isFinite(point.longitude)||Math.abs(point.longitude)>180)return fail();
   const excluded=new Set<string>();for(const list of [job.excludedDrivers??[],job.financialExcludedDriverIds??[]]){if(!Array.isArray(list)||!list.every(quoteEntityIdValid))return fail();for(const id of list)excluded.add(id);}
+  const configuredPerformanceMode=options.performanceMode??process.env.DISPATCH_DRIVER_PERFORMANCE_MODE??'OFF';
+  const capturedPerformance=c.policy.values.dispatch!.performanceMode;
+  if(capturedPerformance==='VERIFIED_SNAPSHOT_V1'&&configuredPerformanceMode!=='ENFORCE')return fail();
+  // Explicit deployment cutover replaces the obsolete source, retaining all captured thresholds.
+  const performanceMode=configuredPerformanceMode;
+  const shadow={checked:0,current:0,different:0,pending:0},pendingPerformance=new Set<string>();
+  if(!['OFF','SHADOW','ENFORCE'].includes(performanceMode))return fail();
+  const performanceHealth=performanceMode==='OFF'?null:await strongGet(db,PERFORMANCE_TABLE,{pk:'CONTROL',sk:'HEALTH'});
+  const regionAccess=workRegions.create({db,GetCommand});
   const previouslyOffered=new Set<string>();
   for(let n=1;n<intent.waveNumber;n++){const wave=await strongGet(db,'WizzDispatchJobs_staging',{orderId:c.orderId,SK:dispatchWaveSK(c,n)});if(!wave||wave.assignmentId!==c.assignmentId||!Array.isArray(wave.driverIds)||wave.driverIds.length>25||!wave.driverIds.every(quoteEntityIdValid))return fail();for(const id of wave.driverIds)previouslyOffered.add(id);}
   async function read(all:boolean):Promise<Row[]>{
@@ -37,10 +49,28 @@ export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumen
    }while(cursor);
    const ids=[...new Set(rows.map(r=>r.driverId))];if(!ids.every(quoteEntityIdValid))return fail();
    const live:Row[]=[];
-   for(const driverId of ids){const [state,driver]=await Promise.all([strongGet(db,LIVE,{driverId}),strongGet(db,'WhizzDrivers_staging',{driverId})]);
+   for(const driverId of ids){const [state,driver]=await Promise.all([strongGet(db,LIVE,{driverId}),(async()=>{const fields=['driverId','cognitoSub','status','registrationStatus','isActive','isVerified','is_verified','documentsVerified','isDeleted','deletedAt','deletionRequestId','isSuspended','isBanned','vehicleType','vehiclePlate','vehicleOperational','personalDocumentReview','registrationPaperUrl','drivingLicenseUrl','nationalIdUrl','work_region_id','home_region_id'];return (await db.send(new GetCommand({TableName:'WhizzDrivers_staging',Key:{driverId},ConsistentRead:true,ProjectionExpression:fields.map((_,i)=>'#v'+i).join(','),ExpressionAttributeNames:Object.fromEntries(fields.map((f,i)=>['#v'+i,f]))}))).Item;})()]);
     if(!state||!driver||(driver.isActive!==undefined&&driver.isActive!==true)||!isDriverApproved(driver)||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null||driver.isSuspended===true||driver.isBanned===true)continue;
     if(c.engine==='FINANCIAL'&&(![driver.status,driver.registrationStatus].some(s=>['APPROVED','VERIFIED'].includes(String(s).toUpperCase()))||state.isActive!==true||state.currentOrderId!=null||(state.activeOrdersCount??0)!==0))continue;
+    if(vehicleRegistry.enforce(driver)&&!vehicleRegistry.eligibility(driver,now()).eligible)continue;
+    if(workRegions.enforced()){
+     const scope=await regionAccess.check(driver,state.current_work_region_id,regionId,intent.waveNumber===1?0:1,{lat:state.lat,lng:state.lng});if(!scope.allowed)continue;
+     // Ranking may read these compatibility fields, but authorization came from
+     // the approved work region and current authoritative neighbor relation.
+     state.home_region_id=driver.work_region_id;state.allowed_region_ids=[regionId];
+     state.allowed_region_ids_priority0=scope.priority===0?[regionId]:[];
+     state.allowed_region_ids_priority1=scope.priority===1?[regionId]:[];
+    }
     const observed=Date.parse(state.locationUpdatedAt);if(profile.positionMaxAgeSeconds!==null&&(!Number.isFinite(observed)||observed>now()||observed+profile.positionMaxAgeSeconds*1000<=now()))continue;
+    if(performanceMode!=='OFF'){
+     const summary=await strongGet(db,PERFORMANCE_TABLE,{pk:'DRIVER#'+driverId,sk:'STATE'}),metrics=dispatchMetrics(summary,performanceHealth,now(),profile.newDriverExemption.belowCompletedTrips);
+     shadow.checked++;if(metrics){shadow.current++;if(['metricsSnapshot_acceptanceRate','metricsSnapshot_completionRate','metricsSnapshot_consecutiveRejections','metricsSnapshot_totalTrips'].some(k=>state[k]!==metrics[k]))shadow.different++;}else shadow.pending++;
+     if(performanceMode==='ENFORCE'){
+      // A pending snapshot is infrastructure/data freshness, never an attributed driver rejection.
+      if(!metrics){pendingPerformance.add(driverId);continue;}
+      Object.assign(state,metrics);
+     }
+    }
     if(['metricsSnapshot_acceptanceRate','metricsSnapshot_completionRate','metricsSnapshot_responseRate'].some(k=>state[k]!=null&&(!Number.isFinite(state[k])||state[k]<0||state[k]>1)))continue;
     if(['metricsSnapshot_totalTrips','metricsSnapshot_consecutiveRejections'].some(k=>state[k]!=null&&(!Number.isSafeInteger(state[k])||state[k]<0)))continue;
     if(state.rating!=null&&(!Number.isFinite(state.rating)||state.rating<0||state.rating>5))continue;
@@ -49,10 +79,12 @@ export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumen
    }
    return live;
   }
-  const selector=createDriverSelection({console:{log(){},warn(){},error(){}},MAX_DISTANCE_KM:20,queryDriversByRegion:()=>read(false),queryAllAvailableDrivers:()=>read(true)});
+  const selector=createDriverSelection({console:{log(){},warn(){},error(){}},MAX_DISTANCE_KM:20,queryDriversByRegion:()=>read(workRegions.enforced()),queryAllAvailableDrivers:()=>read(true)});
   const thresholds={MIN_ACCEPTANCE_RATE:rule.minimumAcceptancePercent/100,MIN_COMPLETION_RATE:rule.minimumCompletionPercent/100,MAX_CONSECUTIVE_REJECTIONS:rule.maximumConsecutiveDeclines,MAX_DISTANCE_KM:rule.radiusMeters/1000,NEW_DRIVER_BELOW_TRIPS:profile.newDriverExemption.belowCompletedTrips,MISSING_HISTORY:profile.newDriverExemption.missingHistory,REOFFER_FROM_WAVE:profile.repeatOffers.reofferFromWave??Number.MAX_SAFE_INTEGER,STRICT_COORDINATES:true,DETERMINISTIC_TIES:true};
   const candidates:Row[]=await selector.getQualifiedDrivers({...job,restaurantLat:point.latitude,restaurantLng:point.longitude,restaurantRegionId:regionId},[...excluded],[...excluded],[...previouslyOffered],rule.recipients==='ALL',false,intent.waveNumber,thresholds);
   if(rule.recipients==='ALL'&&candidates.length>25)throw Error('DISPATCH_ALL_REQUIRES_PAGED_EXECUTOR');
+  if(performanceMode==='ENFORCE'&&!candidates.length&&pendingPerformance.size)throw Error('DISPATCH_PERFORMANCE_REFRESH_PENDING');
+  if(performanceMode==='SHADOW')console.info('DRIVER_PERFORMANCE_SHADOW',shadow);
   return candidates.slice(0,rule.recipients==='ALL'?candidates.length:rule.recipients).map(r=>r.driverId);
  };
 }

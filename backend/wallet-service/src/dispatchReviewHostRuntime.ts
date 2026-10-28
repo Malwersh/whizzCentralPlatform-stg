@@ -4,7 +4,7 @@ import {DynamoDBDocumentClient} from '@aws-sdk/lib-dynamodb';
 import {CognitoIdentityProviderClient} from '@aws-sdk/client-cognito-identity-provider';
 import {createStagingDispatchReviewHost} from './dispatchReviewHost';
 export async function handler(event:Record<string,unknown>,context:{awsRequestId?:string;invokedFunctionArn?:string;getRemainingTimeInMillis?:()=>number}){
- if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY'].includes(process.env.DISPATCH_REVIEW_EXECUTION_MODE??''))return {disabled:true};
+ if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY','SAFE_FINANCIAL_RETRY'].includes(process.env.DISPATCH_REVIEW_EXECUTION_MODE??''))return {disabled:true};
  const arn='arn:aws:lambda:us-east-1:699561669180:function:staging-cod-integration';
  if(process.env.STAGE!=='staging'||process.env.AWS_REGION!=='us-east-1'||process.env.DISPATCH_REVIEW_HOST_ACCOUNT_ID!=='699561669180'||!context||context.invokedFunctionArn!==arn||!context.awsRequestId||typeof context.getRemainingTimeInMillis!=='function')throw Error('DISPATCH_REVIEW_HOST_SCOPE_INVALID');
  const rule=process.env.DISPATCH_REVIEW_HOST_RULE_ARN;

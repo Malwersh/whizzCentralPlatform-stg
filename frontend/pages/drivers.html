@@ -643,6 +643,7 @@
                 <div class="filter-container">
                     <select id="statusFilter">
                         <option value="">جميع الحالات</option>
+                        <option value="vehicle_review">بانتظار مراجعة المركبات والوثائق</option>
                         <option value="online">متصل</option>
                         <option value="offline">غير متصل</option>
                         <option value="delivering">قيد التوصيل</option>
@@ -823,7 +824,7 @@
                         </div>
                         <div class="form-group">
                             <label for="editDriverStatus">الحالة</label>
-                            <select id="editDriverStatus" name="status" required>
+                            <select id="editDriverStatus" disabled name="status" required>
                                 <option value="PENDING_REVIEW">قيد المراجعة</option>
                                 <option value="ACTIVE">نشط / معتمد</option>
                                 <option value="SUSPENDED">موقوف</option>
@@ -1141,7 +1142,10 @@
         });
     </script>
     <script src="../assets/js/driver-regions.js?v=20261012-driver-actions2"></script>
-    <script src="../drivers.js?v=20261023-details1"></script>
+    <script src="../driver-vehicles.js?v=308"></script>
+    <script src="../finance-print-company.js?v=driver-payout-v1"></script>
+    <script src="../driver-cash-payouts.js?v=1"></script>
+    <script src="../drivers.js?v=driver-cash-payout-v1"></script>
 
     <!-- Authentication is handled by page scripts (single source of truth) -->
     

@@ -1,0 +1,40 @@
+{
+  "part": 332,
+  "status": "PUBLISHED_TEST_FIXTURE",
+  "scope": "ALLOWLISTED_STAGING_DRIVER_ONLY",
+  "expiresAfterHours": 2,
+  "fixtureId": "588f41d1-45d3-45ea-b80f-81507c1fdce7",
+  "stores": [
+    {
+      "name": "فروج المدينة",
+      "added": 1,
+      "displayedReadyCount": 2,
+      "level": "READY"
+    },
+    {
+      "name": "كي أف سي دك المسحال",
+      "added": 3,
+      "displayedReadyCount": 3,
+      "level": "BUSY"
+    },
+    {
+      "name": "ماكدونالد أبوصخير",
+      "added": 6,
+      "displayedReadyCount": 6,
+      "level": "BUSY"
+    }
+  ],
+  "realOrdersCreated": 0,
+  "financialOrDispatchMutations": false,
+  "previousCodeHash": "BfSQqFcwPYJcMGCJeTJchMSqzhPq88VErmbzy4BoADw=",
+  "publishedCodeHash": "CsVJfP5ark7flwnjq4xDrOuLUhk4K3QyJtShnb9oWNs=",
+  "configurationPreserved": true,
+  "iosRelease": {
+    "build": 332,
+    "signed": true,
+    "installed": true,
+    "launched": true
+  },
+  "testsPassed": 8,
+  "cleanup": "Fixture is ignored automatically after two hours even if storage TTL cleanup is delayed."
+}

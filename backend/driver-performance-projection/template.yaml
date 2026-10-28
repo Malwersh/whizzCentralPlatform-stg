@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Staging-only persisted driver performance, isolated from wallet writes
+Parameters:
+  OrderForwardReady: {Type: String, Default: 'false', AllowedValues: ['true', 'false']}
+  SourceStreams:
+    Type: String
+    Description: Exact JSON table to stream ARN map validated before deployment
+  OffersStream: {Type: String}
+  HoldsStream: {Type: String}
+  DriversStream: {Type: String}
+  RatingsStream: {Type: String}
+Resources:
+  Snapshots:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: DriverPerformanceSnapshots_staging
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - {AttributeName: pk, AttributeType: S}
+        - {AttributeName: sk, AttributeType: S}
+        - {AttributeName: queuePartition, AttributeType: S}
+        - {AttributeName: nextAttemptAt, AttributeType: N}
+      KeySchema:
+        - {AttributeName: pk, KeyType: HASH}
+        - {AttributeName: sk, KeyType: RANGE}
+      GlobalSecondaryIndexes:
+        - IndexName: ByDue
+          KeySchema:
+            - {AttributeName: queuePartition, KeyType: HASH}
+            - {AttributeName: nextAttemptAt, KeyType: RANGE}
+          Projection: {ProjectionType: INCLUDE, NonKeyAttributes: [driverId]}
+      SSESpecification: {SSEEnabled: true}
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      TimeToLiveSpecification: {AttributeName: expiresAt, Enabled: true}
+  Failures:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: staging-driver-performance-failures
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 1209600
+  WorkQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: staging-driver-performance-refresh
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 900
+      RedrivePolicy: {deadLetterTargetArn: !GetAtt Failures.Arn, maxReceiveCount: 5}
+  ProjectionWorker:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-driver-performance-projection
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Timeout: 120
+      MemorySize: 512
+      ReservedConcurrentExecutions: 2
+      CodeUri: build/
+      Environment: &environment
+        Variables:
+          STAGE: staging
+          ORDER_FORWARD_READY: !Ref OrderForwardReady
+          SOURCE_STREAMS: !Ref SourceStreams
+          FAILURE_QUEUE_URL: !Ref Failures
+          WORK_QUEUE_URL: !Ref WorkQueue
+      Policies: &policies
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging/index/driverId-sentAt-index
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/whizz-order-ratings-staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/whizz-order-ratings-staging/index/DriverRatingChronology281
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:DeleteItem]
+              Resource: [!GetAtt Snapshots.Arn, !Sub '${Snapshots.Arn}/index/ByDue']
+            - Effect: Allow
+              Action: [lambda:ListEventSourceMappings, cloudwatch:GetMetricData]
+              Resource: '*'
+            - Effect: Allow
+              Action: [sqs:GetQueueAttributes]
+              Resource: !GetAtt Failures.Arn
+            - Effect: Allow
+              Action: [sqs:SendMessage]
+              Resource: !GetAtt WorkQueue.Arn
+      Events:
+        Work:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt WorkQueue.Arn
+            BatchSize: 4
+            MaximumBatchingWindowInSeconds: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+        Reconcile:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+            Input: '{"kind":"SCHEDULE"}'
+  ProjectionCollector:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: staging-driver-performance-collector
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Timeout: 60
+      MemorySize: 256
+      ReservedConcurrentExecutions: 2
+      CodeUri: build/
+      Environment: *environment
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query]
+              Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/whizz-order-ratings-staging
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem]
+              Resource: !GetAtt Snapshots.Arn
+            - Effect: Allow
+              Action: [sqs:SendMessage]
+              Resource: [!GetAtt WorkQueue.Arn, !GetAtt Failures.Arn]
+      EventInvokeConfig:
+        MaximumEventAgeInSeconds: 3600
+        MaximumRetryAttempts: 2
+        DestinationConfig:
+          OnFailure: {Type: SQS, Destination: !GetAtt Failures.Arn}
+      Events:
+        Offers:
+          Type: DynamoDB
+          Properties: &stream
+            Stream: !Ref OffersStream
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 10
+            MaximumBatchingWindowInSeconds: 1
+            FunctionResponseTypes: [ReportBatchItemFailures]
+            BisectBatchOnFunctionError: true
+            MaximumRetryAttempts: 10
+            DestinationConfig: {OnFailure: {Destination: !GetAtt Failures.Arn}}
+        Holds:
+          Type: DynamoDB
+          Properties:
+            <<: *stream
+            Stream: !Ref HoldsStream
+        Drivers:
+          Type: DynamoDB
+          Properties:
+            <<: *stream
+            Stream: !Ref DriversStream
+        Ratings:
+          Type: DynamoDB
+          Properties:
+            <<: *stream
+            Stream: !Ref RatingsStream
+Outputs:
+  TableName: {Value: !Ref Snapshots}
+  WorkerName: {Value: !Ref ProjectionWorker}
+  WorkerRoleArn: {Value: !GetAtt ProjectionWorkerRole.Arn}
+  CollectorName: {Value: !Ref ProjectionCollector}
+  FailureQueue: {Value: !Ref Failures}

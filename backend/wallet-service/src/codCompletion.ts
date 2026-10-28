@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {prepareMerchantAccrualIndex} from './merchantAccrualIndex';
 import {settlePlatformBenefit} from './platformBenefits';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
@@ -66,7 +67,7 @@ export function createStagingCodCompletion(options:{db:Pick<DynamoDBDocumentClie
   const deliveryFunded=terms?.schemaVersion===2;
   if(deliveryFunded&&options.enableDeliveryFunding!==true)return fail('DELIVERY_FUNDED_COMPLETION_DISABLED');
   if(!terms||![1,2].includes(terms.schemaVersion)||terms.paymentMethod!=='COD'||!Number.isSafeInteger(order.assignmentWaveNumber))return fail();
-  const offerKey={orderId,SK:`FINANCIAL#${actor.driverId}#WAVE#${order.assignmentWaveNumber}`},saved=await strongGet(db,T.offers,offerKey);
+  const offerKey={orderId,SK:await financialOfferSK(db,orderId,actor.driverId,order.assignmentWaveNumber)},saved=await strongGet(db,T.offers,offerKey);
   let offer:Row;
   if(deliveryFunded){const verified=verifyDeliveryFundedAssignment(order,saved!,actor.subjectId);offer={...verified.baseOffer,digest:verified.digest,allocation:verified.allocation};}
   else offer=verifyFinancialAssignment(order,saved,actor.subjectId);

@@ -33,17 +33,9 @@ function pin(table:string,key:Row,row:Row,fields=Object.keys(row)) {
 /** Staging-only trusted source composition. Reads server-owned, separately accepted/approved records.
  * No initialization, assumed rates, client-supplied agreement/funding or standalone wallet write.
  * Operations MUST commit together with the order, catalog, campaign usage and Quote fences. */
-export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableFullCash?:boolean;cashRoundingRequired?:boolean;deliveryPromotion?:{prepare:(facts:any)=>Promise<Row>}}) {
- const {db}=options,now=options.now??Date.now;
+export async function readStagingCommercialAgreement(db:Pick<DynamoDBDocumentClient,'send'>,branchId:string,at:number){
+ validId(branchId);
  async function get(table:string,key:Row):Promise<Row>{try{const r=await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}));if(!r.Item)return fail();return copy(r.Item);}catch(e){if(e instanceof CommercialSourceError)throw e;return fail();}}
- return Object.freeze({async prepare(input:unknown) {
-  const r=copy(exact(input,['orderId','branchId','items','quote','discount','tip']));
-  const orderId=validId(r.orderId),branchId=validId(r.branchId),at=now(),timestamp=new Date(at).toISOString();
-  // Pricing instant is immutable across preview/confirmation; live validity is checked again below.
-  const quote=exact(r.quote,['createdAt','expiresAt','deliveryFeeMinor','origin','destination','destinationRegionId']);
-  if(at<instant(quote.createdAt)||at>=instant(quote.expiresAt)||instant(quote.expiresAt)-instant(quote.createdAt)>120000)return fail('COMMERCIAL_QUOTE_EXPIRED');
-  if(!Number.isSafeInteger(quote.deliveryFeeMinor)||quote.deliveryFeeMinor<0)return fail();
-  const tip=readMoney(r.tip);if(tip.minorAmount<0)return fail();
   const branch=await get('WhizzMerchants_Businesses',{businessId:branchId});
   const merchantId=validId(branch.organizationId),ownerId=validId(branch.ownerId);
   if(branch.businessId!==branchId||branch.cognitoUserId!==ownerId||branch.isActive!==true||branch.status!=='approved'||
@@ -80,6 +72,20 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
    approval.termsHash!==record.termsHash||approval.status!=='APPROVED'||!quoteEntityIdValid(approval.staffId)||
    acceptance.acceptedAt!==terms.acceptedAt||approval.approvedAt!==terms.approvedAt||
    instant(acceptance.acceptedAt)>at||instant(approval.approvedAt)>at)return fail();
+ return {branch,merchantId,ownerId,orgKey,org,agreementId,version,key,record,terms,currentKey,current,acceptanceKey,approvalKey,acceptance,approval};
+}
+export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableFullCash?:boolean;cashRoundingRequired?:boolean;deliveryPromotion?:{prepare:(facts:any)=>Promise<Row>}}) {
+ const {db}=options,now=options.now??Date.now;
+ async function get(table:string,key:Row):Promise<Row>{try{const r=await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}));if(!r.Item)return fail();return copy(r.Item);}catch(e){if(e instanceof CommercialSourceError)throw e;return fail();}}
+ return Object.freeze({async prepare(input:unknown) {
+  const r=copy(exact(input,['orderId','branchId','items','quote','discount','tip']));
+  const orderId=validId(r.orderId),branchId=validId(r.branchId),at=now(),timestamp=new Date(at).toISOString();
+  // Pricing instant is immutable across preview/confirmation; live validity is checked again below.
+  const quote=exact(r.quote,['createdAt','expiresAt','deliveryFeeMinor','origin','destination','destinationRegionId']);
+  if(at<instant(quote.createdAt)||at>=instant(quote.expiresAt)||instant(quote.expiresAt)-instant(quote.createdAt)>120000)return fail('COMMERCIAL_QUOTE_EXPIRED');
+  if(!Number.isSafeInteger(quote.deliveryFeeMinor)||quote.deliveryFeeMinor<0)return fail();
+  const tip=readMoney(r.tip);if(tip.minorAmount<0)return fail();
+  let {branch,merchantId,ownerId,orgKey,org,agreementId,version,key,record,terms,currentKey,current,acceptanceKey,approvalKey,acceptance,approval}=await readStagingCommercialAgreement(db,branchId,at);
   const goods=await createStagingOrderGoodsPricing({db}).price({branchId,items:r.items});
 
   const operations:Row[]=[...goods.conditions,pin(platform,orgKey,org),pin(platform,key,record),pin(platform,currentKey,current),

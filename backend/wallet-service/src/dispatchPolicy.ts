@@ -32,7 +32,7 @@ export interface DispatchProfile {
 }
 export interface DispatchPolicy {
   schemaVersion: 2;
-  performanceMode: 'LEGACY_METRICS';
+  performanceMode: 'LEGACY_METRICS' | 'VERIFIED_SNAPSHOT_V1';
   profiles: { LEGACY: DispatchProfile; FINANCIAL: DispatchProfile };
 }
 const invalid = (): never => { throw Object.assign(Error('INVALID_DISPATCH_POLICY'), { code: 'INVALID_DISPATCH_POLICY', status: 400 }); };
@@ -46,7 +46,7 @@ function integer(value: any, min: number, max: number) {
 }
 export function validateDispatchPolicy(value: unknown): DispatchPolicy {
   const root = object(value, ['schemaVersion', 'performanceMode', 'profiles']);
-  if (root.schemaVersion !== 2 || root.performanceMode !== 'LEGACY_METRICS') return invalid();
+  if (root.schemaVersion !== 2 || !['LEGACY_METRICS','VERIFIED_SNAPSHOT_V1'].includes(root.performanceMode)) return invalid();
   const profiles = object(root.profiles, ['LEGACY', 'FINANCIAL']);
   for (const engine of ['LEGACY', 'FINANCIAL'] as const) {
     const p = object(profiles[engine], ['normalWaves', 'offerTtlSeconds', 'waveDurationSeconds', 'totalDispatchSeconds', 'reassignmentWindowSeconds', 'positionMaxAgeSeconds', 'newDriverExemption', 'repeatOffers', 'recovery']);

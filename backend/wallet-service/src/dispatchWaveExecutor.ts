@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {financialWaveSK} from './financialDispatchKeys';
 import {createStagingDispatchCandidates} from './dispatchCandidates';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
@@ -13,6 +14,7 @@ import {quoteEntityIdValid,quoteHash} from './deliveryQuoteRecord';
  * Selection and route/identity dependencies must be trusted, never HTTP data.
  */
 export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;
+ waitForPerformance?:(milliseconds:number)=>Promise<void>;
  selectDrivers:(input:{job:Row;intent:Row})=>Promise<string[]>;
  context:(input:{db:Pick<DynamoDBDocumentClient,'send'>;offerDeadline:string;offerTtlSeconds:number;positionMaxAgeSeconds:number;enableDeliveryFunding?:boolean;enableFullCash?:boolean})=>ReturnType<typeof createStagingDriverOfferContext>;
  sendOffer:(driverId:string,message:Row)=>Promise<void>}) {
@@ -28,7 +30,18 @@ export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocum
   const selector={orderId:input.orderId,assignmentId:input.assignmentId,intentId,owner:input.owner,leaseVersion:lease.leaseVersion!};
   const first=await coordinator.executionFence(selector),intent=first.intent,profile=cycle.policy.values.dispatch!.profiles.FINANCIAL;
   const key={orderId:input.orderId,SK:financialWaveSK(job,intent.waveNumber)},saved=await strongGet(db,'WizzDispatchJobs_staging',key);
-  const driverIds=saved?.driverIds??await options.selectDrivers({job:detach(job!),intent:detach(intent)});
+  let driverIds=saved?.driverIds;
+  if(!driverIds){
+   const delays=[200,500,1000];
+   for(let attempt=0;;attempt++){
+    try{driverIds=await options.selectDrivers({job:detach(job!),intent:detach(intent)});break;}
+    catch(error:any){
+     if(error?.message!=='DISPATCH_PERFORMANCE_REFRESH_PENDING'||attempt>=delays.length||now()+delays[attempt]>=Math.min(Date.parse(intent.waveDeadline),Date.parse(lease.leaseUntil!)))throw error;
+     await (options.waitForPerformance??((ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms))))(delays[attempt]);
+     await coordinator.executionFence(selector);
+    }
+   }
+  }
   if(!Array.isArray(driverIds)||driverIds.length>25||new Set(driverIds).size!==driverIds.length||!driverIds.every(quoteEntityIdValid)||(intent.rule.recipients!=='ALL'&&driverIds.length>intent.rule.recipients))throw Error('INVALID_PINNED_RECIPIENTS');
   if(saved&&(saved.transitionId!==intentId||saved.cycleDigest!==cycle.digest||saved.waveNumber!==intent.waveNumber))throw Error('PINNED_WAVE_CONFLICT');
   const fencedDb={send:async(command:any)=>{
@@ -39,7 +52,7 @@ export function createStagingDispatchWaveExecutor(options:{db:Pick<DynamoDBDocum
    const ready=tx.some(op=>op.Update?.TableName==='WizzDispatchJobs_staging'&&op.Update.Key.SK===key.SK&&op.Update.UpdateExpression.replace(/^SET /,'').split(',').some((term:string)=>{const [field,value]=term.trim().split(/\s*=\s*/);return op.Update.ExpressionAttributeNames?.[field]==='state'&&op.Update.ExpressionAttributeValues?.[value]==='READY';}));
    let guards=fence.guards;
    if(ready){
-    for(const driverId of driverIds){const offerKey={orderId:input.orderId,SK:'FINANCIAL#'+driverId+'#WAVE#'+intent.waveNumber},offer=await strongGet(db,'WaveOffers_staging',offerKey);if(!offer||offer.responseStatus!=='financial_pending'||offer.dispatchJobId!==input.assignmentId||offer.waveNumber!==intent.waveNumber||!Number.isFinite(Date.parse(offer.expiresAt))||Date.parse(offer.expiresAt)<=now()||Date.parse(offer.expiresAt)>Date.parse(intent.waveDeadline))throw Error('PINNED_OFFERS_NOT_READY');guards.push(exactCheck('WaveOffers_staging',offerKey,offer));}
+    for(const driverId of driverIds){const offerKey={orderId:input.orderId,SK:await financialOfferSK(db,input.orderId,driverId,intent.waveNumber,input.assignmentId)},offer=await strongGet(db,'WaveOffers_staging',offerKey);if(!offer||offer.responseStatus!=='financial_pending'||offer.dispatchJobId!==input.assignmentId||offer.waveNumber!==intent.waveNumber||!Number.isFinite(Date.parse(offer.expiresAt))||Date.parse(offer.expiresAt)<=now()||Date.parse(offer.expiresAt)>Date.parse(intent.waveDeadline))throw Error('PINNED_OFFERS_NOT_READY');guards.push(exactCheck('WaveOffers_staging',offerKey,offer));}
     const intentGuard=guards.find(g=>g.ConditionCheck?.TableName==='WizzDispatchJobs_staging'&&g.ConditionCheck.Key.SK==='DISPATCH_TRANSITION#'+intentId)!;
     if(fence.intent.state==='APPLIED')throw Error('PINNED_READY_ALREADY_APPLIED');
     guards=guards.filter(g=>g!==intentGuard);tx.push(updateChecked(intentGuard,'SET #applyState=:applyState, #applyAt=:applyAt',{'#applyState':'state','#applyAt':'appliedAt'},{':applyState':'APPLIED',':applyAt':new Date(now()).toISOString()}));

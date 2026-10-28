@@ -1,0 +1,73 @@
+{
+  "status": "STAGING_VERIFIED_SOURCE_ENFORCED",
+  "automaticReviewRejected": true,
+  "rejectedActionsExecuted": false,
+  "sourceBusinessWrites": 0,
+  "newResources": {
+    "table": "DriverPerformanceSnapshots_staging",
+    "functions": [
+      "staging-driver-performance-collector",
+      "staging-driver-performance-projection"
+    ],
+    "queues": [
+      "staging-driver-performance-refresh",
+      "staging-driver-performance-failures"
+    ],
+    "schedule": "every minute, reconciliation/expiry only"
+  },
+  "liveChangesRequiringApproval": {
+    "enableStreams": [
+      "staging-Holds",
+      "whizz-order-ratings-staging"
+    ],
+    "doNotAddOrderStreamReader": true,
+    "orderEventsForwardedBy": "WaveSystem_CreateDispatchJob, keys-only async invocation",
+    "newCollectorPermissions": "GetItem on offers/ratings; Query on offers; read four source streams; write only new projection table and send to its queues",
+    "newWorkerPermissions": "GetItem/Query on five fact tables and two specific indexes; read/write/delete only new projection table; own queues; read Lambda mapping status and CloudWatch iterator lag",
+    "readerGetItemRoles": [
+      "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+      "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE"
+    ],
+    "readerResource": "arn:aws:dynamodb:us-east-1:699561669180:table/DriverPerformanceSnapshots_staging",
+    "forwardInvokeRole": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+    "forwardInvokeResource": "arn:aws:lambda:us-east-1:699561669180:function:staging-driver-performance-collector"
+  },
+  "activationGates": [
+    "Explicit infrastructure/deployment permission after automatic rejection",
+    "Create resources, backfill and verify persisted state/API/wave parity",
+    "Verify stream health, async forwarder and failure queue",
+    "Publish read consumers and run dispatch shadow",
+    "Inventory/upgrade all pinned-policy readers before publishing VERIFIED_SNAPSHOT_V1 for new search cycles",
+    "Activate new-policy cycles only; existing LEGACY_METRICS cycles retain captured policy"
+  ],
+  "tests": {
+    "projectionUnit": 21,
+    "backendRegression": 93,
+    "capturedStartRuntime": 15,
+    "capturedTimeoutRuntime": 15,
+    "flutterRegression": 31,
+    "flutterPendingNoticeSuite": 8,
+    "samTemplate": "VALID",
+    "typescript": "PASS",
+    "driverAndProjectionFinal": 51,
+    "sourceSelectionShadow": 15
+  },
+  "userVisibleStatus": "Both wave hosts ENFORCE saved performance; API/admin shared reads enabled; thresholds controlled centrally and unchanged.",
+  "snapshotSource": "docs/driver-performance-projection-persisted-verification-291.json",
+  "liveSourceParity": {
+    "acceptanceRate": 0.92,
+    "completionRate": 0.95,
+    "consecutiveRejections": 1,
+    "sourceBusinessWrites": 0,
+    "persistedInAws": true,
+    "driversVerified": 5
+  },
+  "rejectionStreak": "Since last verified acceptance, independent of the last100 acceptance window; incomplete coverage is explicit.",
+  "userApproval": "EXPLICIT_STAGING_INFRASTRUCTURE_AND_CONSUMER_DEPLOYMENT_APPROVAL_RECEIVED",
+  "updatedAt": "2026-10-25T16:32:23.328863+00:00",
+  "pending": [
+    "Deferred human end-to-end acceptance remains in ordered tests; does not block user-authorized staging cutover"
+  ]
+}

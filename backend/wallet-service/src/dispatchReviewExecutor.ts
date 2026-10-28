@@ -21,7 +21,7 @@ export function createStagingDispatchReviewExecutor(options:{db:Pick<DynamoDBDoc
  const {db,cognito}=options,now=options.now??Date.now;
  return {async process(caseId:string){
   const mode=options.mode??process.env.DISPATCH_REVIEW_EXECUTION_MODE;
-  if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY'].includes(mode??''))return fail('DISPATCH_REVIEW_EXECUTION_DISABLED');
+  if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY','SAFE_FINANCIAL_RETRY'].includes(mode??''))return fail('DISPATCH_REVIEW_EXECUTION_DISABLED');
   if(!/^[a-f0-9]{64}$/.test(caseId))return fail();
   const key={pk:'DISPATCH_REVIEW#'+caseId,sk:'DECISION'},stored=await strongGet(db,T.staff,key);
   if(!stored)return {missing:true};const decision:Row=stored;
@@ -56,7 +56,7 @@ export function createStagingDispatchReviewExecutor(options:{db:Pick<DynamoDBDoc
   try{c=await reader.load(decision.selector);}catch(error:any){if(error?.message==='REVIEW_UNAVAILABLE')return finish('STALE','SOURCE_UNAVAILABLE');throw error;}
   if(c.item.caseId!==caseId||c.item.orderId!==decision.orderId||c.item.branchId!==decision.branchId||c.item.regionId!==decision.regionId||c.decision?.requestId!==decision.requestId||c.decision?.requestDigest!==decision.requestDigest)return fail();
   if(!c.item.active||c.baseDigest!==decision.baseDigest)return finish('STALE','SOURCE_CHANGED',[],c.guards);
-  if(decision.action==='RETRY_SEARCH'&&!['SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY'].includes(mode??''))return finish('BLOCKED_DEPENDENCY','RETRY_EXECUTION_DISABLED',[],c.guards);
+  if(decision.action==='RETRY_SEARCH'&&!['SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY','SAFE_FINANCIAL_RETRY'].includes(mode??''))return finish('BLOCKED_DEPENDENCY','RETRY_EXECUTION_DISABLED',[],c.guards);
   if(decision.action==='CHECK_RESERVATION'){
    // No assignment/hold resolution can be inferred from timeout or a missing
    // HTTP reply. Keep unresolved evidence for an explicit financial review.
@@ -65,10 +65,10 @@ export function createStagingDispatchReviewExecutor(options:{db:Pick<DynamoDBDoc
   if(!['CANCEL_BEFORE_PICKUP','RETRY_SEARCH'].includes(decision.action)||decision.selector.source!=='SEARCH')return fail();
   const orderKey={PK:'ORDER#'+decision.orderId,SK:'META'},jobKey={orderId:decision.orderId,SK:'METADATA'};
   const order=await strongGet(db,T.orders,orderKey),job=await strongGet(db,T.jobs,jobKey);if(!order||!job)return fail();
-  if(mode==='SAFE_FINANCIAL_INITIAL_RETRY'){
+  if(['SAFE_FINANCIAL_INITIAL_RETRY','SAFE_FINANCIAL_RETRY'].includes(mode??'')){
    if(decision.action!=='RETRY_SEARCH'||job.financialDispatch!==true)return finish('BLOCKED_DEPENDENCY','FINANCIAL_INITIAL_RETRY_ONLY',[],c.guards);
-   const plan=await planInitialFinancialRetry({db,order,job,decision,context:c,at,enableFullCash:options.enableFullCash});
-   if(!plan.ready)return finish('NEEDS_REVIEW',plan.resultCode,[],c.guards);
+   const plan=await planInitialFinancialRetry({db,order,job,decision,context:c,at,allowPriorOffers:mode==='SAFE_FINANCIAL_RETRY',enableFullCash:options.enableFullCash});
+   if(!plan.ready)return finish(mode==='SAFE_FINANCIAL_RETRY'&&['PRIOR_FINANCIAL_INTEGRATION_PENDING','PRIOR_OFFER_STILL_ACTIVE'].includes(plan.resultCode)?'BLOCKED_DEPENDENCY':'NEEDS_REVIEW',plan.resultCode,[],c.guards);
    if(!await identity())return finish('AUTHORIZATION_CHANGED','EMPLOYEE_AUTHORITY_CHANGED',[],c.guards);
    return finish('EXECUTED',plan.resultCode,plan.writes,[...c.guards,...plan.guards],{receiptFields:plan.receiptFields});
   }
@@ -98,8 +98,8 @@ export function createStagingDispatchReviewExecutor(options:{db:Pick<DynamoDBDoc
    const token=quoteHash({caseId,requestId:decision.requestId}),newCycle=createDispatchCycle({id:'DC:'+token,assignmentId:'DISPATCH:'+token,orderId:order.orderId,engine:'LEGACY',startedAt:at,policy:{version:policy.version,values:policy.values},keyVersion:2});
    const restartId='DRS:'+token.slice(0,48),startKey={orderId:order.orderId,SK:'DISPATCH_RESTART#'+restartId};
    const start={...startKey,kind:'DISPATCH_RESTART_START',schemaVersion:1,state:'PENDING',version:1,attempts:0,nextAttemptAt:now(),restartId,caseId,requestId:decision.requestId,orderId:order.orderId,branchId:job.restaurantId,cycleId:newCycle.id,cycleDigest:newCycle.digest,assignmentId:newCycle.assignmentId,previousCycleId:cycle.id,createdAt:at,updatedAt:at};
-   const history={orderId:order.orderId,SK:'DISPATCH_CYCLE_HISTORY#'+quoteHash(cycle.id),kind:'DISPATCH_CYCLE_HISTORY',schemaVersion:1,state:'ARCHIVED',cycleId:cycle.id,assignmentId:cycle.assignmentId,branchId:job.restaurantId,replacementCycleId:newCycle.id,cycleDigest:cycle.digest,policyVersion:cycle.policy.version,caseId,requestId:decision.requestId,createdAt:at,source:{dispatchCycle:cycle,dispatchJobId:job.dispatchJobId,currentWaveNumber:job.currentWaveNumber,dispatchTransition:job.dispatchTransition,dispatchReview:job.dispatchReview,status:job.status,maxWaves:job.maxWaves,expiresAt:job.expiresAt}};
-   const jobWrite=set(exactCheck(T.jobs,jobKey,job),{status:'searching',dispatchJobId:newCycle.assignmentId,dispatchCycle:newCycle,currentWaveNumber:0,maxWaves:newCycle.policy.values.dispatch!.profiles.LEGACY.normalWaves.length,expiresAt:newCycle.searchDeadline,dispatchRestart:{restartId,caseId,previousCycleId:cycle.id},updatedAt:at});
+   const history={orderId:order.orderId,SK:'DISPATCH_CYCLE_HISTORY#'+quoteHash(cycle.id),kind:'DISPATCH_CYCLE_HISTORY',schemaVersion:1,state:'ARCHIVED',cycleId:cycle.id,assignmentId:cycle.assignmentId,branchId:job.restaurantId,replacementCycleId:newCycle.id,cycleDigest:cycle.digest,policyVersion:cycle.policy.version,caseId,requestId:decision.requestId,createdAt:at,source:job};
+   const jobWrite=set(exactCheck(T.jobs,jobKey,job),{status:'searching',dispatchJobId:newCycle.assignmentId,dispatchCycle:newCycle,currentWaveNumber:0,maxWaves:newCycle.policy.values.dispatch!.profiles.LEGACY.normalWaves.length,expiresAt:newCycle.searchDeadline,dispatchRestart:{restartId,caseId,previousCycleId:cycle.id,priorDriverPolicy:'REOFFER_ALL_ELIGIBLE'},excludedDrivers:[],financialExcludedDriverIds:[],updatedAt:at});
    const removed=['dispatchTransition','dispatchReview','noDriverReason','dispatchReviewOutcome'].map((k,i)=>{jobWrite.Update.ExpressionAttributeNames['#restartRemove'+i]=k;return '#restartRemove'+i;});jobWrite.Update.UpdateExpression+=' REMOVE '+removed.join(',');
    if(!await identity())return finish('AUTHORIZATION_CHANGED','EMPLOYEE_AUTHORITY_CHANGED',[],c.guards);
    return finish('EXECUTED','SEARCH_RESTART_QUEUED',[jobWrite,set(exactCheck(T.orders,orderKey,order),{deliveryJobId:newCycle.assignmentId,updatedAt:at}),{Put:{TableName:T.jobs,Item:history,ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:T.jobs,Item:start,ConditionExpression:'attribute_not_exists(orderId)'}}],[...c.guards,...absent,exactCheck(T.jobs,transitionKey,transition),policy.condition,...responseGuards],{receiptFields:{restartId,cycleId:newCycle.id,assignmentId:newCycle.assignmentId,startStatus:'PENDING'}});

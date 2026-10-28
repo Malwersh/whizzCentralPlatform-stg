@@ -8,6 +8,9 @@
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <link rel="stylesheet" id="wizz-shell-styles" href="../styles/app-shell.css?v=20261022-rtl1">
+    <link rel="stylesheet" id="wizz-admin-styles" href="../styles/admin-ui.css?v=20261025-shell2"><link rel="preload" href="../assets/fonts/NotoSansArabic.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1">
     <script src="../styles/wizz-theme-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -25,7 +28,7 @@
     <!-- Security utilities -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="../assets/js/security-utils.js"></script>
-    <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
+    <script src="../assets/js/rbac.js?v=312-regions"></script>
     <style>
         /* Regions Management Styles */
         /* Search and Filters */
@@ -1027,9 +1030,9 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
+</head>
 
-<body data-page="regions">
+<body class="wizz-shell" data-page="regions">
     <!-- Sidebar include placeholder -->
     <div id="sidebar-placeholder"></div>
 
@@ -1357,7 +1360,9 @@
     <script src="../assets/js/aws-utils.js?v=20261011-session-fix2"></script>
     
     <!-- Regions Management Script - Loads comprehensive Najaf regions from API -->
-    <script src="../regions.js?v=20261017-ar1"></script>
+    <link rel="stylesheet" href="../region-management-312.css?v=312">
+    <script src="../region-geometry-runtime-312.js?v=312"></script>
+    <script src="../region-management-312.js?v=312"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function () {

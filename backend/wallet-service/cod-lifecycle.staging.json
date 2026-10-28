@@ -282,7 +282,8 @@
                       "COD:*:EVENT",
                       "CR:*:EVENT",
                       "CA:*:EVENT",
-                      "DR:*:EVENT"
+                      "DR:*:EVENT",
+                      "FCS:*:EVENT"
                     ]
                   }
                 }

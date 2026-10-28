@@ -70,6 +70,9 @@ const handleRequest = async (event) => {
     
     console.log(`🚫 Driver ${driverId} rejected order ${orderId}. Reason: ${rejectionReason || 'none'}`);
     
+    // Financial requests must use the authenticated financial decline transaction.
+    const sourceOrder=await dynamodb.send(new GetCommand({TableName:'WizzOrders',Key:{PK:'ORDER#'+orderId,SK:'META'},ConsistentRead:true,ProjectionExpression:'financialSnapshot,commercialPricing,financialAcceptance,financialOutcome,codFinancialEvidence'}));
+    if(!sourceOrder.Item||['financialSnapshot','commercialPricing','financialAcceptance','financialOutcome','codFinancialEvidence'].some(k=>Object.prototype.hasOwnProperty.call(sourceOrder.Item,k)))return {statusCode:409,body:JSON.stringify({success:false,code:'FINANCIAL_DECLINE_REQUIRED'})};
     // Pinned cycles must never enter legacy decline/metrics writes. The new
     // decline adapter is not enabled by the planning-only coordinator mode.
     const cycleJob=await dynamodb.send(new GetCommand({TableName:DISPATCH_JOBS_TABLE,Key:{orderId,SK:'METADATA'},ConsistentRead:true}));
@@ -81,6 +84,8 @@ const handleRequest = async (event) => {
       }
       return {statusCode:409,body:JSON.stringify({success:false,code:'UNIFIED_DECLINE_NOT_READY'})};
     }
+
+    if(!cycleJob.Item)return {statusCode:409,body:JSON.stringify({success:false,code:'DISPATCH_JOB_REQUIRED'})};
 
     // Step 1: تحديث WaveOffer status → rejected
     const waveNumber = extractWaveNumberFromOfferId(offerId) || 1;

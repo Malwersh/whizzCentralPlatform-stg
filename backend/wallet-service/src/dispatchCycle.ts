@@ -9,18 +9,18 @@ const date = (value: any) => {
   return Date.parse(value);
 };
 /** Captured only when a new search is created. Never backfill a live legacy job. */
-export function createDispatchCycle(input:{id:string;orderId:string;assignmentId:string;engine:DispatchEngine;startedAt:string;policy:unknown;keyVersion?:2}) {
-  if(!input||Object.keys(input).filter(k=>k!=='keyVersion').sort().join(',')!=='assignmentId,engine,id,orderId,policy,startedAt'||Object.prototype.hasOwnProperty.call(input,'keyVersion')&&input.keyVersion!==2||![input.id,input.orderId,input.assignmentId].every(quoteEntityIdValid)||!['LEGACY','FINANCIAL'].includes(input.engine))return bad();
+export function createDispatchCycle(input:{id:string;orderId:string;assignmentId:string;engine:DispatchEngine;startedAt:string;policy:unknown;keyVersion?:2|3}) {
+  if(!input||Object.keys(input).filter(k=>k!=='keyVersion').sort().join(',')!=='assignmentId,engine,id,orderId,policy,startedAt'||Object.prototype.hasOwnProperty.call(input,'keyVersion')&&![2,3].includes(input.keyVersion!)||input.keyVersion===3&&input.engine!=='FINANCIAL'||![input.id,input.orderId,input.assignmentId].every(quoteEntityIdValid)||!['LEGACY','FINANCIAL'].includes(input.engine))return bad();
   const snapshot=validateOperationsSnapshot(input.policy);
   if(snapshot.version<1||!snapshot.values.dispatch)return bad();
   const dispatch=validateDispatchPolicy(snapshot.values.dispatch),profile=dispatch.profiles[input.engine],start=date(input.startedAt);
   const deadline=start+profile.totalDispatchSeconds*1000;
   if(!Number.isSafeInteger(deadline))return bad();
-  const body={schemaVersion:1 as const,...(input.keyVersion===2?{keyVersion:2 as const}:{}),id:input.id,orderId:input.orderId,assignmentId:input.assignmentId,engine:input.engine,startedAt:input.startedAt,searchDeadline:new Date(deadline).toISOString(),policy:snapshot};
+  const body={schemaVersion:1 as const,...(input.keyVersion!==undefined?{keyVersion:input.keyVersion}:{}),id:input.id,orderId:input.orderId,assignmentId:input.assignmentId,engine:input.engine,startedAt:input.startedAt,searchDeadline:new Date(deadline).toISOString(),policy:snapshot};
   return {...detach(body),digest:quoteHash(body)};
 }
 export function validateDispatchCycle(value:any):DispatchCycle {
-  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).filter(k=>k!=='keyVersion').sort().join(',')!=='assignmentId,digest,engine,id,orderId,policy,schemaVersion,searchDeadline,startedAt'||Object.prototype.hasOwnProperty.call(value,'keyVersion')&&value.keyVersion!==2||value.schemaVersion!==1)return bad();
+  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).filter(k=>k!=='keyVersion').sort().join(',')!=='assignmentId,digest,engine,id,orderId,policy,schemaVersion,searchDeadline,startedAt'||Object.prototype.hasOwnProperty.call(value,'keyVersion')&&![2,3].includes(value.keyVersion)||value.schemaVersion!==1)return bad();
   const rebuilt=createDispatchCycle({id:value.id,orderId:value.orderId,assignmentId:value.assignmentId,engine:value.engine,startedAt:value.startedAt,policy:value.policy,...(value.keyVersion!==undefined?{keyVersion:value.keyVersion}:{})});
   if(rebuilt.digest!==value.digest||rebuilt.searchDeadline!==value.searchDeadline)return bad();
   return rebuilt;

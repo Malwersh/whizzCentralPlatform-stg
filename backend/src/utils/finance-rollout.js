@@ -46,7 +46,7 @@ var quoteHash = (v) => (0, import_node_crypto.createHash)("sha256").update(quote
 var detach = (v) => JSON.parse(JSON.stringify(v));
 var equal = (a, b) => quoteCanonical(a) === quoteCanonical(b);
 async function strongGet(db, TableName, Key) {
-  return detach((await db.send(new import_lib_dynamodb.GetCommand({ TableName, Key, ConsistentRead: true }))).Item ?? null);
+  return structuredClone((await db.send(new import_lib_dynamodb.GetCommand({ TableName, Key, ConsistentRead: true }))).Item ?? null);
 }
 function exactCheck(TableName, Key, saved, fields = Object.keys(saved)) {
   const names = {}, values = {}, conditions = [];
@@ -54,7 +54,7 @@ function exactCheck(TableName, Key, saved, fields = Object.keys(saved)) {
     names["#f" + i] = field;
     if (saved[field] === void 0) conditions.push(`attribute_not_exists(#f${i})`);
     else {
-      values[":v" + i] = detach(saved[field]);
+      values[":v" + i] = structuredClone(saved[field]);
       conditions.push(`#f${i}=:v${i}`);
     }
   });
@@ -81,7 +81,7 @@ function integer(value, min, max) {
 }
 function validateDispatchPolicy(value) {
   const root = object(value, ["schemaVersion", "performanceMode", "profiles"]);
-  if (root.schemaVersion !== 2 || root.performanceMode !== "LEGACY_METRICS") return invalid();
+  if (root.schemaVersion !== 2 || !["LEGACY_METRICS", "VERIFIED_SNAPSHOT_V1"].includes(root.performanceMode)) return invalid();
   const profiles = object(root.profiles, ["LEGACY", "FINANCIAL"]);
   for (const engine of ["LEGACY", "FINANCIAL"]) {
     const p = object(profiles[engine], ["normalWaves", "offerTtlSeconds", "waveDurationSeconds", "totalDispatchSeconds", "reassignmentWindowSeconds", "positionMaxAgeSeconds", "newDriverExemption", "repeatOffers", "recovery"]);
@@ -156,17 +156,17 @@ var date = (value) => {
   return Date.parse(value);
 };
 function createDispatchCycle(input) {
-  if (!input || Object.keys(input).filter((k) => k !== "keyVersion").sort().join(",") !== "assignmentId,engine,id,orderId,policy,startedAt" || Object.prototype.hasOwnProperty.call(input, "keyVersion") && input.keyVersion !== 2 || ![input.id, input.orderId, input.assignmentId].every(quoteEntityIdValid) || !["LEGACY", "FINANCIAL"].includes(input.engine)) return bad();
+  if (!input || Object.keys(input).filter((k) => k !== "keyVersion").sort().join(",") !== "assignmentId,engine,id,orderId,policy,startedAt" || Object.prototype.hasOwnProperty.call(input, "keyVersion") && ![2, 3].includes(input.keyVersion) || input.keyVersion === 3 && input.engine !== "FINANCIAL" || ![input.id, input.orderId, input.assignmentId].every(quoteEntityIdValid) || !["LEGACY", "FINANCIAL"].includes(input.engine)) return bad();
   const snapshot = validateOperationsSnapshot(input.policy);
   if (snapshot.version < 1 || !snapshot.values.dispatch) return bad();
   const dispatch = validateDispatchPolicy(snapshot.values.dispatch), profile = dispatch.profiles[input.engine], start = date(input.startedAt);
   const deadline = start + profile.totalDispatchSeconds * 1e3;
   if (!Number.isSafeInteger(deadline)) return bad();
-  const body = { schemaVersion: 1, ...input.keyVersion === 2 ? { keyVersion: 2 } : {}, id: input.id, orderId: input.orderId, assignmentId: input.assignmentId, engine: input.engine, startedAt: input.startedAt, searchDeadline: new Date(deadline).toISOString(), policy: snapshot };
+  const body = { schemaVersion: 1, ...input.keyVersion !== void 0 ? { keyVersion: input.keyVersion } : {}, id: input.id, orderId: input.orderId, assignmentId: input.assignmentId, engine: input.engine, startedAt: input.startedAt, searchDeadline: new Date(deadline).toISOString(), policy: snapshot };
   return { ...detach(body), digest: quoteHash(body) };
 }
 function validateDispatchCycle(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).filter((k) => k !== "keyVersion").sort().join(",") !== "assignmentId,digest,engine,id,orderId,policy,schemaVersion,searchDeadline,startedAt" || Object.prototype.hasOwnProperty.call(value, "keyVersion") && value.keyVersion !== 2 || value.schemaVersion !== 1) return bad();
+  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).filter((k) => k !== "keyVersion").sort().join(",") !== "assignmentId,digest,engine,id,orderId,policy,schemaVersion,searchDeadline,startedAt" || Object.prototype.hasOwnProperty.call(value, "keyVersion") && ![2, 3].includes(value.keyVersion) || value.schemaVersion !== 1) return bad();
   const rebuilt = createDispatchCycle({ id: value.id, orderId: value.orderId, assignmentId: value.assignmentId, engine: value.engine, startedAt: value.startedAt, policy: value.policy, ...value.keyVersion !== void 0 ? { keyVersion: value.keyVersion } : {} });
   if (rebuilt.digest !== value.digest || rebuilt.searchDeadline !== value.searchDeadline) return bad();
   return rebuilt;
@@ -195,7 +195,7 @@ async function financialRecoveryProof(db, env, orderId, now) {
   } catch {
     return fail2();
   }
-  if (cycle.engine !== "FINANCIAL" || cycle.keyVersion !== 2 || cycle.orderId !== orderId || cycle.id !== p.cycleId || cycle.assignmentId !== job.dispatchJobId || cycle.assignmentId !== "DISPATCH:" + token || job.financialDispatch !== true || cycle.searchDeadline !== p.expiresAt || now < Date.parse(cycle.startedAt) || Date.parse(cycle.searchDeadline) - Date.parse(cycle.startedAt) > 9e5 || !["searching", "assigned"].includes(job.status) || decision.kind !== "DISPATCH_REVIEW_DECISION" || decision.status !== "EXECUTED" || decision.action !== "RETRY_SEARCH" || decision.resultCode !== "SEARCH_RESTART_QUEUED" || decision.orderId !== orderId || decision.caseId !== p.caseId || decision.requestId !== p.requestId || decision.receipt?.cycleId !== cycle.id || decision.receipt?.assignmentId !== cycle.assignmentId || decision.receipt?.restartId !== job.dispatchRestart?.restartId || decision.legalHold === true || decision.retentionHold === true) return fail2();
+  if (cycle.engine !== "FINANCIAL" || ![2, 3].includes(cycle.keyVersion ?? 0) || cycle.orderId !== orderId || cycle.id !== p.cycleId || cycle.assignmentId !== job.dispatchJobId || cycle.assignmentId !== "DISPATCH:" + token || job.financialDispatch !== true || cycle.searchDeadline !== p.expiresAt || now < Date.parse(cycle.startedAt) || Date.parse(cycle.searchDeadline) - Date.parse(cycle.startedAt) > 9e5 || !["searching", "assigned"].includes(job.status) || decision.kind !== "DISPATCH_REVIEW_DECISION" || decision.status !== "EXECUTED" || decision.action !== "RETRY_SEARCH" || decision.resultCode !== "SEARCH_RESTART_QUEUED" || decision.orderId !== orderId || decision.caseId !== p.caseId || decision.requestId !== p.requestId || decision.receipt?.cycleId !== cycle.id || decision.receipt?.assignmentId !== cycle.assignmentId || decision.receipt?.restartId !== job.dispatchRestart?.restartId || decision.legalHold === true || decision.retentionHold === true) return fail2();
   return [exactCheck("WizzDispatchJobs_staging", jobKey, job), exactCheck("staging-PlatformStaff", decisionKey, decision)];
 }
 
@@ -578,7 +578,7 @@ function createFinanceRollout(options) {
       const q = command.input;
       const opType = operation(command);
       if (opType === "TransactWriteItems") {
-        let items = JSON.parse(JSON.stringify(q.TransactItems));
+        let items = structuredClone(q.TransactItems);
         const recoveryGuards = [];
         const ids = /* @__PURE__ */ new Set();
         let quoteOnly = false, newOrder = false;

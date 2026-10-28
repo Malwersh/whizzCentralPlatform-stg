@@ -1,3 +1,4 @@
+import {financialOfferSK} from './financialOfferKey';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal} from './driverFinancialTransaction';
 import {setFinancialFields as set} from './financialRelease';
@@ -28,7 +29,7 @@ export function createReturnCustodyReconciler(options:{db:Pick<DynamoDBDocumentC
  if(!order||!row||row.kind!=='COD_RETURN_CASE'||row.status!=='REVIEW_REQUIRED'||row.allItemsReceived!==true||!['INTACT','DAMAGED'].includes(row.condition)||!row.confirmationDigest||!row.confirmedAt||!row.exceptionResolution||!readOrderExceptionPolicy(order))return {closed:false};
  if(row.taskCompletion){if(order.status!=='returned'||!order.returnTaskCompletedAt||row.taskCompletion.returnId!==row.returnId)return fail();return {closed:true,replayed:true};}
  if(order.status!=='return_arrived'||order.orderStatus!=='return_arrived'||order.returnStatus!=='REVIEW_REQUIRED'||order.returnCaseId!==row.returnId||order.financialOutcome!=null||(order.cashCollected!=null&&order.cashCollected!==false)||(order.cashCollectedAmount!=null&&order.cashCollectedAmount!==0)||row.cashCollected!==false||order.orderId!==orderId||row.offerId!==order.financialAcceptance?.offerId||row.attempt!==order.assignmentAttemptCounter||order.deletedAt!=null||order.deletionRequestId!=null||order.isDeleted===true||row.receipt?.status!=='REVIEW_REQUIRED'||row.receipt?.returnId!==row.returnId||row.receipt?.orderId!==orderId)return fail();
- const driverKey={driverId:order.driverId},driver=await strongGet(db,'WhizzDrivers_staging',driverKey),offerKey={orderId,SK:`FINANCIAL#${order.driverId}#WAVE#${order.assignmentWaveNumber}`},saved=await strongGet(db,'WaveOffers_staging',offerKey),subject=driver?.cognitoSub??driver?.driverId;
+ const driverKey={driverId:order.driverId},driver=await strongGet(db,'WhizzDrivers_staging',driverKey),offerKey={orderId,SK:await financialOfferSK(db,orderId,order.driverId,order.assignmentWaveNumber)},saved=await strongGet(db,'WaveOffers_staging',offerKey),subject=driver?.cognitoSub??driver?.driverId;
  if(!driver||driver.deletedAt!=null||driver.deletionRequestId!=null||driver.isDeleted===true)return fail();
  let offer:Row;if(order.financialAcceptance.schemaVersion===3){const full=verifyFullCashAssignment(order,saved!,subject);offer={...full.baseOffer,digest:full.digest,allocation:full.settlement.allocation};}else if(order.financialAcceptance.schemaVersion===2){const funded=verifyDeliveryFundedAssignment(order,saved!,subject);offer={...funded.baseOffer,digest:funded.digest,allocation:funded.allocation};}else offer=verifyFinancialAssignment(order,saved,subject);
  const bk={businessId:offer.branchId},branch=await strongGet(db,'WhizzMerchants_Businesses',bk);

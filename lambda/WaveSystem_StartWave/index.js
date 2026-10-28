@@ -252,6 +252,9 @@ exports.handler = async (event) => {
       return { statusCode: 200, message: 'Order already assigned' };
     }
 
+    // General release cannot fall back to the unpinned legacy selector.
+    if(process.env.DISPATCH_FINANCIAL_HOST_MODE==='REQUIRED'&&process.env.FINANCE_GENERAL_RELEASE_MODE==='REQUIRED')return {statusCode:409,body:JSON.stringify({success:false,code:'PINNED_DISPATCH_CYCLE_REQUIRED'})};
+
     const financialSource = await dynamodb.get({TableName:'WizzOrders',Key:{PK:`ORDER#${dispatchJob.orderId}`,SK:'META'},
       ConsistentRead:true,ProjectionExpression:'financialSnapshot'}).promise();
     if (financialSource.Item && Object.prototype.hasOwnProperty.call(financialSource.Item,'financialSnapshot')) dispatchJob.financialDispatch = true;

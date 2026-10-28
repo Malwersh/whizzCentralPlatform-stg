@@ -36,7 +36,7 @@ test('reject refuses every pinned or malformed cycle before offer, live-state an
   if(n==='@aws-sdk/lib-dynamodb')return {GetCommand:Command,QueryCommand:Command,UpdateCommand:Command,DynamoDBDocumentClient:{from:()=>({send:async c=>{calls.push(c.input);return {Item:{dispatchCycle:cycle}};}})}};
   if(n==='@aws-sdk/client-dynamodb')return {DynamoDBClient:class{}};
   if(n==='@aws-sdk/client-lambda')return {LambdaClient:class{},InvokeCommand:Command};throw Error(n);
- }};vm.runInNewContext(s,ctx);const r=await exports.handler({body:JSON.stringify({driverId:'driver1',orderId:'order1',offerId:'OFFER_order1_driver1_W1'})});assert.equal(r.statusCode,409);assert.equal(JSON.parse(r.body).code,'UNIFIED_DECLINE_NOT_READY');assert.equal(calls.length,1);assert.equal(calls[0].ConsistentRead,true);}
+ }};vm.runInNewContext(s,ctx);const r=await exports.handler({body:JSON.stringify({driverId:'driver1',orderId:'order1',offerId:'OFFER_order1_driver1_W1'})});assert.equal(r.statusCode,409);assert.equal(JSON.parse(r.body).code,'UNIFIED_DECLINE_NOT_READY');assert.equal(calls.length,2);assert.equal(calls[0].TableName,'WizzOrders');assert.equal(calls[1].TableName,'jobs');assert(calls.every(c=>c.ConsistentRead===true));}
 });
 test('runtime is closed by default and planning mode cannot open decline or an executor',async()=>{
  const {coordinateUnifiedDispatch}=require('../dist/dispatchCoordinatorRuntime'),saved={...process.env};

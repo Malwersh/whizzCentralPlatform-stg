@@ -1,3 +1,5 @@
+const vehicleRegistry=require('../../shared/driver-vehicles-308');
+import {financialOfferSK} from './financialOfferKey';
 const {buildTimingPlan}=require('../../shared/driver-performance-timing-273');
 import {retainFullCashFundingCommitment} from './fullCashFundingCommitment';
 import {financialWaveSK} from './financialDispatchKeys';
@@ -40,7 +42,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     if(![orderId,offerId].every(quoteEntityIdValid)||!Number.isSafeInteger(waveNumber)||waveNumber<1||waveNumber>1000)return fail('INVALID_FINANCIAL_ACCEPTANCE');
     const actor=detach(await authenticateDriver());
     if(!actor||![actor.driverId,actor.subjectId].every(quoteEntityIdValid))return fail('INVALID_FINANCIAL_ACCEPTANCE');
-    const key={orderId,SK:`FINANCIAL#${actor.driverId}#WAVE#${waveNumber}`};
+    const key={orderId,SK:await financialOfferSK(db,orderId,actor.driverId,waveNumber)};
     let saved:Row|null;
     try{saved=await strongGet(db,tables.offers,key);}catch{return fail('FINANCIAL_ACCEPTANCE_UNAVAILABLE');}
     if(!saved||saved.kind!=='FINANCIAL_DRIVER_OFFER'||saved.schemaVersion!==2||saved.offerId!==offerId||saved.driverId!==actor.driverId||saved.waveNumber!==waveNumber||saved.orderId!==orderId||saved.SK!==key.SK)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
@@ -57,6 +59,10 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     if(saved.responseStatus!=='financial_pending'||saved.isWinner!==false)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const references=await (options.contextForOffer?.(offer)??context).checkAcceptance({orderId,branchId:offer.branchId,driverId:actor.driverId,offerId,waveNumber});
     if(references.subjectId!==actor.subjectId||references.driver.vehicleType!==offer.source.driver.vehicleType||references.assignment.dispatchJobId!==offer.assignmentId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
+    const vehicleEvidence=vehicleRegistry.enforce(references.driver)?vehicleRegistry.eligibility(references.driver,now()):null;
+    if(vehicleEvidence&&!vehicleEvidence.eligible)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
+    if(vehicleEvidence&&!saved.driverVehicleSnapshot)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
+    if(saved.driverVehicleSnapshot&&(!vehicleEvidence||saved.driverVehicleSnapshot.id!==vehicleEvidence.vehicle.id||saved.driverVehicleSnapshot.fingerprint!==vehicleEvidence.vehicle.fingerprint))return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const timestamp=new Date(now()).toISOString();
     const enabled=references.bundle.driverRules.filter((r:Row)=>r.status==='PUBLISHED'&&Date.parse(r.effectiveFrom)<=Date.parse(timestamp)&&
       (r.effectiveTo===null||Date.parse(r.effectiveTo)>Date.parse(timestamp))).map((r:Row)=>({id:r.id,version:r.version,hash:quoteHash(r)}));
@@ -88,7 +94,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     if(readyAt===undefined)arrivalCheck.ConditionExpression+=' AND attribute_not_exists(#etaReady)';
     else {arrivalCheck.ExpressionAttributeValues={...arrivalCheck.ExpressionAttributeValues,':etaReady':readyAt};arrivalCheck.ConditionExpression+=' AND #etaReady=:etaReady';}
     const g=references.guards;
-    const ops:Row[]=[g.driver,g.policy,g.branch,...g.deletions,...(references.order.releaseCondition?[references.order.releaseCondition]:[]),
+    const ops:Row[]=[...(references.regionGuards??[]),g.driver,g.policy,g.branch,...g.deletions,...(references.order.releaseCondition?[references.order.releaseCondition]:[]),
       exactCheck(tables.jobs,waveKey,wave),...pinnedGuards,
       updateChecked(g.assignment,'SET #uStatus=:uAssigned, #uDriver=:uDriver, #uAt=:uAt',
         {'#uStatus':'status','#uDriver':'assignedDriverId','#uAt':'assignedAt'},{':uAssigned':'assigned',':uDriver':actor.driverId,':uAt':timestamp}),
@@ -110,6 +116,11 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
       offer.calculation.deliveryRoute.durationSeconds,readyAt);
     const orderUpdate=ops.find(op=>op.Update?.TableName==='WizzOrders')?.Update;
     if(!orderUpdate)return fail('FINANCIAL_ACCEPTANCE_UNAVAILABLE');
+    if(vehicleEvidence){
+      orderUpdate.UpdateExpression+=', #vehicleSnapshot=:vehicleSnapshot, #vehicleType=:vehicleType, #vehiclePlate=:vehiclePlate';
+      Object.assign(orderUpdate.ExpressionAttributeNames,{'#vehicleSnapshot':'driverVehicleSnapshot','#vehicleType':'vehicleType','#vehiclePlate':'vehiclePlate'});
+      Object.assign(orderUpdate.ExpressionAttributeValues,{':vehicleSnapshot':vehicleEvidence.vehicle,':vehicleType':vehicleEvidence.vehicle.type,':vehiclePlate':vehicleEvidence.vehicle.plateNumber});
+    }
     orderUpdate.UpdateExpression+=', #arrivalTime=:arrivalTime, #arrivalEstimate=:arrivalEstimate';
     Object.assign(orderUpdate.ExpressionAttributeNames,{'#arrivalTime':'estimatedDeliveryTime','#arrivalEstimate':'deliveryEstimate'});
     Object.assign(orderUpdate.ExpressionAttributeValues,{':arrivalTime':arrival.estimatedDeliveryTime,':arrivalEstimate':arrival.deliveryEstimate});
@@ -159,7 +170,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='offerId,orderId,waveNumber')return fail('INVALID_FINANCIAL_ACCEPTANCE');
     const input=detach(value as Row),actor=detach(await authenticateDriver());
     if(![input.orderId,input.offerId,actor.driverId,actor.subjectId].every(quoteEntityIdValid)||!Number.isSafeInteger(input.waveNumber)||input.waveNumber<1||input.waveNumber>1000)return fail('INVALID_FINANCIAL_ACCEPTANCE');
-    const key={orderId:input.orderId,SK:`FINANCIAL#${actor.driverId}#WAVE#${input.waveNumber}`},saved=await strongGet(db,tables.offers,key);
+    const key={orderId:input.orderId,SK:await financialOfferSK(db,input.orderId,actor.driverId,input.waveNumber)},saved=await strongGet(db,tables.offers,key);
     if(!saved||saved.offerId!==input.offerId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const offer=resolveFinancialOffer(saved.financialOffer,options.enableDeliveryFunding,options.enableFullCash);
     if(!equal(offer.versionedOffer,saved.financialOffer)||offer.driverSubjectId!==actor.subjectId||offer.driverId!==actor.driverId||offer.orderId!==input.orderId||offer.offerId!==input.offerId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');

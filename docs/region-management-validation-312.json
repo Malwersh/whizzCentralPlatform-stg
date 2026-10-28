@@ -1,0 +1,117 @@
+{
+  "status": "PASS",
+  "serviceTests": 16,
+  "checks": [
+    "actualStaffHandlerAndSDK",
+    "actualCustomerHandlerAndSDK",
+    "realLeafletBrowser",
+    "existingCoverageRegression"
+  ],
+  "sourceFiles": [
+    {
+      "file": "backend/region-management/api-entry.js",
+      "sha256": "1e48772f89e941f1e804bdf87ea4f7da613ba48065a8e7bf964bab9e41b18c21"
+    },
+    {
+      "file": "backend/region-management/browser-entry.js",
+      "sha256": "351d715dabbb2a1517c563b010087b542c2edd6b6833f3092113a8ca1d95167c"
+    },
+    {
+      "file": "backend/region-management/covered-region-entry.js",
+      "sha256": "25d295a4f2524daaac1add2dfee64aed64b985dab83e95b89741944a9e1d5a76"
+    },
+    {
+      "file": "backend/region-management/geometry.js",
+      "sha256": "04ea6684ee6f8b05a26412c875ff0fc7bb77221678b896842267fec0d005c830"
+    },
+    {
+      "file": "backend/region-management/model.js",
+      "sha256": "09eb3f8b460c43ef9a948c6b543f50f6f9ffd64804461fcc1904c32a2173a54a"
+    },
+    {
+      "file": "backend/region-management/repository.js",
+      "sha256": "f7800784a0c55848d51eef56b6397596afb202087b937d5eb698a19196e4f0c6"
+    },
+    {
+      "file": "backend/region-management/service.js",
+      "sha256": "6984571cf33bc4a94f109412d4f4bbcb85cce4e597edced9a2df1d9ea62d5c29"
+    },
+    {
+      "file": "backend/region-management/worker-entry.js",
+      "sha256": "2a2b79e2d1fb541b9da7325c907ed4ca09979a2a90301855441e1e6b6b1d4bac"
+    },
+    {
+      "file": "backend/region-management/worker.js",
+      "sha256": "ff0ed6a7fcf25cc10538aa74fa539693c2abddceb3378a3809a497b94b0e8bbc"
+    },
+    {
+      "file": "backend/region-management/test/fixture.cjs",
+      "sha256": "35d0ed3c455fbcf2210fc9b38a928efa50817f0a64f02bbade336b551998fb3b"
+    },
+    {
+      "file": "backend/region-management/test/management.test.cjs",
+      "sha256": "a2a6aae6abf1f6d1d69f4fd20f00c461268ce76d59df79752c99a9233a6a2652"
+    },
+    {
+      "file": "backend/region-management/test/worker-source.test.cjs",
+      "sha256": "bc99a537448f39c887559b1b89c710e4c963a011ee3da3540c1859d5667c0b72"
+    },
+    {
+      "file": "frontend/region-management-312.js",
+      "sha256": "25fdf6af9ece66d5474e1ec7a49eb03171a3d72afd5af8d77d9dba11202db977"
+    },
+    {
+      "file": "frontend/region-management-312.css",
+      "sha256": "60c84e1637cb429ce2ee8d59ca1f50958bbee55379ad38cb4655f70a39f0f224"
+    },
+    {
+      "file": "frontend/region-geometry-worker-312.js",
+      "sha256": "45d42cf8a8ab069e2122a9a6a97948f79927f3dd70d7397de80155ec2c1f83a3"
+    },
+    {
+      "file": "frontend/region-geometry-runtime-312.js",
+      "sha256": "9920427b26645cef4a30c38f96aa36fd08329a2d3825b792958da854672b1e95"
+    },
+    {
+      "file": "frontend/pages/regions.html",
+      "sha256": "ff895cf9e10448091950414aa60a74f02da871fe27b119b719e5713ca06b7fbd"
+    },
+    {
+      "file": "frontend/assets/js/rbac.js",
+      "sha256": "3b818fedc07e0496ddf9742d805b2b20476a54c343aff4c8ee92277b7546d3ed"
+    },
+    {
+      "file": "cloudformation/region-management-312.yaml",
+      "sha256": "67425081826c33df73287b8fa1cc2e27c37db940904a4609967ff07a63c565f3"
+    },
+    {
+      "file": "cloudformation/region-management-assets-312.yaml",
+      "sha256": "8783dd9de7bd0da6b98910f4873fb7e8497e0c48ebf5c83d883a374b929b144a"
+    },
+    {
+      "file": "../wizzuser-stg/backend/src/lambdas/find-region-by-coordinates.js",
+      "sha256": "81afe25bc6ff48e2b57104ece6e9fdcbf81b07e4e0ab60f10734ac08aadc5c85"
+    },
+    {
+      "file": "../wizzuser-stg/backend/src/utils/region-coverage-runtime-312.js",
+      "sha256": "bc6d4baa886ef560e7bc4126ac167d64432c9ca6e1df047b8861de536617c694"
+    },
+    {
+      "file": "../wizzuser-stg/backend/src/utils/business-metadata-utils.js",
+      "sha256": "4ac403f788abce6f0c1cf6ebef191f0166e959f0ab441dbc28655b36a5c5032f"
+    },
+    {
+      "file": "../wizzuser-stg/backend/src/lambdas/auto-populate-business-metadata.js",
+      "sha256": "33246d49b5f9354854bbe3a9b15ca0f89bd8cf0bc55c024b1ace198395f94b13"
+    },
+    {
+      "file": "../wizzuser-stg/backend/template.yaml",
+      "sha256": "d1de2cf7bb5294d67d1d1f3a250f6087d29374b5541401ab1b76460a52a35b97"
+    }
+  ],
+  "businessDataMutated": false,
+  "artifactHashes": {
+    "region-management-api-312.js": "b5226044506c6d62666c276d9d8ee79ebcf33d6df040e5793b38428c860a3921",
+    "region-management-worker-312.js": "28b0f9e16459124be00695f4d2c3c69311ea48f4d753ebdb3d01943d93424b81"
+  }
+}

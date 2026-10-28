@@ -39,6 +39,8 @@ export function createStagingDeliveryPricingContext(options: {
   authenticateCustomer: () => Promise<{ userId: string; subjectId: string }>;
   router: ReturnType<typeof createCoveredDeliveryRouter>;
   now?: () => number;
+  /** Read-only storefront composition only. Never supplied by the financial quote/order handlers. */
+  pointPreview?: {point: Point; regionId: string};
 }) {
   const { db, authenticateCustomer, router } = options;
   const now = options.now ?? Date.now;
@@ -55,6 +57,7 @@ export function createStagingDeliveryPricingContext(options: {
     } catch { return fail('PRICING_REFERENCE_UNAVAILABLE'); }
   }
   async function customer() {
+    if(options.pointPreview)return {userId: "POINT_PREVIEW",subjectId:"POINT_PREVIEW"};
     try {
       const c = await authenticateCustomer();
       if (!c || !id(c.userId) || !id(c.subjectId) || c.userId === 'guest') return fail('CUSTOMER_UNAVAILABLE');
@@ -67,7 +70,7 @@ export function createStagingDeliveryPricingContext(options: {
         'latitude', 'longitude', 'address.latitude', 'address.longitude', 'regionId', 'regionPath', 'status', 'isActive',
         'onboardingSchemaVersion', 'onboardingComplete', 'acceptingOrders', 'platformSuspended', 'ordersBlocked',
         'deletionRequestId', 'version', 'updatedAt', 'orderReceptionSettings', 'minimum_order']),
-      get(tables.addresses, { addressId }, ['addressId', 'userId', 'latitude', 'longitude', 'deletionRequestId', 'updatedAt', 'version']),
+      options.pointPreview ? Promise.resolve({addressId:'POINT_PREVIEW',userId:'POINT_PREVIEW',...location(options.pointPreview.point)}) : get(tables.addresses, { addressId }, ['addressId', 'userId', 'latitude', 'longitude', 'deletionRequestId', 'updatedAt', 'version']),
       needPricing ? get(tables.policy, { pk: 'OPERATIONAL_SETTINGS#DELIVERY_PRICING', sk: 'CURRENT' }, ['pk', 'sk', 'version', 'values']) : undefined
     ]);
     if (!branch || branch.businessId !== branchId || (branch.branchId !== undefined && branch.branchId !== branchId) ||
@@ -116,6 +119,7 @@ export function createStagingDeliveryPricingContext(options: {
       const request = input as Row;
       if (Object.keys(request).length !== 2 || !id(request.branchId) || !id(request.addressId)) return fail('INVALID_PRICING_REQUEST');
       const { branchId, addressId } = request;
+      if(options.pointPreview && addressId!=='POINT_PREVIEW')return fail('INVALID_PRICING_REQUEST');
       const identity = await customer();
       const first = await read(identity.userId, branchId, addressId, needPricing);
       const binding = await router.getDeliveryRoute(first.origin, first.destination);
@@ -129,6 +133,7 @@ export function createStagingDeliveryPricingContext(options: {
           coverage.referenceVersion !== binding.destinationCoverage.referenceVersion) throw new RoutingError('OUTSIDE_COVERAGE');
       if ((first.branch.regionId !== undefined && first.branch.regionId !== originCoverage.regionId) ||
           (first.branch.regionPath !== undefined && fingerprint(first.branch.regionPath) !== fingerprint(originCoverage.regionPath))) return fail('BRANCH_UNAVAILABLE');
+      if(options.pointPreview && coverage.regionId!==options.pointPreview.regionId)throw new RoutingError('OUTSIDE_COVERAGE');
       const context = Object.freeze({ branchId, merchantId: first.organization?.organizationId ?? 'UNBOUND_MERCHANT',
         zoneId: coverage.regionId, cityId: 'UNBOUND_CITY', governorateId: coverage.governorateId, vehicleType: 'UNASSIGNED' });
       const at = new Date(now()).toISOString();

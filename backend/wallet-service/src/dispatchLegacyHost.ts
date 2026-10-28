@@ -42,7 +42,7 @@ function createDispatchHost(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?
    const seen=new Set<string>();
    for(let pageNumber=0;pageNumber<(financial?20:1);pageNumber++){
    const page=await db.send(new ScanCommand({TableName:JOBS,ConsistentRead:true,Select:'SPECIFIC_ATTRIBUTES',Limit:25,ExclusiveStartKey:next??undefined,ProjectionExpression:'orderId,SK',FilterExpression:'(#kind=:restart AND (#state=:pending OR #state=:starting)) OR (SK=:meta AND #status=:searching AND attribute_exists(dispatchCycle))',ExpressionAttributeNames:{'#kind':'kind','#state':'state','#status':'status'},ExpressionAttributeValues:{':restart':'DISPATCH_RESTART_START',':pending':'PENDING',':starting':'STARTING',':meta':'METADATA',':searching':'searching'}}));
-   for(const r of page.Items??[]){if((options.remainingMs?.()??60000)<35000||now()>=claimed.leaseUntil){complete=false;break;}if(!seen.has(r.orderId)){seen.add(r.orderId);try{await processOrder(r.orderId);processed++;}catch{failed++;}}next={orderId:r.orderId,SK:r.SK};}
+   for(const r of page.Items??[]){if((options.remainingMs?.()??60000)<35000||now()>=claimed.leaseUntil){complete=false;break;}if(!seen.has(r.orderId)){seen.add(r.orderId);try{await processOrder(r.orderId);processed++;}catch(error:any){failed++;const value=error?.code??error?.message;console.error('DISPATCH_HOST_ORDER_FAILED',{orderId:r.orderId,code:typeof value==='string'&&/^[A-Z0-9_]{1,100}$/.test(value)?value:String(error?.name??'UnknownError')});}}next={orderId:r.orderId,SK:r.SK};}
    if(complete)next=page.LastEvaluatedKey??null;
    if(!complete||next===null||(options.remainingMs?.()??60000)<35000||now()>=claimed.leaseUntil)break;
    }

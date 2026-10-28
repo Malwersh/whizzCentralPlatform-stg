@@ -1,0 +1,86 @@
+{
+  "orderNumber": "ORD1792947277354",
+  "orderId": "11f7b253-537c-5890-8993-25269ae95bc3",
+  "environment": "staging",
+  "result": "DELIVERED_VERIFIED",
+  "deliveredAtUtc": "2026-10-25T21:47:21.600Z",
+  "humanConfirmation": {
+    "realIncomingOfferSound": true,
+    "deliveredToCustomer": true,
+    "backgroundOrLockedScreenSound": "NOT_VERIFIED"
+  },
+  "administrativeRetry": {
+    "requestId": "288f278a-426b-483c-bb23-88674cebdc34",
+    "previousDriverReceivedNewCycleOffer": true,
+    "offerId": "FINO:727b4561db225005df96f9a305062c59c21446994fb97db5",
+    "pushAccepted": true,
+    "websocketAccepted": true,
+    "acceptedAtUtc": "2026-10-25T21:46:23.806Z"
+  },
+  "financial": {
+    "operationId": "FCS:bbd9bc03e9d55941a51fd9d9aab46631948d940d843240ce",
+    "journalStatus": "POSTED",
+    "balanced": true,
+    "cashCollectedIqd": 14000,
+    "driverRetainedCashIqd": 1500,
+    "collateralSettledIqd": 12500,
+    "driverAdditionalWalletCreditIqd": 0,
+    "merchantPayableIqd": 9000,
+    "merchantPayableStatus": "LOCKED_PENDING_SETTLEMENT",
+    "merchantPayoutPerformed": false,
+    "platformNetIqd": 3500,
+    "integrationStatus": "INTEGRATED",
+    "walletLines": [
+      {
+        "delta": -12500.0,
+        "walletId": "WALLET#DRIVER#34d8e408-1021-7076-6055-7325644f97cb",
+        "unit": "IQD_WHOLE",
+        "balanceAfter": 0.0,
+        "balanceType": "LOCKED",
+        "balanceBefore": 12500.0
+      },
+      {
+        "delta": 9000.0,
+        "walletId": "WALLET#MERCHANT#business_1791634772438_p2hlg6w5qii",
+        "unit": "IQD_WHOLE",
+        "balanceAfter": 72750.0,
+        "balanceType": "LOCKED",
+        "balanceBefore": 63750.0
+      }
+    ],
+    "legacyLedgerByOrderQueryReturnedRows": 0,
+    "evidenceBasis": "Authoritative FULL_CASH journal, hold receipt, payable and integration event; legacy ledger GSI is not proof of this modern posting."
+  },
+  "driverAfterDelivery": {
+    "status": "available",
+    "isActive": true,
+    "isSearching": true,
+    "currentOrderId": null,
+    "activeOrdersCount": 0
+  },
+  "performance": {
+    "generation": 110.0,
+    "builtGeneration": 110.0,
+    "updatedAtUtc": "2026-10-25T21:47:24.988Z",
+    "acceptanceRate": 0.9259259259259259,
+    "completionRate": 0.9545454545454546,
+    "consecutiveRejections": 0.0,
+    "completion": {
+      "reviewExcluded": 3.0,
+      "windowComplete": true,
+      "inProgress": 0.0,
+      "noFaultExcluded": 0.0,
+      "acceptedCommitments": 25.0,
+      "completed": 20.0,
+      "driverFailures": 1.0,
+      "returned": 1.0,
+      "sampleSize": 22.0
+    }
+  },
+  "remaining": [
+    "Administrative retry after a documented previous unassignment",
+    "Offer sound with app backgrounded or screen locked",
+    "D01 vehicle approval, document validity and permitted work region"
+  ],
+  "agentBusinessMutations": "NONE; read-only audit of user-executed flow"
+}
