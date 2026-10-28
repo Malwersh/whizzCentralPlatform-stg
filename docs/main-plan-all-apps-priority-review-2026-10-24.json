@@ -1410,9 +1410,9 @@
         "CUSTOMER"
       ],
       "name": "المنتجات والقوائم والإدخال اليدوي وCSV/Excelوالخيارات والصور والمخزون والنشر",
-      "currentStatus": "IMPLEMENTED_DEPLOYED_STAGING_AUTOMATED_UAT_336",
+      "currentStatus": "MERCHANT_IMPORT_DEPLOYED_336_UX_FIXED_338_ADMIN_IMPORT_UI_NOT_IMPLEMENTED",
       "priority": "P0-OPS",
-      "remaining": "اكتمل نطاق المنتجات والاستيراد والصور وربط الأعمدة وكميات المخزون والنشر على staging مع اختبارات DynamoDB الفعلية وAPI من المحاكي. لا توجد أجزاء تنفيذ مؤجلة في هذا النطاق. التوقيع البشري واختبارات إطلاق Android/iOS محفوظة ضمن بوابات الإطلاق العامة ولا تُسجّل كاختبار بشري ناجح.",
+      "remaining": "استيراد تطبيق المطعم والصور وربط الأعمدة والمخزون منشور، وأضيف قالب Excel مبسط ودليل المستخدم وإصلاح خيارات المنتج في 338. لا توجد حاليًا واجهة استيراد من المنصة نيابة عن المطعم؛ يلزم مسار إداري مصرح به مع اختيار الفرع والتدقيق إذا اعتمد هذا النطاق. لا تُعتبر هذه الإمكانية منفذة بمجرد وجود واجهات API للمطعم. الاختبار البشري وبوابات إطلاق Android/iOS محفوظة منفصلة.",
       "sourceOrEvidence": [
         "docs/merchant-products-import-colleague-handoff-2026-10-24.txt",
         "docs/products-import-review-335.json",
@@ -1422,7 +1422,8 @@
         "docs/products-336-native-api-uat.json"
       ],
       "freshRuntimeAuditRequired": false,
-      "humanAcceptanceSeparate": true
+      "humanAcceptanceSeparate": true,
+      "adminImportStatus": "NOT_IMPLEMENTED_VERIFIED_SOURCE_2026_10_28"
     }
   ],
   "originalSpecificationSectionCoverage": [
