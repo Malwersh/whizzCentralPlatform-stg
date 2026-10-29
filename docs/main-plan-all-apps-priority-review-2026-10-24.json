@@ -3579,5 +3579,10 @@
     "sourcePackageAudit": "14 owned modules; no missing module or direct shared export",
     "driverNotice": "Release348 installed; city/country only, no coordinate fallback",
     "next": "Current basket acceptance, then realtime genuine offer acceptance before M05"
+  },
+  "driverOutsideStart349": {
+    "status": "IMPLEMENTED_12_TESTS_PASSED_RELEASE349_INSTALLED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/driver-outside-start-349.json",
+    "humanAcceptance": "DISMISS_THEN_GO_NOTICE_REOPEN_AND_RETURN_TO_COVERED_POSITION_PENDING"
   }
 }
