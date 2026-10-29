@@ -1,7 +1,7 @@
 {
   "part": 344,
   "scope": "CUSTOMER_DRIVER_MERCHANT_POLICIES_AND_CENTRAL_CMS",
-  "status": "ADMIN_CMS_PUBLISHED_APP_ROLLOUT_PENDING_OWNER_POLICY_PUBLICATION",
+  "status": "OWNER_PUBLISHED_THREE_ROLES_BACKENDS_AND_APPS_DEPLOYED_344_HUMAN_ACCEPTANCE_OPEN",
   "userDirections": [
     "No policy text or legal checkbox in checkout",
     "Customer policies in حسابي; driver in المزيد; merchant in account settings and personal profile",
@@ -37,8 +37,8 @@
   ],
   "cms": {
     "url": "https://staging.d2vmebm1e1n95m.amplifyapp.com/pages/legal-documents.html",
-    "hostingJobId": "221",
-    "status": "ADMIN_CMS_PUBLISHED_VERIFIED_DRAFTS_NOT_PUBLISHED",
+    "hostingJobId": "222",
+    "status": "OWNER_PUBLISHED_ALL_THREE_ROLE_POLICIES_REVISION_1",
     "draftSaveDoesNotPublish": true,
     "immutablePublishedHistory": true,
     "pastVersionReader": true,
@@ -58,14 +58,14 @@
     "optionalDevicePermissionsSeparate": true
   },
   "nativeSources": {
-    "customer": "IMPLEMENTED_LOCAL_NOT_INSTALLED",
-    "driver": "IMPLEMENTED_LOCAL_NOT_INSTALLED",
-    "merchant": "IMPLEMENTED_LOCAL_NOT_INSTALLED"
+    "customer": "INSTALLED_LAUNCHED_IPHONE16PRO_SIMULATOR_344",
+    "driver": "INSTALLED_LAUNCHED_IMOHAMMED_RELEASE_344",
+    "merchant": "INSTALLED_LAUNCHED_IPHONE16_SIMULATOR_344"
   },
-  "registrationBackends": "IMPLEMENTED_LOCAL_NOT_PUBLISHED_PENDING_POLICIES",
+  "registrationBackends": "PUBLISHED_STAGING_VERSION_PINNED_CONSENT",
   "publicReader": {
     "endpoint": "GET /legal?audience=CUSTOMER|DRIVER|MERCHANT",
-    "status": "SOURCE_READY_API_ROUTE_NOT_CREATED",
+    "status": "PUBLISHED_HTTP_200_ALL_THREE_ROLES_DIGESTS_VERIFIED",
     "access": "Only published CURRENT document, no identity/token/OTP/profile operations"
   },
   "checks": {
@@ -82,26 +82,31 @@
     "liveHostingHashesVerified": true,
     "dartErrors": 0,
     "dartWarnings": 0,
-    "backendCombinedPassed": 48
+    "backendCombinedPassed": 48,
+    "realHtmlSessionBootstrapBrowserPassed": true,
+    "threeNativeIosBuildsSucceeded": true,
+    "liveRoleReadsVerified": 3,
+    "liveMissingMerchantConsentRejectedBeforeSignup": 409
   },
   "deploymentDependencies": [
-    "Owner reviews and publishes a version for each of the three applications from the live CMS",
-    "Verify all three CURRENT versions and immutable snapshots",
-    "Grant public phone legal reader GetItem/ConditionCheckItem only for the three legal partition keys, and partner profile services only their own key; add LEGAL_SETTINGS_TABLE without replacing other environment values",
-    "Publish public GET /legal, registration consumers and precise identity-bound consent checks; preserve live review-phone adapter and driver finance wrapper differences discovered by read-only audit",
-    "Install updated application builds and run queued operational acceptance; native platform launch gates remain later per user direction"
+    "Completed: owner published three independent policy sets",
+    "Completed: validate CURRENT versions and canonical digests",
+    "Completed: scoped IAM/legal environment and version-pinned consumer packages preserving live adapters",
+    "Completed: public GET /legal and HTTP checks",
+    "Completed: install and launch all three iOS development builds; human acceptance remains queued"
   ],
   "stagingMutationBoundaries": {
     "adminCodeAndHostingPublished": true,
     "policyTextPublishedByAgent": false,
     "financialDataWritten": false,
-    "newApiOrIamWrites": false,
-    "registrationFlowChangedLive": false
+    "newApiOrIamWrites": true,
+    "registrationFlowChangedLive": true
   },
   "remaining": [
-    "Owner policy text publication and dependent backend/app rollout",
-    "Current human acceptance queue",
+    "Current human acceptance queue after initial owner CMS publication",
+    "Human-readable public privacy/terms web pages required before store release",
     "Legacy guest order proof and X-TEST-342 remain separate open work items"
   ],
-  "publicPolicyWebUrl": "Human-readable public privacy/terms URL remains queued with the public reader and release requirements; CMS URL is admin-only."
+  "publicPolicyWebUrl": "Human-readable public privacy/terms URL remains queued with the public reader and release requirements; CMS URL is admin-only.",
+  "consumerDeploymentEvidence": "docs/application-legal-consumers-publication-344.json"
 }

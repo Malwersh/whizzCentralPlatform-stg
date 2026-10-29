@@ -248,9 +248,9 @@
         "ADMIN"
       ],
       "name": "سياسات الإلغاء والعودة ومسؤولية الأطراف وإظهار الشروط وحفظ الإصدار",
-      "currentStatus": "THREE_APP_POLICY_CMS_PUBLISHED_344_OWNER_TEXT_APPROVAL_AND_APP_ROLLOUT_PENDING",
+      "currentStatus": "THREE_APP_POLICIES_PUBLISHED_BACKENDS_APPS_DEPLOYED_344_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "نُشرت لوحة إدارة السياسات للتطبيقات الثلاثة على staging (221)، مع مسودات ومعاينة وتاريخ نسخ وصلاحيات منفصلة. جُهزت صفحات كل دور وروابط حسابي/المزيد/إعدادات المطعم وموافقة التسجيل والتحقق من الإصدار في الكود المحلي. أُلغي اقتراح 343 بوضع السياسة في الطلب، ولم يُنشر. لا تزال نصوص التطبيقات الثلاثة تحتاج اعتماد صاحب المنصة ونشرها من اللوحة؛ بعدها يُنشر قارئ النصوص العام وحفظ الموافقات بالخوادم وتُثبت النسخ وتنفذ الاختبارات البشرية المرتبة. لا ندعي أن ذلك مثبت على الأجهزة أو أن كل شروط الشراكة القانونية معتمدة؛ الاتفاقيات التجارية والحفظ X02 والاختبارات القديمة X-TEST-342 مستقلة.",
+      "remaining": "نشر المستخدم الإصدار الأول لسياسات التطبيقات الثلاثة؛ فُعل ربط التسجيل والقراءة وثُبتت النسخة344. المتبقي قبول التسجيل البشري لكل دور وصفحات السياسات العامة قبل إصدار المتاجر وبقية متطلبات C07 المستقلة.",
       "sourceOrEvidence": [
         "docs/checkout-policy-publication-179.json",
         "docs/finance-reference/master-implementation-v1.0-ar.txt",
@@ -260,7 +260,8 @@
         "docs/application-legal-policies-344.json",
         "docs/application-legal-research-344.json",
         "docs/application-legal-cms-publication-344.json",
-        "docs/application-legal-human-acceptance-344.csv"
+        "docs/application-legal-human-acceptance-344.csv",
+        "docs/application-legal-consumers-publication-344.json"
       ],
       "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
@@ -3518,10 +3519,17 @@
   },
   "applicationLegal344": {
     "evidence": "docs/application-legal-policies-344.json",
-    "status": "ADMIN_CMS_PUBLISHED_APP_ROLLOUT_PENDING_OWNER_POLICY_PUBLICATION",
-    "next": "OWNER_PUBLISH_THREE_ROLE_POLICIES_THEN_DEPENDENT_BACKEND_AND_APP_ROLLOUT",
+    "status": "THREE_APP_POLICIES_PUBLISHED_BACKENDS_APPS_DEPLOYED_344_HUMAN_ACCEPTANCE_OPEN",
+    "next": "QUEUED_HUMAN_REGISTRATION_AND_POLICY_NAVIGATION_ACCEPTANCE_FOR_THREE_ROLES",
     "checkoutPolicyRemoved": true,
     "deploymentPlan": "docs/application-legal-dependent-deployment-344.json",
-    "publicPolicyUrls": "QUEUED_WITH_PUBLIC_READER_BEFORE_STORE_RELEASE"
+    "publicPolicyUrls": "HUMAN_READABLE_WEB_PAGES_QUEUED_BEFORE_STORE_RELEASE_PUBLIC_JSON_READER_ALREADY_LIVE",
+    "consumerPublication": "docs/application-legal-consumers-publication-344.json",
+    "ownerPublishedRoles": [
+      "CUSTOMER",
+      "DRIVER",
+      "MERCHANT"
+    ],
+    "installedBuild": 344
   }
 }

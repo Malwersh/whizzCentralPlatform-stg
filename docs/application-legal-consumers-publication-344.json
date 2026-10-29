@@ -1,0 +1,83 @@
+{
+  "part": 344,
+  "status": "BACKEND_PUBLISHED_HTTP_VERIFIED",
+  "ownerPublishedRoles": [
+    {
+      "audience": "CUSTOMER",
+      "version": 1,
+      "digest": "806dee505f7915f01de639d4a810de2fba86165ba238a0093d1f0b30ed9e3a9e"
+    },
+    {
+      "audience": "DRIVER",
+      "version": 1,
+      "digest": "dc79852da6dab585e3df3b09abc455ce4909f91ec9e0f84f9d621cbd1cb22c86"
+    },
+    {
+      "audience": "MERCHANT",
+      "version": 1,
+      "digest": "f6cb80df4183763dfb6a8218c0d8eaf2f0cc1aa2572fdad37abba1536860d0a9"
+    }
+  ],
+  "functions": {
+    "phone": {
+      "name": "WizzUser-phone-auth-staging",
+      "codeSha256": "hlTds13onLTSMh3BLVRw5tmtgkOXLpAdeG2zs9dJG8c=",
+      "environmentAdditionKeys": [
+        "LEGAL_SETTINGS_TABLE"
+      ],
+      "scopedPolicy": "LegalDocuments344",
+      "preservedUnrelatedPackageFiles": true
+    },
+    "driver": {
+      "name": "DriversApi-staging",
+      "codeSha256": "MTeLotiy9cIpS82mTXDvoMtgDhdJjoSzkAfPdONEYEE=",
+      "environmentAdditionKeys": [
+        "LEGAL_SETTINGS_TABLE"
+      ],
+      "scopedPolicy": "LegalDocuments344",
+      "preservedUnrelatedPackageFiles": true
+    },
+    "merchant": {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "WHrWiIaTrlkDg/rvyjK2RK1zylAcNFwJ6qttj4IouqE=",
+      "environmentAdditionKeys": [
+        "LEGAL_SETTINGS_TABLE"
+      ],
+      "scopedPolicy": "LegalDocuments344",
+      "preservedUnrelatedPackageFiles": true
+    }
+  },
+  "moneyWrites": 0,
+  "businessProfileWrites": 0,
+  "nativeAppsInstalled": {
+    "CUSTOMER": "iPhone16Pro simulator build344",
+    "MERCHANT": "iPhone16 simulator build344",
+    "DRIVER": "iMohammed iPhone17ProMax Release344"
+  },
+  "baseApiDeploymentId": "y16bz2",
+  "directReadSmokePassed": true,
+  "apiDeploymentId": "vxvnqr",
+  "publicRoute": {
+    "path": "GET /legal",
+    "authorization": "NONE",
+    "resourceId": "q3n2l9"
+  },
+  "httpRolesVerified": [
+    {
+      "audience": "CUSTOMER",
+      "revision": 1,
+      "digest": "806dee505f7915f01de639d4a810de2fba86165ba238a0093d1f0b30ed9e3a9e"
+    },
+    {
+      "audience": "DRIVER",
+      "revision": 1,
+      "digest": "dc79852da6dab585e3df3b09abc455ce4909f91ec9e0f84f9d621cbd1cb22c86"
+    },
+    {
+      "audience": "MERCHANT",
+      "revision": 1,
+      "digest": "f6cb80df4183763dfb6a8218c0d8eaf2f0cc1aa2572fdad37abba1536860d0a9"
+    }
+  ],
+  "missingMerchantConsentSmokeStatus": 409
+}
