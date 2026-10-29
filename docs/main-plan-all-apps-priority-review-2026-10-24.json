@@ -3572,5 +3572,12 @@
     "evidence": "docs/driver-map-coverage-347.json",
     "humanAcceptance": "OUTSIDE_AND_INSIDE_REAL_DEVICE_PENDING",
     "eligibilityAndRegionRulesUnchanged": true
+  },
+  "customerBasketInvoice348": {
+    "status": "PUBLISHED_STAGING_POINT_PREVIEW_CONFIRMED_HUMAN_CONTINUE_PENDING",
+    "evidence": "../wizzuser-stg/docs/basket-invoice-and-coverage-348.json",
+    "sourcePackageAudit": "14 owned modules; no missing module or direct shared export",
+    "driverNotice": "Release348 installed; city/country only, no coordinate fallback",
+    "next": "Current basket acceptance, then realtime genuine offer acceptance before M05"
   }
 }
