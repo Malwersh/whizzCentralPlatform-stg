@@ -1495,6 +1495,24 @@
       ],
       "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D-SINGLE-WORK-SESSION",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "جلسة عمل واحدة للسائق مرتبطة بالجهاز والمركبة ونقل التشغيل بين الأجهزة",
+      "currentStatus": "DEFERRED_BY_USER_NOT_IMPLEMENTED",
+      "priority": "P1",
+      "remaining": "أجّل المستخدم هذا البند صراحة في29أكتوبر2026. يربط لاحقًا جهاز تشغيل واحدًا بالمركبة الفعالة، مع انتقال مؤكد ومنع النقل أثناء طلب نشط. توجد حاليًا مركبة فعالة واحدة وحواجز التنافس لقبول الطلب؛ لا يوجد قفل حصري لجهاز التشغيل. لا يُعد البند منفذًا.",
+      "sourceOrEvidence": [
+        "../whizzDrivers-stg/backend/driver-vehicles-308.js",
+        "backend/wallet-service/src/driverOfferAcceptance.ts",
+        "../wizzuser-stg/backend/src/realtime-identity-scope-346.js"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
     }
   ],
   "originalSpecificationSectionCoverage": [
@@ -2996,12 +3014,12 @@
     }
   ],
   "counts": {
-    "workItems": 64,
+    "workItems": 65,
     "specificationSectionsMapped": 127,
     "historicalPackagesMapped": 14,
     "priorityCounts": {
       "P0-OPS": 45,
-      "P1": 9,
+      "P1": 10,
       "P0-SCOPE-CHECK": 3,
       "P0-IF-ENABLED": 1,
       "P2-PROVIDER": 3,
