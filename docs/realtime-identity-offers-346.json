@@ -191,5 +191,9 @@
     "customer": "09a0647",
     "driver": "b92d72f",
     "merchant": "f41616a"
+  },
+  "nativeBridgeWiringCorrection347": {
+    "evidence": "docs/driver-map-coverage-347.json",
+    "note": "346 forwarded headers only in duplicate NativeWebSocket.swift not compiled by Xcode.347 forwards Authorization in the registered AppDelegate.swift NativeWebSocketPlugin and sanitizes its receive log. Genuine driver offer/connection acceptance remains pending."
   }
 }

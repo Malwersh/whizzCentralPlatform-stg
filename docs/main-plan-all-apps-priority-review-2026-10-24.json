@@ -3566,5 +3566,11 @@
     "beforeNext": "M05 branch devices/PIN",
     "actualManagerWriterVerified": true,
     "humanAcceptance": "RT346-01..07"
+  },
+  "driverMapCoverage347": {
+    "status": "IMPLEMENTED_9_TESTS_PASSED_IOS_AND_ANDROID_BUILT_RELEASE347_INSTALLED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/driver-map-coverage-347.json",
+    "humanAcceptance": "OUTSIDE_AND_INSIDE_REAL_DEVICE_PENDING",
+    "eligibilityAndRegionRulesUnchanged": true
   }
 }
