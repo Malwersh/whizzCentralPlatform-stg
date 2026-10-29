@@ -36,10 +36,11 @@
     "analysis": "No Dart errors in changed home/map files; pre-existing warnings remain"
   },
   "buildStatus": {
-    "ios": "FINAL_RELEASE347_BUILD_PASSED",
+    "ios": "FINAL_RELEASE347_BUILT_AND_INSTALLED_ON_REAL_IPHONE",
     "android": "DEBUG_APK_BUILD_PASSED_AFTER_TEMP_ARTIFACT_RELOCATION"
   },
   "next": "Install347 on real iPhone; verify outside-service notice, then continue realtime genuine-offer acceptance before M05",
   "deviceLaunch": "Install passed; auto launch denied because phone locked. User can open app after unlocking.",
-  "driverCommit": "d58afca"
+  "driverCommit": "d58afca",
+  "installation": "Transient Apple delta-manifest error resolved by retry; final installation succeeded; app data preserved."
 }
