@@ -1,7 +1,7 @@
 {
   "part": 345,
   "scope": "M02_MERCHANT_BRANCH_SESSION_REQUEST_AND_REALTIME_ISOLATION",
-  "status": "PUBLISHED_STAGING_MERCHANT345_INSTALLED_CUTOVER_DECISION_AND_HUMAN_ACCEPTANCE_OPEN",
+  "status": "PUBLISHED_STAGING_MERCHANT345_INSTALLED_LEGACY_CUTOVER_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
   "resolved": [
     "Late business list response cannot clear newer branch selection, including A-B-A",
     "Branch persistence serializes writes and logout clears after any pending selection save",
@@ -42,10 +42,21 @@
   },
   "publication": "../whizzMerchants-stg/docs/branch-isolation-publication-345.json",
   "cutover": {
-    "status": "NOT_EXECUTED_PENDING_EXPLICIT_USER_APPROVAL",
-    "capturedActiveUnverifiedCount": 30,
-    "autoReviewReason": "Disconnecting active merchant clients and deleting remote session records needs explicit approval; expiry/reconnect alternative available",
-    "businessProfilesOrdersAndMoneyUntouched": true
+    "status": "COMPLETED_VERIFIED",
+    "explicitUserApproval": true,
+    "captured": 30,
+    "closedSockets": 0,
+    "alreadyGoneSockets": 30,
+    "virtualSessionRows": 0,
+    "alreadyAbsentRows": 0,
+    "skippedVerified": 0,
+    "skippedChangedScope": 0,
+    "legacyRowsRemoved": 30,
+    "conditionalConflicts": 0,
+    "failures": 0,
+    "businessProfilesOrdersAndMoneyUntouched": true,
+    "remainingCapturedUnverifiedRows": 0,
+    "completedAtUtc": "2026-10-29T02:03:02.814265+00:00"
   },
   "auditBoundary": {
     "activeMerchantSocketApi": "igcrhwc84c/staging",
@@ -53,6 +64,6 @@
     "customerAndDriverRealtimeAuthorization": "SEPARATE_P0_AUDIT_REQUIRED_SHARED_LEGACY_JWT_DECODER_REMAINS_OUTSIDE_MERCHANT_GUARD",
     "existingCompleteFlowsNotRebuilt": true
   },
-  "next": "Resolve legacy connection cutover choice, retain human acceptance queue, audit shared customer/driver realtime authorization before M05",
+  "next": "Audit shared customer/driver realtime authorization before M05; human branch-switch and socket delivery acceptance remains queued",
   "humanAcceptance": "docs/branch-isolation-human-acceptance-345.csv"
 }

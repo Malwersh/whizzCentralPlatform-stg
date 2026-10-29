@@ -866,9 +866,9 @@
         "ADMIN"
       ],
       "name": "فصل الفروع والعضويات والجلسات والهاتف الشخصي وهاتف الفرع",
-      "currentStatus": "PUBLISHED_345_BRANCH_ISOLATION_AND_MERCHANT_REALTIME_CUTOVER_AND_HUMAN_ACCEPTANCE_OPEN",
+      "currentStatus": "PUBLISHED_345_BRANCH_ISOLATION_MERCHANT_REALTIME_AND_CUTOVER_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "نُشرت حواجز التبديل والاستعادة والخروج ونطاق الطلب والتحقق الفعلي من اتصال المطعم، وثُبتت نسخة345. بقي قرار انتقال30اتصالًا قديمًا بعد رفض المراجعة الآلية الإغلاق دون موافقة، والقبول البشري المرتب. تدقيق تفويض قنوات الزبون والسائق بندP0مستقل أُضيف دون اعتباره منجزًا.",
+      "remaining": "نُشرت حواجز التبديل والاستعادة والخروج ونطاق الطلب والتحقق الفعلي من اتصال المطعم، وثُبتت نسخة345. وافق المستخدم على انتقال الاتصالات القديمة؛ ثبت أنها30اتصالًا منتهيًا وأزيلت سجلاتها فقط دون حسابات أو طلبات أو أموال. بقي القبول البشري المرتب. تدقيق تفويض قنوات الزبون والسائق محفوظ في بندP0مستقل.",
       "sourceOrEvidence": [
         "docs/merchant-onboarding-branches-staff-transition-plan.md",
         "../whizzMerchants-stg/backend/functions/auth/branch_devices.js",
@@ -3556,8 +3556,9 @@
   },
   "merchantBranchIsolation345": {
     "evidence": "docs/merchant-branch-isolation-345.json",
-    "status": "PUBLISHED_345_BRANCH_ISOLATION_AND_MERCHANT_REALTIME_CUTOVER_AND_HUMAN_ACCEPTANCE_OPEN",
+    "status": "PUBLISHED_345_BRANCH_ISOLATION_MERCHANT_REALTIME_AND_CUTOVER_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
     "acceptance": "docs/branch-isolation-human-acceptance-345.csv",
-    "next": "RESOLVE_LEGACY_SOCKET_CUTOVER_CHOICE_THEN_X_REALTIME_AUTH_345_BEFORE_M05"
+    "next": "X_REALTIME_AUTH_345_BEFORE_M05",
+    "legacyCutover": "COMPLETED_VERIFIED_30_ALREADY_GONE_SOCKET_ROWS_REMOVED"
   }
 }
