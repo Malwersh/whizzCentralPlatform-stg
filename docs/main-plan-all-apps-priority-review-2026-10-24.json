@@ -866,12 +866,14 @@
         "ADMIN"
       ],
       "name": "فصل الفروع والعضويات والجلسات والهاتف الشخصي وهاتف الفرع",
-      "currentStatus": "IMPLEMENTED_SCOPE_ACCEPTANCE_OPEN",
+      "currentStatus": "PUBLISHED_345_BRANCH_ISOLATION_AND_MERCHANT_REALTIME_CUTOVER_AND_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "منع بقاء نطاقفرع قديم وتبديلالحساب والقراءةوالكتابةالأجنبية وموافقاتالشراكة علىالنطاقالصحيح",
+      "remaining": "نُشرت حواجز التبديل والاستعادة والخروج ونطاق الطلب والتحقق الفعلي من اتصال المطعم، وثُبتت نسخة345. بقي قرار انتقال30اتصالًا قديمًا بعد رفض المراجعة الآلية الإغلاق دون موافقة، والقبول البشري المرتب. تدقيق تفويض قنوات الزبون والسائق بندP0مستقل أُضيف دون اعتباره منجزًا.",
       "sourceOrEvidence": [
         "docs/merchant-onboarding-branches-staff-transition-plan.md",
-        "../whizzMerchants-stg/backend/functions/auth/branch_devices.js"
+        "../whizzMerchants-stg/backend/functions/auth/branch_devices.js",
+        "docs/merchant-branch-isolation-345.json",
+        "../whizzMerchants-stg/docs/branch-isolation-publication-345.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -1474,6 +1476,25 @@
         "docs/guest-checkout-identity-audit-342.json"
       ],
       "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X-REALTIME-AUTH-345",
+      "applications": [
+        "CUSTOMER",
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "التحقق الحقيقي من هوية اتصالات التحديث الفوري ونطاق موضوعات الطلبات للسائق والزبون",
+      "currentStatus": "DISCOVERED_DURING_M02_SHARED_LEGACY_DECODER_AND_TOPIC_AUTHORIZATION_AUDIT_REQUIRED",
+      "priority": "P0-OPS",
+      "remaining": "المطعم محمي الآن بحارس345مستقل. بقي verifyJwt القديم الذي يفك JWT فقط في المسار العام؛ يجب تدقيق وتثبيت توقيع هوية الزبون والسائق ونطاق subscribe_order وuser_orders والعروض، مع حماية تصفح الضيف العام دون كشف طلباته الخاصة. لا تُعد صحة حارس المطعم إثباتًا لصحة القنوات الأخرى.",
+      "sourceOrEvidence": [
+        "docs/merchant-branch-isolation-345.json",
+        "../wizzuser-stg/backend/src/universal_websocket_manager.js",
+        "../wizzuser-stg/backend/src/functions/websocket-default/index.js"
+      ],
+      "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
     }
   ],
@@ -2891,6 +2912,7 @@
         "C06",
         "C07",
         "M02",
+        "X-REALTIME-AUTH-345",
         "M05",
         "M06",
         "A10"
@@ -2975,13 +2997,13 @@
     }
   ],
   "counts": {
-    "workItems": 61,
+    "workItems": 64,
     "specificationSectionsMapped": 127,
     "historicalPackagesMapped": 14,
     "priorityCounts": {
-      "P0-OPS": 43,
+      "P0-OPS": 45,
       "P1": 9,
-      "P0-SCOPE-CHECK": 2,
+      "P0-SCOPE-CHECK": 3,
       "P0-IF-ENABLED": 1,
       "P2-PROVIDER": 3,
       "P0-RELEASE-AFTER-OPS": 3
@@ -3531,5 +3553,11 @@
       "MERCHANT"
     ],
     "installedBuild": 344
+  },
+  "merchantBranchIsolation345": {
+    "evidence": "docs/merchant-branch-isolation-345.json",
+    "status": "PUBLISHED_345_BRANCH_ISOLATION_AND_MERCHANT_REALTIME_CUTOVER_AND_HUMAN_ACCEPTANCE_OPEN",
+    "acceptance": "docs/branch-isolation-human-acceptance-345.csv",
+    "next": "RESOLVE_LEGACY_SOCKET_CUTOVER_CHOICE_THEN_X_REALTIME_AUTH_345_BEFORE_M05"
   }
 }
