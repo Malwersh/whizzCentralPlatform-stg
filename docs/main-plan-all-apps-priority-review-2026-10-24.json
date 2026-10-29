@@ -3584,5 +3584,14 @@
     "status": "IMPLEMENTED_12_TESTS_PASSED_RELEASE349_INSTALLED_HUMAN_ACCEPTANCE_OPEN",
     "evidence": "docs/driver-outside-start-349.json",
     "humanAcceptance": "DISMISS_THEN_GO_NOTICE_REOPEN_AND_RETURN_TO_COVERED_POSITION_PENDING"
+  },
+  "driverTrialLocation350": {
+    "status": "RELEASE350_INSTALLED_AND_LAUNCHED_SCOPED_TEST_LOCATION_RESTORED",
+    "profile": "../whizzDrivers-stg/frontend/config/staging-test-driver.json",
+    "buildCommand": "scripts/build-driver-trial.sh release",
+    "evidence": "../whizzDrivers-stg/docs/resume-checkpoint-latest.md",
+    "coverageReadOnlyVerification": "HTTP200 Al-Manathirah Center, 5 stores",
+    "identityAndProductionGating": "Existing test passed; general builds and other accounts retain GPS",
+    "preserveDuringCurrentHumanTrial": true
   }
 }
