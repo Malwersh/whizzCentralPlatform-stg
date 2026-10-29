@@ -4,6 +4,7 @@ const {createStagingFinancialOfferDelivery:delivery}=require('../dist/financialO
 async function setup(){
  const f=await fixture();await f.create();await f.execute();f.sockets=[];f.pushes=[];f.authorizations=[];
  f.get('WizzDriverLiveState_staging',{driverId:'driver1'}).connectionId='connection';
+ f.put('WizzUser_websocket_connections_staging',{connectionId:'connection',identityScope346:{version:1,role:'DRIVER',subjectId:'driver1',driverId:'driver1',expiresAt:Math.floor(f.time/1000)+600}});
  f.push=async ref=>({statusCode:200,body:JSON.stringify({success:true,offerId:ref.offerId,eventId:ref.offerId,cycleId:ref.cycleId,driverId:ref.driverId,successCount:1})});
  f.socket=async()=>{};f.saved=()=>f.get('WaveOffers_staging',{orderId:'order1',SK:'FINANCIAL#driver1#WAVE#1'});
  f.send=delivery({db:f.db,now:()=>f.time,enableDeliveryFunding:true,beforeSend:async(...args)=>f.authorizations.push(args),postSocket:async(...args)=>{f.sockets.push(args);return f.socket(...args);},postPush:async ref=>{f.pushes.push(ref);return f.push(ref);}});
@@ -40,4 +41,10 @@ test('committed channel ACK with lost database response is recovered without ano
 test('assignment during socket delivery prevents a later push and no successful ACK is invented',async()=>{
  const f=await setup();f.socket=async()=>{await f.service('driver1').accept(f.selector('driver1'));};
  await assert.rejects(f.send('driver1',f.message));assert.equal(f.pushes.length,0);assert.equal(f.saved().financialDeliveryAck.pushAccepted,false);assert.equal(f.saved().responseStatus,'financial_accepted');
+});
+
+test('foreign, expired and pre-cutover sockets receive no offer but canonical push remains available',async()=>{
+ for(const scope of [undefined,{version:1,role:'DRIVER',subjectId:'other',driverId:'driver1',expiresAt:9999999999},{version:1,role:'DRIVER',subjectId:'driver1',driverId:'other',expiresAt:9999999999},{version:1,role:'DRIVER',subjectId:'driver1',driverId:'driver1',expiresAt:1}]){
+  const f=await setup();f.put('WizzUser_websocket_connections_staging',{connectionId:'connection',identityScope346:scope});await f.send('driver1',f.message);assert.equal(f.sockets.length,0);assert.equal(f.pushes.length,1);assert.equal(f.saved().financialDeliveryAck.websocketUnavailable,true);
+ }
 });

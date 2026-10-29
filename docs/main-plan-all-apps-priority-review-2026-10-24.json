@@ -1483,18 +1483,17 @@
       "applications": [
         "CUSTOMER",
         "DRIVER",
+        "MERCHANT",
         "ADMIN"
       ],
       "name": "التحقق الحقيقي من هوية اتصالات التحديث الفوري ونطاق موضوعات الطلبات للسائق والزبون",
-      "currentStatus": "DISCOVERED_DURING_M02_SHARED_LEGACY_DECODER_AND_TOPIC_AUTHORIZATION_AUDIT_REQUIRED",
+      "currentStatus": "PUBLISHED_346_REALTIME_IDENTITY_OFFER_INBOX_AND_MERCHANT_CUE_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "المطعم محمي الآن بحارس345مستقل. بقي verifyJwt القديم الذي يفك JWT فقط في المسار العام؛ يجب تدقيق وتثبيت توقيع هوية الزبون والسائق ونطاق subscribe_order وuser_orders والعروض، مع حماية تصفح الضيف العام دون كشف طلباته الخاصة. لا تُعد صحة حارس المطعم إثباتًا لصحة القنوات الأخرى.",
+      "remaining": "نُشر تحقق توقيع JWT وهوية الاتصال ونطاق الاشتراك والإرسال الخاص، وأصلح وصول إشعار السائق دون بطاقة العرض وصوت المطعم وفصل تسجيل الجهاز عند الخروج. بقي اختبار طلب حقيقي أمامي/خلفي وقفل الشاشة وإعادة الاتصال وتبديل الحساب وAndroid وفق RT346-01..07؛ لا يعتبر نجاح FCM أو بناء المحاكي إثباتًا للاستلام.",
       "sourceOrEvidence": [
-        "docs/merchant-branch-isolation-345.json",
-        "../wizzuser-stg/backend/src/universal_websocket_manager.js",
-        "../wizzuser-stg/backend/src/functions/websocket-default/index.js"
+        "docs/realtime-identity-offers-346.json"
       ],
-      "freshRuntimeAuditRequired": true,
+      "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
     }
   ],
@@ -3560,5 +3559,12 @@
     "acceptance": "docs/branch-isolation-human-acceptance-345.csv",
     "next": "X_REALTIME_AUTH_345_BEFORE_M05",
     "legacyCutover": "COMPLETED_VERIFIED_30_ALREADY_GONE_SOCKET_ROWS_REMOVED"
+  },
+  "realtimeIdentity346": {
+    "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/realtime-identity-offers-346.json",
+    "beforeNext": "M05 branch devices/PIN",
+    "actualManagerWriterVerified": true,
+    "humanAcceptance": "RT346-01..07"
   }
 }
