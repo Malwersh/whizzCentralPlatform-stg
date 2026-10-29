@@ -1,0 +1,107 @@
+{
+  "part": 344,
+  "scope": "CUSTOMER_DRIVER_MERCHANT_POLICIES_AND_CENTRAL_CMS",
+  "status": "ADMIN_CMS_PUBLISHED_APP_ROLLOUT_PENDING_OWNER_POLICY_PUBLICATION",
+  "userDirections": [
+    "No policy text or legal checkbox in checkout",
+    "Customer policies in حسابي; driver in المزيد; merchant in account settings and personal profile",
+    "Explicit unselected registration checkbox with clickable links",
+    "Distinct role-specific content",
+    "Readable formatted text with publication date, version, company logo and company name footer",
+    "All text and company footer editable in central platform"
+  ],
+  "research": "docs/application-legal-research-344.json",
+  "roles": {
+    "CUSTOMER": {
+      "pk": "OPERATIONAL_SETTINGS#CUSTOMER_LEGAL",
+      "navigation": "حسابي ← السياسات والشروط",
+      "consentStage": "PHONE_OTP_NEW_ACCOUNT_ENROLLMENT"
+    },
+    "DRIVER": {
+      "pk": "OPERATIONAL_SETTINGS#DRIVER_LEGAL",
+      "navigation": "المزيد ← سياسة الاستخدام / شروط الخدمة / الخصوصية / التعذر والعودة والسلامة",
+      "consentStage": "VERIFIED_DRIVER_PROFILE_SUBMISSION_FOR_REVIEW"
+    },
+    "MERCHANT": {
+      "pk": "OPERATIONAL_SETTINGS#MERCHANT_LEGAL",
+      "navigation": "بيانات الحساب / الملف الشخصي ← السياسات والشروط",
+      "consentStage": "PERSONAL_SIGNUP_AND_AUTHENTICATED_PERSON_PROFILE_CREATION",
+      "existingCommercialAgreements": "PRESERVED_SEPARATELY"
+    }
+  },
+  "documents": [
+    "USAGE",
+    "TERMS",
+    "PRIVACY",
+    "CANCELLATION"
+  ],
+  "cms": {
+    "url": "https://staging.d2vmebm1e1n95m.amplifyapp.com/pages/legal-documents.html",
+    "hostingJobId": "221",
+    "status": "ADMIN_CMS_PUBLISHED_VERIFIED_DRAFTS_NOT_PUBLISHED",
+    "draftSaveDoesNotPublish": true,
+    "immutablePublishedHistory": true,
+    "pastVersionReader": true,
+    "scopeIsolation": true,
+    "mfaAndPermissions": "Existing global settings permissions and configured DIRECT or independent approval workflow",
+    "iamChangesExecuted": false,
+    "businessRecordsWrittenByAgent": 0
+  },
+  "consent": {
+    "serverVersionAndDigestFence": true,
+    "snapshotIncludesFullPublishedBundle": true,
+    "verifiedPrincipalBinding": true,
+    "stalePinRejectedBeforeCustomerOTPConsumption": true,
+    "staleUiUnchecksConsentAndReloadsText": true,
+    "oldConsentsNeverRewritten": true,
+    "noHistoricalAcceptanceFabricated": true,
+    "optionalDevicePermissionsSeparate": true
+  },
+  "nativeSources": {
+    "customer": "IMPLEMENTED_LOCAL_NOT_INSTALLED",
+    "driver": "IMPLEMENTED_LOCAL_NOT_INSTALLED",
+    "merchant": "IMPLEMENTED_LOCAL_NOT_INSTALLED"
+  },
+  "registrationBackends": "IMPLEMENTED_LOCAL_NOT_PUBLISHED_PENDING_POLICIES",
+  "publicReader": {
+    "endpoint": "GET /legal?audience=CUSTOMER|DRIVER|MERCHANT",
+    "status": "SOURCE_READY_API_ROUTE_NOT_CREATED",
+    "access": "Only published CURRENT document, no identity/token/OTP/profile operations"
+  },
+  "checks": {
+    "customerFlutterPassed": 44,
+    "customerFlutterSkipped": 1,
+    "driverFlutterPassed": 11,
+    "merchantFlutterPassed": 8,
+    "phoneNodePassed": 18,
+    "driverNodePassed": 11,
+    "merchantNodePassed": 10,
+    "adminNodePassed": 9,
+    "browserCasesPassed": 8,
+    "adminPackagedUnauthenticatedStatus": 401,
+    "liveHostingHashesVerified": true,
+    "dartErrors": 0,
+    "dartWarnings": 0,
+    "backendCombinedPassed": 48
+  },
+  "deploymentDependencies": [
+    "Owner reviews and publishes a version for each of the three applications from the live CMS",
+    "Verify all three CURRENT versions and immutable snapshots",
+    "Grant public phone legal reader GetItem/ConditionCheckItem only for the three legal partition keys, and partner profile services only their own key; add LEGAL_SETTINGS_TABLE without replacing other environment values",
+    "Publish public GET /legal, registration consumers and precise identity-bound consent checks; preserve live review-phone adapter and driver finance wrapper differences discovered by read-only audit",
+    "Install updated application builds and run queued operational acceptance; native platform launch gates remain later per user direction"
+  ],
+  "stagingMutationBoundaries": {
+    "adminCodeAndHostingPublished": true,
+    "policyTextPublishedByAgent": false,
+    "financialDataWritten": false,
+    "newApiOrIamWrites": false,
+    "registrationFlowChangedLive": false
+  },
+  "remaining": [
+    "Owner policy text publication and dependent backend/app rollout",
+    "Current human acceptance queue",
+    "Legacy guest order proof and X-TEST-342 remain separate open work items"
+  ],
+  "publicPolicyWebUrl": "Human-readable public privacy/terms URL remains queued with the public reader and release requirements; CMS URL is admin-only."
+}

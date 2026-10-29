@@ -2,7 +2,7 @@
   "part": 343,
   "date": "2026-10-28",
   "scope": "C07 customer COD cancellation/return disclosure and policy version recording",
-  "status": "IMPLEMENTED_TESTED_PACKAGE_READY_NOT_PUBLISHED_OWNER_TEXT_REVIEW_PENDING",
+  "status": "SUPERSEDED_BY_USER_DIRECTION_344_NEVER_PUBLISHED",
   "approvalReason": "Customer-facing operational policy wording is being changed; owner review of the concrete text precedes publication. This is not a new monetary rule or a legal compliance certification.",
   "reviewText": "docs/customer-order-policy-343-review.txt",
   "policySource": "backend/shared/customer-order-policy-343.json",
@@ -107,5 +107,7 @@
     "Broader partner signup terms/consent route audit remains separate and tracked",
     "X-TEST-342 historical fixture debt remains open; targeted 343 passing tests do not clear it"
   ],
-  "customerSourceCommit": "db3c2b2"
+  "customerSourceCommit": "db3c2b2",
+  "supersededBy": "docs/application-legal-policies-344.json",
+  "reason": "User requires policy pages in account/more/settings and registration consent, per application, editable from central platform. Checkout disclosure and order-level policy acknowledgement removed before publication."
 }

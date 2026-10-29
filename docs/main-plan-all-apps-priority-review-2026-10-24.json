@@ -248,15 +248,19 @@
         "ADMIN"
       ],
       "name": "سياسات الإلغاء والعودة ومسؤولية الأطراف وإظهار الشروط وحفظ الإصدار",
-      "currentStatus": "CASH_CUSTOMER_DISCLOSURE_VERSION_RECORDING_IMPLEMENTED_TESTED_343_PENDING_TEXT_REVIEW_PUBLICATION",
+      "currentStatus": "THREE_APP_POLICY_CMS_PUBLISHED_344_OWNER_TEXT_APPROVAL_AND_APP_ROLLOUT_PENDING",
       "priority": "P0-OPS",
-      "remaining": "اكتمل محليًا تصحيح نصوص الإطلاق النقدي وإظهار سياسة الطلب قبل التأكيد وحفظ نصها وإصدارها مع إقرار الزبون، مع توافق النسخ السابقة دون ادعاء موافقة لم تحصل. نجح 44 اختبار Flutter و37 اختبار خادم. الحزمة جاهزة ولم تُنشر؛ ننتظر مراجعة صاحب المنصة للنص قبل إظهاره للزبائن، ثم نشره وتثبيت نسخة الزبون والاختبارات البشرية المرتبة. تدقيق شمول شروط التسجيل للشركاء ومسارات الموافقة الأقدم ما زال منفصلًا ولا يُعد مثبتًا بهذا الجزء.",
+      "remaining": "نُشرت لوحة إدارة السياسات للتطبيقات الثلاثة على staging (221)، مع مسودات ومعاينة وتاريخ نسخ وصلاحيات منفصلة. جُهزت صفحات كل دور وروابط حسابي/المزيد/إعدادات المطعم وموافقة التسجيل والتحقق من الإصدار في الكود المحلي. أُلغي اقتراح 343 بوضع السياسة في الطلب، ولم يُنشر. لا تزال نصوص التطبيقات الثلاثة تحتاج اعتماد صاحب المنصة ونشرها من اللوحة؛ بعدها يُنشر قارئ النصوص العام وحفظ الموافقات بالخوادم وتُثبت النسخ وتنفذ الاختبارات البشرية المرتبة. لا ندعي أن ذلك مثبت على الأجهزة أو أن كل شروط الشراكة القانونية معتمدة؛ الاتفاقيات التجارية والحفظ X02 والاختبارات القديمة X-TEST-342 مستقلة.",
       "sourceOrEvidence": [
         "docs/checkout-policy-publication-179.json",
         "docs/finance-reference/master-implementation-v1.0-ar.txt",
         "docs/customer-order-policy-343.json",
         "docs/customer-order-policy-343-review.txt",
-        "docs/customer-order-policy-human-acceptance-343.csv"
+        "docs/customer-order-policy-human-acceptance-343.csv",
+        "docs/application-legal-policies-344.json",
+        "docs/application-legal-research-344.json",
+        "docs/application-legal-cms-publication-344.json",
+        "docs/application-legal-human-acceptance-344.csv"
       ],
       "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
@@ -3507,9 +3511,17 @@
   },
   "customerOrderPolicy343": {
     "evidence": "docs/customer-order-policy-343.json",
-    "status": "IMPLEMENTED_TESTED_PACKAGE_READY_NOT_PUBLISHED_OWNER_TEXT_REVIEW_PENDING",
+    "status": "SUPERSEDED_UNPUBLISHED_BY_USER_DIRECTION_344",
     "publishScope": "Only three create-order zip entries; no IAM or financial-rule changes",
     "humanAcceptance": "QUEUED_NOT_RUN",
     "partnerSignupScope": "SEPARATE_ROUTE_AND_CONSENT_COVERAGE_AUDIT_REQUIRED"
+  },
+  "applicationLegal344": {
+    "evidence": "docs/application-legal-policies-344.json",
+    "status": "ADMIN_CMS_PUBLISHED_APP_ROLLOUT_PENDING_OWNER_POLICY_PUBLICATION",
+    "next": "OWNER_PUBLISH_THREE_ROLE_POLICIES_THEN_DEPENDENT_BACKEND_AND_APP_ROLLOUT",
+    "checkoutPolicyRemoved": true,
+    "deploymentPlan": "docs/application-legal-dependent-deployment-344.json",
+    "publicPolicyUrls": "QUEUED_WITH_PUBLIC_READER_BEFORE_STORE_RELEASE"
   }
 }
