@@ -14,7 +14,7 @@ const aliases=[['title','name'],['type','discountType'],['value','discountValue'
 const project=r=>Object.fromEntries(['discountId','businessId','campaignId','id','version','fundingPolicyId','fundingPolicyVersion','createdAt','updatedAt','created_at','updated_at','usage_count','usage','currentUsage',...platformFields,...merchantFields].filter(k=>r[k]!==undefined).map(k=>[k,r[k]]));
 function values(source,patch,current,now,actorId,discountId){
  if(!patch||typeof patch!=='object'||Array.isArray(patch)||Object.keys(patch).some(k=>!(source==='PLATFORM'?platformFields:merchantFields).includes(k)))fail('CAMPAIGN_FIELDS_INVALID');
- if(patch.imageKey!=null&&(typeof patch.imageKey!=='string'||(patch.imageKey&&!/^home-slideshow\/[\w-]+\/[\w-]+\.jpg$/.test(patch.imageKey))))fail('CAMPAIGN_IMAGE_INVALID');
+ if(patch.imageKey!=null&&(typeof patch.imageKey!=='string'||(patch.imageKey&&!/^home-slideshow\/[\w-]+\/[\w-]+\.(?:jpg|gif)$/.test(patch.imageKey))))fail('CAMPAIGN_IMAGE_INVALID');
  const v=patchTerms(current,patch,source==='PLATFORM'?'platform':'merchant');if(source==='PLATFORM'){
   for(const [a,b]of aliases){if(patch[a]!==undefined&&patch[b]!==undefined&&patch[a]!==patch[b])fail('CAMPAIGN_ALIASES_CONFLICT');if(patch[a]!==undefined)v[b]=patch[a];else if(patch[b]!==undefined)v[a]=patch[b];}
   for(const k of ['type','discountType'])if(v[k]==='fixed_amount'||v[k]==='fixedAmount')v[k]='fixed';
@@ -82,7 +82,7 @@ async function route(ctx,actor,method,input){
    if(next.imageKey && next.imageKey!==current?.imageKey){
     if(!next.imageKey.startsWith(`home-slideshow/${actor.employeeId}/`))fail('CAMPAIGN_IMAGE_OWNERSHIP',403);
     const head=await require('./home-slideshow').assets(ctx).head(next.imageKey);
-    if(head.ContentType!=='image/jpeg'||!Number.isFinite(head.ContentLength)||head.ContentLength<100||head.ContentLength>600000)fail('CAMPAIGN_IMAGE_INVALID');
+    if(!require('./home-slideshow').validImageMetadata(next.imageKey,head))fail('CAMPAIGN_IMAGE_INVALID');
    }
    await scope(next);
    for(const regionId of next.targetRegionIds||[]){const region=await get('WizzCentral_Regions',{regionId});if(!region||region.isActive===false||region.is_active===false||region.deletedAt||region.status==='inactive')fail('CAMPAIGN_REGION_UNAVAILABLE',409);guards.push({ConditionCheck:{TableName:'WizzCentral_Regions',Key:{regionId},...fence(region)}});}

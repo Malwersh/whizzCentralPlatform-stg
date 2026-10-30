@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-30",
+  "branch": "integration/team-sync-20261030",
+  "snapshot": "ae858759669c5edc653011f0316f5a9c9fa73e9b",
+  "incoming": "db83e95c798193b06078b822ee838590e0348d1d",
+  "resolutions": [
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "backend/wallet-service/merchant-runtime/functions/shared/branch-product-pricing.js",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "backend/wallet-service/src/orderGoodsPricing.ts",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "backend/wallet-service/test/order-goods-pricing.test.cjs",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/drivers.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/finance.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/financial-management.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/order-exceptions.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/orders.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/promotions.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/regions.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/settings.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/pages/staff.html",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/styles/design-system.css",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "file": "frontend/styles/platform-theme.css",
+      "resolution": "ours",
+      "reason": "Keep current inventory fences, region polygon editor, vehicle/payout/dispatch workflows and audit wiring. Reconcile shell classes and GIF cache additions separately; do not replace newer operational code with older UI-only script references."
+    }
+  ],
+  "notes": [
+    "Upstream history is merged without force/reset. Current inventory/quote/permissions guards retained where upstream versions are older.",
+    "New customer regional carousel and GIF playback preserved alongside published home-layout callbacks.",
+    "Cloud deployments and financial/content records are unchanged by this GitHub synchronization."
+  ]
+}

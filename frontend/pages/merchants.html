@@ -14,6 +14,9 @@
     <!-- Security: DOMPurify for XSS Protection -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <link rel="stylesheet" id="wizz-shell-styles" href="../styles/app-shell.css?v=20261022-rtl1">
+    <link rel="stylesheet" id="wizz-admin-styles" href="../styles/admin-ui.css?v=20261025-shell2"><link rel="preload" href="../assets/fonts/NotoSansArabic.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1">
     <link rel="stylesheet" href="../styles/merchants-table.css?v=20261017-branch-view">
     <script src="../styles/wizz-theme-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -818,9 +821,9 @@
         /* Keep minimal overrides only when needed */
         .status-badge { white-space: nowrap; }
     </style>
-<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
+</head>
 
-<body data-page="merchants">
+<body class="wizz-shell" data-page="merchants">
     <!-- Sidebar include placeholder -->
     <div id="sidebar-placeholder"></div>
 
@@ -1223,13 +1226,13 @@
             });
         </script>
 
-        <script src="../merchant-changes.js?v=20261014-review"></script>
+        <script src="../merchant-changes.js?v=20261023-feedback"></script>
         <script src="../merchant-applications.js?v=20261014"></script>
         <script src="../merchant-types.js?v=20261014"></script>
         <script src="../merchant-staff-policy.js?v=259"></script>
         <!-- Page-specific scripts -->
         <script src="../merchant-branch-view.js?v=20261017-branch-view"></script>
-<script src="../merchants.js?v=20261017-branch-view"></script>
+<script src="../merchants.js?v=20261025-timeout1"></script>
         <script>
             console.log('Merchants page script loaded');
 
@@ -1257,7 +1260,7 @@
     })();
 </script>
     <script src="../finance-sample.js?v=120"></script>
-    <script src="../commercial-funding-picker.js?v=76"></script><script src="../commercial-management.js?v=shared-lock-240"></script>
+    <script src="../commercial-funding-picker.js?v=76"></script><script src="../commercial-management.js?v=20261025-timeout1"></script>
 <script src="../commercial-platform-notices.js?v=81"></script>
 <script src="../delivery-policy-form.js?v=182"></script><script src="../delivery-policy-management.js?v=182"></script>
 </body>

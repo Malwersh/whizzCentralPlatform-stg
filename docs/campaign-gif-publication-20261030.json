@@ -1,0 +1,52 @@
+{
+  "jobId": "230",
+  "lambdaSha256": "7Cg+YKKA+h8H1GnIiiBSHBAeDY/oPeQOfKKIpp+FYkQ=",
+  "environment": "staging",
+  "date": "2026-10-30",
+  "function": "staging-wizz-staff-service",
+  "lambdaFiles": [
+    "home-slideshow.js",
+    "offers.js",
+    "promotions.js"
+  ],
+  "hostingFiles": [
+    "campaign-image.js",
+    "pages/promotions.html"
+  ],
+  "hostingStatus": "SUCCEED",
+  "hostedBytesVerified": true,
+  "unrelatedLiveFilesPreserved": true,
+  "gifMaxBytes": 3145728,
+  "tests": {
+    "backendAndUploadUiPassed": 52,
+    "liveCandidateGifPassed": 5,
+    "flutterMultiFrameDecodePassed": 1
+  },
+  "customerRendering": "Existing offer sheet Image.network uses original GIF bytes and Flutter multi-frame codec; no new app build required.",
+  "followup": {
+    "jobId": "231",
+    "lambdaSha256": "QfZl9wAJaf9bgsZfDnNXKMlzyFezorWuDH4U4/rdxQs=",
+    "hostingStatus": "SUCCEED",
+    "hostedBytesVerified": true,
+    "changes": [
+      "Detect GIF signature when contentType is missing",
+      "Preserve GIF bytes in campaign and slideshow uploaders",
+      "Detect GIF filenames when browser omits MIME",
+      "Refresh both upload script cache references"
+    ],
+    "browserRegressionTestsPassed": 2
+  },
+  "activeRuntimeCorrection": {
+    "function": "staging-wizz-staff-service",
+    "activeWrapper": "index.js",
+    "changedFile": "_discount_review/central-staff/index.js",
+    "codeSha256": "yziTIUsFxEUsN0o5Wqf1A3qky+LLNxV4YoL/bMJL0Gc=",
+    "status": "Successful",
+    "actualEntryRegressionPassed": true,
+    "baselineReproducedUserError": true,
+    "unrelatedZipEntriesPreserved": true,
+    "configurationPreserved": true,
+    "rootCause": "index.js delegates to bundled _discount_review/central-staff/index.js; prior loose-module updates did not change the active uploader.",
+    "regressionTestsPassed": 54
+  }
+}

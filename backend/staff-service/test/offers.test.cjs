@@ -388,3 +388,14 @@ test('campaign image save checks ownership and metadata and preserves storage ke
   assert.equal(normalize(saved).imageKey,imageKey);
   assert.equal(saved.imageUrl,undefined);
 });
+
+test('campaign accepts GIF storage keys and enforces matching metadata', async () => {
+ const {ctx,writes}=fixture(),imageKey='home-slideshow/admin/animated.gif';
+ ctx.assets={head:async()=>({ContentType:'image/gif',ContentLength:2000000}),url:async()=> 'https://signed.example/animated.gif'};
+ await route(ctx,admin,'POST','/staff/offers/save',{...input(),imageKey});
+ assert.equal(writes.length,1);
+ ctx.assets.head=async()=>({ContentType:'image/jpeg',ContentLength:1000});
+ await assert.rejects(route(ctx,admin,'POST','/staff/offers/save',{...input(),imageKey}),/unavailable/);
+ ctx.assets.head=async()=>({ContentType:'image/gif',ContentLength:3*1024*1024+1});
+ await assert.rejects(route(ctx,admin,'POST','/staff/offers/save',{...input(),imageKey}),/unavailable/);
+});

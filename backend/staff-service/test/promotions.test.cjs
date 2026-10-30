@@ -49,3 +49,13 @@ test('campaign image ownership, malformed paths and invalid metadata reject befo
  const f=fixture();f.ctx.assets={head:async()=>({ContentType:'text/html',ContentLength:1000})};
  await assert.rejects(f.call({...f.input,values:{...f.data,imageKey:'home-slideshow/staff/image.jpg'}}),/CAMPAIGN_IMAGE/);assert.equal(f.writes.length,0);
 });
+
+test('campaign creation and reading preserve animated GIF with correct metadata',async()=>{
+ const f=fixture(),imageKey='home-slideshow/staff/animated.gif';
+ f.ctx.assets={head:async()=>({ContentType:'image/gif',ContentLength:2000000}),url:async key=>'https://signed.test/'+key};
+ await f.call({...f.input,values:{...f.data,imageKey}});
+ const read=await route(f.ctx,f.actor,'GET',{source:'PLATFORM',discountId:'promo'});
+ assert.equal(read.campaign.imageKey,imageKey);assert.match(read.campaign.imageUrl,/animated\.gif$/);
+ const bad=fixture();bad.ctx.assets={head:async()=>({ContentType:'image/jpeg',ContentLength:2000})};
+ await assert.rejects(bad.call({...bad.input,values:{...bad.data,imageKey}}),/CAMPAIGN_IMAGE_INVALID/);assert.equal(bad.writes.length,0);
+});

@@ -1,6 +1,8 @@
 async function driverStaffApi(path,body) {
     await window.Auth.ensureSession();
-    const response=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+    let response;
+    try{response=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+path,{method:body?'POST':'GET',signal:controller.signal,headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});}finally{clearTimeout(timer);}
     const data=await response.json();if(!response.ok)throw Object.assign(Error(data.error||'تعذر تحميل بيانات السائقين'),{code:data.error});return data;
 }
 // Drivers Management JavaScript with Direct Authentication

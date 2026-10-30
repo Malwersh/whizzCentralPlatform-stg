@@ -236,7 +236,7 @@ class NavigationManager {
             const visual = document.createElement('link');
             visual.id = 'wizz-admin-styles';
             visual.rel = 'stylesheet';
-            visual.href = this._prefix('/styles/admin-ui.css?v=20261023-details1');
+            visual.href = this._prefix('/styles/admin-ui.css?v=20261025-shell2');
             const ready = new Promise((resolve, reject) => {
                 visual.onload = resolve;
                 visual.onerror = () => reject(new Error('Could not load the admin presentation stylesheet.'));

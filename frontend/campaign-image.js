@@ -35,21 +35,33 @@
     el('campaign_imageRemove').onclick = () => window.CampaignImage.reset();
     el('campaign_image').onchange = async () => {
       const file = el('campaign_image').files[0]; if (!file || uploading) return;
+      const isGif = file.type === 'image/gif' || /\.gif$/i.test(file.name || '');
       const n = ++generation, url = URL.createObjectURL(file);
       const submit = el('simplifiedCampaignForm').querySelector('[type=submit]');
       uploading = true; submit.disabled = true; el('campaign_image').disabled = true; el('campaign_imageRemove').disabled = true;
       el('campaign_imageStatus').textContent = 'جارٍ رفع الصورة…';
       try {
-        if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 10*1024*1024) throw Error('اختر JPG أو PNG أو WebP بحجم أقل من 10 MB.');
+        if ((!isGif && !['image/jpeg','image/png','image/webp'].includes(file.type)) || file.size > 10*1024*1024) throw Error('اختر JPG أو PNG أو WebP حتى 10 MB، أو GIF حتى 3 MB.');
         const img = new Image(); img.src = url; await img.decode();
         if (img.naturalWidth*img.naturalHeight > 40000000) throw Error('اختر صورة أقل من 40 ميغابكسل.');
-        const canvas = document.createElement('canvas'), ratio = Math.min(1,1600/img.naturalWidth,1600/img.naturalHeight);
-        canvas.width = Math.max(1,Math.round(img.naturalWidth*ratio)); canvas.height = Math.max(1,Math.round(img.naturalHeight*ratio));
-        const ctx = canvas.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.width,canvas.height);
         let image;
-        for (const quality of [.85,.7,.55,.4]) { image = canvas.toDataURL('image/jpeg',quality).split(',')[1]; if (image.length < 790000) break; }
-        if (image.length >= 790000) throw Error('اختر صورة أصغر.');
-        const result = await api('slideshow/upload',{image});
+        if (isGif) {
+          if (file.size > 3*1024*1024) throw Error('اختر GIF بحجم أقل من 3 MB.');
+          // Send the original bytes: drawing to canvas removes animation frames.
+          image = await new Promise((resolve,reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = () => reject(Error('تعذر قراءة الصورة.'));
+            reader.readAsDataURL(file);
+          });
+        } else {
+          const canvas = document.createElement('canvas'), ratio = Math.min(1,1600/img.naturalWidth,1600/img.naturalHeight);
+          canvas.width = Math.max(1,Math.round(img.naturalWidth*ratio)); canvas.height = Math.max(1,Math.round(img.naturalHeight*ratio));
+          const ctx = canvas.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.width,canvas.height);
+          for (const quality of [.85,.7,.55,.4]) { image = canvas.toDataURL('image/jpeg',quality).split(',')[1]; if (image.length < 790000) break; }
+          if (image.length >= 790000) throw Error('اختر صورة أصغر.');
+        }
+        const result = await api('slideshow/upload',{image,contentType:isGif ? 'image/gif' : 'image/jpeg'});
         if (n !== generation) return;
         show(result.imageKey,result.imageUrl); el('campaign_imageStatus').textContent = 'الصورة جاهزة. احفظ الحملة لتثبيتها.';
       } catch(e) { if(n === generation) el('campaign_imageStatus').textContent = e.message; }
