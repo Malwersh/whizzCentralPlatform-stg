@@ -1,0 +1,22 @@
+{
+  "atUtc": "2026-10-30T12:25:05.979496+00:00",
+  "deletedTestDefinitions": [
+    "benefit-qa-delivery_amount-372b8dc145",
+    "benefit-deviceqa-delivery_amount-fe7c3cc667",
+    "benefit-postmerge-delivery_amount-3e44c0c5",
+    "benefit-deviceqa-free_deliveries-6cee11a1cd",
+    "benefit-postmerge-goods_amount-c317da97",
+    "benefit-qa-free_deliveries-4f15e3f653",
+    "benefit-qa-goods_amount-e4bc2672f8",
+    "benefit-deviceqa-goods_amount-8faa7dd92c",
+    "c90386ca-681f-455b-9454-8c543ff3e275"
+  ],
+  "archivedLinkedDefinition": [
+    "f688fc65-9f68-4b57-8756-31722a4a38d4"
+  ],
+  "deletedUnusedGrants": 9,
+  "retainedUsedGrant": 1,
+  "preservedLinkedOrderRecords": true,
+  "archivedFullSnapshots": 10,
+  "atomicTransaction": true
+}

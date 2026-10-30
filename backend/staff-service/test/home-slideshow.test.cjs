@@ -39,3 +39,23 @@ test('standalone campaign feed and details use campaign image without reading sl
  }
  delete f.targets.hamla.imageKey;assert.equal((await publicFeed(f.ctx,{queryStringParameters:{campaigns:'1'}})).campaigns[0].imageUrl,'');
 });
+
+test('animated GIF upload retains all frames and saves with matching content type',async()=>{
+ const f=fixture(),body=Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH/C05FVFNDQVBFMi4wAwEAAAAh+QQACgAAACwAAAAAAQABAAACAkQBACH5BAAKAAAALAAAAAABAAEAAAICTAEAOw==','base64');
+ const uploaded=await route(f.ctx,f.actor,'POST','/staff/slideshow/upload',{image:body.toString('base64'),contentType:'image/gif'});
+ assert.match(uploaded.imageKey,/\.gif$/);assert.deepEqual(f.uploads[0].body,body);
+ f.ctx.assets.head=async()=>({ContentType:'image/gif',ContentLength:body.length});
+ await save(f,{...slide(),imageKey:uploaded.imageKey});
+ f.ctx.assets.head=async()=>({ContentType:'image/jpeg',ContentLength:body.length});
+ await assert.rejects(save(f,{...slide(),imageKey:uploaded.imageKey}),/unavailable/);
+});
+test('invalid GIF signatures, dimensions and oversized animations are rejected',async()=>{
+ const f=fixture();for(const body of [Buffer.alloc(50),Buffer.alloc(3*1024*1024+1)])await assert.rejects(route(f.ctx,f.actor,'POST','/staff/slideshow/upload',{contentType:'image/gif',image:body.toString('base64')}));
+ assert.equal(f.uploads.length,0);
+});
+
+test('GIF signature is detected when older upload clients omit contentType',async()=>{
+ const f=fixture(),image='R0lGODlhAQABAIAAAAAAAP///yH/C05FVFNDQVBFMi4wAwEAAAAh+QQACgAAACwAAAAAAQABAAACAkQBACH5BAAKAAAALAAAAAABAAEAAAICTAEAOw==';
+ const result=await route(f.ctx,f.actor,'POST','/staff/slideshow/upload',{image});
+ assert.match(result.imageKey,/\.gif$/);assert.deepEqual(f.uploads[0].body,Buffer.from(image,'base64'));
+});

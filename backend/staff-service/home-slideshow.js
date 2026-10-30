@@ -20,7 +20,7 @@ function validate(s){
  if(s.action.type==='category'&&!id(s.action.merchantId))throw fail('Choose the category merchant.');
  const date=v=>typeof v==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(v)&&Number.isFinite(Date.parse(v));
  if(!date(s.startAt)||!date(s.endAt)||Date.parse(s.endAt)<=Date.parse(s.startAt))throw fail('End time must be after the start time.');
- if(typeof s.imageKey!=='string'||!/^home-slideshow\/[\w-]+\/[\w-]+\.jpg$/.test(s.imageKey))throw fail('Upload an image first.');
+ if(typeof s.imageKey!=='string'||!/^home-slideshow\/[\w-]+\/[\w-]+\.(?:jpg|gif)$/.test(s.imageKey))throw fail('Upload an image first.');
  return {id:s.id,title:s.title.trim(),status:s.status,audience:s.audience,regionIds:[...new Set(s.regionIds)],displayOrder:s.displayOrder,startAt:s.startAt,endAt:s.endAt,imageKey:s.imageKey,action:{type:s.action.type,id:s.action.id,...(s.action.type==='category'?{merchantId:s.action.merchantId}:{})}};
 }
 function eligible(s,{now=Date.now(),signedIn=false,regionIds=[]}={}){
@@ -31,11 +31,15 @@ function eligible(s,{now=Date.now(),signedIn=false,regionIds=[]}={}){
 const get=async(ctx,TableName,Key)=>(await ctx.db.send(new GetCommand({TableName,Key,ConsistentRead:true}))).Item;
 async function state(ctx){return await get(ctx,ctx.table,KEY)||{...KEY,version:0,slides:[]};}
 async function scan(ctx,TableName){let rows=[],cursor;for(let n=0;n<20;n++){const r=await ctx.db.send(new ScanCommand({TableName,ExclusiveStartKey:cursor}));rows.push(...(r.Items||[]));cursor=r.LastEvaluatedKey;if(!cursor)return rows;}throw fail('Destination list is too large. Contact support.',503);}
+function validImageMetadata(key,head){
+ const gif=key.endsWith('.gif');
+ return head.ContentType===(gif?'image/gif':'image/jpeg')&&Number.isFinite(head.ContentLength)&&head.ContentLength>=(gif?35:100)&&head.ContentLength<=(gif?3*1024*1024:600000);
+}
 function assets(ctx){
  if(ctx.assets)return ctx.assets;
  const {S3Client,PutObjectCommand,GetObjectCommand,HeadObjectCommand}=require('@aws-sdk/client-s3');
  const {getSignedUrl}=require('@aws-sdk/s3-request-presigner');const client=new S3Client({});
- return {put:(Key,Body)=>client.send(new PutObjectCommand({Bucket:BUCKET,Key,Body,ContentType:'image/jpeg',CacheControl:'private,max-age=900',ServerSideEncryption:'AES256'})),head:Key=>client.send(new HeadObjectCommand({Bucket:BUCKET,Key})),url:Key=>getSignedUrl(client,new GetObjectCommand({Bucket:BUCKET,Key}),{expiresIn:3600})};
+ return {put:(Key,Body)=>client.send(new PutObjectCommand({Bucket:BUCKET,Key,Body,ContentType:Key.endsWith('.gif')?'image/gif':'image/jpeg',CacheControl:'private,max-age=900',ServerSideEncryption:'AES256'})),head:Key=>client.send(new HeadObjectCommand({Bucket:BUCKET,Key})),url:Key=>getSignedUrl(client,new GetObjectCommand({Bucket:BUCKET,Key}),{expiresIn:3600})};
 }
 
 
@@ -69,9 +73,17 @@ async function route(ctx,actor,method,path,input){
  }
  if(method==='POST'&&path==='/staff/slideshow/upload'){
   if(!allowed(actor,'promotions.create')&&!allowed(actor,'promotions.edit'))throw fail('You do not have permission to upload images.',403);
-  if(typeof input.image!=='string'||input.image.length>820000||!/^[A-Za-z0-9+/]+={0,2}$/.test(input.image))throw fail('Upload a JPEG image smaller than 600 KB.');
-  const body=Buffer.from(input.image,'base64');if(body.length>600000||body.length<100||body[0]!==255||body[1]!==216||body[2]!==255||body.at(-2)!==255||body.at(-1)!==217)throw fail('Invalid JPEG image.');
-  const imageKey=`home-slideshow/${actor.employeeId}/${randomUUID()}.jpg`;
+  const gif=input.contentType==='image/gif'||(typeof input.image==='string'&&/^(R0lGODdh|R0lGODlh)/.test(input.image)),limit=gif?3*1024*1024:600000;
+  if(input.contentType&&!['image/jpeg','image/gif'].includes(input.contentType))throw fail('Upload a JPEG or GIF image.');
+  if(typeof input.image!=='string'||input.image.length>Math.ceil(limit/3)*4||!/^[A-Za-z0-9+/]+={0,2}$/.test(input.image))throw fail('Upload a JPEG smaller than 600 KB or GIF smaller than 3 MB.');
+  const body=Buffer.from(input.image,'base64');
+  if(body.length>limit)throw fail('Image is too large.');
+  if(gif){
+   if(body.length<35||!['GIF87a','GIF89a'].includes(body.toString('ascii',0,6))||body.at(-1)!==0x3b)throw fail('Invalid GIF image.');
+   const width=body.readUInt16LE(6),height=body.readUInt16LE(8);
+   if(!width||!height||width*height>40000000)throw fail('Invalid GIF dimensions.');
+  }else if(body.length<100||body[0]!==255||body[1]!==216||body[2]!==255||body.at(-2)!==255||body.at(-1)!==217)throw fail('Invalid JPEG image.');
+  const imageKey=`home-slideshow/${actor.employeeId}/${randomUUID()}.${gif?'gif':'jpg'}`;
   await assets(ctx).put(imageKey,body);return {imageKey,imageUrl:await assets(ctx).url(imageKey)};
  }
  if(method!=='POST'||!['/staff/slideshow/save','/staff/slideshow/status'].includes(path))throw fail('NOT_FOUND',404);
@@ -84,7 +96,7 @@ async function route(ctx,actor,method,path,input){
  if(input.baseVersion!==current.version)throw fail('Slides changed in another window. Refresh before saving.',409);
  if(!before&&current.slides.length>=20)throw fail('You can manage up to 20 slides. Reuse an existing slide.');
  if(s.imageKey!==before?.imageKey&&!s.imageKey.startsWith(`home-slideshow/${actor.employeeId}/`))throw fail('Upload an image using your own account.',403);
- const head=await assets(ctx).head(s.imageKey);if(head.ContentType!=='image/jpeg'||head.ContentLength>600000)throw fail('Uploaded image is unavailable.');
+ const head=await assets(ctx).head(s.imageKey);if(!validImageMetadata(s.imageKey,head))throw fail('Uploaded image is unavailable.');
  const destination=await target(ctx,s);
 
  if(['campaign','platform'].includes(s.action.type)&&!require('./offers').inScope(actor,destination,[]))throw fail('Offer is outside your assigned region scope.',403);
@@ -152,4 +164,4 @@ async function publicFeed(ctx,event){
  }
  return standalone?{campaigns:slides}:{version:current.version,slides};
 }
-module.exports={route,publicFeed,validate,eligible,KEY,assets};
+module.exports={route,publicFeed,validate,eligible,KEY,assets,validImageMetadata};

@@ -181,7 +181,7 @@ function normalize(row) {
   };
 }
 function validate(input) {
-  if (input?.imageKey != null && (typeof input.imageKey !== 'string' || (input.imageKey && !/^home-slideshow\/[\w-]+\/[\w-]+\.jpg$/.test(input.imageKey)))) throw fail('Upload a valid campaign image.');
+  if (input?.imageKey != null && (typeof input.imageKey !== 'string' || (input.imageKey && !/^home-slideshow\/[\w-]+\/[\w-]+\.(?:jpg|gif)$/.test(input.imageKey)))) throw fail('Upload a valid campaign image.');
   if (!input || !validSource(input.source) || !validId(input.id))
     throw fail("Choose a valid offer source.");
   if (
@@ -440,7 +440,7 @@ async function route(ctx, actor, method, path, input) {
   if (data.imageKey && data.imageKey !== before?.imageKey) {
     if (!data.imageKey.startsWith(`home-slideshow/${actor.employeeId}/`)) throw fail('Upload an image using your own account.',403);
     const head = await require('./home-slideshow').assets(ctx).head(data.imageKey);
-    if (head.ContentType !== 'image/jpeg' || !Number.isFinite(head.ContentLength) || head.ContentLength < 100 || head.ContentLength > 600000) throw fail('Uploaded campaign image is unavailable.');
+    if (!require('./home-slideshow').validImageMetadata(data.imageKey, head)) throw fail('Uploaded campaign image is unavailable.');
   }
   if (before && normalize(before).unsupported)
     throw fail(
