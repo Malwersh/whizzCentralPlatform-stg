@@ -93,5 +93,16 @@
     "Upstream history is merged without force/reset. Current inventory/quote/permissions guards retained where upstream versions are older.",
     "New customer regional carousel and GIF playback preserved alongside published home-layout callbacks.",
     "Cloud deployments and financial/content records are unchanged by this GitHub synchronization."
-  ]
+  ],
+  "tests": {
+    "staffNodePassed": 63,
+    "walletNodePassed": 52,
+    "walletTypeScriptBuild": true,
+    "merchantRuntimeSyncCheck": true
+  },
+  "githubReviewTarget": "staging-main",
+  "githubPullBranch": "feature/malwersh/bootstrap",
+  "integrationBackupBranch": "integration/team-sync-20261030",
+  "androidDeviceAcceptance": "Not run as part of this source synchronization",
+  "reviewedHistoricalBranches": "Older bootstrap/rating branches were compared; superseded quote, profile, product and region implementations were not allowed to replace current safeguards."
 }
