@@ -1,0 +1,49 @@
+{
+  "part": 352,
+  "date": "2026-10-29",
+  "status": "PUBLISHED_STAGING_HUMAN_ACCEPTANCE_OPEN",
+  "policy": {
+    "recoveryMode": "OFFSET_NEXT_SETTLEMENT",
+    "applyCredits": true,
+    "editableByAuthorizedAdmin": true
+  },
+  "publicationEvidence": "docs/post-payout-correction-publication-352.json",
+  "merchantSimulator": {
+    "build": 352,
+    "installed": true,
+    "launched": true,
+    "bundleId": "com.whizz.merchants"
+  },
+  "implemented": [
+    "Separate sealed correction approval/journal/branch position, immutable original paid proof",
+    "Atomic reservation and finalization of credits/debt with ordinary payout",
+    "Debt carry-forward and explicit zero-cash offset settlement",
+    "Cancellation releases reservations; retry and source allocation proofs",
+    "Admin policy/review and merchant read-only breakdown",
+    "Protected account-deletion retention and company accounting projection"
+  ],
+  "limits": {
+    "maxSourcesPerAtomicPayout": 16,
+    "maxSourceQueryPages": 20,
+    "pageSize": 50,
+    "oneActiveCorrectionBearingPayoutPerBranch": true,
+    "limitBehavior": "explicit guarded error, no silent bypass"
+  },
+  "validation": {
+    "backendFinancialRegressionTests": 147,
+    "retentionTests": 21,
+    "flutterWidgetTests": 13,
+    "browserSyntheticTests": "Both browser suites passed again after publication using PLAYWRIGHT_MODULE; no real financial writes",
+    "typescript": "passed",
+    "packageWiring": "passed",
+    "hosting": "six changed files byte verified, job223",
+    "authSmoke": 401,
+    "gitDiffCheck": "passed"
+  },
+  "remaining": [
+    "Human end-to-end acceptance using authorized admin and merchant flows",
+    "Standalone credit payout without future ordinary sales",
+    "Case/appeal closure integration after changed financial findings"
+  ],
+  "financialMutationDuringDeployment": false
+}

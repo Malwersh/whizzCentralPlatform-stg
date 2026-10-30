@@ -1,3 +1,4 @@
+import {trustedDriverConfirmation} from './walletCreationAuth';
 /**
  * Cognito Post-Confirmation Trigger
  * 
@@ -30,7 +31,7 @@ interface CognitoPostConfirmationEvent {
   response: Record<string, unknown>;
 }
 
-const WALLET_API_URL = process.env.WALLET_API_URL || 'https://er7d8mkxi5.execute-api.us-east-1.amazonaws.com/dev';
+const WALLET_API_URL = process.env.WALLET_API_URL;
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
 
 /**
@@ -88,21 +89,17 @@ async function createDriverWallet(driverId: string): Promise<void> {
     minRequiredBalance: 25000, // 25,000 IQD minimum
   });
 
-  // Trigger secret for authentication (matches API check)
-  const triggerSecret = process.env.WALLET_TRIGGER_SECRET || 'wallet-creation-trigger-secret-2025';
-
   try {
     // Sign request with IAM credentials
     const signedRequest = await signRequest(url, 'POST', body);
     
     console.log('✅ Request signed with IAM credentials');
 
-    // Make the request with trigger secret header
+    // IAM authentication is enforced by API Gateway; no shared secret.
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         ...signedRequest.headers,
-        'x-trigger-secret': triggerSecret, // Add secret header
       },
       body: signedRequest.body,
     });
@@ -129,27 +126,16 @@ async function createDriverWallet(driverId: string): Promise<void> {
  * Lambda handler for Cognito Post-Confirmation trigger
  */
 export async function handler(event: CognitoPostConfirmationEvent): Promise<CognitoPostConfirmationEvent> {
-  console.log('Post-Confirmation Trigger:', JSON.stringify(event, null, 2));
-
+  if (!trustedDriverConfirmation(event)) {
+    console.warn('Wallet creation skipped: untrusted pool, source, or invalid subject');
+    return event;
+  }
+  if (!WALLET_API_URL || !/^https:\/\/[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com\/[a-z0-9-]+$/.test(WALLET_API_URL)) {
+    console.error('Wallet creation unavailable: API configuration required');
+    return event;
+  }
   try {
     const driverId = event.request.userAttributes.sub;
-    const email = event.request.userAttributes.email;
-    const phone = event.request.userAttributes.phone_number;
-
-    console.log('New driver confirmed:', {
-      driverId,
-      email,
-      phone,
-      userName: event.userName,
-    });
-
-    // Only process driver registrations
-    if (event.triggerSource !== 'PostConfirmation_ConfirmSignUp' &&
-        event.triggerSource !== 'PostConfirmation_ConfirmForgotPassword') {
-      console.log('Skipping trigger source:', event.triggerSource);
-      return event;
-    }
-
     // Create wallet using IAM authentication
     await createDriverWallet(driverId);
 

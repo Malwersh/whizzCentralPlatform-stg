@@ -1,0 +1,70 @@
+{
+  "part": 353,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+  "functions": [
+    {
+      "name": "staging-account-deletion-worker",
+      "codeSha256": "S6o9PQV+6xNBpnZqKWlFIhTyJ3xL3fICQ6rESnDUvqY=",
+      "changedFiles": [
+        "payout-retention.js"
+      ],
+      "configurationPreserved": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "h7y0EfiiLLQnKc8h9PeFTVcdmUtvc64bD9xnQ1/ZXl8=",
+      "changedFiles": [
+        "merchant-payout-corrections-353.js",
+        "order-exception-runtime-229.js",
+        "return-items-runtime-262.js",
+        "cancellation-compensation-runtime.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "configurationPreserved": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "4+AG77gztTyPP70/ViqUGl7MHrqTJf9QbT8WhKqGqbw=",
+      "changedFiles": [
+        "merchant-payout-corrections-353.js",
+        "merchant-corrections.js",
+        "merchant-correction-cases.js",
+        "merchant-payouts.js",
+        "order-exception-cases.js",
+        "settlement-runtime.js",
+        "cash-adjudication-read-278.js",
+        "_discount_review/central-staff/index.js",
+        "cancellation-compensation-runtime.js",
+        "admin-retry-runtime-298.js",
+        "merchant-payout-corrections-352.js"
+      ],
+      "configurationPreserved": true,
+      "unrelatedEntriesPreserved": true
+    }
+  ],
+  "financialRecordsWritten": 0,
+  "balanceChanges": false,
+  "paidSourceChanges": false,
+  "configurationRecordsWritten": 0,
+  "iamChange": "Update correction-review metadata only on staging-Holds; Put EXCEPTION_CASE queue metadata only on staging-WalletLifecycle. No new monetary-attribute permission.",
+  "metadataPolicyArn": "arn:aws:iam::699561669180:policy/StagingPostPayoutCorrectionCaseMetadata353",
+  "metadataPolicyCreatedOrVerified": true,
+  "unauthenticatedSmokeStatus": 401,
+  "merchantAppealScopeVerified": true,
+  "scopePatchOtherEntriesPreserved": true,
+  "hosting": {
+    "jobId": "224",
+    "previousJob": "223",
+    "sourceHashes": {
+      "merchant-payouts.js": "7ef83d5605ae576e59a6dc5edce3aedcd8d0274a61e948c22a0a3dcca19fa11d",
+      "merchant-corrections.js": "b665b8f0b7e3fe53e854c957bdf5e8ecb3ae94ebb493b26bdaea5f1abf5105c1",
+      "case-workflow.js": "c6d783aeb246186b4d6c4aa9b763bc4876115fb9c69b3b678be87e8ebbe041d6",
+      "pages/finance.html": "6e8849da66ddfd21f203ba9c7dd148393b1eb9121e3edd931184152b68e2ccea",
+      "pages/order-exceptions.html": "2ef72b2addd1d41d347031724160aa89f48e84065212b730608f52dfc00fcb68"
+    },
+    "unrelatedEntriesPreserved": true
+  }
+}

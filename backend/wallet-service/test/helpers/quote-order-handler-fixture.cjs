@@ -11,13 +11,15 @@ async function setup(mode='REQUIRED',free=false,{cashDenomination=false}={}){
  f.products=new Map([['p1',{productId:'p1',businessId:'b1',name:'Test',price:3500,categoryId:'cat1',isAvailable:true}]]);
  f.category={categoryId:'cat1',isActive:true};
  f.journey=new Map();
- f.extraPut=p=>{if(p.TableName!=='staging-WizzOfferJourney')return false;f.journey.set(p.Item.pk+'|'+p.Item.sk,structuredClone(p.Item));return true;};
- f.extraLookup=(table,key)=>table==='staging-WizzOfferJourney'?f.journey.get(key.pk+'|'+key.sk):table==='WhizzMerchants_Products'?f.products.get(key.productId):table==='WhizzMerchants_Categories'?f.category:
+ f.inventory=new Map();
+ f.extraPut=p=>{if(p.TableName==='staging-MerchantPlatform'&&p.Item.sk?.startsWith('INVENTORY_RESERVATION#')){f.inventory.set(p.Item.pk+'|'+p.Item.sk,structuredClone(p.Item));return true;}if(p.TableName!=='staging-WizzOfferJourney')return false;f.journey.set(p.Item.pk+'|'+p.Item.sk,structuredClone(p.Item));return true;};
+ f.extraLookup=(table,key)=>table==='staging-MerchantPlatform'&&key?.sk?.startsWith('INVENTORY_RESERVATION#')?(f.inventory.get(key.pk+'|'+key.sk)??null):table==='staging-WizzOfferJourney'?f.journey.get(key.pk+'|'+key.sk):table==='WhizzMerchants_Products'?f.products.get(key.productId):table==='WhizzMerchants_Categories'?f.category:
   table==='WhizzMerchants_Discounts'?f.discountRow:table==='WizzCentral_Platform_Discounts'?f.promoRow:(f.commercialRecords?.get(table+'|'+JSON.stringify(key))??(table==='staging-PlatformStaff'&&key?.pk==='OPERATIONAL_SETTINGS#CASH_ROUNDING'?null:undefined));
  f.extraUpdate=u=>{const row=f.extraLookup(u.TableName,u.Key);for(const field of u.UpdateExpression.slice(4).split(', ')){
   const [n,v]=field.split('=');const name=n.trim(),value=v.trim();row[u.ExpressionAttributeNames[name]||name]=u.ExpressionAttributeValues[value];}
   f.discountUpdates=(f.discountUpdates||0)+1;};
  const db={send:async c=>{
+  if(c.input.TableName==='staging-MerchantPlatform'&&c.input.Key?.sk?.startsWith('INVENTORY_RESERVATION#'))return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
   if(c.input.TableName==='staging-PlatformStaff'&&c.input.Key?.pk==='OPERATIONAL_SETTINGS#CASH_ROUNDING')return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
   if(f.deliveryIndexes&&c instanceof sdk.QueryCommand&&c.input.TableName==='staging-MerchantPlatform')return {Items:structuredClone(f.deliveryIndexes)};
   if(f.deliveryIndexes&&c.input.TableName==='staging-PlatformStaff'&&c.input.Key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_PRICING')return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};

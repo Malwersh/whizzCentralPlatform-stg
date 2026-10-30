@@ -1,0 +1,24 @@
+{
+  "part": 359,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_SHA_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+  "function": "staging-wizz-wallet-service",
+  "beforeSha256": "GbqLBCwxV72wbPZwS4k1dXfMH6nGYuC4+J2AsboPrx0=",
+  "candidateSha256": "jkC1lW5t565Kio5rUTGY5dcq12c3Tdi3l+huEgZOLdg=",
+  "changedFiles": [
+    "dist/topupService.js",
+    "dist/topupService.js.map",
+    "dist/walletLimitsSettings.js",
+    "dist/walletLimitsSettings.js.map",
+    "dist/financialAudit.js",
+    "dist/financialAudit.js.map"
+  ],
+  "allOtherEntriesPreserved": true,
+  "financialRecordsWritten": 0,
+  "historicalAuditRowsModified": 0,
+  "iamChanges": false,
+  "configurationPreserved": true,
+  "testsPassed": 74,
+  "initialCandidateSha256": "9Z8rrBI5Ufx7x+WuJqg1hpdzpiDKfU7IjCK46rmqMRg=",
+  "proposalHistoryExplicitlyPreserved": true
+}

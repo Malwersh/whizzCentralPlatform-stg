@@ -1088,3 +1088,38 @@ Audited existing sources before implementation. Normal full-cash COD fare is ret
 طلب المستخدم رفع ودمج التطبيقات الأربعة لزميله. الفروع الأربعة الحالية هي feature/malwersh/bootstrap، والفرع الرئيسي الفعلي staging-main. طلبات الدمج القائمة تتطلب REVIEW_REQUIRED؛ لا تجاوز لهذه السياسة. تُحدّث طلبات الدمج والأوصاف وتعليمات السحب، وبند المنتجات/CSV/Excel يبقى مفوضًا للزميل. فحص الملفات الجديدة والمعدلة لم يجد مفاتيح خاصة أو رموز دخول حقيقية؛ ملفات pycache تُستثنى. النتيجة النهائية للرفع وتثبيت333 قيد المتابعة.
 
 تحديث333: بُني Release333 الموقّع وثُبّت وشُغّل على الآيفون. ملف تسليم GitHub28أكتوبر2026 يشرح سحب staging-main بعد موافقة ودمج PR، ولا تُعد الفروع محمية المراجعة مدمجة قبل تحقق ذلك في GitHub. ملفات التحديثات الأربعة خضعت لفحص الأسرار وdiff-check؛ لا force push أو تجاوز مراجعة أو تغيير صلاحيات الفروع.
+
+### 2026-10-29 — A10 standalone correction payout and linked case review (353)
+- Supersedes 352 remaining implementation gaps: owner can request correction credit without future sales, using same registered cashbox/owner receipt/admin reconciliation, or zero-cash offset. Distinct CORRECTIONS_ONLY source/MCP record, not a fictitious sales batch; no original payable or operating merchant wallet debit.
+- Admin case page chooses corrections from this order only; link atomically opens correction review. Completion requires full sealed paid allocation proofs, preserves original closure and unrelated reviews; only linked merchant-owner financial appeal can resolve. Original unfinished financial closure still needs existing normal close action.
+- Closure guards published in actual staging-driver-financial-accept and staff cancellation runtimes; original effective closure bodies preserved except guard. Retention updated first, then guards, then staff. Hosting 224 byte verified; merchant simulator 353 installed/launched.
+- Narrow case metadata managed policy (inline role budget exhausted; inline attempt applied no change). No permission to update financial amount attributes. No real correction/payout/case action performed during publication.
+- 98 backend regression tests, 11 Flutter tests, analyzer no issues, browser case/approval/offset tests and actual host SDK route bridge passed. Human acceptance is queued in main A10. No GitHub push in this turn.
+- Evidence central docs/post-payout-correction-{implementation,publication}-353.json.
+
+### 2026-10-29 — A07/F03 read-only reconciliation modernization (354)
+- Corrects raw-sign summation using existing LEDGER_EFFECTS_V8; compares available/locked separately; unknown rows cannot become a matched balance. Verifies driver payout reservation against exact active payout; orphan/invalid/stale rows stay reviewable. No repairs or opening balances invented.
+- Company projection now includes creditIqd; correction unpaid credits/debts shown separately. Existing live browser request timeout fixes preserved during UI delta merge. Scoped read-only IAM projections deny passwordHash; no new monetary write grant.
+- 76 backend tests, TypeScript and diff checks passed. Synthetic wallet reconciliation UI and company UI 390/1440px passed. Backend SHA publication recorded in docs/reconciliation-publication-354.json; see receipt for final hosting state. No real financial actions in this turn.
+- Main A07/F03 and CSV updated. F03 cross-path operating limits/configuration audit still open, plus human report acceptance and proof-led historical difference review. Do not claim all A07/F03 or whole financial audit complete. Next F03 limits, then A06 sensitive action logs. Hardware release tests stay deferred.
+
+354 publication update: backend modules SHA verified; hosting base 224 -> job225 byte verified. Final historical-display follow-up keeps missing correction positions unknown (see final job in publication receipt). No financial data changed; read-only role policies and browser timeouts preserved.
+
+
+### Customer design 361 — home layout continuation (2026-10-29)
+
+User-requested customer design remains active; operational A06 stays paused. Published home layout core to staging (hosting 229): staff draft/publish/rollback, permissions/version guards/audit; region/audience/schedule filtered ordered carousels using region/rating/new/curated/favorites. Added admin page `pages/home-layout.html` linked from promotions. Public feed explicit unconfigured result verified; no layout content, grants or financial records created. Two-file backend overlay preserves every unrelated live entry/configuration. Customer simulator rebuilt/installed/launched. Tests: 27 Node, 13 Flutter, 2 Chrome scenarios and actual bundled route wiring passed.
+
+Remaining design 361: additional section templates/campaign placements, authentic proximity/popularity/history, welcome offer presentation with actual eligibility, nested menu/combo shared schema, cart/checkout visual continuation and human visual acceptance. No claim that whole 361 is complete. Artifacts: `docs/home-layout-publication-361.json`, `docs/customer-discovery-redesign-361.json`.
+
+
+### Section editor workflow refinement — 2026-10-30
+
+Implemented independent section add/edit dialog, per-section preview/save (shared draft transaction preserves other sections), compact cards with pause/delete/reorder draft operations, separate full-home diff/preview/publish review. Baghdad datetime input with UTC persistence. Chrome 390/1280 tests passed including no-write preview/cancel, isolated save, paused/reordered draft without publication, atomic publish, conflict input retention and read-only. Screenshots `/tmp/home-layout361-editor-390.png` and `/tmp/home-layout361-review-1280.png`. Source: `frontend/home-layout.js`, `frontend/pages/home-layout.html`; test `scripts/test-home-layout-browser-361.cjs`.
+
+AWS login renewed. Publication has NOT occurred: latest hosting job232 succeeded but artifact URL 404/list-artifacts empty, narrow S3 archive listing AccessDenied. Last available proven archive is job229 (`backend/.tmp/home-layout-361/hosting/candidate.zip`). Do not overwrite newer hosting with older archive. Asked user source of newer deployments. Publisher `scripts/publish-home-layout-workflow-361.py` deliberately aborts on unknown base. No backend/layout/financial records changed. Need latest complete hosting archive, then overlay exactly two UI files and byte-verify publication.
+
+
+### Section editor workflow publication completed — 2026-10-30
+
+Resolved prior hosting blocker without user action: reviewed colleague GitHub GIF commit db83e95c798193b06078b822ee838590e0348d1d and captured/verified all 280 prior deployed file paths against live job232 plus colleague frontend source-tree paths (no additional served files). Preserved five newer live files: campaign-image.js, home-slideshow.js, pages/promotions.html, commercial-management.js, pages/merchants.html. Published exactly home-layout.js and pages/home-layout.html in hosting job233; initial CDN check lagged, subsequent independent byte verification passed for both new UI files and all five preserved update files. No backend/section/financial data mutations. Evidence: docs/home-layout-workflow-publication-361.json and backend/.tmp/home-layout-workflow-361/current-capture-proof.json. Independent editor/draft/review/publish workflow now live.

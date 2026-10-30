@@ -137,7 +137,7 @@ window.RBAC = {
             if(['pricing.html','delivery-pricing.html'].includes(pageName))return this.staff.permissions.includes('pricing.read');
             if(['merchants.html','promotions.html'].includes(pageName)&&this.staff.permissions.includes('commercial.read'))return true;
             if(pageName==='settings.html')return this.staff.permissions.includes('settings.read')||this.staff.permissions.includes('finance.read');
-            const permission={'staff.html':'staff.read','finance.html':'finance.read','financial-management.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read','regions.html':'regions.read'}[pageName];
+            const permission={'staff.html':'staff.read','audit-trail.html':'audit.read','finance.html':'finance.read','financial-management.html':'finance.read','settings.html':'finance.read','drivers.html':'drivers.read','regions.html':'regions.read'}[pageName];
             return pageName==='account-security.html'||pageName==='index.html'||(!!permission&&this.staff.permissions.includes(permission));
         }
         console.log('🔍 Checking page access for:', pageName);
@@ -363,7 +363,7 @@ window.RBAC = {
         this.staff=await response.json();
         this.filterNavigationMenu();
         if(!this.staff.employee.roles.includes('bootstrap_admin')&&window.location.pathname.endsWith('/dashboard.html')) {
-            const page=this.staff.permissions.includes('staff.read')?'staff.html':this.staff.permissions.includes('finance.read')?'finance.html':this.staff.permissions.includes('drivers.read')?'drivers.html':this.staff.permissions.includes('settings.read')?'settings.html':'account-security.html';
+            const page=this.staff.permissions.includes('staff.read')?'staff.html':this.staff.permissions.includes('audit.read')?'audit-trail.html':this.staff.permissions.includes('finance.read')?'finance.html':this.staff.permissions.includes('drivers.read')?'drivers.html':this.staff.permissions.includes('settings.read')?'settings.html':'account-security.html';
             window.location.replace(page);
         }
     },

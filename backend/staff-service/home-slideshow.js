@@ -150,6 +150,6 @@ async function publicFeed(ctx,event){
   try{await ctx.db.send(new TransactWriteCommand({TransactItems:[{Put:{TableName:journey.TABLE,Item:{pk:'EVENT#'+body.sessionId,sk:day+'#'+body.slideId+'#'+body.type,ttl},ConditionExpression:'attribute_not_exists(pk)'}},{Update:{TableName:journey.TABLE,Key:{pk:'STATS#'+body.slideId,sk:'TOTAL'},UpdateExpression:'ADD #metric :one',ExpressionAttributeNames:{'#metric':body.type==='view'?'views':'taps'},ExpressionAttributeValues:{':one':1}}}]}));}catch(e){if(e.name!=='TransactionCanceledException')throw e;}
   return {recorded:true};
  }
- return standalone?{campaigns:slides}:{version:current.version,slides};
+ return standalone?{campaigns:slides}:{version:current.version,slides,layout:await require('./home-layout').feed(ctx,{signedIn,regionIds:ancestors})};
 }
 module.exports={route,publicFeed,validate,eligible,KEY,assets};

@@ -144,3 +144,8 @@ test('read-only invoice preview remains available with an active order, but send
  const r=await f.invoke({action:'preview_commercial'});assert.equal(r.statusCode,200,JSON.stringify(r.json));assert(r.json.commercial.customerTotal);assert.equal(f.orders.size,1);
  const sent=await f.invoke({commercialConsent:{digest:r.json.commercial.digest,customerTotalMinor:r.json.commercial.customerTotal.minorAmount}});assert.equal(sent.statusCode,409);assert.equal(f.orders.size,1);
 });
+test('modern inventory lookup is absent rather than organization metadata; no-stock still blocks actual order',async()=>{
+ const f=await setup(),sdk=require('@aws-sdk/lib-dynamodb');
+ const missing=await f.adapterDb.send(new sdk.GetCommand({TableName:'staging-MerchantPlatform',Key:{pk:'BRANCH#b1',sk:'INVENTORY_RESERVATION#not-created'}}));assert.equal(missing.Item,null);
+ f.products.get('p1').stock=0;const before=f.transactions.length,r=await f.invoke();assert.equal(r.statusCode,409,JSON.stringify(r.json));assert.equal(r.json.message,'INSUFFICIENT_STOCK');assert.equal(f.orders.size,0);assert.equal(f.transactions.length,before);assert.equal([...f.saved.values()][0].consumption,undefined);
+});

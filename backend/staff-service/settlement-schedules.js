@@ -7,8 +7,8 @@ const P='staging-MerchantPlatform',B='WhizzMerchants_Businesses',D='staging-Acco
 const fail=(code,status)=>{throw Object.assign(Error(code),{status});};
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(v);
 async function wrap(ctx,run){if(ctx.enabled!==true)fail('SETTLEMENT_SCHEDULE_ADMIN_DISABLED',503);try{return await run();}catch(e){if(e.status)throw e;const code=e.code||e.message;
- const status=/PERMISSION|OWNER_REQUIRED|PRINCIPAL|INDEPENDENT|EMPLOYEE|REAUTH/.test(code)?403:/NOT_FOUND/.test(code)?404:/CONFLICT|UNKNOWN_OUTCOME|CHANGED|REVOKED/.test(code)?409:/INVALID|BOUNDARY|CONSENT_REQUIRED|AGREEMENT_UNAVAILABLE|BASE_VERSION/.test(code)?400:503;
- fail(/^(?:PAYOUT_|SCHEDULE_|SETTLEMENT_|MERCHANT_PAYABLE_ALREADY_IN_SETTLEMENT$|MERCHANT_ACCRUAL_OUTSIDE_PERIOD$|INVALID_MERCHANT_(?:SETTLEMENT|OPENING)_PERIOD$)/.test(code)?code:'SETTLEMENT_SCHEDULE_UNAVAILABLE',status);
+ const status=/^CORRECTION_/.test(code)?(/PERMISSION|APPROVAL_LIMIT/.test(code)?403:/INVALID/.test(code)?400:/UNAVAILABLE/.test(code)?404:409):/PERMISSION|OWNER_REQUIRED|PRINCIPAL|INDEPENDENT|EMPLOYEE|REAUTH/.test(code)?403:/NOT_FOUND/.test(code)?404:/CONFLICT|UNKNOWN_OUTCOME|CHANGED|REVOKED/.test(code)?409:/INVALID|BOUNDARY|CONSENT_REQUIRED|AGREEMENT_UNAVAILABLE|BASE_VERSION/.test(code)?400:503;
+ fail(/^(?:CORRECTION_|PAYOUT_|SCHEDULE_|SETTLEMENT_|MERCHANT_PAYABLE_ALREADY_IN_SETTLEMENT$|MERCHANT_ACCRUAL_OUTSIDE_PERIOD$|INVALID_MERCHANT_(?:SETTLEMENT|OPENING)_PERIOD$)/.test(code)?code:'SETTLEMENT_SCHEDULE_UNAVAILABLE',status);
 }}
 async function get(db,table,key){return (await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true,...(table===D?{ProjectionExpression:'#pk,#sk',ExpressionAttributeNames:{'#pk':'pk','#sk':'sk'}}:{})}))).Item;}
 async function branch(db,branchId){if(!id(branchId))fail('INVALID_SCHEDULE_REQUEST',400);const b=await get(db,B,{businessId:branchId});if(!b||b.ownerId!==b.cognitoUserId||b.status!=='approved'||b.deletedAt!=null||b.deletionRequestId!=null||b.isDeleted===true)fail('SCHEDULE_BRANCH_UNAVAILABLE',404);

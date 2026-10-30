@@ -1,0 +1,55 @@
+{
+  "part": 355,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+  "functions": [
+    {
+      "name": "staging-wizz-wallet-service",
+      "codeSha256": "KKHDlFKqOWFyXNCzAr8VloqtcJdlxGlFVVbAVVSZrMM=",
+      "changedFiles": [
+        "dist/index.js",
+        "dist/index.js.map",
+        "dist/fundingService.js",
+        "dist/fundingService.js.map",
+        "dist/topupService.js",
+        "dist/topupService.js.map",
+        "dist/transferSettings.js",
+        "dist/transferSettings.js.map",
+        "dist/walletOperatingLimits.js",
+        "dist/walletOperatingLimits.js.map",
+        "dist/walletLimitsSettings.js",
+        "dist/walletLimitsSettings.js.map"
+      ],
+      "configurationPreserved": true,
+      "otherEntriesPreserved": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "LJOouG4OFZgGiaq1KcdrYT2v1XZBqVk8P+H20B8VGsE=",
+      "changedFiles": [
+        "driver-wallet-limits-355.js",
+        "driver-cash-payout-runtime-v1.js"
+      ],
+      "configurationPreserved": true,
+      "otherEntriesPreserved": true
+    }
+  ],
+  "financialRecordsWritten": 0,
+  "balanceChanges": false,
+  "iamChange": "Exact operating limits key read/condition only for driver financial service",
+  "readPolicies": [
+    {
+      "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "policyArn": "arn:aws:iam::699561669180:policy/StagingWalletLimitsRead355"
+    }
+  ],
+  "hosting": {
+    "jobId": "227",
+    "previousJob": "226",
+    "sourceHashes": {
+      "pages/finance.html": "967f7f82fdee3adc3ce8f730041d81653908c6bb12e24e99246ec484e6451dab",
+      "wallet-operating-limits.js": "2e7a1054a1fe8c4260f5f6cb5416d0f872e7c2ea0f0c990555da983e2e6295f0"
+    },
+    "unrelatedEntriesPreserved": true
+  }
+}

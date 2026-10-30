@@ -5,7 +5,7 @@ import { docClient, TABLES, GetCommand, TransactWriteCommand } from './db';
 import { fundingError } from './fundingService';
 export const transferConfigKey={idempotencyKey:'CONFIG#TRANSFERS',sk:'META'};
 const pendingKey={idempotencyKey:'CONFIG#TRANSFERS_PENDING',sk:'META'};
-export const defaultTransferSettings={version:0,enabled:true,minAmount:1000,maxAmount:100000,driverDaily:100000,customerDaily:100000,merchantDaily:100000,platformDaily:1000000,requestTtlSeconds:3600,reauthSeconds:300,timeZone:'Asia/Baghdad'};
+export const defaultTransferSettings={version:0,enabled:false,minAmount:1000,maxAmount:100000,driverDaily:100000,customerDaily:100000,merchantDaily:100000,platformDaily:1000000,requestTtlSeconds:3600,reauthSeconds:300,timeZone:'Asia/Baghdad'};
 export type TransferSettings=typeof defaultTransferSettings;
 export function validateTransferSettings(input:any):TransferSettings {
  const settings={...defaultTransferSettings};

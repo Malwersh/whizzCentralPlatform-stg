@@ -39,8 +39,8 @@ function setup(earning='3000',transform=()=>{},orderId='order1',flowOptions={}){
    if(parts.length){parts.push(term.slice(start));return parts.every(evaluate);}
    if(term.startsWith('(')&&term.endsWith(')'))return evaluate(term.slice(1,-1));
    const absence=term.match(/^attribute_not_exists\(([^)]+)\)$/);if(absence)return row?.[field(absence[1])]===undefined;
-   const m=term.match(/^(#?[A-Za-z0-9_]+)\s*(=|>)\s*(:[A-Za-z0-9_]+)$/);
-   assert.ok(m,'unsupported condition '+term);const left=row?.[field(m[1])],right=q.ExpressionAttributeValues[m[3]];return m[2]==='>'?typeof left==='number'&&typeof right==='number'&&left>right:quoteCanonical(left)===quoteCanonical(right);
+   const m=term.match(/^([#A-Za-z0-9_.]+)\s*(=|>)\s*(:[A-Za-z0-9_]+)$/);
+   assert.ok(m,'unsupported condition '+term);const left=m[1].split('.').reduce((current,part)=>current?.[field(part)],row),right=q.ExpressionAttributeValues[m[3]];return m[2]==='>'?typeof left==='number'&&typeof right==='number'&&left>right:quoteCanonical(left)===quoteCanonical(right);
   }
   return evaluate(q.ConditionExpression);
  }

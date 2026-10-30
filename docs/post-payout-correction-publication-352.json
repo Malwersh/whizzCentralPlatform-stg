@@ -1,0 +1,70 @@
+{
+  "part": 352,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+  "functions": [
+    {
+      "name": "staging-account-deletion-worker",
+      "codeSha256": "cL8ZGoevaIFYooEfpurlYjksCI/DB/hwn5tI9IDHuF0=",
+      "changedFiles": [
+        "payout-retention.js"
+      ],
+      "configurationPreserved": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "/YRKH4yIx83VsREd43wotneKBDfUpdWp4eF1ewGNHwU=",
+      "changedFiles": [
+        "merchant-payout-corrections-352.js",
+        "merchant-corrections.js",
+        "merchant-payouts.js",
+        "settlement-schedules.js",
+        "commercial-owner.js",
+        "merchant-account.js",
+        "company-accounting.js",
+        "company-accounts.js",
+        "company-chart.js",
+        "settlement-runtime.js",
+        "cash-adjudication-read-278.js",
+        "_discount_review/central-staff/index.js",
+        "cancellation-compensation-runtime.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "configurationPreserved": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "So9ysda1QH7QnwQOKLIlqudDYl2RBbF0mAtZpJSQ9L0=",
+      "changedFiles": [
+        "settlement_schedules.js"
+      ],
+      "configurationPreserved": true,
+      "unrelatedEntriesPreserved": true
+    }
+  ],
+  "financialRecordsWritten": 0,
+  "balanceChanges": false,
+  "paidSourceChanges": false,
+  "iamChange": "ConditionCheckItem only on MERCHANT_CORRECTIONS#* during retention",
+  "lambdaConfigurationChanges": false,
+  "retentionConditionPolicyCreatedOrVerified": true,
+  "configurationRecordsInitialized": 1,
+  "configurationAuditWritten": true,
+  "effectiveRecoveryMode": "OFFSET_NEXT_SETTLEMENT",
+  "unauthenticatedSmokeStatus": 401,
+  "hosting": {
+    "jobId": "223",
+    "previousJob": "222",
+    "sourceHashes": {
+      "merchant-payouts.js": "38a3f09082bf03dd595118cd19f1e35c9d0d799dce499f94e6502cd70fcae326",
+      "merchant-financial-account.js": "3ab212a7940d66a0c0942d1e38fa02516724d684aac002f7f8fecf14e5f387b7",
+      "settlement-statement-details.js": "772a872886d94e62066a7b86d0b4f8ebecc7767cd6d35e05d5d868352841b697",
+      "settlement-statements.js": "0c5f95e5a90a248bcb26b9d62376256d0692b1a1bfd1b3b67ca560e14513e6a1",
+      "merchant-corrections.js": "758168926dd162b927ccdef35153389404d9e18626c4c0bfc0f85bcd39dd0074",
+      "pages/finance.html": "efeb251a805cbb4e26a1a958356dc12b318a8a9fa19ef8fd32ddffd2d98dc725"
+    },
+    "unrelatedEntriesPreserved": true
+  }
+}

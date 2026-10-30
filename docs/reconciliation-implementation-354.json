@@ -1,0 +1,45 @@
+{
+  "part": 354,
+  "date": "2026-10-29",
+  "scope": [
+    "A07 read-only reconciliation",
+    "F03 source eligibility audit and partial closure"
+  ],
+  "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_REVIEW_OPEN",
+  "evidence": "docs/reconciliation-publication-354.json",
+  "findings": [
+    "Old report summed raw signed amounts rather than modern ledger effects; historical positive fee debit could produce false differences",
+    "Old locked reconciliation omitted active driver payout reservation",
+    "Company report projection omitted creditIqd needed for post-payout correction position",
+    "Live projected scan/read permissions did not cover updated report field set"
+  ],
+  "implemented": [
+    "Interpret ledger through LEDGER_EFFECTS_V8 and compare AVAILABLE/LOCKED independently",
+    "Unknown or invalid entries cannot give verified matching status",
+    "Verify payout reservation against strongly read active DRIVER_CASH_PAYOUT source",
+    "Show orphan entries, invalid amounts and stale holds for review; preserve legacy captured-hold proof validation",
+    "Bound full scans and source reads; incomplete coverage returns no matching balances",
+    "Projected company reads retain creditIqd, show separate unpaid correction liabilities and merchant correction debt",
+    "Preserve existing live browser request timeout fixes while applying UI delta"
+  ],
+  "authorization": "Dedicated projected-read policies only; no new financial write permissions and secret attributes rejected by simulation",
+  "validation": {
+    "backendTests": 76,
+    "browser": [
+      "Wallet unknown/unverified and incomplete refresh clearing (GET only)",
+      "Company accounts mobile 390px and desktop 1440px: no overflow, document/statement/CSV regressions"
+    ],
+    "typescript": "passed",
+    "diffCheck": "passed"
+  },
+  "financialDataMutations": false,
+  "readConsistency": "PER_ITEM_NOT_ATOMIC; matches apply to read source set, not certified closing balances",
+  "remaining": [
+    "Human report acceptance and evidence-led resolution of historical/opening discrepancies",
+    "Cross-path operating limit/configuration audit retained in F03",
+    "No end-to-end audit claim for all cash, equity or retained financial history"
+  ],
+  "nextPriority": "F03 cross-path operating limits, then A06 sensitive-action audit coverage; keep Android/iPhone release testing after operational implementation",
+  "hostingEvidence": "docs/reconciliation-publication-354.json (final verified job in hosting.jobId)",
+  "historicalStatements": "Missing correction-position data is displayed as unknown, never assumed zero"
+}

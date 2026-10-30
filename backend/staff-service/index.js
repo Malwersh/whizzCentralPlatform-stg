@@ -22,7 +22,7 @@ async function employee(id){return (await db.send(new GetCommand({TableName:tabl
 async function validateRegions(assignment){for(const regionId of assignment.scope.regionIds){const {Item}=await db.send(new GetCommand({TableName:process.env.REGIONS_TABLE,Key:{regionId},ConsistentRead:true,ProjectionExpression:'regionId'}));if(!Item)throw fail('UNKNOWN_REGION',400);}}
 function recent(claims){const age=Math.floor(Date.now()/1000)-claims.auth_time;if(!Number.isInteger(claims.auth_time)||age< -30||(age>300&&!(process.env.PLATFORM_ENVIRONMENT==='staging'&&process.env.PLATFORM_SESSION_POLICY==='VALID_SESSION')))throw fail('REAUTH_REQUIRED');}
 function guard(person){return {ConditionCheck:{TableName:table,Key:key(person.employeeId),ConditionExpression:'#v = :v AND #s = :active',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':person.version,':active':'ACTIVE'}}};}
-function audit(actor,action,before,after,id){return {Put:{TableName:table,Item:{pk:'AUDIT',sk:new Date().toISOString()+'#'+id,actorId:actor,action,before,after},ConditionExpression:'attribute_not_exists(sk)'}};}
+function audit(actor,action,before,after,id){return require('./audit-trail').write(table,null,actor,action,before,after,id);}
 async function handler(event){
  if(event?.action==='commercial_notice_tick'&&!event.httpMethod&&!event.requestContext)return require('./commercial-notices').tick({db});
  if(event?.action==='merchant_device_payout')return require('./merchant-device-payouts').handle({db,enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},event);
@@ -35,6 +35,7 @@ async function handler(event){
   const actor=await employee(claims.sub);if(!actor||actor.employeeId!==claims.sub||['DELETING','DELETED'].includes(actor.status))throw fail('EMPLOYEE_INACTIVE');
   const live=await cognito.send(new AdminGetUserCommand({UserPoolId:process.env.USER_POOL_ID,Username:claims.username}));if(!live.Enabled||live.UserAttributes?.find(a=>a.Name==='sub')?.Value!==claims.sub)throw fail('EMPLOYEE_INACTIVE');
   const enrolled=live.UserMFASettingList?.includes('SOFTWARE_TOKEN_MFA')===true;
+  const audit=(id,action,before,after,requestId)=>require('./audit-trail').write(table,actor,id,action,before,after,requestId);
   if(event.httpMethod==='POST'&&event.path==='/staff/enrollment/finish'){
    if(actor.status==='ACTIVE')return response(200,{active:true});
    if(actor.status!=='INVITED'||actor.activationApproved!==true||!enrolled||live.UserStatus!=='CONFIRMED')throw fail('ENROLLMENT_REQUIRED');
@@ -56,6 +57,7 @@ async function handler(event){
 
   if(method==='GET'&&path==='/staff/regions'){requirePermission('staff.read');let items=[],cursor,pages=0;do{const result=await db.send(new ScanCommand({TableName:process.env.REGIONS_TABLE,ExclusiveStartKey:cursor,Limit:100,ProjectionExpression:'regionId, #n, name_ar, parent_id, #l',ExpressionAttributeNames:{'#n':'name','#l':'level'}}));items.push(...(result.Items||[]));cursor=result.LastEvaluatedKey;if(++pages>100)throw fail('REGIONS_INCOMPLETE',503);}while(cursor);return response(200,{items});}
   if(method==='GET'&&path==='/staff/catalog'){requirePermission('staff.read');return response(200,{roles:Object.keys(ROLES).filter(r=>r!=='bootstrap_admin').map(id=>({id,label:LABELS[id],permissions:ROLES[id]}))});}
+  if(method==='GET'&&path==='/staff/audit')return response(200,await require('./audit-trail').read({db,table,sdk:require('@aws-sdk/lib-dynamodb'),allowed},actor,event.queryStringParameters||{}));
   if(method==='GET'&&(path==='/staff/employees'||path==='/staff/changes'||path==='/staff/audit')){
    requirePermission(path==='/staff/audit'?'audit.read':'staff.read');const prefix=path==='/staff/employees'?'EMPLOYEE#':path==='/staff/changes'?'CHANGE#':'AUDIT';
    let cursor;if(event.queryStringParameters?.cursor){try{if(event.queryStringParameters.cursor.length>2048)throw Error();cursor=JSON.parse(Buffer.from(event.queryStringParameters.cursor,'base64url').toString());if(typeof cursor.pk!=='string'||typeof cursor.sk!=='string'||Object.keys(cursor).length!==2)throw Error();}catch(_){throw fail('INVALID_CURSOR',400);}}
@@ -76,6 +78,7 @@ async function handler(event){
   if(path==='/staff/order-exceptions'||path.startsWith('/staff/order-exceptions/'))return response(200,await require('./order-exception-cases').route({db,table,employee,guard,audit,enrolled,recent,claims,allowed,query:event.queryStringParameters,accessToken:token},actor,method,path,input));
   if(path==='/staff/settings/dispatch-followup'||path.startsWith('/staff/settings/dispatch-followup/'))return response(200,await require('./dispatch-followup').settings({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled,settingsRoute:require('./operational-settings').route},actor,method,path,input));
   if(path==='/staff/dispatch-reviews'||path.startsWith('/staff/dispatch-reviews/')){const rollout=require('./finance-rollout').createFinanceRollout({db});return response(200,await require('./dispatch-reviews').route({...require('./dispatch-reviews').reviewAccess({db,rollout}),table,employee,guard,audit,enrolled,recent,claims,query:event.queryStringParameters},actor,method,path,input));}
+  if(path==='/staff/home-layout'||path.startsWith('/staff/home-layout/'))return response(200,await require('./home-layout').route({db,table,guard,audit},actor,method,path,input));
   if(path==='/staff/slideshow'||path.startsWith('/staff/slideshow/'))return response(200,await require('./home-slideshow').route({db,table,guard,audit},actor,method,path,input));
   if(path==='/staff/benefits')return response(200,await require('./platform-benefits').route({db,table,guard,audit,enrolled,recent,claims},actor,method,method==='GET'?event.queryStringParameters||{}:input));
   if(path==='/staff/promotions')return response(200,await require('./promotions').route({db,guard,audit,enrolled},actor,method,method==='GET'?event.queryStringParameters||{}:input));

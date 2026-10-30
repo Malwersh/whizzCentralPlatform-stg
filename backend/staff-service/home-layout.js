@@ -1,0 +1,50 @@
+'use strict';
+const {GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
+const {randomUUID}=require('crypto');
+const {allowed}=require('./catalog');
+const KEY={pk:'HOME_LAYOUT',sk:'CURRENT'};
+const SOURCES=['region','rating','new','curated','favorites'];
+const fail=(message,status=400)=>Object.assign(Error(message),{status});
+function validate(rows){
+ if(!Array.isArray(rows)||rows.length>12)throw fail('Maximum 12 sections.');
+ const ids=new Set();
+ return rows.map(r=>{
+  if(!r||typeof r.id!=='string'||!/^[-\w]{1,64}$/.test(r.id)||ids.has(r.id))throw fail('Invalid or duplicate section ID.');ids.add(r.id);
+  if(typeof r.title!=='string'||!r.title.trim()||r.title.length>80||/[<>\u0000-\u001f]/.test(r.title))throw fail('Invalid section title.');
+  if(!SOURCES.includes(r.source)||!['all','guest','signedIn'].includes(r.audience)||typeof r.enabled!=='boolean')throw fail('Invalid source or audience.');
+  if(!Array.isArray(r.regionIds)||r.regionIds.length>40||r.regionIds.some(x=>typeof x!=='string'||!/^[-\w]{1,128}$/.test(x)))throw fail('Invalid regions.');
+  if(!Number.isInteger(r.limit)||r.limit<1||r.limit>12)throw fail('Invalid section size.');
+  const idsList=r.merchantIds??[];
+  if(!Array.isArray(idsList)||idsList.length>30||new Set(idsList).size!==idsList.length||idsList.some(x=>typeof x!=='string'||!/^[-\w]{1,128}$/.test(x))||(r.source==='curated'&&!idsList.length))throw fail('Select curated merchants.');
+  const dates=[r.startAt||null,r.endAt||null];
+  if(dates.some(x=>x!==null&&(typeof x!=='string'||!Number.isFinite(Date.parse(x))))||(dates[0]&&dates[1]&&Date.parse(dates[0])>=Date.parse(dates[1])))throw fail('Invalid schedule.');
+  return {id:r.id,title:r.title.trim(),source:r.source,audience:r.audience,enabled:r.enabled,regionIds:[...new Set(r.regionIds)],merchantIds:r.source==='curated'?idsList:[],limit:r.limit,startAt:dates[0],endAt:dates[1]};
+ });
+}
+async function state(ctx){return (await ctx.db.send(new GetCommand({TableName:ctx.table,Key:KEY,ConsistentRead:true}))).Item||{...KEY,version:0,draft:[],published:null,history:[]};}
+function project(current,{signedIn,regionIds,now=Date.now()}){
+ const p=current.published;if(!p)return {configured:false,version:0,sections:[]};
+ return {configured:true,version:p.revision,sections:p.sections.filter(s=>s.enabled&&(!s.startAt||Date.parse(s.startAt)<=now)&&(!s.endAt||Date.parse(s.endAt)>now)&&(s.audience==='all'||s.audience===(signedIn?'signedIn':'guest'))&&(!s.regionIds.length||s.regionIds.some(r=>regionIds.includes(r))))};
+}
+async function feed(ctx,scope){return project(await state(ctx),scope);}
+async function route(ctx,actor,method,path,input){
+ if(!allowed(actor,'promotions.read')||actor.scope?.allRegions!==true)throw fail('Global promotions permission required.',403);
+ const current=await state(ctx);
+ const permissions={edit:allowed(actor,'promotions.edit'),publish:allowed(actor,'promotions.approve')};
+ if(method==='GET')return {...current,permissions};
+ if(method!=='POST'||!['/staff/home-layout/draft','/staff/home-layout/publish','/staff/home-layout/rollback'].includes(path))throw fail('Unknown layout operation.',404);
+ const publishing=path!=='/staff/home-layout/draft';
+ if(!permissions[publishing?'publish':'edit'])throw fail('Permission required.',403);
+ if(!Number.isInteger(input.baseVersion)||input.baseVersion!==current.version)throw fail('Layout changed. Refresh first.',409);
+ let sections;
+ if(!publishing){sections=validate(input.sections);
+  for(const regionId of new Set(sections.flatMap(s=>s.regionIds))){if(!(await ctx.db.send(new GetCommand({TableName:process.env.REGIONS_TABLE||'WizzCentral_Regions',Key:{regionId},ConsistentRead:true}))).Item)throw fail('Unknown region.');}
+  for(const businessId of new Set(sections.flatMap(s=>s.merchantIds))){const m=(await ctx.db.send(new GetCommand({TableName:'WhizzMerchants_Businesses',Key:{businessId},ConsistentRead:true}))).Item;if(!m||m.isDeleted||m.deletedAt)throw fail('Unknown merchant.');}
+ }else if(path.endsWith('/rollback')){const snapshot=(current.history||[]).find(x=>x.revision===input.revision);if(!snapshot)throw fail('Snapshot unavailable.');sections=validate(snapshot.sections);}else sections=validate(current.draft);
+ const now=new Date().toISOString(),next={...current,version:current.version+1,updatedAt:now};
+ if(publishing){next.history=[...(current.history||[]),...(current.published?[current.published]:[])].slice(-10);next.published={revision:next.version,sections,publishedAt:now};}else next.draft=sections;
+ const put={TableName:ctx.table,Item:next,ConditionExpression:current.version?'#v=:v':'attribute_not_exists(pk)',...(current.version?{ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':current.version}}:{})};
+ try{await ctx.db.send(new TransactWriteCommand({TransactItems:[ctx.guard(actor),{Put:put},ctx.audit(actor.employeeId,publishing?'HOME_LAYOUT_PUBLISHED':'HOME_LAYOUT_DRAFT',current,next,randomUUID())]}));}catch(e){if(e.name==='TransactionCanceledException')throw fail('Layout changed or access revoked. Refresh first.',409);throw e;}
+ return {saved:true,version:next.version};
+}
+module.exports={KEY,SOURCES,validate,project,feed,route};

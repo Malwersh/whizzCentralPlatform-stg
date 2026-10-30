@@ -1,0 +1,49 @@
+{
+  "part": 358,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+  "financialRecordsWritten": 0,
+  "existingAuditRecordsChanged": false,
+  "newIamPermissions": false,
+  "backend": {
+    "name": "staging-wizz-staff-service",
+    "sha256": "Dta5dTlRU3qRt/j0R5xQg495M0QULDw94/1K/SwMV+s=",
+    "configurationPreserved": true,
+    "changedFiles": [
+      "_discount_review/central-staff/index.js",
+      "audit-trail-358.js"
+    ],
+    "allOtherEntriesPreserved": true
+  },
+  "hosting": {
+    "jobId": "228",
+    "previousJob": "227",
+    "sourceHashes": {
+      "audit-trail.js": "87a44612dfe2a71d4fee84a1281b168d887efee6cd3f279b3e73ff47edb85749",
+      "pages/audit-trail.html": "a38c01ae3e74a03b6aab225567b8c6b1cea25c4c7209fb49885b19783c1eeec5",
+      "staff.js": "d8f3e159716808f7fe57af6db0845d8d2a76a65ab954974565de18c147d8a5e3",
+      "assets/js/rbac.js": "ebd10d1567c13d6060b93fc4ab2992798efc38f1b90190412780a2a883f099d0",
+      "assets/js/login.js": "4db63fb3a90c3b695da9ca0900532e7a162138d1e1c8f35410c27eceb5ce48e2",
+      "index.html": "5938a18c29f36661aa0e0debf4cb406a6007059caad475f540cb66fdcc670665",
+      "dist/index.html": "6f70c8ed3cbf6625908707e84cd60123572802dd8278fc99b5aec1eafc3abdd6",
+      "token-debug.html": "65743bdac805b072d942e4b4c45922db1be8d4561e776ea9c8bd9f3d127e0c83",
+      "pages/merchants.html": "1df284319784f9d4438b00579bc399329ce93fe97693461e6a43b5727a66172f",
+      "pages/delivery-pricing.html": "abdd5696bd9bac1be7dd6373390a5e5170c543526fc2d66d445e5c18e55846b3",
+      "pages/support.html": "65453d55c6cfc3fb7ef6f52fbacb71e42197d0a6fad8ae8b4abdd935671e5c78",
+      "pages/drivers.html": "eba85cc9866650ed1daa427751667b996ffb154e6b1803e40a75cb8b176fff31",
+      "pages/regions.html": "c2049a67093da7dedaf83a999c87e73f3b9afbeaee3aa0c34e866870199eca67",
+      "pages/dashboard.html": "30a4290153c766acd72b08cb601c2f93ceb3555b03e00344dee7ba3241ac62b3",
+      "pages/promotions.html": "ea0344a5b61ef1027c4be37e6fbecff62281773a63990eadaedbf8fb98a56110",
+      "pages/unauthorized.html": "522f7254ea71f8afec79d516bdab5480efc4ee56e250992071c628679e6dffa1",
+      "pages/customers.html": "1f94471ad3ffbf77236abfea14537f9f9675613e7a2062786a561870003d0a3c",
+      "pages/orders.html": "6fcf3ee61258f568aeea88439067b0bd48e6e85bbb94cd05caa228f5517e2191",
+      "pages/staff.html": "a1a17862d5925ec42710cb9cbeafe1ecf510ef52091cc846e30d93f7ad65a006",
+      "pages/order-exceptions.html": "b732fa9534581ad6fee3bd4bbf970e72108001d437fca5eb225ff5e13ff4d07b"
+    },
+    "allOtherEntriesPreserved": true
+  },
+  "negativeLiveCheck": {
+    "anonymousAuditReadStatus": 401,
+    "sensitiveDataRead": false
+  }
+}

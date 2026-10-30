@@ -1,3 +1,5 @@
+import {payoutAudit,payoutWalletAudit} from './driverPayoutAudit';
+import {readWalletLimits,walletLimitsGuard} from './walletOperatingLimits';
 import {DynamoDBDocumentClient,QueryCommand,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal,updateChecked} from './driverFinancialTransaction';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
@@ -7,7 +9,7 @@ import {cashPayoutPosting,verifyCashPayoutPosting,cashAccountingDeduplicate} fro
 import {ledgerEffect} from './ledgerEffects';
 import {DRIVER_PAYOUT_POLICY,payoutFail as fail,readDriverPayoutEligibility,validDriverPayoutWallet} from './driverPayoutEligibility';
 type Row=Record<string,any>;
-export type DriverPayoutAuthority={actorId:string;driver:boolean;driverName:string;guards:Row[]};
+export type DriverPayoutAuthority={actorId:string;driver:boolean;driverName:string;guards:Row[];auditIdentity?:Row};
 const P='staging-MerchantPlatform',W='staging-Wallets',L='staging-LedgerEntries';
 const uuid=(v:any)=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
 const key=(driverId:string,sk:string)=>({pk:'DRIVER_PAYOUT#'+driverId,sk});
@@ -47,7 +49,8 @@ export function createDriverCashPayout(options:{db:Pick<DynamoDBDocumentClient,'
   if(w.driverPayoutActiveId!==p.payoutId)return fail('DRIVER_PAYOUT_RESERVATION_CHANGED');
   const n=toWholeIqdExact(readMoney(p.amount)),reserved=(w.driverPayoutReservedIqd??0)+(category==='DRIVER_PAYOUT_RESERVED'?n:-n);
   if(w.availableBalance+a<0||w.lockedBalance+l<0||reserved<0||reserved>w.lockedBalance+l||![w.availableBalance+a,w.lockedBalance+l,reserved].every(Number.isSafeInteger))return fail('DRIVER_PAYOUT_RESERVATION_CHANGED');
-  return [fields(exactCheck(W,wk,w,[...Object.keys(w),'driverPayoutReservedIqd','driverPayoutActiveId','deletedAt','deletionRequestId','isDeleted']),{availableBalance:w.availableBalance+a,lockedBalance:w.lockedBalance+l,driverPayoutReservedIqd:reserved,driverPayoutActiveId:null,version:w.version+1,updatedAt:at}),...ledger(w,p,a,l,category,id,at)];
+  const ops=[fields(exactCheck(W,wk,w,[...Object.keys(w),'driverPayoutReservedIqd','driverPayoutActiveId','deletedAt','deletionRequestId','isDeleted']),{availableBalance:w.availableBalance+a,lockedBalance:w.lockedBalance+l,driverPayoutReservedIqd:reserved,driverPayoutActiveId:null,version:w.version+1,updatedAt:at}),...ledger(w,p,a,l,category,id,at)];
+  return {ops,before:payoutWalletAudit(w),after:payoutWalletAudit({...w,availableBalance:w.availableBalance+a,lockedBalance:w.lockedBalance+l,driverPayoutReservedIqd:reserved,driverPayoutActiveId:null,version:w.version+1})};
  }
  async function request(v:Row){
   if(Object.keys(v).sort().join(',')!=='action,amountIqd,driverId,requestId'||!uuid(v.requestId)||!Number.isSafeInteger(v.amountIqd)||v.amountIqd<=0||v.amountIqd>1000000000)return fail('DRIVER_PAYOUT_INVALID_REQUEST');
@@ -55,11 +58,12 @@ export function createDriverCashPayout(options:{db:Pick<DynamoDBDocumentClient,'
   if(old){if(old.requestDigest!==digest||old.requestedBy!==a.actorId)return fail('DRIVER_PAYOUT_IDEMPOTENCY_CONFLICT');return {success:true,payout:driverPayoutView(old),replayed:true};}
   const eligibility=await(options.eligibility?options.eligibility(v.driverId):readDriverPayoutEligibility(db,v.driverId));
   if(eligibility.budget.policyVersion!==DRIVER_PAYOUT_POLICY||eligibility.budget.eligibleIqd<v.amountIqd)return fail('DRIVER_PAYOUT_NOT_ELIGIBLE');
+  const limits=await readWalletLimits(db);if(v.amountIqd>limits.driverPayoutMaximumIqd)return fail('DRIVER_PAYOUT_AMOUNT_LIMIT');
   const {sources,...sourceSummary}=eligibility.budget;
-  const at=new Date(now()).toISOString(),row={...k,kind:'DRIVER_CASH_PAYOUT',schemaVersion:1,beneficiaryType:'DRIVER',driverId:v.driverId,payoutId:id,recipientName:a.driverName,amount:fromWholeIqd(v.amountIqd),method:'CASH',status:'UNDER_REVIEW',version:1,requestedBy:a.actorId,reservationRequestId:v.requestId,requestDigest:digest,policyVersion:DRIVER_PAYOUT_POLICY,sourceEvidence:{...sourceSummary,sourceCount:sources.length},createdAt:at,updatedAt:at};
+  const at=new Date(now()).toISOString(),row={...k,kind:'DRIVER_CASH_PAYOUT',schemaVersion:1,beneficiaryType:'DRIVER',driverId:v.driverId,payoutId:id,recipientName:a.driverName,amount:fromWholeIqd(v.amountIqd),method:'CASH',status:'UNDER_REVIEW',version:1,requestedBy:a.actorId,reservationRequestId:v.requestId,requestDigest:digest,policyVersion:DRIVER_PAYOUT_POLICY,walletLimitsVersion:limits.version,sourceEvidence:{...sourceSummary,sourceCount:sources.length},createdAt:at,updatedAt:at};
   const w=validDriverPayoutWallet(eligibility.wallet,v.driverId);if(w.driverPayoutActiveId!=null)return fail('DRIVER_PAYOUT_ACTIVE_REQUEST');if(w.availableBalance<v.amountIqd)return fail('DRIVER_PAYOUT_NOT_ELIGIBLE');
   const directory={pk:'DRIVER_PAYOUT_DIRECTORY#GLOBAL',sk:'REQUEST#'+at+'#'+id,kind:'DRIVER_PAYOUT_DIRECTORY',driverId:v.driverId,payoutId:id,recipientName:a.driverName,amount:row.amount,status:row.status,version:1,createdAt:at,updatedAt:at};
-  const ops=[put(directory),fields(eligibility.walletGuard,{availableBalance:w.availableBalance-v.amountIqd,lockedBalance:w.lockedBalance+v.amountIqd,driverPayoutReservedIqd:(w.driverPayoutReservedIqd??0)+v.amountIqd,driverPayoutActiveId:id,version:w.version+1,updatedAt:at}),...ledger(w,row,-v.amountIqd,v.amountIqd,'DRIVER_PAYOUT_RESERVED',v.requestId,at),put(row),{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.requestId,logId:v.requestId,action:'DRIVER_PAYOUT_REQUEST',driverId:v.driverId,payoutId:id,actorId:a.actorId,amountIqd:v.amountIqd,createdAt:at},ConditionExpression:'attribute_not_exists(sk)'}}];
+  const ops=[walletLimitsGuard(limits),put(directory),fields(eligibility.walletGuard,{availableBalance:w.availableBalance-v.amountIqd,lockedBalance:w.lockedBalance+v.amountIqd,driverPayoutReservedIqd:(w.driverPayoutReservedIqd??0)+v.amountIqd,driverPayoutActiveId:id,version:w.version+1,updatedAt:at}),...ledger(w,row,-v.amountIqd,v.amountIqd,'DRIVER_PAYOUT_RESERVED',v.requestId,at),put(row),{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.requestId,logId:v.requestId,action:'DRIVER_PAYOUT_REQUEST',driverId:v.driverId,payoutId:id,...payoutAudit(a,null,row,{before:payoutWalletAudit(w),after:payoutWalletAudit({...w,availableBalance:w.availableBalance-v.amountIqd,lockedBalance:w.lockedBalance+v.amountIqd,driverPayoutReservedIqd:(w.driverPayoutReservedIqd??0)+v.amountIqd,driverPayoutActiveId:id,version:w.version+1})},ledger(w,row,-v.amountIqd,v.amountIqd,'DRIVER_PAYOUT_RESERVED',v.requestId,at),v.requestId),amountIqd:v.amountIqd,createdAt:at},ConditionExpression:'attribute_not_exists(sk)'}}];
   try{await write(v.driverId,'DRIVER',v.amountIqd,a,ops);}catch(e){const saved=await get(k);if(saved?.requestDigest===digest&&saved.requestedBy===a.actorId)return {success:true,payout:driverPayoutView(saved),replayed:true};throw e;}
   return {success:true,payout:driverPayoutView(row)};
  }
@@ -70,7 +74,7 @@ export function createDriverCashPayout(options:{db:Pick<DynamoDBDocumentClient,'
   const n=toWholeIqdExact(readMoney(row.amount)),a=await options.authorize(v.driverId,rule.role,n),ek=key(v.driverId,'EVENT#'+v.payoutId+'#'+v.requestId),prior=await get(ek),digest=quoteHash(v);
   if(prior){if(prior.requestDigest!==digest||prior.actorId!==a.actorId)return fail('DRIVER_PAYOUT_IDEMPOTENCY_CONFLICT');return {success:true,payout:driverPayoutView(row),replayed:true};}
   if(row.version!==v.version||!rule.from.includes(row.status))return fail('DRIVER_PAYOUT_STATE_CHANGED');
-  const at=new Date(now()).toISOString(),next:Row={...row,status:rule.to,version:row.version+1,updatedAt:at},ops:Row[]=[];
+  const at=new Date(now()).toISOString(),next:Row={...row,status:rule.to,version:row.version+1,updatedAt:at},ops:Row[]=[];let walletAudit:Row={before:null,after:null};
   if(!uuid(row.reservationRequestId)||row.payoutId!=='DPO:'+quoteHash({driverId:v.driverId,requestId:row.reservationRequestId}).slice(0,48))return fail('DRIVER_PAYOUT_RESERVATION_PROOF_REQUIRED');
   for(const [bucket,delta]of [['AVAILABLE',-n],['LOCKED',n]]as const){
    const lk={walletId:'WALLET#DRIVER#'+v.driverId,sk:'ts#'+row.createdAt+'#'+bucket+'#'+row.reservationRequestId},entry=await strongGet(db,L,lk);
@@ -80,6 +84,7 @@ export function createDriverCashPayout(options:{db:Pick<DynamoDBDocumentClient,'
   }
   if(!['CANCEL','REJECT','RESOLVE_NOT_PAID','RECONCILE'].includes(v.action)){
    const wk={walletId:'WALLET#DRIVER#'+v.driverId,sk:'META'},w=validDriverPayoutWallet(await strongGet(db,W,wk),v.driverId);
+   walletAudit={before:payoutWalletAudit(w),after:payoutWalletAudit(w)};
    if(w.driverPayoutActiveId!==row.payoutId||(w.driverPayoutReservedIqd??0)<n||w.lockedBalance<n)return fail('DRIVER_PAYOUT_RESERVATION_CHANGED');ops.push(exactCheck(W,wk,w,[...Object.keys(w),'driverPayoutReservedIqd','driverPayoutActiveId','deletedAt','deletionRequestId','isDeleted']));
   }
 
@@ -104,11 +109,11 @@ export function createDriverCashPayout(options:{db:Pick<DynamoDBDocumentClient,'
     next.failureReference=v.failureReference.trim().toUpperCase();next.failureReason=next.reason;
     if(row.cashLedgerJournalId){ops.push(put({pk:'DRIVER_PAYOUT_RETURN_REFERENCE#'+quoteHash({sourceAccount:row.sourceAccount,reference:next.failureReference}),sk:'META',payoutId:row.payoutId,driverId:v.driverId,createdAt:at}));const posting=await cashPayoutPosting(db,{...row,...next},a.actorId,at,true);next.cashReturnJournalId=posting.journalId;ops.push(...posting.ops);}
    }
-   ops.push(...await walletMove(row,n,-n,'DRIVER_PAYOUT_RELEASED',v.requestId,at));
+   const movement=await walletMove(row,n,-n,'DRIVER_PAYOUT_RELEASED',v.requestId,at);walletAudit={before:movement.before,after:movement.after};ops.push(...movement.ops);
   }
   if(v.action==='RECONCILE'){
    if(row.receiptActorId!==v.driverId||!row.receiptAt||!row.cashLedgerJournalId)return fail('DRIVER_PAYOUT_RECEIPT_REQUIRED');
-   const proof=await verifyCashPayoutPosting(db,row);if(!proof)return fail('DRIVER_PAYOUT_EXECUTION_PROOF_REQUIRED');ops.push(exactCheck(P,{pk:proof.pk,sk:proof.sk},proof),...await walletMove(row,0,-n,'DRIVER_PAYOUT_PAID',v.requestId,at));
+   const proof=await verifyCashPayoutPosting(db,row);if(!proof)return fail('DRIVER_PAYOUT_EXECUTION_PROOF_REQUIRED');const movement=await walletMove(row,0,-n,'DRIVER_PAYOUT_PAID',v.requestId,at);walletAudit={before:movement.before,after:movement.after};ops.push(exactCheck(P,{pk:proof.pk,sk:proof.sk},proof),...movement.ops);
    next.paidAt=at;next.reconciledBy=a.actorId;
    ops.push(put(seal({pk:'DRIVER_PAYOUT_PAID#'+row.payoutId,sk:'META',kind:'DRIVER_PAYOUT_PAID_JOURNAL',requestId:v.requestId,schemaVersion:1,status:'PAID',driverId:v.driverId,payoutId:row.payoutId,amount:row.amount,cashLedgerJournalId:row.cashLedgerJournalId,sourceAccount:row.sourceAccount,externalReference:row.externalReference,receiptAt:row.receiptAt,receiptActorId:row.receiptActorId,paidAt:at,reconciledBy:a.actorId,debit:n,credit:n,lines:[{account:'DRIVER_WALLET_PAYABLE',side:'DEBIT',amountIqd:n},{account:'DRIVER_DISBURSEMENT_CLEARING',side:'CREDIT',amountIqd:n}],retentionClass:'FINANCIAL_SETTLEMENT'})));
   }
@@ -120,7 +125,7 @@ export function createDriverCashPayout(options:{db:Pick<DynamoDBDocumentClient,'
    const body=next.status==='AWAITING_RECEIPT'?'سُجّل تسليم النقد من الصندوق. افتح صرف رصيد المحفظة وأكد ما استلمته فعليًا.':next.status==='PAID'?'اكتملت مطابقة سند الصرف وتأكيد استلامك.':'افتح المحفظة لمتابعة حالة طلب الصرف.';
    ops.push({Put:{TableName:options.notificationsTable,Item:{eventId:'DRIVER_PAYOUT#'+row.payoutId+'#'+next.version,driverId:v.driverId,payoutId:row.payoutId,type:'wallet_cash_payout',title,body,createdAt:at,deliveryStatus:'PENDING',nextAttemptAt:0,attempts:0},ConditionExpression:'attribute_not_exists(eventId)'}});
   }
-  ops.push(put(next,row),put({...ek,kind:'DRIVER_PAYOUT_EVENT',actorId:a.actorId,action:v.action,from:row.status,to:next.status,at,requestDigest:digest}),{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.requestId,logId:v.requestId,action:'DRIVER_PAYOUT_'+v.action,driverId:v.driverId,payoutId:row.payoutId,actorId:a.actorId,amountIqd:n,createdAt:at},ConditionExpression:'attribute_not_exists(sk)'}});
+  ops.push(put(next,row),put({...ek,kind:'DRIVER_PAYOUT_EVENT',actorId:a.actorId,action:v.action,from:row.status,to:next.status,at,requestDigest:digest}),{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.requestId,logId:v.requestId,action:'DRIVER_PAYOUT_'+v.action,driverId:v.driverId,payoutId:row.payoutId,...payoutAudit(a,row,next,walletAudit,ops,v.requestId,v.reason),amountIqd:n,createdAt:at},ConditionExpression:'attribute_not_exists(sk)'}});
   try{await write(v.driverId,rule.role,n,a,ops);}catch(e){const saved=await get(ek);if(saved?.actorId===a.actorId&&saved.requestDigest===digest)return {success:true,payout:driverPayoutView((await get(k))!),replayed:true};throw e;}
   return {success:true,payout:driverPayoutView(next)};
  }
@@ -144,7 +149,7 @@ export function createDriverCashPayout(options:{db:Pick<DynamoDBDocumentClient,'
    const out=await db.send(new QueryCommand({TableName:P,KeyConditionExpression:'pk=:p AND begins_with(sk,:s)',ExpressionAttributeValues:{':p':key(v.driverId,'').pk,':s':'PAYOUT#'},ConsistentRead:true,Limit:25,...(cursor?{ExclusiveStartKey:cursor}:{})}));
    for(const r of (out.Items||[]))if(r.status==='PAID')await verifyDriverCashPaid(db,r);
    if(!equal(a,await options.authorize(v.driverId,'READ',0)))return fail('DRIVER_PAYOUT_AUTHORIZATION_CHANGED');
-   return {success:true,eligibility,items:[...(active&&!(out.Items||[]).some(r=>r.payoutId===active!.payoutId)?[active]:[]),...(out.Items||[])].map(driverPayoutView),nextCursor:out.LastEvaluatedKey?Buffer.from(JSON.stringify(out.LastEvaluatedKey)).toString('base64url'):null};
+   const limits=await readWalletLimits(db);return {success:true,limits:{maximumPerRequestIqd:limits.driverPayoutMaximumIqd,version:limits.version},eligibility,items:[...(active&&!(out.Items||[]).some(r=>r.payoutId===active!.payoutId)?[active]:[]),...(out.Items||[])].map(driverPayoutView),nextCursor:out.LastEvaluatedKey?Buffer.from(JSON.stringify(out.LastEvaluatedKey)).toString('base64url'):null};
   }
   return act(v);
  }};

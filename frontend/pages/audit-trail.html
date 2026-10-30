@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل قرارات المنصة</title>
+<script src="../env.js"></script><script src="../config.js"></script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js"></script>
+<script src="../assets/js/auth-utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js"></script>
+<script src="../auth-service.js"></script><style>body{background:#f5f7fb;color:#142c50;font-family:system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:24px}article{background:white;border:1px solid #dce4ef;border-radius:18px;padding:20px;margin:16px 0}h1{font-size:26px}h2{font-size:18px}h3{font-size:15px}time,p{font-size:14px;line-height:1.8}button,a{font:inherit}button{background:#00296b;color:white;border:0;border-radius:12px;padding:10px 20px;cursor:pointer}button:disabled{opacity:.6}button:focus-visible,summary:focus-visible{outline:3px solid #426dba}details{border-top:1px solid #e4e9f1;padding-top:14px}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;background:#f5f7fb;padding:12px;border-radius:12px;font-size:13px}a{color:#00296b}#message{min-height:2em}</style></head><body><main><a href="dashboard.html">المنصة الرئيسية</a><h1>سجل قرارات المنصة</h1><p>يعرض القرارات المسجلة في خدمة الإدارة. سجلات المحافظ والمطابقة المالية لها مصادر مستقلة؛ هذه الصفحة ليست تقريرًا ماليًا شاملًا.</p><p>تُحجب الحقول السرية. تظهر هوية الموظف وقت الإجراء عند توثيقها؛ لا نضيف بيانات تاريخية غير محفوظة إلى السجلات القديمة.</p><div id="controls" hidden><button id="refresh">تحديث السجل</button></div><p id="message" role="status"></p><div id="entries"></div><button id="more" hidden>تحميل المزيد</button></main><script src="../audit-trail.js?v=358"></script></body></html>
