@@ -1,0 +1,23 @@
+{
+  "part": 219,
+  "readOnly": true,
+  "driverGatewayIntegrations": [
+    {
+      "path": "/{proxy+}",
+      "method": "ANY",
+      "integration": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:DriversApi-staging/invocations"
+    }
+  ],
+  "driverHandlerRoutes": [
+    "POST /driver/orders/{orderId}/request-return",
+    "POST /driver/orders/{orderId}/arrive-return",
+    "POST /driver/orders/{orderId}/financial-unassign"
+  ],
+  "merchantRoutes": [
+    "GET /auth/order-returns",
+    "POST /auth/order-returns",
+    "POST /auth/order-cancellation"
+  ],
+  "merchantAuth": "COGNITO_USER_POOLS; live owner checked before delegating original credential",
+  "scope": "actual API integration and function entry audit; does not substitute for physical device acceptance"
+}

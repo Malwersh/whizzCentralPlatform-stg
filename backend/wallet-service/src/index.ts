@@ -1,3 +1,17 @@
+import {walletCreationCaller,walletCreationInput} from './walletCreationAuth';
+import {walletLimitsOverview,walletLimitsAction} from './walletLimitsSettings';
+import {monthlyWalletPage} from './monthlyWalletHistory';
+import {financialOwners} from './financialOwners';
+import {gatewaySettings,saveGatewaySettings,testGatewaySettings,acceptGatewayLive,publicGatewayConfig,createGatewayPayment,checkGatewayPayment,gatewayHistory,gatewayWebhook,reconcileGatewayPayments,recoverGatewayPayment,resolveUncreatedGatewayPayment,importGatewayUatCredentials,authorizeGatewayPilot} from './zaincashGateway';
+import {customerNotifications,readCustomerNotifications} from './customerNotifications';
+import {sendTransferCode,verifyTransferCode} from './transferVerification';
+import {cancelMobileTransfer} from './transferService';
+import {mobileAccount,merchantMembers,saveMerchantMember,merchantAccounts} from './transferIdentity';
+import {transferContext,transferRecipient,transferHistory,transferStatus} from './transferClient';
+import {lifecycleWorker,listLifecycle,retryLifecycle} from './walletLifecycle';
+import { transferSettingsOverview, proposeTransferSettings, approveTransferSettings, cancelTransferSettings } from './transferSettings';
+import { requestTransfer, approveTransfer, listTransferRequests, TransferActor } from './transferService';
+import { reconciliationReport } from './reconciliation';
 import { sandboxConfig, sandboxOverview, createSandboxPayment, checkSandboxPayment, sandboxSettings, saveSandboxSettings, reconcileSandboxPayments, sandboxNotification } from './sandboxPayments';
 import { docClient, QueryCommand, ScanCommand, TABLES } from './db';
 import { getFundingConfig, saveFundingConfig, receiptUpload, receiptView, validateReceipt, fundingError } from './fundingService';
@@ -32,6 +46,7 @@ export async function handler(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
   if ((event as any).source === 'aws.events') {
+    if((event as any).detail?.worker==='zaincash') return buildSuccessResponse(await reconcileGatewayPayments());
     await reconcileSandboxPayments();
     return buildSuccessResponse({reconciled:true});
   }
@@ -48,6 +63,10 @@ export async function handler(
     if(path === '/wallet/funding/sandbox/notification' && method === 'POST') {
       if((event.body || '').length>8192) return buildErrorResponse(413,'PAYLOAD_TOO_LARGE','Payload too large');
       return buildSuccessResponse(await sandboxNotification(parseBody(event.body)));
+    }
+    if(path === '/wallet/funding/zaincash/notification' && method === 'POST') {
+      if((event.body || '').length>10000)return buildErrorResponse(413,'PAYLOAD_TOO_LARGE','Payload too large');
+      return buildSuccessResponse(await gatewayWebhook(parseBody(event.body)));
     }
     // Health check
     if (path === '/health' && method === 'GET') {
@@ -78,6 +97,43 @@ export async function handler(
     const financialRoute = path.startsWith('/wallet/funding/admin') || path === '/wallet/topup/requests' || /\/wallet\/topup\/[^/]+\/(approve|reject)$/.test(path);
     if (financialRoute && !finance) return buildErrorResponse(403, 'FINANCE_MANAGER_REQUIRED', 'صلاحية المدير المالي مطلوبة');
     if (path.startsWith('/wallet/funding/') && !driverId && !adminId) return buildErrorResponse(401,'UNAUTHORIZED','يرجى تسجيل الدخول');
+    if (path === '/wallet/funding/admin/transfer-settings' && method === 'GET') return buildSuccessResponse(event.queryStringParameters?.view==='wallet-operating-limits'?await walletLimitsOverview():await transferSettingsOverview());
+    if (path === '/wallet/funding/admin/transfer-settings' && method === 'POST') {const input=parseBody(event.body);return buildSuccessResponse(String(input?.action||'').endsWith('_WALLET_LIMITS')?await walletLimitsAction(adminId,Number(authorizer?.authTime||0),input):await proposeTransferSettings(adminId,Number(authorizer?.authTime||0),input));}
+    if (path === '/wallet/funding/admin/transfer-settings/approve' && method === 'POST') return buildSuccessResponse(await approveTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)?.changeId));
+    if (path === '/wallet/funding/admin/transfer-settings/cancel' && method === 'POST') return buildSuccessResponse(await cancelTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)?.changeId));
+    if (path === '/wallet/funding/admin/transfers' && method === 'GET') return buildSuccessResponse(await listTransferRequests(event.queryStringParameters?.cursor));
+    if(path==='/wallet/transfers/notifications'){if(authorizer?.userType!=='customer')return buildErrorResponse(403,'CUSTOMER_REQUIRED','حساب مستخدم مطلوب');if(method==='GET')return buildSuccessResponse(await customerNotifications(authorizer.userId,event.queryStringParameters?.cursor));if(method==='POST')return buildSuccessResponse(await readCustomerNotifications(authorizer.userId,parseBody(event.body)));}
+    if(path==='/wallet/transfers/accounts'&&method==='GET'){if(authorizer?.userType!=='merchant')return buildErrorResponse(403,'MERCHANT_REQUIRED','حساب مطعم مطلوب');return buildSuccessResponse(await merchantAccounts(authorizer?.userId));}
+    if (path.startsWith('/wallet/transfers/') && method === 'GET') {
+      const a=await mobileAccount(authorizer?.userType,authorizer?.userId,event.queryStringParameters?.businessId);
+      if(path==='/wallet/transfers/members')return buildSuccessResponse(await merchantMembers(a));
+      if(path==='/wallet/transfers/context')return buildSuccessResponse({...await transferContext(a),phoneVerified:String(authorizer?.phoneVerified)==='true',verifiedPhone:authorizer?.verifiedPhone||''});
+      if(path==='/wallet/transfers/recipient')return buildSuccessResponse(await transferRecipient(a,event.queryStringParameters?.phone||'',event.queryStringParameters?.type||'DRIVER'));
+      if(path==='/wallet/transfers/status')return buildSuccessResponse(await transferStatus(a,event.queryStringParameters?.requestId||''));
+      if(path==='/wallet/transfers/history')return buildSuccessResponse(await transferHistory(a,event.queryStringParameters?.cursor));
+    }
+    if(['/wallet/transfers/otp/send','/wallet/transfers/otp/verify'].includes(path)&&method==='POST'){if(process.env.ENVIRONMENT!=='staging')return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);try{return buildSuccessResponse(path.endsWith('/send')?await sendTransferCode(a,(event.headers.Authorization||event.headers.authorization||'').replace(/^Bearer /,''),input):await verifyTransferCode(a,input));}catch(e:any){if(e.name==='TransactionCanceledException')return buildErrorResponse(429,'OTP_LIMIT','انتظر قبل إعادة المحاولة أو اطلب رمزًا جديدًا');throw e;}}
+    if(path==='/wallet/transfers/members'&&method==='POST'){const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await saveMerchantMember(a,Number(authorizer?.authTime||0),input));}
+    if(path==='/wallet/transfers/cancel'&&method==='POST'){const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await cancelMobileTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime||0)},input));}
+    if (path === '/wallet/transfers/request' && method === 'POST') {
+      const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      return buildSuccessResponse(await requestTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime || 0)},input));
+    }
+    if(path.startsWith('/wallet/transfers/'))return buildErrorResponse(405,'METHOD_NOT_ALLOWED','هذه العملية غير متاحة');
+    if (path === '/wallet/funding/admin/transfer' && method === 'POST') {
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      const actor: TransferActor = {id:adminId,type:'FINANCE',authTime:Number(authorizer?.authTime || 0)};
+      return buildSuccessResponse(await requestTransfer(actor,parseBody(event.body)));
+    }
+    if (path === '/wallet/funding/admin/transfer/approve' && method === 'POST') {
+      if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
+      return buildSuccessResponse(await approveTransfer({id:adminId,type:'FINANCE',authTime:Number(authorizer?.authTime || 0)},parseBody(event.body)?.requestId));
+    }
+    if(path==='/wallet/funding/admin/owners'&&method==='GET')return buildSuccessResponse(await financialOwners());
+    if(path === '/wallet/funding/admin/lifecycle/retry' && method === 'POST')return buildSuccessResponse(await retryLifecycle(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if (path === '/wallet/funding/admin/lifecycle' && method === 'GET') return buildSuccessResponse(await listLifecycle(event.queryStringParameters?.cursor));
+    if (path === '/wallet/funding/admin/reconciliation' && method === 'GET') return buildSuccessResponse(await reconciliationReport());
     if (path === '/wallet/funding/admin/transactions' && method === 'GET') {
       const walletId = event.queryStringParameters?.walletId || '';
       const cursor = event.queryStringParameters?.cursor;
@@ -108,6 +164,23 @@ export async function handler(
         ExpressionAttributeNames: { '#s': 'status' }
       }));
       return buildSuccessResponse({ wallets: result.Items || [], nextCursor: result.LastEvaluatedKey ? Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString('base64url') : null });
+    }
+    const gatewayAdmin='/wallet/funding/admin/zaincash';
+    if(path===gatewayAdmin && method==='GET')return buildSuccessResponse(await gatewaySettings());
+    if(path===gatewayAdmin && method==='PUT')return buildSuccessResponse(await saveGatewaySettings(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if(path===gatewayAdmin+'/import-uat' && method==='POST')return buildSuccessResponse(await importGatewayUatCredentials(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if(path===gatewayAdmin+'/test' && method==='POST')return buildSuccessResponse(await testGatewaySettings(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if(path===gatewayAdmin+'/pilot' && method==='POST')return buildSuccessResponse(await authorizeGatewayPilot(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if(path===gatewayAdmin+'/accept' && method==='POST')return buildSuccessResponse(await acceptGatewayLive(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if(path===gatewayAdmin+'/resolve-uncreated' && method==='POST')return buildSuccessResponse(await resolveUncreatedGatewayPayment(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if(path===gatewayAdmin+'/recover' && method==='POST')return buildSuccessResponse(await recoverGatewayPayment(adminId,Number(authorizer?.authTime||0),parseBody(event.body)));
+    if(path===gatewayAdmin+'/payments' && method==='GET')return buildSuccessResponse(await gatewayHistory(null,event.queryStringParameters?.cursor,event.queryStringParameters?.review==='true'));
+    if(path.startsWith('/wallet/funding/zaincash/')) {
+      if(!driverId)return buildErrorResponse(403,'DRIVER_REQUIRED','حساب سائق مطلوب');
+      if(path==='/wallet/funding/zaincash/config' && method==='GET')return buildSuccessResponse(await publicGatewayConfig(driverId));
+      if(path==='/wallet/funding/zaincash/payments' && method==='GET')return buildSuccessResponse(await gatewayHistory(driverId,event.queryStringParameters?.cursor));
+      if(path==='/wallet/funding/zaincash/payment' && method==='POST')return buildSuccessResponse(await createGatewayPayment(driverId,parseBody(event.body)));
+      if(path==='/wallet/funding/zaincash/check' && method==='POST')return buildSuccessResponse(await checkGatewayPayment(driverId,parseBody(event.body)?.requestId));
     }
     if (path === '/wallet/funding/config' && method === 'GET') return buildSuccessResponse(await getFundingConfig());
     if (path === '/wallet/funding/admin/config' && method === 'PUT') return buildSuccessResponse(await saveFundingConfig(parseBody(event.body), adminId));
@@ -149,14 +222,7 @@ export async function handler(
     }
 
     if (path === '/wallet/create' && method === 'POST') {
-      // Wallet creation endpoint (called by Cognito trigger or service accounts)
-      const triggerSecret = event.headers?.['x-trigger-secret'];
-      const expectedSecret = process.env.WALLET_TRIGGER_SECRET || 'wallet-creation-trigger-secret-2025';
-      
-      // Allow if: service account OR valid trigger secret
-      if (!serviceId && triggerSecret !== expectedSecret) {
-        return buildErrorResponse(401, 'UNAUTHORIZED', 'Only service accounts or Lambda triggers can create wallets');
-      }
+      walletCreationCaller(event);
       return await createWallet(event.body);
     }
 
@@ -228,7 +294,7 @@ export async function handler(
     }
 
     if (path === '/wallet/topup/my-requests' && method === 'GET') {
-      return await getMyTopupRequests(driverId);
+      return await getMyTopupRequests(driverId,event.queryStringParameters?.cursor);
     }
 
     // Settlement endpoints
@@ -306,6 +372,7 @@ async function getMyTransactions(
   }
 
   const walletId = generateDriverWalletId(driverId);
+  if(queryParams?.month!==undefined)return buildSuccessResponse(await monthlyWalletPage(walletId,queryParams.month,queryParams.nextToken));
   const limit = queryParams?.limit ? parseInt(queryParams.limit) : 50;
   // Accept both `nextToken` and `lastEvaluatedKey` for frontend compatibility
   const pageToken = queryParams?.nextToken || queryParams?.lastEvaluatedKey || undefined;
@@ -336,11 +403,7 @@ async function getMyTransactions(
  * Service only - called by Cognito trigger or backend services
  */
 async function createWallet(body: string | null): Promise<APIGatewayProxyResult> {
-  const data = parseBody(body);
-
-  if (!data.driverId) {
-    return buildErrorResponse(400, 'INVALID_REQUEST', 'driverId is required');
-  }
+  const data = walletCreationInput(parseBody(body));
 
   console.log('Service creating wallet for driver:', data.driverId);
 
@@ -500,15 +563,18 @@ async function createTopupRequest(
     return buildErrorResponse(400, 'INVALID_REQUEST', 'amount is required');
   }
 
+  const replay=await topupService.replayManualRequest(driverId,data);
+  if(replay)return buildSuccessResponse(replay);
   const config = await getFundingConfig();
   if (!config.manual.enabled) throw fundingError('التحويل اليدوي غير متاح حالياً','METHOD_DISABLED',409);
+  if(data.limitsVersion!==undefined&&data.limitsVersion!==config.limitsVersion)throw fundingError('تغيرت حدود الشحن؛ أعد تحميل الصفحة','CONFIG_CHANGED',409);
   if (data.configVersion !== config.version) throw fundingError('تغيرت بيانات التحويل؛ أعد تحميل الإعدادات','CONFIG_CHANGED',409);
   if (typeof data.transferReference !== 'string' || !/^[a-zA-Z0-9-]{4,80}$/.test(data.transferReference)) throw fundingError('مرجع التحويل غير صالح');
   await validateReceipt(driverId, data.evidenceRef);
   const result = await topupService.createTopupRequest({
     idempotencyKey: data.idempotencyKey,
     transferReference: data.transferReference,
-    fundingSnapshot: config.manual,
+    fundingSnapshot: {...config.manual,configVersion:config.version,limitsVersion:config.limitsVersion},
     driverId,
     amount: data.amount,
     method: data.method,
@@ -582,7 +648,7 @@ async function getTopupRequests(
   queryParams: any
 ): Promise<APIGatewayProxyResult> {
   const status = queryParams?.status;
-  const result = await topupService.getTopupRequests(status);
+  const result = await topupService.getTopupRequests(status,queryParams?.cursor);
   return buildSuccessResponse(result);
 }
 
@@ -590,13 +656,13 @@ async function getTopupRequests(
  * GET /wallet/topup/my-requests
  */
 async function getMyTopupRequests(
-  driverId: string | null
+  driverId: string | null, cursor?: string
 ): Promise<APIGatewayProxyResult> {
   if (!driverId) {
     return buildErrorResponse(401, 'UNAUTHORIZED', 'Driver ID not found in token');
   }
 
-  const result = await topupService.getMyTopupRequests(driverId);
+  const result = await topupService.getMyTopupRequests(driverId,cursor);
   return buildSuccessResponse(result);
 }
 
@@ -629,3 +695,4 @@ async function getDriverSettlements(
   const result = await settlementService.getDriverSettlements(driverId);
   return buildSuccessResponse(result);
 }
+export async function walletLifecycleWorker(){return lifecycleWorker();}

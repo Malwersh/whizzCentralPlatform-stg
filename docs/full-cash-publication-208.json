@@ -1,0 +1,349 @@
+{
+  "part": 208,
+  "status": "PUBLISHED_ENABLED_VERIFIED",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "code": [
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "3rXu5W7iHgpjOrjDqDPDBxYu8HagcYqeUfwQ7RVMvCY=",
+      "changedFiles": [
+        "merchant_pending_response.js",
+        "merchant_order_handler.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "codeSha256": "fk69P6+ynt4H+r2z3ZG+S6E0Ck0N+D3/ErGLWueIg80=",
+      "changedFiles": [
+        "index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "JUlnpHkuiZH2HecHnHpKcrJ+1SjEnMTmqlRVJ0XOtYc=",
+      "changedFiles": [
+        "index.js",
+        "full-cash-rollout-208.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "pSJf8e8Ohy8hBAQknbsAjbbgI0EbTP0Jr6gg2Hdy54U=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "Fene+Xlsoh7zMHkfJ2cWNYbH0IMIVi4b+XmKjiV/8JI=",
+      "changedFiles": [
+        "financial-runtime.js",
+        "dispatch-cycle-runtime.js",
+        "finance-rollout.js",
+        "index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "RwO5q0p9bqpgVsR6F43VxKdI1ywkv6fkQkwUa7W4f+I=",
+      "changedFiles": [
+        "financial-runtime.js",
+        "dispatch-cycle-runtime.js",
+        "finance-rollout.js",
+        "index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "codeSha256": "wX4mFzg3ujbKqTX2EvMgoWrnFk8j4tcjlIjik/YrTAs=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "codeSha256": "cDil3WsuMNJGvFy80D8p95h1H7GiyZufPn753hjiUTk=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "codeSha256": "LkxVIfBJTV4MHFWJXd5R4T0eAn4iYbzl5mARzIfhvaQ=",
+      "changedFiles": [
+        "financial-order-view.js",
+        "legacy-order-policy.js",
+        "pinned-legacy-runtime.js",
+        "full-cash-rollout-208.js",
+        "lambda_driver_api_v2.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "2+5P9bDxzUxzqvsTQEam0CD/2s0bR65zS2YA6zPKd5A=",
+      "changedFiles": [
+        "index.js",
+        "finance-rollout.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "codeSha256": "ih9BrwkJOrwqe5yCYabtfGCw4C3COrOfBcxT/SpNA9M=",
+      "changedFiles": [
+        "index.js",
+        "finance-rollout.js",
+        "dispatch-response-runtime.js",
+        "full-cash-rollout-208.js",
+        "dispatch-review-host-runtime.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "XTymry9kzjXq1be+ane+500bYv92k2sTKvvKcS/sr4M=",
+      "changedFiles": [
+        "finance-rollout.js",
+        "settlement-runtime.js",
+        "settlement-schedules.js",
+        "settlement-orders.js",
+        "settlement-evidence-fields.json",
+        "index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "codeSha256": "UGtFUWG/FNzDrwgvWY9svPNhDAhzixx7BMb97AT1MQ0=",
+      "changedFiles": [
+        "finance-rollout.js",
+        "index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "codeSha256": "Dlzb9a0cWFJCOjh0FZP0rE5gTOqfehmHfISRSr7f2nA=",
+      "changedFiles": [
+        "src/utils/finance-rollout.js",
+        "src/handlers/push-wave-offer.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-wizz-wallet-service",
+      "codeSha256": "tvVbmf0oXCiyrlsJSjIzUNsRZX6a3TRgMT0XBFZ+qVk=",
+      "changedFiles": [
+        "dist/holdService.js",
+        "dist/settlementService.js",
+        "dist/walletLifecycle.js",
+        "dist/ledgerEffects.js",
+        "dist/reconciliation.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-wizz-wallet-lifecycle",
+      "codeSha256": "GaQ5ocRHfK2tXzZ8hFnKCM6eu9cIuuniOzpwC+/sLFA=",
+      "changedFiles": [
+        "dist/holdService.js",
+        "dist/settlementService.js",
+        "dist/walletLifecycle.js",
+        "dist/ledgerEffects.js",
+        "dist/reconciliation.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "codeSha256": "CVtE/zXALPwvkHA6XGNRzomlUeObhXGML3g+3BulPAo=",
+      "changedFiles": [
+        "cod-retention.js",
+        "customer-cleanup.js",
+        "financial-purge.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "codeSha256": "S/gaq+qZ6Xwzl8tFfORYeWd44aPi8nzhuY07DqV94t8=",
+      "changedFiles": [
+        "cod-retention.js",
+        "customer-cleanup.js",
+        "financial-purge.js",
+        "settlement-retention.js",
+        "settlement-schedule-inventory.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "codeSha256": "byQrPhrm6tRfNiCcBHamScjYOku9vXCKuq8HshjcSrw=",
+      "changedFiles": [
+        "cod-retention.js",
+        "customer-cleanup.js",
+        "financial-purge.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "rh/3P2E3lkUZKVYglsxKbDbwXUTugvk5oAZVnxqx56Y=",
+      "changedFiles": [
+        "functions/create-order/commercial-runtime.js",
+        "functions/create-order/index.js",
+        "finance-rollout-config-208.js"
+      ],
+      "otherEntriesIdentical": true
+    }
+  ],
+  "configuration": [
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "generalReleaseMode": "REQUIRED",
+      "settlementModel": "FULL_CASH_AT_DELIVERY_V1",
+      "historicalScopesPreserved": true,
+      "historicalScopeHashPreserved": true
+    }
+  ],
+  "access": [
+    {
+      "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "policy": "arn:aws:iam::699561669180:policy/staging-merchant-statement-membership-208"
+    },
+    {
+      "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "policy": "FullCashJournal208"
+    }
+  ],
+  "financialHandlersInvoked": false,
+  "financialDataWritesPerformed": false,
+  "cardPaymentsEnabled": false,
+  "scopeStorageEncoding": "GZIP208: base64 gzip; original bytes and SHA256 restored before handler imports",
+  "previousAttempt": "All compatible code published; no activation; AWS rejected first oversized environment update"
+}

@@ -1,0 +1,48 @@
+{
+  "part": 344,
+  "garageReadOnlyReview": {
+    "root": "../Garage/prod-flutterapp/frontend/lib/screens/legal",
+    "files": [
+      "terms_and_conditions_screen.dart",
+      "privacy_policy_screen.dart"
+    ],
+    "observed": [
+      "Independent policy pages and links from account/more",
+      "Heading hierarchy and readable paragraphs",
+      "Explicit update date",
+      "Company logo and company name footer: شركة الانطلاق الخاطف"
+    ],
+    "garageFilesModified": false
+  },
+  "officialBenchmarks": [
+    {
+      "title": "DoorDash Consumer Terms and Conditions",
+      "url": "https://help.doordash.com/en-us/legal/article/cx-terms-and-conditions",
+      "usedFor": "Structure: account, permitted use, payments, additional policies and contact. No US arbitration or payment promises copied."
+    },
+    {
+      "title": "DoorDash Consumer Privacy",
+      "url": "https://about.doordash.com/en-us/privacy",
+      "usedFor": "Separate privacy notice and account data controls."
+    },
+    {
+      "title": "Talabat Iraq Terms and Conditions",
+      "url": "https://www.talabat.com/iraq/terms",
+      "usedFor": "Iraq marketplace scope, restaurant/shop responsibilities, registration and order topics. Wording adapted to implemented cash operations."
+    },
+    {
+      "title": "Talabat Iraq Privacy Policy",
+      "url": "https://www.talabat.com/iraq/privacy",
+      "usedFor": "Topics: contact, GPS, orders, customer service and account data. No unsupported retention/refund period copied."
+    }
+  ],
+  "policyDrafts": "Original role-specific wording based on implemented operations; owner review precedes publishing. Not a claim of legal certification.",
+  "unsupportedTermsExcluded": [
+    "Credit-card refunds during cash-only launch",
+    "Five-minute automatic free cancellation promise",
+    "Automatic fare, return fee, compensation or insurance coverage",
+    "Invented safety evidence retention deadline",
+    "Blanket US arbitration or waiver language",
+    "Privacy acceptance treated as permission for optional device capabilities"
+  ]
+}

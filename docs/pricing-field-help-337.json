@@ -1,0 +1,35 @@
+{
+  "part": 337,
+  "environment": "staging",
+  "scope": "Explain customer delivery fields and additive surcharges",
+  "changes": [
+    "Plain Arabic field labels with inline purpose, units, zero meaning and examples",
+    "Dynamic additive-charge explanation, explicitly before limits/rounding/discounts",
+    "Warning when surcharge threshold is zero and extra amounts apply to the whole road",
+    "Active surcharge fields promoted out of collapsed advanced details",
+    "Clarify tier selection is a single flat component added to base, not cumulative",
+    "No automatic correction or policy save"
+  ],
+  "tests": [
+    "Pricing workspace browser flow including unchanged save payload PASS",
+    "350 normal +450 surcharge at zero threshold shows800 warning PASS",
+    "Threshold5000 removes whole-route warning PASS",
+    "Zero surcharge displays disabled explanation PASS",
+    "Values retained without automatic rewriting PASS"
+  ],
+  "financialWrites": 0,
+  "backendChanged": false,
+  "hosting": {
+    "jobId": "173",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "delivery-pricing.js",
+      "pricing-field-help.js",
+      "pricing-region-picker.js",
+      "pricing-workspace.js",
+      "styles/pricing-layout.css"
+    ],
+    "baseJob": "172"
+  }
+}

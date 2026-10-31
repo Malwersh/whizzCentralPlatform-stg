@@ -1,0 +1,36 @@
+{
+  "part": 265,
+  "status": "PUBLISHED_STAGING",
+  "wholeSpecificationComplete": false,
+  "hostingJobId": "154",
+  "tests": {
+    "wallet": 1349,
+    "staff": 244,
+    "candidateRuntime": 37,
+    "merchantFlutter": 13,
+    "driverFlutter": 12,
+    "browser": "PASS"
+  },
+  "nativeBuilds": {
+    "merchant": 229,
+    "driverSimulatorDebug": 215
+  },
+  "nativeInstalledAndLaunched": true,
+  "iamChanged": false,
+  "originalReceiptsPreserved": true,
+  "realFinancialOrCustodyAttestationsByAgent": false,
+  "historicalCaseVersion": 14,
+  "historicalCaseStatus": "RESOLVED",
+  "merchantEmployeeHumanTest": "DEFERRED_BY_USER",
+  "humanAlternativeCustodyAcceptance": "NOT_PERFORMED",
+  "next": [
+    "phase244 42-scenario audit",
+    "post-delivery customer claims and cash review",
+    "customer underpayment treatment and refund funding source: questions pending user response"
+  ],
+  "references": [
+    "return-alternative-custody-265.md",
+    "return-alternative-custody-publication-265.json",
+    "return-alternative-custody-verification-265.json"
+  ]
+}

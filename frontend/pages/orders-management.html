@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WizzCentral - Orders Management</title>
+    <title>ويز سنترال — إدارة الطلبات</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
+    <link rel="stylesheet" id="wizz-shell-styles" href="../styles/app-shell.css?v=20261022-rtl1">
+    <link rel="stylesheet" id="wizz-admin-styles" href="../styles/admin-ui.css?v=20261025-shell2"><link rel="preload" href="../assets/fonts/NotoSansArabic.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1">
     <script src="../styles/wizz-theme-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -245,7 +249,7 @@
     </style>
 </head>
 
-<body data-page="orders">
+<body class="wizz-shell" data-page="orders">
     <!-- Sidebar include placeholder -->
     <div id="sidebar-placeholder"></div>
 
@@ -254,10 +258,10 @@
         <div class="orders-container">
             <!-- Orders Header -->
             <div class="orders-header">
-                <h1><i class="fas fa-shopping-bag"></i> Orders Management</h1>
+                <h1><i class="fas fa-shopping-bag"></i> إدارة الطلبات</h1>
                 <button class="refresh-btn" onclick="refreshOrdersData()">
                     <i class="fas fa-sync-alt"></i>
-                    Refresh
+                    تحديث الصفحة
                 </button>
             </div>
 
@@ -268,7 +272,7 @@
                         <i class="fas fa-shopping-bag"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-label">إجمالي الطلبات</div>
                         <div class="stat-value" id="total-orders">0</div>
                     </div>
                 </div>
@@ -277,7 +281,7 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Confirmed</div>
+                        <div class="stat-label">مؤكد</div>
                         <div class="stat-value" id="confirmed-orders">0</div>
                     </div>
                 </div>
@@ -286,7 +290,7 @@
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Pending</div>
+                        <div class="stat-label">قيد الانتظار</div>
                         <div class="stat-value" id="pending-orders">0</div>
                     </div>
                 </div>
@@ -295,7 +299,7 @@
                         <i class="fas fa-times-circle"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="stat-label">Cancelled</div>
+                        <div class="stat-label">ملغي</div>
                         <div class="stat-value" id="cancelled-orders">0</div>
                     </div>
                 </div>
@@ -307,27 +311,27 @@
             <!-- Orders Table -->
             <div class="orders-table-container">
                 <div class="table-header">
-                    <h2>Recent Orders</h2>
-                    <div class="table-status" id="table-status">Loading orders...</div>
+                    <h2>الطلبات الأخيرة</h2>
+                    <div class="table-status" id="table-status">جارٍ تحميل الطلبات...</div>
                 </div>
                 <table class="orders-table">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Store</th>
-                            <th>Driver</th>
-                            <th>Status</th>
-                            <th>Total</th>
-                            <th>Date</th>
-                            <th>Actions</th>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>متجر</th>
+                            <th>السائق</th>
+                            <th>الحالة</th>
+                            <th>الإجمالي</th>
+                            <th>التاريخ</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTableBody">
                         <tr>
                             <td colspan="8" class="loading-state">
                                 <i class="fas fa-spinner fa-spin"></i>
-                                <div>Loading orders from WizzOrders table...</div>
+                                <div>جارٍ تحميل الطلبات...</div>
                             </td>
                         </tr>
                     </tbody>
@@ -344,8 +348,8 @@
     <!-- XSS Protection -->
     <script src="../assets/js/security-utils.js"></script>
     <script src="../js/orders-api.js?v=20261011-session-fix2"></script>
-    <script src="../orders.js"></script>
-    <script src="../assets/js/navigation.js"></script>
+    <script src="../orders.js?v=20261017-ar1"></script>
+    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.navigationManager && typeof window.navigationManager.init === 'function') {
@@ -373,7 +377,7 @@
             // Update table status
             const tableStatus = document.getElementById('table-status');
             if (tableStatus) {
-                tableStatus.textContent = `${totalOrders} orders loaded from WizzOrders table`;
+                tableStatus.textContent = `${totalOrders} طلب محمّل من النظام`;
             }
         }
 
@@ -402,6 +406,7 @@
         };
 
     </script>
+<script src="../commercial-platform-notices.js?v=81"></script>
 </body>
 
 </html>

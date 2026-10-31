@@ -1,0 +1,27 @@
+{
+  "part": 337,
+  "scope": "foreground-background contrast",
+  "completedAt": "2026-10-28T18:34:09.167912+00:00",
+  "changes": [
+    "Correct shared foreground/background theme pairs",
+    "Repair explicit unreadable text and icon colors",
+    "Keep brand gold for fills and navy or white for readable content"
+  ],
+  "validation": {
+    "flutterAnalyzerErrors": 0,
+    "mobileContrastTests": 4,
+    "customerCheckoutRegressionTests": 9,
+    "browserControlCases": 11
+  },
+  "runtime": {
+    "merchant": "Updated on iPhone 16 simulator",
+    "customer": "Updated on iPhone 16 Pro simulator",
+    "driver": "Release build passed; physical iPhone unavailable for installation",
+    "platform": "Staging hosting job 217, assets byte verified"
+  },
+  "limitations": [
+    "Source and representative control audit; not a screenshot test of every possible app state",
+    "Existing unrelated analyzer warnings remain"
+  ],
+  "financialOrOrderLogicChanged": false
+}

@@ -1,0 +1,49 @@
+{
+  "part": 240,
+  "status": "PUBLISHED_INSTALLED_ROUTING_CONFIGURED_PENDING_REAL_AUTOMATIC_RETURN_TEST",
+  "published": true,
+  "wholeSpecificationComplete": false,
+  "approvedValues": {
+    "closingMarginSeconds": 900,
+    "branchWaitSeconds": 300
+  },
+  "implemented": [
+    "Owner permanent opt-in, actual branch availability and opening hours, trusted road ETA and GPS",
+    "Automatic authorization only for eligible no-cash customer refusal/unreachable; uncertain cases remain manual",
+    "Fresh branch arrival location; blocked handover reasons with evidence and immutable audit",
+    "Five-minute support escalation without custody close, hold release or money posting",
+    "Documented staff instructions; foreground polling and network recovery in driver/merchant",
+    "Editable return policy with existing staff RBAC"
+  ],
+  "verification": {
+    "walletTestsBeforeFinalSlaAddition": 1216,
+    "additionalSlaTests": 6,
+    "actualPackagedHelperAndSlaTests": 13,
+    "priorCapturedRuntimeTests": 82,
+    "staffTests": 242,
+    "driverWidgetTests": 10,
+    "merchantWidgetTests": 8,
+    "browserChecks": 3,
+    "driverIosReleaseBuild": 213,
+    "merchantSimulatorBuild": 221,
+    "installedNewBuilds": true
+  },
+  "artifacts": "backend/.tmp/order-exceptions-work/return-240",
+  "proposedPermissionPolicy": "return-operations-240-proposed-iam-policy.json",
+  "remaining": [
+    "Real owner enables permanent opt-in through normal application; eligible future real return verifies automatic authorization end to end",
+    "Separate next part: documented adjudication and operational/custody closure for damaged/partial/disputed return; current real order unchanged",
+    "Remaining full exception specification and financial entitlements"
+  ],
+  "realTestOrder": {
+    "orderNumber": "ORD1792545370610",
+    "orderId": "bb728bfe-c2c4-5c95-8492-26ce81ee1ed1",
+    "lastUserConfirmedState": "OWNER_CONFIRMED_ALL_ITEMS_DAMAGED_REVIEW_REQUIRED"
+  },
+  "agentFinancialWrites": false,
+  "agentRecordedOwnerConsent": false,
+  "publication": "return-operations-publication-240.json",
+  "verificationReport": "return-operations-verification-240.json",
+  "routingActivation": "return-routing-activation-240.json",
+  "realDamagedReturnAudit": "damaged-return-audit-240.json"
+}

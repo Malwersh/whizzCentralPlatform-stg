@@ -1,0 +1,40 @@
+{
+  "part": 250,
+  "status": "PUBLISHED_VERIFIED",
+  "hostingJobId": "140",
+  "scope": "Registered cash sources, server-generated cash payment voucher, atomic merchant cash disbursement register and printed evidence",
+  "implemented": [
+    "Finance approver registers or deactivates cashboxes with custodian, location, version, reason and immutable before/after events",
+    "Cash execution accepts only an active registered cashbox; client cash receipt/source text rejected",
+    "Server voucher stable for payout, frozen source snapshot and unique reference saved atomically with execution",
+    "One cash register row follows receipt, review, final reconciliation or proven non-payment without duplicate cash-out",
+    "Staff-only paginated register and CSV for loaded merchant disbursements; explicitly not a whole cashbox balance",
+    "Printed voucher includes source, custodian, execution actor/time, statement, payout and beneficiary",
+    "No platform wallet funding prerequisite introduced; Zain Cash external transfer proof remains required"
+  ],
+  "validation": {
+    "walletSuite": 1248,
+    "staffSuite": 242,
+    "focusedCashboxAndPayoutIntegration": 32,
+    "authorizationAndNewAPI": 12,
+    "browser": "PASS",
+    "printAndCashboxSnapshot": "PASS",
+    "actualTransactionPermissionSimulation": "11/11 allowed; all writes blocked in diagnostic"
+  },
+  "accessDocument": "cashbox-access-250.json",
+  "publicationDocument": "cashbox-publication-250.json",
+  "verificationDocument": "cashbox-transaction-verification-250.json",
+  "businessRecordsOrMoneyWrittenByAgent": false,
+  "currentTest": {
+    "orderNumber": "ORD1792545370610",
+    "payoutId": "MPO:b402c95f947d7a06cbeda06c4fa822afbdc11e4a54bbb242",
+    "amountIqd": 6250,
+    "status": "PROCESSING",
+    "executionNotRecorded": true,
+    "registeredCashboxNotCreatedByAgent": true
+  },
+  "limitations": [
+    "Register covers merchant payout cash movements; no claim of full physical cashbox balance or opening/receipts/transfers inventory"
+  ],
+  "next": "User registers test cashbox through new finance UI, selects it for current payout, confirms test handover, then owner receipt and staff reconciliation before financial case closure."
+}

@@ -1,0 +1,26 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {evaluate}=require('../financial-release-readiness.cjs');
+const arn='arn:aws:secretsmanager:us-east-1:699561669180:secret:server-routing-ABC123';
+function valid(){return {quote:{MAPBOX_SECRET_ARN:arn,DELIVERY_QUOTE_MAX_PER_MINUTE:'5',DELIVERY_QUOTES_ENABLED:'false'},routingHost:{FINANCIAL_ROUTING_SECRET_ARN:arn,FINANCIAL_DISPATCH_MODE:'OFF'},driver:{FINANCIAL_OFFER_TTL_SECONDS:'60',FINANCIAL_POSITION_MAX_AGE_SECONDS:'30',FINANCIAL_REASSIGNMENT_WINDOW_SECONDS:'120',FINANCIAL_DISPATCH_MODE:'OFF'},writer:{},cleanup:{DELIVERY_QUOTES_ENABLED:'true'},pricingValid:true,writerIam:[{decision:'allowed'}],evidence:Object.fromEntries(['ACCEPTED_APPROVED_AGREEMENT','APPROVED_DISCOUNT_FUNDING','PREASSIGNMENT_REJECTION_ATOMIC_RELEASE','PUBLISHED_ROLES_END_TO_END_CANARY','OPERATING_LIMITS_APPROVED','ROLLBACK_VERIFIED','FINAL_PRICE_WALLET_PRECISION_VERIFIED'].map(k=>[k,true]))};}
+test('missing configuration produces explicit blockers and never activation permission',()=>{const r=evaluate({});assert(r.blockers.includes('QUOTE_ROUTING_SECRET_CONFIGURED'));assert(r.blockers.includes('OPERATING_LIMITS_APPROVED'));assert.equal(r.activationAuthorized,false);});
+test('complete evidence remains a review result, not an activation instruction',()=>{const r=evaluate(valid());assert.deepEqual(r.blockers,[]);assert.equal(r.gatesClosed,true);assert.equal(r.activationAuthorized,false);});
+test('foreign secrets and unsupported numeric forms cannot pass as configured',()=>{for(const value of ['', 'UNCONFIGURED','0','1e1','01','121']){const f=valid();f.quote.DELIVERY_QUOTE_MAX_PER_MINUTE=value;assert(evaluate(f).blockers.includes('QUOTE_CUSTOMER_QUOTA_CONFIGURED'));}const f=valid();f.routingHost.FINANCIAL_ROUTING_SECRET_ARN=arn.replace('699561669180','123456789012');assert(evaluate(f).blockers.includes('WAVE_ROUTING_SECRET_CONFIGURED'));});
+test('published permissions and human acceptance are never inferred from a function name or empty simulation',()=>{const f=valid();f.writerIam=[];f.evidence.ACCEPTED_APPROVED_AGREEMENT=false;const r=evaluate(f);assert(r.blockers.includes('COMMERCIAL_WRITER_IAM_READY'));assert(r.blockers.includes('ACCEPTED_APPROVED_AGREEMENT'));});
+test('partially enabled or invalid gates are reported rather than treated as closed',()=>{for(const key of ['DELIVERY_QUOTE_MODE','COMMERCIAL_PRICING_MODE']){const f=valid();f.writer[key]='REQUIRED';assert.equal(evaluate(f).gatesClosed,false);}const f=valid();f.driver.FINANCIAL_DISPATCH_MODE='INVALID';assert.equal(evaluate(f).gatesClosed,false);});
+
+test('acceptance metadata cannot stand in for the host that actually requests routes',()=>{const f=valid();f.driver.FINANCIAL_ROUTING_SECRET_ARN=arn;delete f.routingHost;assert(evaluate(f).blockers.includes('WAVE_ROUTING_SECRET_CONFIGURED'));const g=valid();g.routingHost.FINANCIAL_DISPATCH_MODE='REQUIRED';assert.equal(evaluate(g).gatesClosed,false);});
+
+test('valid pricing and IAM cannot substitute for verified wallet precision',()=>{const f=valid();delete f.evidence.FINAL_PRICE_WALLET_PRECISION_VERIFIED;assert(evaluate(f).blockers.includes('FINAL_PRICE_WALLET_PRECISION_VERIFIED'));});
+test('central mode validates the published snapshot and never falls back to legacy values',()=>{
+ const f=valid();for(const kind of ['quote','driver','routingHost'])f[kind].DELIVERY_OPERATIONS_MODE='CENTRAL';f.centralOperations={version:2,values:{quoteMaxPerCustomerPerMinute:5,driverOfferTtlSeconds:60,driverPositionMaxAgeSeconds:120,reassignmentWindowSeconds:300,maximumWaves:4}};
+ f.quote.DELIVERY_QUOTE_MAX_PER_MINUTE='UNCONFIGURED';f.driver.FINANCIAL_OFFER_TTL_SECONDS='UNCONFIGURED';assert.deepEqual(evaluate(f).blockers,[]);assert.equal(evaluate(f).operationsSource,'CENTRAL');
+ delete f.centralOperations;assert(evaluate(f).blockers.includes('CENTRAL_OPERATIONS_CONSISTENT'));assert(evaluate(f).blockers.includes('DRIVER_OFFER_TTL_CONFIGURED'));
+});
+test('central policy conflicts and mixed host modes block readiness',()=>{
+ const f=valid();f.quote.DELIVERY_OPERATIONS_MODE='CENTRAL';f.centralOperations={version:2,values:{quoteMaxPerCustomerPerMinute:5,driverOfferTtlSeconds:60,driverPositionMaxAgeSeconds:120,reassignmentWindowSeconds:300,maximumWaves:4}};assert(evaluate(f).blockers.includes('CENTRAL_OPERATIONS_CONSISTENT'));f.centralOperations.values.driverPositionMaxAgeSeconds=30;assert(evaluate(f).blockers.includes('DRIVER_POSITION_MAX_AGE_CONFIGURED'));
+});
+test('explicit no-discount canary makes funding inapplicable without creating an approval or waiving other evidence',()=>{
+ const f=valid();delete f.evidence.APPROVED_DISCOUNT_FUNDING;f.discountPlan={mode:'NONE',campaignIds:[],platformShareMinor:0,merchantShareMinor:0};const r=evaluate(f);assert.deepEqual(r.blockers,[]);assert.deepEqual(r.notApplicableEvidence,['APPROVED_DISCOUNT_FUNDING']);assert.equal(r.activationAuthorized,false);
+ delete f.evidence.ACCEPTED_APPROVED_AGREEMENT;assert(evaluate(f).blockers.includes('ACCEPTED_APPROVED_AGREEMENT'));
+ for(const change of [{campaignIds:['campaign']},{platformShareMinor:1},{merchantShareMinor:1},{platformShareMinor:'0'},{extra:true}]){const g={...f,discountPlan:{...f.discountPlan,...change}};assert(evaluate(g).blockers.includes('APPROVED_DISCOUNT_FUNDING'));assert(evaluate(g).blockers.includes('NO_DISCOUNT_PLAN_VALID'));}
+});

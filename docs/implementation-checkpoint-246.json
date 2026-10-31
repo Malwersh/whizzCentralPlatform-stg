@@ -1,0 +1,31 @@
+{
+  "part": 246,
+  "status": "PUBLISHED_VERIFIED",
+  "scope": "Explicit off-cycle merchant settlements for selected accruals or a date range, with immutable reason, server cutoff and independent approval",
+  "publication": "off-cycle-publication-246.json",
+  "verification": "off-cycle-verification-246.json",
+  "implemented": [
+    "OFF_CYCLE selected preview issues server cutoff; immutable batch pins the reason, scope, schedule reference and source evidence",
+    "Date-range collection supports resumable discovery and freezing, distinguishes prior memberships and eligible new net",
+    "Original recurring schedule, source financial timestamps, payable proof, idempotency and atomic membership guards preserved",
+    "Explicit off-cycle approval confirmation and current employee approval limit; no wallet movement or payment at save/approval",
+    "Same owner payout request, staff approval/execution, owner receipt and verified reconciliation path",
+    "Clear separate UI with selected-order and date-range modes, contextual reason, precise time boundary and no future accruals",
+    "Off-cycle reason/type/cutoff visible in statement details, CSV, print and merchant app"
+  ],
+  "tests": {
+    "wallet": 1240,
+    "staff": 246,
+    "bundledRuntime": 17,
+    "merchantWidgets": 8,
+    "offCycleBrowser": "PASS",
+    "offCycleAndNormalPrint": "PASS"
+  },
+  "merchantBuild": 224,
+  "iamChanged": false,
+  "walletOrLedgerMutationByAgent": false,
+  "wholeSpecificationComplete": false,
+  "next": "User selects only compensation ORD1792545370610 6250 IQD in off-cycle preview, saves/approves, then requests cash payout from merchant and follows test receipt/reconciliation; no repeat fare or guarantee",
+  "hostingJobId": "139",
+  "merchantSimulatorInstalledBuild": 224
+}

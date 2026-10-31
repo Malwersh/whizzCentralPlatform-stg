@@ -1,0 +1,33 @@
+{
+  "function": "WizzUser-DeliveryQuotes-staging",
+  "codeSha256": "ODSDMFi8XCMTwyakxRk/Nqq4Khj2Ei86Mho/JPOj8Pk=",
+  "configurationPreserved": true,
+  "approvedReadPolicyVerified": true,
+  "unauthenticatedRequestRejected": true,
+  "backendTestsPassed": 45,
+  "handlerChecksPassed": 3,
+  "customerTestsPassed": 19,
+  "merchantSettingsTestsPassed": 3,
+  "writesToWalletsOrOrders": false,
+  "livePreviewVerified": {
+    "branch": "Fattoush",
+    "feeIqd": 2000,
+    "roadDistanceMeters": 1023,
+    "preparationMinutes": null,
+    "requiresOwnerPreparationSetting": true
+  },
+  "publicFactsPublication": "storefront-facts-publication-170.json",
+  "customerPhysicalVisualAddressSwitch": "AWAITING_USER_CHECK",
+  "backgroundLiveActivityNotVerifiedByThisTest": true,
+  "savedAddressSelectionRepair": {
+    "preservesAddressIdAndOwner": true,
+    "regionResolutionUsesCopyWith": true,
+    "unsavedNewAddressDoesNotProceed": true,
+    "oldConfirmationInvalidatedOnActiveAddressChange": true,
+    "deviceRetest": "INSTALLED_AWAITING_USER_RESELECT"
+  },
+  "customerProfileInstalledAndLaunched": true,
+  "merchantSimulatorInstalledAndLaunched": true,
+  "periodicBindingQuoteRefreshRemoved": true,
+  "bindingQuoteCreatedOnlyForDiscountValidationOrFinalReview": true
+}

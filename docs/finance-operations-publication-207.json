@@ -1,0 +1,15 @@
+{
+  "part": 207,
+  "baseJobId": "115",
+  "jobId": "116",
+  "changedFiles": [
+    "pages/finance.html",
+    "finance.js",
+    "commercial-platform-notices.js"
+  ],
+  "otherFilesPreserved": true,
+  "financialRulesChanged": false,
+  "status": "SUCCEED",
+  "sha256": "a6266912f7469bce70469e5505799a22cefd8c86ce5592009dc40f47fd6b280b",
+  "hostedBytesVerified": true
+}

@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "scope": "Evidence-backed timing review and appeals independent of financial settlement",
+  "functions": [
+    {
+      "function": "staging-driver-financial-accept",
+      "hash": "53mGdmFThN1h9FxDRTu43Lfp4O2qZ2vf+F96s2z+lok=",
+      "revision": "40318ff6-8d32-4b2b-b932-c862842cf6c0",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "hash": "P1TwmqZbP5Y/gv2y2blN6nNqB7NOwljc3i5gjKLeVTU=",
+      "revision": "feabc0d6-17dd-4dd1-9477-c9b952b9c39b",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "DriversApi-staging",
+      "hash": "E+DGLpDv/EtxY/4ZfZCNWUexLFLaLB6C4vq3EJjddxU=",
+      "revision": "66fa44dc-7cdc-4a59-83ea-db96c023151d",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    }
+  ],
+  "newPermissions": false,
+  "financialCalculationChanged": false,
+  "businessWritesByAgent": 0,
+  "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "hostingJobId": "204",
+  "hostingChangedAssetsByteVerified": [
+    "driver-timing-review.js",
+    "pages/driver-timing-review.html",
+    "order-management.js",
+    "order-exception-cases.js",
+    "pages/orders.html",
+    "pages/order-exceptions.html"
+  ],
+  "tests": {
+    "source": 24,
+    "capturedRuntime": 49,
+    "sharedFactory": 9,
+    "driverReader": 40,
+    "flutterPerformance": 13,
+    "staffProjection": 1,
+    "browser": "PASS; new workflow and existing case-page regression"
+  },
+  "release279": {
+    "installedAndLaunched": true,
+    "testLocationUnchanged": true,
+    "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED"
+  },
+  "arabicQueueLabels": {
+    "hostingJobId": "205",
+    "changedAssetsByteVerified": [
+      "order-exception-cases.js",
+      "pages/order-exceptions.html"
+    ],
+    "otherEntriesUnchanged": true,
+    "cdnReverificationPassed": true
+  }
+}

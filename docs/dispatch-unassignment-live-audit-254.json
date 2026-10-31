@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-24T19:46:30Z",
+  "orderNumber": "ORD1792870714924",
+  "orderId": "f6b187f1-1046-5bb9-8ec1-472e777164f0",
+  "readOnly": true,
+  "orderStatus": "ready_for_pickup",
+  "assignedDriverId": null,
+  "releasedHoldIqd": 12500,
+  "releaseOutcome": "UNASSIGNED",
+  "jobStatus": "searching",
+  "currentWaveNumber": 1,
+  "pendingRedispatchWave": 2,
+  "excludedPreviousDriver": true,
+  "reassignmentDeadline": "2026-10-24T19:44:44.079Z",
+  "exceptionCasesInHolds": [],
+  "observedTimeoutAt": "2026-10-24T19:45:46Z",
+  "observedNextWavesStarted": 0,
+  "observedFinancialWorker": {
+    "processed": 0,
+    "failed": 0,
+    "complete": true,
+    "hasContinuation": true
+  },
+  "verdict": "UNASSIGNMENT_SUCCEEDED_REDISPATCH_NOT_PROVEN_AND_STALLED_BEYOND_DEADLINE",
+  "rootCause": "PENDING_DEEPER_RUNTIME_INVESTIGATION",
+  "businessMutationsExecuted": false
+}

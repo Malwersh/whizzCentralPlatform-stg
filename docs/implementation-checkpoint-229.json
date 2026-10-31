@@ -1,0 +1,52 @@
+{
+  "part": 229,
+  "status": "PUBLISHED_POLICY_AND_RETURN_CASE_FOUNDATION",
+  "specification": "specifications/ORDER_EXCEPTIONS_RESOLUTION_SPEC_AR.md",
+  "publication": "order-exceptions-publication-229.json",
+  "scope": "First operational slice only; not completion of the whole OECSR specification",
+  "policy": {
+    "newOrdersOnly": true,
+    "returnExtraFee": 0,
+    "waitSeconds": 600,
+    "minimumContactAttempts": 3,
+    "attemptMeaning": "contact attempts at one arrival",
+    "timerAutomaticEnforcement": false,
+    "platformEditableControls": "next slice; not yet exposed",
+    "originalFare": "eligibility FULL after verified valid attempt and no fault, currently manual review; no payment made by this slice"
+  },
+  "implemented": [
+    "Server-pinned immutable policy on actual customer order entry",
+    "Independent return case metadata in existing atomic RETURN#attempt lifecycle",
+    "Custody confirmation leaves monetary case SETTLEMENT_PENDING; fare and merchant compensation are not marked paid",
+    "Explicit zero return-extra entitlement",
+    "Merchant-redacted case view and native UI",
+    "Authenticate identity before rollout order read in return/reassignment runtime"
+  ],
+  "tests": {
+    "walletService": 1155,
+    "failed": 0,
+    "capturedFinancialEntryMatrix": 65,
+    "actualCustomerEntryCases": 5,
+    "merchantFlutter": 6,
+    "generatedRuntimeChecks": true,
+    "iamSimulations": "All three policy/case operations allowed without permission changes"
+  },
+  "configurationAndHistoricalLedgerPreserved": true,
+  "financialWritesByAgent": false,
+  "realOrderCreatedByAgent": false,
+  "physicalNewPolicyAcceptance": "not yet run",
+  "remaining": [
+    "Platform-configurable no-response policy and attempt snapshots/enforcement",
+    "Complete42-case entry/API/IAM evidence where currently UNKNOWN",
+    "Case administration, evidence, liability decisions and manual financial execution",
+    "Partial delivery/cash/refund/custody transfer/disposition and appeals/SLA"
+  ],
+  "merchantApplication": {
+    "build": 216,
+    "mode": "Debug",
+    "device": "iPhone16Pro simulator",
+    "installed": true,
+    "launched": true,
+    "pid": 56317
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "part": 251,
+  "date": "2026-10-21",
+  "scope": "Company physical cash accounting before existing merchant payout continues",
+  "companyCashSeparateFromPlatformWallet": true,
+  "features": [
+    "Independent company cashbox workspace and registered staff custodians",
+    "Documented one-time opening with live approval limits and independent review by default",
+    "Receipts, expenses and atomic inter-cashbox transfers with balanced journal lines",
+    "Physical count, unresolved variance lock, independently approved shortage/overage adjustment or reasoned count void",
+    "Counted custody handover, including supervised recovery from suspended custodian",
+    "One-time linked reversal without deleting original evidence",
+    "Immutable hashed ledger and current complete source balance; paginated 25-row histories and CSV",
+    "Company printable current balance and explicitly loaded-scope movements/counts, signatures and issue time",
+    "Server-issued merchant cash voucher debits physical asset atomically once; final merchant receipt/reconciliation uses clearing instead of debiting cash again"
+  ],
+  "notIncluded": [
+    "No automatic bank or Zain Cash transfer integration",
+    "No real cash delivery or cash funding by agent",
+    "Not a complete company ERP or automatic import of all outside cash movements"
+  ],
+  "security": [
+    "Verified staff session and live permissions, scope, approval cap, explicit existing staging operator policy only",
+    "Owner sessions cannot administer company cash",
+    "Pinned source/custody/balance snapshots and transactional guards",
+    "Stable request identity and proof reuse protection",
+    "No new IAM permissions; existing bounded cash prefixes verified"
+  ],
+  "tests": {
+    "wallet": 1263,
+    "staff": 242,
+    "bundled": 26,
+    "focused": 47,
+    "browserPrint": "PASS",
+    "liveIamChecks": 38
+  },
+  "documents": [
+    "cash-accounting-access-251.json",
+    "cash-accounting-publication-251.json",
+    "cash-accounting-verification-251.json"
+  ],
+  "currentTest": {
+    "order": "ORD1792545370610",
+    "merchantCompensationIqd": 6250,
+    "payoutStatus": "PROCESSING",
+    "cashExecuted": false,
+    "cashboxesSeededByAgent": false,
+    "driverFareAndGuarantee": "Already complete; do not repeat"
+  },
+  "nextUserStep": "Refresh Finance, open Company Cashboxes, register a company source and assign a registered staff custodian; then document and approve its actual/test opening before existing cash payout."
+}

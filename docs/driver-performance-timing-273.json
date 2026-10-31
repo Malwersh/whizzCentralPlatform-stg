@@ -1,0 +1,51 @@
+{
+  "status": "PUBLISHED_STAGING_INSTALLED_MANUAL_ACCEPTANCE_DEFERRED",
+  "rulesVersion": "OBSERVED_DRIVER_PERFORMANCE_V3",
+  "scope": "Original per-attempt punctuality observations, bounded thirty-day acceptance activity and indicator event detail",
+  "implemented": [
+    "Immutable original timing plan saved with accepted offer and order in same acceptance transaction",
+    "Existing five-minute ETA tolerance pinned as policy ORIGINAL_ACCEPTED_ROUTE_V1",
+    "Prior attempt arrival and pickup observations cleared atomically when replacement accepts",
+    "First server arrival/pickup time retained on retry and update fenced to strongly-read offer and attempt",
+    "Punctuality requires same assignment, settled delivery and ordered server-recorded store/pickup/customer/delivery times",
+    "Missing original targets or incomplete events excluded without retroactive blame",
+    "Possible pickup waiting delay remains REVIEW; self report, changed ETA and compensation do not establish excuse or fault",
+    "Timing is an observed service metric, not GPS evidence or automatic driver fault",
+    "Thirty-day verified acceptance activity with explicit partial lower-bound and legacy exclusions; not completed trips or online hours",
+    "Arabic own-event detail sheets for acceptance, completion and timing; Baghdad timestamps and no internal UUID labels",
+    "V1/V2 clients retain their prior response contracts; new client opts into rules=3"
+  ],
+  "verification": {
+    "sourceDriverChecks": 47,
+    "sourceCentralChecks": 31,
+    "capturedActualModernAcceptanceChecks": 28,
+    "capturedLegacyAcceptanceChecks": 14,
+    "capturedDriverChecks": 47,
+    "flutterChecks": 22,
+    "typescript": "PASS",
+    "nativeBuild": "Release273",
+    "downloadedLambdaBytes": "IDENTICAL_TO_TESTED_CANDIDATES",
+    "unrelatedPackageEntries": "UNCHANGED",
+    "analyzer": "No errors or warnings; existing service print/style infos remain",
+    "unsupportedLegacyTest": "Old eta98 module does not support full-cash by design; that test is validated against actual modern index acceptance, not claimed supported on old helper"
+  },
+  "publication": "docs/driver-performance-publication-273.json",
+  "packages": "docs/driver-performance-packages-273.json",
+  "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "orderedTests": "docs/driver-performance-ordered-acceptance-tests.json",
+  "businessWritesByAgent": 0,
+  "financialCalculationChanged": false,
+  "newPermissions": false,
+  "rankingOrHardEligibilityChanged": false,
+  "remaining": [
+    "Evidence-backed administrative resolution of delay exceptions and performance appeals/review ownership",
+    "Verified quality incidents and customer rating moderation/exclusion/appeals and rating window",
+    "Further activity statistics require authoritative completion/availability history; no fabricated lifetime totals or online hours",
+    "Complete operational source integration before vehicle/documents/region; score/tiers/ranking remain deferred"
+  ],
+  "latestClientPresentation": {
+    "build": 274,
+    "evidence": "docs/driver-performance-layout-274.json",
+    "calculationChange": false
+  }
+}

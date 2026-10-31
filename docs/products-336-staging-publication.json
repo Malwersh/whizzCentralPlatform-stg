@@ -1,0 +1,180 @@
+{
+  "release": 336,
+  "stage": "staging",
+  "functions": [
+    {
+      "name": "order-receiver-regional-staging-product-management-v4-sam",
+      "beforeSha256": "8U+b7SnjoJU/sgZ+lO/umruFONX+6jdR6nGup3hw/Uo=",
+      "afterSha256": "duKMCbbF3hJypc1VCeXB2OTsM+9AZCapPRFErCW5BVQ=",
+      "handler": "product_management_handler.handler"
+    },
+    {
+      "name": "order-receiver-regional-staging-image-upload-v1-sam",
+      "beforeSha256": "Vf1Ld5qm97sHMnAQ2VkA66SCr48Lp6+90f1+6rIQtCw=",
+      "afterSha256": "eSdRxfGAk+oSzI0XIjMUsK+UHMuh2leU+cWXjHPr1ew=",
+      "handler": "image_upload_handler.handler"
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "beforeSha256": "FgH1KUYk89oPTPRhcUxaGw4nlgELU6zV60J+4m5yGNo=",
+      "afterSha256": "d20s3Hr4khgJ/6Ue9z+k55u499qlxZQwtYWjsMAIjxY=",
+      "handler": "functions/create-order/index.handler",
+      "stockErrorContract": "INSUFFICIENT_STOCK/GOODS_UNAVAILABLE return explicit 409 code"
+    },
+    {
+      "name": "WizzUser-GetBusinessProducts-staging",
+      "beforeSha256": "ZsE/rMN7AlctHjAAMlrBYIhJJOI48YW+3hjx8AEQ9MM=",
+      "afterSha256": "RbwsQYS77jPpKOJuV5u9ZRsyoaVkQlPJAcH0wtgOQ4U=",
+      "handler": "functions/get-business-products/index.handler"
+    },
+    {
+      "name": "order-receiver-regional-staging-discount-management-v1-sam",
+      "beforeSha256": "wdXAiSOvB4Y1Zvgoaqtdo3a0iEkN0dg58ge7WWgjRz0=",
+      "afterSha256": "pdqykvNmB63XPiG14dUFHMpDqBDQchVD5DGhiPrBVJQ=",
+      "handler": "discount_management_handler.handler"
+    }
+  ],
+  "apiRoutes": [
+    {
+      "path": "/categories",
+      "method": "POST",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/categories/{categoryId}",
+      "method": "PUT",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/categories/{categoryId}",
+      "method": "DELETE",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/products/imports/preview",
+      "method": "POST",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/products/imports/{importJobId}",
+      "method": "GET",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/products/imports/{importJobId}/commit",
+      "method": "POST",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/menu/versions",
+      "method": "GET",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/menu/versions/publish",
+      "method": "POST",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/menu/versions/rollback",
+      "method": "POST",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/products/inventory",
+      "method": "GET",
+      "authorization": "COGNITO_USER_POOLS"
+    },
+    {
+      "path": "/products/inventory",
+      "method": "POST",
+      "authorization": "COGNITO_USER_POOLS"
+    }
+  ],
+  "testEvidence": "docs/products-336-isolated-staging-uat.json",
+  "iamPolicies": [
+    {
+      "role": "Wizz-Merchants-staging-ProductManagementFunctionRol-YGFyjJP6swZu",
+      "policy": "ProductsInventory336"
+    },
+    {
+      "role": "WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+      "policy": "ProductsInventory336"
+    },
+    {
+      "role": "WizzUser-backend-staging-WizzUserGetBusinessProduct-CPmWv6sd7EYz",
+      "policy": "PublishedMenus336"
+    },
+    {
+      "role": "Wizz-Merchants-staging-DiscountManagementFunctionRo-yyqcChSn9i6f",
+      "policy": "PublishedMenus336"
+    },
+    {
+      "role": "Wizz-Merchants-staging-ProductManagementFunctionRol-YGFyjJP6swZu",
+      "policy": "MerchantIdentityLookup336"
+    },
+    {
+      "role": "Wizz-Merchants-staging-ImageUploadFunctionRole-YPlPmE099BL4",
+      "policy": "MerchantIdentityLookup336"
+    },
+    {
+      "role": "Wizz-Merchants-staging-DiscountManagementFunctionRo-yyqcChSn9i6f",
+      "policy": "MerchantIdentityLookup336"
+    },
+    {
+      "role": "staging-merchant-inventory-336",
+      "policy": "InventoryReconciliation336"
+    }
+  ],
+  "managedPolicies": [
+    {
+      "role": "WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+      "arn": "arn:aws:iam::699561669180:policy/Products336-a0659350aff4"
+    }
+  ],
+  "failureQueue": "arn:aws:sqs:us-east-1:699561669180:staging-merchant-inventory-336-dlq",
+  "workerMapping": "5935f263-56f1-41bd-95b2-3c9719551842",
+  "apiDeployment": {
+    "apiId": "ie7z8r4wc0",
+    "previous": "a2l3s0",
+    "current": "znngon"
+  },
+  "complete": true,
+  "workerSha256": "2QE4p6r6m6Jj/O4wCyz58pUP9lLNerTryYstaXCCuHU=",
+  "verification": {
+    "status": "PASS",
+    "functions": [
+      {
+        "function": "order-receiver-regional-staging-product-management-v4-sam",
+        "sha256": "duKMCbbF3hJypc1VCeXB2OTsM+9AZCapPRFErCW5BVQ=",
+        "state": "Active"
+      },
+      {
+        "function": "order-receiver-regional-staging-image-upload-v1-sam",
+        "sha256": "eSdRxfGAk+oSzI0XIjMUsK+UHMuh2leU+cWXjHPr1ew=",
+        "state": "Active"
+      },
+      {
+        "function": "WizzUser-CreateOrder-staging",
+        "sha256": "d20s3Hr4khgJ/6Ue9z+k55u499qlxZQwtYWjsMAIjxY=",
+        "state": "Active"
+      },
+      {
+        "function": "WizzUser-GetBusinessProducts-staging",
+        "sha256": "RbwsQYS77jPpKOJuV5u9ZRsyoaVkQlPJAcH0wtgOQ4U=",
+        "state": "Active"
+      },
+      {
+        "function": "order-receiver-regional-staging-discount-management-v1-sam",
+        "sha256": "pdqykvNmB63XPiG14dUFHMpDqBDQchVD5DGhiPrBVJQ=",
+        "state": "Active"
+      }
+    ],
+    "workerSha256": "2QE4p6r6m6Jj/O4wCyz58pUP9lLNerTryYstaXCCuHU=",
+    "workerMappingState": "Enabled",
+    "productImageRegistrationHeaderBypassBlocked": true,
+    "unauthenticatedRoutesRejected": 3,
+    "operatorUat": "docs/products-336-native-api-uat.json",
+    "isolatedDynamoUat": "docs/products-336-isolated-staging-uat.json"
+  }
+}

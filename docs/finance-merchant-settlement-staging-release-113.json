@@ -1,0 +1,194 @@
+{
+  "part": 113,
+  "status": "STAGING_PUBLISHED_CREATION_CLOSED_AUTHENTICATED_PHONE_TEST_PENDING",
+  "recordedAt": "2026-10-18T13:23:36.821419+00:00",
+  "publication": {
+    "functions": [
+      {
+        "name": "staging-account-deletion-financial-expiry",
+        "codeSha256": "8UQD82V//2cKveyVosOog6FE0JACLfUF48VHJuLkb0Y=",
+        "revisionId": "aa1ea17d-c721-4dcc-adcd-393caf214530",
+        "state": "Active",
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-account-deletion-worker",
+        "codeSha256": "LsYQe8eAbokhnmRPiIm/eRoPQLOQA5bxyRbVU67kIyg=",
+        "revisionId": "e8e54262-9615-4f04-9c83-01c059933f09",
+        "state": "Active",
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "pf41wS1kwKFNe8Wy4SQ9cmpOATfVLC6zCqVhUaJmjbs=",
+        "revisionId": "197e9d89-c7ef-425f-9d68-f55e47ee8aa2",
+        "state": "Active",
+        "configurationPreserved": true
+      },
+      {
+        "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+        "codeSha256": "3/PEuRGa4WZjS5L4Lg9DA4mjvQtXdckwlhBJ1ytT7hM=",
+        "revisionId": "71dc61a9-54c3-45a2-8f31-33caa4115484",
+        "state": "Active",
+        "configurationPreserved": true
+      }
+    ],
+    "amplifyJobId": "101",
+    "merchantApi": {
+      "apiId": "ie7z8r4wc0",
+      "path": "/auth/settlement-schedules",
+      "methods": [
+        "GET",
+        "POST",
+        "OPTIONS"
+      ],
+      "deploymentId": "q6pxrr",
+      "getPostAuthorization": "COGNITO_USER_POOLS",
+      "options": "MOCK_CORS_WITH_ACCESS_TOKEN",
+      "otherPathsPreserved": true
+    }
+  },
+  "permissions": {
+    "userExplicitlyApproved": true,
+    "policyName": "SettlementRetention113",
+    "targetRole": "arn:aws:iam::699561669180:role/staging-account-deletion-WorkerRole-u5xpbVRU9G0Q",
+    "policySha256": "672f545f8ce23e0c4b55c905e2eb410df3d71295f2d1e68d599f4205c15fcc08",
+    "rolePolicyMutations": 1,
+    "simulatedRequiredCasesAllowed": 32,
+    "newPolicyScope": "Source conditions on BRANCH/MERCHANT_SETTLEMENT and read/condition on schedule audit only",
+    "walletLedgerHoldOrTransferPermissionsAdded": false
+  },
+  "publicationApproval": {
+    "userExplicitlyApproved": true,
+    "scope": "Four named Lambda functions, protected merchant path and staging website; feature remains closed"
+  },
+  "checks": {
+    "localSettlementRouteTests": 108,
+    "realDynamoDb": {
+      "table": "staging-settlement-validation-113-9c20176c-fc18-424e-8fe6-8293f7aa9362",
+      "existingApplicationTablesTouched": false,
+      "balancesChanged": false,
+      "awsIamChanged": false,
+      "proposalConsentApprovalAndReplay": true,
+      "actualVersionQueryAndProjection": true,
+      "concurrentApprovalsSingleWinner": true,
+      "historicalCutoverPreservesVersion": true,
+      "immutableArchivesAndRetry": true,
+      "archivedRecords": 15,
+      "temporaryTableDeleted": true
+    },
+    "packageSyntaxAndUnrelatedEntryPreservation": true,
+    "permissionCatalogMatchesPreviouslyDeployedCatalog": true,
+    "browserFinancialOnlyAccessAndStableRetry": true,
+    "hostedFilesMatched": [
+      "pages/finance.html",
+      "pages/merchants.html",
+      "settlement-schedules.js",
+      "assets/js/rbac.js",
+      "notification-sounds.js",
+      "assets/sounds/first_nitification_sound.wav",
+      "assets/sounds/driver_original.wav"
+    ],
+    "negativeAuth": [
+      {
+        "path": "/staff/settlement-schedules",
+        "statusCode": 401
+      },
+      {
+        "path": "/staff/settlement-schedules/branches",
+        "statusCode": 401
+      },
+      {
+        "path": "settlement_schedule_owner",
+        "statusCode": 503
+      },
+      {
+        "path": "merchant /auth/settlement-schedules",
+        "statusCode": 401
+      }
+    ],
+    "corsAccessTokenHeader": true,
+    "allLambdaEnvironmentAndFinancialFlagsPreserved": true
+  },
+  "integrationCorrections": [
+    "Move schedule administration into finance.read page rather than requiring merchant administration",
+    "Minimal server-authorized branch directory; no browser table scan or private branch fields",
+    "Existence-only deletion reads project pk/sk to match current IAM restrictions",
+    "Use existing protected branch-staff Cognito authorizer for new merchant route, preserving unrelated routes",
+    "Explicit mock OPTIONS CORS because copied source had no method/integration response declarations and no Empty model"
+  ],
+  "releaseArtifacts": {
+    "staff": {
+      "codeSha256": "pf41wS1kwKFNe8Wy4SQ9cmpOATfVLC6zCqVhUaJmjbs=",
+      "changedFiles": [
+        "commercial-owner.js",
+        "index.js",
+        "settlement-runtime.js",
+        "settlement-schedules.js"
+      ]
+    },
+    "merchant": {
+      "codeSha256": "3/PEuRGa4WZjS5L4Lg9DA4mjvQtXdckwlhBJ1ytT7hM=",
+      "changedFiles": [
+        "person_onboarding.js",
+        "settlement_schedules.js",
+        "unified_auth_handler.js"
+      ]
+    },
+    "worker": {
+      "codeSha256": "LsYQe8eAbokhnmRPiIm/eRoPQLOQA5bxyRbVU67kIyg=",
+      "changedFiles": [
+        "cod-retention.js",
+        "merchant-worker.js",
+        "settlement-retention.js",
+        "settlement-schedule-inventory.js"
+      ]
+    },
+    "expiry": {
+      "codeSha256": "8UQD82V//2cKveyVosOog6FE0JACLfUF48VHJuLkb0Y=",
+      "changedFiles": [
+        "financial-purge.js"
+      ]
+    },
+    "frontend": {
+      "codeSha256": "ilLKOXbmSoq79gPsdWAo6nuYX0er56fLF2RoavJ6Ajk=",
+      "changedFiles": [
+        "pages/finance.html",
+        "pages/merchants.html",
+        "settlement-schedules.js"
+      ]
+    }
+  },
+  "activation": false,
+  "scheduleAdminGateEnabled": false,
+  "applicationFinancialRowsWritten": false,
+  "existingApplicationTablesTouchedByDynamoDbTest": false,
+  "balancesChangedByRelease": false,
+  "payoutAuthorized": false,
+  "phoneAppInstalledByThisRelease": false,
+  "authenticatedOwnerFlow": "NOT_TESTED_PENDING_OTP",
+  "pausedTest": "Part103 remains paused pending OTP recovery; no new OTP message sent",
+  "remaining": [
+    "Build/install the merchant app UI and test authenticated owner/admin interaction after OTP recovery",
+    "Explicitly review/authorize feature activation separately; current publication approval keeps it closed",
+    "Proposal notification/outbox and eventual settlement archive purge remain separate pending work"
+  ],
+  "sourceSha256": {
+    "backend/staff-service/settlement-schedules.js": "ed3113e738980ab5bfcd87331a512bbdfac53682b1d4b70c76d82fd21b549568",
+    "backend/staff-service/settlement-runtime.js": "d442e2a4b6c4f8e4abd2ead269f38290e4bc81234ded44be8c9976128600539b",
+    "backend/staff-service/index.js": "1b75eba7df7245b72db1ee7e100a92ae7f6d0984d6fd8c71c425138bde764da7",
+    "backend/staff-service/commercial-owner.js": "75ba087231688bfc08f623c3ee992313eb76f1e6ea000943e28e9305d8e1ba41",
+    "backend/wallet-service/src/merchantSettlementAuthority.ts": "a968cf23c827dcbe014afb138a31c0741f3982a06d345e26edcd32050ef31d25",
+    "backend/wallet-service/src/merchantSettlementScheduleWorkflow.ts": "14f078b5782b6e5f70a34a4cf781b304c4a30650dfae7d4be34f34682a674c22",
+    "frontend/settlement-schedules.js": "110a7ac9437eec3f37cb395c3f2dff91ccdc593448400455e34fd3e83815c10b",
+    "frontend/pages/finance.html": "05e84d2aa07bcf47b74bb38704ebf04813c3b437e70bdec04dc2c61b987c2fe0",
+    "frontend/pages/merchants.html": "8dbe0f4bcbbfa2418ad3f2369b8d5b036879609a0ec62b98901a77946ccb608f",
+    "backend/finance-settlement-retention-access.staging.json": "dacfd70bc6d22a87d89eb800cfefd0999fa4812d5644db813c0722f88dbcfb72",
+    "scripts/prepare-settlement-deployment-113.py": "5787081b92086bcec2c306637dfc0cdef075bc6dc373a9877172f421fdc467b8",
+    "scripts/publish-settlement-code-113.py": "991932ffc17c3dce792a51d398b4ae5775380a0309ca13c069615f205cadff3e",
+    "scripts/publish-settlement-api-route-113.py": "484eb6ea7ae3a4f0cb9314e58dc42ca139de56b36a71df07a16c17443eb59da5",
+    "scripts/repair-settlement-cors-113.py": "a1a7e34ee97ee5898d6b36393d2a853d7410709ec067e9f871148740ea96755e",
+    "scripts/publish-settlement-frontend-113.py": "a0fc7994af830ad476b643baf065e6e43a01050e8b1d0ea59ddbc5a84f831da3",
+    "scripts/verify-settlement-release-113.py": "fc6d5c64c5ac7c18382f59602b859226e903234dbf2c2de179f50fbb929c936a"
+  }
+}

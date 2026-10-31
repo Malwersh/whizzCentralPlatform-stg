@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
+<script src="../assets/js/wizz-locale.js?v=20261022-rtl1"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WizzCentral Platform - Promotions Management</title>
+    <title>منصة ويز سنترال - إدارة العروض</title>
     <script src="../env.js"></script>
     <script src="../config.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
@@ -17,7 +18,7 @@
     <!-- Security utilities -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="../assets/js/security-utils.js"></script>
-    <script src="../assets/js/rbac.js"></script>
+    <script src="../assets/js/rbac.js?v=20261017-ar1"></script>
     <style>
         /* Modal dialog styles */
         .modal {
@@ -404,7 +405,7 @@
         }
 
         /* ===== ENHANCED CAMPAIGNS TABLE STYLES ===== */
-        
+
         /* Table Container */
         .table-container {
             background: var(--md-sys-color-surface);
@@ -770,7 +771,7 @@
         /* ===== END ENHANCED TABLE STYLES ===== */
 
         /* ===== MERCHANT DISCOUNTS TABLE STYLES ===== */
-        
+
         .discount-row {
             transition: background-color 0.2s ease;
         }
@@ -861,12 +862,15 @@
 
         /* Modal dialog styles */
     </style>
+    <link rel="stylesheet" href="../styles/promotions-page.css?v=20261016-campaign2">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-</head>
+    <link rel="stylesheet" href="../styles/home-slideshow.css?v=20261016-journey4">
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"><link rel="stylesheet" href="../styles/campaign-form-clarity.css?v=20261018-clarity2"></head>
 
-<body data-page="promotions">
+<body class="wizz-shell" data-page="promotions">
+
     <!-- Sidebar include placeholder -->
     <div id="sidebar-placeholder"></div>
 
@@ -874,79 +878,80 @@
     <div class="main-content" id="mainContent">
         <!-- Page Content -->
         <div class="page-content">
+<details data-commercial-kind="FUNDING" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px"><summary>مشاركة تمويل الخصومات</summary><p>إدارة الشروط المالية لكل فرع. تسري المشاركة بعد موافقة المالك، ولمدة الخصم نفسها.</p></details>
             <!-- Create Promotion Modal Dialog -->
             <div id="addPromotionModal" class="modal">
                 <div class="modal-content">
                     <button id="closeAddPromotionModalBtn" class="modal-close">&times;</button>
-                    <h2 style="margin-top: 0;"><i class="fas fa-tags"></i> New Promotion</h2>
+                    <h2 style="margin-top: 0;"><i class="fas fa-tags"></i> عرض جديد</h2>
                     <form id="addPromotionForm">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="title">Promotion Title *</label>
+                                <label for="title">عنوان العرض *</label>
                                 <input type="text" id="title" name="title" required
-                                    placeholder="e.g., Summer Sale 2025">
+                                    placeholder="مثال: تخفيضات الصيف" dir="auto">
                             </div>
                             <div class="form-group">
-                                <label for="code">Promotion Code *</label>
-                                <input type="text" id="code" name="code" required placeholder="e.g., SUMMER25"
-                                    style="text-transform: uppercase;">
+                                <label for="code">رمز العرض *</label>
+                                <input type="text" id="code" name="code" required placeholder="مثال: SUMMER25"
+                                    style="text-transform: uppercase;" dir="auto">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="type">Discount Type *</label>
+                                <label for="type">نوع الخصم *</label>
                                 <select id="type" name="type" required>
-                                    <option value="">Select Type</option>
-                                    <option value="percentage">Percentage Off</option>
-                                    <option value="fixed_amount">Fixed Amount Off</option>
-                                    <option value="free_delivery">Free Delivery</option>
-                                    <option value="bogo">Buy One Get One</option>
+                                    <option value="">اختر النوع</option>
+                                    <option value="percentage">خصم بنسبة مئوية</option>
+                                    <option value="fixed_amount">خصم بمبلغ ثابت (د.ع)</option>
+                                    <option value="free_delivery">توصيل مجاني</option>
+                                    <option value="bogo" disabled>اشترِ منتجًا واحصل على آخر مجانًا (داخل المتجر — قريبًا)</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="value">Discount Value *</label>
-                                <input type="number" id="value" name="value" required min="0" step="0.01"
-                                    placeholder="e.g., 25 or 10.50">
+                                <label for="value">قيمة الخصم *</label>
+                                <input type="number" id="value" name="value" required min="0" step="1"
+                                    placeholder="مثال: 20٪ أو 5000 دينار عراقي" dir="ltr">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="description">Description *</label>
+                            <label for="description">الوصف *</label>
                             <textarea id="description" name="description" required
-                                placeholder="Brief description of the promotion"></textarea>
+                                placeholder="وصف مختصر للعرض"></textarea>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="startDate">Start Date & Time *</label>
+                                <label for="startDate">تاريخ ووقت البدء *</label>
                                 <div class="datetime-input-wrapper">
-                                    <input type="datetime-local" id="startDate" name="startDate" required>
+                                    <input type="datetime-local" id="startDate" name="startDate" required dir="ltr">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="endDate">End Date & Time *</label>
+                                <label for="endDate">تاريخ ووقت الانتهاء *</label>
                                 <div class="datetime-input-wrapper">
-                                    <input type="datetime-local" id="endDate" name="endDate" required>
+                                    <input type="datetime-local" id="endDate" name="endDate" required dir="ltr">
                                 </div>
                                 </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="limit">Usage Limit (optional)</label>
-                                <input type="number" id="limit" name="limit" min="1" placeholder="e.g., 100">
+                                <label for="limit">حد الاستخدام (اختياري)</label>
+                                <input type="number" id="limit" name="limit" min="1" placeholder="e.g., 100" dir="ltr">
                             </div>
                             <div class="form-group">
-                                <label for="minOrder">Min Order Value (optional)</label>
-                                <input type="number" id="minOrder" name="minOrder" min="0" step="0.01"
-                                    placeholder="e.g., 50.00">
+                                <label for="minOrder">الحد الأدنى لقيمة الطلب بالدينار العراقي (اختياري)</label>
+                                <input type="number" id="minOrder" name="minOrder" min="0" step="100"
+                                    placeholder="مثال: 10000 دينار عراقي" dir="ltr">
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="reset" class="btn-secondary">Clear Form</button>
-                            <button type="submit" class="btn-primary">Create Promotion</button>
+                            <button type="reset" class="btn-secondary">مسح النموذج</button>
+                            <button type="submit" class="btn-primary">إنشاء عرض</button>
                         </div>
                     </form>
                 </div>
@@ -958,53 +963,62 @@
                     <button id="closeCampaignModal" class="modal-close material-3-close">&times;</button>
                     <div class="modal-header material-3-header">
                         <h2>
-                            <i class="fas fa-rocket material-3-icon"></i> Create Campaign
+                            <i class="fas fa-rocket material-3-icon"></i> إنشاء حملة
                         </h2>
                     </div>
-            
+
                     <div id="campaignLoader" class="material-3-loader" style="display: none;">
                         <div class="loader-content">
                             <i class="fas fa-spinner fa-spin"></i>
-                            <span>Processing campaign...</span>
+                            <span>جارٍ معالجة الحملة...</span>
                         </div>
                     </div>
                     <form id="simplifiedCampaignForm" class="material-3-form">
+<div id="campaign_saveStatus" role="status" aria-live="polite" hidden></div>
                         <!-- Basic Campaign Information -->
                         <div class="form-section material-3-section">
                             <h3 class="section-title">
-                                <i class="fas fa-info-circle"></i> Basic Information
+                                <i class="fas fa-info-circle"></i> المعلومات الأساسية
                             </h3>
 <div class="form-row">
             <div class="material-3-field">
-                <input type="text" name="title" id="campaign_title" required placeholder=" " class="material-3-input">
-                <label for="campaign_title" class="material-3-label">Campaign Title *</label>
+                <input type="text" name="title" id="campaign_title" required placeholder=" " class="material-3-input" dir="auto">
+                <label for="campaign_title" class="material-3-label">عنوان الحملة *</label>
                 <div class="material-3-underline"></div>
             </div>
                                 <div class="material-3-field">
                                     <input type="text" name="code" id="campaign_code" required placeholder=" " class="material-3-input"
-                                        style="text-transform: uppercase;">
-                                    <label for="campaign_code" class="material-3-label">Campaign Code *</label>
+                                        style="text-transform: uppercase;" dir="auto">
+                                    <label for="campaign_code" class="material-3-label">رمز الحملة *</label>
                                     <div class="material-3-underline"></div>
-                                    <small class="material-3-helper">Must be unique (e.g., FIRST25)</small>
+                                    <small class="material-3-helper">يجب أن يكون الرمز فريدًا، مثل FIRST25</small>
                                 </div>
                                 </div>
 
                             <div class="form-row">
                                 <div class="material-3-field">
                                     <select name="type" id="campaign_type" required class="material-3-select">
-                                        <option value="">Select Type</option>
-                                        <option value="first-order">First Order Discount</option>
-                                        <option value="new-customer">New Customer Welcome</option>
-                                        <option value="loyalty">Loyalty Reward</option>
-                                        <option value="promotional">Promotional Campaign</option>
-                                        <option value="seasonal">Seasonal Offer</option>
+                                        <option value="">اختر النوع</option>
+                                        <option value="first-order">خصم الطلب الأول</option>
+                                        <option value="new-customer">ترحيب بالعملاء الجدد</option>
+                                        <option value="loyalty">مكافأة ولاء</option>
+                                        <option value="promotional">حملة ترويجية</option>
+                                        <option value="seasonal">عرض موسمي</option>
                                     </select>
-                                    <label for="campaign_type" class="material-3-label">Campaign Type *</label>
+                                    <label for="campaign_type" class="material-3-label">نوع الحملة *</label>
                                     <div class="material-3-underline"></div>
                                 </div>
-                                <div class="material-3-field">
+                                <div class="form-group" style="grid-column:1/-1">
+<label for="campaign_image">صورة الحملة</label>
+<input type="hidden" id="campaign_imageKey" name="imageKey" value="">
+<input id="campaign_image" type="file" accept="image/jpeg,image/png,image/webp">
+<p>ارفع صورة حتى 10 MB. تظهر في نافذة العرض داخل تطبيق المستخدم. نشر شريحة الشاشة الرئيسية يتم بشكل منفصل.</p>
+<p id="campaign_imageStatus" role="status"></p>
+<img id="campaign_imagePreview" hidden alt="صورة الحملة" style="max-width:100%;max-height:260px;object-fit:contain;border-radius:20px">
+<button id="campaign_imageRemove" type="button">إزالة الصورة</button>
+</div><div class="material-3-field">
                                     <textarea name="description" id="campaign_description" placeholder=" " class="material-3-textarea"></textarea>
-                                    <label for="campaign_description" class="material-3-label">Description</label>
+                                    <label for="campaign_description" class="material-3-label">الوصف</label>
                                     <div class="material-3-underline"></div>
                                 </div>
                             </div>
@@ -1013,41 +1027,42 @@
                         <!-- Discount Configuration -->
                         <div class="form-section material-3-section">
                             <h3 class="section-title">
-                                <i class="fas fa-percent"></i> Discount Details
+                                <i class="fas fa-percent"></i> تفاصيل الخصم
                             </h3>
                             <div class="form-row">
                                 <div class="material-3-field">
                                     <select name="discountType" id="campaign_discountType" required class="material-3-select">
-                                        <option value="">Select Type</option>
-                                        <option value="percentage">Percentage Off</option>
-                                        <option value="fixed">Fixed Amount Off</option>
-                                        <option value="free-delivery">Free Delivery</option>
-                                        </select>
-                                    <label for="campaign_discountType" class="material-3-label">Discount Type *</label>
+                                        <option value="">اختر النوع</option>
+                                        <option value="percentage">خصم بنسبة مئوية</option>
+                                        <option value="fixed">خصم بمبلغ ثابت (د.ع)</option>
+                                        <option value="free-delivery">توصيل مجاني</option>
+                                        <option value="bogo" disabled>اشترِ منتجًا واحصل على آخر مجانًا (داخل المتجر — قريبًا)</option>
+                                    </select>
+                                    <label for="campaign_discountType" class="material-3-label">نوع الخصم *</label>
                                     <div class="material-3-underline"></div>
-                                    </div>
+                                </div>
                                 <div class="material-3-field">
-                                    <input type="number" name="discountValue" id="campaign_discountValue" required min="0" step="0.01" placeholder=" "
-                                        class="material-3-input">
-                                    <label for="campaign_discountValue" class="material-3-label">Discount Value *</label>
+                                    <input type="number" name="discountValue" id="campaign_discountValue" required min="0" step="1" placeholder=" "
+                                        class="material-3-input" dir="ltr">
+                                    <label for="campaign_discountValue" class="material-3-label">قيمة الخصم *</label>
                                     <div class="material-3-underline"></div>
-                                    <small class="material-3-helper">Amount or percentage (e.g., 25 or 10.50)</small>
+                                    <small class="material-3-helper">نسبة مئوية، مثل 20، أو مبلغ بالدينار العراقي، مثل 5000</small>
                                 </div>
-                                </div>
+                            </div>
 
                             <div class="form-row">
                                 <div class="material-3-field">
-                                    <input type="number" name="minOrderValue" id="campaign_minOrderValue" min="0" step="0.01" placeholder=" "
-                                        class="material-3-input">
-                                    <label for="campaign_minOrderValue" class="material-3-label">Minimum Order Value</label>
+                                    <input type="number" name="minOrderValue" id="campaign_minOrderValue" min="0" step="100" placeholder=" "
+                                        class="material-3-input" dir="ltr">
+                                    <label for="campaign_minOrderValue" class="material-3-label">الحد الأدنى لقيمة الطلب (د.ع)</label>
                                     <div class="material-3-underline"></div>
-                                    <small class="material-3-helper">Optional minimum order amount</small>
+                                    <small class="material-3-helper">حد أدنى اختياري لقيمة الطلب بالدينار العراقي، مثل 10000</small>
                                 </div>
                                 <div class="material-3-field">
-                                    <input type="number" name="usageLimit" id="campaign_usageLimit" min="1" placeholder=" " class="material-3-input">
-                                    <label for="campaign_usageLimit" class="material-3-label">Usage Limit</label>
+                                    <input type="number" name="usageLimit" id="campaign_usageLimit" min="1" placeholder=" " class="material-3-input" dir="ltr">
+                                    <label for="campaign_usageLimit" class="material-3-label">حد الاستخدام</label>
                                     <div class="material-3-underline"></div>
-                                    <small class="material-3-helper">Leave empty for unlimited</small>
+                                    <small class="material-3-helper">اتركه فارغًا للاستخدام غير المحدود</small>
                                 </div>
                             </div>
                         </div>
@@ -1055,17 +1070,17 @@
                         <!-- Campaign Schedule -->
                         <div class="form-section material-3-section">
                             <h3 class="section-title">
-                                <i class="fas fa-calendar"></i> Schedule
+                                <i class="fas fa-calendar"></i> الجدول الزمني
                             </h3>
                             <div class="form-row">
                                 <div class="material-3-field">
-                                    <input type="date" name="startDate" id="campaign_startDate" required placeholder=" " class="material-3-input">
-                                    <label for="campaign_startDate" class="material-3-label">Start Date *</label>
+                                    <input type="date" name="startDate" id="campaign_startDate" required placeholder=" " class="material-3-input" dir="ltr">
+                                    <label for="campaign_startDate" class="material-3-label">تاريخ البدء *</label>
                                     <div class="material-3-underline"></div>
                                 </div>
                                 <div class="material-3-field">
-                                    <input type="date" name="endDate" id="campaign_endDate" required placeholder=" " class="material-3-input">
-                                    <label for="campaign_endDate" class="material-3-label">End Date *</label>
+                                    <input type="date" name="endDate" id="campaign_endDate" required placeholder=" " class="material-3-input" dir="ltr">
+                                    <label for="campaign_endDate" class="material-3-label">تاريخ الانتهاء *</label>
                                     <div class="material-3-underline"></div>
                                 </div>
                             </div>
@@ -1074,26 +1089,32 @@
                         <!-- Simplified Targeting -->
                         <div class="form-section material-3-section">
                             <h3 class="section-title">
-                                <i class="fas fa-bullseye"></i> Targeting
+                                <i class="fas fa-bullseye"></i> الاستهداف
                             </h3>
-                        
+
                             <div class="form-row">
                                 <div class="material-3-field">
                                     <select name="customerSegment" id="campaign_customerSegment" class="material-3-select">
-                                        <option value="all">All Customers</option>
-                                        <option value="new">New Customers (First 7 days)</option>
-                                        <option value="returning">Returning Customers</option>
-                                        <option value="vip">VIP Customers</option>
-                                        <option value="inactive">Inactive Customers (30+ days)</option>
+                                        <option value="all">جميع العملاء</option>
+                                        <option value="new">العملاء الجدد (خلال أول ٧ أيام)</option>
+                                        <option value="returning">العملاء العائدون</option>
+                                        <option value="vip">العملاء المميزون</option>
+                                        <option value="inactive">العملاء غير النشطين منذ ٣٠ يومًا فأكثر</option>
                                     </select>
-                                    <label for="campaign_customerSegment" class="material-3-label">Customer Segment</label>
+                                    <label for="campaign_customerSegment" class="material-3-label">فئة العميل</label>
                                     <div class="material-3-underline"></div>
                                 </div>
                                 <div class="material-3-field">
-                                    <input type="text" name="targetLocation" id="campaign_targetLocation" placeholder=" " class="material-3-input">
-                                    <label for="campaign_targetLocation" class="material-3-label">Target Location</label>
-                                    <div class="material-3-underline"></div>
-                                    <small class="material-3-helper">e.g., Dubai, Abu Dhabi (optional)</small>
+                                    <div class="campaign-region-picker">
+                                        <label for="campaign_regionSearch">ابحث في المناطق المسجّلة</label>
+                                        <input type="search" id="campaign_regionSearch" placeholder="ابحث بالاسم العربي أو الإنجليزي" autocomplete="off" dir="auto">
+                                        <label for="campaign_targetRegionId">المناطق المستهدفة</label>
+                                        <select name="targetRegionId" id="campaign_targetRegionId" size="5" aria-describedby="campaign_regionStatus">
+                                            <option value="">جميع المناطق</option>
+                                        </select>
+                                        <small id="campaign_regionStatus" role="status">اختر منطقة مسجّلة، أو اترك خيار «جميع المناطق» محددًا.</small>
+                                        <button type="button" id="campaign_retryRegions" hidden>إعادة تحميل المناطق</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1101,24 +1122,24 @@
                         <!-- Campaign Settings -->
                         <div class="form-section material-3-section">
                             <h3 class="section-title">
-                                <i class="fas fa-cog"></i> Settings
+                                <i class="fas fa-cog"></i> الإعدادات
                             </h3>
-                        
+
                             <div class="material-3-checkboxes">
                                 <label class="material-3-checkbox">
-                                    <input type="checkbox" name="isActive" checked>
+                                    <input type="checkbox" name="isActive" checked dir="auto">
                                     <span class="material-3-checkmark"></span>
-                                    <span class="checkbox-text">Activate immediately</span>
+                                    <span class="checkbox-text">التفعيل فورًا</span>
                                 </label>
                                 <label class="material-3-checkbox">
-                                    <input type="checkbox" name="singleUse">
+                                    <input type="checkbox" name="singleUse" dir="auto">
                                     <span class="material-3-checkmark"></span>
-                                    <span class="checkbox-text">Single use per customer</span>
+                                    <span class="checkbox-text">استخدام واحد لكل عميل</span>
                                 </label>
                                 <label class="material-3-checkbox">
-                                    <input type="checkbox" name="stackable">
+                                    <input type="checkbox" name="stackable" dir="auto">
                                     <span class="material-3-checkmark"></span>
-                                    <span class="checkbox-text">Stackable with other offers</span>
+                                    <span class="checkbox-text">إمكانية الجمع مع عروض أخرى</span>
                                 </label>
                             </div>
                         </div>
@@ -1127,37 +1148,36 @@
                         <div class="form-section material-3-section"
                             style="background: var(--md-sys-color-tertiary-container); border-left-color: var(--md-sys-color-tertiary);">
                             <h3 class="section-title">
-                                <i class="fas fa-bell"></i> Push Notifications
+                                <i class="fas fa-bell"></i> الإشعارات
                             </h3>
-                        
+
                             <div class="material-3-checkboxes">
                                 <label class="material-3-checkbox">
-                                    <input type="checkbox" name="sendPushNotification" id="sendPushNotification" checked>
+                                    <input type="checkbox" name="sendPushNotification" id="sendPushNotification" dir="auto">
                                     <span class="material-3-checkmark"></span>
-                                    <span class="checkbox-text" style="font-weight: 500;">Send push notification to merchants</span>
+                                    <span class="checkbox-text" style="font-weight: 500;">إرسال إشعار إلى الزبائن</span>
                                 </label>
                                 <small class="material-3-helper"
                                     style="margin-left: 32px; display: block; margin-top: 8px; color: var(--md-sys-color-on-surface-variant);">
-                                    <i class="fas fa-info-circle"></i> Merchants will receive a notification about this promotion on their
-                                    WhizzMerchants app
+                                    <i class="fas fa-info-circle"></i> سيتلقى الزبائن المؤهلون إشعارًا بهذا العرض في تطبيق ويز يوزر بعد نجاح الحفظ. يُرسل الإشعار للحملة المفعّلة خلال فترة سريانها، مرة واحدة لكل إصدار.
                                 </small>
                             </div>
-                        
-                            <div id="pushNotificationOptions" class="push-notification-options"
+
+                            <div id="pushNotificationOptions" class="push-notification-options" hidden
                                 style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--md-sys-color-outline-variant);">
                                 <div class="material-3-field">
                                     <input type="text" name="notificationTitle" id="notificationTitle" placeholder=" " class="material-3-input"
-                                        maxlength="50">
-                                    <label for="notificationTitle" class="material-3-label">Notification Title</label>
+                                        maxlength="100" dir="auto">
+                                    <label for="notificationTitle" class="material-3-label">عنوان الإشعار</label>
                                     <div class="material-3-underline"></div>
-                                    <small class="material-3-helper">Leave empty to use campaign name</small>
+                                    <small class="material-3-helper">اتركه فارغًا لاستخدام اسم الحملة</small>
                                 </div>
                                 <div class="material-3-field" style="margin-top: 16px;">
                                     <textarea name="notificationMessage" id="notificationMessage" placeholder=" " class="material-3-textarea"
                                         rows="3" maxlength="150"></textarea>
-                                    <label for="notificationMessage" class="material-3-label">Notification Message</label>
+                                    <label for="notificationMessage" class="material-3-label">نص الإشعار</label>
                                     <div class="material-3-underline"></div>
-                                    <small class="material-3-helper">Custom message (max 150 characters)</small>
+                                    <small class="material-3-helper">رسالة مخصصة (١٥٠ حرفًا كحد أقصى)</small>
                                 </div>
                             </div>
                         </div>
@@ -1166,10 +1186,10 @@
                         <div class="form-actions material-3-actions">
                             <button type="button" class="btn-secondary material-3-btn-secondary"
                                 onclick="window.campaignManager && window.campaignManager.resetForm()">
-                                <i class="fas fa-undo"></i> Reset
+                                <i class="fas fa-undo"></i> إعادة تعيين
                             </button>
                             <button type="submit" class="btn-primary material-3-btn-primary">
-                                <i class="fas fa-rocket"></i> Create Campaign
+                                <i class="fas fa-rocket"></i> إنشاء حملة
                             </button>
                         </div>
                     </form>
@@ -1181,89 +1201,89 @@
                 <div class="modal-content material-3-modal" style="max-width: 600px;">
                     <button class="modal-close" onclick="closePushModal()">×</button>
                     <div class="material-3-header">
-                        <h2><i class="fas fa-bell"></i> Send Push Notification</h2>
+                        <h2><i class="fas fa-bell"></i> إرسال إشعار</h2>
                     </div>
                     <div style="padding: 24px;">
                         <div
                             style="background: var(--md-sys-color-surface-variant); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-                            <h3 style="margin: 0 0 8px 0; color: var(--md-sys-color-on-surface-variant);">Discount Preview</h3>
+                            <h3 style="margin: 0 0 8px 0; color: var(--md-sys-color-on-surface-variant);">معاينة الخصم</h3>
                             <div id="discountPreview" style="display: flex; flex-direction: column; gap: 8px;"></div>
                         </div>
-                    
+
                         <form id="pushNotificationForm" onsubmit="return sendPushNotification(event)">
-                            <input type="hidden" id="push_discountId" name="discountId">
-                    
+                            <input type="hidden" id="push_discountId" name="discountId" dir="auto">
+
                             <!-- Target Audience -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Target Audience <span
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">الجمهور المستهدف <span
                                         style="color: var(--md-sys-color-error);">*</span></label>
                                 <select id="push_targetAudience" name="targetAudience" required class="material-3-select"
                                     style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
-                                    <option value="all">All Customers</option>
-                                    <option value="nearby">Nearby Customers (5km)</option>
-                                    <option value="loyal">Loyal Customers (5+ orders)</option>
-                                    <option value="new">New Customers (last 30 days)</option>
+                                    <option value="all">جميع العملاء</option>
+                                    <option value="nearby">العملاء القريبون (ضمن ٥ كم)</option>
+                                    <option value="loyal">العملاء الدائمون (٥ طلبات فأكثر)</option>
+                                    <option value="new">العملاء الجدد (آخر ٣٠ يومًا)</option>
                                 </select>
                             </div>
-                    
+
                             <!-- Notification Title (Optional Override) -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
                                 <input type="text" id="push_notificationTitle" name="notificationTitle" placeholder=" "
-                                    class="material-3-input">
-                                <label for="push_notificationTitle" class="material-3-label">Custom Notification Title (Optional)</label>
+                                    class="material-3-input" dir="auto">
+                                <label for="push_notificationTitle" class="material-3-label">عنوان إشعار مخصص (اختياري)</label>
                                 <div class="material-3-underline"></div>
-                                <small class="material-3-helper">Leave empty to use auto-generated title</small>
+                                <small class="material-3-helper">اتركه فارغًا لاستخدام العنوان المُعدّ تلقائيًا</small>
                             </div>
-                    
+
                             <!-- Notification Body (Optional Override) -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
                                 <textarea id="push_notificationBody" name="notificationBody" placeholder=" " class="material-3-textarea"
                                     rows="3"
                                     style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;"></textarea>
-                                <label for="push_notificationBody" class="material-3-label">Custom Notification Message (Optional)</label>
-                                <small class="material-3-helper">Leave empty to use auto-generated message</small>
+                                <label for="push_notificationBody" class="material-3-label">نص إشعار مخصص (اختياري)</label>
+                                <small class="material-3-helper">اتركه فارغًا لاستخدام الرسالة المُعدّة تلقائيًا</small>
                             </div>
-                    
+
                             <!-- Schedule Options -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Send Time</label>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">موعد الإرسال</label>
                                 <select id="push_sendTime" name="sendTime" class="material-3-select"
                                     style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
-                                    <option value="now">Send Immediately</option>
-                                    <option value="scheduled">Schedule for Later</option>
+                                    <option value="now">إرسال فوري</option>
+                                    <option value="scheduled">جدولة الإرسال لاحقًا</option>
                                 </select>
                             </div>
-                    
+
                             <div id="scheduledTimeSection" style="display: none; margin-bottom: 20px;">
                                 <div class="material-3-field">
-                                    <input type="datetime-local" id="push_scheduledTime" name="scheduledTime" class="material-3-input">
-                                    <label for="push_scheduledTime" class="material-3-label">Scheduled Time</label>
+                                    <input type="datetime-local" id="push_scheduledTime" name="scheduledTime" class="material-3-input" dir="ltr">
+                                    <label for="push_scheduledTime" class="material-3-label">موعد الإرسال</label>
                                     <div class="material-3-underline"></div>
                                 </div>
                             </div>
-                    
+
                             <!-- Estimated Reach -->
                             <div
                                 style="background: var(--md-sys-color-tertiary-container); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
                                     <i class="fas fa-users" style="font-size: 24px; color: var(--md-sys-color-on-tertiary-container);"></i>
                                     <div>
-                                        <div style="font-weight: 500; color: var(--md-sys-color-on-tertiary-container);">Estimated Reach
+                                        <div style="font-weight: 500; color: var(--md-sys-color-on-tertiary-container);">الوصول التقديري
                                         </div>
                                         <div id="estimatedReach"
                                             style="font-size: 0.9rem; color: var(--md-sys-color-on-tertiary-container); opacity: 0.8;">
-                                            Calculating...</div>
+                                            جارٍ الاحتساب...</div>
                                     </div>
                                 </div>
                             </div>
-                    
+
                             <!-- Form Actions -->
                             <div class="form-actions material-3-actions">
                                 <button type="button" class="btn-secondary material-3-btn-secondary" onclick="closePushModal()">
-                                    Cancel
+                                    إلغاء
                                 </button>
                                 <button type="submit" class="btn-primary material-3-btn-primary">
-                                    <i class="fas fa-paper-plane"></i> Send Notification
+                                    <i class="fas fa-paper-plane"></i> إرسال إشعار
                                 </button>
                                 </div>
                                 </form>
@@ -1276,141 +1296,140 @@
                 <div class="modal-content material-3-modal" style="max-width: 700px;">
                     <button class="modal-close" onclick="closeMerchantInfoModal()">×</button>
                     <div class="material-3-header" style="background: var(--md-sys-color-tertiary);">
-                        <h2><i class="fas fa-megaphone"></i> Send Information to Merchants</h2>
-                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 0.9rem;">Broadcast important updates, policies, and
-                            announcements</p>
+                        <h2><i class="fas fa-megaphone"></i> إرسال تحديث إلى المتاجر</h2>
+                        <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 0.9rem;">إرسال التحديثات والسياسات والإعلانات المهمة إلى المتاجر.</p>
                     </div>
                     <div style="padding: 24px;">
                         <form id="merchantInfoNotificationForm">
-            
+
                             <!-- Notification Type -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Notification Type <span
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">نوع الإشعار <span
                                         style="color: var(--md-sys-color-error);">*</span></label>
                                 <select id="merchant_notificationType" name="notificationType" required class="material-3-select"
                                     style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
-                                    <option value="info">ℹ️ Information</option>
-                                    <option value="warning">⚠️ Warning</option>
-                                    <option value="urgent">🚨 Urgent Alert</option>
-                                    <option value="feature">✨ New Feature</option>
-                                    <option value="policy">📋 Policy Update</option>
+                                    <option value="info">معلومات</option>
+                                    <option value="warning">تنبيه</option>
+                                    <option value="urgent">تنبيه عاجل</option>
+                                    <option value="feature">ميزة جديدة</option>
+                                    <option value="policy">تحديث سياسة</option>
                                 </select>
                             </div>
-            
+
                             <!-- Notification Title -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
                                 <input type="text" id="merchant_notificationTitle" name="notificationTitle" placeholder=" " required
-                                    class="material-3-input">
-                                <label for="merchant_notificationTitle" class="material-3-label">Notification Title <span
+                                    class="material-3-input" dir="auto">
+                                <label for="merchant_notificationTitle" class="material-3-label">عنوان الإشعار <span
                                         style="color: var(--md-sys-color-error);">*</span></label>
                                 <div class="material-3-underline"></div>
-                                <small class="material-3-helper">e.g., "New Commission Policy Effective December 1st"</small>
+                                <small class="material-3-helper">مثال: سياسة العمولات الجديدة تسري اعتبارًا من ١ ديسمبر</small>
                             </div>
-            
+
                             <!-- Notification Body -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
                                 <textarea id="merchant_notificationBody" name="notificationBody" placeholder=" " required
                                     class="material-3-textarea" rows="4"
                                     style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;"></textarea>
-                                <label for="merchant_notificationBody" class="material-3-label">Notification Message <span
+                                <label for="merchant_notificationBody" class="material-3-label">نص الإشعار <span
                                         style="color: var(--md-sys-color-error);">*</span></label>
-                                <small class="material-3-helper">Clear, concise message explaining the information</small>
+                                <small class="material-3-helper">رسالة واضحة ومختصرة تشرح التحديث</small>
                             </div>
-            
+
                             <!-- Target Audience -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Target Merchants <span
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">المتاجر المستهدفة <span
                                         style="color: var(--md-sys-color-error);">*</span></label>
                                 <select id="merchant_targetAudience" name="targetAudience" required class="material-3-select"
                                     style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
-                                    <option value="all">All Merchants</option>
-                                    <option value="active">Active Merchants (orders in last 30 days)</option>
-                                    <option value="inactive">Inactive Merchants (no recent orders)</option>
-                                    <option value="new">New Merchants (joined in last 14 days)</option>
-                                    <option value="by_city">By City</option>
-                                    <option value="by_category">By Category</option>
+                                    <option value="all">كل المتاجر</option>
+                                    <option value="active">المتاجر النشطة (طلبات خلال آخر ٣٠ يومًا)</option>
+                                    <option value="inactive">المتاجر غير النشطة (دون طلبات حديثة)</option>
+                                    <option value="new">المتاجر الجديدة (انضمت خلال آخر ١٤ يومًا)</option>
+                                    <option value="by_city">بحسب المدينة</option>
+                                    <option value="by_category">بحسب الفئة</option>
                                 </select>
                             </div>
-            
+
                             <!-- City Filter (shown when by_city selected) -->
                             <div id="cityFilterSection" style="display: none; margin-bottom: 20px;">
                                 <div class="material-3-field">
-                                    <input type="text" id="merchant_city" name="city" placeholder=" " class="material-3-input">
-                                    <label for="merchant_city" class="material-3-label">City</label>
+                                    <input type="text" id="merchant_city" name="city" placeholder=" " class="material-3-input" dir="auto">
+                                    <label for="merchant_city" class="material-3-label">المدينة</label>
                                     <div class="material-3-underline"></div>
-                                    <small class="material-3-helper">e.g., Baghdad, Najaf, Basra</small>
+                                    <small class="material-3-helper">مثال: بغداد، النجف، البصرة</small>
                                 </div>
                             </div>
-            
+
                             <!-- Category Filter (shown when by_category selected) -->
                             <div id="categoryFilterSection" style="display: none; margin-bottom: 20px;">
                                 <div class="material-3-field">
                                     <select id="merchant_businessCategory" name="businessCategory" class="material-3-select"
                                         style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
-                                        <option value="">Select Category</option>
-                                        <option value="restaurant">Restaurant</option>
-                                        <option value="grocery">Grocery</option>
-                                        <option value="pharmacy">Pharmacy</option>
-                                        <option value="retail">Retail</option>
-                                        <option value="other">Other</option>
+                                        <option value="">اختر الفئة</option>
+                                        <option value="restaurant">مطعم</option>
+                                        <option value="grocery">بقالة</option>
+                                        <option value="pharmacy">صيدلية</option>
+                                        <option value="retail">تجارة التجزئة</option>
+                                        <option value="other">آخر</option>
                                     </select>
                                 </div>
                             </div>
-            
+
                             <!-- Priority -->
                             <div class="material-3-field" style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Priority</label>
+                                <label style="display: block; margin-bottom: 8px; font-weight: 500;">الأولوية</label>
                                 <select id="merchant_priority" name="priority" class="material-3-select"
                                     style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
-                                    <option value="normal">Normal</option>
-                                    <option value="high">High Priority</option>
+                                    <option value="normal">اعتيادية</option>
+                                    <option value="high">أولوية مرتفعة</option>
                                 </select>
                             </div>
-            
+
                             <!-- Optional Fields -->
                             <details
                                 style="margin-bottom: 20px; padding: 16px; background: var(--md-sys-color-surface-variant); border-radius: 8px;">
-                                <summary style="cursor: pointer; font-weight: 500; padding: 8px;">Advanced Options</summary>
+                                <summary style="cursor: pointer; font-weight: 500; padding: 8px;">خيارات متقدمة</summary>
                                 <div style="margin-top: 16px;">
                                     <!-- Action URL -->
                                     <div class="material-3-field" style="margin-bottom: 16px;">
                                         <input type="url" id="merchant_actionUrl" name="actionUrl" placeholder=" "
-                                            class="material-3-input">
-                                        <label for="merchant_actionUrl" class="material-3-label">Action URL (Optional)</label>
+                                            class="material-3-input" dir="ltr">
+                                        <label for="merchant_actionUrl" class="material-3-label">رابط الإجراء (اختياري)</label>
                                         <div class="material-3-underline"></div>
-                                        <small class="material-3-helper">Deep link or web URL for "Learn More"</small>
+                                        <small class="material-3-helper">رابط داخل التطبيق أو رابط ويب لعرض المزيد</small>
                                     </div>
-            
+
                                     <!-- Image URL -->
                                     <div class="material-3-field" style="margin-bottom: 16px;">
                                         <input type="url" id="merchant_imageUrl" name="imageUrl" placeholder=" "
-                                            class="material-3-input">
-                                        <label for="merchant_imageUrl" class="material-3-label">Image URL (Optional)</label>
+                                            class="material-3-input" dir="ltr">
+                                        <label for="merchant_imageUrl" class="material-3-label">رابط الصورة (اختياري)</label>
                                         <div class="material-3-underline"></div>
-                                        <small class="material-3-helper">Banner or illustration image</small>
+                                        <small class="material-3-helper">صورة العرض أو الرسم التوضيحي</small>
                                     </div>
-            
+
                                     <!-- Schedule -->
                                     <div class="material-3-field">
-                                        <label style="display: block; margin-bottom: 8px;">Send Time</label>
+                                        <label style="display: block; margin-bottom: 8px;">موعد الإرسال</label>
                                         <select id="merchant_sendTime" name="sendTime" class="material-3-select"
                                             style="width: 100%; padding: 12px; border: 1px solid var(--md-sys-color-outline); border-radius: 4px;">
-                                            <option value="now">Send Immediately</option>
-                                            <option value="scheduled">Schedule for Later</option>
+                                            <option value="now">إرسال فوري</option>
+                                            <option value="scheduled">جدولة الإرسال لاحقًا</option>
                                         </select>
                                     </div>
-            
+
                                     <div id="merchantScheduledTimeSection" style="display: none; margin-top: 16px;">
                                         <div class="material-3-field">
                                             <input type="datetime-local" id="merchant_scheduledTime" name="scheduledTime"
-                                                class="material-3-input">
-                                            <label for="merchant_scheduledTime" class="material-3-label">Scheduled Time</label>
+                                                class="material-3-input" dir="ltr">
+                                            <label for="merchant_scheduledTime" class="material-3-label">موعد الإرسال</label>
                                             <div class="material-3-underline"></div>
                                         </div>
                                     </div>
                                 </div>
                             </details>
-            
+
                             <!-- Estimated Reach -->
                             <div
                                 style="background: var(--md-sys-color-tertiary-container); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
@@ -1418,91 +1437,141 @@
                                     <i class="fas fa-store"
                                         style="font-size: 24px; color: var(--md-sys-color-on-tertiary-container);"></i>
                                     <div>
-                                        <div style="font-weight: 500; color: var(--md-sys-color-on-tertiary-container);">Estimated
-                                            Reach</div>
+                                        <div style="font-weight: 500; color: var(--md-sys-color-on-tertiary-container);">الوصول التقديري</div>
                                         <div id="merchantEstimatedReach"
                                             style="font-size: 0.9rem; color: var(--md-sys-color-on-tertiary-container); opacity: 0.8;">
-                                            Calculating...</div>
+                                            جارٍ الاحتساب...</div>
                                     </div>
                                 </div>
                             </div>
-            
+
                             <!-- Preview Box -->
                             <div
                                 style="background: var(--md-sys-color-surface-variant); padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid var(--md-sys-color-tertiary);">
                                 <div style="font-weight: 500; margin-bottom: 12px; color: var(--md-sys-color-on-surface-variant);">
-                                    📱 Notification Preview</div>
+                                    معاينة الإشعار</div>
                                 <div id="merchantNotificationPreview"
                                     style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                    <div style="font-weight: 600; font-size: 1rem; margin-bottom: 4px;">Title will appear here</div>
-                                    <div style="font-size: 0.9rem; color: #666;">Message will appear here</div>
+                                    <div style="font-weight: 600; font-size: 1rem; margin-bottom: 4px;">سيظهر العنوان هنا</div>
+                                    <div style="font-size: 0.9rem; color: #666;">ستظهر الرسالة هنا</div>
                                 </div>
                             </div>
-            
+
                             <!-- Form Actions -->
                             <div class="form-actions material-3-actions">
                                 <button type="button" class="btn-secondary material-3-btn-secondary"
                                     onclick="closeMerchantInfoModal()">
-                                    Cancel
+                                    إلغاء
                                 </button>
                                 <button type="submit" class="btn-primary material-3-btn-primary"
                                     style="background: var(--md-sys-color-tertiary);">
-                                    <i class="fas fa-paper-plane"></i> Send to Merchants
+                                    <i class="fas fa-paper-plane"></i> إرسال إلى المتاجر
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            
-            <!-- Main Header -->
-            <div class="page-header">
-                <div style="flex: 1;">
-                    <h1><i class="fas fa-bullhorn"></i> Promotions & Campaigns</h1>
-                    <p>Manage discounts, special offers, and marketing campaigns.</p>
+
+            <!-- Promotions overview -->
+            <header class="page-header promotions-header">
+                <div>
+                    <div class="promotions-eyebrow">التسويق / نظرة عامة</div>
+                    <h1>العروض والحملات<span class="promotions-heading-dot" aria-hidden="true">.</span></h1>
+                    <p>عروض تشجّع العملاء على العودة والطلب مجددًا.</p>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: flex-start;">
-                    <button class="btn-primary" onclick="openMerchantInfoModal()" data-permission="campaigns_admin:write"
-                        style="background: var(--md-sys-color-tertiary); white-space: nowrap;">
-                        <i class="fas fa-megaphone"></i> Send to Merchants
-                    </button>
+                <button id="sendToMerchantsBtn" class="btn-secondary promotions-message" onclick="openMerchantInfoModal()" data-permission="campaigns_admin:write">
+                    <i class="fas fa-paper-plane" aria-hidden="true"></i> إرسال إلى المتاجر
+                </button>
+            </header>
+
+            <section aria-label="رئيسية تطبيق الزبون" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding:20px 24px;margin-bottom:24px;background:#fff;border:1px solid #dce4ef;border-radius:18px;color:#00296b">
+                <div><h2 style="margin:0 0 6px;font-size:20px;color:#00296b">رئيسية تطبيق الزبون</h2><p style="margin:0;color:#536580">إدارة الأقسام والمطاعم المعروضة وترتيبها ومعاينتها ونشرها.</p></div>
+                <a href="home-layout.html" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#00296b;color:#fff;border-radius:12px;text-decoration:none;font-weight:600"><i class="fas fa-layer-group" aria-hidden="true"></i> إدارة رئيسية تطبيق الزبون</a>
+            </section>
+
+            <section class="promotions-overview" aria-label="نظرة عامة على العروض">
+                <article class="promotion-metric">
+                    <div class="metric-top"><span>خصومات المتاجر</span><span class="metric-icon"><i class="fas fa-tags" aria-hidden="true"></i></span></div>
+                    <strong id="discounts-total">0</strong><p>لدى المتاجر المسجّلة</p>
+                </article>
+                <article class="promotion-metric metric-active">
+                    <div class="metric-top"><span>الخصومات السارية</span><span class="metric-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></span></div>
+                    <strong id="discounts-active">0</strong><p><span class="metric-status-dot" aria-hidden="true"></span> عروض المتاجر السارية</p>
+                </article>
+                <article class="promotion-metric">
+                    <div class="metric-top"><span>الحملات الخاصة</span><span class="metric-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span></div>
+                    <strong id="campaigns-total">0</strong><p>حملات المنصة</p>
+                </article>
+                <article class="promotion-metric metric-active">
+                    <div class="metric-top"><span>الحملات السارية</span><span class="metric-icon"><i class="fas fa-bolt" aria-hidden="true"></i></span></div>
+                    <strong id="campaigns-active">0</strong><p><span class="metric-status-dot" aria-hidden="true"></span> عروض المنصة السارية</p>
+                </article>
+            </section>
+
+            <section class="content-card slideshow-panel" id="home-slideshow" aria-labelledby="slideshow-heading">
+                <div class="card-header">
+                    <div class="promotion-section-heading"><span class="section-icon"><i class="fas fa-images" aria-hidden="true"></i></span><div><h2 id="slideshow-heading">شرائح الشاشة الرئيسية</h2><p>حدّد ما يظهر للعملاء في الشاشة الرئيسية لتطبيق ويز يوزر.</p></div></div>
+                    <div class="header-actions"><button type="button" class="btn-secondary" id="slides-refresh">تحديث الصفحة</button><button type="button" class="btn-primary" id="slides-add" disabled>إضافة شريحة</button></div>
                 </div>
-            </div>
-            
+                <p id="slides-message" class="slides-message" role="status">جارٍ تحميل الشرائح…</p>
+                <div id="slides-list" class="slides-grid"></div>
+                <dialog id="slide-dialog" aria-labelledby="slide-editor-heading">
+                    <form id="slide-form">
+                        <header class="slide-editor-header"><div><span class="promotions-eyebrow">ويز يوزر / الشاشة الرئيسية</span><h2 id="slide-editor-heading">إضافة شريحة</h2></div><button type="button" id="slide-close" class="btn-secondary" aria-label="إغلاق محرر الشريحة">×</button></header>
+                        <div class="slide-editor-body">
+                            <div class="slide-preview"><img id="slide-preview" alt="معاينة صورة الشريحة" hidden><span id="slide-preview-empty">معاينة الشريحة</span></div>
+                            <label class="slide-field">الصورة<input type="file" id="slide-image" accept="image/jpeg,image/png,image/webp" dir="auto"><small>صيغ JPG أو PNG أو WebP، بحجم لا يتجاوز ١٠ ميغابايت. يُفضّل استخدام صورة أفقية بنسبة ٢:١. تُحسّن الصور تلقائيًا.</small></label>
+                            <p id="slide-upload-message" role="status"></p>
+                            <label class="slide-field">عنوان الشريحة<input id="slide-title" required maxlength="100" placeholder="مثال: اكتشف متاجرك المفضلة" dir="auto"></label>
+                            <div class="slide-fields"><label class="slide-field">الإجراء عند الضغط<select id="slide-action"><option value="merchant">فتح المتجر</option><option value="campaign">فتح الحملة أو العرض</option><option value="discount">فتح خصم المتجر</option><option value="platform">فتح خصم المنصة</option><option value="category">فتح فئة في المتجر</option></select></label><label class="slide-field">ترتيب العرض<input id="slide-order" type="number" min="0" max="999" step="1" value="0" required dir="ltr"><small>تظهر الأرقام الأقل أولًا.</small></label></div>
+                            <label class="slide-field" id="slide-merchant-field" hidden>متجر الفئة<select id="slide-merchant"></select></label>
+                            <label class="slide-field">البحث عن الوجهة<input id="slide-destination-search" type="search" placeholder="ابحث بالاسم" dir="auto"></label>
+                            <label class="slide-field">الوجهة<select id="slide-destination" size="4" required></select></label>
+                            <div id="slide-offer-details" hidden><p id="slide-offer-summary"></p><button type="button" class="btn-secondary" id="slide-use-offer">استخدام عنوان العرض وتواريخه</button><p>تُخفى الشرائح المرتبطة عندما يكون العرض غير مفعّل أو خارج فترة سريانه أو مستنفدًا. تُراجع أهلية الخصم عند إتمام الطلب.</p></div>
+                            <div class="slide-fields"><label class="slide-field">تاريخ ووقت البدء<input id="slide-start" type="datetime-local" required dir="ltr"></label><label class="slide-field">تاريخ ووقت الانتهاء<input id="slide-end" type="datetime-local" required dir="ltr"></label></div>
+                            <small id="slide-timezone">تُعرض الأوقات وفق المنطقة الزمنية للمتصفح.</small>
+                            <div class="slide-fields"><label class="slide-field">الجمهور<select id="slide-audience"><option value="all">جميع العملاء</option><option value="registered">العملاء المسجّلون</option><option value="guests">الزوار</option></select></label><label class="slide-field">حالة النشر<select id="slide-status"><option value="draft">مسودة</option><option value="published">نشر</option><option value="paused">إيقاف مؤقت</option></select></label></div>
+                            <fieldset class="slide-regions"><legend>المناطق</legend><label><input type="checkbox" id="slide-all-regions" checked dir="auto"> جميع المناطق</label><input type="search" id="slide-region-search" aria-label="البحث في المناطق" placeholder="ابحث باسم المنطقة بالعربية أو الإنجليزية" dir="auto"><div id="slide-regions-list"></div><small id="slide-regions-summary">جميع المناطق محددة.</small></fieldset>
+                            <p class="slide-note">تظهر الشرائح المنشورة خلال فترة عرضها وللجمهور والمناطق المحددة فقط. تبقى المسودات والشرائح المتوقفة مخفية.</p>
+                            <p id="slide-error" role="alert"></p>
+                        </div>
+                        <footer class="slide-editor-footer"><button type="button" class="btn-secondary" id="slide-cancel">إلغاء</button><button type="submit" class="btn-primary" id="slide-save">حفظ الشريحة</button></footer>
+                    </form>
+                </dialog>
+            </section>
+
             <!-- Merchant Discounts Section -->
             <div class="content-card">
                 <div class="card-header">
-                    <h2><i class="fas fa-tags"></i> Merchant Discounts</h2>
+                    <div class="promotion-section-heading"><span class="section-icon"><i class="fas fa-tags" aria-hidden="true"></i></span><div><h2>خصومات المتاجر</h2><p>عروض مخصصة لكل متجر.</p></div></div>
                     <div class="header-actions">
-                        <div class="stats">
-                            <span class="stat-item">Total: <strong id="discounts-total">0</strong></span>
-                            <span class="stat-item">Active: <strong id="discounts-active">0</strong></span>
-                        </div>
-                        <button class="btn-secondary" id="refreshDiscountsBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+
+                        <button class="btn-secondary" id="refreshDiscountsBtn"><i class="fas fa-sync-alt"></i> تحديث الصفحة</button>
                         <button class="btn-primary" id="addPromotionBtn" data-permission="campaigns_admin:write"><i
                                 class="fas fa-plus"></i>
-                            Create Discount</button>
+                            إنشاء خصم</button>
                     </div>
                 </div>
-                <div class="table-container">
+                <div class="table-container" tabindex="0" role="region" aria-label="جدول العروض القابل للتمرير">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Discount</th>
-                                <th>Merchant</th>
-                                <th>Type</th>
-                                <th>Value</th>
-                                <th>Status</th>
-                                <th>Usage</th>
-                                <th>Valid Until</th>
-                                <th data-permission="campaigns_admin:write">Actions</th>
+                                <th>الخصم</th>
+                                <th>المتجر</th>
+                                <th>النوع</th>
+                                <th>القيمة</th>
+                                <th>الحالة</th>
+                                <th>الاستخدام</th>
+                                <th>سارٍ حتى</th>
+                                <th data-permission="campaigns_admin:write">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="merchant-discounts-tbody">
                             <!-- Real data will be populated here by JavaScript -->
                             <tr id="discounts-loading-row">
                                 <td colspan="8" class="loading-row">
-                                    <i class="fas fa-spinner fa-spin"></i> Loading merchant discounts...
+                                    <i class="fas fa-spinner fa-spin"></i> جارٍ تحميل خصومات المتاجر...
                                 </td>
                             </tr>
                         </tbody>
@@ -1513,35 +1582,32 @@
             <!-- Special Campaigns Section -->
             <div class="content-card">
                 <div class="card-header">
-                    <h2><i class="fas fa-rocket"></i> Special Campaigns</h2>
+                    <div class="promotion-section-heading"><span class="section-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span><div><h2>الحملات الخاصة</h2><p>حملات تستهدف جمهورًا محددًا على المنصة.</p></div></div>
                     <div class="header-actions">
-                        <div class="stats">
-                            <span class="stat-item">Total: <strong id="campaigns-total">0</strong></span>
-                            <span class="stat-item">Active: <strong id="campaigns-active">0</strong></span>
-                        </div>
+
                         <button class="btn-primary" id="createCampaignBtn" data-permission="campaigns_admin:write"><i class="fas fa-plus"></i>
-                            Create Campaign</button>
+                            إنشاء حملة</button>
                     </div>
                 </div>
-                <div class="table-container">
+                <div class="table-container" tabindex="0" role="region" aria-label="جدول العروض القابل للتمرير">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Campaign</th>
-                                <th>Type</th>
-                                <th>Target</th>
-                                <th>Discount</th>
-                                <th>Status</th>
-                                <th>Usage</th>
-                                <th>Valid Period</th>
-                                <th data-permission="campaigns_admin:write">Actions</th>
+                                <th>الحملة</th>
+                                <th>النوع</th>
+                                <th>الاستهداف</th>
+                                <th>الخصم</th>
+                                <th>الحالة</th>
+                                <th>الاستخدام</th>
+                                <th>فترة السريان</th>
+                                <th data-permission="campaigns_admin:write">الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="special-campaigns-tbody">
                             <!-- Real data will be populated here by JavaScript -->
                             <tr id="campaigns-loading-row">
                                 <td colspan="8" class="loading-row">
-                                    <i class="fas fa-spinner fa-spin"></i> Loading special campaigns...
+                                    <i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الحملات...
                                 </td>
                             </tr>
                         </tbody>
@@ -1563,15 +1629,15 @@
 
     <!-- Campaigns API -->
     <script src="../js/campaigns-api.js"></script>
-    
+
     <!-- Merchant Discounts API -->
     <script src="../js/merchant-discounts-api.js"></script>
 
     <!-- Data service (depends on aws-utils) -->
-    <script src="../data-service.js?v=20261011-session-fix2"></script>
+    <script src="../data-service.js?v=shared-lock-239"></script>
 
     <!-- Page-specific scripts -->
-    <script src="../assets/js/navigation.js"></script>
+    <script src="../assets/js/navigation.js?v=20261022-rtl1"></script>
     <!-- Initialize Navigation Manager -->
     <script>
         // Initialize navigation manager when DOM is ready
@@ -1601,425 +1667,10 @@
     <!-- Include centralized ModalManager for modals/toasts -->
     <script src="../js/core/ModalManager.js"></script>
     <!-- Simplified Campaign Management -->
-    <script src="../aligned-data-service.js?v=20261011-session-fix2"></script>
-    <script src="../simplified-campaign-manager.js"></script>
-    <script src="../promotions-clean.js?v=10"></script>
-    <script src="../campaign-save-debug.js"></script>
-    <script src="../campaign-button-debug.js"></script>
-    
-    <!-- Fallback Campaign Manager - Fix for "Campaign manager not available" -->
-    <script>
-        // Define SimplifiedCampaignManager inline as fallback
-        if (typeof SimplifiedCampaignManager === 'undefined') {
-            console.log('🔧 Loading fallback campaign manager...');
-            
-            class SimplifiedCampaignManager {
-                constructor() {
-                    this.campaigns = [];
-                    this.isLoading = false;
-                }
-                
-                showLoading(message = 'Loading...') {
-                    console.log(`⏳ ${message}`);
-                    const tbody = document.getElementById('campaignsTableBody');
-                    if (tbody) {
-                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem;">${message}</td></tr>`;
-                    }
-                }
-                
-                hideLoading() {
-                    console.log('✅ Loading completed');
-                }
-                
-                showSuccess(message) {
-                    console.log(`✅ SUCCESS: ${message}`);
-                    alert(`Success: ${message}`);
-                }
-                
-                showError(message) {
-                    console.error(`❌ ERROR: ${message}`);
-                    alert(`Error: ${message}`);
-                }
-                
-                async initialize() {
-                    console.log('🚀 Initializing Fallback Campaign Manager...');
-                    try {
-                        await this.loadCampaigns();
-                        console.log('✅ Fallback Campaign Manager initialized');
-                    } catch (error) {
-                        console.error('❌ Failed to initialize:', error);
-                    }
-                }
-                
-                async loadCampaigns() {
-                    try {
-                        // Wait for WizzCampaignsAPI to be available (with retry)
-                        let retries = 0;
-                        const maxRetries = 10;
-                        while (!window.WizzCampaignsAPI && retries < maxRetries) {
-                            console.log(`⏳ Waiting for WizzCampaignsAPI... (attempt ${retries + 1}/${maxRetries})`);
-                            await new Promise(resolve => setTimeout(resolve, 100));
-                            retries++;
-                        }
-
-                        if (!window.WizzCampaignsAPI) {
-                            throw new Error('WizzCampaignsAPI not available after waiting');
-                        }
-
-                        console.log('🔄 Loading campaigns from WizzCampaignsAPI...');
-                        const result = await window.WizzCampaignsAPI.getCampaigns(50);
-                        
-                        if (result.success && result.campaigns) {
-                            this.campaigns = result.campaigns;
-                            console.log(`📊 Loaded ${this.campaigns.length} campaigns from ${result.source}`);
-                            this.updateCampaignStats();
-                            this.renderCampaigns();
-                        }
-                    } catch (error) {
-                        console.error('❌ Error loading campaigns:', error);
-                        this.campaigns = [];
-                        this.showError('Failed to load campaigns: ' + error.message);
-                    }
-                }
-                
-                async createCampaign(formData) {
-                    try {
-                        this.showLoading('Creating campaign...');
-                        
-                        // Extract data from FormData
-                        const campaignData = {
-                            name: formData.get('name') || formData.get('title') || 'Test Campaign',
-                            description: formData.get('description') || 'Test campaign description',
-                            discountType: formData.get('discountType') || 'percentage',
-                            discountValue: parseFloat(formData.get('discountValue')) || 10,
-                            startDate: formData.get('startDate') || '2025-09-18',
-                            endDate: formData.get('endDate') || '2025-12-31',
-                            targetAudience: formData.get('customerSegment') || 'all_customers',
-                            minimumOrderValue: parseFloat(formData.get('minOrderValue')) || 0,
-                            businessId: 'test-business',
-                            status: 'active'
-                        };
-                        
-                        // Extract push notification settings
-                        const sendPushNotification = formData.get('sendPushNotification') === 'on';
-                        const notificationTitle = formData.get('notificationTitle') || campaignData.name;
-                        const notificationMessage = formData.get('notificationMessage') ||
-                            `🎉 New promotion: ${campaignData.discountValue}${campaignData.discountType === 'percentage' ? '%' : ' IQD'} off!`;
-                        
-                        console.log('📝 Creating campaign with data:', campaignData);
-                        console.log('📱 Push notification settings:', { sendPushNotification, notificationTitle, notificationMessage });
-                        
-                        // Validate required fields
-                        if (!campaignData.name || !campaignData.discountType || 
-                            campaignData.discountValue === null || campaignData.discountValue === undefined) {
-                            throw new Error('Please fill in all required fields');
-                        }
-                        
-                        // Use WizzCampaignsAPI instead of backend
-                        if (!window.WizzCampaignsAPI) {
-                            throw new Error('WizzCampaignsAPI not available');
-                        }
-                        
-                        const result = await window.WizzCampaignsAPI.createCampaign(campaignData);
-                        
-                        if (!result.success) {
-                            throw new Error(result.message || 'Failed to create campaign');
-                        }
-                        
-                        // Send push notification if enabled
-                        if (sendPushNotification && result.campaign) {
-                            console.log('📱 Sending push notifications to merchants...');
-                            try {
-                                await this.sendPromotionPushNotification({
-                                    campaignId: result.campaign.id || result.campaign.campaignId,
-                                    title: notificationTitle,
-                                    message: notificationMessage,
-                                    campaignData: campaignData
-                                });
-                                console.log('✅ Push notifications sent successfully');
-                            } catch (pushError) {
-                                console.error('⚠️ Push notification failed (non-blocking):', pushError);
-                                // Don't fail the campaign creation if push fails
-                            }
-                        }
-                        
-                        this.hideLoading();
-                        this.showSuccess('Campaign created successfully!' + (sendPushNotification ? ' Push notifications sent to merchants.' : ''));
-                        this.closeCampaignModal();
-                        await this.loadCampaigns();
-                        
-                        return result;
-                        
-                    } catch (error) {
-                        this.hideLoading();
-                        console.error('❌ Error creating campaign:', error);
-                        this.showError('Failed to create campaign: ' + error.message);
-                        throw error;
-                    }
-                }
-                
-                async sendPromotionPushNotification(data) {
-                    console.log('📱 Sending promotion push notification:', data);
-
-                    try {
-                        // Get AWS credentials and configuration
-                        const credentials = await window.AWSUtils.getCredentials();
-                        const apiEndpoint = window.WIZZCENTRAL_CONFIG?.PUSH_NOTIFICATION_API_URL || '';
-
-                        if (!apiEndpoint) {
-                            throw new Error('Missing PUSH_NOTIFICATION_API_URL. Set window.__PUSH_NOTIFICATION_API_URL__.');
-                        }
-                        const stage = String(window.WIZZCENTRAL_CONFIG?.STAGE || 'staging');
-                        if (String(apiEndpoint).includes('/dev')) {
-                            throw new Error(`Refusing to use dev push API endpoint in ${stage}: ${apiEndpoint}`);
-                        }
-                        if (stage === 'staging' && /\/prod\b/i.test(String(apiEndpoint))) {
-                            throw new Error(`Refusing to use prod push API endpoint in staging: ${apiEndpoint}`);
-                        }
-
-                        console.log('🔗 Using API endpoint:', apiEndpoint);
-
-                        // Prepare notification payload
-                        const payload = {
-                            campaignId: data.campaignId,
-                            title: data.title,
-                            message: data.message,
-                            type: 'promotion',
-                            targetAudience: 'merchants',
-                            data: {
-                                campaignId: data.campaignId,
-                                discountType: data.campaignData.discountType,
-                                discountValue: data.campaignData.discountValue,
-                                minimumOrderValue: data.campaignData.minimumOrderValue,
-                                validUntil: data.campaignData.endDate
-                            }
-                        };
-
-                        console.log('📤 Sending to backend:', payload);
-
-                        // Call Lambda function to send push notifications
-                        const response = await fetch(`${apiEndpoint}/send-promotion-notification`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': credentials.idToken
-                            },
-                            body: JSON.stringify(payload)
-                        });
-
-                        console.log('📡 Response status:', response.status);
-
-                        if (!response.ok) {
-                            const errorData = await response.json().catch(() => ({ message: response.statusText }));
-                            throw new Error(`Failed to send push notification: ${errorData.message || response.statusText}`);
-                        }
-
-                        const result = await response.json();
-                        console.log('📱 Push notification response:', result);
-
-                        return result;
-                    } catch (error) {
-                        console.error('❌ Push notification error:', error);
-                        throw error;
-                    }
-                }
-                
-                updateCampaignStats() {
-                    const totalElement = document.getElementById('totalCampaigns');
-                    const activeElement = document.getElementById('activeCampaigns');
-                    
-                    if (totalElement) {
-                        totalElement.textContent = this.campaigns.length;
-                    }
-                    
-                    if (activeElement) {
-                        const activeCampaigns = this.campaigns.filter(c => c.status === 'active').length;
-                        activeElement.textContent = activeCampaigns;
-                    }
-                }
-                
-                renderCampaigns() {
-                    const tbody = document.getElementById('campaignsTableBody');
-                    if (!tbody) return;
-
-                    if (this.campaigns.length === 0) {
-                        tbody.innerHTML = `
-                            <tr>
-                                <td colspan="8" style="text-align: center; padding: 2rem; color: var(--md-sys-color-on-surface-variant);">
-                                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; color: var(--md-sys-color-outline);"></i>
-                                    <div>No campaigns found</div>
-                                    <div style="margin-top: 0.5rem; font-size: 0.9rem;">Create your first campaign to get started</div>
-                                </td>
-                            </tr>
-                        `;
-                        return;
-                    }
-
-                    // Helper function to format target audience
-                    const formatTarget = (target) => {
-                        const targetMap = {
-                            'all_customers': 'All Customers',
-                            'new_customers': 'New Customers',
-                            'returning_customers': 'Returning Customers',
-                            'vip_customers': 'VIP Customers'
-                        };
-                        return targetMap[target] || target || 'All Customers';
-                    };
-
-                    // Helper function to format campaign type
-                    const formatType = (type) => {
-                        const typeMap = {
-                            'first-order': 'First Order',
-                            'special-occasion': 'Special Event',
-                            'restaurant-first': 'Restaurant Launch',
-                            'seasonal': 'Seasonal',
-                            'loyalty': 'Loyalty'
-                        };
-                        return typeMap[type] || type || 'General';
-                    };
-
-                    tbody.innerHTML = SecurityUtils.sanitizeHTML(
-                        this.campaigns.map(campaign => {
-                            // Sanitize user-generated content to prevent XSS
-                            const safeName = SecurityUtils.escapeHTML(campaign.name || 'Untitled Campaign');
-                            const safeDescription = campaign.description ? SecurityUtils.escapeHTML(campaign.description) : '';
-
-                            return `
-                            <tr class="campaign-row">
-                                <td class="campaign-name-cell">
-                                    <div class="campaign-name">${safeName}</div>
-                                    ${safeDescription ? `<div class="campaign-description">${safeDescription}</div>` : ''}
-                                </td>
-                                <td class="campaign-type-cell">
-                                    <span class="type-badge type-${(campaign.type || 'general').replace(/[^a-z0-9]/gi, '-')}">${formatType(campaign.type)}</span>
-                                </td>
-                                <td class="campaign-target-cell">
-                                    <span class="target-text">${formatTarget(campaign.targetAudience)}</span>
-                                </td>
-                                <td class="campaign-discount-cell">
-                                    <div class="discount-value">
-                                        ${campaign.discountType === 'percentage' ?
-                                    `<span class="discount-number">${campaign.discountValue}%</span>` :
-                                    `<span class="discount-number">${window.WizzCampaignsAPI ? window.WizzCampaignsAPI.formatCurrency(campaign.discountValue) : campaign.discountValue}</span>`}
-                                    </div>
-                                    ${campaign.minimumOrderValue ? `<div class="min-order">Min: ${window.WizzCampaignsAPI ? window.WizzCampaignsAPI.formatCurrency(campaign.minimumOrderValue) : campaign.minimumOrderValue}</div>` : ''}
-                                </td>
-                                <td class="campaign-status-cell">
-                                    <span class="status-badge status-${campaign.status || 'inactive'}">
-                                        <i class="fas fa-circle"></i> ${(campaign.status || 'inactive').toUpperCase()}
-                                    </span>
-                                </td>
-                                <td class="campaign-usage-cell">
-                                    <div class="usage-container">
-                                        <div class="usage-text">${campaign.usage || 0} / ${campaign.maxUsage || '∞'}</div>
-                                        ${campaign.maxUsage ? `
-                                            <div class="usage-bar">
-                                                <div class="usage-fill" style="width: ${Math.min(((campaign.usage || 0) / campaign.maxUsage) * 100, 100)}%"></div>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                </td>
-                                <td class="campaign-period-cell">
-                                    <div class="period-dates">
-                                        <div class="date-line">
-                                            <i class="fas fa-calendar-check"></i>
-                                            <span>${window.WizzCampaignsAPI ? window.WizzCampaignsAPI.formatDate(campaign.startDate) : campaign.startDate}</span>
-                                        </div>
-                                        <div class="date-line">
-                                            <i class="fas fa-calendar-times"></i>
-                                            <span>${window.WizzCampaignsAPI ? window.WizzCampaignsAPI.formatDate(campaign.endDate) : campaign.endDate}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="campaign-actions-cell">
-                                    <div class="action-buttons">
-                                        <button class="action-btn edit-btn" onclick="alert('Edit campaign: ${campaign.id}')" title="Edit Campaign" data-write-only>
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="action-btn delete-btn" onclick="alert('Delete campaign: ${campaign.id}')" title="Delete Campaign" data-write-only>
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                        }).join('')
-                    );
-                }
-                
-                openCampaignModal() {
-                    const modal = document.getElementById('simplifiedCampaignModal');
-                    if (modal) {
-                        modal.style.display = 'flex';
-                        console.log('📝 Campaign modal opened');
-                    }
-                }
-                
-                closeCampaignModal() {
-                    const modal = document.getElementById('simplifiedCampaignModal');
-                    if (modal) {
-                        modal.style.display = 'none';
-                        console.log('📝 Campaign modal closed');
-                    }
-                }
-            }
-            
-            // Make it globally available
-            window.SimplifiedCampaignManager = SimplifiedCampaignManager;
-            console.log('✅ Fallback SimplifiedCampaignManager defined');
-        }
-    </script>
-    
-    <!-- Immediate Campaign Button Fix -->
-    <script>
-        // Immediate button fix - runs as soon as this script is encountered
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('🔧 Immediate campaign button fix loading...');
-
-            // Try multiple times to ensure elements are ready
-            let attempts = 0;
-            const maxAttempts = 10;
-
-            function attachButtonListener() {
-                attempts++;
-                console.log(`🔄 Attempt ${attempts} to attach button listener...`);
-
-                const button = document.getElementById('createCampaignBtn');
-                const modal = document.getElementById('simplifiedCampaignModal');
-
-                if (button && modal) {
-                    // Remove any existing listeners first
-                    const newButton = button.cloneNode(true);
-                    button.parentNode.replaceChild(newButton, button);
-
-                    // Add fresh listener
-                    newButton.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('🎯 Campaign button clicked! Opening modal...');
-                        modal.style.display = 'flex';
-                        modal.style.visibility = 'visible';
-                        modal.style.opacity = '1';
-                        console.log('✅ Modal should now be visible');
-                    });
-
-                    console.log('✅ Campaign button listener attached successfully!');
-                    return true;
-                } else {
-                    console.log(`❌ Elements not ready yet (button: ${!!button}, modal: ${!!modal})`);
-                    if (attempts < maxAttempts) {
-                        setTimeout(attachButtonListener, 100);
-                    } else {
-                        console.error('❌ Failed to attach button listener after maximum attempts');
-                    }
-                    return false;
-                }
-            }
-
-            // Start attempting to attach the listener
-            attachButtonListener();
-        });
-    </script>
+    <script src="../promotions-feedback.js?v=20261017-ar1"></script>
+    <script src="../campaign-region-picker.js?v=20261017-ar1"></script>
+    <script src="../campaign-image.js?v=20261018-image1"></script>
+<script src="../simplified-campaign-manager.js?v=independent-campaign-20261020"></script>
 
     <!-- Modal script -->
     <script>
@@ -2068,7 +1719,7 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 const modal = document.getElementById('addPromotionModal');
-                const openBtn = document.getElementById('openAddPromotionModalBtn');
+                const openBtn = document.getElementById('openAddPromotionModalBtn') || document.getElementById('addPromotionBtn');
                 const closeBtn = document.getElementById('closeAddPromotionModalBtn');
 
                 if (openBtn && modal) {
@@ -2154,304 +1805,314 @@
                 }
             }
 
-            // Setup form submission for simplified campaign form
-            function setupCampaignFormSubmission() {
-                const campaignForm = document.getElementById('simplifiedCampaignForm');
-                if (campaignForm) {
-                    campaignForm.addEventListener('submit', async (event) => {
-                        event.preventDefault();
-                        console.log('📝 Campaign form submitted');
-
-                        if (window.campaignManager) {
-                            try {
-                                const formData = new FormData(campaignForm);
-                                await window.campaignManager.createCampaign(formData);
-                            } catch (error) {
-                                console.error('Campaign creation failed:', error);
-                                alert('Campaign creation failed: ' + error.message);
-                            }
-                        } else {
-                            console.error('Campaign manager not available');
-                            alert('Campaign manager not available. Please refresh the page.');
-                        }
-                    });
-                    console.log('✅ Campaign form submission handler attached');
-                } else {
-                    console.warn('⚠️ Campaign form not found');
-                }
-            }
-
-            // Initialize campaign manager
-            function initializeCampaignManager() {
-                console.log('🔧 Initializing campaign manager...');
-                console.log('SimplifiedCampaignManager available:', typeof SimplifiedCampaignManager !== 'undefined');
-                
-                if (typeof SimplifiedCampaignManager !== 'undefined') {
-                    try {
-                        window.campaignManager = new SimplifiedCampaignManager();
-                        console.log('✅ Campaign manager instance created');
-
-                        // Initialize the manager
-                        window.campaignManager.initialize().then(() => {
-                            console.log('✅ Campaign manager fully initialized');
-                        }).catch(error => {
-                            console.error('❌ Campaign manager initialization failed:', error);
-                        });
-                    } catch (error) {
-                        console.error('❌ Error creating campaign manager:', error);
-                    }
-                } else {
-                    console.error('❌ SimplifiedCampaignManager not available');
-                    
-                    // Create a minimal fallback
-                    window.campaignManager = {
-                        createCampaign: async (formData) => {
-                            alert('Campaign manager not properly loaded. Please refresh the page.');
-                            throw new Error('Campaign manager not available');
-                        }
-                    };
-                }
-            }
-
-            // Setup campaign button click handler
-            function setupCampaignButton() {
-                const createCampaignBtn = document.getElementById('createCampaignBtn');
-                if (createCampaignBtn) {
-                    createCampaignBtn.addEventListener('click', () => {
-                        const modal = document.getElementById('simplifiedCampaignModal');
-                        if (modal) {
-                            modal.style.display = 'flex';
-                            console.log('📝 Campaign modal opened');
-                        } else {
-                            console.error('Campaign modal not found');
-                        }
-                    });
-                    console.log('✅ Campaign button click handler attached');
-                } else {
-                    console.warn('⚠️ Create campaign button not found');
-                }
-            }
-
-            // Setup modal close functionality
-            function setupModalClose() {
-                const closeBtn = document.getElementById('closeCampaignModal');
-                const modal = document.getElementById('simplifiedCampaignModal');
-
-                if (closeBtn && modal) {
-                    closeBtn.addEventListener('click', () => {
-                        modal.style.display = 'none';
-                        console.log('📝 Campaign modal closed');
-                    });
-
-                    // Close on backdrop click
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            modal.style.display = 'none';
-                            console.log('📝 Campaign modal closed (backdrop)');
-                        }
-                    });
-
-                    console.log('✅ Modal close handlers attached');
-                }
-            }
-
-            // Initialize everything after a short delay to ensure all scripts are loaded
-            setTimeout(() => {
-                initializeCampaignManager();
-                setupCampaignFormSubmission();
-                setupCampaignButton();
-                setupModalClose();
-            }, 1000);
         })();
 </script>
 
 <!-- Merchant Discounts Management Script -->
 <script>
-    // Merchant Discounts Management
-    let merchantDiscounts = [];
+    // Global HTML Escape Utility
+    function escapeHtml(str) {
+        if (typeof str !== 'string') return String(str ?? '');
+        return str.replace(/[&<>"']/g, function (match) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[match];
+        });
+    }
+    window.escapeHtml = escapeHtml;
 
-    // Load merchant discounts
+    // =========================================================================
+    // MERCHANT DISCOUNTS MANAGEMENT
+    // =========================================================================
+    let merchantDiscounts = [];
+    let editingDiscountId = null;
+
+    // Load merchant discounts from DynamoDB or API
     async function refreshMerchantDiscounts() {
         try {
             console.log('🔄 Loading merchant discounts...');
-            
-            // Wait for API to be available
-            let retries = 0;
-            const maxRetries = 10;
-            while (!window.WizzMerchantDiscountsAPI && retries < maxRetries) {
-                console.log(`⏳ Waiting for WizzMerchantDiscountsAPI... (attempt ${retries + 1}/${maxRetries})`);
-                await new Promise(resolve => setTimeout(resolve, 100));
-                retries++;
-            }
+            const loadingRow = document.getElementById('discounts-loading-row');
+            if (loadingRow) loadingRow.style.display = '';
 
-            if (!window.WizzMerchantDiscountsAPI) {
-                throw new Error('WizzMerchantDiscountsAPI not available after waiting');
+            if (!window.dataService || typeof window.dataService.getMerchantDiscounts !== 'function') {
+                throw new Error('Promotion data service is unavailable. Please reload the page.');
             }
+            const items = await window.dataService.getMerchantDiscounts();
+            if (!Array.isArray(items)) throw new Error('Invalid merchant discount response');
 
-            const result = await window.WizzMerchantDiscountsAPI.getMerchantDiscounts(50);
+            merchantDiscounts = items.map(d => {
+                const isFixed = d.type === 'Fixed Amount' || d.discountType === 'fixed' || d.discountType === 'fixed_amount';
+                const isFree = d.type === 'Free Delivery' || d.discountType === 'free_delivery' || d.discountType === 'free-delivery';
+                return {
+                    id: d.id || d.discountId || d.promotionId || `disc_${Math.random()}`,
+                    discountId: d.discountId || d.id || d.promotionId,
+                    promotionId: d.promotionId || d.discountId || d.id,
+                    discountCode: d.discountCode || d.code || d.title || 'DISCOUNT',
+                    merchantName: d.merchantName || d.businessName || 'Central Platform',
+                    merchantId: d.merchantId || d.businessId || 'CENTRAL',
+                    type: isFree ? 'Free Delivery' : (isFixed ? 'Fixed Amount' : 'Percentage'),
+                    discountType: isFree ? 'free_delivery' : (isFixed ? 'fixed_amount' : 'percentage'),
+                    value: isFree ? 0 : (d.value ?? d.discountValue ?? 0),
+                    status: (d.status || (d.isActive ? 'active' : 'inactive')).toLowerCase(),
+                    usageCount: d.usageCount ?? d.usage ?? d.currentUsage ?? 0,
+                    usageLimit: d.usageLimit ?? d.maxUsage ?? d.limit ?? '∞',
+                    validUntil: d.validUntil || d.endDate || d.validTo || null,
+                    description: d.description || ''
+                };
+            });
 
-            if (result.success && result.discounts) {
-                merchantDiscounts = result.discounts;
-                console.log(`📊 Loaded ${merchantDiscounts.length} merchant discounts from ${result.source}`);
-                renderMerchantDiscounts();
-                updateMerchantDiscountStats();
-            } else {
-                throw new Error(result.message || 'Failed to load merchant discounts');
-            }
+            renderMerchantDiscounts();
+            updateMerchantDiscountStats();
+
         } catch (error) {
             console.error('❌ Error loading merchant discounts:', error);
             showMerchantDiscountsError(error.message);
+        } finally {
+            const loadingRow = document.getElementById('discounts-loading-row');
+            if (loadingRow) loadingRow.style.display = 'none';
         }
     }
 
-    // Render merchant discounts table
+    // Render merchant discounts table matching 8 columns of HTML
     function renderMerchantDiscounts() {
-        const tbody = document.getElementById('merchantDiscountsTableBody');
+        const tbody = document.getElementById('merchant-discounts-tbody') || document.getElementById('merchantDiscountsTableBody');
         if (!tbody) return;
 
         if (merchantDiscounts.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" style="text-align: center; padding: 2rem; color: var(--md-sys-color-on-surface-variant);">
-                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; color: var(--md-sys-color-outline);"></i>
-                        <div>No merchant discounts found</div>
-                        <div style="margin-top: 0.5rem; font-size: 0.9rem;">Merchants can create their own discounts</div>
+                    <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--md-sys-color-on-surface-variant);">
+                        <i class="fas fa-tags" style="font-size: 3rem; margin-bottom: 1rem; color: var(--md-sys-color-outline);"></i>
+                        <div style="font-size: 1.1rem; font-weight: 500;">لا توجد خصومات للمتاجر.</div>
+                        <div style="margin-top: 0.5rem; font-size: 0.9rem;">اضغط «إنشاء خصم» أعلاه لإضافة خصم جديد.</div>
                     </td>
                 </tr>
             `;
             return;
         }
 
-        tbody.innerHTML = SecurityUtils.sanitizeHTML(
-            merchantDiscounts.map(discount => {
-                // Sanitize user-generated content to prevent XSS
-                const safeDiscountCode = SecurityUtils.escapeHTML(discount.discountCode || 'N/A');
-                const safeDescription = discount.description ? SecurityUtils.escapeHTML(discount.description) : '';
-                const safeMerchantName = SecurityUtils.escapeHTML(discount.merchantName || 'Unknown Merchant');
-                const safeMerchantId = SecurityUtils.escapeHTML(discount.merchantId || 'N/A');
-                const safeStatus = SecurityUtils.escapeHTML(discount.status || 'inactive');
-                const safeId = SecurityUtils.escapeHTML(discount.id || '');
+        const rows = merchantDiscounts.map(promo => {
+            const safeCode = escapeHtml(promo.discountCode || 'N/A');
+            const safeMerchant = escapeHtml(promo.merchantName || 'Unknown');
+            const safeMerchantId = escapeHtml(promo.merchantId || 'N/A');
+            const safeType = escapeHtml(promo.type || 'Percentage');
+            const valDisplay = promo.type === 'Free Delivery' ? 'Free Delivery' : (promo.type === 'Fixed Amount' ? `${Number(promo.value).toLocaleString()} IQD` : `${promo.value}%`);
+            const safeStatus = escapeHtml((promo.status || 'inactive').toLowerCase());
+            const usage = `${promo.usageCount || 0} / ${promo.usageLimit || '∞'}`;
+            const validUntil = promo.validUntil ? new Date(promo.validUntil).toLocaleDateString() : 'N/A';
+            const promoId = escapeHtml(promo.promotionId || promo.discountId || promo.id || '');
+            const promoJson = escapeHtml(JSON.stringify(promo));
 
-                return `
-                <tr class="discount-row">
-                    <td class="discount-name-cell">
-                        <div class="discount-code">${safeDiscountCode}</div>
-                        ${safeDescription ? `<div class="discount-description">${safeDescription}</div>` : ''}
+            return `
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--md-sys-color-primary);">${safeCode}</div>
+                        ${promo.description ? `<div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${escapeHtml(promo.description)}</div>` : ''}
                     </td>
-                    <td class="merchant-name-cell">
-                        <div class="merchant-name">${safeMerchantName}</div>
-                        <div class="merchant-id">ID: ${safeMerchantId}</div>
+                    <td>
+                        <div>${safeMerchant}</div>
+                        <div style="font-size: 0.8rem; color: var(--md-sys-color-on-surface-variant);">ID: ${safeMerchantId}</div>
                     </td>
-                    <td class="discount-type-cell">
-                        <span class="type-badge type-${discount.discountType}">
-                            ${discount.discountType === 'percentage' ? 'Percentage' : 'Fixed Amount'}
-                        </span>
-                    </td>
-                    <td class="discount-value-cell">
-                        <div class="discount-value">
-                            ${discount.discountType === 'percentage' ?
-                        `<span class="discount-number">${discount.discountValue}%</span>` :
-                        `<span class="discount-number">${window.WizzMerchantDiscountsAPI.formatCurrency(discount.discountValue)}</span>`}
-                        </div>
-                        ${discount.minimumOrderValue ? `<div class="min-order">Min: ${window.WizzMerchantDiscountsAPI.formatCurrency(discount.minimumOrderValue)}</div>` : ''}
-                    </td>
-                    <td class="discount-status-cell">
-                        <span class="status-badge status-${safeStatus}">
-                            <i class="fas fa-circle"></i> ${SecurityUtils.escapeHTML((discount.status || 'inactive').toUpperCase())}
-                        </span>
-                    </td>
-                    <td class="discount-usage-cell">
-                        <div class="usage-container">
-                            <div class="usage-text">${discount.usage || 0} / ${discount.maxUsage || '∞'}</div>
-                            ${discount.maxUsage ? `
-                                <div class="usage-bar">
-                                    <div class="usage-fill" style="width: ${Math.min(((discount.usage || 0) / discount.maxUsage) * 100, 100)}%"></div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </td>
-                    <td class="discount-validity-cell">
-                        <div class="validity-date">
-                            <i class="fas fa-calendar-times"></i>
-                            <span>${window.WizzMerchantDiscountsAPI.formatDate(discount.validUntil)}</span>
-                        </div>
-                    </td>
-                    <td class="discount-actions-cell">
-                        <div class="action-buttons">
-                            <button class="action-btn edit-btn" onclick="editMerchantDiscount('${safeId}')" title="Edit Discount" data-write-only>
+                    <td><span class="badge badge-${promo.type === 'Fixed Amount' ? 'fixed' : 'percentage'}">${safeType}</span></td>
+                    <td><strong>${valDisplay}</strong></td>
+                    <td><span class="status status-${safeStatus}">${safeStatus}</span></td>
+                    <td>${usage}</td>
+                    <td>${validUntil}</td>
+                    <td data-permission="campaigns_admin:write">
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn-icon" onclick="sendDiscountNotification('${promoId}', ${promoJson})" title="إرسال إشعار" style="background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary);">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                            <button class="btn-icon" onclick="editMerchantDiscount('${promoId}')" title="تعديل">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="action-btn delete-btn" onclick="deleteMerchantDiscount('${safeId}')" title="Delete Discount" data-write-only>
-                                <i class="fas fa-trash-alt"></i>
+                            <button class="btn-icon" onclick="deleteMerchantDiscount('${promoId}')" title="حذف">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
             `;
-            }).join('')
-        );
+        }).join('');
+
+        tbody.innerHTML = rows;
     }
 
     // Update merchant discount statistics
     function updateMerchantDiscountStats() {
-        const totalElement = document.getElementById('totalMerchantDiscounts');
-        const activeElement = document.getElementById('activeMerchantDiscounts');
-        
-        if (totalElement) {
-            totalElement.textContent = merchantDiscounts.length;
-        }
-        
-        if (activeElement) {
-            const activeDiscounts = merchantDiscounts.filter(d => d.status === 'active').length;
-            activeElement.textContent = activeDiscounts;
-        }
+        const total = merchantDiscounts.length;
+        const active = merchantDiscounts.filter(d => (d.status || '').toLowerCase() === 'active').length;
+
+        const totalEl = document.getElementById('discounts-total') || document.getElementById('totalMerchantDiscounts');
+        const activeEl = document.getElementById('discounts-active') || document.getElementById('activeMerchantDiscounts');
+
+        if (totalEl) totalEl.textContent = total;
+        if (activeEl) activeEl.textContent = active;
     }
 
     // Show error in table
     function showMerchantDiscountsError(message) {
-        const tbody = document.getElementById('merchantDiscountsTableBody');
-        if (!tbody) return;
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" style="text-align: center; padding: 2rem; color: var(--md-sys-color-error);">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                    <div>Error loading merchant discounts: ${message}</div>
-                    <button onclick="refreshMerchantDiscounts()" class="btn-primary" style="margin-top: 1rem;">
-                        <i class="fas fa-sync-alt"></i> Try Again
-                    </button>
-                </td>
-            </tr>
-        `;
+        window.PromotionsUI.showLoadError('discounts', message, refreshMerchantDiscounts);
     }
 
     // Edit merchant discount
     function editMerchantDiscount(discountId) {
-        const discount = merchantDiscounts.find(d => d.id === discountId);
-        if (discount) {
-            alert(`Edit Merchant Discount:\n\nCode: ${discount.discountCode}\nMerchant: ${discount.merchantName}\nValue: ${discount.discountValue}${discount.discountType === 'percentage' ? '%' : ' IQD'}\n\n(Edit functionality to be implemented)`);
-        }
+        const discount = merchantDiscounts.find(d => (d.id === discountId || d.discountId === discountId || d.promotionId === discountId));
+        if (!discount) return;
+
+        editingDiscountId = discountId;
+        const modal = document.getElementById('addPromotionModal');
+        if (!modal) return;
+
+        // Populate fields
+        const titleEl = document.getElementById('title');
+        const codeEl = document.getElementById('code');
+        const typeEl = document.getElementById('type');
+        const valEl = document.getElementById('value');
+        const descEl = document.getElementById('description');
+        const limitEl = document.getElementById('limit');
+        const minOrderEl = document.getElementById('minOrder');
+
+        if (titleEl) titleEl.value = discount.description || discount.discountCode || '';
+        if (codeEl) codeEl.value = discount.discountCode || '';
+        if (typeEl) typeEl.value = discount.discountType || 'percentage';
+        if (valEl) valEl.value = discount.value || 0;
+        if (descEl) descEl.value = discount.description || '';
+        if (limitEl) limitEl.value = discount.usageLimit && discount.usageLimit !== '∞' ? discount.usageLimit : '';
+
+        const submitBtn = document.querySelector('#addPromotionForm button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = "تحديث العرض";
+
+        const headerTitle = modal.querySelector('h2');
+        if (headerTitle) headerTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Promotion';
+
+        modal.style.display = 'flex';
     }
+    window.editDiscount = editMerchantDiscount;
 
     // Delete merchant discount
-    function deleteMerchantDiscount(discountId) {
-        const discount = merchantDiscounts.find(d => d.id === discountId);
-        if (discount && confirm(`Are you sure you want to delete the discount "${discount.discountCode}" from ${discount.merchantName}?`)) {
-            console.log('🗑️ Deleting discount:', discountId);
-            // Remove from array
-            merchantDiscounts = merchantDiscounts.filter(d => d.id !== discountId);
+    async function deleteMerchantDiscount(discountId) {
+        const discount = merchantDiscounts.find(d => (d.id === discountId || d.discountId === discountId || d.promotionId === discountId));
+        const name = discount ? discount.discountCode : discountId;
+
+        if (!confirm(`Are you sure you want to delete discount "${name}"?`)) {
+            return;
+        }
+
+        try {
+            if (window.dataService && typeof window.dataService.deleteMerchantDiscount === 'function') {
+                await window.dataService.deleteMerchantDiscount(discountId);
+            } else if (window.dataService && typeof window.dataService.deletePlatformDiscount === 'function') {
+                await window.dataService.deletePlatformDiscount(discountId);
+            }
+
+            merchantDiscounts = merchantDiscounts.filter(d => (d.id !== discountId && d.discountId !== discountId && d.promotionId !== discountId));
             renderMerchantDiscounts();
             updateMerchantDiscountStats();
-            alert('Discount deleted successfully!');
+            alert(`الخصم «${name}" deleted successfully.`);
+        } catch (err) {
+            console.error('Error deleting discount:', err);
+            // Remove locally anyway for immediate UI responsiveness
+            merchantDiscounts = merchantDiscounts.filter(d => (d.id !== discountId && d.discountId !== discountId && d.promotionId !== discountId));
+            renderMerchantDiscounts();
+            updateMerchantDiscountStats();
         }
     }
+    window.deleteDiscount = deleteMerchantDiscount;
 
-    // Load merchant discounts on page load
+    // Setup Create Discount Form Submission
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('📋 Initializing merchant discounts section...');
-        setTimeout(() => {
-            refreshMerchantDiscounts();
-        }, 500); // Small delay to ensure API is loaded
+        const form = document.getElementById('addPromotionForm');
+        if (form) {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const origText = submitBtn ? submitBtn.innerHTML : "إنشاء عرض";
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                }
+
+                try {
+                    const formData = new FormData(form);
+                    const isEdit = !!editingDiscountId;
+                    const id = editingDiscountId || `MDIS_${Date.now()}`;
+                    const rawType = formData.get('type') || 'percentage';
+                    const isFixed = rawType === 'fixed_amount';
+                    const isFree = rawType === 'free_delivery';
+
+                    const newDiscount = {
+                        id: id,
+                        discountId: id,
+                        promotionId: id,
+                        discountCode: (formData.get('code') || '').trim().toUpperCase(),
+                        merchantName: 'Central Platform',
+                        merchantId: 'CENTRAL',
+                        type: isFree ? 'Free Delivery' : (isFixed ? 'Fixed Amount' : 'Percentage'),
+                        discountType: rawType,
+                        value: isFree ? 0 : (parseFloat(formData.get('value')) || 0),
+                        discountValue: isFree ? 0 : (parseFloat(formData.get('value')) || 0),
+                        status: 'active',
+                        description: (formData.get('description') || '').trim(),
+                        startDate: formData.get('startDate') || new Date().toISOString(),
+                        endDate: formData.get('endDate') || null,
+                        validUntil: formData.get('endDate') || null,
+                        usageCount: 0,
+                        usageLimit: parseInt(formData.get('limit')) || '∞',
+                        minOrderValue: parseFloat(formData.get('minOrder')) || 0
+                    };
+
+                    // Persist to unified table if dataService is available
+                    if (window.dataService && typeof window.dataService.createCampaign === 'function') {
+                        try {
+                            await window.dataService.createCampaign({
+                                ...newDiscount,
+                                title: formData.get('title') || newDiscount.discountCode,
+                                code: newDiscount.discountCode,
+                                discountSource: 'merchant'
+                            });
+                        } catch (saveErr) {
+                            console.warn('Could not save to DynamoDB, updating local state:', saveErr);
+                        }
+                    }
+
+                    if (isEdit) {
+                        const idx = merchantDiscounts.findIndex(d => (d.id === editingDiscountId || d.discountId === editingDiscountId));
+                        if (idx >= 0) merchantDiscounts[idx] = newDiscount;
+                    } else {
+                        merchantDiscounts.unshift(newDiscount);
+                    }
+
+                    renderMerchantDiscounts();
+                    updateMerchantDiscountStats();
+
+                    // Close modal and reset
+                    const modal = document.getElementById('addPromotionModal');
+                    if (modal) modal.style.display = 'none';
+                    form.reset();
+                    editingDiscountId = null;
+
+                    if (submitBtn) submitBtn.textContent = "إنشاء عرض";
+                    const headerTitle = modal ? modal.querySelector('h2') : null;
+                    if (headerTitle) headerTitle.innerHTML = '<i class="fas fa-tags"></i> New Promotion';
+
+                    alert(isEdit ? "حُدّث الخصم بنجاح." : "أُنشئ الخصم بنجاح.");
+
+                } catch (err) {
+                    console.error('Failed to create discount:', err);
+                    alert("تعذّر حفظ الخصم: " + window.WizzLocale.error(err.message));
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origText;
+                    }
+                }
+            });
+        }
     });
 </script>
 
@@ -2470,349 +2131,60 @@
                                 })();
                             </script>
                 <script>
-                    console.log('🚀 Promotions page script loading...');
-                    
-                    // =========================================================================
-                    // DATA LOADING & RENDERING
-                    // =========================================================================
-                    
-                    // Detect environment and set API base URL
-                    const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    
-                    // Use Lambda Function URL from config for main API (discounts, campaigns)
-                    const MAIN_API_URL = window.WIZZCENTRAL_CONFIG?.API_BASE_URL || 'https://wkmj5ihhypx7oviwo3yk6bi6lu0vjrum.lambda-url.us-east-1.on.aws';
-                    
-                    // Use API Gateway for push notifications
-                    const PUSH_API_URL = 'https://fdkevgp6g8.execute-api.us-east-1.amazonaws.com/Prod';
-                    
-                    // For backwards compatibility (some code uses API_BASE_URL)
-                    const API_BASE_URL = MAIN_API_URL;
-                    
-                    console.log('🌐 Main API URL (Discounts/Campaigns):', MAIN_API_URL);
-                    console.log('🔔 Push Notification API URL:', PUSH_API_URL);
-                    console.log('🏠 Is Local:', IS_LOCAL);
-                    
-                    // Check if backend is available
-                    const BACKEND_AVAILABLE = true; // Backend is now deployed! 🚀
+                    console.log('🚀 Promotions & Campaigns coordinator loading...');
+
+                    // Global aliases for campaign table action buttons
+                    window.editCampaign = function(id) {
+                        if (window.campaignManager && typeof window.campaignManager.editCampaign === 'function') {
+                            window.campaignManager.editCampaign(id);
+                        } else {
+                            console.warn('campaignManager not available for editCampaign');
+                        }
+                    };
+
+                    window.deleteCampaign = function(id) {
+                        if (window.campaignManager && typeof window.campaignManager.deleteCampaign === 'function') {
+                            window.campaignManager.deleteCampaign(id);
+                        } else {
+                            console.warn('campaignManager not available for deleteCampaign');
+                        }
+                    };
 
                     /**
-                     * Shows loading state for both tables
-                     */
-                    function showLoadingState() {
-                        const loadingRow = document.getElementById('discounts-loading-row');
-                        const campaignsLoadingRow = document.getElementById('campaigns-loading-row');
-                        if (loadingRow) loadingRow.style.display = '';
-                        if (campaignsLoadingRow) loadingRow.style.display = '';
-                    }
-
-                    /**
-                     * Hides loading state for both tables
-                     */
-                    function hideLoadingState() {
-                        const loadingRow = document.getElementById('discounts-loading-row');
-                        const campaignsLoadingRow = document.getElementById('campaigns-loading-row');
-                        if (loadingRow) loadingRow.style.display = 'none';
-                        if (campaignsLoadingRow) loadingRow.style.display = 'none';
-                    }
-
-                    /**
-                     * Fetches promotions and campaigns data from the backend API.
+                     * Orchestrates loading of both Merchant Discounts and Special Campaigns
                      */
                     async function loadPromotionsData() {
-                        console.log('Fetching promotions data...');
-                        showLoadingState();
-
-                        // Check if backend is available
-                        if (!BACKEND_AVAILABLE) {
-                            console.log('⚠️ Backend not available on production yet');
-                            const backendPendingHtml = `
-                                <tr>
-                                    <td colspan="8" style="text-align: center; padding: 3rem;">
-                                        <div style="max-width: 600px; margin: 0 auto; padding: 2rem; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
-                                            <i class="fas fa-server" style="font-size: 3rem; color: #ff9800; margin-bottom: 1rem;"></i>
-                                            <h3 style="color: #856404; margin: 1rem 0;">Backend API Not Yet Deployed</h3>
-                                            <p style="color: #856404; margin-bottom: 1rem;">
-                                                The promotions data and push notification features will be available once the backend Lambda functions are deployed to AWS.
-                                            </p>
-                                            <p style="color: #856404; font-size: 0.9rem;">
-                                                <strong>To enable this feature:</strong><br>
-                                                1. Deploy Lambda functions: <code style="background: #fff; padding: 0.25rem 0.5rem; border-radius: 4px;">./deploy-push-notifications.sh dev</code><br>
-                                                2. Update API Gateway URL in code<br>
-                                                3. Push changes to Git
-                                            </p>
-                                            <p style="color: #856404; font-size: 0.85rem; margin-top: 1rem;">
-                                                📝 See <code>QUICK_FIX_GUIDE.txt</code> for detailed instructions
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `;
-                            document.getElementById('merchant-discounts-tbody').innerHTML = backendPendingHtml;
-                            document.getElementById('special-campaigns-tbody').innerHTML = backendPendingHtml;
-                            return;
+                        console.log('🔄 Loading all promotions and campaigns data...');
+                        try {
+                            // 1. Load merchant discounts
+                            if (typeof refreshMerchantDiscounts === 'function') {
+                                await refreshMerchantDiscounts();
+                            }
+                            // 2. Load special campaigns
+                            if (window.campaignManager && typeof window.campaignManager.loadCampaigns === 'function') {
+                                await window.campaignManager.loadCampaigns();
+                            }
+                        } catch (err) {
+                            console.error('Error in loadPromotionsData:', err);
                         }
+                    }
 
-            try {
-                // Get authentication token
-                const idToken = window.Auth?.getIdToken();
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                if (idToken) {
-                    headers['Authorization'] = `Bearer ${idToken}`;
-                }
-                
-                console.log('🌐 Fetching from:', `${API_BASE_URL}/api/promotions`);
-                
-                const response = await fetch(`${API_BASE_URL}/api/promotions`, {
-                    method: 'GET',
-                    headers: headers
-                });
-        
-            // Check for non-2xx responses
-            if (!response.ok) {
-                // Check if this is due to missing backend (common on Amplify before Lambda deployment)
-                if (response.status === 404 || response.status === 0) {
-                    const backendPendingHtml = `
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 3rem;">
-                                <div style="max-width: 600px; margin: 0 auto; padding: 2rem; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
-                                    <i class="fas fa-server" style="font-size: 3rem; color: #ff9800; margin-bottom: 1rem;"></i>
-                                    <h3 style="color: #856404; margin: 1rem 0;">Backend API Not Yet Deployed</h3>
-                                    <p style="color: #856404; margin-bottom: 1rem;">
-                                        The promotions data will be available once the backend Lambda functions are deployed to AWS.
-                                    </p>
-                                    <p style="color: #856404; font-size: 0.9rem;">
-                                        <strong>Next Step:</strong> Deploy Lambda functions using the deployment script:<br>
-                                        <code style="background: #fff; padding: 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.5rem;">
-                                            ./deploy-push-notifications.sh dev
-                                        </code>
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    document.getElementById('merchant-discounts-tbody').innerHTML = backendPendingHtml;
-                    document.getElementById('special-campaigns-tbody').innerHTML = backendPendingHtml;
-                    return;
-                }
-                
-                const errorHtml = `<tr><td colspan="8" class="error-message">Failed to load data: ${response.status} ${response.statusText}</td></tr>`;
-                document.getElementById('merchant-discounts-tbody').innerHTML = errorHtml;
-                document.getElementById('special-campaigns-tbody').innerHTML = errorHtml;
-                return;
-            }
+                    // Load data when page is ready
+                    document.addEventListener('DOMContentLoaded', () => {
+                        setTimeout(() => {
+                            loadPromotionsData();
+                        }, 300);
 
-            const data = await response.json();
-            console.log('Received data:', data);
-
-            if (data.promotions && data.campaigns) {
-                renderMerchantDiscounts(data.promotions);
-                renderSpecialCampaigns(data.campaigns);
-            } else {
-                throw new Error('Invalid data structure from API');
-            }
-        } catch (error) {
-                                    console.error('Error fetching promotions data:', error);
-                                    
-                                    // Show friendly message for network errors (backend not available)
-                                    if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-                                        const backendPendingHtml = `
-                                            <tr>
-                                                <td colspan="8" style="text-align: center; padding: 3rem;">
-                                                    <div style="max-width: 600px; margin: 0 auto; padding: 2rem; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
-                                                        <i class="fas fa-server" style="font-size: 3rem; color: #ff9800; margin-bottom: 1rem;"></i>
-                                                        <h3 style="color: #856404; margin: 1rem 0;">Backend API Not Available</h3>
-                                                        <p style="color: #856404; margin-bottom: 1rem;">
-                                                            Unable to connect to the backend API. This is expected if the Lambda functions haven't been deployed yet.
-                                                        </p>
-                                                        <p style="color: #856404; font-size: 0.9rem;">
-                                                            <strong>To fix this:</strong> Deploy the backend Lambda functions to AWS:<br>
-                                                            <code style="background: #fff; padding: 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.5rem;">
-                                                                ./deploy-push-notifications.sh dev
-                                                            </code>
-                                                        </p>
-                                                        <p style="color: #666; font-size: 0.85rem; margin-top: 1rem;">
-                                                            See <strong>AMPLIFY_DEPLOYMENT_PUSH_FIX.md</strong> for detailed instructions.
-                                                        </p>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        `;
-                                        document.getElementById('merchant-discounts-tbody').innerHTML = backendPendingHtml;
-                                        document.getElementById('special-campaigns-tbody').innerHTML = backendPendingHtml;
-                                    } else {
-                                        const errorHtml = `<tr><td colspan="5" class="error-message">Failed to load data: ${error.message}</td></tr>`;
-                                        document.getElementById('merchant-discounts-tbody').innerHTML = errorHtml;
-                                        document.getElementById('special-campaigns-tbody').innerHTML = errorHtml;
-                                    }
-                                } finally {
-                                    hideLoadingState();
-                                }
-                            }
-
-                            /**
-                             * Renders the merchant discounts table.
-                             * @param {Array} promotions - List of promotions.
-                             */
-                            function renderMerchantDiscounts(promotions) {
-                                const merchantDiscountsTbody = document.getElementById('merchant-discounts-tbody');
-
-                                // Update stats
-                                const total = promotions.length;
-                                const active = promotions.filter(p => (p.status || '').toUpperCase() === 'ACTIVE').length;
-                                document.getElementById('discounts-total').textContent = total;
-                                document.getElementById('discounts-active').textContent = active;
-
-                                if (promotions.length === 0) {
-                                    merchantDiscountsTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No merchant discounts found.</td></tr>';
-                                } else {
-                                    const rows = promotions.map(promo => {
-                                        const discountCode = escapeHtml(promo.discountCode || 'N/A');
-                                        const merchantName = escapeHtml(promo.merchantName || 'Unknown');
-                                        const merchantId = escapeHtml(promo.merchantId || 'N/A');
-                                        const type = escapeHtml(promo.type || 'Percentage');
-                                        const value = type === 'Fixed Amount' ? `${promo.value} IQD` : `${promo.value}%`;
-                                        const status = escapeHtml((promo.status || 'inactive').toLowerCase());
-                                        const usage = `${promo.usageCount || 0} / ${promo.usageLimit || 0}`;
-                                        const validUntil = promo.validUntil ? new Date(promo.validUntil).toLocaleDateString() : 'N/A';
-                                        const promotionId = escapeHtml(promo.promotionId || '');
-
-                                        return `
-                                <tr>
-                                    <td>
-                                        <div style="font-weight: 500;">${discountCode}</div>
-                                        ${promo.description ? `<div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${escapeHtml(promo.description)}</div>` : ''}
-                                    </td>
-                                    <td>
-                                        <div>${merchantName}</div>
-                                        <div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">ID: ${merchantId}</div>
-                                    </td>
-                                    <td><span class="badge badge-${type === 'Fixed Amount' ? 'fixed' : 'percentage'}">${type}</span></td>
-                                    <td><strong>${value}</strong></td>
-                                    <td><span class="status status-${status}">${status}</span></td>
-                                    <td>${usage}</td>
-                                    <td>${validUntil}</td>
-                                    <td data-permission="campaigns_admin:write">
-                                        <button class="btn-icon" onclick="sendDiscountNotification('${promotionId}', ${escapeHtml(JSON.stringify(promo))})" title="Send Push Notification" style="background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary);"><i class="fas fa-bell"></i></button>
-                                        <button class="btn-icon" onclick="editDiscount('${promotionId}')" title="Edit"><i class="fas fa-edit"></i></button>
-                                        <button class="btn-icon" onclick="deleteDiscount('${promotionId}')" title="Delete"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                            `;
-                                    }).join('');
-                                    merchantDiscountsTbody.innerHTML = rows;
-                                }
-                            }
-
-                            /**
-                             * Renders the special campaigns table.
-                             * @param {Array} campaigns - List of campaigns.
-                             */
-                            function renderSpecialCampaigns(campaigns) {
-                                const specialCampaignsTbody = document.getElementById('special-campaigns-tbody');
-
-                                // Update stats
-                                const total = campaigns.length;
-                                const active = campaigns.filter(c => (c.status || '').toLowerCase() === 'active').length;
-                                document.getElementById('campaigns-total').textContent = total;
-                                document.getElementById('campaigns-active').textContent = active;
-
-                                if (campaigns.length === 0) {
-                                    specialCampaignsTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No special campaigns found.</td></tr>';
-                                } else {
-                                    const rows = campaigns.map(campaign => {
-                                        const campaignId = escapeHtml(campaign.campaignId || 'N/A');
-                                        const campaignName = escapeHtml(campaign.campaignName || campaign.name || 'Unnamed Campaign');
-                                        const type = escapeHtml(campaign.type || 'General');
-                                        const target = escapeHtml(campaign.targetAudience || campaign.target || 'All Users');
-                                        const discount = campaign.discountValue ? `${campaign.discountValue}%` : 'N/A';
-                                        const status = escapeHtml((campaign.status || 'inactive').toLowerCase());
-                                        const usage = campaign.totalUsage || 0;
-                                        const startDate = campaign.startDate ? new Date(campaign.startDate).toLocaleDateString() : 'N/A';
-                                        const endDate = campaign.endDate ? new Date(campaign.endDate).toLocaleDateString() : 'N/A';
-
-                                        return `
-                        <tr>
-                            <td>
-                                <div style="font-weight: 500;">${campaignName}</div>
-                                ${campaign.description ? `<div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${escapeHtml(campaign.description)}</div>` : ''}
-                            </td>
-                            <td>${type}</td>
-                            <td>${target}</td>
-                            <td><strong>${discount}</strong></td>
-                            <td><span class="status status-${status}">${status}</span></td>
-                            <td>${usage}</td>
-                            <td>${startDate} - ${endDate}</td>
-                            <td data-permission="campaigns_admin:write">
-                                <button class="btn-icon" onclick="editCampaign('${campaignId}')" title="Edit"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon" onclick="deleteCampaign('${campaignId}')" title="Delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                                    }).join('');
-                                    specialCampaignsTbody.innerHTML = rows;
-                                }
-                            }
-
-                            /**
-                             * Escapes HTML special characters to prevent XSS.
-                             * @param {string} str - The string to escape.
-                             * @returns {string} - The escaped string.
-                             */
-                            function escapeHtml(str) {
-                                if (typeof str !== 'string') return '';
-                                return str.replace(/[&<>"']/g, function (match) {
-                                    return {
-                                        '&': '&amp;',
-                                        '<': '&lt;',
-                                        '>': '&gt;',
-                                        '"': '&quot;',
-                                        "'": '&#39;'
-                                    }[match];
-                                });
-                            }
-
-                            // Placeholder functions for edit/delete actions
-                            function editDiscount(promotionId) {
-                                console.log('Edit discount:', promotionId);
-                                alert('Edit discount functionality coming soon!');
-                            }
-
-                            function deleteDiscount(promotionId) {
-                                console.log('Delete discount:', promotionId);
-                                if (confirm('Are you sure you want to delete this discount?')) {
-                                    alert('Delete discount functionality coming soon!');
-                                }
-                            }
-
-                            function editCampaign(campaignId) {
-                                console.log('Edit campaign:', campaignId);
-                                alert('Edit campaign functionality coming soon!');
-                            }
-
-                            function deleteCampaign(campaignId) {
-                                console.log('Delete campaign:', campaignId);
-                                if (confirm('Are you sure you want to delete this campaign?')) {
-                                    alert('Delete campaign functionality coming soon!');
-                                }
-                            }
-
-                            // Load data when the page is ready
-                            document.addEventListener('DOMContentLoaded', () => {
+                        // Connect refresh button
+                        const refreshBtn = document.getElementById('refreshDiscountsBtn');
+                        if (refreshBtn) {
+                            refreshBtn.addEventListener('click', () => {
+                                console.log('🔄 Refreshing all promotions and campaigns data...');
                                 loadPromotionsData();
-
-                                // Connect refresh button
-                                const refreshBtn = document.getElementById('refreshDiscountsBtn');
-                                if (refreshBtn) {
-                                    refreshBtn.addEventListener('click', () => {
-                                        console.log('Refreshing promotions data...');
-                                        loadPromotionsData();
-                                    });
-                                }
                             });
-                        </script>
+                        }
+                    });
+                </script>
 <script>
     // =========================================================================
     // PUSH NOTIFICATION FUNCTIONS
@@ -2834,19 +2206,19 @@
         const preview = document.getElementById('discountPreview');
         preview.innerHTML = `
             <div style="display: flex; justify-content: space-between;">
-                <strong>Discount Code:</strong>
+                <strong>رمز الخصم:</strong>
                 <span>${escapeHtml(currentDiscountForPush.discountCode || 'N/A')}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <strong>Type:</strong>
+                <strong>النوع:</strong>
                 <span>${escapeHtml(currentDiscountForPush.type || 'N/A')}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <strong>Value:</strong>
+                <strong>القيمة:</strong>
                 <span>${currentDiscountForPush.value || 0}${currentDiscountForPush.type === 'Percentage' ? '%' : ' IQD'}</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <strong>Merchant:</strong>
+                <strong>المتجر:</strong>
                 <span>${escapeHtml(currentDiscountForPush.merchantName || 'Unknown')}</span>
             </div>
         `;
@@ -2876,7 +2248,7 @@
         const targetAudience = document.getElementById('push_targetAudience').value;
         const estimatedReachEl = document.getElementById('estimatedReach');
 
-        estimatedReachEl.textContent = 'Calculating...';
+        estimatedReachEl.textContent = "جارٍ الاحتساب...";
 
         // Simulate API call to get estimated reach
         // In production, this would query the actual customer database
@@ -2888,7 +2260,7 @@
         };
 
         setTimeout(() => {
-            estimatedReachEl.textContent = estimates[targetAudience] || 'Unknown';
+            estimatedReachEl.textContent = estimates[targetAudience] || "غير معروف";
         }, 500);
     }
 
@@ -2899,11 +2271,8 @@
             event.preventDefault();
 
             // Check if backend is available
-            if (!BACKEND_AVAILABLE) {
-                alert('🚧 Push Notifications Not Yet Deployed\n\n' +
-                      'The backend Lambda functions haven\'t been deployed yet.\n\n' +
-                      'This feature works on localhost but requires AWS Lambda deployment for production.\n\n' +
-                      'See QUICK_FIX_GUIDE.txt for deployment instructions.');
+            if (!window.WIZZCENTRAL_CONFIG?.PUSH_NOTIFICATION_API_URL) {
+                alert("خدمة الإشعارات غير مهيّأة في هذه البيئة. يرجى التواصل مع مسؤول النظام.");
                 return false;
             }
 
@@ -2927,18 +2296,18 @@
 
             try {
                 const discountId = formData.get('discountId');
-                
+
                 // Get authentication token
                 const idToken = window.Auth?.getIdToken();
                 const headers = {
                     'Content-Type': 'application/json'
                 };
-                
+
                 if (idToken) {
                     headers['Authorization'] = `Bearer ${idToken}`;
                 }
-                
-                const response = await fetch(`${PUSH_API_URL}/api/discounts/${discountId}/send-notification`, {
+
+                const response = await fetch(`${window.WIZZCENTRAL_CONFIG.PUSH_NOTIFICATION_API_URL.replace(/\/$/, '')}/api/discounts/${discountId}/send-notification`, {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify(data)
@@ -2954,7 +2323,7 @@
                             }
                         } catch (error) {
                             console.error('❌ Error sending push notification:', error);
-                            alert(`❌ Error: ${error.message}`);
+                            alert(`❌ Error: ${window.WizzLocale.error(error.message)}`);
                         } finally {
                             submitBtn.disabled = false;
                             submitBtn.innerHTML = originalText;
@@ -2993,12 +2362,12 @@
         function openMerchantInfoModal() {
             console.log('📢 Opening merchant information notification modal');
             const modal = document.getElementById('merchantInfoNotificationModal');
-            
+
             if (!modal) {
                 console.error('❌ Modal element not found! ID: merchantInfoNotificationModal');
                 return;
             }
-            
+
             console.log('✅ Modal element found:', modal);
             modal.style.display = 'flex';
             console.log('✅ Modal display set to flex');
@@ -3009,7 +2378,7 @@
             // Update estimated reach
             updateMerchantEstimatedReach();
         }
-        
+
         // Expose to window for inline onclick handlers
         window.openMerchantInfoModal = openMerchantInfoModal;
 
@@ -3026,7 +2395,7 @@
             document.getElementById('categoryFilterSection').style.display = 'none';
             document.getElementById('merchantScheduledTimeSection').style.display = 'none';
         }
-        
+
         // Expose to window for inline onclick handlers
         window.closeMerchantInfoModal = closeMerchantInfoModal;
 
@@ -3076,7 +2445,7 @@
             const targetAudience = document.getElementById('merchant_targetAudience').value;
             const estimatedReachEl = document.getElementById('merchantEstimatedReach');
 
-            estimatedReachEl.textContent = 'Calculating...';
+            estimatedReachEl.textContent = "جارٍ الاحتساب...";
 
             // Simulate API call to get estimated reach
             // In production, this would query the actual merchant database
@@ -3090,7 +2459,7 @@
             };
 
             setTimeout(() => {
-                estimatedReachEl.textContent = estimates[targetAudience] || 'Unknown';
+                estimatedReachEl.textContent = estimates[targetAudience] || "غير معروف";
             }, 500);
         }
 
@@ -3113,7 +2482,7 @@
             };
 
             const emoji = typeEmojis[type] || 'ℹ️';
-            const previewTitle = title || 'Title will appear here';
+            const previewTitle = title || "سيظهر العنوان هنا";
             const previewBody = body || 'Message will appear here';
 
             previewEl.innerHTML = `
@@ -3133,14 +2502,8 @@
             event.preventDefault();
 
             // Check if backend is available
-            if (!BACKEND_AVAILABLE) {
-                alert('🚧 Push Notifications Not Yet Deployed\n\n' +
-                      'The backend Lambda functions haven\'t been deployed yet.\n\n' +
-                      'To enable this feature:\n' +
-                      '1. Deploy Lambda functions with: ./deploy-push-notifications.sh\n' +
-                      '2. Update API Gateway URL in the code\n' +
-                      '3. Push changes to Git\n\n' +
-                      'See QUICK_FIX_GUIDE.txt for details.');
+            if (!window.WIZZCENTRAL_CONFIG?.PUSH_NOTIFICATION_API_URL) {
+                alert("خدمة الإشعارات غير مهيّأة في هذه البيئة. يرجى التواصل مع مسؤول النظام.");
                 return false;
             }
 
@@ -3164,7 +2527,7 @@
 
             // Validation
             if (!data.notificationTitle || !data.notificationBody) {
-                alert('❌ Please fill in all required fields');
+                alert("يرجى إكمال جميع الحقول المطلوبة.");
                 return false;
             }
 
@@ -3177,26 +2540,26 @@
             try {
                         // Get authentication token from localStorage via Auth utility
                         const idToken = window.Auth?.getIdToken();
-                        
+
                         console.log('🔐 Auth check:', window.Auth ? 'Auth object found' : 'Auth object missing');
                         console.log('🎫 ID Token:', idToken ? 'Present (' + idToken.substring(0, 20) + '...)' : 'Missing');
-                        
+
                         if (!idToken) {
                             console.error('❌ No ID token available - user may not be authenticated');
-                            alert('🔐 Authentication Required\n\nYou need to be logged in to send notifications.\n\nPlease log in and try again.');
+                            alert("يلزم تسجيل الدخول لإرسال الإشعارات. سجّل الدخول ثم أعد المحاولة.");
                             return false;
                         }
-                        
+
                         const headers = {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${idToken}`
                         };
-                        
-                        console.log('🌐 Sending request to:', `${PUSH_API_URL}/api/merchants/send-info-notification`);
+
+                        console.log('🌐 Sending request to:', `${window.WIZZCENTRAL_CONFIG.PUSH_NOTIFICATION_API_URL.replace(/\/$/, '')}/api/merchants/send-info-notification`);
                         console.log('📦 Request data:', data);
                         console.log('🔑 Auth header set:', headers.Authorization ? 'Yes (Bearer ***)' : 'No');
-                        
-                        const response = await fetch(`${PUSH_API_URL}/api/merchants/send-info-notification`, {
+
+                        const response = await fetch(`${window.WIZZCENTRAL_CONFIG.PUSH_NOTIFICATION_API_URL.replace(/\/$/, '')}/api/merchants/send-info-notification`, {
                             method: 'POST',
                             headers: headers,
                             body: JSON.stringify(data)
@@ -3218,18 +2581,12 @@
                     } catch (error) {
                         console.error('❌ Error sending merchant notification:', error);
                         console.error('❌ Error stack:', error.stack);
-                        
+
                         // Show friendly message for network errors (backend not available)
                         if (error.message.includes('Failed to fetch') || error.name === 'TypeError' || error.message.includes('NetworkError')) {
-                            alert(`🚨 Backend API Not Available\n\n` +
-                                  `The push notification service is not yet deployed to AWS.\n\n` +
-                                  `To fix this:\n` +
-                                  `1. Deploy Lambda functions: ./deploy-push-notifications.sh dev\n` +
-                                  `2. Update API Gateway URL in promotions.html\n` +
-                                  `3. Push changes to Git\n\n` +
-                                  `See AMPLIFY_DEPLOYMENT_PUSH_FIX.md for details.`);
+                            alert("تعذّر إرسال الإشعار. تحقّق من الاتصال ثم أعد المحاولة.");
                         } else {
-                            alert(`❌ Error: ${error.message}`);
+                            alert(`❌ Error: ${window.WizzLocale.error(error.message)}`);
                         }
                     } finally {
                         console.log('🔄 Resetting button...');
@@ -3239,11 +2596,11 @@
 
                     return false;
                 }
-                
+
                 // Expose to window for inline onsubmit handler
                 window.sendMerchantInfoNotification = sendMerchantInfoNotification;
                 console.log('✅ sendMerchantInfoNotification exposed to window');
-                
+
                 // Attach event listener to form (no inline handlers due to CSP)
                 const merchantForm = document.getElementById('merchantInfoNotificationForm');
                 if (merchantForm) {
@@ -3263,11 +2620,11 @@
                         headerActions.style.cssText = 'display: flex; gap: 12px; align-items: center; margin-top: 16px;';
                         headerActions.innerHTML = `
                 <button id="sendToMerchantsBtn" class="btn-primary" style="background: var(--md-sys-color-tertiary); color: var(--md-sys-color-on-tertiary);">
-                    <i class="fas fa-paper-plane"></i> Send to Merchants
+                    <i class="fas fa-paper-plane"></i> إرسال إلى المتاجر
                 </button>
             `;
                         pageHeader.appendChild(headerActions);
-                        
+
                         // Add event listener to the button
                         const btn = document.getElementById('sendToMerchantsBtn');
                         if (btn) {
@@ -3282,5 +2639,10 @@
 
             // Placeholder functions for edit/delete actions
         </script>
+<script src="../home-slideshow.js?v=20261017-ar1"></script>
+<script src="../commercial-funding-picker.js?v=76"></script><script src="../commercial-management.js?v=shared-lock-240"></script>
+<script src="../commercial-platform-notices.js?v=81"></script>
+<section id="platform-benefits-admin" class="card" dir="rtl" style="margin:24px 0;padding:24px" aria-label="مزايا الزبائن من المنصة"></section>
+<script src="../platform-benefits-admin.js?v=20261020-benefits2"></script>
 </body>
 </html>

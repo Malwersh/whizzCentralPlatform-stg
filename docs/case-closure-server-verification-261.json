@@ -1,0 +1,20 @@
+{
+  "part": 261,
+  "status": "PASS",
+  "readOnly": true,
+  "orderNumber": "ORD1792545370610",
+  "caseStatus": "RESOLVED",
+  "caseVersion": 14,
+  "closureAtUtc": "2026-10-21T21:58:12.376Z",
+  "reason": "تمت التسويه كليا",
+  "closureEvents": 1,
+  "financialPostingOnClosure": false,
+  "merchantCompensationStatus": "PAID",
+  "merchantCompensationIqd": 6250,
+  "driverGuaranteeStatus": "RELEASED",
+  "driverFareStatus": "PAID_TO_WALLET",
+  "legacyReturnStatusPreserved": "REVIEW_REQUIRED",
+  "caseIndexStatus": "CLOSED",
+  "caseIndexState": "RESOLVED",
+  "openQueueRemoved": true
+}

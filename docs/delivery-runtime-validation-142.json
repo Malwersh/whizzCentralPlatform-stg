@@ -1,0 +1,9 @@
+{
+  "part": 142,
+  "scope": "local customer Lambda dependency packaging",
+  "checks": {"typescript": "passed", "runtimeSync": "passed", "targetedTests": 34, "failedTests": 0},
+  "deployed": false,
+  "financialMutations": false,
+  "customerApiPromotionWiringComplete": false,
+  "remaining": ["authenticated customer history adapter", "actual create-order promotion selector and displayed delivery fee", "V2 downstream runtime and mobile compatibility", "scoped staging release and device tests"]
+}

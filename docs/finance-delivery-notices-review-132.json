@@ -1,0 +1,9 @@
+{
+  "status": "LOCAL_IMPLEMENTED_NOT_DEPLOYED_OR_INSTALLED",
+  "notification": {"durableNoticeOnSend": true, "workerReused": true, "targets": "owner and active authorized branch managers on personal merchant devices", "pairedDevicesExcluded": true, "financialTermsInPush": false, "actualDeviceArrivalTested": false},
+  "merchantUI": ["pending banner and inbox", "account-scoped navigation with request kind", "delivery funding terms and caps", "ACCEPT_DELIVERY activates exact version"],
+  "verification": {"backendTestsPassed": 56, "flutterTestsPassed": 16, "flutterAnalyzeErrors": 0, "flutterAnalyzeWarnings": 0, "flutterStyleInfos": 4},
+  "remaining": ["budget and usage lifecycle", "trusted discovery/cart context and order accounting integration", "host capability and platform UI", "named region coverage display", "deployment and actual-device notice test"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

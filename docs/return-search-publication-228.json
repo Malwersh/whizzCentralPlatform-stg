@@ -1,0 +1,19 @@
+{
+  "part": 228,
+  "status": "PUBLISHED",
+  "function": "staging-driver-financial-accept",
+  "baseCodeSha256": "zgj7XzkHZZ5/HvgGpGUFa696rTpQYB1q9GX/evj2vzM=",
+  "codeSha256": "lOv7KkW27JqEI0CEsI3Uwq35ZpicbWuEH3e/sbmlR8k=",
+  "repair": "On clean confirmed return, keep searching only if driver remains active; never reactivate an offline driver",
+  "changedFiles": [
+    "index.js"
+  ],
+  "tests": {
+    "capturedLiveFinancialMatrix": 64,
+    "failed": 0,
+    "onlineAndOfflinePreservation": true
+  },
+  "configurationAndIamPreserved": true,
+  "otherZipEntriesIdentical": true,
+  "financialWritesByAgent": false
+}

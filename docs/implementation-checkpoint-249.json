@@ -1,0 +1,32 @@
+{
+  "part": 249,
+  "status": "INSTALLED_VERIFIED",
+  "scope": "Merchant financial screen organization for long order/statement histories",
+  "merchantBuild": 225,
+  "changes": [
+    "Separate account, statements and payout sections preserve scroll state",
+    "Lazy server-paginated statement and payout lists",
+    "Account movements display 20 at a time while totals include all verified loaded rows",
+    "Primary summary separated from collapsible detailed breakdown and explanations",
+    "Long technical references and exact period/reason stay in copyable expanded details",
+    "Successful payout request opens its follow-up section automatically"
+  ],
+  "validation": {
+    "widgetTests": 10,
+    "longAccountFixtureRows": 100,
+    "serverPaginationAndNoMutation": "PASS",
+    "narrowViewportVisualCheck": "390x844",
+    "staticAnalysis": "No issues found"
+  },
+  "businessDataOrMoneyChangedByAgent": false,
+  "currentTest": {
+    "orderNumber": "ORD1792545370610",
+    "statementId": "MSB:e07bdd613375116bff5973bf9514056c332c68f9aac45d07",
+    "payoutId": "MPO:b402c95f947d7a06cbeda06c4fa822afbdc11e4a54bbb242",
+    "amountIqd": 6250,
+    "method": "CASH",
+    "status": "UNDER_REVIEW"
+  },
+  "next": "User opens finance payout follow-up for Fattoush; approve request before manual cash execution and owner receipt/reconciliation. Do not repeat driver fare or guarantee.",
+  "simulatorInstalledBuild": "225"
+}

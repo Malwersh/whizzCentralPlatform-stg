@@ -1,0 +1,498 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "CENTRAL_OPERATING_SETTINGS_PUBLISHED_GATES_OFF",
+  "financialActivation": "OFF",
+  "scope": "Central operating settings only; operator search review actions and customer UI rollout remain pending",
+  "approvedValues": {
+    "quoteMaxPerCustomerPerMinute": 5,
+    "driverOfferTtlSeconds": 60,
+    "driverPositionMaxAgeSeconds": 120,
+    "reassignmentWindowSeconds": 300,
+    "maximumWaves": 4
+  },
+  "policy": {
+    "pk": "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS",
+    "sk": "CURRENT",
+    "version": 1,
+    "initializationActor": "SYSTEM_RELEASE_32",
+    "source": "User approved part31 values",
+    "approval": "Existing settings request and independent approval workflow; global scope required",
+    "existingOffersAndSearchWindows": "Preserve captured settings; no repricing"
+  },
+  "functions": [
+    {
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "clLGNp0pv6AiP75RndPFZYPcHLoapwDryxW1Y7KxWqM=",
+      "baseRevisionId": "d829099e-0578-4278-b6e8-184d9ba236b0",
+      "handler": "index.handler",
+      "codeSha256": "lgtP9YYkI5QE0xtAuFol90xLjYN8mngnIYMTrvuIufQ=",
+      "preservedFiles": 4507,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "dispatch-settings-contract.js",
+        "dispatch-settings.js"
+      ]
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "baseCodeSha256": "f12sFZKNLjcBGqkpmlovTwvGvnqVkZf382xfbAd1Y84=",
+      "baseRevisionId": "8213df81-be61-4915-8802-3c77fd25cdba",
+      "handler": "index.handler",
+      "codeSha256": "pnPzcRyT42pIfp9IiAVQF89CTcekqn1U9v9NOqojNNw=",
+      "preservedFiles": 2933,
+      "replacedFiles": [
+        "financial-runtime.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "baseCodeSha256": "vKOLJHFU4h4Nwmq44EQibFm4VQ/Uygs0AfyU56ERVh0=",
+      "baseRevisionId": "e0750490-3336-48fe-9943-4aca87b54aa2",
+      "handler": "index.handler",
+      "codeSha256": "4tDShfuMbqBWmZdirNkVKU1ik6FTPm+OnEweZs67nzY=",
+      "preservedFiles": 2929,
+      "replacedFiles": [
+        "financial-runtime.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "/0q3kAtIoNMkWBGbBBtkRiMMzbPt6keb0ssa1Yjqsto=",
+      "baseRevisionId": "ecfb62c1-d2be-40a4-a89a-9d4e72781b18",
+      "handler": "index.financialAcceptanceHandler",
+      "codeSha256": "5TRPZhgEqkuDvdGrz3IrjvBLMtLcPLQLf5QCL9nnb/Q=",
+      "preservedFiles": 0,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "baseCodeSha256": "mzLcBrKT/gORjTJ4vP9bGEQDFyVVCf4g8Jc+egooqRY=",
+      "baseRevisionId": "57e12a41-b437-40de-8c77-f26f97f3ddbc",
+      "handler": "index.handler",
+      "codeSha256": "YzRXKpsuQmdVXcv9JaLrY0aoPWx7DR0aZDehwjqjGpc=",
+      "preservedFiles": 0,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": []
+    }
+  ],
+  "infrastructureReview": [
+    {
+      "stack": "staging-cod-lifecycle",
+      "status": "CREATE_COMPLETE",
+      "changes": [
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "Cod26WaveSystemStartWaveFunctionGuardPolicy",
+          "ResourceType": "AWS::IAM::Policy",
+          "Replacement": "False",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "PolicyDocument",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Static",
+              "ChangeSource": "DirectModification"
+            }
+          ]
+        },
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "DriverFinancialAcceptanceFunctionRole",
+          "ResourceType": "AWS::IAM::Role",
+          "Replacement": "False",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "Policies",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Static",
+              "ChangeSource": "DirectModification"
+            }
+          ]
+        },
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "DriverFinancialAcceptanceFunction",
+          "ResourceType": "AWS::Lambda::Function",
+          "Replacement": "False",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "Environment",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Static",
+              "ChangeSource": "DirectModification"
+            },
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "Role",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Dynamic",
+              "ChangeSource": "ResourceAttribute",
+              "CausingEntity": "DriverFinancialAcceptanceFunctionRole.Arn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stack": "staging-delivery-quotes",
+      "status": "CREATE_COMPLETE",
+      "changes": [
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "DeliveryQuoteRole",
+          "ResourceType": "AWS::IAM::Role",
+          "Replacement": "False",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "Policies",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Static",
+              "ChangeSource": "DirectModification"
+            }
+          ]
+        },
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "DeliveryQuotesFunction",
+          "ResourceType": "AWS::Lambda::Function",
+          "Replacement": "False",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "Environment",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Static",
+              "ChangeSource": "DirectModification"
+            },
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "Role",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Dynamic",
+              "ChangeSource": "ResourceAttribute",
+              "CausingEntity": "DeliveryQuoteRole.Arn"
+            }
+          ]
+        },
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "QuoteGetMethod",
+          "ResourceType": "AWS::ApiGateway::Method",
+          "Replacement": "False",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "Integration",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Dynamic",
+              "ChangeSource": "ResourceAttribute",
+              "CausingEntity": "DeliveryQuotesFunction.Arn"
+            }
+          ]
+        },
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "QuoteGetPermission",
+          "ResourceType": "AWS::Lambda::Permission",
+          "Replacement": "Conditional",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "FunctionName",
+                "RequiresRecreation": "Always"
+              },
+              "Evaluation": "Dynamic",
+              "ChangeSource": "ResourceAttribute",
+              "CausingEntity": "DeliveryQuotesFunction.Arn"
+            }
+          ]
+        },
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "QuotePostMethod",
+          "ResourceType": "AWS::ApiGateway::Method",
+          "Replacement": "False",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "Integration",
+                "RequiresRecreation": "Never"
+              },
+              "Evaluation": "Dynamic",
+              "ChangeSource": "ResourceAttribute",
+              "CausingEntity": "DeliveryQuotesFunction.Arn"
+            }
+          ]
+        },
+        {
+          "Action": "Modify",
+          "LogicalResourceId": "QuotePostPermission",
+          "ResourceType": "AWS::Lambda::Permission",
+          "Replacement": "Conditional",
+          "details": [
+            {
+              "Target": {
+                "Attribute": "Properties",
+                "Name": "FunctionName",
+                "RequiresRecreation": "Always"
+              },
+              "Evaluation": "Dynamic",
+              "ChangeSource": "ResourceAttribute",
+              "CausingEntity": "DeliveryQuotesFunction.Arn"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "publication": {
+    "policy": {
+      "version": 1,
+      "values": {
+        "quoteMaxPerCustomerPerMinute": 5,
+        "driverOfferTtlSeconds": 60,
+        "driverPositionMaxAgeSeconds": 120,
+        "reassignmentWindowSeconds": 300,
+        "maximumWaves": 4
+      },
+      "humanGrantsChanged": false
+    },
+    "infrastructure": "UPDATE_COMPLETE",
+    "iam": [
+      {
+        "function": "WaveSystem_StartWave",
+        "action": "dynamodb:GetItem",
+        "keyClass": "operating-policy",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_StartWave",
+        "action": "dynamodb:ConditionCheckItem",
+        "keyClass": "operating-policy",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_StartWave",
+        "action": "dynamodb:GetItem",
+        "keyClass": "unrelated-staff",
+        "decision": "implicitDeny"
+      },
+      {
+        "function": "staging-driver-financial-accept",
+        "action": "dynamodb:GetItem",
+        "keyClass": "operating-policy",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-driver-financial-accept",
+        "action": "dynamodb:ConditionCheckItem",
+        "keyClass": "operating-policy",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-driver-financial-accept",
+        "action": "dynamodb:GetItem",
+        "keyClass": "unrelated-staff",
+        "decision": "implicitDeny"
+      },
+      {
+        "function": "WizzUser-DeliveryQuotes-staging",
+        "action": "dynamodb:GetItem",
+        "keyClass": "operating-policy",
+        "decision": "allowed"
+      },
+      {
+        "function": "WizzUser-DeliveryQuotes-staging",
+        "action": "dynamodb:ConditionCheckItem",
+        "keyClass": "operating-policy",
+        "decision": "allowed"
+      },
+      {
+        "function": "WizzUser-DeliveryQuotes-staging",
+        "action": "dynamodb:GetItem",
+        "keyClass": "unrelated-staff",
+        "decision": "implicitDeny"
+      }
+    ],
+    "functions": [
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "lgtP9YYkI5QE0xtAuFol90xLjYN8mngnIYMTrvuIufQ=",
+        "revisionId": "96df76e3-5ab8-477a-8a4e-0029808fafde"
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "codeSha256": "pnPzcRyT42pIfp9IiAVQF89CTcekqn1U9v9NOqojNNw=",
+        "revisionId": "12586032-f355-49ee-b4ea-df658ba5a3b5"
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "codeSha256": "4tDShfuMbqBWmZdirNkVKU1ik6FTPm+OnEweZs67nzY=",
+        "revisionId": "1600f0db-fa96-4338-b1af-038d104f01d1"
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "codeSha256": "5TRPZhgEqkuDvdGrz3IrjvBLMtLcPLQLf5QCL9nnb/Q=",
+        "revisionId": "cb84d197-def7-4e65-ae52-3ac312d50ee1"
+      },
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "codeSha256": "YzRXKpsuQmdVXcv9JaLrY0aoPWx7DR0aZDehwjqjGpc=",
+        "revisionId": "4b1257f0-4ef9-4c17-9791-8fa5fd906f07"
+      }
+    ],
+    "financialActivation": "OFF",
+    "humanOrdersAndFundsChanged": false
+  },
+  "frontend": {
+    "jobId": "62",
+    "status": "SUCCEED",
+    "baseJobId": "61",
+    "preservedFiles": 175,
+    "changedPaths": [
+      {
+        "path": "pages/settings.html",
+        "sha256": "fc37343c1cf258e6ce0457646baa532bf948fffe76e316d232734a31433fad6f"
+      },
+      {
+        "path": "settings-delivery-operations.js",
+        "sha256": "00ce1723fac3f82799bd400b155d4a9346ed9e24409473024bae00d63a9cd4db"
+      }
+    ],
+    "humanWrites": false
+  },
+  "syntheticDynamoDB": {
+    "scope": "REAL_DYNAMODB_ISOLATED_OPERATING_SETTINGS",
+    "applicationTablesAccessed": false,
+    "financialActivation": "OFF",
+    "independentApprovalAndRuntimeRead": true,
+    "existingWaveSnapshotPreserved": true,
+    "staleVersionRejected": true,
+    "noFinancialWrites": true,
+    "tableDeleted": true
+  },
+  "tests": {
+    "wallet": 475,
+    "staff": 124,
+    "browser": "Request and approve, stale version, read only, safe text; mocked API, no live browser writes"
+  },
+  "customerApplication": {
+    "fixedLegacyDeliveryFeeFound": 10,
+    "legacyCurrencyLabelsFound": "ر.س",
+    "flutterChangedInPart32": false,
+    "newBuildInstalled": false,
+    "mandatoryUpdate": "Cart, address, quote, preview, consent, submission and retries, confirmation, tracking, history, cancellation and returns on authoritative IQD contract before activation"
+  },
+  "liveSourceReconciliation": {
+    "baseAmplifyJob": "61",
+    "newAmplifyJob": "62",
+    "staffLiveRoutesPreserved": [
+      "public home slideshow/feed",
+      "staff slideshow management"
+    ],
+    "restoredSourceFiles": [
+      {
+        "path": "backend/staff-service/home-slideshow.js",
+        "sha256": "a1301df6dac153156f5390dbaf99a3587d934058cd16310ec454bc030b746f1b",
+        "source": "Fresh live staff Lambda archive; preserved without changing deployed behavior"
+      },
+      {
+        "path": "backend/staff-service/offer-eligibility.js",
+        "sha256": "06e7e8b0e0ac03b96d12a15ba5eab237b857b65d40987ade78b06b613de537a5",
+        "source": "Fresh live staff Lambda archive; preserved without changing deployed behavior"
+      }
+    ]
+  },
+  "notImplemented": [
+    "Operator exhausted-search review list and decisions",
+    "Authorized restart and cancellation after exhaustion",
+    "Pending financial funding and routing readiness",
+    "Customer UI update, app build and device tests"
+  ],
+  "rollback": "Keep central version fences and financial gates OFF; do not restore unguarded writers or blindly redeploy parent SAM code pointers",
+  "verification": {
+    "financialActivation": "OFF",
+    "functions": [
+      {
+        "name": "staging-wizz-staff-service",
+        "digestMatches": true,
+        "central": false
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "digestMatches": true,
+        "central": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "digestMatches": true,
+        "central": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "digestMatches": true,
+        "central": true
+      },
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "digestMatches": true,
+        "central": true
+      }
+    ],
+    "writerClosed": true,
+    "quoteClosed": true,
+    "anonymousSettings": [
+      {
+        "method": "GET",
+        "statusCode": 401
+      },
+      {
+        "method": "POST",
+        "statusCode": 401
+      }
+    ],
+    "unchangedStages": [
+      {
+        "apiId": "4jut6787c8",
+        "deploymentId": "tcrbil"
+      },
+      {
+        "apiId": "ie7z8r4wc0",
+        "deploymentId": "kvesq3"
+      }
+    ],
+    "approvedPolicyVersion": 1,
+    "humanOrdersFundsAndGrantsChanged": false
+  }
+}

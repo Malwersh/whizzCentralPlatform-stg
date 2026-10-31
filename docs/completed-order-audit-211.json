@@ -1,0 +1,101 @@
+{
+  "part": 211,
+  "readOnly": true,
+  "strongSourceReader": "settlement-orders + readMerchantAccrualEvidence",
+  "orders": [
+    {
+      "orderId": "a2075f78-1130-50ad-819a-66d334fc16db",
+      "orderNumber": "ORD1792466870578",
+      "evidenceVerified": true,
+      "status": "LOCKED_PENDING_SETTLEMENT",
+      "amountsIqd": {
+        "goodsGross": 7000,
+        "merchantFundedDiscount": 700,
+        "platformFundedDiscount": 0,
+        "merchantGoodsEntitlement": 6300,
+        "merchantCommission": 1050,
+        "merchantOtherCharges": 0,
+        "merchantNet": 5250,
+        "customerGoodsPayment": 6300,
+        "customerServiceFee": 500,
+        "customerDeliveryFee": 1500,
+        "driverEarning": 2750,
+        "driverTip": 1000,
+        "platformOtherCharges": 0,
+        "platformNetContribution": 300,
+        "customerTotal": 9300,
+        "merchantDeliverySupport": 0,
+        "platformDeliveryPromotionFunding": 1000,
+        "referenceDeliveryFee": 2500,
+        "deliveryPromotionSubsidy": 1000,
+        "baselineDeliveryMargin": -250,
+        "deliveryNetContribution": -1250,
+        "driverTotalEntitlement": 3750,
+        "driverCashRetained": 3750,
+        "driverWalletCreditTotal": 0,
+        "driverWalletHold": 5550
+      },
+      "checks": {
+        "customerEqualsMerchantDriverPlatform": true,
+        "cashRetainedEqualsFullDriverEntitlement": true,
+        "noDuplicateDriverCredit": true,
+        "holdEqualsCustomerLessRetained": true
+      }
+    },
+    {
+      "orderId": "5f95c28b-09ca-582d-842e-1da56b919fd6",
+      "orderNumber": "ORD1792466625095",
+      "evidenceVerified": true,
+      "status": "LOCKED_PENDING_SETTLEMENT",
+      "amountsIqd": {
+        "goodsGross": 7000,
+        "merchantFundedDiscount": 0,
+        "platformFundedDiscount": 0,
+        "merchantGoodsEntitlement": 7000,
+        "merchantCommission": 1050,
+        "merchantOtherCharges": 0,
+        "merchantNet": 5950,
+        "customerGoodsPayment": 7000,
+        "customerServiceFee": 500,
+        "customerDeliveryFee": 1500,
+        "driverEarning": 2750,
+        "driverTip": 500,
+        "platformOtherCharges": 0,
+        "platformNetContribution": 300,
+        "customerTotal": 9500,
+        "merchantDeliverySupport": 0,
+        "platformDeliveryPromotionFunding": 1000,
+        "referenceDeliveryFee": 2500,
+        "deliveryPromotionSubsidy": 1000,
+        "baselineDeliveryMargin": -250,
+        "deliveryNetContribution": -1250,
+        "driverTotalEntitlement": 3250,
+        "driverCashRetained": 3250,
+        "driverWalletCreditTotal": 0,
+        "driverWalletHold": 6250
+      },
+      "checks": {
+        "customerEqualsMerchantDriverPlatform": true,
+        "cashRetainedEqualsFullDriverEntitlement": true,
+        "noDuplicateDriverCredit": true,
+        "holdEqualsCustomerLessRetained": true
+      }
+    }
+  ],
+  "noFinancialMutations": true,
+  "payoutNotExecuted": true,
+  "merchantWalletSnapshotIqd": {
+    "availableBalance": 0,
+    "version": 8,
+    "lockedBalance": 43575
+  },
+  "merchantWalletPendingTotalsMatch": true,
+  "verifiedPendingOrdersCount": 7,
+  "verifiedPendingTotalIqd": 43575,
+  "concurrentSnapshotObservation": {
+    "initialReadOrderCount": 6,
+    "subsequentOrderId": "8534b2fe-5169-53c6-8b2e-68c5143c1d05",
+    "newMerchantPayableIqd": 5950,
+    "resolution": "Re-read all branch ledger evidence after newly delivered order; seven verified pending orders match current locked wallet. No financial correction performed."
+  }
+}

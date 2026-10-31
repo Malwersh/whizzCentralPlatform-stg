@@ -1,0 +1,11 @@
+{
+  "status": "PUBLISHED_BYTE_VERIFIED",
+  "hostingJob": "211",
+  "previousHostingJob": "210",
+  "changedFiles": [
+    "settings-delivery-operations.js",
+    "pages/settings.html"
+  ],
+  "allOtherEntriesPreserved": true,
+  "operationalSettingsWrittenByAgent": false
+}

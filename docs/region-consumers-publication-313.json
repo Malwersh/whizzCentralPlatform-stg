@@ -1,0 +1,155 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "businessDataMutated": false,
+  "functions": [
+    {
+      "name": "WizzUser-FindRegionByCoordinates-staging",
+      "beforeHash": "YjB7hsFgwV7C9LwMpamM1OILPFkooQu1GWHpWJj8l3A=",
+      "hash": "8+P13Sq+P4auWFuskZ+h4Gc45YR/IfTo0M5xmy+n59w=",
+      "changedFiles": [
+        "utils/customer-regions-313.js",
+        "utils/region-coverage-runtime-312.js",
+        "lambdas/find-region-by-coordinates.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    },
+    {
+      "name": "WizzUser-CreateAddress-staging",
+      "beforeHash": "LZKaULjQyrpue5JJgutx1Lk0zj99Km5VnIEuDt3cHMA=",
+      "hash": "nI7Uxuds7bTgA4a+t+MWmMaj2JTGGpzD29knhcOeXRQ=",
+      "changedFiles": [
+        "utils/customer-regions-313.js",
+        "utils/region-coverage-runtime-312.js",
+        "functions/create-address/index.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    },
+    {
+      "name": "WizzUser-UpdateAddress-staging",
+      "beforeHash": "LZKaULjQyrpue5JJgutx1Lk0zj99Km5VnIEuDt3cHMA=",
+      "hash": "b9ZmxTRBp9rqHeBz/0be1ti6w2VMUN/jjJ+JjgEw1rY=",
+      "changedFiles": [
+        "utils/customer-regions-313.js",
+        "utils/region-coverage-runtime-312.js",
+        "functions/update-address/index.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    },
+    {
+      "name": "WizzUser-GetBusinessesByRegion-staging",
+      "beforeHash": "iEM3eYGZJOoSJ3pjDBxxI6SxjaESSvmUO1H+p9gtFeU=",
+      "hash": "S8K7xCThEwP73VDkl0cHcCg+LIXV0LG/MfOTtJGB78g=",
+      "changedFiles": [
+        "utils/customer-regions-313.js",
+        "utils/region-coverage-runtime-312.js",
+        "lambdas/get-businesses-by-region.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    },
+    {
+      "name": "WizzUser-GetNearbyBusinesses-staging",
+      "beforeHash": "qmekBpczg67gQsUwGk02JxCsWeq91159I3YQYbaPE5w=",
+      "hash": "iGLNcWmjttHB1ct9OgP2wiDfczlwSsm4L3tYvRLoWVQ=",
+      "changedFiles": [
+        "utils/customer-regions-313.js",
+        "utils/region-coverage-runtime-312.js",
+        "lambdas/get-nearby-businesses.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "beforeHash": "2TaoKNMP1qHf9mIk90Qa1YjsjiVNw6oJq5RfUgfItCc=",
+      "hash": "9oCRMMMTUwuVI5uQveTOg/fjatqJikX8ZghQBYqbezU=",
+      "changedFiles": [
+        "onboarding_regions.js",
+        "customer-regions-313.js",
+        "region-coverage-runtime-312.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-location-settings-v1-sam",
+      "beforeHash": "YnDAU9OC6lfStZwMXYYWHWUaMBGt7g4lgq4X8OI0Ags=",
+      "hash": "CKeM+5ArFbWW9rsnAOpAOHWwk8YhlQZsPcSyKJb1kn4=",
+      "changedFiles": [
+        "onboarding_regions.js",
+        "customer-regions-313.js",
+        "region-coverage-runtime-312.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    }
+  ],
+  "roles": [
+    "Wizz-Merchants-staging-LocationSettingsFunctionRole-pqYn3pBtfuZd",
+    "Wizz-Merchants-staging-UnifiedAuthFunctionRole-5TqBUPbFZ9wo",
+    "WizzUser-backend-staging-CreateAddressFunctionRole-vaGzRsoGIHfH",
+    "WizzUser-backend-staging-FindRegionByCoordinatesFun-kdO383Tph3SS",
+    "WizzUser-backend-staging-GetBusinessesByRegionFunct-3G2Q5Y7vArMT",
+    "WizzUser-backend-staging-GetNearbyBusinessesFunctio-CgHR0HFyo2Ln",
+    "WizzUser-backend-staging-UpdateAddressFunctionRole-OoOvC8tA9aC6"
+  ],
+  "publishedAt": "2026-10-26T04:00:03.189168+00:00",
+  "readOnlyHttpChecks": {
+    "catalog": {
+      "status": 200,
+      "success": true,
+      "error": null,
+      "regions": 12
+    },
+    "point": {
+      "status": 200,
+      "success": true,
+      "error": null,
+      "regionId": "Rmhvcpnn3iy5f1"
+    },
+    "restaurants": {
+      "status": 200,
+      "success": true,
+      "error": null,
+      "count": 4
+    },
+    "nearby": {
+      "status": 200,
+      "success": true,
+      "error": null,
+      "count": 4
+    },
+    "outside": {
+      "status": 404,
+      "success": false,
+      "error": "REGION_NOT_FOUND"
+    },
+    "merchantHierarchy": {
+      "status": 200,
+      "count": 15
+    }
+  },
+  "tests": {
+    "customerBackend": 11,
+    "merchantBackend": 16,
+    "customerFlutter": 6,
+    "merchantFlutter": 4
+  },
+  "noActualAddressOrBusinessCreated": true,
+  "simulators": {
+    "customer": {
+      "device": "iPhone 16 Pro",
+      "build": 313,
+      "installedAndLaunched": true
+    },
+    "merchant": {
+      "device": "iPhone 16",
+      "build": 313,
+      "installedAndLaunched": true
+    }
+  },
+  "humanAddressAndRegistrationAcceptance": "PENDING_USER_TEST"
+}

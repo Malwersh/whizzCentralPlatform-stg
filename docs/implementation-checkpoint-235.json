@@ -1,0 +1,32 @@
+{
+  "part": 235,
+  "status": "PUBLISHED_STAGING_EVIDENCE_AND_RESPONSIBILITY_FINDINGS",
+  "scope": "Administrative evidence intake and immutable responsibility findings, independent of financial approval and execution",
+  "publishedThrough": 235,
+  "financialWritesByAgent": false,
+  "wholeSpecificationComplete": false,
+  "publication": "case-findings-publication-235.json",
+  "hosting": "case-findings-page-publication-235.json",
+  "implemented": [
+    "Support records identify reported source and reference; they do not themselves establish liability",
+    "Confirmed responsibility requires at least two distinct evidence sources and exact 10000 basis points",
+    "Every finding remains immutable; replacement must explicitly reference the current finding",
+    "No wallet, order, hold amount, charge or payout is changed by findings",
+    "Global live operator permission, employee version, case version, evidence identity and audit are fenced atomically"
+  ],
+  "tests": {
+    "wallet": 1204,
+    "findingEngine": 4,
+    "staffAndCaseRead": 243,
+    "capturedFinancialLifecycle": 65,
+    "browser": "PASS",
+    "liveSmoke": "PASS",
+    "failed": 0
+  },
+  "physicalPositiveTest": "NOT_RUN",
+  "remaining": [
+    "Independent entitlement approval and funded execution",
+    "Merchant exception payables in scheduled settlements",
+    "Remaining custody, partial cash, refund, claim and appeal scenarios"
+  ]
+}

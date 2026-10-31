@@ -1,0 +1,12 @@
+{
+  "status": "RELEASE288_INSTALLED_LAUNCHED",
+  "request": "Remove pale yellow rating background and reduce score size in More and personal profile",
+  "scoreFontSize": 17,
+  "starSize": 19,
+  "ratingBackground": "none",
+  "ratingDataChanged": false,
+  "testsPassed": 9,
+  "buildPassed": true,
+  "installPassed": true,
+  "launchPassed": true
+}

@@ -1,0 +1,38 @@
+{
+  "part": 336,
+  "environment": "staging",
+  "change": "Replace comma-separated coverage ID entry with named multi-select region picker",
+  "sources": [
+    "WizzCentral_Regions",
+    "WizzCentral_RegionsDerived_staging"
+  ],
+  "behavior": [
+    "Arabic region names and ancestor path",
+    "Search across region/governorate/district path",
+    "Multiple checkbox selection and removable selected chips",
+    "Existing IDs preserved including unavailable regions",
+    "Only active local regions with delivery not disabled available for new selection",
+    "No automatic region selections or policy save",
+    "Empty selection rejected; read failures preserve previous values and offer retry",
+    "Unchanged supportedZoneIds save schema"
+  ],
+  "tests": [
+    "Dedicated browser picker test desktop and mobile PASS",
+    "Pricing workspace 335 PASS",
+    "Presentation 333 and branch workflow 334 PASS"
+  ],
+  "policyWrites": 0,
+  "backendChanged": false,
+  "hosting": {
+    "jobId": "172",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "delivery-pricing.js",
+      "pricing-region-picker.js",
+      "pricing-workspace.js",
+      "styles/pricing-layout.css"
+    ],
+    "baseJob": "171"
+  }
+}

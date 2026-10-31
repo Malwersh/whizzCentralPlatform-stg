@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-29",
+  "item": "A10",
+  "status": "LOCAL_ONLY_NOT_DEPLOYED",
+  "implemented": [
+    "Staff-only request/approve/reject tied to verified PAID merchant payable and sealed payout proof.",
+    "Fresh staff authority, approval limits, branch/owner lifecycle fences and single transaction for journal/position/order totals/audit/event.",
+    "Separate credit liability and debit receivable; zero operational wallet mutation and unchanged original payout/payable/statement.",
+    "Per-request retries and lost-response recovery; per-order cumulative caps; approval version/position fences.",
+    "Admin Arabic review UI and read-only owner merchant widget with branch epoch isolation.",
+    "Verified correction journals recognized by company accounting chart/extractor."
+  ],
+  "tests": {
+    "backendCorrectionAndCompanyAccounting": 44,
+    "merchantExistingPayoutAndAccount": 10,
+    "merchantCorrectionWidget": 3,
+    "adminBrowserScenario": "PASS: failed network retry preserves requestId; separate approval; no fake payout; no client actor",
+    "flutterAnalyzer": "No issues found"
+  },
+  "policyQuestionPending": "Offset approved merchant debt from future settlements, or manual collection only?",
+  "notImplemented": [
+    "Credit correction disbursement with real cashbox/beneficiary receipt/reconciliation.",
+    "Debt collection or authorized future settlement offset and remaining-balance carry integration.",
+    "Case/appeal completion linked to fully executed correction.",
+    "Staging publication, installed app update and live human lifecycle test."
+  ],
+  "deployment": "No server deployment, no application install, no real records/funds changed. Existing merchant simulator remains build351 from prior session isolation fix."
+}

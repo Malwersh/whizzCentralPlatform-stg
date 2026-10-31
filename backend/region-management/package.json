@@ -1,0 +1,20 @@
+{
+  "name": "wizz-region-management",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.896.0",
+    "@aws-sdk/client-sqs": "3.896.0",
+    "@aws-sdk/lib-dynamodb": "3.896.0",
+    "@turf/area": "7.2.0",
+    "@turf/boolean-valid": "7.2.0",
+    "@turf/difference": "7.2.0",
+    "@turf/helpers": "7.2.0",
+    "@turf/intersect": "7.2.0",
+    "@turf/kinks": "7.2.0",
+    "@turf/length": "7.2.0",
+    "@turf/line-overlap": "7.2.0",
+    "@turf/polygon-to-line": "7.2.0",
+    "h3-js": "4.3.0"
+  }
+}

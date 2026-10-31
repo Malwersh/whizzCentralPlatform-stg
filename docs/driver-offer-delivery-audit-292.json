@@ -1,0 +1,227 @@
+{
+  "status": "PUBLISHED_VERIFIED_UAT_READY",
+  "capturedAt": "2026-10-25T16:40:24.845700+00:00",
+  "functions": [
+    {
+      "function": "DriversApi-staging",
+      "hash": "uCZMij3dCYmxX8YBts8IP6kH3ik5Ouit70rW12+JBp4=",
+      "handler": "lambda_driver_api_v2.handler",
+      "flags": {
+        "FINANCIAL_COD_RETURNS_MODE": "REQUIRED",
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "FINANCIAL_COD_ASSIGNMENTS_MODE": "REQUIRED",
+        "DRIVER_PERFORMANCE_SNAPSHOT_READS_ENABLED": "true",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "FINANCIAL_COD_COMPLETION_MODE": "REQUIRED",
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      }
+    },
+    {
+      "function": "WaveSystem_CreateDispatchJob",
+      "hash": "YSKzeUrmdkEoQhqv4r0o6yCQzCE/GrMUUP9D7bF5Fm0=",
+      "handler": "index.handler",
+      "flags": {
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "DISPATCH_CYCLE_MODE": "FINANCIAL_RESPONSES",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "DISPATCH_FINANCIAL_HOST_MODE": "REQUIRED",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "DRIVER_PERFORMANCE_FORWARD_ENABLED": "true",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      }
+    },
+    {
+      "function": "WaveSystem_StartWave",
+      "hash": "Y4KUsfsAhtgmk+ftWxKA2m+IRNrHBZn/KG8mp7Xlc7Q=",
+      "handler": "index.handler",
+      "flags": {
+        "DISPATCH_DRIVER_PERFORMANCE_MODE": "ENFORCE",
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "DISPATCH_CYCLE_MODE": "FINANCIAL_RESPONSES",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "DISPATCH_FINANCIAL_HOST_MODE": "REQUIRED",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      }
+    },
+    {
+      "function": "WaveSystem_HandleWaveTimeout",
+      "hash": "eT09SBMwoAO+g+mIZFNYFEn2HZoTk2N+QqNRI5o2Js0=",
+      "handler": "index.handler",
+      "flags": {
+        "DISPATCH_DRIVER_PERFORMANCE_MODE": "ENFORCE",
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "DISPATCH_CYCLE_MODE": "FINANCIAL_RESPONSES",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "DISPATCH_FINANCIAL_HOST_MODE": "REQUIRED",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      }
+    },
+    {
+      "function": "WaveSystem_HandleDriverAccept",
+      "hash": "QdQ1yTukVxVU+d6X1MVzjhtjQEDF66RDBoL7V8nJ3Yg=",
+      "handler": "index.handler",
+      "flags": {
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      }
+    },
+    {
+      "function": "WaveSystem_HandleDriverReject",
+      "hash": "1B1GFgoe4ZBWErR4UWXreeCX63ZoFbaQp3LNIa8eQSw=",
+      "handler": "index.handler",
+      "flags": {
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      }
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "hash": "K0drqAFMcqoEfnzkM3q+oinI+zutbGJvVtwteoP98GU=",
+      "handler": "index.financialAcceptanceHandler",
+      "flags": {
+        "FINANCIAL_COD_RETURNS_MODE": "REQUIRED",
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "FINANCIAL_COD_COMPLETION_MODE": "REQUIRED",
+        "FINANCIAL_COD_ASSIGNMENTS_MODE": "REQUIRED",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+        "FINANCIAL_PUSH_VALIDATION_MODE": "REQUIRED",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      }
+    },
+    {
+      "function": "OrderService-staging",
+      "hash": "g3C5H8RpTzB1sMwYvQFn+wWZUgs3sDnUdci8EQs6VQU=",
+      "handler": "dist/index.handler",
+      "flags": {}
+    },
+    {
+      "function": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "hash": "WYwt06qdZ09fhcSaRvDm1Kf1qRKqiYTfq0s3WMAmVoA=",
+      "handler": "src/handlers/push-wave-offer.sendWaveOffer",
+      "flags": {
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "PINNED_FINANCIAL_PUSH_MODE": "REQUIRED",
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      }
+    }
+  ],
+  "sourceBusinessWrites": 0,
+  "verifiedAdapterFiles": [
+    "financial-accept-client.js",
+    "legacy-order-policy.js",
+    "financial-order-view.js",
+    "driver-performance-progress.js",
+    "driver-delivery-proof.js",
+    "driver-pickup-issues.js",
+    "driver-lifecycle.js",
+    "driver-performance-snapshot.js"
+  ],
+  "tests": {
+    "sourceBackend": 219,
+    "sourceAdapters": 26,
+    "flutter": 34,
+    "actualPackageLegacyFences": 7
+  },
+  "findings": [
+    {
+      "id": "PERFORMANCE_OLD_READ",
+      "resolution": "Saved projection ENFORCE on both modern host selectors; all captured thresholds retained centrally."
+    },
+    {
+      "id": "UNPINNED_LEGACY_FALLBACK",
+      "resolution": "Modern general release blocks unpinned StartWave/timeout paths before legacy selector/runtime writes."
+    },
+    {
+      "id": "LEGACY_DECLINE_FINANCIAL_FENCE",
+      "resolution": "Financial marker or missing canonical order cannot reach old decline metrics writes; missing dispatch job also rejected."
+    },
+    {
+      "id": "DETAILS_REJECT_BYPASS",
+      "resolution": "Details rejection now opens the same confirmation and acceptance-impact sheet."
+    },
+    {
+      "id": "AUDIO_DEDUP_BEFORE_SUCCESS",
+      "resolution": "Successful playback only marks heard; concurrent arrivals coalesce; failures can retry, custom asset falls back, explicit platform audio context."
+    }
+  ],
+  "flow": {
+    "creation": "FINANCIAL_RESPONSES creates pinned cycle from central settings",
+    "selection": "ENFORCE reads saved performance and live presence/location separately; no history computation",
+    "notification": "validated financial offer reference, durable channel acknowledgements, expiry and owner checks",
+    "acceptance": "DriversApi routes financial body to staging-driver-financial-accept; transaction binds exact offer/attempt, eligibility, balance and one winner",
+    "progress": "server status graph, financial-schema fence, immutable timestamp/assignment fences where applicable",
+    "completion": "financial marked order invokes complete_cod, accepted amounts and full-cash settlement; generic legacy completion blocked",
+    "cancellationUnassignment": "financial route; previous assignment closed, active guard removes obsolete driver screen"
+  },
+  "soundPolicyVerified": "driver_original, not silent",
+  "manualLimits": [
+    "No newly created order or financial decision by agent",
+    "Audibility on physical hardware/background and full new-order lifecycle require user exercise; not claimed passed"
+  ],
+  "activeSearchInventory": {
+    "checkedAt": "2026-10-25T16:46:40.514343+00:00",
+    "searching": 161,
+    "pinned": 0,
+    "unpinned": 161,
+    "classification": "161 historical unpinned metadata rows, oldest2025-12/latest2026-10-17, one financial marker; modern host now blocks old path, no rows modified"
+  },
+  "latestWidgetSuite": 11,
+  "deviceRelease": 292,
+  "customerSimulator": "E2B409D5-6821-4BDC-BDAC-D415977B971E",
+  "merchantSimulator": "09DA4C20-FD4B-446E-8C2F-9D04E5CFC206",
+  "historicalCleanup": "Deferred to explicit cleanup planning; do not restart/delete historical jobs as part of this audit",
+  "appsVerified": {
+    "customer": "Running under Flutter on iPhone16 simulator; home screen visually verified",
+    "merchant": "Running under Flutter on iPhone16Pro simulator; signed-in business selector visually verified (Fattoush)",
+    "driver": "Final Release292 installed and launched on connected iMohammed",
+    "central": "orders page opened"
+  },
+  "persistentRunSessions": {
+    "customer": 75905,
+    "merchant": 80706
+  }
+}

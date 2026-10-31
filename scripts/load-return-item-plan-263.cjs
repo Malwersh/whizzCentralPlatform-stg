@@ -1,0 +1,2 @@
+const runtime=require('../backend/shared/return-item-plan-runtime-263'),sdk=require('../backend/wallet-service/node_modules/@aws-sdk/lib-dynamodb');
+const id=require.resolve('../backend/wallet-service/dist/returnItemCustodyPlan');require(id);require.cache[id].exports.createReturnItemCustodyPlan=options=>runtime.createReturnItemCustodyPlan({...options,db:{send:c=>{const kind=c.constructor.name.replace(/\d+$/,'');return options.db.send(sdk[kind]&&!(c instanceof sdk[kind])?new sdk[kind](c.input):c);}}});

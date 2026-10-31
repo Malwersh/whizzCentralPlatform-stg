@@ -1,0 +1,17 @@
+{
+  "part": 248,
+  "status": "PUBLISHED_VERIFIED",
+  "function": "staging-wizz-staff-service",
+  "codeSha256": "9gxGurCGX4ABG2VG9iftfyk/aev4gqNWkqJwdnU7sgc=",
+  "changedFiles": [
+    "settlement-runtime.js"
+  ],
+  "existingStagingValidSessionPolicyHonored": true,
+  "jwtExpirationLiveRevocationMfaAndPermissionsPreserved": true,
+  "configurationAndIamUnchanged": true,
+  "businessRecordsOrMoneyChanged": false,
+  "tests": {
+    "ownerPayoutFlow": "PASS",
+    "log": "/private/tmp/owner-session-248-tests.log"
+  }
+}

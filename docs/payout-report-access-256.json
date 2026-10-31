@@ -1,0 +1,19 @@
+{
+  "part": 256,
+  "status": "PASS",
+  "allWritesBlocked": true,
+  "actualPaidPayoutAndStatementVerified": true,
+  "publicOrderNumber": "ORD1792545370610",
+  "executorName": "غيث علي",
+  "ownerReceiptTimePresent": true,
+  "cashBeforeIqd": 10000,
+  "cashAfterIqd": 3750,
+  "iamChanged": false,
+  "readPermissionChecks": [
+    {
+      "table": "WizzOrders",
+      "decision": "allowed",
+      "projectedReadOnly": true
+    }
+  ]
+}

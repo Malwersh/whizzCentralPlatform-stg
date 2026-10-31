@@ -1,3 +1,10 @@
+async function driverStaffApi(path,body) {
+    await window.Auth.ensureSession();
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+    let response;
+    try{response=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+path,{method:body?'POST':'GET',signal:controller.signal,headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});}finally{clearTimeout(timer);}
+    const data=await response.json();if(!response.ok)throw Object.assign(Error(data.error||'تعذر تحميل بيانات السائقين'),{code:data.error});return data;
+}
 // Drivers Management JavaScript with Direct Authentication
 
 // Use centralized AWS utilities
@@ -42,21 +49,9 @@ async function loadDriversData() {
             return;
         }
 
-        // Initialize DynamoDB using centralized AWSUtils (handles tokens/config)
-        const dynamoDB = await AWSUtils.getDynamoDBClient();
-        if (!dynamoDB) {
-            throw new Error('AWS is not initialized (missing idToken). Please login again.');
-        }
-        
-        const params = { 
-            TableName: DRIVERS_TABLE,
-            Limit: 100
-        };
-        
-        console.log('Scanning drivers table with params:', params);
-        const result = { Items: await AWSUtils.scanAll(DRIVERS_TABLE) };
-        
-        console.log('DynamoDB scan result:', result);
+        await window.RBAC.ensure();
+        const result=await driverStaffApi('/staff/drivers');
+        result.Items=result.items;
         const items = (result && Array.isArray(result.Items)) ? result.Items : [];
         
         console.log(`Found ${items.length} drivers in table`);
@@ -115,6 +110,7 @@ function purgeMockRows(forceSpinner = false) {
 
 // Create a new driver record in DynamoDB (real integration)
 async function createDriverInDB(driverInput) {
+    if(!window.RBAC.staff?.employee.roles.includes('bootstrap_admin'))throw Error('إنشاء حساب السائق يتم من تطبيق السائق');
     // Ensure authenticated and AWS initialized
     const dynamoDB = await AWSUtils.getDynamoDBClient();
     if (!dynamoDB) {
@@ -179,6 +175,7 @@ function processDriversItems(items) {
             vehicleRegistration: item.registrationPaperUrl || item.vehicleRegistration || null,
             nonCriminalRecord: item.nonCriminalRecord || null
         },
+        vehicleReviewSummary: item.vehicleReviewSummary,
         fullData: item
     }));
 
@@ -233,22 +230,9 @@ function mapVehicleType(dbVehicleType) {
 
 // Helper function to format dates
 function formatDate(timestamp) {
-    if (!timestamp) return 'N/A';
-    try {
-        // Handle both timestamp and ISO string formats
-        const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
-        if (isNaN(date.getTime())) {
-            return timestamp.toString(); // Return original if can't parse
-        }
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    } catch (e) {
-        console.warn(`Could not parse date: ${timestamp}`);
-        return timestamp.toString();
-    }
+    if (!timestamp) return '—';
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return window.WizzLocale.date(date);
 }
 
 // Generate avatar URL for driver
@@ -391,9 +375,9 @@ function renderDriversTable(driversList = drivers) {
                     <span class="rating-value">${ratingValue}</span>
                 </div>
             </td>
-            <td>$${earningsValue}</td>
+            <td>${window.RBAC.staff?.employee.roles.includes('bootstrap_admin')?'$'+earningsValue:'—'}</td>
             <td>
-                <div class="actions">${viewAction}${editAction}${toggleAction}</div>
+                <div class="actions">${window.RBAC.staff?.permissions.includes('finance.read')?`<button class="btn-action" data-driver-id="${safeId}" data-action="cash-payouts" title="صرف رصيد السائق">صرف الرصيد</button>`:''}${window.RBAC.staff?.permissions.includes('drivers.documents.read')?`<button class="btn-action" data-driver-id="${safeId}" data-action="vehicles" title="إدارة المركبات والوثائق">إدارة${driver.vehicleReviewSummary?.pendingTotal?' · '+Number(driver.vehicleReviewSummary.pendingTotal):''}</button>`:''}${viewAction}${window.RBAC.staff?.permissions.includes('drivers.edit')?editAction:''}${window.RBAC.staff?.employee.roles.includes('bootstrap_admin')?toggleAction:''}</div>
             </td>
         </tr>`;
     }).join('');
@@ -402,18 +386,20 @@ function renderDriversTable(driversList = drivers) {
     tbody.innerHTML = rows || `<tr><td colspan="8" class="text-center" style="padding:2rem;">No drivers found</td></tr>`;
 
     // Attach event listeners for actions (delegation)
-    tbody.addEventListener('click', function(e){
+    tbody.onclick = function(e){
         const btn = e.target.closest('button');
         if(!btn) return;
         const id = btn.getAttribute('data-driver-id');
         const action = btn.getAttribute('data-action');
+        if(action === 'cash-payouts') { window.openDriverCashPayouts(id); return; }
+        if(action === 'vehicles') { window.openDriverVehicleManagement(id); return; }
         if(action === 'view') { viewDriver(id); return; }
         if(action === 'edit') { editDriver(id); return; }
         if(btn.classList.contains('btn-toggle-status')) {
             const currentStatus = btn.getAttribute('data-current-status');
             toggleDriverStatus(id, currentStatus);
         }
-    }, { once: true });
+    };
 }
 
 function generateStars(rating) {
@@ -451,7 +437,7 @@ function filterDrivers() {
             driver.id.toLowerCase().includes(searchTerm) ||
             driver.phone.includes(searchTerm);
 
-        const matchesStatus = !statusFilter || driver.status === statusFilter;
+        const matchesStatus = !statusFilter || (statusFilter==='vehicle_review' ? (driver.vehicleReviewSummary?.pendingTotal??0)>0 : driver.status === statusFilter);
 
         const matchesRating = !ratingFilter ||
             (ratingFilter === '5' && driver.rating >= 5) ||
@@ -783,22 +769,8 @@ async function displayDriverDocuments(driver) {
 
 function formatDateTime(timestamp) {
     if (!timestamp) return null;
-    try {
-        // Handle both ISO string and Unix timestamp
-        const date = typeof timestamp === 'string' ? new Date(timestamp) : new Date(timestamp * 1000);
-        if (isNaN(date.getTime())) return null;
-        
-        return date.toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (e) {
-        console.warn(`Could not parse datetime: ${timestamp}`);
-        return null;
-    }
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return window.WizzLocale.dateTime(date);
 }
 
 let driverRegionModel = null;
@@ -826,7 +798,7 @@ async function loadCitiesDropdown() {
     error.textContent = 'جاري تحميل المناطق…';
     driverRegionModel = null;
     try {
-        const [base, derived] = await Promise.all([AWSUtils.scanAll('WizzCentral_Regions'), AWSUtils.scanAll('WizzCentral_RegionsDerived_staging')]);
+        const {base,derived}=await driverStaffApi('/staff/drivers/regions');
         if (version !== editorLoadVersion) return;
         driverRegionModel = DriverRegions.hierarchy(base, derived);
         const driver = drivers.find(d => d.id === document.getElementById('editDriverId').value);
@@ -839,6 +811,7 @@ async function loadCitiesDropdown() {
 }
 
 function openEditDriverModal() {
+    document.getElementById('editDriverStatus').disabled=!window.RBAC.staff?.employee.roles.includes('bootstrap_admin');
     const modal = document.getElementById('editDriverModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -872,22 +845,19 @@ async function handleEditDriver(e) {
         const driver = drivers.find(d => d.id === driverId);
         if (!driver || !driverRegionModel) throw Error('تعذر تحميل بيانات السائق أو المناطق');
         const name = String(formData.get('name') || '').trim();
-        const status = String(formData.get('status'));
+        const status = String(formData.get('status')||document.getElementById('editDriverStatus').dataset.initialStatus);
         if (!name || !['PENDING_REVIEW','ACTIVE','SUSPENDED','REJECTED'].includes(status)) throw Error('تحقق من الاسم وحالة الحساب');
         const values = DriverRegions.updateValues(driver.fullData, {
             name, governorateId:formData.get('governorate_id'),regionId:formData.get('work_region_id'),
             vehicleType:formData.get('vehicleType'),landmark:String(formData.get('landmark') || '')
         }, driverRegionModel);
         if (!values.home_address_text) throw Error('أدخل أقرب نقطة دالة');
-        if (Number(driver.fullData?.profileSchemaVersion) !== 2) {
+        if (window.RBAC.staff?.employee.roles.includes('bootstrap_admin') && Number(driver.fullData?.profileSchemaVersion) !== 2) {
             values.licenseNumber = String(formData.get('licenseNumber') || '');
             values.nationalId = String(formData.get('nationalId') || '');
         }
-        // Preserve administrative state on ordinary edits; explicit status changes update approval together.
         if (status !== document.getElementById('editDriverStatus').dataset.initialStatus) {
-            values.status = status;
-            values.registrationStatus = status === 'ACTIVE' ? 'APPROVED' : status;
-            values.isVerified = status === 'ACTIVE';
+            throw Error('استخدم إدارة المركبات والوثائق لمراجعة الأهلية؛ تعديل البيانات لا يغيّر اعتماد الحساب.');
         }
         values.updatedAt = new Date().toISOString();
         const names = {}, attributes = {}, updates = [];
@@ -899,9 +869,13 @@ async function handleEditDriver(e) {
         if (driver.fullData?.updatedAt !== undefined) {
             condition += ' AND #updatedAt = :originalUpdatedAt'; attributes[':originalUpdatedAt'] = driver.fullData.updatedAt;
         }
+        if(window.RBAC.staff.employee.roles.includes('bootstrap_admin')) {
         const dynamoDB = await AWSUtils.getDynamoDBClient();
         await dynamoDB.update({TableName:DRIVERS_TABLE,Key:{driverId},UpdateExpression:'SET '+updates.join(', '),
             ConditionExpression:condition,ExpressionAttributeNames:names,ExpressionAttributeValues:attributes}).promise();
+        } else {
+            await driverStaffApi('/staff/drivers/edit',{driverId,values,expectedUpdatedAt:driver.fullData.updatedAt});
+        }
 
         // Refresh data from database
         await loadDriversData();
@@ -945,129 +919,9 @@ async function handleEditDriver(e) {
 
 // Toggle driver status between approved and suspended
 async function toggleDriverStatus(driverId, currentStatus) {
-    console.log(`🔄 Toggling status for driver ${driverId} from ${currentStatus}`);
-
-    try {
-        // Show loading state
-        const button = document.querySelector(`button[onclick="toggleDriverStatus('${driverId}', '${currentStatus}')"]`);
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        }
-
-        // Determine new status based on current status
-        const newStatus = (currentStatus === 'online' || currentStatus === 'approved') ? 'pending' : 'online';
-        const dbStatus = newStatus === 'online' ? 'APPROVED' : 'PENDING_REVIEW';
-
-        console.log(`📝 Updating driver ${driverId} to status: ${newStatus} (DB: ${dbStatus})`);
-        
-        // Show confirmation for critical actions
-        if (newStatus === 'pending' && !confirm(`Are you sure you want to change ${driverId} status to pending review?`)) {
-            // Reset button state
-            const button = document.querySelector(`button[onclick="toggleDriverStatus('${driverId}', '${currentStatus}')"]`);
-            if (button) {
-                button.disabled = false;
-                const icon = currentStatus === 'online' ? 'fa-pause' : 'fa-check';
-                button.innerHTML = `<i class="fas ${icon}"></i>`;
-            }
-            return;
-        }
-
-        // Get DynamoDB client
-        const dynamoDB = await AWSUtils.getDynamoDBClient();
-
-        // Update the item in DynamoDB (write both status fields for compatibility)
-        const baseUpdate = {
-            ConditionExpression: 'attribute_exists(driverId)',
-            UpdateExpression: 'SET #status = :status, #reg = :status, #isVerified = :isVerified, #updatedAt = :timestamp',
-            ExpressionAttributeNames: {
-                '#status': 'status',
-                '#reg': 'registrationStatus',
-                '#isVerified': 'isVerified',
-                '#updatedAt': 'updatedAt'
-            },
-            ExpressionAttributeValues: {
-                ':status': dbStatus,
-                ':isVerified': newStatus === 'online',
-                ':timestamp': Math.floor(Date.now() / 1000)
-            },
-            ReturnValues: 'ALL_NEW'
-        };
-
-        let result;
-        try {
-            const updateParams1 = {
-                TableName: DRIVERS_TABLE,
-                Key: { driverId: driverId },
-                ...baseUpdate
-            };
-            result = await dynamoDB.update(updateParams1).promise();
-        } catch (e1) {
-            // Fallback: try with 'id' as key if schema differs
-            if (e1?.code === 'ValidationException' || /key element does not match/i.test(e1?.message || '')) {
-                console.warn('Primary key driverId update failed, retrying with id key');
-                const updateParams2 = {
-                    TableName: DRIVERS_TABLE,
-                    Key: { id: driverId },
-                    ...baseUpdate
-                };
-                result = await dynamoDB.update(updateParams2).promise();
-            } else {
-                throw e1;
-            }
-        }
-
-        console.log('✅ Driver status update successful:', result);
-
-        // Update local data (optimistic)
-        const driverIndex = drivers.findIndex(d => d.id === driverId);
-        if (driverIndex !== -1) {
-            drivers[driverIndex].status = newStatus;
-        }
-
-        // Refresh from DB to ensure UI reflects persisted state
-        await loadDriversData();
-
-        // Refresh the table and stats
-        renderDriversTable();
-        updateDriverStats();
-
-        // Show success message
-        const driver = drivers.find(d => d.id === driverId);
-        const driverName = driver ? driver.name : 'Driver';
-        const statusMessage = newStatus === 'online' ? 'approved and activated' : 'suspended';
-
-        if (window.dashboardFunctions) {
-            window.dashboardFunctions.showNotification(`${driverName} has been ${statusMessage}.`, 'success');
-        }
-
-        console.log(`✅ Driver ${driverId} status changed from ${currentStatus} to ${newStatus}`);
-
-    } catch (error) {
-        console.error('❌ Error updating driver status:', error);
-
-        // Reset button state
-        const button = document.querySelector(`button[onclick*="toggleDriverStatus('${driverId}'"]`);
-        if (button) {
-            button.disabled = false;
-            const icon = currentStatus === 'online' ? 'fa-pause' : 'fa-check';
-            button.innerHTML = `<i class="fas ${icon}"></i>`;
-        }
-
-        let errorMessage = 'Failed to update driver status';
-        if (error.code === 'ResourceNotFoundException') {
-            errorMessage = 'Driver not found in database';
-        } else if (error.code === 'ValidationException') {
-            errorMessage = 'Invalid data provided';
-        } else if (error.message) {
-            errorMessage = error.message;
-        }
-
-        if (window.dashboardFunctions) {
-            window.dashboardFunctions.showNotification(`Error: ${errorMessage}`, 'error');
-        }
-    }
+    await window.openDriverVehicleManagement(driverId);
 }
+
 
 // Close modals when clicking outside
 window.addEventListener('click', function (e) {

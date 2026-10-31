@@ -1,0 +1,22 @@
+{
+  "part": 321,
+  "status": "PUBLISHED_VERIFIED",
+  "function": "WizzUser-DeliveryQuotes-staging",
+  "baseCodeSha256": "uxR+5tacm6o2iXyBGO3gJurJnxMbe+R/VwM2hSTlXBs=",
+  "changedLambdaEntries": [
+    "storefront-route-runtime.js"
+  ],
+  "colleagueHandlerPreserved": true,
+  "hostingFiles": [
+    "delivery-pricing.js",
+    "pages/delivery-pricing.html"
+  ],
+  "businessDataWrites": 0,
+  "configurationChanged": false,
+  "iamChanged": false,
+  "codeSha256": "zfiX2fMwzfAO1tXCSLDV2iQ6DWOXOrf81wAXLUAicgA=",
+  "quotePublished": true,
+  "hostingJobId": "166",
+  "hostedBytesVerified": true,
+  "unrelatedArchiveEntriesPreserved": true
+}

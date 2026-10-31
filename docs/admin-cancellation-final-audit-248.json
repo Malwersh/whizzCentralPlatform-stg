@@ -1,0 +1,45 @@
+{
+  "orderNumber": "ORD1792849495126",
+  "orderId": "bb2c4170-63ec-56eb-86df-723ea5c629f4",
+  "status": "cancelled",
+  "holdReleasedIqd": 12000,
+  "fundingReleasedIqd": 250,
+  "driverWalletNow": {
+    "availableBalance": "30500",
+    "lockedBalance": "0"
+  },
+  "releaseEntries": [
+    {
+      "category": "FULL_CASH_RELEASED",
+      "amount": "12000",
+      "balanceType": null,
+      "balanceBefore": "18500",
+      "balanceAfter": "30500",
+      "transactionId": "CA:761bdbcf4139dcf93b7818ee84faa39d9a2844a7fee72532",
+      "entryId": null
+    },
+    {
+      "category": "FULL_CASH_RELEASED",
+      "amount": "-12000",
+      "balanceType": null,
+      "balanceBefore": "12000",
+      "balanceAfter": "0",
+      "transactionId": "CA:761bdbcf4139dcf93b7818ee84faa39d9a2844a7fee72532",
+      "entryId": null
+    }
+  ],
+  "singleCanonicalOperation": true,
+  "merchantPayableCreated": false,
+  "dispatchStatus": "cancelled",
+  "driverLive": {
+    "currentOrderId": null,
+    "activeOrdersCount": "0",
+    "status": "available"
+  },
+  "customerCancellationFee": 0,
+  "compensationReview": {
+    "merchant": "REVIEW",
+    "driver": "REVIEW"
+  },
+  "readOnly": true
+}

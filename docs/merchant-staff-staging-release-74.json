@@ -1,0 +1,87 @@
+{
+  "release": "merchant-staff-staging-74",
+  "verifiedAt": "2026-10-15T19:20:57.357999+00:00",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "functions": [
+    {
+      "FunctionName": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "CodeSha256": "BAU/npIEcl+UeFiinHGaYTTIag2g+xoDkI5zdj3g89A=",
+      "RevisionId": "a76ffc3c-9559-4afa-a3e7-026a0540d7e3",
+      "LastModified": "2026-10-15T19:12:06.000+0000",
+      "permissionMode": "CENTRAL"
+    },
+    {
+      "FunctionName": "order-receiver-merchant-orders-staging-v1",
+      "CodeSha256": "ZccqNe/J+g9PGf1TKEDUrWIqNJNHwoVFHSvVTquXCBw=",
+      "RevisionId": "9cf9ac1e-812a-4c13-bb96-cb19cea5a4e6",
+      "LastModified": "2026-10-15T19:12:12.000+0000",
+      "permissionMode": "CENTRAL"
+    },
+    {
+      "FunctionName": "order-receiver-regional-staging-product-management-v4-sam",
+      "CodeSha256": "tZX+bUQiRtE9IJ5JV0tZx/nop6Wl7jGVmiJNYHmtyTw=",
+      "RevisionId": "071e310c-c6d8-4327-a9a3-88827bf61c08",
+      "LastModified": "2026-10-15T19:12:18.000+0000",
+      "permissionMode": "CENTRAL"
+    },
+    {
+      "FunctionName": "order-receiver-regional-staging-location-settings-v1-sam",
+      "CodeSha256": "7hbvr5ffgEebEsj7YXAx7ieCMoDIMWtHW9aK5v8ljew=",
+      "RevisionId": "523de534-7f83-4ec7-b520-bdae9de2da86",
+      "LastModified": "2026-10-15T19:12:23.000+0000",
+      "permissionMode": "CENTRAL"
+    },
+    {
+      "FunctionName": "staging-wizz-staff-service",
+      "CodeSha256": "ABE0BS44rSA4WsKRPmA6mb0pIy88R1k9ZTegeVVy3Ic=",
+      "RevisionId": "de6b6e0e-6780-496f-8594-b771f6e6fbf0",
+      "LastModified": "2026-10-15T19:10:29.000+0000"
+    },
+    {
+      "FunctionName": "staging-account-deletion-worker",
+      "CodeSha256": "MFxp2hO2tl4ubZH7vCRMKzlxTAFUd0WFRIcl3BtGD0o=",
+      "RevisionId": "219dfb24-6fd8-4ac0-98b7-e78188c792b1",
+      "LastModified": "2026-10-15T19:10:08.000+0000"
+    },
+    {
+      "FunctionName": "staging-merchant-device-wallet-read",
+      "CodeSha256": "2GTc+4v65ozHby5RcI3+6y7rKZBx7msPOPqO9v/GuZw=",
+      "RevisionId": "cdb7bafd-e5e0-4954-8c2d-1fcc35d4635d",
+      "LastModified": "2026-10-15T19:18:15.000+0000",
+      "permissionMode": "CENTRAL"
+    },
+    {
+      "FunctionName": "staging-wizz-wallet-authorizer",
+      "CodeSha256": "2GC/wvqqc2F3en7rHmEIuu9Na22kSxJLox6sO5BCvoY=",
+      "RevisionId": "703d0e2c-d45f-4a21-92c4-35f5871c6cb7",
+      "LastModified": "2026-10-15T19:13:46.000+0000"
+    }
+  ],
+  "apiDeployments": {
+    "ie7z8r4wc0": "1m9mvw",
+    "7oum9md7v6": "0gfi8j",
+    "z14s5f8oxh": "c2cmvm"
+  },
+  "hostingJob": "55",
+  "centralPolicyVersion": 1,
+  "legacyHumanGrantsUnchanged": true,
+  "permanentHumanGrantMigrationApplied": false,
+  "syntheticChecks": [
+    "grant-migration-and-replay",
+    "device-gateway-products-hours-discounts-status-lock-revocation-cleanup",
+    "wallet-gateway-reads-statements-sales-json-csv-revocation-dual-audit-cleanup"
+  ],
+  "phone": {
+    "name": "iMohammed",
+    "bundle": "com.whizz.merchants",
+    "installationSequence": 5748,
+    "launched": true,
+    "humanConfirmedScreens": [
+      "الموظفون والصلاحيات",
+      "سجل نشاط الموظفين"
+    ]
+  },
+  "rollbackRequirement": "Retain CENTRAL mode and central live-policy/revocation guards. Do not redeploy pre-cutover bundles.",
+  "infrastructureNote": "Dedicated wallet reader, its role and four API resources created via reviewed direct AWS API deployment. Import/reconcile with the wallet SAM stack before a full stack deployment; do not blindly redeploy SAM over these live resources."
+}

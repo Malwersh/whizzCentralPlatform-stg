@@ -1,0 +1,23 @@
+{
+  "part": 231,
+  "status": "PUBLISHED_STAGING_CUSTOMER_AND_MERCHANT_CANCELLATION_SLICE",
+  "scope": "A01 immediate unassigned pending cancellation; A02 explicit merchant no-preparation confirmation when unassigned; A03 review request without false cancellation. Not the whole OECSR specification.",
+  "publication": "customer-cancellation-publication-231.json",
+  "implemented": [
+    "Original customer access token independently verified by existing financial writer; owner confirmation verified against actual order branch",
+    "Pending before merchant acceptance: original snapshot and financial funding release in one fenced transaction; no cancellation fee, automatic driver earning or merchant payable",
+    "Accepted/preparing/assigned: create idempotent review request and case reference; keep commercial order active until actual cancellation decision",
+    "Unassigned accepted order: merchant may explicitly confirm no preparation; reject if prepared, assigned, picked up or terminal",
+    "Order pickup/acceptance races cannot cause partial funding release or duplicate financial outcome",
+    "Customer UI preserves pending request and commercial state across cache/refresh; old clients cannot mistake review intent for completed cancellation",
+    "Merchant UI shows pending request, reason/case and explicit no-preparation confirmation; prepared or assigned cases route to administrative review",
+    "Existing merchant cancellation and return adapter contracts preserved"
+  ],
+  "policy": {"customerCancellationFee": 0, "returnExtraFee": 0, "preparingRequestIsNotCancellation": true, "liabilityInferredFromReason": false, "historicalLedgerChanged": false},
+  "tests": {"walletService": 1171,"failed": 0,"cancellationEngineWithinSuite": 6,"bundledEngine": 6,"capturedFinancialLifecycleMatrix": 65,"actualOrderEntry": "authorization, pinned writer delegation, exact selectors and old-client protection passed","bundledMerchantAdapter": "owner scope, exact fields, original token and old cancellation compatibility passed","customerFlutter": 3,"merchantFlutter": 8,"analyze": "no compile errors; pre-existing style/unused diagnostics remain"},
+  "native": {"customer": {"build": 213,"mode":"Release","device":"iMohammed","installed":true,"launched":true},"merchant":{"build":217,"mode":"Debug","device":"iPhone16Pro simulator","installed":true,"launched":true}},
+  "permissions": {"added":"Only OrderService invoke existing financial Lambda, and financial service AdminGetUser for existing customer pool","walletOrOrderMutationRightsAdded":false,"merchantOrderReadRightsAdded":false,"merchantBranchBinding":"inside existing financial writer"},
+  "gateway": {"added":"GET /auth/order-cancellation","stage":"staging","deployment":"a2l3s0","sameOwnerAuthorizerAndScopes":true},
+  "physicalPositiveCancellationTest":"NOT_RUN: no real order cancelled or financial mutation by agent",
+  "remaining": ["Administrative resolution queue and executing authorized decisions for prepared/assigned cancellation requests", "Remaining A/B/C scenarios, evidence, item custody/disposition, funded compensation/refund/appeals and live acceptance remain tracked; not claimed complete"]
+}

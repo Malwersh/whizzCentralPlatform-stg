@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "account": "699561669180",
+  "region": "us-east-1",
+  "completedAtUtc": "2026-10-22T15:03:07.288948+00:00",
+  "complete": true,
+  "codeOnly": true,
+  "configurationAndRolesPreserved": true,
+  "transport": "Encrypted artifacts and rollback copies in existing SAM deployment bucket",
+  "ownership": {
+    "settlements": "COLLEAGUE_BASELINE",
+    "discountsAndBenefits": "USER_WORK"
+  },
+  "repositories": {
+    "whizzCentralPlatform-stg": {
+      "sourceCommit": "7cf4d4b064a8758fcf45b12714fa30b029c294f6",
+      "branch": "integration/discounts-settlements-20261022"
+    },
+    "whizzMerchants-stg": {
+      "sourceCommit": "52cf63c3f83c4f42d031a024cdbae5b1bf17b249",
+      "branch": "integration/discounts-settlements-20261022"
+    },
+    "wizzuser-stg": {
+      "sourceCommit": "3a4ae3df19ae12d7f98d7236942533ad88955ff6",
+      "branch": "integration/discounts-settlements-20261022"
+    },
+    "whizzDrivers-stg": {
+      "sourceCommit": "af5fb27549079bc13bf3057d9e75e36753390531",
+      "branch": "sync/colleague-20261022"
+    }
+  },
+  "publishedFunctions": [
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "VHTJdYuKGH9mqHfvGFMN/U14v5aoprfk6S2TZCrbnKQ=",
+      "version": "3",
+      "verified": true,
+      "revisionId": "7f39f15d-67f1-4a94-9013-25a230fb771c"
+    },
+    {
+      "function": "staging-cod-integration",
+      "codeSha256": "38+Jk7GosNWnGQ5NpHvtYXsHOMfea2SUoWdN7NqSruw=",
+      "version": "3",
+      "verified": true,
+      "revisionId": "b0122d8a-cd6f-489e-ba88-70215ffd51bf"
+    },
+    {
+      "function": "OrderService-staging",
+      "codeSha256": "g3C5H8RpTzB1sMwYvQFn+wWZUgs3sDnUdci8EQs6VQU=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "555a5029-a9fc-4aea-a98a-b25b23b42113"
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "codeSha256": "lpwfnQEA1Yk+yPCYPuNgG7UbwSnFTydowSd7jQ2pQd0=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "1a70ca6c-6cb5-4cd5-9325-ea16ec53f9f6"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "u//6UBwra/oQEesUtEASV7wrZhXlNUNKtc2rWwnh9wo=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "dae8b82b-aaee-4fd3-a0d9-8a3853414a8d"
+    },
+    {
+      "function": "order-receiver-regional-staging-product-management-v4-sam",
+      "codeSha256": "Yl5745k29ZVE7Kb2HsZC8XKFDjIp/inJ4tVJjPUV9AQ=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "482a5e82-5207-4359-890a-4cd19057375b"
+    },
+    {
+      "function": "order-receiver-regional-staging-discount-management-v1-sam",
+      "codeSha256": "UJqw3p6eeVU0V/j1Y/8wme6kmp9aDyaMr08Yoka8n5E=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "0bddb837-0a76-4300-b0a2-cf7ffb132ada"
+    },
+    {
+      "function": "WizzUser-GetStoreDiscounts-staging",
+      "codeSha256": "eA4MUGYqcMLQc6kg8LZkGf6rcNyLhpMgUz/f6qV3E6I=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "5b6929cc-6282-4a13-a3df-5d2aa982ec7d"
+    },
+    {
+      "function": "WizzUser-GetActivePromoCodes-staging",
+      "codeSha256": "23SzV00WSNGeDrqN7hRWCMkiB6nX6eLk1gFnCwJNOUE=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "23cb792e-a5fa-4b11-87ae-cdd00a10d7f2"
+    },
+    {
+      "function": "WizzUser-ValidatePromoCode-staging",
+      "codeSha256": "81BXDTsNMxPY1uF1GkAOIDIdzctweTpeQTINWQEApCg=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "c4840e8c-0971-419c-815e-8140ad349408"
+    },
+    {
+      "function": "WizzUser-ApplyPromoCode-staging",
+      "codeSha256": "Wg+WMfDwqvUOkPxDlK0R9QoSeP0EGJB+R5lH/epvPrc=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "c7036164-4185-44b9-b701-52759aaba9b2"
+    },
+    {
+      "function": "WizzUser-GetBusinessProducts-staging",
+      "codeSha256": "ZsE/rMN7AlctHjAAMlrBYIhJJOI48YW+3hjx8AEQ9MM=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "61dbdef3-fb27-4161-b96d-f236d7da23bb"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "codeSha256": "JoGgqcfyHJwU2h3q5102p1cnBa00jN9twhing5wgx7w=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "48c85836-088e-4c88-bd11-8dcdb58066eb"
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "codeSha256": "ztBhPE9E675LUeTj+nPOr8Twwak5SQ3F8AAyvRhA2jY=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "394cf007-f64d-41a7-a486-a9e492f9eb6a"
+    },
+    {
+      "function": "WizzUser-UpdateOrderStatus-staging",
+      "codeSha256": "Kd2ryqT3/SASwRBY85S817eQAIXJhlkgWZioyWjMVS0=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "94c3684e-fbf7-4a2a-ae12-7eb739c208ce"
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "DCO/CmFPXA2O+Z+QkBWNeO65fDlbyM2btvC6LiIivPY=",
+      "version": "1",
+      "verified": true,
+      "revisionId": "338e7910-3714-4a40-aad7-62abaae846b6"
+    }
+  ],
+  "checks": {
+    "liveChecksumAndConfigurationChecks": 16,
+    "deploymentArchiveLoadsPassed": 16,
+    "publishedFullCashLifecycleCasesPassed": 8,
+    "publicReadChecks": [
+      {
+        "endpoint": "products",
+        "status": 200,
+        "json": true,
+        "success": true
+      },
+      {
+        "endpoint": "merchant-discounts",
+        "status": 200,
+        "json": true,
+        "success": true
+      },
+      {
+        "endpoint": "platform-promos",
+        "status": 200,
+        "json": true,
+        "success": true
+      }
+    ],
+    "healthAndUnauthenticatedAccessChecks": [
+      {
+        "function": "OrderService-staging",
+        "status": 200,
+        "expected": 200,
+        "runtimeError": false
+      },
+      {
+        "function": "staging-wizz-staff-service",
+        "status": 401,
+        "expected": 401,
+        "runtimeError": false
+      }
+    ],
+    "productionOrdersCreated": 0,
+    "liveOrderLifecycleExecuted": false
+  },
+  "rollbackCopiesAvailable": true,
+  "evidenceDirectory": "/private/tmp/wizz-discount-settlement-release-20261022"
+}

@@ -1,0 +1,240 @@
+{
+  "part": 361,
+  "status": "ACTIVE",
+  "references": "User screenshots of Talabat, DoorDash and Grubhub: visual patterns only, Wizz identity retained",
+  "designRules": [
+    "White/light neutral surfaces, dark navy text, Wizz gold for fills/accents, no yellow text",
+    "Consistent photo ratios and readable typography, compact actions, RTL and large text support",
+    "Do not show invented ratings/popularity/free delivery or placeholder payment modes",
+    "Preserve authoritative quote, discounts, inventory and account scope"
+  ],
+  "phases": [
+    {
+      "id": "UX361-01",
+      "name": "Audit and shared visual components; repair canonical meal choices",
+      "status": "IMPLEMENTED_LOCAL_TESTED",
+      "acceptance": [
+        "Read merchant optionGroups in customer models and detail selection",
+        "Required choices block add until satisfied; multi-select maximum and unavailable choices honoured",
+        "Price deltas and selection IDs flow into existing cart/server pricing"
+      ]
+    },
+    {
+      "id": "UX361-02",
+      "name": "Home/store/product/cart/checkout visual hierarchy",
+      "status": "IN_PROGRESS",
+      "acceptance": [
+        "Distinct Wizz editorial hero and consistent restaurant cards",
+        "Store hero, concise delivery/rating info, real offer cards, sticky menu categories",
+        "Product photo, separated choice groups, compact quantity and fixed add action",
+        "Consistent cart/checkout visual system without replacing quote logic"
+      ]
+    },
+    {
+      "id": "UX361-03",
+      "name": "Central home section composition",
+      "status": "FLEXIBLE_RULES_PUBLISHED_STAGING_HUMAN_ACCEPTANCE_PENDING",
+      "acceptance": [
+        "Admin creates/reorders/previews/publishes scheduled region/audience-targeted sections with rollback",
+        "Typed layouts and sources: curated, recent, rating, proximity, favorites, order history and real popularity",
+        "Cached published feed with safe existing fallback, no per-open full order aggregation",
+        "Fix current popularity label and nearest source; use actual data"
+      ],
+      "implemented": [
+        "Draft/publish/rollback with concurrency guard and audit",
+        "Ordered carousel sections: region, real rating, new, curated, favorites",
+        "Region/guest/signed-in and start/end targeting",
+        "Admin schematic preview, read-only and publisher permissions",
+        "Existing filtered merchant set reused; all restaurants retained",
+        "Account/region context reset; schedule checked during cached rendering"
+      ],
+      "remaining": [
+        "Personal order-history source",
+        "Additional campaign/product presentation templates",
+        "Human end-to-end layout and classification acceptance"
+      ]
+    },
+    {
+      "id": "UX361-04",
+      "name": "Eligible welcome campaign presentation",
+      "status": "IN_PROGRESS_EXISTING_CAMPAIGN_PRESENTATION",
+      "acceptance": [
+        "Beautiful dismissible bottom sheet driven by real central campaign/benefit",
+        "Guest copy must not promise unverified entitlement; verify identity before personal benefit",
+        "Real remaining uses/expiry/limits and no duplicate modal spam; respect account/address changes",
+        "No new free-delivery campaign or amount without explicit authorized terms"
+      ]
+    },
+    {
+      "id": "UX361-05",
+      "name": "Menu variants, combos and merchant configuration",
+      "status": "PENDING_SCHEMA_AUDIT",
+      "acceptance": [
+        "Reuse existing required/optional groups and prices first",
+        "Document support/gaps for size, crust, box size, sides, drinks and availability",
+        "Dependent groups, exact minimum >1, replace-price variants or nested bundles need shared merchant/server/customer contract; never fake with client-only prices",
+        "Inventory, persisted selections and published menu snapshots remain enforced"
+      ]
+    },
+    {
+      "id": "UX361-06",
+      "name": "Verification and reviewable native build",
+      "status": "IN_PROGRESS_TESTED_NATIVE_BUILD_PENDING",
+      "acceptance": [
+        "Small RTL viewport/large text, selection/price semantics and real offer eligibility tests",
+        "Existing checkout/quote/discount regressions remain passing",
+        "Build customer simulator for visual review; Android+iPhone release acceptance remains separate"
+      ]
+    },
+    {
+      "id": "UX361-07",
+      "name": "Explicit per-unit merchant item markdown and authoritative crossed-out pricing",
+      "status": "IMPLEMENTED_PUBLISHED_STAGING_INSTALLED_HUMAN_ORDER_PENDING",
+      "evidence": "docs/item-markdown-implementation-361.json",
+      "publication": "docs/item-markdown-publication-361.json",
+      "humanTests": [
+        {
+          "id": "UX361-ITEM-01",
+          "action": "Create 20% per-piece offer for a 5000 IQD simple meal; verify 5000 struck out and 4000 in store/detail/cart; commit one then three units",
+          "status": "PENDING"
+        },
+        {
+          "id": "UX361-ITEM-02",
+          "action": "Pause/expire/edit before checkout; authoritative revalidation must reject stale saving without any duplicated debit",
+          "status": "PENDING"
+        },
+        {
+          "id": "UX361-ITEM-03",
+          "action": "Legacy fixed order discount still applied once; existing approved shared offer remains read-only",
+          "status": "PENDING"
+        },
+        {
+          "id": "UX361-ITEM-04",
+          "action": "Meal options: verify final selected configuration savings and original catalog/options price fences at checkout",
+          "status": "PENDING"
+        }
+      ]
+    }
+  ],
+  "operationalResume": "A06 transfer/provider audits after separate user-requested design scope",
+  "cloudChanges": true,
+  "implementationEvidence": {
+    "scope": "First local design batch; full work package remains active",
+    "customerChanges": [
+      "Shared RTL navy/gold visual components",
+      "Canonical optionGroups with required/multiple/unavailable selection enforcement",
+      "Configured unit price includes selected extras in cart",
+      "Store quick add opens customization when options exist",
+      "Home cards and honest rating/region labels",
+      "Store photo header and campaign detail styling"
+    ],
+    "tests": {
+      "customerRegressionPassed": 91,
+      "environmentScopedSkipped": 1,
+      "analysis": "No errors or warnings; 26 informational lint notices in inspected files",
+      "offerJourneyPassed": 4
+    },
+    "pending": [
+      "Additional section templates, real popularity/proximity and personal history",
+      "Welcome campaign presentation and eligibility-specific review",
+      "Nested combo/shared merchant-server schema",
+      "Cart/checkout visual continuation",
+      "Native visual review and remaining end-to-end design phases"
+    ],
+    "published": false,
+    "nativeBuild": "iOS simulator debug build succeeded; installed and launched on iPhone 16 Pro"
+  },
+  "storefrontFactsReview": {
+    "source": "StorefrontPricing shared address/account scoped cache for delivery fee, road distance and arrival; Store minimum follows existing business/policy source; rating refresh from business",
+    "localChanges": [
+      "Removed duplicate menu badge that opened information sheet",
+      "Home compact cards now read live shared arrival and fee instead of store.time",
+      "Store concise summary retains ETA/road distance/fee/minimum; preparation remains in expanded information"
+    ],
+    "testsPassed": 16,
+    "nativeBuild": "Built, installed and launched on iPhone 16 Pro simulator"
+  },
+  "visualRevisionAfterUserReview": {
+    "reason": "User rejected separated white identity; requested integrated photographic hero using Wizz data only",
+    "changes": [
+      "360pt photographic hero with limited dark neutral lower gradient",
+      "Store identity, real rating/count and single information action integrated in cover",
+      "Unified white delivery panel: arrival lead row, fee and road distance, minimum footer",
+      "No pickup/group-order/subscription features introduced"
+    ],
+    "testsPassed": 16,
+    "nativeBuild": "Built, installed and launched on iPhone 16 Pro; store screen visual approval pending"
+  },
+  "homeLayoutPublication": {
+    "status": "PUBLISHED_STAGING_NO_LAYOUT_CONTENT_SEEDED",
+    "hostingJob": "229",
+    "page": "https://staging.d2vmebm1e1n95m.amplifyapp.com/pages/home-layout.html",
+    "tests": {
+      "node": 27,
+      "flutter": 13,
+      "browserScenarios": 2,
+      "actualBundleWiring": true
+    },
+    "native": "Customer simulator built/installed/launched",
+    "cloudPermissionsAdded": false,
+    "layoutRecordsWritten": 0
+  },
+  "homeLayoutSectionEditorWorkflow": {
+    "status": "PUBLISHED_STAGING_BYTES_VERIFIED",
+    "semantics": "Each editor saves only that section into the shared draft; publishing remains atomic for the whole home layout",
+    "features": [
+      "Independent add/edit dialog and preview without writes",
+      "Compact cards with per-section draft pause/delete/reorder",
+      "Full-home publication review with diff against published snapshot",
+      "Conflict retains unsaved editor state",
+      "Baghdad wall-time input, UTC persistence",
+      "Read-only and publisher/editor controls preserved"
+    ],
+    "tests": "Chrome 390px and 1280px passed; preview/cancel/isolated save/draft operations/review/publish/conflict/read-only",
+    "userContentChanged": false,
+    "hostingJob": "233",
+    "preservedLatestHostingJob": "232",
+    "preservedColleagueUpdates": [
+      "campaign-image.js",
+      "home-slideshow.js",
+      "pages/promotions.html",
+      "commercial-management.js",
+      "pages/merchants.html"
+    ]
+  },
+  "flexibleSectionRules": {
+    "status": "PUBLISHED_STAGING_VERIFIED",
+    "schema": "Backward-compatible source + typed filters + ranking + layout",
+    "implemented": [
+      "Cuisine and brand catalog with explicit branch assignments, preserving referenced classifications",
+      "Independent source / cuisine-brand-open-offers-proximity-rating filters / default-manual-rating-new-distance-orders ranking",
+      "Carousel and compact list layouts",
+      "Completed-order snapshots over rolling 7/30 days refreshed hourly; META only, deduplicated, flagged test orders excluded; no per-home order aggregation",
+      "Real account/region offer eligibility with bounded raw-offer caching; quote eligibility still authoritative",
+      "Cross-version guards between classification catalog and saved layout",
+      "Old clients omit unsupported rules rather than rendering mislabeled results"
+    ],
+    "metricsBasis": "Current completed status by order creation date; not a financial sales/revenue metric",
+    "distanceBasis": "Geographical proximity for ordering; delivery road distance/fees remain authoritative storefront preview",
+    "tests": {
+      "node": 36,
+      "flutter": 16,
+      "chromeViewports": [
+        390,
+        1280
+      ],
+      "bundledRuntimeRoutes": true,
+      "iosSimulatorBuild": true
+    },
+    "hostingJob": "234",
+    "scheduler": "staging-home-discovery-refresh-361",
+    "existingSectionsUnchanged": true,
+    "catalogSeeded": false,
+    "financialRecordsWritten": 0,
+    "remainingOutsideCurrentRuleScope": [
+      "Personal order-history recommendations",
+      "Additional campaign/product-specific presentation templates",
+      "Human end-to-end section/catalog publishing acceptance"
+    ]
+  }
+}

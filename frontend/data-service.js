@@ -178,139 +178,37 @@
     }
 
     // Platform Discount Functions
-    async function getPlatformDiscounts(forceFresh = false) {
-        // Try the dedicated platform table first
-        const primary = await scan(TABLES.platformDiscounts, { Limit: 100 });
-        const primaryItems = Array.isArray(primary.Items) ? primary.Items : [];
-        if (primaryItems.length > 0) return primaryItems;
-        // Fallback: use merchant discounts table where discountSource == 'platform'
-        const fallback = await scan(TABLES.discounts, {
-            Limit: 100,
-            FilterExpression: 'discountSource = :src',
-            ExpressionAttributeValues: { ':src': 'platform' }
-        });
-        return Array.isArray(fallback.Items) ? fallback.Items : [];
+    async function getPlatformDiscounts() {
+        const result = await scan(TABLES.platformDiscounts, {Limit:100});
+        return Array.isArray(result.Items) ? result.Items : [];
+    }
+
+
+    // All campaign writes use the existing staff service. Browser DynamoDB reads remain unchanged.
+    const campaignPending=new Map();
+    const campaignStable=v=>Array.isArray(v)?v.map(campaignStable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,campaignStable(v[k])])):v;
+    function campaignAccount(){const token=window.Auth.getToken('accessToken');try{const v=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));if(typeof v.sub!=='string')throw Error();return v.sub;}catch{throw Error('يرجى تسجيل الدخول مجددًا.');}}
+    async function campaignApi(body,source,id){
+        await window.Auth.ensureSession();const token=window.Auth.getToken('accessToken'),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+        try{const response=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/promotions'+(body?'':'?source='+encodeURIComponent(source)+'&discountId='+encodeURIComponent(id)),{method:body?'POST':'GET',signal:controller.signal,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json();if(window.Auth.getToken('accessToken')!==token)throw Error('تغيرت جلسة الدخول. أعد تحميل الصفحة.');if(!response.ok){const messages={SHARED_DISCOUNT_TERMS_LOCKED:'هذا خصم مشترك معتمد؛ شروطه مقفلة. أوقفه وأنشئ بديلًا بمشاركة وموافقة جديدتين.',SHARED_DISCOUNT_DELETE_FORBIDDEN:'لا يمكن حذف سجل الخصم المشترك. أوقفه للاحتفاظ بحساباته.',SHARED_DISCOUNT_RESTART_FORBIDDEN:'لا يمكن إعادة تفعيل الخصم المشترك المتوقف. أنشئ بديلًا بموافقة جديدة.',VERSION_OR_STATE_CONFLICT:'تغير الخصم أو استخدامه. حدّث القائمة ثم أعد المحاولة.',PERMISSION_REQUIRED:'ليست لديك صلاحية تعديل هذه العروض.',REGION_SCOPE_REQUIRED:'العرض خارج نطاق المناطق المسموح لك بها.',REQUEST_ID_CONFLICT:'تعارضت محاولة الحفظ. أعد تحميل القائمة.',CAMPAIGN_FIELDS_INVALID:'تحقق من حقول العرض.',CAMPAIGN_PERIOD_INVALID:'تحقق من بداية العرض ونهايته.',CAMPAIGN_REGION_UNAVAILABLE:'منطقة العرض غير متاحة.',CAMPAIGN_RETENTION_HOLD:'هذا العرض محجوز للاحتفاظ.'};const error=Error(messages[data.error]||'تعذر حفظ العرض. تحقق من القيم والصلاحيات.');error.status=response.status;throw error;}return data;}finally{clearTimeout(timer);}
+    }
+    const campaignRead=(source,id)=>campaignApi(null,source,id);
+    async function campaignMutation(source,id,action,values,requestId){
+        await window.Auth.ensureSession();const account=campaignAccount(),signature=JSON.stringify(campaignStable({account,source,id,action,values:values||null}));let body=campaignPending.get(signature);
+        if(!body){const previous=action==='CREATE'?null:await campaignRead(source,id);if(account!==campaignAccount())throw Error('تغيرت جلسة الدخول.');body={source,discountId:id,action,requestId:requestId||crypto.randomUUID(),...(previous?{baseRevision:previous.revision}:{}),...(values?{values}:{})};campaignPending.set(signature,body);}
+        try{const result=await campaignApi(body);campaignPending.delete(signature);return result;}catch(e){if(e.status===409)campaignPending.delete(signature);throw e;}
     }
 
     // REMOVED: createPlatformDiscount function - use createCampaign instead for unified functionality
 
-    async function updatePlatformDiscount(discountId, updates) {
-        // Try to find in primary platform table first
-        let tableForUpdate = TABLES.platformDiscounts;
-        let res = await scan(tableForUpdate, {
-            FilterExpression: 'discountId = :id OR id = :id',
-            ExpressionAttributeValues: { ':id': discountId }
-        });
-        let current = (res.Items || [])[0];
+    async function updatePlatformDiscount(id,values) { return campaignMutation('PLATFORM',id,'UPDATE',values); }
 
-        // If not found, fallback to discounts table
-        if (!current) {
-            tableForUpdate = TABLES.discounts;
-            res = await scan(tableForUpdate, {
-                FilterExpression: 'discountId = :id OR id = :id',
-                ExpressionAttributeValues: { ':id': discountId }
-            });
-            current = (res.Items || [])[0];
-        }
-
-        if (!current) throw new Error('Platform discount not found');
-
-        // Normalize type
-        if (updates?.type) {
-            updates.type = (updates.type === 'fixed_amount') ? 'fixed' : updates.type;
-        }
-
-        const updated = {
-            ...current,
-            ...(updates || {}),
-            updatedAt: new Date().toISOString(),
-            discountSource: 'platform'
-        };
-        if (!updated.discountId && updated.id) updated.discountId = updated.id;
-        if (!updated.id && updated.discountId) updated.id = updated.discountId;
-        // Keep common mirrors in sync when present
-        if (updated.title && !updated.name) updated.name = updated.title;
-        if (updated.name && !updated.title) updated.title = updated.name;
-        if (updated.minOrderAmount != null && updated.minOrderValue == null) updated.minOrderValue = Number(updated.minOrderAmount);
-        if (updated.minOrderValue != null && updated.minOrderAmount == null) updated.minOrderAmount = Number(updated.minOrderValue);
-        if (updated.usageLimit != null && updated.limit == null) updated.limit = Number(updated.usageLimit);
-        if (updated.limit != null && updated.usageLimit == null) updated.usageLimit = Number(updated.limit);
-        if (updated.currentUsage != null && updated.usage == null) updated.usage = Number(updated.currentUsage);
-        if (updated.usage != null && updated.currentUsage == null) updated.currentUsage = Number(updated.usage);
-
-        try {
-            await putDocumentItem(tableForUpdate, updated);
-            return { success: true };
-        } catch (e) {
-            throw new Error(`Update platform discount failed: ${e?.message || e}`);
-        }
-    }
-
-    async function deletePlatformDiscount(discountId) {
-        // Attempt delete on primary table first
-        try {
-            await deleteDocumentItem(TABLES.platformDiscounts, { discountId });
-            return { success: true };
-        } catch (e) {
-            // Try alternative key in primary table
-            try {
-                await deleteDocumentItem(TABLES.platformDiscounts, { id: discountId });
-                return { success: true };
-            } catch (e1) {
-                if (_shouldFallbackPlatformTable(e) || _shouldFallbackPlatformTable(e1)) {
-                    // Fallback table attempts: both key shapes
-                    try {
-                        await deleteDocumentItem(TABLES.discounts, { discountId });
-                        return { success: true };
-                    } catch (e2) {
-                        try {
-                            await deleteDocumentItem(TABLES.discounts, { id: discountId });
-                            return { success: true };
-                        } catch (e3) {
-                            throw new Error(`Delete platform discount failed (fallback): ${e3?.message || e3}`);
-                        }
-                    }
-                }
-                throw new Error(`Delete platform discount failed: ${e1?.message || e1}`);
-            }
-        }
-    }
+    async function deletePlatformDiscount(id) { return campaignMutation('PLATFORM',id,'DELETE'); }
 
     // Merchant Discounts CRUD (limited)
-    async function updateMerchantDiscount(discountId, updates) {
-        // Fetch current discount via scan (simple PK table assumption)
-        const res = await scan(TABLES.discounts, {
-            FilterExpression: 'discountId = :id OR id = :id',
-            ExpressionAttributeValues: { ':id': discountId }
-        });
-        const current = (res.Items || [])[0];
-        if (!current) throw new Error('Merchant discount not found');
-        const updated = {
-            ...current,
-            ...(updates || {}),
-            updatedAt: new Date().toISOString()
-        };
-        try {
-            await putDocumentItem(TABLES.discounts, updated);
-            return { success: true };
-        } catch (e) {
-            throw new Error(`Update merchant discount failed: ${e?.message || e}`);
-        }
-    }
+    async function updateMerchantDiscount(id,values) { return campaignMutation('MERCHANT',id,'UPDATE',values); }
 
-    async function deleteMerchantDiscount(discountId) {
-        try {
-            await deleteDocumentItem(TABLES.discounts, { discountId });
-            return { success: true };
-        } catch (e) {
-            try {
-                await deleteDocumentItem(TABLES.discounts, { id: discountId });
-                return { success: true };
-            } catch (e2) {
-                throw new Error(`Delete merchant discount failed: ${e2?.message || e2}`);
-            }
-        }
-    }
+    async function deleteMerchantDiscount(id) { return campaignMutation('MERCHANT',id,'DELETE'); }
 
     // Added: Fetch drivers from DynamoDB (WhizzDrivers_staging)
     async function getDrivers(limit = 100) {
@@ -379,11 +277,12 @@
     }
 
     // Campaign Management Functions
-    async function getCampaigns() {
+    async function getCampaigns({ strict = false } = {}) {
         console.log('INFO: Getting all campaigns from unified platform discounts table...');
         try {
             const client = await getClientSafe();
             if (!client) {
+                if (strict) throw new Error('Please sign in again to load campaigns.');
                 console.warn('No DynamoDB client available for campaigns');
                 return [];
             }
@@ -397,18 +296,28 @@
                 }
             };
 
-            const result = await client.scan(params).promise();
+            const result = await scan(TABLES.platformDiscounts, {
+                FilterExpression: params.FilterExpression,
+                ExpressionAttributeValues: params.ExpressionAttributeValues
+            });
             console.log(`✅ Retrieved ${result.Items?.length || 0} campaigns from unified table`);
             
             return (result.Items || []).map(item => ({
                 id: item.campaignId || item.discountId,
                 campaignId: item.campaignId || item.discountId,
                 title: item.title || item.name,
+                version: item.version ?? null,
+                fundingPolicyId: item.fundingPolicyId ?? null,
+                fundingPolicyVersion: item.fundingPolicyVersion ?? null,
                 code: item.code || '',
                 type: item.campaignType || item.type || '',
                 discountType: item.discountType || 'percentage',
                 discountValue: item.discountValue || item.value || 0,
                 target: item.target || '',
+                targetRegionIds: item.targetRegionIds || [],
+                targetLocation: item.targetLocation || '',
+                customerSegments: item.customerSegments || ['all'],
+                campaignType: item.campaignType || '',
                 targetRestaurants: item.targetRestaurants || [],
                 targetSegments: item.targetSegments || [],
                 occasions: item.occasions || [],
@@ -430,6 +339,7 @@
             }));
         } catch (error) {
             console.error('Error getting campaigns:', error);
+            if (strict) throw error;
             if (_shouldFallbackPlatformTable(error)) {
                 console.warn('Using fallback data for campaigns');
                 return [];
@@ -468,205 +378,24 @@
         }
     }
 
-    async function createCampaign(campaignData) {
-        console.log('INFO: Creating new campaign/discount in unified platform discounts table...');
-        const startTime = Date.now();
-        
+    async function campaignRequest(request) {
+        let timer;
         try {
-            const client = await getClientSafe();
-            if (!client) {
-                console.warn('No DynamoDB client available for campaign creation');
-                return { success: false, error: 'No DynamoDB client available' };
-            }
-
-            const campaignId = campaignData.discountId || campaignData.campaignId || `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const timestamp = new Date().toISOString();
-            
-            // Normalize discount type
-            const normalizedType = (campaignData.type === 'fixed_amount' || campaignData.discountType === 'fixed_amount') ? 'fixed' : 
-                                   (campaignData.discountType || campaignData.type || 'percentage');
-            
-            // Create unified campaign/discount object that works for both use cases
-            const campaign = {
-                // Primary identifiers
-                discountId: campaignId, // Use discountId as primary key for unified table
-                campaignId, // Keep original campaignId for backwards compatibility
-                id: campaignId, // compatibility for tables keyed by 'id'
-                
-                // Basic info (unified field naming)
-                title: campaignData.title || campaignData.name || '',
-                name: campaignData.title || campaignData.name || '', // Also set name field for consistency
-                description: campaignData.description || '',
-                code: campaignData.code || '',
-                
-                // Discount details
-                type: normalizedType, // Main type field
-                discountType: normalizedType, // Also store as discountType for compatibility
-                campaignType: campaignData.campaignType || campaignData.type || '', // Store original campaign type separately
-                value: parseFloat(campaignData.value || campaignData.discountValue) || 0,
-                discountValue: parseFloat(campaignData.value || campaignData.discountValue) || 0, // Keep both for compatibility
-                
-                // Source and targeting
-                discountSource: campaignData.discountSource || 'campaign', // Mark as campaign-originated by default
-                target: campaignData.target || '',
-                targetRestaurants: campaignData.targetRestaurants || [],
-                targetSegments: campaignData.targetSegments || [],
-                occasions: campaignData.occasions || [],
-                customerSegments: Array.isArray(campaignData.customerSegments) && campaignData.customerSegments.length ? 
-                                  campaignData.customerSegments : ['all'],
-                
-                // Status and activation
-                status: campaignData.status || 'active',
-                isActive: campaignData.isActive !== false && campaignData.autoActivate !== false,
-                autoActivate: campaignData.autoActivate !== false,
-                
-                // Usage tracking (unified field naming)
-                usage: 0,
-                currentUsage: 0, // For compatibility with discount structure
-                usageLimit: parseInt(campaignData.usageLimit || campaignData.limit) || 0,
-                limit: parseInt(campaignData.usageLimit || campaignData.limit) || 0, // Keep both for compatibility
-                
-                // Order requirements (unified field naming)
-                minOrderValue: parseFloat(campaignData.minOrderValue || campaignData.minOrderAmount) || 0,
-                minOrderAmount: parseFloat(campaignData.minOrderValue || campaignData.minOrderAmount) || 0, // Keep both for compatibility
-                
-                // Date ranges (unified field naming)
-                startDate: campaignData.startDate || '',
-                endDate: campaignData.endDate || '',
-                validFrom: campaignData.validFrom || campaignData.startDate || '',
-                validTo: campaignData.validTo || campaignData.endDate || '',
-                
-                // Campaign-specific features
-                singleUse: campaignData.singleUse || false,
-                stackable: campaignData.stackable || false,
-                applicableToAll: campaignData.applicableToAll !== false,
-                
-                // Timestamps and metadata
-                createdAt: campaignData.createdAt || timestamp,
-                updatedAt: timestamp,
-                createdBy: campaignData.createdBy || 'central-platform'
-            };
-
-            const params = {
-                TableName: TABLES.platformDiscounts, // Use unified platform discounts table
-                Item: campaign
-            };
-
-            await client.put(params).promise();
-            const duration = Date.now() - startTime;
-            console.log(`✅ Campaign/discount created successfully in unified table: ${campaignId} (${duration}ms)`);
-            return { success: true, discountId: campaignId, campaignId };
-            
-        } catch (error) {
-            // Fallback to merchant discounts table if platform table is missing or blocked
-            if (_shouldFallbackPlatformTable(error)) {
-                console.warn('WARN: Primary platform discounts table unavailable. Falling back to merchant discounts table.');
-                try {
-                    const campaignId = campaignData.discountId || campaignData.campaignId || `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                    const timestamp = new Date().toISOString();
-                    const normalizedType = (campaignData.type === 'fixed_amount' || campaignData.discountType === 'fixed_amount') ? 'fixed' : 
-                                           (campaignData.discountType || campaignData.type || 'percentage');
-                    
-                    const fallbackCampaign = {
-                        discountId: campaignId,
-                        campaignId,
-                        id: campaignId,
-                        title: campaignData.title || campaignData.name || '',
-                        name: campaignData.title || campaignData.name || '',
-                        description: campaignData.description || '',
-                        code: campaignData.code || '',
-                        type: normalizedType,
-                        value: parseFloat(campaignData.value || campaignData.discountValue) || 0,
-                        discountSource: campaignData.discountSource || 'campaign',
-                        isActive: campaignData.isActive !== false,
-                        usage: 0,
-                        limit: parseInt(campaignData.usageLimit || campaignData.limit) || 0,
-                        minOrderValue: parseFloat(campaignData.minOrderValue || campaignData.minOrderAmount) || 0,
-                        startDate: campaignData.startDate || '',
-                        endDate: campaignData.endDate || '',
-                        createdAt: timestamp,
-                        updatedAt: timestamp
-                    };
-                    
-                    await putDocumentItem(TABLES.discounts, fallbackCampaign);
-                    const duration = Date.now() - startTime;
-                    console.log(`✅ Campaign/discount created successfully in fallback table: ${campaignId} (${duration}ms)`);
-                    return { success: true, discountId: campaignId, campaignId };
-                } catch (fallbackError) {
-                    const duration = Date.now() - startTime;
-                    console.error(`ERROR: Campaign creation fallback failed after ${duration}ms:`, fallbackError?.message || fallbackError);
-                    return { success: false, error: `Create campaign failed (fallback): ${fallbackError?.message || fallbackError}` };
-                }
-            }
-            const duration = Date.now() - startTime;
-            console.error(`ERROR: Campaign creation failed after ${duration}ms:`, error?.message || error);
-            return { success: false, error: `Create campaign failed: ${error?.message || error}` };
-        }
+            return await Promise.race([
+                request.promise(),
+                new Promise((_, reject) => { timer = setTimeout(() => {
+                    reject(new Error('The save could not be confirmed. Retry without changing the form to check the same campaign.'));
+                    request.abort();
+                }, 20000); })
+            ]);
+        } finally { clearTimeout(timer); }
     }
 
-    async function updateCampaign(campaignId, updateData) {
-        console.log(`INFO: Updating campaign ${campaignId} in unified platform discounts table...`);
-        try {
-            const client = await getClientSafe();
-            if (!client) {
-                console.warn('No DynamoDB client available for campaign update');
-                return null;
-            }
+    async function createCampaign(data) { const {requestId,discountId,campaignId,id,createdAt,createdBy,...values}=data; const key=discountId||campaignId||id||('campaign_'+crypto.randomUUID());return campaignMutation('PLATFORM',key,'CREATE',values,requestId); }
 
-            const timestamp = new Date().toISOString();
-            updateData.updatedAt = timestamp;
+    async function updateCampaign(id,values) { return campaignMutation('PLATFORM',id,'UPDATE',values); }
 
-            // Build update expression dynamically
-            const updateExpression = [];
-            const expressionAttributeNames = {};
-            const expressionAttributeValues = {};
-
-            Object.keys(updateData).forEach(key => {
-                updateExpression.push(`#${key} = :${key}`);
-                expressionAttributeNames[`#${key}`] = key;
-                expressionAttributeValues[`:${key}`] = updateData[key];
-            });
-
-            const params = {
-                TableName: TABLES.platformDiscounts,
-                Key: { discountId: campaignId }, // Use discountId as primary key
-                UpdateExpression: `SET ${updateExpression.join(', ')}`,
-                ExpressionAttributeNames: expressionAttributeNames,
-                ExpressionAttributeValues: expressionAttributeValues,
-                ReturnValues: 'ALL_NEW'
-            };
-
-            const result = await client.update(params).promise();
-            console.log(`✅ Campaign updated successfully: ${campaignId}`);
-            return result.Attributes;
-        } catch (error) {
-            console.error(`Error updating campaign ${campaignId}:`, error);
-            throw error;
-        }
-    }
-
-    async function deleteCampaign(campaignId) {
-        console.log(`INFO: Deleting campaign ${campaignId} from unified platform discounts table...`);
-        try {
-            const client = await getClientSafe();
-            if (!client) {
-                console.warn('No DynamoDB client available for campaign deletion');
-                return false;
-            }
-
-            const params = {
-                TableName: TABLES.platformDiscounts,
-                Key: { discountId: campaignId } // Use discountId as primary key
-            };
-
-            await client.delete(params).promise();
-            console.log(`✅ Campaign deleted successfully: ${campaignId}`);
-            return true;
-        } catch (error) {
-            console.error(`Error deleting campaign ${campaignId}:`, error);
-            throw error;
-        }
-    }
+    async function deleteCampaign(id) { await campaignMutation('PLATFORM',id,'DELETE');return true; }
 
     window.dataService = {
         initialize: async () => {

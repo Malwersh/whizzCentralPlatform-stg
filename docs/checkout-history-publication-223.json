@@ -1,0 +1,16 @@
+{
+  "part": 223,
+  "status": "PUBLISHED_ACTUAL_ENVIRONMENT_VERIFIED",
+  "function": "WizzUser-CreateOrder-staging",
+  "baseCodeSha256": "6NgE+/s2tTKzGodMgyHxYTSoTKICo85cCTJtPprhLwc=",
+  "codeSha256": "wBtwlCa3zQHgEXlrEUF8fdY+KZVzkCVuUyi34clNNzI=",
+  "changedFiles": [
+    "checkout-finance-runtime-222.js"
+  ],
+  "repair": "Match canonical archival bound8 to existing deployed reader bound8; actual archive has6. No scope added, edited, removed or admitted by the publication. General release still independently authorized.",
+  "actualEnvironmentRegression": "Original captured helper reproduces FINANCE_ROLLOUT_NOT_CONFIGURED; fixed helper passes exact compressed live environment, stage/region/hash negative guards and general-OFF rejection. Actual nested entry tested with same financial environment across five local cases.",
+  "configurationAndIamPreserved": true,
+  "otherZipEntriesIdentical": true,
+  "financialDataWrites": false,
+  "clientUpdateRequired": false
+}

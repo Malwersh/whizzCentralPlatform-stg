@@ -1,0 +1,35 @@
+{
+  "run": "1793204608718",
+  "names": {
+    "products": "staging-products-uat336-1793204608718-products",
+    "platform": "staging-products-uat336-1793204608718-platform",
+    "categories": "staging-products-uat336-1793204608718-categories",
+    "orders": "staging-products-uat336-1793204608718-orders",
+    "businesses": "staging-products-uat336-1793204608718-businesses"
+  },
+  "checks": [
+    "mapped Arabic file + owned image + quantities preview",
+    "real DynamoDB atomic batches, lost-response replay and resumable completion",
+    "immutable complete publication",
+    "competing last-piece orders: exactly one atomic success, no oversell",
+    "cancelled prepared stock held for review, approved restock exactly once",
+    "manual stock adjustment rejects stale screen quantity",
+    "published menu rollback does not reset live stock"
+  ],
+  "realBusinessMutations": false,
+  "status": "PASS",
+  "cleanupRequested": [
+    "staging-products-uat336-1793204608718-businesses",
+    "staging-products-uat336-1793204608718-orders",
+    "staging-products-uat336-1793204608718-categories",
+    "staging-products-uat336-1793204608718-platform",
+    "staging-products-uat336-1793204608718-products"
+  ],
+  "cleanupConfirmed": [
+    "staging-products-uat336-1793204608718-businesses",
+    "staging-products-uat336-1793204608718-orders",
+    "staging-products-uat336-1793204608718-categories",
+    "staging-products-uat336-1793204608718-platform",
+    "staging-products-uat336-1793204608718-products"
+  ]
+}

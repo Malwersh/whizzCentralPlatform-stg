@@ -1,0 +1,81 @@
+{
+  "scope": "READ_ONLY_DRIVER_HISTORY_AUDIT_AND_OFFICIAL_DOORDASH_COMPARISON",
+  "historyAudit": {
+    "readOnly": true,
+    "rows": 26,
+    "statuses": {
+      "financial_accepted": 21,
+      "financial_expired": 5
+    },
+    "nonCompletedCommitments": [
+      {
+        "orderId": "f6b187f1-1046-5bb9-8ec1-472e777164f0",
+        "orderNumber": "ORD1792870714924",
+        "currentStatus": "cancelled",
+        "classification": "REVIEW",
+        "release": {
+          "actorKind": "DRIVER",
+          "outcome": "UNASSIGNED",
+          "reason": null,
+          "reasonVerifiedByRequestDigest": "VehicleIssue",
+          "createdAt": "2026-10-24T19:39:43.992Z"
+        }
+      },
+      {
+        "orderId": "bb2c4170-63ec-56eb-86df-723ea5c629f4",
+        "orderNumber": "ORD1792849495126",
+        "currentStatus": "cancelled",
+        "classification": "REVIEW",
+        "release": {
+          "actorKind": "STAFF",
+          "outcome": "CANCELLED",
+          "reason": null,
+          "reasonVerifiedByRequestDigest": null,
+          "createdAt": "2026-10-24T14:33:07.699Z"
+        }
+      },
+      {
+        "orderId": "bb728bfe-c2c4-5c95-8492-26ce81ee1ed1",
+        "orderNumber": "ORD1792545370610",
+        "currentStatus": "returned",
+        "classification": "REVIEW",
+        "release": null
+      }
+    ],
+    "legacyMetrics": [
+      {
+        "keyKind": "PREFIXED",
+        "completionRateStatus": "AVAILABLE"
+      }
+    ]
+  },
+  "confirmedVehicleIssue": {
+    "orderNumber": "ORD1792870714924",
+    "interpretation": "Accepted first, then DRIVER UNASSIGNED. Driver-selected VehicleIssue verified by recomputing canonical request digest from the allowed request fields; not a pre-acceptance decline.",
+    "attribution": "Driver-reported reason; no automatic confirmed-fault or automatic exemption inferred",
+    "currentMetricClassification": "REVIEW_EXCLUDED_FROM_COMPLETION_DENOMINATOR",
+    "loggingGap": "Release archive contains requestDigest but no separate readable driver reason field"
+  },
+  "sources": [
+    {
+      "url": "https://help.doordash.com/en-us/dashers/article/dasher-ratings-explained",
+      "scope": "US general ratings and selected-area pilots"
+    },
+    {
+      "url": "https://help.doordash.com/en-ca/dashers/article/overall-dasher-rating",
+      "scope": "Canada pilot, not universal policy"
+    }
+  ],
+  "recommendedNextChanges": [
+    "Add per-offer/commitment breakdown with counted/excluded/pending status and reason",
+    "Persist a readable versioned unassignment reason for new events; preserve historical journals",
+    "Resolve excused versus driver-responsible unassignment through explicit review; driver reason selection alone is not a finding",
+    "Add authenticated device offer receipt proof before treating timed-out offers as nonacceptance",
+    "Use original accepted delivery-time target and excused merchant delays for punctuality",
+    "Keep restaurant/meal rating separate from verified driver service rating",
+    "Separate rewards/ranking experiments from hard account eligibility; no unseen automatic sanction"
+  ],
+  "changesApplied": false,
+  "businessWrites": 0,
+  "fullDoorDashParityClaimed": false
+}

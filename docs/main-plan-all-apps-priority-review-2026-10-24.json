@@ -1,0 +1,3863 @@
+{
+  "reviewDate": "2026-10-24",
+  "scope": "ENTIRE_MAIN_PLAN_ALL_FOUR_APPS_AND_BACKENDS_EXCEPT_COLLEAGUE_IMPLEMENTATION",
+  "reviewBasis": "Full requirements inventory and recorded implementation evidence, with targeted source checks across four staging repositories. Not a new live deployment audit of every endpoint. Historical incomplete statements are superseded by later evidence only within its verified scope.",
+  "businessMutationsExecuted": false,
+  "featureImplementationStarted": false,
+  "paymentLaunch": "CASH_ONLY",
+  "launchPlatforms": [
+    "ANDROID",
+    "IOS"
+  ],
+  "priorityMeaning": {
+    "P0-OPS": "Complete or verify required cash operations first",
+    "P0-SCOPE-CHECK": "Resolve whether enabled launch service requires missing path; cannot silently mark done or silently defer",
+    "P0-IF-ENABLED": "Must complete before offering this optional launch method; otherwise keep unavailable",
+    "P0-RELEASE-AFTER-OPS": "Mandatory launch gates AFTER operational completion by user direction",
+    "P1": "Preserved post-launch work; no claims that planned feature is implemented",
+    "P2-PROVIDER": "Previously deferred payment/provider-dependent scope",
+    "EXCLUDED_COLLEAGUE": "Delegated implementation; monitor integration contract only"
+  },
+  "decisionsPreserved": [
+    "Current6000merchant payable left unpaid and assessment unchanged by user instruction",
+    "Do not repeat skipped merchant payout/combined compensation tests and do not mark skipped PASS",
+    "Merchant financial employee human test deferred by user",
+    "No new driver-only priority lane overriding the whole plan",
+    "No native platform release checks before operational P0",
+    "Do not implement delegated products/import work",
+    "2026-10-28: user authorized reviewing and integrating colleague product implementation; this supersedes delegation-only restriction for integration corrections. Remaining delegated scope retained.",
+    "2026-10-28: user explicitly requested completion of colleague product scope including bulk images, column mapping, inventory and actual staging deployment; completed as release 336. Delegation-only restriction superseded for this scope."
+  ],
+  "workItems": [
+    {
+      "id": "F01",
+      "applications": [
+        "ALL"
+      ],
+      "name": "وحدة المال والدفتر واللقطة المالية والتقريب ومنع التكرار",
+      "currentStatus": "IMPLEMENTED_WITH_HUMAN_SAMPLES",
+      "priority": "P0-OPS",
+      "remaining": "إغلاق تغطية التنافس والانقطاع ومطابقة أرصدة الإطلاق؛ لا إعادة بناء الدفتر",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/money.ts",
+        "docs/full-cash-verification-208.json",
+        "docs/cash-rounding-327.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "F02",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "شحن محفظة السائق والتحقق من قبض المال والرفض ومنع المرجع المكرر",
+      "currentStatus": "MANUAL_HUMAN_VERIFIED_GATEWAY_CURRENT_ACCEPTANCE_DEFERRED",
+      "priority": "P0-OPS",
+      "remaining": "الشحن بالوصل واعتماد الإدارة ووصول الرصيد والإشعار مثبتة بشريًا. اختبار بوابة الدفع المباشر الحالية مؤجل لتعذر رمز الهاتف؛ تبقى أدلة التشغيل الحقيقي مستقلة.",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/fundingService.ts",
+        "backend/wallet-service/src/topupService.ts",
+        "docs/operational-funding-hardening-258.json",
+        "docs/zaincash-readiness-260.json",
+        "backend/wallet-service/src/zaincashGateway.ts",
+        "../whizzDrivers-stg/frontend/lib/features/wallet/screens/topup_screen.dart",
+        "docs/wallet-recipient-picker-265.json",
+        "docs/monthly-wallet-266.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "F03",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "المتاح والمحجوز وكفاية الرصيد وحدود المحافظ وسجل الحركات",
+      "currentStatus": "OPERATING_LIMITS_PUBLISHED_355_HUMAN_ACCEPTANCE_PENDING",
+      "priority": "P0-OPS",
+      "remaining": "نُشرت حدود الشحن بالوصل وسقف اعتماد المسؤول اليومي وصرف السائق من إعدادات مركزية ذات إصدار. بقي القبول البشري المرتب؛ أُنجز تدقيق هوية إنشاء المحفظة ضمن A05 بالتحديث 356؛ إعدادات بوابة الدفع والتحويلات مستقلة ولم تتغير. يوم عداد اعتماد الشحن UTC محفوظ دون إعادة تصفير.",
+      "sourceOrEvidence": [
+        "../whizzDrivers-stg/frontend/lib/models/wallet_balance.dart",
+        "backend/wallet-service/src/reconciliation.ts",
+        "docs/monthly-wallet-266.json",
+        "../whizzDrivers-stg/docs/wallet-ui-pdf-269.json",
+        "backend/wallet-service/src/driverPayoutEligibility.ts",
+        "backend/wallet-service/test/driver-payout-eligibility.test.cjs",
+        "docs/reconciliation-implementation-354.json",
+        "docs/wallet-operating-limits-implementation-355.json",
+        "docs/wallet-operating-limits-publication-355.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "F04",
+      "applications": [
+        "DRIVER",
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "التحويلات الداخلية والحدود والهوية والتراجع عند النتيجة المجهولة",
+      "currentStatus": "PUBLISHED_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "تحكم مركزي بظهور التحويل في التطبيقات ونشر تقوية الحدود والحذف مثبتان بالاختبارات؛ لا تحويل مالي جديد ضمن الفحص. إطلاق التحويلات العامة وعمولتها يتطلبان حسم التصنيف القانوني بغياب ترخيص أو عقد يشمل التحويل.",
+      "sourceOrEvidence": [
+        "docs/finance-plan-reconciliation-2026-10-20.json",
+        "backend/wallet-service/src/merchantDeviceFinance.ts",
+        "docs/trip-transfer-controls-270.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "F05",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "سحب السائق وصرف الرصيد المستحق ونوع الرصيد المؤهل",
+      "currentStatus": "PUBLISHED_ENABLED_STAGING_HUMAN_CASH_ACCEPTANCE_PENDING",
+      "priority": "P0-OPS",
+      "remaining": "تثبيت تطبيق السائق وتوثيقه؛ قبول بشري مرتب لطلب الصرف من تعويض معتمد ورصيد شحن غير مستخدم، والمراجعة والتسليم من الصندوق وتأكيد الاستلام والمطابقة، والإلغاء وعدم الاستلام. محفظة الاختبار القديمة تحتاج مراجعة فرق مطابقة تاريخي؛ لا إصلاح تلقائي ولا قيد افتتاحي مختلق. أجرة COD المحتفظ بها لا تصرف ثانية.",
+      "sourceOrEvidence": [
+        "docs/finance-pricing-settlements-returns-unified-plan.md",
+        "docs/finance-plan-reconciliation-2026-10-20.json",
+        "docs/driver-payout-readiness-audit-20261027.json",
+        "docs/driver-cash-payout-v1-review.json",
+        "docs/driver-cash-payout-publication-v1.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "C01",
+      "applications": [
+        "CUSTOMER",
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "الطريق وتسعير الزبون والحد الأدنى والسلة والفاتورة والقبول الثابت",
+      "currentStatus": "IMPLEMENTED_WITH_HUMAN_SAMPLES",
+      "priority": "P0-OPS",
+      "remaining": "تغطية فشل الطريق وتغير العنوان/الفرع وانتهاء العرض والتكرار والتقريب دون سعر افتراضي",
+      "sourceOrEvidence": [
+        "docs/cash-rounding-327.json",
+        "../wizzuser-stg/docs/resume-checkpoint-latest.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "C02",
+      "applications": [
+        "ALL"
+      ],
+      "name": "الإكرامية واختياريتها وإعداداتها وملكيتها وعدم تكرار صرفها",
+      "currentStatus": "IMPLEMENTED_COD_ACCEPTANCE_MATRIX_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "مطابقة كل ضوابطv1.2 والمبالغ المخصصة والحدود والسياسة والإلغاء وإعادة الإسناد؛ Prepaid خارج البداية",
+      "sourceOrEvidence": [
+        "docs/finance-reference/driver-tips-v1.2-ar.txt",
+        "backend/wallet-service/src/codReassignment.ts"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "C03",
+      "applications": [
+        "CUSTOMER",
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "الخصومات والبرومو كود والتمويل المشترك وحصصه وحدود الاستخدام",
+      "currentStatus": "IMPLEMENTED_WITH_HUMAN_SAMPLES",
+      "priority": "P0-OPS",
+      "remaining": "اختبارات رفض الأهلية ومنع تكرار الاستعمال وتثبيت الشروط وإيقاف/استبدال الخصم المشترك؛ لا تعديل كتالوج الزميل",
+      "sourceOrEvidence": [
+        "docs/resume-checkpoint-latest.md",
+        "docs/cod-launch-exceptions-gap-audit-251.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "C04",
+      "applications": [
+        "CUSTOMER",
+        "MERCHANT",
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "الإلغاء حسب المرحلة وقرار الإدارة بعد فك الإسناد",
+      "currentStatus": "HUMAN_VERIFIED_SCOPE",
+      "priority": "P0-OPS",
+      "remaining": "حفظ أدلة256 و257 وربطها بالمصفوفة؛ لا إعادة الاختبار نفسه بلا سبب",
+      "sourceOrEvidence": [
+        "docs/admin-cancellation-human-audit-256.json",
+        "docs/cancellation-null-funding-publication-256.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "C05",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "شكوى مرتبطة بطلب مسلّم وصور وتذكرة وحالة وقرار وسبب وإعادة مراجعة",
+      "currentStatus": "PUBLISHED_341_MODERN_GUEST_APPLICABILITY_AUDITED_LOCAL_CONTINUATION_342_HUMAN_QUEUED",
+      "priority": "P0-OPS",
+      "remaining": "الخادم المنشور لا يقبل إنشاء طلب ضيف جديد في المسار الحديث؛ أُصلحت متابعة الضيف محليًا بطلب التحقق والحفاظ على السلة والنقطة والعودة لإتمام الطلب المرتبط بالحساب. مسار الشكوى 341 منشور للمستخدم المسجل صاحب الطلب. تبقى نسخة التطبيق والاختبارات البشرية المؤجلة، وإثبات ملكية طلبات الضيوف التاريخية فجوة منفصلة لا تُحل برمز ضيف قديم أو رقم هاتف غير موثق. حفظ الأدلة ضمن X02. ظهرت إخفاقات قديمة في اختبارات الفاتورة وسُجل إصلاحها دون إضعاف اشتراط مراجعة الإجمالي.",
+      "sourceOrEvidence": [
+        "docs/cod-launch-execution-tracker.json",
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/customer-order-complaints-341.json",
+        "docs/customer-order-complaints-deployment-plan-341.json",
+        "docs/customer-order-complaints-human-acceptance-341.csv",
+        "docs/customer-order-complaints-publication-341.json",
+        "docs/guest-checkout-identity-audit-342.json",
+        "docs/guest-checkout-human-acceptance-342.csv"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "C06",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "ربط التعويض الموجه القائم بصاحب الطلب والقضية وحالة الاستخدام",
+      "currentStatus": "PUBLISHED_HUMAN_ACCEPTANCE_PENDING",
+      "priority": "P0-OPS",
+      "remaining": "نُشر امتداد الربط إلى شكوى C05: المنحة الشخصية تطابق مبلغ القرار المعتمد، ولا تغلق الشكوى قبل إثبات الربط وسريان المنحة؛ لا يُعد ذلك ردًا نقديًا. الاختبار البشري المؤجل باقٍ.",
+      "sourceOrEvidence": [
+        "docs/customer-benefit-compensation-verification-252.json",
+        "backend/staff-service/customer-benefit-compensation.js",
+        "docs/customer-order-complaints-publication-341.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "C07",
+      "applications": [
+        "CUSTOMER",
+        "MERCHANT",
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "سياسات الإلغاء والعودة ومسؤولية الأطراف وإظهار الشروط وحفظ الإصدار",
+      "currentStatus": "THREE_APP_POLICIES_PUBLISHED_BACKENDS_APPS_DEPLOYED_344_HUMAN_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "نشر المستخدم الإصدار الأول لسياسات التطبيقات الثلاثة؛ فُعل ربط التسجيل والقراءة وثُبتت النسخة344. المتبقي قبول التسجيل البشري لكل دور وصفحات السياسات العامة قبل إصدار المتاجر وبقية متطلبات C07 المستقلة.",
+      "sourceOrEvidence": [
+        "docs/checkout-policy-publication-179.json",
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/customer-order-policy-343.json",
+        "docs/customer-order-policy-343-review.txt",
+        "docs/customer-order-policy-human-acceptance-343.csv",
+        "docs/application-legal-policies-344.json",
+        "docs/application-legal-research-344.json",
+        "docs/application-legal-cms-publication-344.json",
+        "docs/application-legal-human-acceptance-344.csv",
+        "docs/application-legal-consumers-publication-344.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "C08",
+      "applications": [
+        "CUSTOMER",
+        "MERCHANT",
+        "DRIVER"
+      ],
+      "name": "التتبع وسجل الطلبات وحالات التعذر والعودة والمراجعة والبحث البديل",
+      "currentStatus": "IMPLEMENTED_WITH_ACCEPTANCE_GAPS",
+      "priority": "P0-OPS",
+      "remaining": "مطابقة تحديث الحالات ومصدر التقدير والبيانات القديمة والانقطاع؛ وصول بديل فعلي بعد254 ما زال معلقًا",
+      "sourceOrEvidence": [
+        "docs/redispatch-tests-254.json",
+        "docs/redispatch-live-verification-254.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D01",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "أهلية الحساب والمركبة والوثائق والمنطقة والموقع وفئة الطلب",
+      "currentStatus": "ORDINARY_ORDER_VEHICLE_SCOPE_AUDITED_LIVE_ENFORCEMENT_VERIFIED_ORDERED_HUMAN_ACCEPTANCE_PENDING",
+      "priority": "P0-OPS",
+      "remaining": "تدقيق توافق فئة الطلب والمركبة مكتمل ضمن نطاق الإطلاق الذي أكده المستخدم: مطاعم ومتاجر بطلبات معتادة، سيارة أو دراجة معتمدتان. تبقى التجارب البشرية المرتبة لصلاحية الوثائق والمناطق والتزامن؛ لا ندعي نجاحها. البضائع الكبيرة خارج هذا الاعتماد وتحتاج متطلبات مستقلة قبل تفعيلها.",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/dispatchCandidates.ts",
+        "docs/driver-performance-v1.6-gap-analysis-and-integration.md",
+        "docs/driver-eligibility-271.json",
+        "docs/driver-ordinary-delivery-compatibility-20261027.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true,
+      "latestEvidence": "docs/driver-work-region-publication-311.json"
+    },
+    {
+      "id": "D02",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "عرض الأجرة والتحصيل والحجز وقبول/رفض وسحب العرض ومنع فائزين",
+      "currentStatus": "IMPLEMENTED_WITH_HUMAN_SAMPLES",
+      "priority": "P0-OPS",
+      "remaining": "تجربة الرصيد غير الكافي وتزامن القبول وفقد الرد وسحب العرض دون عقوبة أو استعادة قديمة",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/dispatchCoordinator.ts",
+        "docs/finance-pricing-settlements-returns-unified-plan.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D03",
+      "applications": [
+        "DRIVER",
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "المهمة النشطة والوصول والتسليم للمندوب وتحرير المهمة القديمة",
+      "currentStatus": "IMPLEMENTED_WITH_HUMAN_SAMPLES",
+      "priority": "P0-OPS",
+      "remaining": "استكمال قبول الحارس261 والانقطاع والطلب الجديد بعد الإلغاء؛ لا إعادة بناء الشاشات295–309",
+      "sourceOrEvidence": [
+        "../whizzDrivers-stg/docs/driver-assignment-release-261.json",
+        "docs/resume-checkpoint-latest.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D04",
+      "applications": [
+        "DRIVER",
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "بلاغات الاستلام الخمسة وملكية المتابعة والاتصالات والقرار والإغلاق",
+      "currentStatus": "PUBLISHED_HUMAN_ACCEPTANCE_PENDING",
+      "priority": "P0-OPS",
+      "remaining": "اختبار بلاغ فعلي حتى قرار قائم على دليل؛ عدم وجود صنف لا يسمح بتبديله أو تغيير الفاتورة بلا عقد وموافقة",
+      "sourceOrEvidence": [
+        "docs/pickup-workflow-verification-253.json",
+        "backend/staff-service/pickup-issue-workflow.js"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D05",
+      "applications": [
+        "ALL"
+      ],
+      "name": "تعذر التسليم والانتظار والتواصل والعودة والعهدة والأدلة والاعتراض",
+      "currentStatus": "IMPLEMENTED_EXTENDED_FLOWS_ACCEPTANCE_PARTIAL",
+      "priority": "P0-OPS",
+      "remaining": "مطابقة السيناريوهات غير المقبولة بعد؛ الاحتفاظ بالعهدة والضمان منفصلين حتى حسمهما",
+      "sourceOrEvidence": [
+        "docs/return-custody-real-reconciliation-241.json",
+        "docs/cod-launch-exceptions-matrix-251.csv",
+        "backend/wallet-service/src/returnCustody.ts"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D06",
+      "applications": [
+        "DRIVER",
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "تأكيد التسليم والتحصيل الكامل/الناقص والنزاع ورد النقد الموثق",
+      "currentStatus": "IMPLEMENTED_HUMAN_ACCEPTANCE_PARTIAL",
+      "priority": "P0-OPS",
+      "remaining": "ربط دليل277 والحالات البديلة278 والتحصيل المختلف والقيمة الصفرية ومنع التحصيل الوهمي؛ لا تحويل كوبون إلى إيصال رد نقد",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/customerCashReview.ts",
+        "backend/wallet-service/src/cashAdjudication.ts",
+        "docs/resume-checkpoint-latest.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D07",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "الرحلات والأرباح والتفاصيل والإكرامية والتعويضات مقابل النقد والمحفظة",
+      "currentStatus": "PUBLISHED_RECORDED_ACCEPTANCE",
+      "priority": "P0-OPS",
+      "remaining": "تدقيق أثر الإلغاء والتعويض والعودة على الإجماليات ومنع اعتبار تحصيلCOD دخلًا؛ إعادة استعمال311/312",
+      "sourceOrEvidence": [
+        "../whizzDrivers-stg/docs/trips-history-verification-311.json",
+        "../whizzDrivers-stg/docs/earnings-verification-312.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D08",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "الإحصائيات الأساسية وصحة المصدر وإزالة المؤشرات المصطنعة",
+      "currentStatus": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+      "priority": "P0-OPS",
+      "remaining": "نُشرت وثُبتت نسخة272: إثبات ظهور العرض واحتساب انتهاء المهلة، وقرار أداء مستقل لكل محاولة. تبقى تجربة بشرية لانتهاء المهلة وقرار الإدارة؛ لا عقوبات أهلية جديدة.",
+      "sourceOrEvidence": [
+        "docs/driver-performance-v1.6-gap-analysis-and-integration.md",
+        "backend/wallet-service/src/codIntegration.ts",
+        "docs/driver-performance-support-ready.json",
+        "docs/driver-performance-policy-272.json",
+        "docs/driver-performance-ordered-acceptance-tests.json",
+        "docs/driver-performance-timing-273.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true,
+      "manualAcceptance": "DEFERRED_BY_USER_NOT_PASSED"
+    },
+    {
+      "id": "D09",
+      "applications": [
+        "CUSTOMER",
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "تقييم السائق من الطلب ومراجعة التقييمات والاستبعاد والاعتراض",
+      "currentStatus": "QUALITY290_PUBLISHED_DRIVER_RELEASE_INSTALLED_POLICY_AND_HUMAN_ACCEPTANCE_OPEN",
+      "priority": "P1",
+      "remaining": "نُشر مسار الحوادث والاعتراض في الخادم وتطبيق السائق Release290 بعد موافقة القراءة المحددة. المستخدم ينفذ تجربة عدم الإكمال للطلبORD1792911323338 بنفسه وتحتاج تحققًا بعد إتمام الأزرار. لا توجد سياسة احتفاظ معتمدة للقضايا غير المالية؛ الحذف المتأثر ينتظر مراجعتها دون مدة مخترعة. عرض تقييم السائق للزبون والمطعم ما زال بندًا مستقلًا مفتوحًا. التاليD01 للمركبة والوثائق والمنطقة.",
+      "sourceOrEvidence": [
+        "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+        "docs/driver-performance-support-ready.json",
+        "docs/driver-rating-review-280.json",
+        "docs/driver-rating-window-281.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true,
+      "ratingReview280": {
+        "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+        "evidence": "docs/driver-rating-review-280.json",
+        "published": true,
+        "windowBasis": "ALL_TIME_VERIFIED_RATINGS_LAST100_REMAINS_OPEN",
+        "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED"
+      },
+      "ratingWindow281": {
+        "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+        "evidence": "docs/driver-rating-window-281.json",
+        "published": true
+      },
+      "driverAccountRating282": {
+        "status": "UI_IMPLEMENTED_TESTED_RELEASE_BUILD_IN_PROGRESS",
+        "ratingDataMutationExecuted": false,
+        "ratingSeedDecision": "PENDING_USER_REAL_CUSTOMER_OR_LABELLED_TEST_DATA",
+        "evidence": [
+          "frontend/test/more/account_details_test.dart",
+          "frontend/test/ratings/profile_rating_test.dart",
+          "frontend/test/more/more_tab_layout_test.dart"
+        ],
+        "automatedTestsPassed": 12,
+        "manualAcceptance": "DEFERRED_NOT_PASSED",
+        "fixed": [
+          "Arabic RTL neutral white/navy layout",
+          "No default zero deliveries or zero-star rating",
+          "Only verified customerRating with positive customerRatingCount shown",
+          "No fake join date displayed; original createdAt only",
+          "Preserve original document fields and timestamps from API instead of dropping them",
+          "Separate account approval from documentsVerified",
+          "PENDING identity and license values displayed as unregistered",
+          "Only name/city editable; only those two fields sent from account screen; reload server after saving",
+          "Phone/email/photo edits unsupported and explicitly unavailable; delete-account route preserved",
+          "Legacy profile totalEarnings/completionRate removed in favor of actual performance screen"
+        ],
+        "remaining": [
+          "Customer order tracking: authenticated assigned-driver rating projection and display missing",
+          "Merchant order card: authenticated assigned-driver rating projection and display missing",
+          "Audit original rating submission customer branch integration before creating any customer-owned rating",
+          "Profile photo upload/persistence missing backend allowlist/storage flow; deferred",
+          "Identity/vehicle/document validity remains D01; display of existing flags does not complete eligibility",
+          "Manual device acceptance deferred"
+        ],
+        "sourceFindings": {
+          "customer": "frontend/lib/screens/order_tracking_screen.dart shows driverName without rating",
+          "merchant": "frontend/lib/widgets/order_card.dart shows driverName without rating",
+          "ratingTable": "Last281 read-only verification found zero records; no fictitious scores inserted"
+        }
+      },
+      "customerRatingIntegration283": {
+        "status": "RELEASE_283_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_PENDING",
+        "sourceBranch": "origin/feature/order-ratings-20261024",
+        "sourceCommit": "30dc40f1df8f89a952ff6803a458f5ffc1b367f8",
+        "integration": "Selective new screen/service/test plus rating navigation and restaurant aggregate/cache fields; no branch merge or unrelated checkout changes",
+        "testsPassed": 14,
+        "analysis": "No issues found in rating screen/service/business model",
+        "customerRatingCreated": false,
+        "manualAcceptance": "READY_NOT_EXECUTED",
+        "remaining": "Complete delivered cash order as customer, submit separate merchant/driver rating, verify original row and aggregates then driver and public display; customer/merchant assigned-driver average projections remain separate open item.",
+        "release": {
+          "build": 283,
+          "buildPassed": true,
+          "device": "iMohammed",
+          "installPassed": true,
+          "launchPassed": true
+        }
+      },
+      "restaurantRatingDisplay285": {
+        "status": "PUBLISHED_PUBLIC_LIST_AND_DETAILS_VERIFIED_SIMULATOR285_INSTALLED",
+        "evidence": "docs/restaurant-rating-and-cart-sheet-285.json",
+        "publicApiVerification": {
+          "detail": {
+            "success": true,
+            "found": true,
+            "rating": 4,
+            "reviewCount": 1
+          },
+          "list": {
+            "success": true,
+            "found": true,
+            "rating": 4,
+            "reviewCount": 1
+          }
+        }
+      },
+      "driverQualityReview289": {
+        "status": "ADMIN_WORKFLOW_PUBLISHED_STAGING_DRIVER_SELF_SERVICE_OPEN",
+        "scope": "STAFF_ORDER_LINKED_QUALITY_SAFETY_CASES",
+        "features": [
+          "Category and severity with urgent operational warning",
+          "Authenticated case owner and verified accepted assignment binding",
+          "Multiple independent incident IDs per order",
+          "References and statements recorded as received; not proof by label alone",
+          "Substantiated result requires two different source parties and selected stored evidence",
+          "Reasoned decisions, revision chain, immutable events, exact idempotency/version guards",
+          "Driver appeal recorded by staff and evidence-backed uphold/revision",
+          "Existing open-cases queue and order-management entry",
+          "Existing incident remains bound to original accepted driver after reassignment"
+        ],
+        "unchanged": [
+          "Wallet/ledger/order/account business state",
+          "Rating stars/average/count",
+          "Existing dispatch/eligibility policies"
+        ],
+        "newTables": false,
+        "newIam": false,
+        "businessMutationsByAgent": 0,
+        "tests": {
+          "sourceAndRegression": 35,
+          "capturedCandidate": 9,
+          "browser": "PASS_390px_AUTH_RETRY_EVIDENCE_DECISION"
+        },
+        "manualAcceptance": "DEFERRED_READY_NOT_PASSED",
+        "limits": [
+          "Creation requires a currently verifiable accepted assignment; creating a new case for an already released historical attempt is not implemented",
+          "Driver self-service incident list and direct appeal submission not implemented; staff records received driver appeal",
+          "No numerical quality score, penalty tier or automatic account suspension",
+          "Open nonfinancial-case retention during account deletion requires separate audit; do not claim completed",
+          "Urgent severity is a visible triage priority; automated emergency paging or escalation SLA is not implemented"
+        ],
+        "evidence": [
+          "backend/wallet-service/test/driver-quality-review.test.cjs",
+          "backend/staff-service/test/driver-quality-review-289.test.cjs",
+          "scripts/test-driver-quality-review-browser-289.cjs",
+          "docs/driver-quality-review-packages-289.json"
+        ],
+        "publication": "docs/driver-quality-review-publication-289.json",
+        "hostingJob": "207",
+        "authenticatedBoundary": {
+          "unauthenticatedStatus": 401,
+          "businessWrites": false
+        }
+      },
+      "driverQualitySelfService290": {
+        "status": "PUBLISHED_STAGING_RELEASE290_INSTALLED_LAUNCHED",
+        "features": [
+          "Own incident list with original accepted-offer and immutable-event proof",
+          "No disclosure of staff identities, other-party evidence references, financial receipts or customer data",
+          "Partial bounded history explicitly labelled and read errors never shown as clean empty results",
+          "Original-token Cognito verification for own driver appeal",
+          "Driver appeal reopens same administrative case with exact idempotency/version guards",
+          "New case on released prior assignment uses original release archive and matching integration event and accepted offer",
+          "Open or resolved quality cases pause driver deletion for review; no invented nonfinancial retention duration and no financial debt inferred"
+        ],
+        "tests": {
+          "sourceRegression": 38,
+          "accountDeletionSource": 272,
+          "capturedIncidentAndAppeal": 16,
+          "capturedRetention": 13,
+          "flutter": 13,
+          "flutterAnalysis": "No issues found"
+        },
+        "driverRelease": {
+          "build": 290,
+          "built": true,
+          "installed": true,
+          "launched": true
+        },
+        "businessMutationsByAgent": 0,
+        "retentionPolicy": {
+          "userAnswer": "NO_APPROVED_POLICY",
+          "duration": null,
+          "status": "PENDING_POLICY_REVIEW",
+          "noAutomaticPurgeOrFinancialRetentionReuse": true
+        },
+        "permission": {
+          "status": "EXPLICIT_USER_APPROVED_APPLIED_VERIFIED",
+          "policy": "docs/driver-quality-read-policy-290.json",
+          "action": "dynamodb:Query",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+          "writePermissionAdded": false,
+          "applied": true,
+          "userApproval": "نعم اوافق",
+          "approvalContext": "User approved the exact named read-only Query scope and then requested inspection of ORD1792911323338 first."
+        },
+        "manualAcceptance": "DEFERRED_READY_AFTER_PUBLICATION_NOT_PASSED",
+        "remaining": [
+          "Human acceptance remains deferred except the cancellation/completion test the user is now performing manually",
+          "Approve a separate nonfinancial retention policy before deleting affected case evidence; no duration selected",
+          "Public assigned-driver rating display in customer and merchant apps remains separate unfinished work",
+          "D01 vehicle approval, document validity and operating region remains open"
+        ],
+        "publication": "docs/driver-quality-self-service-publication-290.json",
+        "corePublishedFunctions": [
+          "staging-driver-financial-accept",
+          "staging-account-deletion-requests",
+          "staging-account-deletion-worker"
+        ],
+        "driverApiPublished": true,
+        "authenticatedBoundary": {
+          "list": 401,
+          "appeal": 401
+        }
+      }
+    },
+    {
+      "id": "D10",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "مقاييسv1.6 آخر100عرض والتزام وOn-Time والجودة والسلامة",
+      "currentStatus": "QUALITY290_PUBLISHED_DRIVER_RELEASE_INSTALLED_POLICY_AND_HUMAN_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "نُشر مسار الحوادث والاعتراض في الخادم وتطبيق السائق Release290 بعد موافقة القراءة المحددة. المستخدم ينفذ تجربة عدم الإكمال للطلبORD1792911323338 بنفسه وتحتاج تحققًا بعد إتمام الأزرار. لا توجد سياسة احتفاظ معتمدة للقضايا غير المالية؛ الحذف المتأثر ينتظر مراجعتها دون مدة مخترعة. عرض تقييم السائق للزبون والمطعم ما زال بندًا مستقلًا مفتوحًا. التاليD01 للمركبة والوثائق والمنطقة.",
+      "sourceOrEvidence": [
+        "docs/driver-performance-v1.6-gap-analysis-and-integration.md",
+        "docs/driver-performance-support-ready.json",
+        "docs/driver-performance-policy-272.json",
+        "docs/driver-performance-ordered-acceptance-tests.json",
+        "docs/driver-performance-timing-273.json",
+        "docs/driver-timing-review-279.json",
+        "docs/driver-rating-review-280.json",
+        "docs/driver-rating-window-281.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true,
+      "manualAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+      "ratingReview280": {
+        "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+        "evidence": "docs/driver-rating-review-280.json",
+        "published": true,
+        "windowBasis": "ALL_TIME_VERIFIED_RATINGS_LAST100_REMAINS_OPEN",
+        "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED"
+      },
+      "ratingWindow281": {
+        "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+        "evidence": "docs/driver-rating-window-281.json",
+        "published": true
+      },
+      "driverQualityReview289": {
+        "status": "ADMIN_WORKFLOW_PUBLISHED_STAGING_DRIVER_SELF_SERVICE_OPEN",
+        "scope": "STAFF_ORDER_LINKED_QUALITY_SAFETY_CASES",
+        "features": [
+          "Category and severity with urgent operational warning",
+          "Authenticated case owner and verified accepted assignment binding",
+          "Multiple independent incident IDs per order",
+          "References and statements recorded as received; not proof by label alone",
+          "Substantiated result requires two different source parties and selected stored evidence",
+          "Reasoned decisions, revision chain, immutable events, exact idempotency/version guards",
+          "Driver appeal recorded by staff and evidence-backed uphold/revision",
+          "Existing open-cases queue and order-management entry",
+          "Existing incident remains bound to original accepted driver after reassignment"
+        ],
+        "unchanged": [
+          "Wallet/ledger/order/account business state",
+          "Rating stars/average/count",
+          "Existing dispatch/eligibility policies"
+        ],
+        "newTables": false,
+        "newIam": false,
+        "businessMutationsByAgent": 0,
+        "tests": {
+          "sourceAndRegression": 35,
+          "capturedCandidate": 9,
+          "browser": "PASS_390px_AUTH_RETRY_EVIDENCE_DECISION"
+        },
+        "manualAcceptance": "DEFERRED_READY_NOT_PASSED",
+        "limits": [
+          "Creation requires a currently verifiable accepted assignment; creating a new case for an already released historical attempt is not implemented",
+          "Driver self-service incident list and direct appeal submission not implemented; staff records received driver appeal",
+          "No numerical quality score, penalty tier or automatic account suspension",
+          "Open nonfinancial-case retention during account deletion requires separate audit; do not claim completed",
+          "Urgent severity is a visible triage priority; automated emergency paging or escalation SLA is not implemented"
+        ],
+        "evidence": [
+          "backend/wallet-service/test/driver-quality-review.test.cjs",
+          "backend/staff-service/test/driver-quality-review-289.test.cjs",
+          "scripts/test-driver-quality-review-browser-289.cjs",
+          "docs/driver-quality-review-packages-289.json"
+        ],
+        "publication": "docs/driver-quality-review-publication-289.json",
+        "hostingJob": "207",
+        "authenticatedBoundary": {
+          "unauthenticatedStatus": 401,
+          "businessWrites": false
+        }
+      },
+      "driverQualitySelfService290": {
+        "status": "PUBLISHED_STAGING_RELEASE290_INSTALLED_LAUNCHED",
+        "features": [
+          "Own incident list with original accepted-offer and immutable-event proof",
+          "No disclosure of staff identities, other-party evidence references, financial receipts or customer data",
+          "Partial bounded history explicitly labelled and read errors never shown as clean empty results",
+          "Original-token Cognito verification for own driver appeal",
+          "Driver appeal reopens same administrative case with exact idempotency/version guards",
+          "New case on released prior assignment uses original release archive and matching integration event and accepted offer",
+          "Open or resolved quality cases pause driver deletion for review; no invented nonfinancial retention duration and no financial debt inferred"
+        ],
+        "tests": {
+          "sourceRegression": 38,
+          "accountDeletionSource": 272,
+          "capturedIncidentAndAppeal": 16,
+          "capturedRetention": 13,
+          "flutter": 13,
+          "flutterAnalysis": "No issues found"
+        },
+        "driverRelease": {
+          "build": 290,
+          "built": true,
+          "installed": true,
+          "launched": true
+        },
+        "businessMutationsByAgent": 0,
+        "retentionPolicy": {
+          "userAnswer": "NO_APPROVED_POLICY",
+          "duration": null,
+          "status": "PENDING_POLICY_REVIEW",
+          "noAutomaticPurgeOrFinancialRetentionReuse": true
+        },
+        "permission": {
+          "status": "EXPLICIT_USER_APPROVED_APPLIED_VERIFIED",
+          "policy": "docs/driver-quality-read-policy-290.json",
+          "action": "dynamodb:Query",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+          "writePermissionAdded": false,
+          "applied": true,
+          "userApproval": "نعم اوافق",
+          "approvalContext": "User approved the exact named read-only Query scope and then requested inspection of ORD1792911323338 first."
+        },
+        "manualAcceptance": "DEFERRED_READY_AFTER_PUBLICATION_NOT_PASSED",
+        "remaining": [
+          "Human acceptance remains deferred except the cancellation/completion test the user is now performing manually",
+          "Approve a separate nonfinancial retention policy before deleting affected case evidence; no duration selected",
+          "Public assigned-driver rating display in customer and merchant apps remains separate unfinished work",
+          "D01 vehicle approval, document validity and operating region remains open"
+        ],
+        "publication": "docs/driver-quality-self-service-publication-290.json",
+        "corePublishedFunctions": [
+          "staging-driver-financial-accept",
+          "staging-account-deletion-requests",
+          "staging-account-deletion-worker"
+        ],
+        "driverApiPublished": true,
+        "authenticatedBoundary": {
+          "list": 401,
+          "appeal": 401
+        }
+      }
+    },
+    {
+      "id": "D11",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "Score ومستويات المكافآت وشروط العينة والسماح وتاريخ الاعتراض",
+      "currentStatus": "NOT_IMPLEMENTED_AS_SPECIFIED",
+      "priority": "P1",
+      "remaining": "حساب ونشر مؤرخ ومعاينة وسجل وتفاصيل للسائق؛ الأوزان المقترحة لا تصبح معتمدة تلقائيًا",
+      "sourceOrEvidence": [
+        "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D12",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "ترتيب العروض بوقت الوصول والأداء والفرص العادلة وShadow",
+      "currentStatus": "UNIFIED_PERFORMANCE_SNAPSHOTS_ENFORCED_NEW_RANKING_PENDING",
+      "priority": "P1",
+      "remaining": "ربط تفسير وأثر الأوزان ومقارنةظل وإعفاءالجديد وسهولةالإيقاف دون تعطيل الأهلية",
+      "sourceOrEvidence": [
+        "docs/driver-performance-v1.6-gap-analysis-and-integration.md",
+        "backend/wallet-service/src/dispatchPolicy.ts"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true,
+      "currentSourceClarification": "المصدر المحفوظ الحديث مفعل بالفعل؛ البند المتبقي خوارزمية الترتيب الجديدة، ولا يعني العودة للمؤشرات القديمة."
+    },
+    {
+      "id": "D13",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "توقعات الطلب والإحصاءات المتقدمة",
+      "currentStatus": "IMPLEMENTED_STAGING_SIMULATION_LIVE_PENDING",
+      "priority": "P1",
+      "remaining": "مصدرLIVEوتراكم تاريخ وتحقق دقة وإيصال تنبيهات التشغيل؛ لا عرض المحاكاة كطلب فعلي",
+      "sourceOrEvidence": [
+        "../whizzDrivers-stg/docs/demand-verification-314.json",
+        "../whizzDrivers-stg/docs/resume-checkpoint-latest.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M01",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "حساب المالك وتسجيل الأنشطة والوثائق والمراجعة وربط الاتفاقية",
+      "currentStatus": "IMPLEMENTED_BRANCH_READINESS_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "فحص جاهزية أنشطة الإطلاق فقط وهويةالمالكوالفرعوالمنظمة والموقع والساعاتوالوثائق والحظر",
+      "sourceOrEvidence": [
+        "docs/merchant-onboarding-branches-staff-transition-plan.md",
+        "docs/resume-checkpoint-latest.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M02",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "فصل الفروع والعضويات والجلسات والهاتف الشخصي وهاتف الفرع",
+      "currentStatus": "PUBLISHED_345_BRANCH_ISOLATION_MERCHANT_REALTIME_AND_CUTOVER_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "نُشرت حواجز التبديل والاستعادة والخروج ونطاق الطلب والتحقق الفعلي من اتصال المطعم، وثُبتت نسخة345. وافق المستخدم على انتقال الاتصالات القديمة؛ ثبت أنها30اتصالًا منتهيًا وأزيلت سجلاتها فقط دون حسابات أو طلبات أو أموال. بقي القبول البشري المرتب. تدقيق تفويض قنوات الزبون والسائق محفوظ في بندP0مستقل.",
+      "sourceOrEvidence": [
+        "docs/merchant-onboarding-branches-staff-transition-plan.md",
+        "../whizzMerchants-stg/backend/functions/auth/branch_devices.js",
+        "docs/merchant-branch-isolation-345.json",
+        "../whizzMerchants-stg/docs/branch-isolation-publication-345.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M03",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "أنواع الموظفين والمنح الفعلية والسحب الحي وحدود كل دور",
+      "currentStatus": "PUBLISHED_LIMITED_PRESETS_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "تشغيل القدرات المنشورة فقط؛ اختبارالموظفالمالي مؤجل بطلب المستخدم ولا يوسمPASSولا يعادفرضه دونتغييرالقرار",
+      "sourceOrEvidence": [
+        "docs/merchant-staff-settlements-verification-259.json",
+        "docs/merchant-staff-settlements-policy-259.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M04",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "تفويض تابع وتحويل موظف جهاز الفرع والحزمة الشاملة",
+      "currentStatus": "PARTIAL_LOCAL_OR_UNPUBLISHED_SCOPE",
+      "priority": "P1",
+      "remaining": "تدقيق ونشر التحويل والتفويض عند الحاجة؛ استمرار إغلاق القدرات غيرالمنفذة وعدم توسيع منح قديمة تلقائيًا",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/merchantDeviceFinance.ts",
+        "docs/finance-plan-live-audit-2026-10-20.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M05",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "ربط جهاز الفرع وPINوقفل المهام واستقبال الطلبات وسحب الجهاز",
+      "currentStatus": "IMPLEMENTED_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "قبولOTPالمستقلوالاقترانوالانتهاءوالسحبأثناءالعملية واستمراراستقبالالطلبات دون جلسةمالية مفتوحة",
+      "sourceOrEvidence": [
+        "../whizzMerchants-stg/backend/functions/auth/device_pairing_verification.js",
+        "docs/merchant-onboarding-branches-staff-transition-plan.md",
+        "docs/branch-device-audit-351.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "audit20261029": {
+        "scope": "Source audit and local regression; not a deployed-runtime certification",
+        "backendTestsPassed": 89,
+        "flutterTestsPassed": 11,
+        "fix": "Ignore a delayed employee profile response when its staff session differs from the current session.",
+        "deployment": "Merchant frontend build 351 installed and launched on merchant iPhone 16 simulator; no server changes.",
+        "remaining": [
+          "Human independent OTP pairing, lock/expiry, device revocation during operation and background reception acceptance"
+        ],
+        "runtimeEvidence": "docs/branch-device-audit-351.json",
+        "deployedStageVerified": true,
+        "productsBundleNormalizedMatch": true
+      }
+    },
+    {
+      "id": "M06",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "ساعات العمل وحالة الاستقبال ووضع مشغول بمدة وتعديل البيانات",
+      "currentStatus": "RUNTIME_AUDITED_HUMAN_ACCEPTANCE_OPEN",
+      "priority": "P0-SCOPE-CHECK",
+      "remaining": "اختبارات التطبيق البشرية: الإيقاف والعودة وعدم تجاوز الإغلاق اليدوي وحظر الإدارة؛ جدول الأسبوع؛ طلب الاسم والموقع وموافقة/رفض الإدارة وانعكاس البيانات للزبون.",
+      "sourceOrEvidence": [
+        "../whizzMerchants-stg/backend/functions/auth/branch_device_status.js",
+        "docs/merchant-onboarding-branches-staff-transition-plan.md",
+        "docs/merchant-hours-pause-audit-351.json",
+        "docs/merchant-business-profile-audit-351.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "runtimeEvidence": "docs/merchant-hours-pause-audit-351.json",
+      "businessProfileEvidence": "docs/merchant-business-profile-audit-351.json"
+    },
+    {
+      "id": "M07",
+      "applications": [
+        "MERCHANT",
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "استقبال الطلبات والتجهيز والتسليم الفعلي للسائق وتأكيد المرتجع",
+      "currentStatus": "IMPLEMENTED_WITH_HUMAN_SAMPLES",
+      "priority": "P0-OPS",
+      "remaining": "توحيدالواجهةوالحالةوالعهدةوصلاحياتمؤكدالعودة وموانعالإلغاءبعدالتسليم",
+      "sourceOrEvidence": [
+        "docs/handover-admin-cancellation-publication-248.json",
+        "docs/return-custody-real-reconciliation-241.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M08",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "الاتفاقيات والعمولات ورسوم الخدمة وموافقات تمويل الخصومات",
+      "currentStatus": "IMPLEMENTED_WITH_HUMAN_SAMPLES",
+      "priority": "P0-OPS",
+      "remaining": "مطابقة أنشطةالإطلاقوقبولالمالك/المخولونطاقه وإصدارالشروطوالتغييردونأثررجعي",
+      "sourceOrEvidence": [
+        "docs/finance-pricing-settlements-returns-unified-plan.md",
+        "docs/resume-checkpoint-latest.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M09",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "المستحقات والحساب والكشوف والفترات الثلاث والافتتاحي والاعتراض",
+      "currentStatus": "PUBLISHED_MANUAL_COLLECTION_WITH_HUMAN_SAMPLES",
+      "priority": "P0-OPS",
+      "remaining": "إكمال قبول فتراتأسبوع/14يومًا/شهر وصافيالصفر والسالبوالافتتاحي دونكشفينللمستحق؛ لا إعلانعاملإقفالآلي",
+      "sourceOrEvidence": [
+        "docs/merchant-collection-live-verification-216.json",
+        "backend/wallet-service/src/merchantSettlementScheduleWorkflow.ts"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M10",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "الصرف النقدي والصناديق والسند وإقرار المستلم والمطابقة",
+      "currentStatus": "HUMAN_VERIFIED_SCOPE",
+      "priority": "P0-OPS",
+      "remaining": "المسار النقدي مثبت؛ تعويض6000الحالي يُتركبانتظارالصرفحسبالمستخدم ولايمنعالاستمرارولا يعادالصرفالسابق",
+      "sourceOrEvidence": [
+        "docs/merchant-cancellation-compensation-human-audit-257.json",
+        "docs/payout-report-verification-256.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M11",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "حوالة زين كاش اليدوية والتحقق من الوجهة ونتيجة مجهولة",
+      "currentStatus": "IMPLEMENTED_HUMAN_ACCEPTANCE_UNPROVEN",
+      "priority": "P0-IF-ENABLED",
+      "remaining": "إذا ستتاح عندالإطلاق: اختبارالوجهةوالتنفيذوالمطابقةوالتكرار؛ وإلاتظل معطلةمعالنقدالمتاح",
+      "sourceOrEvidence": [
+        "docs/finance-pricing-settlements-returns-unified-plan.md",
+        "docs/finance-plan-reconciliation-2026-10-20.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "M12",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "الخصومات من المالك/المدير/جهاز الفرع وسجل الموافقات",
+      "currentStatus": "IMPLEMENTED_SCOPE_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "مطابقةالدوروالفرعوثباتالشراكةوإيقافوإنشاءبديلورسائلالرفض وحدودالاستخدام",
+      "sourceOrEvidence": [
+        "../whizzMerchants-stg/backend/functions/auth/branch_device_discounts.js",
+        "docs/resume-checkpoint-latest.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A01",
+      "applications": [
+        "ADMIN",
+        "DRIVER",
+        "MERCHANT",
+        "CUSTOMER"
+      ],
+      "name": "الموجات الموحدة والوقت والاستبعاد وإعادة البحث من الإدارة",
+      "currentStatus": "PUBLISHED_RECENT_FIX_ACCEPTANCE_PARTIAL",
+      "priority": "P0-OPS",
+      "remaining": "تجربة وصولبديلفعلي بعد254 وتغييرسياسةلدورةجديدة،ونفادالمهلةوالموجات دونإحياءطلبملغى",
+      "sourceOrEvidence": [
+        "docs/redispatch-publication-254.json",
+        "docs/redispatch-tests-254.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A02",
+      "applications": [
+        "ADMIN",
+        "DRIVER",
+        "MERCHANT",
+        "CUSTOMER"
+      ],
+      "name": "تعثر الإسناد وملكية متابعة ومهلة وتصعيد وقرار مخول",
+      "currentStatus": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED_340",
+      "priority": "P0-OPS",
+      "remaining": "اكتمل تنفيذ المتابعة: فهرس تعثر فعلي، صندوق تنبيهات داخل المنصة، مسؤول متابعة وملاحظة موثقة، مهل مراجعة وتصعيد قابلة للتحكم وتحفظ لكل حالة، وإغلاق التنبيه وفق الحالة الفعلية فقط. الاختبارات البشرية الستة محفوظة بالترتيب ولم تسجل ناجحة. لا إلغاء آلي أو تحرير أموال من المراقب، ولا تغيير لمنفذ قرارات الإدارة المالي.",
+      "sourceOrEvidence": [
+        "frontend/dispatch-reviews.js",
+        "backend/wallet-service/src/dispatchReviewExecutor.ts",
+        "docs/dispatch-followup-340.json",
+        "docs/dispatch-followup-publication-340.json",
+        "docs/dispatch-followup-human-acceptance-340.csv"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A03",
+      "applications": [
+        "ALL"
+      ],
+      "name": "قضايا الإلغاء والعودة والتحصيل والأدلة والمسؤولية والاعتراض والإغلاق",
+      "currentStatus": "EXTENDED_IMPLEMENTATION_ACCEPTANCE_PARTIAL",
+      "priority": "P0-OPS",
+      "remaining": "ربطمساراتالقضيةبالحقوقوالعهدةوالنقد،وإغلاقفقطبعددليل؛ لمتكتملكل42حالةبالقبولالبشري",
+      "sourceOrEvidence": [
+        "docs/cod-launch-exceptions-matrix-251.csv",
+        "backend/wallet-service/src/exceptionCaseAdministration.ts"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A04",
+      "applications": [
+        "ADMIN",
+        "DRIVER",
+        "MERCHANT",
+        "CUSTOMER"
+      ],
+      "name": "تعويض المطعم والسائق والزبون وفصل الاعتماد والقيد والصرف",
+      "currentStatus": "IMPLEMENTED_HUMAN_ACCEPTANCE_PARTIAL",
+      "priority": "P0-OPS",
+      "remaining": "المطعم6000والسائق500مثبتانبعينتين؛ ربطالزبونبالمنحةواستحقاقكلحالةلايزالمستقلًا؛ لاتكرارللمحركات",
+      "sourceOrEvidence": [
+        "docs/merchant-cancellation-compensation-human-audit-257.json",
+        "docs/cancellation-compensation-final-audit-250.json",
+        "docs/customer-benefit-compensation-verification-252.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A05",
+      "applications": [
+        "ADMIN"
+      ],
+      "name": "الصلاحيات الحية وMFAوالدخول الحديث والسقوف وسجل الموظف",
+      "currentStatus": "WALLET_PROVISIONING_IAM_HARDENED_356_PUBLISHED_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "أُغلق اعتماد إنشاء المحفظة على سر قديم واستُبدل بهوية IAM محصورة بمشغّل تسجيل السائق؛ تحقق عزل القراءة الذاتية عن المعرفات المدخلة. تبقى اختبارات التسجيل الحقيقي والأدوار وسحب الصلاحيات مرتبة ضمن القبول البشري. لا تعني هذه المراجعة تدقيقًا كاملًا لكل مصادقة التطبيقات.",
+      "sourceOrEvidence": [
+        "backend/staff-service/catalog.js",
+        "backend/wallet-service/src/exceptionStaffAuthority.ts",
+        "docs/wallet-authorization-implementation-356.json",
+        "docs/wallet-authorization-publication-356.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A06",
+      "applications": [
+        "ADMIN",
+        "MERCHANT"
+      ],
+      "name": "سجل العمليات والفشل والقيم قبل/بعد وهوية الموظف التاريخية",
+      "currentStatus": "STAFF_FUNDING_AND_DRIVER_PAYOUT_AUDIT_358_359_360_HARDENED_REMAINING_SOURCE_COVERAGE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "تحديثات 358–360 توثق سجل الإدارة والشحن اليدوي وحدود المحفظة وصرف السائق. سجل الصرف يثبت هوية المسؤول أو السائق من المصدر الموثق، الحالة والمتاح والمحجوز قبل/بعد ومراجع قيود المحفظة وسند الصندوق ضمن المعاملة نفسها. تبقى سجلات التحويل والبوابات والمصادر المستقلة وعرض مصادر المحفظة المصرّح وتغطية الفشل والقبول البشري. صفحة سجل الإدارة STAFF_AUDIT_ONLY ولا تدعي جمع سجل المحافظ.",
+      "sourceOrEvidence": [
+        "docs/merchant-staff-settlements-verification-259.json",
+        "docs/merchant-onboarding-branches-staff-transition-plan.md",
+        "docs/audit-trail-implementation-358.json",
+        "docs/audit-trail-publication-358.json",
+        "docs/financial-audit-implementation-359.json",
+        "docs/financial-audit-publication-359.json",
+        "docs/driver-payout-audit-implementation-360.json",
+        "docs/driver-payout-audit-publication-360.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A07",
+      "applications": [
+        "ADMIN"
+      ],
+      "name": "المطابقة المالية والنقد والالتزامات وصافي إيراد المنصة",
+      "currentStatus": "MODERN_WALLET_RECONCILIATION_AND_CORRECTION_POSITIONS_PUBLISHED_HUMAN_REVIEW_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "اختبار قراءة بشري من صفحة المحافظ والمطابقة وحسابات الشركة، ومراجعة الفروق الافتتاحية أو الحركات غير المصنفة بإثباتات أصلية؛ لا إصلاح آلي. الفحص الحالي محدود الحجم وغير ذري ولا يثبت وحده اكتمال تدقيق كل مصادر النقد أو الفترة المالية.",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/reconciliation.ts",
+        "docs/finance-plan-reconciliation-2026-10-20.json",
+        "docs/reconciliation-implementation-354.json",
+        "docs/reconciliation-publication-354.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "runtimeEvidence": "docs/reconciliation-publication-354.json",
+      "automatedTests354": 76
+    },
+    {
+      "id": "A08",
+      "applications": [
+        "ADMIN",
+        "MERCHANT",
+        "DRIVER"
+      ],
+      "name": "التقارير الشاملة والفهرسة والتصدير الكبير وXLSX/PDFالخادمي",
+      "currentStatus": "LIMITED_EXPORT_AND_REPORTING_PRESENT",
+      "priority": "P1",
+      "remaining": "استكمالمصادرالفهرسةوالتغطيةوالوظائفالمستأنفة؛ الحدالأساسيمنالمطابقةجزءA07ولا يؤجل",
+      "sourceOrEvidence": [
+        "docs/finance-pricing-settlements-returns-unified-plan.md",
+        "backend/wallet-service/src/walletStatement.ts"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A09",
+      "applications": [
+        "ADMIN",
+        "MERCHANT"
+      ],
+      "name": "الإقفال والتجميع الآلي لدورات التسوية",
+      "currentStatus": "MANUAL_COLLECTION_PRESENT_AUTOMATION_PENDING",
+      "priority": "P1",
+      "remaining": "يجوزبقاءالإقفالاليدويالمضبوطفيالبداية؛ العاملالمجدوللايدعىمكتملًا منإعدادالدورة",
+      "sourceOrEvidence": [
+        "docs/merchant-collection-live-verification-216.json",
+        "backend/wallet-service/src/merchantSettlementScheduleWorkflow.ts"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "A10",
+      "applications": [
+        "ADMIN",
+        "MERCHANT",
+        "CUSTOMER"
+      ],
+      "name": "تصحيح مالي بعد تسوية سابقة وتسوية الرصيد السالب",
+      "currentStatus": "PUBLISHED_STAGING_STANDALONE_CORRECTION_PAYOUT_CASE_REVIEW_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+      "priority": "P0-SCOPE-CHECK",
+      "remaining": "تبقى اختبارات القبول البشرية المرتبة: صرف تصحيح مستقل من الصندوق وتأكيد استلام المطعم ومطابقته، المقاصة بصافي صفر، ترحيل المديونية عبر أكثر من تسوية، إلغاء/فشل الصرف وإعادة المحاولة، ربط القضية ومنع إغلاقها قبل تمام التصحيحات. مراجعات السائق والزبون والسلامة والعهدة مستقلة ولا تُغلق بتصحيح المطعم.",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/exceptionFinancials.ts",
+        "docs/finance-pricing-settlements-returns-unified-plan.md",
+        "docs/post-payout-correction-audit-351.json",
+        "docs/post-payout-correction-implementation-351.json",
+        "docs/post-payout-correction-implementation-352.json",
+        "docs/post-payout-correction-publication-352.json",
+        "docs/post-payout-correction-implementation-353.json",
+        "docs/post-payout-correction-publication-353.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "runtimeEvidence": "docs/post-payout-correction-publication-353.json",
+      "implementationSequence": [
+        {
+          "id": "A10.1",
+          "task": "Approve correction basis and funding/responsibility using authenticated review and original paid proof."
+        },
+        {
+          "id": "A10.2",
+          "task": "Post separate balanced immutable journal, positive adjustment payable or merchant receivable; never rewrite paid record or subtract operational wallet below zero."
+        },
+        {
+          "id": "A10.3",
+          "task": "Apply approved recoverable amount to future eligible settlements per agreement; carry remaining debt, never create negative payout."
+        },
+        {
+          "id": "A10.4",
+          "task": "Admin and merchant UI show original paid amount, later correction, recovered amount and remaining debt."
+        },
+        {
+          "id": "A10.5",
+          "task": "Test retries, concurrent corrections/payouts, multi-branch isolation, authorization changes, reversal and exactly-once recovery."
+        }
+      ],
+      "implementationEvidence": "docs/post-payout-correction-implementation-353.json",
+      "approvedPolicy": {
+        "recoveryMode": "OFFSET_NEXT_SETTLEMENT",
+        "carryRemainder": true,
+        "centrallyEditable": true,
+        "existingReservationsRemainPinned": true
+      },
+      "orderedHumanAcceptance": [
+        "Owner requests standalone approved credit without future sales; admin reviews and pays from registered cashbox, owner confirms receipt, admin reconciles",
+        "Credit/debt produce net zero: offset only, no cash receipt or cashbox movement",
+        "Debt exceeds next payout and carries until fully recovered",
+        "Cancel before execution or prove not-paid; reservations released, retry no double payment",
+        "Link correction to case, attempt early completion and closure, settle correction, complete review, preserve unrelated safety/driver/customer reviews",
+        "Two branches and revoked financial authority remain isolated"
+      ],
+      "completedImplementation353": [
+        "Standalone owner-requested cash correction payout with registered cashbox, owner receipt and reconciliation",
+        "No artificial sales batch, no original payable or operating merchant wallet debit",
+        "Independent immutable correction source proof, same payout controls and retry identity",
+        "Linked case correction-review state with atomic versioned metadata and open/closed queue pointer",
+        "Completion requires rejected correction or fully settled sealed allocation/payout evidence",
+        "Only explicitly linked financial appeal belonging to merchant owner can complete; unrelated appeals remain open",
+        "Closure guards deployed in actual driver-financial service and staff cancellation routes",
+        "Retention inventory supports standalone source and preserves correction financial evidence"
+      ]
+    },
+    {
+      "id": "A11",
+      "applications": [
+        "ADMIN",
+        "DRIVER"
+      ],
+      "name": "إنقاذ إضافي ممول وبونص ونطاق وميزانية ومدة",
+      "currentStatus": "DISABLED_NOT_IMPLEMENTED_AS_NEW_RECOVERY",
+      "priority": "P1",
+      "remaining": "إكمالالكاتبوالممولوالميزانيةوالحدودوالمنسق؛ زيادةعددالموجاتالعاديةليستبونصإنقاذ",
+      "sourceOrEvidence": [
+        "backend/wallet-service/src/dispatchPolicy.ts",
+        "docs/dispatch-waves-recovery-v1.5.1-audit-and-integration.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X01",
+      "applications": [
+        "ALL"
+      ],
+      "name": "الإشعارات التشغيلية والمالية وأحداثها ومنع تكرارها وتوجيهها",
+      "currentStatus": "PARTIAL_EVENT_COVERAGE_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "حصرحدثقبول/إلغاء/حجز/تحرير/مرتجع/شكوى/قرار/صرف وتوجيههوالمخول؛ فحصالخلفيةعلىالأجهزةيأتيلاحقًا",
+      "sourceOrEvidence": [
+        "docs/delivery-financial-notification-validation-155.json",
+        "docs/reception-notification-permissions-99.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X02",
+      "applications": [
+        "ALL"
+      ],
+      "name": "الحذف والاحتفاظ وأرشفة الأدلة وحواجز الأموال والجلسات القديمة",
+      "currentStatus": "PUBLISHED_FOUNDATION_NEW_ENTITY_COVERAGE_AUDIT",
+      "priority": "P0-OPS",
+      "remaining": "تغطيةالقضاياوالمنحوالمتابعاتوالصوروالنياتالجديدةوالمهامالمعلقةبعدالتحديثات؛ لا حذفبشريآليللاختبار يشمل ذلك قضايا ما بعد التسليم وأدلة الصور في C05؛ تمنع الحواجز المنشورة تنظيف الحساب إلى حين مراجعة الحفظ، ولا يضع مدة احتفاظ تلقائية جديدة.",
+      "sourceOrEvidence": [
+        "docs/account-deletion-audit-and-plan.md",
+        "docs/account-deletion-retention-operations.md",
+        "docs/customer-order-complaints-341.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X03",
+      "applications": [
+        "ALL"
+      ],
+      "name": "ترحيل البيانات والتوافق والعقود ومطابقة المصدر والمنشور",
+      "currentStatus": "IMPLEMENTED_RELEASES_RESIDUAL_CLOSURE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "جردالمهاموالحجوزاتوالعروضالقديمةوالحزموالقوالب؛ لا حذفالتوافقدونمطابقةولاكتابةعلاجيةبالحدس",
+      "sourceOrEvidence": [
+        "docs/finance-plan-live-audit-2026-10-20.json",
+        "docs/finance-plan-reconciliation-2026-10-20.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X04",
+      "applications": [
+        "ALL"
+      ],
+      "name": "مصفوفة الاختبارات المالية40والتسعير25والإكرامية والاستثناءات42",
+      "currentStatus": "PARTIAL_AUTOMATED_AND_HUMAN_EVIDENCE",
+      "priority": "P0-OPS",
+      "remaining": "ربطكلشرطبالدليلوالحالةوالنشر؛ التخطيلابسمPASS؛ اختباراتPrepaid/Scoreتتبعالأعمالالمؤجلةدونحذفها",
+      "sourceOrEvidence": [
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/cod-launch-exceptions-matrix-251.csv",
+        "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+        "docs/checkout-regression-repair-357.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X05",
+      "applications": [
+        "ALL"
+      ],
+      "name": "تغيير العنوان بعد الاستلام ونقل عهدة بين سائقين والتسليم الجزئي",
+      "currentStatus": "NOT_COMPLETE_DEFERRED_PRESERVED",
+      "priority": "P1",
+      "remaining": "تثبيتالموافقاتوالكمياتوالنقدوالحجزوالأجرةقبلالتفعيل؛ بدائلإلغاءقبلاستلام/إرجاعبعده/دعمموجودة،وتنسيقعقدالأصنافمعالزميل",
+      "sourceOrEvidence": [
+        "docs/cod-launch-execution-tracker.json",
+        "docs/cod-launch-exceptions-gap-audit-251.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "E01",
+      "applications": [
+        "ALL"
+      ],
+      "name": "قبض إلكتروني وPrepaidومزود وتأكيد وWebhookومحفظة زبون نقدية",
+      "currentStatus": "DEFERRED_BY_USER_CASH_ONLY",
+      "priority": "P2-PROVIDER",
+      "remaining": "لايفعلقبلالمزودوالتغطيةوالاختباراتوالصلاحيات؛ sandboxلايثبتالدفعالحقيقي",
+      "sourceOrEvidence": [
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/finance-plan-reconciliation-2026-10-20.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "E02",
+      "applications": [
+        "ALL"
+      ],
+      "name": "Refundإلكتروني وChargebackوتصحيح بعد صرف وإكراميةPrepaid",
+      "currentStatus": "DEFERRED_WITH_PREPAID_PROVIDER",
+      "priority": "P2-PROVIDER",
+      "remaining": "مراحلواستعلاموتوقيعومطابقةومنعردمزدوج؛ المعالجاتالنقديةالموجودةلا توسممؤجلة",
+      "sourceOrEvidence": [
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/finance-reference/driver-tips-v1.2-ar.txt"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "E03",
+      "applications": [
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "الصرف المصرفي والتكامل الآلي مع مزود التحويل",
+      "currentStatus": "DEFERRED_BY_USER_PROVIDER",
+      "priority": "P2-PROVIDER",
+      "remaining": "مصرفقريبًاومعطل؛ التفعيلبعقدودليلنتيجةوليسمرجعيدويفقط",
+      "sourceOrEvidence": [
+        "docs/finance-pricing-settlements-returns-unified-plan.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "R01",
+      "applications": [
+        "CUSTOMER",
+        "DRIVER",
+        "MERCHANT"
+      ],
+      "name": "بناء وتثبيت وتوقيعAndroid/iPhoneوالجلسات وGPSوالإشعارات بالخلفية",
+      "currentStatus": "NOT_PROVEN_FOR_RELEASE",
+      "priority": "P0-RELEASE-AFTER-OPS",
+      "remaining": "بعدإكمالضرورياتالتشغيلواختبارهاكماوجّهالمستخدم؛ نسخالمحاكيللتصحيحليستقبولإطلاق",
+      "sourceOrEvidence": [
+        "docs/cod-launch-execution-tracker.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "R02",
+      "applications": [
+        "ALL"
+      ],
+      "name": "أداء أحجام الإطلاق والمراقبة ومسؤول التنبيه والنسخ والاستعادة والتراجع",
+      "currentStatus": "PARTIAL_OPERATIONAL_READINESS_UNPROVEN",
+      "priority": "P0-RELEASE-AFTER-OPS",
+      "remaining": "قياسالطوابيروالصفحاتوالحدودوتوجيهالتنبيهوعمليةاستعادةتحترمالحذفوالعقودوالمال",
+      "sourceOrEvidence": [
+        "docs/finance-pricing-settlements-returns-unified-plan.md",
+        "docs/account-deletion-audit-and-plan.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "R03",
+      "applications": [
+        "ALL"
+      ],
+      "name": "تهيئة أنشطة وأشخاص الإطلاق والاتفاقيات والوسائل وقرار التشغيل الفعلي",
+      "currentStatus": "PENDING_FINAL_OPERATIONAL_APPROVAL",
+      "priority": "P0-RELEASE-AFTER-OPS",
+      "remaining": "إعدادالمخولينوالحدودووسيلةالقبضوالصرفوالشروطالمعتمدةثمقرارالإطلاق؛ لا استنتاججاهزيةمالحقيقيمنstaging",
+      "sourceOrEvidence": [
+        "docs/finance-pricing-settlements-returns-unified-plan.md"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "COLLEAGUE",
+      "applications": [
+        "MERCHANT",
+        "ADMIN",
+        "CUSTOMER"
+      ],
+      "name": "المنتجات والقوائم والإدخال اليدوي وCSV/Excelوالخيارات والصور والمخزون والنشر",
+      "currentStatus": "MERCHANT_IMPORT_DEPLOYED_336_UX_FIXED_338_ADMIN_IMPORT_UI_NOT_IMPLEMENTED",
+      "priority": "P0-OPS",
+      "remaining": "استيراد تطبيق المطعم والصور وربط الأعمدة والمخزون منشور، وأضيف قالب Excel مبسط ودليل المستخدم وإصلاح خيارات المنتج في 338. لا توجد حاليًا واجهة استيراد من المنصة نيابة عن المطعم؛ يلزم مسار إداري مصرح به مع اختيار الفرع والتدقيق إذا اعتمد هذا النطاق. لا تُعتبر هذه الإمكانية منفذة بمجرد وجود واجهات API للمطعم. الاختبار البشري وبوابات إطلاق Android/iOS محفوظة منفصلة.",
+      "sourceOrEvidence": [
+        "docs/merchant-products-import-colleague-handoff-2026-10-24.txt",
+        "docs/products-import-review-335.json",
+        "docs/products-import-completion-336.json",
+        "docs/products-336-staging-publication.json",
+        "docs/products-336-isolated-staging-uat.json",
+        "docs/products-336-native-api-uat.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "adminImportStatus": "NOT_IMPLEMENTED_VERIFIED_SOURCE_2026_10_28"
+    },
+    {
+      "id": "X-GUEST-LEGACY-342",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "إثبات ملكية طلبات الضيوف التاريخية إن وجدت قبل فتح الشكوى الخاصة",
+      "currentStatus": "SCOPE_AND_SECURE_IDENTITY_LINK_DESIGN_REQUIRED",
+      "priority": "P0-SCOPE-CHECK",
+      "remaining": "لا يوجد إنشاء طلب ضيف جديد في المسار الحديث. عند الحاجة لخدمة طلبات ضيوف تاريخية يجب إثبات ملكيتها عبر هوية موثقة وتصميم مستقل قبل إتاحة بياناتها أو تعويضها؛ لا اعتماد لرمز الضيف القديم وحده ولا تعديل ملكية القيود المالية.",
+      "sourceOrEvidence": [
+        "docs/guest-checkout-identity-audit-342.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X-TEST-342",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "تحديث اختبارات الفاتورة القديمة لعقد مراجعة الإجمالي ومسار إنشاء الطلب الحالي",
+      "currentStatus": "AUTOMATED_BASELINE_FAILURES_REPAIRED_357_SCOPED_ENV_TEST_SEPARATE",
+      "priority": "P0-OPS",
+      "remaining": "أُصلحت الإخفاقات القديمة الـ19 في اختبار تطبيق الزبون والـ6 في اختبار إنشاء الطلب: محاكاة مراجعة الإجمالي الصريحة ومعاينة السعر، وفصل غياب سجل حجز المخزون عن سجل المؤسسة في محاكي قاعدة البيانات. نجح 87 اختبار Flutter و62 اختبار خادم مرتبطًا. اختبار واحد مشروط ببيئة FINANCE_TEST_CHECKOUT_ATTEMPT بقي متجاوزًا وغير محتسب؛ الاختبارات البشرية والإطلاق مستقلان. لم يتغير كود التشغيل أو شروط تأكيد الطلب.",
+      "sourceOrEvidence": [
+        "docs/guest-checkout-identity-audit-342.json",
+        "docs/checkout-regression-repair-357.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X-REALTIME-AUTH-345",
+      "applications": [
+        "CUSTOMER",
+        "DRIVER",
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "التحقق الحقيقي من هوية اتصالات التحديث الفوري ونطاق موضوعات الطلبات للسائق والزبون",
+      "currentStatus": "PUBLISHED_346_REALTIME_IDENTITY_OFFER_INBOX_AND_MERCHANT_CUE_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "نُشر تحقق توقيع JWT وهوية الاتصال ونطاق الاشتراك والإرسال الخاص، وأصلح وصول إشعار السائق دون بطاقة العرض وصوت المطعم وفصل تسجيل الجهاز عند الخروج. بقي اختبار طلب حقيقي أمامي/خلفي وقفل الشاشة وإعادة الاتصال وتبديل الحساب وAndroid وفق RT346-01..07؛ لا يعتبر نجاح FCM أو بناء المحاكي إثباتًا للاستلام.",
+      "sourceOrEvidence": [
+        "docs/realtime-identity-offers-346.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D-SINGLE-WORK-SESSION",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "جلسة عمل واحدة للسائق مرتبطة بالجهاز والمركبة ونقل التشغيل بين الأجهزة",
+      "currentStatus": "DEFERRED_BY_USER_NOT_IMPLEMENTED",
+      "priority": "P1",
+      "remaining": "أجّل المستخدم هذا البند صراحة في29أكتوبر2026. يربط لاحقًا جهاز تشغيل واحدًا بالمركبة الفعالة، مع انتقال مؤكد ومنع النقل أثناء طلب نشط. توجد حاليًا مركبة فعالة واحدة وحواجز التنافس لقبول الطلب؛ لا يوجد قفل حصري لجهاز التشغيل. لا يُعد البند منفذًا.",
+      "sourceOrEvidence": [
+        "../whizzDrivers-stg/backend/driver-vehicles-308.js",
+        "backend/wallet-service/src/driverOfferAcceptance.ts",
+        "../wizzuser-stg/backend/src/realtime-identity-scope-346.js"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "UX-CUSTOMER-361",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN",
+        "MERCHANT"
+      ],
+      "name": "واجهة اكتشاف وطلب موحدة: رئيسية ديناميكية ومتجر وتخصيص وجبة وعروض ترحيبية",
+      "priority": "P0-USER-REQUESTED",
+      "currentStatus": "ACTIVE_AUDIT_AND_FIRST_DESIGN_IMPLEMENTATION",
+      "remaining": "تنفيذ المراحل الموثقة في customer-discovery-redesign-361.json؛ لا تُعد إدارة أقسام الرئيسية أو العروض الترحيبية أو الخيارات التابعة مكتملة بمجرد تحسين شكل الواجهة. يبقى المسار التشغيلي A06 متوقفًا بطلب المستخدم.",
+      "sourceOrEvidence": [
+        "docs/customer-discovery-redesign-361.json"
+      ],
+      "humanAcceptanceSeparate": true,
+      "freshRuntimeAuditRequired": true
+    }
+  ],
+  "originalSpecificationSectionCoverage": [
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "1",
+      "title": "الهدف العام",
+      "workItems": [
+        "F01",
+        "R03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "2",
+      "title": "تعليمات إلزامية قبل التطوير",
+      "workItems": [
+        "X03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "3",
+      "title": "نموذج محفظة السائق",
+      "workItems": [
+        "F02",
+        "F03",
+        "F05"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "3.1",
+      "title": "شحن المحفظة",
+      "workItems": [
+        "F02",
+        "F03",
+        "F05"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "3.2",
+      "title": "أنواع أرصدة المحفظة",
+      "workItems": [
+        "F02",
+        "F03",
+        "F05"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "3.3",
+      "title": "نموذج رقمي",
+      "workItems": [
+        "F02",
+        "F03",
+        "F05"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "4",
+      "title": "دورة طلب الدفع النقدي (COD)",
+      "workItems": [
+        "F01",
+        "D02",
+        "D06"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "4.1",
+      "title": "مثال",
+      "workItems": [
+        "F01",
+        "D02",
+        "D06"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "4.2",
+      "title": "عند قبول السائق الطلب",
+      "workItems": [
+        "F01",
+        "D02",
+        "D06"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "4.3",
+      "title": "عند التسليم الناجح",
+      "workItems": [
+        "F01",
+        "D02",
+        "D06"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "4.4",
+      "title": "أجرة السائق ورسوم التوصيل",
+      "workItems": [
+        "F01",
+        "D02",
+        "D06"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "5",
+      "title": "الدفع الإلكتروني (Wallet / Card)",
+      "workItems": [
+        "E01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "5.1",
+      "title": "إنشاء الطلب",
+      "workItems": [
+        "E01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "5.2",
+      "title": "قبول السائق",
+      "workItems": [
+        "E01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "5.3",
+      "title": "إكمال التوصيل",
+      "workItems": [
+        "E01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "6",
+      "title": "إرجاع الطلبات غير المستلمة",
+      "workItems": [
+        "D05",
+        "M07",
+        "A03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "6.1",
+      "title": "زر الإرجاع في تطبيق السائق",
+      "workItems": [
+        "D05",
+        "M07",
+        "A03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "6.2",
+      "title": "التحقق قبل الإرجاع",
+      "workItems": [
+        "D05",
+        "M07",
+        "A03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "6.3",
+      "title": "رحلة العودة",
+      "workItems": [
+        "D05",
+        "M07",
+        "A03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "6.4",
+      "title": "تأكيد المطعم أو المتجر",
+      "workItems": [
+        "D05",
+        "M07",
+        "A03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "6.5",
+      "title": "رفض التاجر تأكيد الاستلام",
+      "workItems": [
+        "D05",
+        "M07",
+        "A03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "7",
+      "title": "إرجاع الطلب النقدي COD",
+      "workItems": [
+        "D05",
+        "A04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "8",
+      "title": "إرجاع الطلب المدفوع إلكترونياً",
+      "workItems": [
+        "E01",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "8.1",
+      "title": "رفض الزبون الاستلام",
+      "workItems": [
+        "E01",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "8.2",
+      "title": "استحقاق السائق بعد الإرجاع",
+      "workItems": [
+        "E01",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9",
+      "title": "سياسة الإلغاء الرسمية للزبائن",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.1",
+      "title": "الإلغاء قبل قبول التاجر",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.2",
+      "title": "الإلغاء بعد قبول التاجر وقبل التحضير",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.3",
+      "title": "الإلغاء أثناء التجهيز",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.4",
+      "title": "الإلغاء بعد خروج السائق",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.5",
+      "title": "رفض الاستلام دون مبرر",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.6",
+      "title": "عدم وجود الزبون",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.7",
+      "title": "الطلب الخاطئ أو الناقص أو التالف",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.8",
+      "title": "التأخير الجوهري",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.9",
+      "title": "المنتجات غير الغذائية",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.10",
+      "title": "طرق الاسترجاع",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.11",
+      "title": "التواصل والشكاوى",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.12",
+      "title": "منع إساءة الاستخدام",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "9.13",
+      "title": "تحديث السياسة",
+      "workItems": [
+        "C04",
+        "C05",
+        "C07",
+        "X05",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "10",
+      "title": "سياسة مسؤولية التاجر",
+      "workItems": [
+        "C07",
+        "M08",
+        "A03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "11",
+      "title": "سياسة مسؤولية السائق",
+      "workItems": [
+        "C07",
+        "D01",
+        "D05",
+        "D08"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "12",
+      "title": "اتفاقيات التجار والعمولات",
+      "workItems": [
+        "M08",
+        "C03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "12.1",
+      "title": "Merchant Commercial Agreement",
+      "workItems": [
+        "M08",
+        "C03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "12.2",
+      "title": "العمولات",
+      "workItems": [
+        "M08",
+        "C03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "12.3",
+      "title": "الخصومات",
+      "workItems": [
+        "M08",
+        "C03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "13",
+      "title": "تسويات التجار",
+      "workItems": [
+        "M09",
+        "M10",
+        "M11",
+        "A09",
+        "A10",
+        "E03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "13.1",
+      "title": "دورات التسوية",
+      "workItems": [
+        "M09",
+        "M10",
+        "M11",
+        "A09",
+        "A10",
+        "E03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "13.2",
+      "title": "حساب المستحقات",
+      "workItems": [
+        "M09",
+        "M10",
+        "M11",
+        "A09",
+        "A10",
+        "E03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "13.3",
+      "title": "كشف التسوية",
+      "workItems": [
+        "M09",
+        "M10",
+        "M11",
+        "A09",
+        "A10",
+        "E03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "13.4",
+      "title": "الصرف",
+      "workItems": [
+        "M09",
+        "M10",
+        "M11",
+        "A09",
+        "A10",
+        "E03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "13.5",
+      "title": "الرصيد السالب",
+      "workItems": [
+        "M09",
+        "M10",
+        "M11",
+        "A09",
+        "A10",
+        "E03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "14",
+      "title": "دورة الاسترجاعات والنزاعات",
+      "workItems": [
+        "C05",
+        "C06",
+        "A03",
+        "A04",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "14.1",
+      "title": "أنواع الحالات",
+      "workItems": [
+        "C05",
+        "C06",
+        "A03",
+        "A04",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "14.2",
+      "title": "بيانات القضية",
+      "workItems": [
+        "C05",
+        "C06",
+        "A03",
+        "A04",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "14.3",
+      "title": "الصلاحيات",
+      "workItems": [
+        "C05",
+        "C06",
+        "A03",
+        "A04",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "14.4",
+      "title": "Chargebacks",
+      "workItems": [
+        "C05",
+        "C06",
+        "A03",
+        "A04",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "15",
+      "title": "نموذج البيانات المقترح",
+      "workItems": [
+        "F01",
+        "X02",
+        "X03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "16",
+      "title": "محرك المحاسبة المالية",
+      "workItems": [
+        "F01",
+        "A07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "16.1",
+      "title": "مبدأ عدم خلق الأموال",
+      "workItems": [
+        "F01",
+        "A07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "17",
+      "title": "حالات الطلب والحالة المالية",
+      "workItems": [
+        "C08",
+        "D03",
+        "A03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "18",
+      "title": "التغييرات المطلوبة في التطبيقات",
+      "workItems": [
+        "C01",
+        "C08",
+        "D01",
+        "D07",
+        "M01",
+        "M07",
+        "A05",
+        "A07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "18.1",
+      "title": "تطبيق الزبون",
+      "workItems": [
+        "C01",
+        "C08",
+        "D01",
+        "D07",
+        "M01",
+        "M07",
+        "A05",
+        "A07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "18.2",
+      "title": "تطبيق السائق",
+      "workItems": [
+        "C01",
+        "C08",
+        "D01",
+        "D07",
+        "M01",
+        "M07",
+        "A05",
+        "A07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "18.3",
+      "title": "تطبيق التاجر",
+      "workItems": [
+        "C01",
+        "C08",
+        "D01",
+        "D07",
+        "M01",
+        "M07",
+        "A05",
+        "A07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "18.4",
+      "title": "لوحة الإدارة",
+      "workItems": [
+        "C01",
+        "C08",
+        "D01",
+        "D07",
+        "M01",
+        "M07",
+        "A05",
+        "A07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "19",
+      "title": "نظام الإشعارات",
+      "workItems": [
+        "X01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "20",
+      "title": "الإعدادات القابلة للتحكم",
+      "workItems": [
+        "F03",
+        "M06",
+        "M08",
+        "A01",
+        "A05",
+        "A11",
+        "E01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "21",
+      "title": "الاختبارات المطلوبة",
+      "workItems": [
+        "X04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "22",
+      "title": "التقارير المالية",
+      "workItems": [
+        "A07",
+        "A08"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "23",
+      "title": "الضوابط القانونية والتشغيلية",
+      "workItems": [
+        "R03",
+        "X02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "24",
+      "title": "مراحل التنفيذ",
+      "workItems": [
+        "X03",
+        "X04",
+        "R01",
+        "R02",
+        "R03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "25",
+      "title": "معايير القبول النهائية",
+      "workItems": [
+        "X04",
+        "R03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/master-implementation-v1.0-ar.txt",
+      "section": "26",
+      "title": "المطلوب منك الآن بصفتك Codex",
+      "workItems": [
+        "X03",
+        "X04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "1",
+      "title": "Driver Tips",
+      "workItems": [
+        "C02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "2",
+      "title": "Checkout UI",
+      "workItems": [
+        "C02",
+        "C01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "3",
+      "title": "Admin Tip Settings",
+      "workItems": [
+        "C02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "4",
+      "title": "COD Tip Handling",
+      "workItems": [
+        "C02",
+        "D06"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "5",
+      "title": "Prepaid Tip Handling",
+      "workItems": [
+        "E01",
+        "E02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "6",
+      "title": "Cancellation & Return Rules",
+      "workItems": [
+        "C02",
+        "A04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "7",
+      "title": "Driver App",
+      "workItems": [
+        "C02",
+        "D07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "8",
+      "title": "Financial Ledger",
+      "workItems": [
+        "C02",
+        "F01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "9",
+      "title": "Reassignment",
+      "workItems": [
+        "C02",
+        "D03",
+        "X05"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "10",
+      "title": "Testing",
+      "workItems": [
+        "X04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-tips-v1.2-ar.txt",
+      "section": "11",
+      "title": "Implementation",
+      "workItems": [
+        "X03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "1",
+      "title": "الهدف",
+      "workItems": [
+        "C01",
+        "D02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "2",
+      "title": "نظام حساب رسوم التوصيل للزبون",
+      "workItems": [
+        "C01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "3",
+      "title": "حساب المسافات",
+      "workItems": [
+        "C01",
+        "D01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "4",
+      "title": "معادلة رسوم التوصيل",
+      "workItems": [
+        "C01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "5",
+      "title": "شرائح المسافة",
+      "workItems": [
+        "C01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "6",
+      "title": "أجرة السائق Driver Earning",
+      "workItems": [
+        "D02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "7",
+      "title": "معالجة السائق البعيد عن المطعم",
+      "workItems": [
+        "D01",
+        "D02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "8",
+      "title": "نطاق التوصيل",
+      "workItems": [
+        "C01",
+        "D01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "9",
+      "title": "عرض الطلب للسائق",
+      "workItems": [
+        "D02",
+        "D07"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "10",
+      "title": "التكامل مع محفظة السائق وCOD",
+      "workItems": [
+        "F01",
+        "D06"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "11",
+      "title": "التكامل مع الدفع الإلكتروني",
+      "workItems": [
+        "E01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "12",
+      "title": "الإرجاع وأجرة رحلة العودة",
+      "workItems": [
+        "D05",
+        "A04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "13",
+      "title": "التحكم المركزي",
+      "workItems": [
+        "A01",
+        "M08"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "14",
+      "title": "أداة محاكاة التسعير",
+      "workItems": [
+        "C01",
+        "A01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "15",
+      "title": "الاختبارات المطلوبة",
+      "workItems": [
+        "X04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "16",
+      "title": "معايير القبول",
+      "workItems": [
+        "X04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "section": "17",
+      "title": "المطلوب من Codex",
+      "workItems": [
+        "X03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "1",
+      "title": "فحص المسارين",
+      "workItems": [
+        "A01",
+        "X03"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "2",
+      "title": "توحيد إعدادات الموجات",
+      "workItems": [
+        "A01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "3",
+      "title": "الزمن الصحيح",
+      "workItems": [
+        "A01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "4",
+      "title": "الموجة الخامسة",
+      "workItems": [
+        "A11"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "5",
+      "title": "تحسين حساب المسافات",
+      "workItems": [
+        "D01",
+        "D12"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "6",
+      "title": "ربط الأداء بموجات الإسناد",
+      "workItems": [
+        "D08",
+        "D10",
+        "D12"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "7",
+      "title": "منع التكرار وتعارض القبول",
+      "workItems": [
+        "D02",
+        "A01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "8",
+      "title": "سياسة إعادة العرض",
+      "workItems": [
+        "A01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "9",
+      "title": "بعد فشل جميع الموجات",
+      "workItems": [
+        "A02",
+        "A11"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "10",
+      "title": "إعدادات لوحة الإدارة المركزية",
+      "workItems": [
+        "A01",
+        "A02",
+        "A11"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "11",
+      "title": "الاختبارات",
+      "workItems": [
+        "X04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "section": "12",
+      "title": "المطلوب النهائي",
+      "workItems": [
+        "A01",
+        "X04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "1",
+      "title": "Existing Dispatch Compatibility",
+      "workItems": [
+        "A01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "2",
+      "title": "Performance Metrics Definitions",
+      "workItems": [
+        "D08",
+        "D09",
+        "D10"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "3",
+      "title": "Performance Score",
+      "workItems": [
+        "D11"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "4",
+      "title": "Rewards Tiers",
+      "workItems": [
+        "D11"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "5",
+      "title": "Dispatch Eligibility",
+      "workItems": [
+        "D01"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "6",
+      "title": "Dispatch Ranking",
+      "workItems": [
+        "D12"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "7",
+      "title": "Fair Opportunity",
+      "workItems": [
+        "D12"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "8",
+      "title": "Driver-facing Metrics",
+      "workItems": [
+        "D08",
+        "D10",
+        "D11"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "9",
+      "title": "Separate Statistics",
+      "workItems": [
+        "D07",
+        "D08"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "10",
+      "title": "Administration",
+      "workItems": [
+        "A05",
+        "D09",
+        "D10",
+        "D11",
+        "D12"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "11",
+      "title": "Integration With Existing Waves",
+      "workItems": [
+        "A01",
+        "D12"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "12",
+      "title": "Rollout",
+      "workItems": [
+        "D12",
+        "R02"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "13",
+      "title": "Required Tests",
+      "workItems": [
+        "X04"
+      ]
+    },
+    {
+      "source": "docs/finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+      "section": "14",
+      "title": "Acceptance Criteria",
+      "workItems": [
+        "D10",
+        "D11",
+        "D12",
+        "X04"
+      ]
+    }
+  ],
+  "historicalFourteenPackagesCoverage": {
+    "1": [
+      "A01",
+      "D02",
+      "D03",
+      "X01",
+      "X03"
+    ],
+    "2": [
+      "A01",
+      "A02"
+    ],
+    "3": [
+      "A11"
+    ],
+    "4": [
+      "D08",
+      "D09",
+      "D10"
+    ],
+    "5": [
+      "D11",
+      "D12"
+    ],
+    "6": [
+      "C01",
+      "C02",
+      "C08",
+      "D03",
+      "D05",
+      "M07",
+      "R01"
+    ],
+    "7": [
+      "C01",
+      "M08",
+      "A11"
+    ],
+    "8": [
+      "F05",
+      "M09",
+      "M10",
+      "M11",
+      "A09",
+      "A10"
+    ],
+    "9": [
+      "E01"
+    ],
+    "10": [
+      "C04",
+      "C05",
+      "C06",
+      "D04",
+      "D05",
+      "D06",
+      "A03",
+      "A04",
+      "E02",
+      "X05"
+    ],
+    "11": [
+      "M02",
+      "M03",
+      "M04",
+      "M05",
+      "M06",
+      "A05",
+      "A06"
+    ],
+    "12": [
+      "COLLEAGUE",
+      "C03",
+      "M01",
+      "M12"
+    ],
+    "13": [
+      "A07",
+      "A08",
+      "X02",
+      "R02"
+    ],
+    "14": [
+      "X03",
+      "X04",
+      "R01",
+      "R02",
+      "R03"
+    ]
+  },
+  "linkedPlansCoverage": {
+    "merchant-onboarding-branches-staff-transition-plan.md": [
+      "M01",
+      "M02",
+      "M03",
+      "M04",
+      "M05",
+      "M06",
+      "M07",
+      "M08",
+      "M09",
+      "M10",
+      "M11",
+      "M12",
+      "COLLEAGUE"
+    ],
+    "account-deletion-audit-and-plan.md": [
+      "F04",
+      "F05",
+      "X02",
+      "X03",
+      "R02"
+    ],
+    "driver-performance-v1.6-gap-analysis-and-integration.md": [
+      "D01",
+      "D08",
+      "D09",
+      "D10",
+      "D11",
+      "D12",
+      "D13",
+      "A11"
+    ],
+    "cod-launch-execution-tracker.json": [
+      "C04",
+      "C05",
+      "C06",
+      "D04",
+      "D05",
+      "D06",
+      "A01",
+      "A03",
+      "A04",
+      "X04",
+      "X05"
+    ]
+  },
+  "executionBatches": [
+    {
+      "order": 1,
+      "name": "Cash operational blockers and cross-app contracts",
+      "items": [
+        "F02",
+        "F03",
+        "F05",
+        "D01",
+        "A02",
+        "C05",
+        "C06",
+        "C07",
+        "M02",
+        "X-REALTIME-AUTH-345",
+        "M05",
+        "M06",
+        "A10"
+      ],
+      "rule": "Audit existing path first; implement only actual required gaps. Choose by dependency and observed severity, not by app."
+    },
+    {
+      "order": 2,
+      "name": "Acceptance of existing cash workflows and role scope",
+      "items": [
+        "F01",
+        "F04",
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C08",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "D08",
+        "M01",
+        "M03",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11",
+        "M12",
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A06"
+      ],
+      "rule": "Do not repeat proven or user-skipped tests without changed code/new risk. Conditional services remain disabled unless accepted."
+    },
+    {
+      "order": 3,
+      "name": "Close operational financial/data/notification evidence",
+      "items": [
+        "A07",
+        "X01",
+        "X02",
+        "X03",
+        "X04"
+      ],
+      "rule": "Operational functional completeness precedes hardware release acceptance."
+    },
+    {
+      "order": 4,
+      "name": "Android+iPhone and release gates",
+      "items": [
+        "R01",
+        "R02",
+        "R03"
+      ],
+      "rule": "Only after required operational implementation and testing."
+    },
+    {
+      "order": 5,
+      "name": "Retained later scope",
+      "items": [
+        "D09",
+        "D10",
+        "D11",
+        "D12",
+        "D13",
+        "M04",
+        "A08",
+        "A09",
+        "A11",
+        "X05",
+        "E01",
+        "E02",
+        "E03"
+      ],
+      "rule": "Each remains tracked; no activation of incomplete financial or scoring features."
+    }
+  ],
+  "counts": {
+    "workItems": 65,
+    "specificationSectionsMapped": 127,
+    "historicalPackagesMapped": 14,
+    "priorityCounts": {
+      "P0-OPS": 45,
+      "P1": 10,
+      "P0-SCOPE-CHECK": 3,
+      "P0-IF-ENABLED": 1,
+      "P2-PROVIDER": 3,
+      "P0-RELEASE-AFTER-OPS": 3
+    }
+  },
+  "executionUpdates": [
+    {
+      "part": 270,
+      "evidence": "docs/trip-transfer-controls-270.json"
+    },
+    {
+      "part": 271,
+      "evidence": "docs/driver-eligibility-271.json",
+      "wholeD01Complete": false
+    },
+    {
+      "scope": "DRIVER_PERFORMANCE_AND_COLLEAGUE_SUPPORT",
+      "status": "LOCAL_VIEW_DELIVERED_METRIC_CONTRACT_AND_CHAT_INTEGRATION_OPEN",
+      "evidence": "docs/support-performance-review-20261024.json",
+      "sequence": "Finish performance metrics and driver support integration before resuming vehicle/document/region audit",
+      "colleagueScopePreserved": "Support-only messaging, verified restaurant/driver ratings; products/imports remain delegated"
+    },
+    {
+      "id": "DRIVER_PERFORMANCE_SUPPORT_271",
+      "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+      "evidence": "docs/driver-performance-support-ready.json",
+      "sequence": "Complete basic performance/support publication and human acceptance, then resume vehicle/documents/region; advanced v1.6 remains tracked separately",
+      "businessWrites": 0,
+      "userApproval": true,
+      "published": true,
+      "installed": true
+    },
+    {
+      "id": "DRIVER_PERFORMANCE_POLICY_272",
+      "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+      "evidence": "docs/driver-performance-policy-272.json",
+      "autoReviewRejected": true,
+      "businessWrites": 0,
+      "next": "Human displayed-timeout and independent admin decision tests; punctuality/quality/activity and indicator history/review remain open",
+      "published": true,
+      "installed": true,
+      "userApproval": true,
+      "priorAutoReviewRejectionResolved": true
+    },
+    {
+      "id": "DRIVER_MANUAL_ACCEPTANCE_DEFERRED_ORDERED",
+      "status": "DEFERRED_BY_USER_ORDERED_NOT_PASSED",
+      "evidence": "docs/driver-performance-ordered-acceptance-tests.json",
+      "next": "الالتزام بالوقت وفق الموعد الأصلي واستثناءات التأخير، ثم الجودة والتقييم والنشاط وتفاصيل المؤشرات، ثم اعتماد المركبة والوثائق والمنطقة."
+    },
+    {
+      "id": "DRIVER_PERFORMANCE_TIMING_273",
+      "status": "PUBLISHED_STAGING_INSTALLED_MANUAL_ACCEPTANCE_DEFERRED",
+      "evidence": "docs/driver-performance-timing-273.json",
+      "businessWrites": 0,
+      "fullMetricsComplete": false,
+      "next": [
+        "Evidence-backed administrative resolution of delay exceptions and performance appeals/review ownership",
+        "Verified quality incidents and customer rating moderation/exclusion/appeals and rating window",
+        "Further activity statistics require authoritative completion/availability history; no fabricated lifetime totals or online hours",
+        "Complete operational source integration before vehicle/documents/region; score/tiers/ranking remain deferred"
+      ]
+    },
+    {
+      "id": "DRIVER_PERFORMANCE_PRESENTATION_274",
+      "status": "RELEASE274_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_DEFERRED",
+      "evidence": "docs/driver-performance-layout-274.json",
+      "calculationsChanged": false,
+      "manualAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "DRIVER_MORE_PRESENTATION_275",
+      "status": "RELEASE275_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_DEFERRED",
+      "evidence": "docs/more-layout-275.json",
+      "backendChanged": false,
+      "manualAcceptance": "DEFERRED_NOT_PASSED",
+      "nextOperationalScopeUnchanged": true
+    },
+    {
+      "id": "MORE_FUNCTIONAL_AUDIT_276",
+      "status": "RELEASE276_INSTALLED_LAUNCHED_UNSUPPORTED_FEATURES_OPEN",
+      "evidence": "docs/more-functional-audit-276.json",
+      "earningsRouteFixed": true,
+      "unsupportedMenusDisabledNotImplemented": true,
+      "remaining": [
+        "Account/profilePhoto field mismatch",
+        "Vehicle metadata/approval and document submission",
+        "Verified phone change",
+        "Emergency/safety and equipment backend linkage",
+        "Persistent real app settings",
+        "Approved legal content before launch"
+      ],
+      "manualAcceptance": "DEFERRED_NOT_PASSED",
+      "installed": true,
+      "disabledNotComplete": true
+    },
+    {
+      "id": "DRIVER_NAVIGATION_277",
+      "status": "RELEASE277_INSTALLED_LAUNCHED",
+      "evidence": "docs/navigation-277.json",
+      "earningsOnlyInMore": true,
+      "manualAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "LOCATION_PERMISSION_NOTICE_278",
+      "status": "RELEASE278_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_DEFERRED",
+      "evidence": "docs/location-permission-notice-278.json",
+      "backgroundGPSValidated": false,
+      "operationalBacklogUnchanged": true,
+      "manualAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "DISPATCH_FOLLOWUP_340",
+      "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED_340",
+      "evidence": "docs/dispatch-followup-340.json",
+      "humanAcceptance": "DEFERRED_ORDERED_NOT_PASSED",
+      "next": "C05_COMPLETED_ORDER_COMPLAINT_EXISTING_SUPPORT"
+    },
+    {
+      "id": "CUSTOMER_ORDER_COMPLAINTS_341",
+      "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED",
+      "evidence": "docs/customer-order-complaints-341.json",
+      "humanAcceptance": "DEFERRED_ORDERED_NOT_PASSED",
+      "cloudChanged": true,
+      "blockedBy": null,
+      "publicationEvidence": "docs/customer-order-complaints-publication-341.json",
+      "userApproval": true
+    },
+    {
+      "id": "WALLET_OPERATING_LIMITS_355",
+      "status": "PUBLISHED_STAGING_VERIFIED_RELEASE355_INSTALLED_LAUNCHED",
+      "evidence": "docs/wallet-operating-limits-implementation-355.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "WALLET_AUTHORIZATION_356",
+      "status": "PUBLISHED_STAGING_VERIFIED",
+      "evidence": "docs/wallet-authorization-implementation-356.json",
+      "publication": "docs/wallet-authorization-publication-356.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED",
+      "nativeUpdateRequired": false
+    },
+    {
+      "id": "CHECKOUT_REGRESSION_REPAIR_357",
+      "status": "LOCAL_TEST_ONLY_VERIFIED",
+      "evidence": "docs/checkout-regression-repair-357.json",
+      "cloudChanges": false,
+      "runtimeChanges": false,
+      "humanAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "STAFF_AUDIT_TRAIL_358",
+      "status": "PUBLISHED_STAGING_VERIFIED",
+      "evidence": "docs/audit-trail-implementation-358.json",
+      "publication": "docs/audit-trail-publication-358.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED",
+      "next": "Independent wallet audit schema and identity coverage within A06"
+    },
+    {
+      "id": "MANUAL_FUNDING_AUDIT_359",
+      "status": "PUBLISHED_STAGING_VERIFIED",
+      "evidence": "docs/financial-audit-implementation-359.json",
+      "publication": "docs/financial-audit-publication-359.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED",
+      "financialOperationsExecuted": 0
+    },
+    {
+      "id": "DRIVER_PAYOUT_AUDIT_360",
+      "status": "PUBLISHED_STAGING_VERIFIED",
+      "evidence": "docs/driver-payout-audit-implementation-360.json",
+      "publication": "docs/driver-payout-audit-publication-360.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED",
+      "financialOperationsExecuted": 0
+    }
+  ],
+  "orderedDeferredDriverAcceptance": {
+    "reference": "docs/driver-performance-ordered-acceptance-tests.json",
+    "status": "DEFERRED_BY_USER_ORDERED_NOT_PASSED",
+    "requiredBeforeLaunch": true
+  },
+  "driverWorkRegion311": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "rule": "Approved work_region_id plus directed priority0/1 neighbors; base+derived ancestry explicitly active; current coordinates inside actual polygon; no Bronze/Silver/Gold expansion or live-array authorization",
+    "source": "backend/shared/driver-work-region-311.js",
+    "receipt": "docs/driver-work-region-publication-311.json",
+    "tests": {
+      "core": 12,
+      "packagedDelegates": 56,
+      "actualLocationUpdate": "PASS",
+      "liveCoordinatesReadOnly": "PASS"
+    },
+    "humanTestsDeferredInOrder": [
+      "Approved own region: start, offer, accept, complete",
+      "Allowed priority0/1 neighbor; priority1 excluded in first wave",
+      "Outside approved scope; verify no new offers and active delivery preserved",
+      "Disable region/ancestor or change neighbor relation before offer/acceptance",
+      "Expiry/document replacement/vehicle switch boundaries from308 list"
+    ],
+    "userVerified310": "User reports adding a second vehicle works correctly; no fabricated additional human test results",
+    "wholeD01Complete": false,
+    "next": "Preserve ordered human acceptance and audit remaining D01 order-class/vehicle constraints against active launch services before marking whole D01 complete"
+  },
+  "regionManagement312": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "hostingJob": "214",
+    "receipt": "docs/region-management-publication-312.json",
+    "validation": "docs/region-management-validation-312.json",
+    "tests": {
+      "service": 16,
+      "coverageRegression": 13,
+      "actualStaffHandler": "PASS",
+      "actualCustomerHandler": "PASS",
+      "realLeafletHostedCandidate": "PASS"
+    },
+    "businessRegionDataMutated": false,
+    "existingBoundaryHumanReviewRequired": true,
+    "humanTestsDeferredInOrder": [
+      "Review red drawing errors and fix geometry",
+      "Save versioned draft without live change",
+      "Review disputed actual boundaries before explicit publication",
+      "Verify index/derived/neighbors and publication history",
+      "Check region closure and reopening through search/offer/accept while preserving active delivery"
+    ],
+    "next": "Remaining D01 order-class/vehicle compatibility audit; preserve colleague product/import delegation",
+    "wholeD01Complete": false
+  },
+  "customerMerchantRegions313": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "receipt": "docs/region-consumers-publication-313.json",
+    "customerBuild": 313,
+    "merchantBuild": 313,
+    "tests": {
+      "customerBackend": 11,
+      "merchantBackend": 16,
+      "customerFlutter": 6,
+      "merchantFlutter": 4
+    },
+    "businessRegionDataMutated": false,
+    "humanAcceptance": "PENDING_IN_ORDER",
+    "knownFollowUp": "Dedicated business spatial index before large-scale expansion; existing seven boundary reviews remain human-owned",
+    "next": "Resume remaining D01 order-class and vehicle compatibility after address acceptance",
+    "wholeD01Complete": false
+  },
+  "customerMapSelection314": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "build": 314,
+    "receipt": "docs/region-boundary-publication-314.json",
+    "tests": {
+      "backend": 12,
+      "flutter": 15,
+      "analyzer": "PASS"
+    },
+    "nativeGestureHumanAcceptance": "PENDING_USER_TEST",
+    "regionDataMutated": false,
+    "wholeD01Complete": false
+  },
+  "customerAddressSave315": {
+    "status": "PUBLISHED_VERIFIED_STAGING",
+    "build": 315,
+    "receipt": "docs/address-save-publication-315.json",
+    "tests": {
+      "backend": 16,
+      "flutter": 21,
+      "analyzerErrors": 0,
+      "analyzerWarnings": 0
+    },
+    "humanCapacityFlowAcceptance": "PENDING_USER_TEST",
+    "existingAddressesDeleted": false,
+    "businessDataMutated": false,
+    "wholeD01Complete": false,
+    "gateAutomaticSaveSupersededBy": 316
+  },
+  "customerBrowsingAddress316": {
+    "status": "PUBLISHED_VERIFIED_STAGING_NATIVE_ACCEPTANCE_PENDING",
+    "build": 316,
+    "receipt": "../wizzuser-stg/docs/browsing-address-publication-316.json",
+    "regionOnlyIsAddressBookWrite": false,
+    "actualPointRequiredAtCheckout": true,
+    "neighborhoodAndLandmarkRequired": true,
+    "saveToBookIsOptional": true,
+    "tests": {
+      "backend": 21,
+      "flutterCurrent": 87,
+      "skipped": 1,
+      "analyzerErrors": 0,
+      "analyzerWarnings": 0,
+      "legacyQuoteTestsNeedingApprovedConsentFixtureUpdate": 19
+    },
+    "existingAddressesDeleted": false,
+    "businessDataMutated": false,
+    "wholeD01Complete": false,
+    "humanAcceptance": [
+      "TREE_DIRECT_HOME",
+      "CHECKOUT_GPS_MAP_CORRECTION",
+      "REQUIRED_HOOD_LANDMARK",
+      "REQUEST_ONLY_NO_BOOK_SLOT",
+      "EXPLICIT_SAVE_CAPACITY",
+      "SEARCH_GPS_SAVED_ADDRESS",
+      "OUTSIDE_REGION_AND_ACCOUNT_SWITCH",
+      "LOST_RESPONSE_RETRY"
+    ],
+    "earlySelectionSupersededBy": 317
+  },
+  "customerEarlyDeliveryPoint317": {
+    "status": "PUBLISHED_VERIFIED_STAGING_NATIVE_ACCEPTANCE_PENDING",
+    "supersedes": "316 area-only browsing for new selection",
+    "agreedFlow": {
+      "startup": "Nonblocking foreground GPS acquisition with permission; never replace an explicit saved/confirmed destination",
+      "gps": "Resolve current real point to canonical active region; enter home",
+      "regionTree": "Open detailed map; fixed pin; confirm real point inside selected region before entering home",
+      "googleSearch": "Open map at search result coordinates; correct and confirm point; resolve canonical region",
+      "header": "Always canonical platform region name",
+      "map": "No polygons, no show-boundary button, no automatic full-region zoom-out over a real point; internal coverage validation retained",
+      "pricing": "Read-only point preview for guests and registered users when restaurant opens, same pricing policy/agreement precedence; no address-book insert",
+      "checkout": "Reuse chosen point; require neighborhood and landmark, explicit optional address-book save; retain final owned-address/account/invoice guards"
+    },
+    "acceptance": [
+      "ALL_THREE_SELECTION_PATHS",
+      "GUEST_AND_REGISTERED_EARLY_FEES",
+      "FIXED_TARIFF_AND_DISTANCE_AND_MINIMUM",
+      "GPS_DENIED_AND_LOW_ACCURACY",
+      "PIN_CAMERA_TARGET_ALIGNMENT",
+      "OUTSIDE_SELECTED_REGION",
+      "CANCEL_NO_SELECTION_CHANGE",
+      "ACCOUNT_AND_DESTINATION_CHANGE_STALE_RESPONSE",
+      "NO_AUTOSAVE_OR_CAPACITY_CONSUMPTION",
+      "CHECKOUT_SAME_DESTINATION_AND_REPRICE_ON_CHANGE"
+    ],
+    "scopePreserved": [
+      "colleague products/import excluded",
+      "no pricing amount changes",
+      "no automatic orders/ratings/settlements",
+      "D01 remains open"
+    ],
+    "receipt": "../wizzuser-stg/docs/point-preview-publication-317.json",
+    "build": 317,
+    "tests": {
+      "nodeCore": 42,
+      "nodeHandler": 3,
+      "flutter": 87,
+      "skippedExisting": 1,
+      "typescript": "PASS"
+    },
+    "publicInformationalPath": "/storefront-point-preview",
+    "protectedFinancialQuotePath": "/delivery-quotes",
+    "newRateTable": "staging-StorefrontPointPreviewRate",
+    "savedAddressWrites": false,
+    "financialWrites": false,
+    "livePricingCases": [
+      {
+        "mode": "CALCULATED",
+        "feeIqd": 5500,
+        "distanceMeters": 11967,
+        "minimumIqd": 10000
+      },
+      {
+        "mode": "FIXED_TARIFF",
+        "feeIqd": 1500,
+        "distanceMeters": 10628,
+        "minimumIqd": 7000
+      }
+    ],
+    "nativeAcceptance": "PENDING_USER",
+    "mapInitialViewportFix318": {
+      "build": 318,
+      "status": "IMPLEMENTED_SIMULATOR_NATIVE_ACCEPTANCE_PENDING",
+      "receipt": "../wizzuser-stg/docs/map-initial-viewport-318.json",
+      "tests": 23
+    }
+  },
+  "customerAddressLifecycle319": {
+    "status": "STAGING_PUBLISHED_CUSTOMER_SIMULATOR_319_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+    "scope": [
+      "save timeout and uncertain result replay across restarts",
+      "atomic single-default and capacity under concurrent mutations",
+      "saved book versus checkout-only address separation",
+      "active destination versus persistent default",
+      "restore authoritative saved coordinates; edit/delete/default propagation",
+      "account scoped cache and in-flight response fences"
+    ],
+    "observedEvidence": {
+      "serverCreateDurationMs": 17979.67,
+      "clientCreateTimeoutMs": 15000,
+      "serverPreHandlerLoadMs": 12059,
+      "legacyDefaultMutations": "separate clears then update; not atomic",
+      "localPersistence": "placeholder; implicit first-address fallback",
+      "actualAttemptSaved": false,
+      "existingSavedCount": 10,
+      "rootCause": "Slow initialization hid ADDRESS_LIMIT_REACHED behind 15-second client timeout"
+    },
+    "businessMutationsExecuted": false,
+    "implemented": [
+      "Standalone SDK v3 address handlers and 512 MB; 35-second friendly client timeout",
+      "Atomic account-fenced address book metadata in existing Users profile: revision, up to ten saved IDs, one default",
+      "Durable account/payload idempotency key for uncertain saves across restarts",
+      "Canonical region revalidation on create/edit/default; single-address reads require live authenticated ownership",
+      "Server-authoritative edit/delete/default propagation; active selection kept separate from default",
+      "Account-scoped cached saved book and selected ID; old unauthenticated address endpoints removed",
+      "Request-only checkout records remain hidden, expire after seven days, and never consume slots/default"
+    ],
+    "tests": {
+      "node": 23,
+      "flutterRegression": 70,
+      "flutterSkippedPreexisting": 1,
+      "targetAnalyzerErrors": 0,
+      "targetAnalyzerWarnings": 0
+    },
+    "publicationReceipt": "../wizzuser-stg/docs/address-lifecycle-publication-319.json",
+    "humanTestsPending": [
+      "At ten saved addresses unchecked save-to-book allows request-only checkout; checked save gives capacity reason",
+      "Delete an explicitly chosen old address, then save new; no automatic deletion",
+      "Switch default A to B and verify home region, delivery pricing, and restart",
+      "Select another saved address for current order without changing persistent default",
+      "Edit active coordinates/details; verify checkout and pricing update",
+      "Delete active/default/last; verify no deleted address is restored",
+      "Lost response retry and account switching; no duplicate or cross-account address"
+    ],
+    "simulator": {
+      "model": "iPhone 16 Pro",
+      "build": 319,
+      "launched": true,
+      "dataPreserved": true
+    }
+  },
+  "serviceFeePreview320": {
+    "status": "STAGING_PUBLISHED_CUSTOMER_SIMULATOR_320_INSTALLED",
+    "scope": "Preload trusted branch base service charge at restaurant entry; show explicitly basic fee until final invoice replaces it. No assumed number, routing or address dependency. Short-lived branch cache. Final checkout invoice/approval mandatory.",
+    "source": "Same canonical accepted and independently approved commercial agreement reader extracted without changing financial source behavior",
+    "liveReadBaseIqd": 300,
+    "receipt": "../wizzuser-stg/docs/service-fee-preview-320.json",
+    "tests": {
+      "node": 35,
+      "flutter": 39,
+      "preexistingFlutterSkipped": 1
+    },
+    "humanAcceptancePending": true,
+    "businessMutations": false
+  },
+  "pointInvoice321": {
+    "status": "RESOLVED_323_LIVE_COMPLETE_INVOICE_SUCCESS",
+    "scope": "Complete server-priced point+basket invoice before neighborhood/landmark entry; no basic-fee placeholder. Detail text excluded from pricing key; final order still requires complete saved owned address and current approved invoice.",
+    "review": "../wizzuser-stg/docs/point-invoice-review-321.json",
+    "approvalRequired": {
+      "environment": "staging",
+      "function": "WizzUser-CreateOrder-staging",
+      "memoryMB": {
+        "before": 128,
+        "after": 512
+      },
+      "newEnvironment": [
+        "POINT_INVOICE_ENABLED=true",
+        "MAPBOX_SECRET_ARN=same existing server routing ARN from DeliveryQuotes configuration"
+      ],
+      "newIAM": [
+        {
+          "action": "secretsmanager:GetSecretValue",
+          "resource": "exact existing routing secret ARN only"
+        },
+        {
+          "action": "dynamodb:Query",
+          "resource": "WizzCentral_RegionIndex_staging/index/h3-index only"
+        }
+      ],
+      "apiAuthorizerUnchanged": true,
+      "legacyFinancialBundleUnchanged": true
+    },
+    "tests": {
+      "readonlyBoundaryNode": 3,
+      "existingPointHandlerNode": 3,
+      "flutter": 45,
+      "preexistingFlutterSkipped": 1,
+      "targetAnalyzerErrors": 0,
+      "targetAnalyzerWarnings": 0,
+      "iosSimulator321Build": "PASS_NOT_INSTALLED"
+    },
+    "liveUnchanged": false,
+    "businessWrites": false,
+    "userExplicitlyApproved": true,
+    "publicationReceipt": "../wizzuser-stg/docs/point-invoice-publication-321.json",
+    "native": {
+      "build": 321,
+      "device": "iPhone16Pro",
+      "installed": true,
+      "launched": true,
+      "dataPreserved": true
+    },
+    "existingFinancialRuntimePreserved": true,
+    "humanAcceptancePending": true
+  },
+  "pointInvoice322": {
+    "status": "RESOLVED_READS_APPLIED_323_LIVE_PRICE_SUCCESS",
+    "review": "../wizzuser-stg/docs/point-invoice-read-permissions-review-322.json",
+    "tests": {
+      "realQuoteAndOrderPreparationPlusBoundaries": 5,
+      "financialCompatibility": 50,
+      "iamPositiveNegative": 6
+    },
+    "scope": {
+      "function": "WizzUser-CreateOrder-staging",
+      "action": "dynamodb:GetItem",
+      "tables": [
+        "WizzCentral_RegionsDerived_staging",
+        "staging-AccountDeletion restricted to merchant account/business lifecycle prefixes"
+      ]
+    },
+    "mobileUpdateRequired": false,
+    "businessWrites": false,
+    "userExplicitlyApproved": true,
+    "permissionsPublication": "../wizzuser-stg/docs/point-invoice-read-permissions-publication-322.json"
+  },
+  "basketInvoice323": {
+    "status": "PUBLISHED_AUTHENTICATED_POINT_INVOICE_SUCCESS_NATIVE323_INSTALLED",
+    "receipt": "../wizzuser-stg/docs/basket-invoice-publication-323.json",
+    "behavior": [
+      "Debounced background point invoice preparation on basket and destination changes",
+      "Shared account/branch/point/basket/benefit/tip cache across cart and checkout; unpriced display metadata excluded from keys",
+      "Cart Continue joins an in-flight invoice and refreshes a near-expiry snapshot before navigating",
+      "Address-bound invoice is prepared for final review or actual offer eligibility, not repeatedly for ordinary screen navigation",
+      "A single retry message, with no duplicate point and legacy invoice errors",
+      "Existing active order does not block read-only price previews; one-active-order creation guard unchanged"
+    ],
+    "tests": {
+      "completePointAndBoundary": 6,
+      "financialCompatibility": 51,
+      "flutter": 53,
+      "preexistingSkipped": 1,
+      "targetAnalyzerErrors": 0
+    },
+    "liveObservedCustomerTotalIqd": 17000,
+    "businessWritesPerformed": false,
+    "newIAM": false,
+    "humanTestsPending": [
+      "Add/adjust basket in restaurant, open cart, then Continue; complete total should be reused immediately",
+      "Type neighborhood/landmark without repricing",
+      "Change tip/discount/point; expect only one new shared calculation",
+      "With active order, price preview remains available; actual second order stays blocked",
+      "Navigate near quote expiry; prepare fresh display before entering checkout"
+    ]
+  },
+  "ordinaryOrderVehicleCompatibility20261027": {
+    "status": "AUDITED_EXISTING_ENFORCED_IMPLEMENTATION",
+    "receipt": "docs/driver-ordinary-delivery-compatibility-20261027.json",
+    "scope": "USER_CONFIRMED_RESTAURANTS_AND_STORES_ORDINARY_ORDERS",
+    "allowedVehicleTypes": [
+      "car",
+      "motorcycle"
+    ],
+    "automatedTestsPassed": 42,
+    "liveServicesEnforced": 9,
+    "humanTests": "PRESERVED_DEFERRED_NOT_PASSED",
+    "wholeD01Complete": false
+  },
+  "driverPayoutReadiness20261027": {
+    "status": "AUDIT_COMPLETE_IMPLEMENTATION_REQUIRED",
+    "receipt": "docs/driver-payout-readiness-audit-20261027.json",
+    "businessWrites": false,
+    "next": "Choose launch disbursement method; implement source-backed driver payout and reconciliation, not generic wallet transfer"
+  },
+  "driverMapTools329": {
+    "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+    "evidence": "docs/driver-map-tools-review-329.json",
+    "publication": "docs/driver-map-tools-publication-329.json",
+    "humanAcceptanceDeferredAndListed": true,
+    "doesNotCloseOtherMainPlanItems": true
+  },
+  "guestCheckoutIdentity342": {
+    "evidence": "docs/guest-checkout-identity-audit-342.json",
+    "modernGuestOrderCreation": "NOT_ADMITTED_BY_PUBLISHED_REQUIRED_ROUTE",
+    "frontendContinuation": "LOCAL_AUTOMATED_VERIFIED_NATIVE_INSTALLATION_PENDING",
+    "legacyGuestHistoricalClaims": "OPEN_SEPARATE_IDENTITY_LINK_GAP",
+    "financialGuards": "UNCHANGED",
+    "next": "C07 policy audit",
+    "regressionDebt": "19 legacy Flutter failures reproduced at HEAD; 6 unmodified backend handler fixture failures; repair tracked, not marked PASS"
+  },
+  "customerOrderPolicy343": {
+    "evidence": "docs/customer-order-policy-343.json",
+    "status": "SUPERSEDED_UNPUBLISHED_BY_USER_DIRECTION_344",
+    "publishScope": "Only three create-order zip entries; no IAM or financial-rule changes",
+    "humanAcceptance": "QUEUED_NOT_RUN",
+    "partnerSignupScope": "SEPARATE_ROUTE_AND_CONSENT_COVERAGE_AUDIT_REQUIRED"
+  },
+  "applicationLegal344": {
+    "evidence": "docs/application-legal-policies-344.json",
+    "status": "THREE_APP_POLICIES_PUBLISHED_BACKENDS_APPS_DEPLOYED_344_HUMAN_ACCEPTANCE_OPEN",
+    "next": "QUEUED_HUMAN_REGISTRATION_AND_POLICY_NAVIGATION_ACCEPTANCE_FOR_THREE_ROLES",
+    "checkoutPolicyRemoved": true,
+    "deploymentPlan": "docs/application-legal-dependent-deployment-344.json",
+    "publicPolicyUrls": "HUMAN_READABLE_WEB_PAGES_QUEUED_BEFORE_STORE_RELEASE_PUBLIC_JSON_READER_ALREADY_LIVE",
+    "consumerPublication": "docs/application-legal-consumers-publication-344.json",
+    "ownerPublishedRoles": [
+      "CUSTOMER",
+      "DRIVER",
+      "MERCHANT"
+    ],
+    "installedBuild": 344
+  },
+  "merchantBranchIsolation345": {
+    "evidence": "docs/merchant-branch-isolation-345.json",
+    "status": "PUBLISHED_345_BRANCH_ISOLATION_MERCHANT_REALTIME_AND_CUTOVER_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+    "acceptance": "docs/branch-isolation-human-acceptance-345.csv",
+    "next": "X_REALTIME_AUTH_345_BEFORE_M05",
+    "legacyCutover": "COMPLETED_VERIFIED_30_ALREADY_GONE_SOCKET_ROWS_REMOVED"
+  },
+  "realtimeIdentity346": {
+    "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/realtime-identity-offers-346.json",
+    "beforeNext": "M05 branch devices/PIN",
+    "actualManagerWriterVerified": true,
+    "humanAcceptance": "RT346-01..07"
+  },
+  "driverMapCoverage347": {
+    "status": "IMPLEMENTED_9_TESTS_PASSED_IOS_AND_ANDROID_BUILT_RELEASE347_INSTALLED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/driver-map-coverage-347.json",
+    "humanAcceptance": "OUTSIDE_AND_INSIDE_REAL_DEVICE_PENDING",
+    "eligibilityAndRegionRulesUnchanged": true
+  },
+  "customerBasketInvoice348": {
+    "status": "PUBLISHED_STAGING_POINT_PREVIEW_CONFIRMED_HUMAN_CONTINUE_PENDING",
+    "evidence": "../wizzuser-stg/docs/basket-invoice-and-coverage-348.json",
+    "sourcePackageAudit": "14 owned modules; no missing module or direct shared export",
+    "driverNotice": "Release348 installed; city/country only, no coordinate fallback",
+    "next": "Current basket acceptance, then realtime genuine offer acceptance before M05"
+  },
+  "driverOutsideStart349": {
+    "status": "IMPLEMENTED_12_TESTS_PASSED_RELEASE349_INSTALLED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/driver-outside-start-349.json",
+    "humanAcceptance": "DISMISS_THEN_GO_NOTICE_REOPEN_AND_RETURN_TO_COVERED_POSITION_PENDING"
+  },
+  "driverTrialLocation350": {
+    "status": "RELEASE350_INSTALLED_AND_LAUNCHED_SCOPED_TEST_LOCATION_RESTORED",
+    "profile": "../whizzDrivers-stg/frontend/config/staging-test-driver.json",
+    "buildCommand": "scripts/build-driver-trial.sh release",
+    "evidence": "../whizzDrivers-stg/docs/resume-checkpoint-latest.md",
+    "coverageReadOnlyVerification": "HTTP200 Al-Manathirah Center, 5 stores",
+    "identityAndProductionGating": "Existing test passed; general builds and other accounts retain GPS",
+    "preserveDuringCurrentHumanTrial": true
+  },
+  "walletOperatingLimits355": {
+    "status": "PUBLISHED_STAGING_VERIFIED",
+    "backendTests": 62,
+    "nativeTests": 18,
+    "browserTest": "PASS",
+    "packageBridgeTest": "PASS",
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "nativeBuild": 355,
+    "nativeInstalled": true,
+    "next": "A05 wallet creation caller identity and trigger authorization audit; no secret literal in documentation",
+    "nativeLaunch": "SUCCESS"
+  },
+  "walletAuthorization356": {
+    "status": "PUBLISHED_STAGING_VERIFIED_HUMAN_SIGNUP_ACCEPTANCE_PENDING",
+    "automatedNodeTests": 69,
+    "authorizerTests": 16,
+    "positiveSignupAcceptance": "DEFERRED_NOT_PASSED",
+    "financialMutations": 0,
+    "nativeUpdateRequired": false,
+    "unrelatedApiMethodsPreserved": true
+  },
+  "checkoutRegressionRepair357": {
+    "status": "LOCAL_TEST_ONLY_VERIFIED_NO_RUNTIME_DEPLOYMENT_NEEDED",
+    "flutterPassed": 87,
+    "flutterSkipped": 1,
+    "backendPassed": 62,
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "runtimeCodeChanged": false
+  },
+  "auditTrail358": {
+    "status": "PUBLISHED_STAGING_BYTE_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+    "backendTests": 21,
+    "actualBundleRouteTest": "PASS",
+    "browserWidths": [
+      390,
+      1280
+    ],
+    "source": "STAFF_AUDIT_ONLY",
+    "walletAuditCoverage": "OPEN",
+    "historicalNamesBackfilled": false,
+    "newIamPermissions": false,
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "hostingJob": "228"
+  },
+  "financialAudit359": {
+    "status": "PUBLISHED_STAGING_SHA_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+    "scope": [
+      "manual topup create/approve/reject",
+      "wallet operating limits proposals/review"
+    ],
+    "testsPassed": 74,
+    "historicalRowsRewritten": false,
+    "realFinancialOperations": 0,
+    "nativeUpdateRequired": false,
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "next": "Driver cash payout audit and remaining independent wallet sources"
+  },
+  "driverPayoutAudit360": {
+    "status": "PUBLISHED_STAGING_SHA_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+    "testsPassed": 53,
+    "actualRuntimeAuthoritySdkBridge": "PASS",
+    "historicalRowsModified": false,
+    "realPayoutsExecuted": 0,
+    "nativeUpdateRequired": false,
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "next": "Transfer/provider audit and authorized wallet audit source presentation"
+  },
+  "userRequestedPauseAfter360": {
+    "status": "PAUSED_BY_USER",
+    "lastCompleted": "DRIVER_PAYOUT_AUDIT_360",
+    "resumeAt": "Transfer/provider audit and authorized wallet audit source presentation within A06",
+    "currentDiscussion": "Customer home composition and central merchandising; discussion/read-only inspection only, no implementation authorized"
+  },
+  "customerHomeReadOnlyDiscussion": {
+    "status": "DISCUSSION_ONLY_NO_IMPLEMENTATION",
+    "mainExecutionRemainsPaused": true,
+    "verifiedCurrentSource": "../wizzuser-stg/frontend/lib/screens/home_screen.dart",
+    "findings": [
+      "Home section composition/order/titles fixed in Flutter (_buildStoresSection)",
+      "HomeSlideshow and its scheduled audience/region-targeted content read central service; admin UI in promotions page",
+      "Popular section sorts by rating, not completed-order popularity",
+      "Nearby section primary path takes first six region businesses without explicit distance sort inside selector"
+    ],
+    "possibleDirectionNotYetAuthorized": "Centrally managed home sections with predefined layouts, scheduling, region/audience eligibility and real data sources; independent personalized favorites/recent/order-history sources",
+    "runtimeCodeChanged": false,
+    "cloudChanges": false,
+    "resumeMainPlanAt": "A06 remaining transfer/provider audit and authorized cross-source wallet audit reader"
+  },
+  "activeUserRequestedDesign361": {
+    "status": "ACTIVE",
+    "operationalPlanStillPausedAfter360": true,
+    "noCopiedBrandAssets": true,
+    "noGoldTextOnWhite": true
+  }
+}

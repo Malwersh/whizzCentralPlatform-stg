@@ -1,0 +1,33 @@
+{
+  "part": 202,
+  "status": "PUBLISHED_VERIFIED",
+  "functions": [
+    {
+      "name": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+      "codeSha": "q4MDtWRTO728AyTznkED2Cxn+Zst/yAmlYuWFmryEaE=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha": "4+bsp09wJzbTovYfoEByLZAs+4LQgMl8kdhd44VN5ZE=",
+      "configurationPreserved": true
+    }
+  ],
+  "financialDataWrites": false,
+  "eventSourceChanges": false,
+  "permission": {
+    "role": "wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+    "policyName": "OrderActivityInvoke202",
+    "action": "lambda:InvokeFunction",
+    "target": "wizzcentral-notifications-staging-pushSendOrderUpdate"
+  },
+  "providerTokenIssuedAtFixed": true,
+  "immediateEndAcceptedByApple": true,
+  "physicalLockScreenRemovalConfirmedByUser": true,
+  "customerAppInstalled": true,
+  "deepLinkDeviceVisualVerificationPending": false,
+  "testsPassed": 17,
+  "physicalColdStartTrackingLinkConfirmedByUser": true,
+  "merchantSimulatorUpdated": true,
+  "fullNewOrderBackgroundTransitionsPending": true
+}

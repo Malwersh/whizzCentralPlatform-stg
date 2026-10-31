@@ -1,0 +1,41 @@
+{
+  "part": 220,
+  "status": "PUBLISHED_VERIFIED",
+  "functions": [
+    {
+      "name": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+      "codeSha256": "Bg53gJotIGDYDjno5+TC6wPRc3WTOjTFLzIeLrgXjGQ=",
+      "changedFiles": [
+        "src/handlers/order-arrival-content.js"
+      ],
+      "otherFilesAndConfigurationPreserved": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushUpdate",
+      "codeSha256": "W35Vogugh/O+I0snP4bzaiFbhE6S3b4j+itTd8piK2Q=",
+      "changedFiles": [
+        "src/handlers/order-arrival-content.js"
+      ],
+      "otherFilesAndConfigurationPreserved": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushEnd",
+      "codeSha256": "TxrBSWMdxHCkpdaXV8AV9VOcdja4R1bpJP3q59jO4zY=",
+      "changedFiles": [
+        "src/handlers/order-arrival-content.js"
+      ],
+      "otherFilesAndConfigurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "fPyvy0UfxO8KfDGItGAxwFx+g/GgAM1+8ptMg1AD1D8=",
+      "changedFiles": [
+        "order-activity-stream.js"
+      ],
+      "otherFilesAndConfigurationPreserved": true
+    }
+  ],
+  "dataWrites": false,
+  "notificationPushesRequested": false,
+  "permissionsChanged": false
+}

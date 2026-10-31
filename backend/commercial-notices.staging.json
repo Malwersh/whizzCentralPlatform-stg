@@ -1,0 +1,334 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Owner and active branch manager sharing notices; existing financial authority preserved.",
+  "Parameters": {
+    "StaffRoleName": {
+      "Type": "String"
+    },
+    "PushRoleName": {
+      "Type": "String"
+    },
+    "DeliveryEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ]
+    }
+  },
+  "Conditions": {
+    "DeliveryEnabled": {
+      "Fn::Equals": [
+        {
+          "Ref": "DeliveryEnabled"
+        },
+        "true"
+      ]
+    }
+  },
+  "Resources": {
+    "StaffNoticeInvoke": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "CommercialNotice78Invoke",
+        "Roles": [
+          {
+            "Ref": "StaffRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "lambda:InvokeFunction"
+              ],
+              "Resource": "arn:aws:lambda:us-east-1:699561669180:function:wizzcentral-notifications-staging-pushSendMerchantOrder"
+            }
+          ]
+        }
+      }
+    },
+    "PushOwnerNoticeRead": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "CommercialNotice78OwnerRead",
+        "Roles": [
+          {
+            "Ref": "PushRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+              "Condition": {
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "pk",
+                    "sk",
+                    "ownerId",
+                    "businessId",
+                    "draftVersion",
+                    "draftHash",
+                    "eventId",
+                    "status",
+                    "createdAt",
+                    "expiresAt",
+                    "attempts",
+                    "nextAttemptAt",
+                    "leaseUntil",
+                    "sentTokenHashes",
+                    "id",
+                    "kind",
+                    "version",
+                    "hash",
+                    "businessIds",
+                    "publishedVersion",
+                    "subjectId",
+                    "cognitoUserId",
+                    "deletionRequestId",
+                    "deletedAt",
+                    "isDeleted",
+                    "role",
+                    "permissionSchema",
+                    "grant"
+                  ]
+                },
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "DISCOUNT_FUNDING#*"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+              "Condition": {
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "pk",
+                    "sk",
+                    "ownerId",
+                    "businessId",
+                    "draftVersion",
+                    "draftHash",
+                    "eventId",
+                    "status",
+                    "createdAt",
+                    "expiresAt",
+                    "attempts",
+                    "nextAttemptAt",
+                    "leaseUntil",
+                    "sentTokenHashes",
+                    "id",
+                    "kind",
+                    "version",
+                    "hash",
+                    "businessIds",
+                    "publishedVersion",
+                    "subjectId",
+                    "cognitoUserId",
+                    "deletionRequestId",
+                    "deletedAt",
+                    "isDeleted",
+                    "role",
+                    "permissionSchema",
+                    "grant"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+              "Condition": {
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "pk",
+                    "sk",
+                    "ownerId",
+                    "businessId",
+                    "draftVersion",
+                    "draftHash",
+                    "eventId",
+                    "status",
+                    "createdAt",
+                    "expiresAt",
+                    "attempts",
+                    "nextAttemptAt",
+                    "leaseUntil",
+                    "sentTokenHashes",
+                    "id",
+                    "kind",
+                    "version",
+                    "hash",
+                    "businessIds",
+                    "publishedVersion",
+                    "subjectId",
+                    "cognitoUserId",
+                    "deletionRequestId",
+                    "deletedAt",
+                    "isDeleted",
+                    "role",
+                    "permissionSchema",
+                    "grant"
+                  ]
+                },
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ACCOUNT_LIFECYCLE#MERCHANT#*",
+                    "BUSINESS_LIFECYCLE#MERCHANT#*"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "cognito-idp:AdminGetUser"
+              ],
+              "Resource": "arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_gtCR3ndzT"
+            },
+            {
+              "Sid": "ReadBranchManagerNoticeTargets",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:Query"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+              "Condition": {
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "pk",
+                    "sk",
+                    "ownerId",
+                    "businessId",
+                    "draftVersion",
+                    "draftHash",
+                    "eventId",
+                    "status",
+                    "createdAt",
+                    "expiresAt",
+                    "attempts",
+                    "nextAttemptAt",
+                    "leaseUntil",
+                    "sentTokenHashes",
+                    "id",
+                    "kind",
+                    "version",
+                    "hash",
+                    "businessIds",
+                    "publishedVersion",
+                    "subjectId",
+                    "cognitoUserId",
+                    "deletionRequestId",
+                    "deletedAt",
+                    "isDeleted",
+                    "role",
+                    "permissionSchema",
+                    "grant"
+                  ]
+                },
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "BRANCH#*"
+                  ]
+                },
+                "StringEquals": {
+                  "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+                }
+              }
+            },
+            {
+              "Sid": "ReadBranchManagerPolicyGate",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+              "Condition": {
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "pk",
+                    "sk",
+                    "version",
+                    "enabledPermissions"
+                  ],
+                  "dynamodb:LeadingKeys": [
+                    "OPERATIONAL_SETTINGS#MERCHANT_STAFF_PERMISSIONS"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CommercialNoticeSchedule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Name": "staging-commercial-sharing-notices-78",
+        "ScheduleExpression": "rate(1 minute)",
+        "State": {
+          "Fn::If": [
+            "DeliveryEnabled",
+            "ENABLED",
+            "DISABLED"
+          ]
+        },
+        "Targets": [
+          {
+            "Id": "StaffCommercialNotices",
+            "Arn": "arn:aws:lambda:us-east-1:699561669180:function:staging-wizz-staff-service",
+            "Input": "{\"action\": \"commercial_notice_tick\"}"
+          }
+        ]
+      }
+    },
+    "CommercialNoticeSchedulePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "staging-wizz-staff-service",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "CommercialNoticeSchedule",
+            "Arn"
+          ]
+        },
+        "SourceAccount": "699561669180"
+      }
+    }
+  }
+}

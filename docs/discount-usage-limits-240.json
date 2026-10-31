@@ -1,0 +1,86 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "functions": [
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "YCIXXWroGh7a5O/N5pJ5QLdgCUVJcDItiBM4rWGlVXY=",
+      "changedEntries": [
+        "commercial-management.js",
+        "commercial-options.js",
+        "promotions.js",
+        "_discount_review/central-staff/index.js",
+        "funding-campaign-limits.js"
+      ],
+      "allBytesVerified": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "+AWp+Yxrjm3JjjUf4DsJTscaWXeZiTuv66vZ84u+nZU=",
+      "changedEntries": [
+        "branch_device_discounts.js"
+      ],
+      "allBytesVerified": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-discount-management-v1-sam",
+      "codeSha256": "wdXAiSOvB4Y1Zvgoaqtdo3a0iEkN0dg58ge7WWgjRz0=",
+      "changedEntries": [
+        "_discount_review/merchant-discounts/index.js"
+      ],
+      "allBytesVerified": true,
+      "configurationPreserved": true
+    }
+  ],
+  "businessDataWritten": false,
+  "humanConsentSubmitted": false,
+  "financialWritesGranted": false,
+  "verifiedAt": "2026-10-24T03:04:24.737328+00:00",
+  "frontend": {
+    "status": "PUBLISHED_VERIFIED",
+    "jobId": "182",
+    "baseJobId": "181",
+    "changedFiles": [
+      "commercial-management.js",
+      "pages/merchants.html",
+      "pages/promotions.html"
+    ],
+    "businessDataWritten": false,
+    "hostedBytesMatched": true
+  },
+  "native": {
+    "checks": [
+      {
+        "deviceId": "E2B409D5-6821-4BDC-BDAC-D415977B971E",
+        "build": 239,
+        "installed": true
+      },
+      {
+        "deviceId": "09DA4C20-FD4B-446E-8C2F-9D04E5CFC206",
+        "build": 239,
+        "installed": true
+      }
+    ],
+    "launched": "E2B409D5-6821-4BDC-BDAC-D415977B971E"
+  },
+  "tests": {
+    "staffService": 355,
+    "merchantBackend": 28,
+    "merchantFlutter": 21,
+    "customerRedemptionAndReservation": 37,
+    "actualStaffBundle": 24,
+    "actualOwnerBundle": "PASS including update of global and per-customer limits",
+    "browserStatesIncludingIncompleteFunding": 5
+  },
+  "newFields": {
+    "perCustomerLimit": "Number of uses per customer; blank means no customer cap",
+    "usageLimit": "Total campaign uses across customers; required before shared funding acceptance",
+    "maxDiscountAmount": "Whole-IQD maximum discount per order for percentage campaigns; required for shared funding"
+  },
+  "wireFix": "Merchant model now sends usageLimit instead of only ignored maxUsage; owner writer persists and updates perCustomerLimit and keeps singleUse consistent.",
+  "approvalGate": "Validate total usage and monetary cap at sharing draft, consent and publication; exact campaign fences preserve approved terms. Both root and embedded commercial management modules patched.",
+  "existingCampaignsChanged": false,
+  "newHumanConsentRequired": true,
+  "nextHumanStep": "Create an inactive replacement for the existing approved capless campaign, choose limits explicitly, configure and accept new sharing, then activate and test a new order."
+}

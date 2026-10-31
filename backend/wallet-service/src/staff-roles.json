@@ -1,0 +1,208 @@
+{
+  "commercial_viewer": [
+    "commercial.read"
+  ],
+  "commercial_editor": [
+    "commercial.read",
+    "commercial.request",
+    "commercial.funding.request"
+  ],
+  "commercial_approver": [
+    "commercial.read",
+    "commercial.approve",
+    "commercial.funding.approve"
+  ],
+  "pricing_viewer": [
+    "pricing.read",
+    "pricing.simulate"
+  ],
+  "pricing_editor": [
+    "pricing.read",
+    "pricing.simulate",
+    "pricing.request"
+  ],
+  "pricing_approver": [
+    "pricing.read",
+    "pricing.simulate",
+    "pricing.approve"
+  ],
+  "merchant_staff_policy_manager": [
+    "merchant_staff_policy.read",
+    "merchant_staff_policy.manage"
+  ],
+  "settings_viewer": [
+    "settings.read"
+  ],
+  "settings_manager": [
+    "settings.read",
+    "settings.change.request"
+  ],
+  "settings_approver": [
+    "settings.read",
+    "settings.change.approve"
+  ],
+  "staff_manager": [
+    "staff.read",
+    "staff.invite",
+    "staff.change.request"
+  ],
+  "staff_approver": [
+    "staff.read",
+    "staff.change.approve"
+  ],
+  "customer_service": [
+    "support.read",
+    "support.reply",
+    "customers.read",
+    "orders.read"
+  ],
+  "support_supervisor": [
+    "support.read",
+    "support.reply",
+    "support.assign",
+    "support.close",
+    "support.metrics",
+    "customers.read",
+    "orders.read"
+  ],
+  "driver_manager": [
+    "drivers.read",
+    "drivers.edit",
+    "orders.read"
+  ],
+  "driver_reviewer": [
+    "drivers.read",
+    "drivers.documents.read",
+    "drivers.review",
+    "drivers.suspend"
+  ],
+  "merchant_manager": [
+    "merchants.read",
+    "merchants.edit",
+    "products.read",
+    "products.edit"
+  ],
+  "merchant_reviewer": [
+    "merchants.read",
+    "merchants.documents.read",
+    "merchants.review",
+    "merchants.suspend"
+  ],
+  "operations": [
+    "orders.read",
+    "orders.assign",
+    "orders.cancel",
+    "drivers.read",
+    "merchants.read"
+  ],
+  "region_manager": [
+    "regions.read",
+    "regions.edit",
+    "regions.activate"
+  ],
+  "promotions_manager": [
+    "promotions.read",
+    "promotions.create",
+    "promotions.edit",
+    "promotions.grant"
+  ],
+  "promotions_approver": [
+    "promotions.read",
+    "promotions.approve"
+  ],
+  "finance_viewer": [
+    "finance.read"
+  ],
+  "finance_operator": [
+    "finance.read",
+    "finance.request",
+    "finance.topup.review"
+  ],
+  "finance_approver": [
+    "finance.read",
+    "finance.approve"
+  ],
+  "finance_settings": [
+    "finance.read",
+    "finance.settings.request"
+  ],
+  "finance_settings_approver": [
+    "finance.read",
+    "finance.settings.approve"
+  ],
+  "auditor": [
+    "audit.read",
+    "reports.read",
+    "audit.export"
+  ],
+  "platform_manager": [
+    "dashboard.read",
+    "reports.read",
+    "drivers.read",
+    "merchants.read",
+    "customers.read",
+    "orders.read",
+    "regions.read",
+    "promotions.read",
+    "staff.read"
+  ],
+  "bootstrap_admin": [
+    "commercial.read",
+    "commercial.request",
+    "commercial.funding.request",
+    "commercial.approve",
+    "commercial.funding.approve",
+    "pricing.read",
+    "pricing.simulate",
+    "pricing.request",
+    "pricing.approve",
+    "merchant_staff_policy.read",
+    "merchant_staff_policy.manage",
+    "settings.read",
+    "settings.change.request",
+    "settings.change.approve",
+    "staff.read",
+    "staff.invite",
+    "staff.change.request",
+    "staff.change.approve",
+    "support.read",
+    "support.reply",
+    "customers.read",
+    "orders.read",
+    "support.assign",
+    "support.close",
+    "support.metrics",
+    "drivers.read",
+    "drivers.edit",
+    "drivers.documents.read",
+    "drivers.review",
+    "drivers.suspend",
+    "merchants.read",
+    "merchants.edit",
+    "products.read",
+    "products.edit",
+    "merchants.documents.read",
+    "merchants.review",
+    "merchants.suspend",
+    "orders.assign",
+    "orders.cancel",
+    "regions.read",
+    "regions.edit",
+    "regions.activate",
+    "promotions.read",
+    "promotions.create",
+    "promotions.edit",
+    "promotions.grant",
+    "promotions.approve",
+    "finance.read",
+    "finance.request",
+    "finance.topup.review",
+    "finance.approve",
+    "finance.settings.request",
+    "finance.settings.approve",
+    "audit.read",
+    "reports.read",
+    "audit.export",
+    "dashboard.read"
+  ]
+}

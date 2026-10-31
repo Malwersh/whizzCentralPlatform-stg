@@ -15,6 +15,31 @@ Globals:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
 
 Parameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+  ZaincashReturnUrl:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|https://[^ ]+$'
+    Description: Public HTTPS return page. Never includes secrets.
+  ZaincashWebhookUrl:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|https://[^ ]+$'
+    Description: Public wallet/funding/zaincash/notification URL registered with provider.
+  PlatformWriteMode:
+    Type: String
+    Default: REVIEW
+    AllowedValues: [REVIEW, DIRECT]
+  PlatformDirectOperatorIds:
+    Type: String
+    Default: ''
+
+  MerchantStaffPermissionMode:
+    Type: String
+    Default: CENTRAL
+    AllowedValues: [CENTRAL]
   Environment:
     Type: String
     Default: dev
@@ -73,6 +98,83 @@ Conditions:
   IsSandboxStaging: !Equals [!Ref Environment, staging]
 
 Resources:
+  WalletLifecycleTable:
+    Type: AWS::DynamoDB::Table
+    Condition: IsSandboxStaging
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: staging-WalletLifecycle
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: operationId
+          AttributeType: S
+        - AttributeName: queuePartition
+          AttributeType: S
+        - AttributeName: nextAttemptAt
+          AttributeType: N
+      GlobalSecondaryIndexes:
+        - IndexName: ByDue
+          KeySchema:
+            - AttributeName: queuePartition
+              KeyType: HASH
+            - AttributeName: nextAttemptAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: operationId
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+  # COD writer/integration and extra legacy guard policies are owned by cod-lifecycle.staging.json.
+  WalletLifecycleWorker:
+    Type: AWS::Serverless::Function
+    Condition: IsSandboxStaging
+    Properties:
+      FunctionName: staging-wizz-wallet-lifecycle
+      CodeUri: ./
+      Handler: dist/index.walletLifecycleWorker
+      Timeout: 120
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:UpdateItem]
+              Resource:
+                - !GetAtt WalletLifecycleTable.Arn
+                - !Sub '${WalletLifecycleTable.Arn}/index/ByDue'
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WalletsTableName}
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Query, dynamodb:Scan, dynamodb:UpdateItem]
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HoldsTableName}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${HoldsTableName}/index/*
+            - Effect: Allow
+              Action: [dynamodb:PutItem]
+              Resource:
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LedgerTableName}
+                - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditLogTableName}
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:UpdateItem, dynamodb:ConditionCheckItem]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders
+      Environment:
+        Variables:
+          WALLET_LIFECYCLE_TABLE: !Ref WalletLifecycleTable
+          ORDERS_TABLE: WizzOrders
+          WALLETS_TABLE: !Ref WalletsTableName
+          HOLDS_TABLE: !Ref HoldsTableName
+          LEDGER_TABLE: !Ref LedgerTableName
+          AUDIT_LOG_TABLE: !Ref AuditLogTableName
+          IDEMPOTENCY_KEYS_TABLE: !Ref IdempotencyKeysTableName
+      Events:
+        RetryLifecycle:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
   FundingReceiptsBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -104,6 +206,7 @@ Resources:
       Description: Cognito trigger to create wallet for new drivers
       Environment:
         Variables:
+          DRIVER_USER_POOL_ID: !Ref DriverCognitoUserPoolId
           WALLET_API_URL: !Sub https://${WalletServiceApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
       Policies:
         - Version: '2012-10-17'
@@ -188,9 +291,27 @@ Resources:
           WALLET_NOTIFICATIONS_TABLE: !Ref WalletNotificationsTable
           PUSH_TOKENS_TABLE: !Sub WizzCentral_PushDeviceTokens_${Environment}
           FIREBASE_ADMIN_SA_SECRET_ID: !Sub wizz/${Environment}/firebase/admin-service-account
+          STAGE: !Ref Environment
+          FINANCIAL_COD_ACCOUNT_ID: !Ref AWS::AccountId
+          FINANCIAL_COD_NOTIFICATIONS_MODE: 'OFF'
+          DISPATCH_RESPONSE_NOTIFICATIONS_MODE: 'OFF'
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref WalletNotificationsTable
+        - !If
+          - IsSandboxStaging
+          - Statement:
+              - Effect: Allow
+                Action: dynamodb:GetItem
+                Resource:
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_staging
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AccountDeletion
+                Condition:
+                  'Null':
+                    dynamodb:Attributes: 'false'
+                  ForAllValues:StringEquals:
+                    dynamodb:Attributes: [pk, sk, driverId, cognitoSub, isDeleted, deletedAt, deletionRequestId]
+          - !Ref AWS::NoValue
         - Statement:
             - Effect: Allow
               Action: [dynamodb:Query, dynamodb:DeleteItem]
@@ -230,14 +351,455 @@ Resources:
       Description: Custom authorizer for Wallet Service - validates Cognito tokens and enforces RBAC
       Environment:
         Variables:
+          PLATFORM_ENVIRONMENT: !Ref Environment
+          PLATFORM_WRITE_MODE: !Ref PlatformWriteMode
+          PLATFORM_DIRECT_OPERATOR_IDS: !Ref PlatformDirectOperatorIds
+          MERCHANT_DEVICE_AUTHORIZER_FUNCTION: !If [IsSandboxStaging, !GetAtt MerchantDeviceWalletFunction.Arn, '']
+          MERCHANT_DEVICE_FINANCE_AUTHORIZER_FUNCTION: !If [IsSandboxStaging, !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-merchant-device-transfers', '']
           DRIVER_USER_POOL_ID: !Ref DriverCognitoUserPoolId
           ADMIN_USER_POOL_ID: !Ref AdminCognitoUserPoolId
           SERVICE_USER_POOL_ID: !Ref ServiceCognitoUserPoolId
           REGION: !Ref AWS::Region
+          CUSTOMER_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_TpyyrVkEE', '']
+          MERCHANT_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_gtCR3ndzT', '']
+          CUSTOMER_CLIENT_ID: !If [IsSandboxStaging, '4a9e8o3em311eq2rgckp0pd2s9', '']
+          MERCHANT_CLIENT_ID: !If [IsSandboxStaging, '4qabvh11nmghmf9fmc6e6ludd2', '']
+          DRIVER_CLIENT_ID: !If [IsSandboxStaging, '2d26d3muq0vvcuf42lkpgmkgsr', '']
+          ADMIN_CLIENT_ID: !If [IsSandboxStaging, '17mu2qlqis0qcs1n1n980q7e3j', '']
+          STAFF_TABLE: !If [IsSandboxStaging, 'staging-PlatformStaff', '']
+      Policies:
+        - !If
+          - IsSandboxStaging
+          - Statement:
+              Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: [!GetAtt MerchantDeviceWalletFunction.Arn, !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-merchant-device-transfers']
+          - !Ref AWS::NoValue
+        - !If
+          - IsSandboxStaging
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+              - Effect: Allow
+                Action: [cognito-idp:AdminGetUser]
+                Resource: !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${AdminCognitoUserPoolId}
+          - !Ref AWS::NoValue
       Layers:
         - !Sub arn:aws:lambda:${AWS::Region}:017000801446:layer:AWSLambdaPowertoolsPythonV2:68
 
   # Lambda Function
+  # Staging-only reader: no permission to create wallets or move funds.
+  MerchantDeviceWalletFunction:
+    Type: AWS::Serverless::Function
+    Condition: IsSandboxStaging
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      FunctionName: !Sub ${Environment}-merchant-device-wallet-read
+      CodeUri: ./
+      Handler: dist/merchantDeviceWallet.handler
+      Timeout: 20
+      MemorySize: 256
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          MERCHANT_STAFF_PERMISSION_MODE: !Ref MerchantStaffPermissionMode
+          WALLETS_TABLE: !Ref WalletsTableName
+          LEDGER_TABLE: !Ref LedgerTableName
+          AUDIT_LOG_TABLE: !Ref AuditLogTableName
+      Role: !GetAtt MerchantDeviceWalletRole.Arn
+
+  # Imported release74 role: keep its physical name and explicit inline policy.
+  MerchantDeviceWalletRole:
+    Type: AWS::IAM::Role
+    Condition: IsSandboxStaging
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RoleName: staging-merchant-device-wallet-read-role
+      Path: /
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: MerchantDeviceReadOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: dynamodb:GetItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WalletsTableName}
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['WALLET#MERCHANT#*']
+              - Effect: Allow
+                Action: dynamodb:Scan
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders
+                Condition:
+                  StringEquals:
+                    dynamodb:Select: SPECIFIC_ATTRIBUTES
+                  ForAllValues:StringEquals:
+                    dynamodb:Attributes: [PK, SK, businessId, storeId, merchantId, createdAt, status, currency, pricing, total, subtotal, createdBy, financialSnapshot]
+              - Effect: Allow
+                Action: dynamodb:Query
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LedgerTableName}
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['WALLET#MERCHANT#*']
+              - Effect: Allow
+                Action: dynamodb:PutItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['BRANCH#*']
+              - Effect: Allow
+                Action: dynamodb:PutItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditLogTableName}
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['date#*']
+              - Effect: Allow
+                Action: dynamodb:GetItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['BRANCH#*']
+                  ForAllValues:StringEquals:
+                    dynamodb:Attributes: ["pk", "sk", "businessId", "ownerId", "cognitoUserId", "subjectId", "membershipId", "displayName", "role", "status", "version", "permissionSchema", "extraPermissions", "grant", "deviceId", "deviceVersion", "sessionId", "membershipVersion", "pinVersion", "tokenHash", "expiresAt", "deletionRequestId"]
+                  StringEquals:
+                    dynamodb:Select: SPECIFIC_ATTRIBUTES
+              - Effect: Allow
+                Action: dynamodb:ConditionCheckItem
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['BRANCH#*']
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AccountDeletion
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys: ['BUSINESS_LIFECYCLE#MERCHANT#*', 'ACCOUNT_LIFECYCLE#MERCHANT#*']
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+                Condition:
+                  ForAllValues:StringEquals:
+                    dynamodb:LeadingKeys: ['OPERATIONAL_SETTINGS#MERCHANT_STAFF_PERMISSIONS']
+              - Effect: Allow
+                Action: [logs:CreateLogGroup, logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/staging-merchant-device-wallet-read:*
+
+  MerchantDeviceApiWalletBranchDeviceTransactions:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId:
+        Ref: MerchantDeviceApiWalletBranchDevice
+      PathPart: transactions
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceTransactionsGET:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceTransactions
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: 2bqq12
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:staging-merchant-device-wallet-read/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: 5yyq0m
+        CacheKeyParameters: []
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceTransactionsOPTIONS:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceTransactions
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+      - StatusCode: '200'
+        ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode":200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: 5yyq0m
+        CacheKeyParameters: []
+        IntegrationResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
+            method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceBalance:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId:
+        Ref: MerchantDeviceApiWalletBranchDevice
+      PathPart: balance
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceBalanceGET:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceBalance
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: 2bqq12
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:staging-merchant-device-wallet-read/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: 7fl7me
+        CacheKeyParameters: []
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceBalanceOPTIONS:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceBalance
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+      - StatusCode: '200'
+        ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode":200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: 7fl7me
+        CacheKeyParameters: []
+        IntegrationResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
+            method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceStatement:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId:
+        Ref: MerchantDeviceApiWalletBranchDevice
+      PathPart: statement
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceStatementGET:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceStatement
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: 2bqq12
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:staging-merchant-device-wallet-read/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: ms12eb
+        CacheKeyParameters: []
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceStatementOPTIONS:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceStatement
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+      - StatusCode: '200'
+        ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode":200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: ms12eb
+        CacheKeyParameters: []
+        IntegrationResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
+            method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceSalesReport:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId:
+        Ref: MerchantDeviceApiWalletBranchDevice
+      PathPart: sales-report
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceSalesReportGET:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceSalesReport
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: 2bqq12
+      ApiKeyRequired: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:staging-merchant-device-wallet-read/invocations
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: wbshmk
+        CacheKeyParameters: []
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDeviceSalesReportOPTIONS:
+    Type: AWS::ApiGateway::Method
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ResourceId:
+        Ref: MerchantDeviceApiWalletBranchDeviceSalesReport
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses:
+      - StatusCode: '200'
+        ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+          method.response.header.Access-Control-Allow-Headers: true
+          method.response.header.Access-Control-Allow-Methods: true
+          method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode":200}'
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        CacheNamespace: wbshmk
+        CacheKeyParameters: []
+        IntegrationResponses:
+        - StatusCode: '200'
+          ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
+            method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
+            method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
+            method.response.header.Access-Control-Allow-Origin: '''*'''
+    Condition: IsSandboxStaging
+  MerchantDeviceApiWalletBranchDevice:
+    Type: AWS::ApiGateway::Resource
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RestApiId:
+        Ref: WalletServiceApi
+      ParentId: imwu0l
+      PathPart: branch-device
+    Condition: IsSandboxStaging
+
+
   WalletServiceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -247,8 +809,24 @@ Resources:
       Description: Centralized wallet service for Wizz platform
       Environment:
         Variables:
+          WALLET_CREATION_CALLER_ROLE_ARN: !Ref WalletCreationCallerRoleArn
+          ZAINCASH_RETURN_URL: !Ref ZaincashReturnUrl
+          ZAINCASH_WEBHOOK_URL: !Ref ZaincashWebhookUrl
+          PLATFORM_ENVIRONMENT: !Ref Environment
+          PLATFORM_WRITE_MODE: !Ref PlatformWriteMode
+          PLATFORM_DIRECT_OPERATOR_IDS: !Ref PlatformDirectOperatorIds
           WALLET_NOTIFICATIONS_TABLE: !Ref WalletNotificationsTable
+          WALLET_LIFECYCLE_TABLE: !If [IsSandboxStaging, !Ref WalletLifecycleTable, '']
+          ORDERS_TABLE: !If [IsSandboxStaging, 'WizzOrders', '']
           ENVIRONMENT: !Ref Environment
+          ACCOUNT_DELETION_TABLE: !If [IsSandboxStaging, 'staging-AccountDeletion', '']
+          STAFF_TABLE: !If [IsSandboxStaging, 'staging-PlatformStaff', '']
+          TRANSFER_OTP_SECRET_ARN: !If [IsSandboxStaging, 'arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ', '']
+          CUSTOMER_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_TpyyrVkEE', '']
+          MERCHANT_USER_POOL_ID: !If [IsSandboxStaging, 'us-east-1_gtCR3ndzT', '']
+          CUSTOMERS_TABLE: !If [IsSandboxStaging, 'WizzUser_users_staging', '']
+          MERCHANTS_TABLE: !If [IsSandboxStaging, 'WhizzMerchants_Businesses', '']
+          DRIVERS_TABLE: !If [IsSandboxStaging, 'WhizzDrivers_staging', '']
           SANDBOX_PAYMENTS_TABLE: !If [IsSandboxStaging, !Ref SandboxPaymentsTable, '']
           SANDBOX_RETURN_URL: !If [IsSandboxStaging, 'https://staging.d2vmebm1e1n95m.amplifyapp.com/pages/payment-return.html', '']
           SANDBOX_QI_WEBHOOK_URL: !If [IsSandboxStaging, 'https://z14s5f8oxh.execute-api.us-east-1.amazonaws.com/staging/wallet/funding/sandbox/notification', '']
@@ -262,6 +840,53 @@ Resources:
       Policies:
         - !If
           - IsSandboxStaging
+          - Statement:
+              Effect: Allow
+              Action: [dynamodb:ConditionCheckItem, dynamodb:PutItem, dynamodb:DeleteItem]
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['ACCOUNT_LIFECYCLE#DRIVER#*', 'ACCOUNT_LIFECYCLE#MERCHANT#*', 'BUSINESS_LIFECYCLE#MERCHANT#*', 'MEMBERSHIP_LIFECYCLE#MERCHANT#*', 'ACCOUNT_OPERATION#DRIVER#*']
+          - !Ref AWS::NoValue
+        - !If
+          - IsSandboxStaging
+          - Statement:
+              Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ
+          - !Ref AWS::NoValue
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:Scan]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_users_staging
+        - Statement:
+            - Effect: Allow
+              Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:ConditionCheckItem]
+              Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses
+            - Effect: Allow
+              Action: [cognito-idp:ListUsers]
+              Resource:
+                - !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_TpyyrVkEE
+                - !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_gtCR3ndzT
+        - !If
+          - IsSandboxStaging
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:Scan, dynamodb:PutItem, dynamodb:UpdateItem]
+                Resource: !GetAtt WalletLifecycleTable.Arn
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:UpdateItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzOrders
+              - Effect: Allow
+                Action: [dynamodb:Scan]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_staging
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:ConditionCheckItem]
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+          - !Ref AWS::NoValue
+        - !If
+          - IsSandboxStaging
           - DynamoDBCrudPolicy:
               TableName: !Ref SandboxPaymentsTable
           - !Ref AWS::NoValue
@@ -273,6 +898,11 @@ Resources:
                 Action: secretsmanager:GetSecretValue
                 Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:wizz/staging/payments/*/sandbox-*'
           - !Ref AWS::NoValue
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: [secretsmanager:CreateSecret, secretsmanager:GetSecretValue]
+              Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:wizz/${Environment}/payments/zaincash/gateway-*'
         - DynamoDBCrudPolicy:
             TableName: !Ref WalletNotificationsTable
         - Version: '2012-10-17'
@@ -293,10 +923,106 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref IdempotencyKeysTableName
       Events:
+        WalletLifecycleRetry:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/lifecycle/retry
+            Method: post
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        WalletLifecycleRead:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/lifecycle
+            Method: get
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinancialOwners:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/owners
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
         WalletNotificationsInbox:
           Type: Api
           Properties:
             Path: /wallet/me/notifications
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        TransferSettingsCancel:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer-settings/cancel
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        TransferSettingsRead:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer-settings
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        TransferSettingsPropose:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer-settings
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        TransferSettingsApprove:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer-settings/approve
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceTransferList:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfers
+            Method: GET
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        MobileTransferRoutes:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WalletServiceApi
+            Path: /wallet/transfers/{proxy+}
+            Method: ANY
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceTransfer:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceTransferApprove:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/transfer/approve
+            Method: POST
+            RestApiId: !Ref WalletServiceApi
+            Auth:
+              Authorizer: WalletAuthorizer
+        FinanceReconciliation:
+          Type: Api
+          Properties:
+            Path: /wallet/funding/admin/reconciliation
             Method: GET
             RestApiId: !Ref WalletServiceApi
             Auth:
@@ -349,6 +1075,16 @@ Resources:
             RestApiId: !Ref WalletServiceApi
             Auth:
               Authorizer: WalletAuthorizer
+        ZaincashReconciliation:
+          Type: ScheduleV2
+          Properties:
+            Name: !Sub '${Environment}-zaincash-wallet-reconciliation'
+            ScheduleExpression: rate(1 minute)
+            FlexibleTimeWindow: {Mode: 'OFF'}
+            State: ENABLED
+            RoleArn: !GetAtt ZaincashSchedulerInvokeRole.Arn
+            RetryPolicy: {MaximumRetryAttempts: 2, MaximumEventAgeInSeconds: 300}
+            Input: '{"source":"aws.events","detail":{"worker":"zaincash"}}'
         FundingPayment:
           Type: Api
           Properties:
@@ -449,7 +1185,8 @@ Resources:
             Path: /wallet/create
             Method: POST
             RestApiId: !Ref WalletServiceApi
-            # No Auth = allows IAM-signed requests from Lambda trigger
+            Auth:
+              Authorizer: AWS_IAM
 
         GetWallet:
           Type: Api
@@ -590,46 +1327,235 @@ Resources:
               Authorizer: WalletAuthorizer  # Driver settlements
 
   # API Gateway
+  ZaincashApiInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${Environment}-zaincash-api-invoke'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: apigateway.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeWalletOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt WalletServiceFunction.Arn
+
+  ZaincashSchedulerInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${Environment}-zaincash-scheduler-invoke'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: scheduler.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeWalletOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt WalletServiceFunction.Arn
+
   WalletServiceApi:
     Type: AWS::Serverless::Api
     Properties:
+      MergeDefinitions: true
+      DefinitionBody:
+        swagger: '2.0'
+        info: {title: ZainCash operational funding routes, version: '260'}
+        paths:
+          /wallet/funding/zaincash/config:
+            get:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/zaincash/payments:
+            get:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/zaincash/payment:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/zaincash/check:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/zaincash/notification:
+            post:
+              security: []
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash:
+            get:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+            put:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/test:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/import-uat:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/accept:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/pilot:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/recover:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/resolve-uncreated:
+            post:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+          /wallet/funding/admin/zaincash/payments:
+            get:
+              security: [{WalletAuthorizer: []}]
+              responses: {'200': {description: Wallet gateway response}}
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WalletServiceFunction.Arn}/invocations'
+                credentials: !GetAtt ZaincashApiInvokeRole.Arn
+      # Explicit imported device resources share this API with the existing SAM routes.
+      # Merge preserves those routes during a reviewed future OpenAPI update.
       Name: !Sub ${Environment}-wizz-wallet-api
+      Mode: merge
       StageName: !Ref Environment
       Cors:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-Content-Sha256,x-trigger-secret'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Staff-Session,X-Api-Key,X-Amz-Security-Token,X-Amz-Content-Sha256,x-trigger-secret'"
         AllowOrigin: "'*'"
       GatewayResponses:
         UNAUTHORIZED:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         ACCESS_DENIED:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         AUTHORIZER_FAILURE:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         AUTHORIZER_CONFIGURATION_ERROR:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         DEFAULT_4XX:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         DEFAULT_5XX:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
-              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
       Auth:
         Authorizers:
           # Custom Lambda Authorizer - validates Cognito tokens and enforces RBAC

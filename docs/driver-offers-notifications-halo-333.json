@@ -1,0 +1,45 @@
+{
+  "part": 333,
+  "date": "2026-10-28",
+  "status": "SIGNED_RELEASE_333_INSTALLED_READY_FOR_GITHUB_REVIEW",
+  "changes": [
+    "Main bottom destination renamed to offers with offer tag icon; route IDs preserved",
+    "Notifications grouped by Baghdad calendar day, sorted newest first, compact cards and wallet navigation",
+    "Store marker bitmap halo in screen pixels; red busy/yellow ready/no inactive halo; photos and category fallback both covered",
+    "Expired activity removes halo; driver-location waves preserved"
+  ],
+  "tests": {
+    "focusedFlutterPassed": 12,
+    "smallScreenLargeTextNotifications": true,
+    "BaghdadDayBoundary": true,
+    "haloNearMarkerAndAbsentAtDistance": true,
+    "haloPreviewVisuallyInspected": true
+  },
+  "github": {
+    "repositories": [
+      "whizzCentralPlatform-stg",
+      "whizzDrivers-stg",
+      "whizzMerchants-stg",
+      "wizzuser-stg"
+    ],
+    "sourceBranch": "feature/malwersh/bootstrap",
+    "targetBranch": "staging-main",
+    "reviewRequired": true,
+    "autoMergeEnabled": false,
+    "colleagueProductsImportDelegationPreserved": true,
+    "secretsAuditFindings": 0,
+    "pullRequests": {
+      "central": "https://github.com/Malwersh/whizzCentralPlatform-stg/pull/3",
+      "driver": "https://github.com/Malwersh/whizzDrivers-stg/pull/3",
+      "merchant": "https://github.com/Malwersh/whizzMerchants-stg/pull/7",
+      "customer": "https://github.com/Malwersh/wizzuser-stg/pull/3"
+    }
+  },
+  "backendOrFinancialChangesIn333": false,
+  "iosRelease": {
+    "build": 333,
+    "installed": true,
+    "launched": true,
+    "existingDataPreserved": true
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "scope": "Driver quality and safety incident evidence/review/appeal; no money, rating or eligibility changes",
+  "functions": [
+    {
+      "function": "staging-driver-financial-accept",
+      "hash": "pe0M7TNrH5VsHfyTjkADaM4SJJjoAt7UAfHW5v+7bho=",
+      "revision": "9c5d15b8-66af-45f2-8907-96fb3016b5af",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "hash": "5XbruVnuRJJpBkn/QCqJfP5V6nl05IejilOz90nCVH4=",
+      "revision": "1ec971d6-f538-4dd9-8655-f12f0fb100ef",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    }
+  ],
+  "newPermissions": false,
+  "financialCalculationChanged": false,
+  "businessWritesByAgent": 0,
+  "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "hostingJobId": "207",
+  "hostingChangedAssetsByteVerified": [
+    "driver-quality-review.js",
+    "pages/driver-quality-review.html",
+    "order-management.js",
+    "order-exception-cases.js",
+    "pages/orders.html",
+    "pages/order-exceptions.html"
+  ]
+}

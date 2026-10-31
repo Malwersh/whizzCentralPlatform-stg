@@ -1,0 +1,304 @@
+{
+  "status": "PUBLISHED_ACTIVE_STAGING",
+  "functions": [
+    {
+      "name": "DriversApi-staging",
+      "beforeHash": "uCZMij3dCYmxX8YBts8IP6kH3ik5Ouit70rW12+JBp4=",
+      "hash": "BCGhHONyUZAQF5P6c+Xj5i5OZCDX7lEEcjFyHQfT4w4=",
+      "changedFiles": [
+        "pinned-legacy-runtime.js",
+        "full-cash-rollout-208.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "PqN98bRn89gMtzwlFOdTHsJx4X19066Iz6Xi6XmrnTM="
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "beforeHash": "YSKzeUrmdkEoQhqv4r0o6yCQzCE/GrMUUP9D7bF5Fm0=",
+      "hash": "0vNE+BhI8f3CO4U2cjfYTbW5hm/bN8+MvY8301jMKB8=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "delivery-agreement-runtime-284.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "0PgHcTZo+ZQsL1H4+QTVgYKOAWkThKhbK++yUdnfdUA="
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "beforeHash": "QdQ1yTukVxVU+d6X1MVzjhtjQEDF66RDBoL7V8nJ3Yg=",
+      "hash": "8d6i+IA0KtiFXG/7dIzukEoY9XYraPMUCo5r/3PcH4I=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "delivery-agreement-runtime-284.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "xKRYFC2KkGZHJIbtB2rdtGsqECYvLLsTHd4QeQsJBz4="
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "beforeHash": "9NY6gtzi/2uNLV4gscFt7XEHNN391OhnOqrg5NHDeP0=",
+      "hash": "86VUg2Wlcg4YzRVHOrLOvjuMJSxVdk+woR1b3hH/4RU=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "delivery-agreement-runtime-284.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "cv60PzXXzjDph3DLLwFJuHJi0NNSnlXtWqLhbTQl42Q="
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "beforeHash": "pBf8axN/sA1DJSGOs34nV9pf70+PPFqLQBPyGK/Q9Js=",
+      "hash": "GZ5Lp9577CgTKrGhj/ec+JgN1Iy8V0RIxup7ZRHJR2M=",
+      "changedFiles": [
+        "finance-rollout.js",
+        "financial-runtime.js",
+        "dispatch-cycle-runtime.js",
+        "delivery-agreement-runtime-284.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "HDZrOtVjh90EqffI7NBxXjF802W+tcITTsCjmevXphE="
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "beforeHash": "N6JYQD61+JP1JT75EXbO8g+X2ztr9xnbxOL1RSLHC7A=",
+      "hash": "atOp3HptP5ndWab++DFmfveBxqVE6TfIX5UOm5teH58=",
+      "changedFiles": [
+        "finance-rollout.js",
+        "financial-runtime.js",
+        "dispatch-cycle-runtime.js",
+        "delivery-agreement-runtime-284.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "0nRBUx6ry9WDbWLavzvKjImrVVyAxu8F6XZd+ZBPmz0="
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "beforeHash": "K0drqAFMcqoEfnzkM3q+oinI+zutbGJvVtwteoP98GU=",
+      "hash": "amboAVQaAB/rTeScfmJ7dRTO0/pFBLob3sGrnFmjxbI=",
+      "changedFiles": [
+        "finance-rollout.js",
+        "driver-acceptance-eta98.js",
+        "order-exception-runtime-229.js",
+        "return-items-runtime-262.js",
+        "return-continuation-runtime-264.js",
+        "return-continuation-runtime-265.js",
+        "delivery-agreement-runtime-284.js",
+        "index.js",
+        "customer-cash-runtime-266.js",
+        "staff-order-management-runtime.js",
+        "merchant-handover-runtime.js",
+        "cancellation-compensation-runtime.js",
+        "driver-timing-review-runtime-279.js",
+        "driver-quality-review-runtime-289.js",
+        "driver-quality-driver-runtime-290.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "YqsQPB/srrnJFhgYErxXu4yswWe3THmj8jPeZdndxwk="
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "beforeHash": "b8Wi5ptOoFs3PUhCQOgcFVKagsg3Ekwycw3ooOpykbQ=",
+      "hash": "Wh+qPnqVqFG9KEYoxoGZHS4vxZXo4B4WctWNgvZ93ck=",
+      "changedFiles": [
+        "finance-rollout.js",
+        "settlement-runtime.js",
+        "cash-adjudication-read-278.js",
+        "delivery-agreement-runtime-284.js",
+        "cancellation-compensation-runtime.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "PFZ6T4sTPnV6TVDdLA/TW2HnO3t+gm1PicLCx4VoytE="
+    },
+    {
+      "name": "staging-cod-integration",
+      "beforeHash": "C1FGDBaPMSKcgxBtLnl21PHSS1n2eLGyWjXWZOUOj+4=",
+      "hash": "dUmTbMKxTn5qrw3RFdToFatuFXW0XU7gfcnxxUpGBh8=",
+      "changedFiles": [
+        "dispatch-response-runtime.js",
+        "dispatch-review-host-runtime.js",
+        "finance-rollout.js",
+        "full-cash-rollout-208.js",
+        "index.js",
+        "dispatch-review-host-238.js",
+        "delivery-agreement-runtime-284.js",
+        "dispatch-review-host-298.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesUnchanged": true,
+      "configurationPreserved": true,
+      "preSdkHash": "4MFmAbEvsMfgNuTH+cwESE4+VJH1R0JqHN6aDFGyKUA="
+    }
+  ],
+  "iamChanged": false,
+  "financialDataWrittenByAgent": false,
+  "orderRestartedByAgent": false,
+  "centralWaveThresholdsChanged": false,
+  "tests": {
+    "source": 1633,
+    "packaged": 47,
+    "failures": 0
+  },
+  "activation": {
+    "function": "staging-cod-integration",
+    "key": "DISPATCH_REVIEW_EXECUTION_MODE",
+    "before": "SAFE_FINANCIAL_INITIAL_RETRY",
+    "after": "SAFE_FINANCIAL_RETRY"
+  },
+  "requiresRecordedStaffDecision": true,
+  "existingSchedulesPreserved": true,
+  "startDiagnosticOverlay": {
+    "function": "WaveSystem_HandleWaveTimeout",
+    "beforeHash": "HDZrOtVjh90EqffI7NBxXjF802W+tcITTsCjmevXphE=",
+    "hash": "O2CmNOUTCvXqWlTMQx8KelfODOy2cgRSorPoNYWIyaM=",
+    "changedFiles": [
+      "dispatch-cycle-runtime.js"
+    ],
+    "behaviorChange": false,
+    "sensitivePayloadLogging": false
+  },
+  "sdkBoundaryOverlay": {
+    "status": "PUBLISHED_VERIFIED",
+    "tests": 47,
+    "failed": 0,
+    "functions": [
+      {
+        "name": "WaveSystem_StartWave",
+        "beforeHash": "0nRBUx6ry9WDbWLavzvKjImrVVyAxu8F6XZd+ZBPmz0=",
+        "hash": "7/GpNE9hfea2uBVYladnH3EYrQj8b2AA1I+lXr+P6DM=",
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "beforeHash": "YqsQPB/srrnJFhgYErxXu4yswWe3THmj8jPeZdndxwk=",
+        "hash": "amboAVQaAB/rTeScfmJ7dRTO0/pFBLob3sGrnFmjxbI=",
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "beforeHash": "O2CmNOUTCvXqWlTMQx8KelfODOy2cgRSorPoNYWIyaM=",
+        "hash": "/ifj9ePEHVHrcg+kgmoikcPcq2cwE1yh3lXaeuYo7Os=",
+        "configurationPreserved": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "beforeHash": "PqN98bRn89gMtzwlFOdTHsJx4X19066Iz6Xi6XmrnTM=",
+        "hash": "BCGhHONyUZAQF5P6c+Xj5i5OZCDX7lEEcjFyHQfT4w4=",
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "beforeHash": "0PgHcTZo+ZQsL1H4+QTVgYKOAWkThKhbK++yUdnfdUA=",
+        "hash": "0vNE+BhI8f3CO4U2cjfYTbW5hm/bN8+MvY8301jMKB8=",
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "beforeHash": "xKRYFC2KkGZHJIbtB2rdtGsqECYvLLsTHd4QeQsJBz4=",
+        "hash": "8d6i+IA0KtiFXG/7dIzukEoY9XYraPMUCo5r/3PcH4I=",
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "beforeHash": "cv60PzXXzjDph3DLLwFJuHJi0NNSnlXtWqLhbTQl42Q=",
+        "hash": "86VUg2Wlcg4YzRVHOrLOvjuMJSxVdk+woR1b3hH/4RU=",
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "beforeHash": "4MFmAbEvsMfgNuTH+cwESE4+VJH1R0JqHN6aDFGyKUA=",
+        "hash": "dUmTbMKxTn5qrw3RFdToFatuFXW0XU7gfcnxxUpGBh8=",
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "beforeHash": "PFZ6T4sTPnV6TVDdLA/TW2HnO3t+gm1PicLCx4VoytE=",
+        "hash": "Wh+qPnqVqFG9KEYoxoGZHS4vxZXo4B4WctWNgvZ93ck=",
+        "configurationPreserved": true
+      }
+    ],
+    "iamChanged": false,
+    "businessDataWrittenDirectly": false
+  },
+  "cognitoBoundaryOverlay": {
+    "status": "PUBLISHED_VERIFIED",
+    "function": "WaveSystem_StartWave",
+    "beforeHash": "7/GpNE9hfea2uBVYladnH3EYrQj8b2AA1I+lXr+P6DM=",
+    "hash": "BdlP1YHgKQkUTURL/ZznEgH+vPRlXqm0lGtKFQkGkm4=",
+    "changedFiles": [
+      "dispatch-cycle-runtime.js"
+    ],
+    "configurationPreserved": true,
+    "iamChanged": false,
+    "businessDataWrittenDirectly": false
+  },
+  "latestVerification": {
+    "actualDelegateTests": 47,
+    "strictSdkClientAndRetryTests": 5,
+    "databaseAndCognitoBridgesVerified": true,
+    "orderReadyForPickup": true,
+    "firstLiveCycle": "SEARCH_WINDOW_EXPIRED_DURING_REPAIR",
+    "freshStaffDecisionRequired": true,
+    "directOrderOrMoneyWrites": false,
+    "verifiedAt": "2026-10-25T21:29:20.438486+00:00"
+  },
+  "performancePreparationOverlay": {
+    "status": "PUBLISHED_VERIFIED",
+    "sourceTests": 33,
+    "noOfferTtlExtended": true,
+    "searchDeadlinePreserved": true,
+    "noDirectOrderMutation": true,
+    "functions": [
+      {
+        "name": "WaveSystem_StartWave",
+        "beforeHash": "BdlP1YHgKQkUTURL/ZznEgH+vPRlXqm0lGtKFQkGkm4=",
+        "hash": "atOp3HptP5ndWab++DFmfveBxqVE6TfIX5UOm5teH58=",
+        "changedFiles": [
+          "dispatch-cycle-runtime.js",
+          "admin-retry-runtime-298.js"
+        ],
+        "otherEntriesPreserved": true,
+        "configurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "beforeHash": "/ifj9ePEHVHrcg+kgmoikcPcq2cwE1yh3lXaeuYo7Os=",
+        "hash": "GZ5Lp9577CgTKrGhj/ec+JgN1Iy8V0RIxup7ZRHJR2M=",
+        "changedFiles": [
+          "dispatch-cycle-runtime.js",
+          "admin-retry-runtime-298.js"
+        ],
+        "otherEntriesPreserved": true,
+        "configurationPreserved": true
+      }
+    ]
+  },
+  "latestLiveTest": {
+    "requestId": "288f278a-426b-483c-bb23-88674cebdc34",
+    "restartId": "DRS:d65a9fd606155349e8e8068d6869cb73a7e02d1d43882976",
+    "decisionStatus": "EXECUTED",
+    "dispatchStatus": "searching",
+    "wave": 0,
+    "snapshotGeneration": 93,
+    "snapshotBuiltGeneration": 93,
+    "driverStatus": "offline",
+    "driverIsActive": false,
+    "driverIsSearching": false,
+    "requiredUserAction": "Driver opens Home and taps Go Online (شارك الآن). No manual driver-state or financial mutation."
+  }
+}

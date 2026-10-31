@@ -1,0 +1,35 @@
+{
+  "part": 150,
+  "deployed": false,
+  "iamApplied": false,
+  "lambdaPackages": 10,
+  "webPackage": 1,
+  "bundlesLoadPassed": 7,
+  "changedJavaScriptSyntaxPassed": 22,
+  "targetedTestsPassed": 16,
+  "untouchedEntriesVerified": true,
+  "notificationPermissionSimulations": [
+    {
+      "case": "baseline",
+      "decision": "implicitDeny",
+      "missingContext": []
+    },
+    {
+      "case": "candidate",
+      "decision": "allowed",
+      "missingContext": []
+    },
+    {
+      "case": "excluded_financial_fields",
+      "decision": "implicitDeny",
+      "missingContext": []
+    }
+  ],
+  "notificationSharedRoleFunctionCount": 11,
+  "remaining": [
+    "Coordinated deployment review and drift recheck",
+    "Hosted financial scheduling gate",
+    "Device end-to-end test",
+    "Original-share refunds and partial returns"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "functions": {
+    "financial": {
+      "function": "staging-driver-financial-accept",
+      "baseCodeSha256": "1CN0L9Pp7240kDpTevWPHFwYvKeWXHQJWT5LVRB6NOQ=",
+      "codeSha256": "beulemti7t2x/h9Cofr8IFoxIwdGfktgW6CtT6p8vp4=",
+      "changedFiles": [
+        "index.js",
+        "cancellation-compensation-runtime.js"
+      ],
+      "configurationPreserved": true,
+      "unrelatedZipEntriesPreserved": true
+    },
+    "staff": {
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "dfuZOjADcmYAZpco6Rsq2jbFZFJ3pZkor5MMpr2RUG4=",
+      "codeSha256": "51N75PIVUj5yUWfEXG7xjTPhzY753T0HHFtZJDr0/Qc=",
+      "changedFiles": [
+        "settlement-runtime.js",
+        "cash-adjudication-read-278.js",
+        "_discount_review/central-staff/index.js",
+        "order-exception-cases.js",
+        "cancellation-compensation.js",
+        "cancellation-compensation-runtime.js"
+      ],
+      "configurationPreserved": true,
+      "unrelatedZipEntriesPreserved": true
+    }
+  },
+  "realCompensationApproved": false,
+  "realCompensationPaid": false,
+  "businessMutationsPerformed": false,
+  "iamChanged": false,
+  "validation": {
+    "newFinancialTests": 8,
+    "actualCandidateRuntimeAndReturnRegressionTests": 20,
+    "staffTests": 360,
+    "browserWorkflow": "PASS",
+    "realOrderReadOnlySourceCompatibility": "PASS"
+  }
+}

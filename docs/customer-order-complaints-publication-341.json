@@ -1,0 +1,261 @@
+{
+  "part": 341,
+  "scope": "staging",
+  "functions": [
+    {
+      "tag": "deletion",
+      "name": "staging-account-deletion-requests",
+      "beforeCodeSha256": "gVa1f4Z9+BowcxT8xGMiUpfzDj+mRrPtVSomQ3BEmoI=",
+      "changedFiles": [
+        "cod-retention.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true,
+      "publishedCodeSha256": "672kOrZW8qt1TphcKjCaxA8czsHTLJiYKdUB0ukwOYQ=",
+      "lastModified": "2026-10-28T21:52:39.000+0000"
+    },
+    {
+      "tag": "deletionworker",
+      "name": "staging-account-deletion-worker",
+      "beforeCodeSha256": "siEjcL6JyhluClm5PiDBpsBWYbH7CPwvVYaRKjm+Sw4=",
+      "changedFiles": [
+        "cod-retention.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true,
+      "publishedCodeSha256": "yAsLHsFXDYVwRR5D7aWjnBH714hd9hffb9guoB7VNUg=",
+      "lastModified": "2026-10-28T21:52:48.000+0000"
+    },
+    {
+      "tag": "financial",
+      "name": "staging-driver-financial-accept",
+      "beforeCodeSha256": "RqYrCBBhRduVZeqYBXBWWcgHiIrSJmzcqi5tvmfPzU4=",
+      "changedFiles": [
+        "index.js",
+        "customer-order-complaint-runtime-341.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true,
+      "publishedCodeSha256": "hTzOZ4AFRK0M8L1Kjt7fYcJDNFBIA/bY5ZiYJonhF9M=",
+      "lastModified": "2026-10-28T21:53:00.000+0000"
+    },
+    {
+      "tag": "staff",
+      "name": "staging-wizz-staff-service",
+      "beforeCodeSha256": "H16hja/MWDIImoWhaLeJhxHrbAXWs53F5bc5FQhKQEw=",
+      "changedFiles": [
+        "order-exception-cases.js",
+        "order-exception-case-client.js",
+        "customer-benefit-compensation-runtime.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true,
+      "publishedCodeSha256": "n5fvax3Hvd3HkfQwMde4PhoMmKALUS5RYkeo1HS7/qo=",
+      "lastModified": "2026-10-28T21:53:17.000+0000"
+    },
+    {
+      "tag": "order",
+      "name": "OrderService-staging",
+      "beforeCodeSha256": "g3C5H8RpTzB1sMwYvQFn+wWZUgs3sDnUdci8EQs6VQU=",
+      "changedFiles": [
+        "dist/index.js",
+        "customer-order-complaint-client.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true,
+      "publishedCodeSha256": "PxHB971EPptLnXuFQjZX266cYHhvpgw0wKonD/DQv/o=",
+      "lastModified": "2026-10-28T21:53:32.000+0000"
+    }
+  ],
+  "newFinancialPermissions": false,
+  "supportServiceUnchanged": true,
+  "businessWritesByAgent": 0,
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED",
+  "publishedAt": "2026-10-28T21:53:37.184934+00:00",
+  "hosting": {
+    "jobId": "220",
+    "previousJob": "219",
+    "sourceHashes": {
+      "customer-order-complaint.js": "0bf0a56e86fdfe576b76f07f47c05eafd640cc128292c8db517610c5c95edd26",
+      "customer-order-complaint.css": "6b2a7216aa8360f0373132a2376bb6dc5edfc1d7d8b255447b709619df3f2e93",
+      "pages/customer-order-complaint.html": "875a57ce780592329b3ac7fb1c9509cd1f138604775c5c4aa9565a4207290086",
+      "order-exception-cases.js": "7310297b493079ac0f2779475849d5ac1e995d2449d65ac8c0ae920239f97439",
+      "pages/order-exceptions.html": "eeef1c5d6fb452cda1f7088d97431b0deaaf8989138ca05ae4cd522f94303aab",
+      "pages/support.html": "c0d299def55f7dbe9665e68a5ff2a1e49aa1027365045f9f4ecc8f4d4bf5b08b"
+    },
+    "unrelatedEntriesPreserved": true
+  },
+  "userApproval": {
+    "granted": true,
+    "source": "Explicit user reply: نعم اوافق",
+    "scope": "Reviewed five staging Lambdas, limited nonfinancial IAM additions and central frontend publication"
+  },
+  "iamVerification": {
+    "policyName": "CustomerOrderComplaints341",
+    "policyDocumentSHA256": "5e4e88e9e5bc7b96b937f52b2329899ca15712d65571b3ba5c3a53b1c7102b2e",
+    "publishedPolicyMatchesReviewedDocument": true,
+    "newFinancialPermissions": false
+  },
+  "supplementalPolicySimulation": {
+    "status": "PASS",
+    "scope": "Supplemental approved policy only; existing financial role permissions remain unchanged",
+    "cases": [
+      {
+        "case": "session-create",
+        "action": "dynamodb:PutItem",
+        "table": "chat-sessions-staging",
+        "result": "allowed"
+      },
+      {
+        "case": "session-read",
+        "action": "dynamodb:GetItem",
+        "table": "chat-sessions-staging",
+        "result": "allowed"
+      },
+      {
+        "case": "message-proof",
+        "action": "dynamodb:ConditionCheckItem",
+        "table": "chat-messages-staging",
+        "result": "allowed"
+      },
+      {
+        "case": "voucher-proof",
+        "action": "dynamodb:GetItem",
+        "table": "staging-WizzOfferJourney",
+        "result": "allowed"
+      },
+      {
+        "case": "policy-read",
+        "action": "dynamodb:GetItem",
+        "table": "staging-PlatformStaff",
+        "result": "allowed"
+      },
+      {
+        "case": "foreign-session-create",
+        "action": "dynamodb:PutItem",
+        "table": "chat-sessions-staging",
+        "result": "implicitDeny"
+      },
+      {
+        "case": "wallet-write",
+        "action": "dynamodb:UpdateItem",
+        "table": "staging-Wallets",
+        "result": "implicitDeny"
+      },
+      {
+        "case": "image-write",
+        "action": "dynamodb:PutItem",
+        "table": "support-attachments-staging",
+        "result": "implicitDeny"
+      }
+    ]
+  },
+  "executionRoleSimulation": {
+    "status": "PASS",
+    "scope": "Published execution role; read/condition checks and nonfinancial complaint/session writes only",
+    "checks": [
+      {
+        "table": "chat-sessions-staging",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "chat-sessions-staging",
+        "action": "dynamodb:PutItem",
+        "result": "allowed"
+      },
+      {
+        "table": "chat-sessions-staging",
+        "action": "dynamodb:ConditionCheckItem",
+        "result": "allowed"
+      },
+      {
+        "table": "chat-messages-staging",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "chat-messages-staging",
+        "action": "dynamodb:ConditionCheckItem",
+        "result": "allowed"
+      },
+      {
+        "table": "support-attachments-staging",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "support-attachments-staging",
+        "action": "dynamodb:ConditionCheckItem",
+        "result": "allowed"
+      },
+      {
+        "table": "WizzOrders",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "WizzOrders",
+        "action": "dynamodb:ConditionCheckItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-Holds",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-Holds",
+        "action": "dynamodb:PutItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-WalletLifecycle",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-WalletLifecycle",
+        "action": "dynamodb:PutItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-AccountDeletion",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-AccountDeletion",
+        "action": "dynamodb:ConditionCheckItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-PlatformStaff",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-PlatformStaff",
+        "action": "dynamodb:ConditionCheckItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-WizzOfferJourney",
+        "action": "dynamodb:GetItem",
+        "result": "allowed"
+      },
+      {
+        "table": "staging-WizzOfferJourney",
+        "action": "dynamodb:ConditionCheckItem",
+        "result": "allowed"
+      }
+    ]
+  },
+  "authenticationSmoke": {
+    "directLambdaUnauthenticatedRead": 401,
+    "customerHttpUnauthenticatedRead": 401,
+    "liveBusinessWrites": 0
+  },
+  "verifiedAt": "2026-10-28T21:58:01.604356+00:00",
+  "nativeApplication": "Source committed in wizzuser-stg 5700a1b; native install and human acceptance remain deferred"
+}

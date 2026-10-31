@@ -1,0 +1,61 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "workerCodeHash": "NVZtbXtSISGpVJ2ul8qMIrNHLaeZKT5WePuSvtmED/A=",
+  "businessRegionDataMutated": false,
+  "tests": {
+    "service": 16,
+    "realLeafletBrowser": "PASS",
+    "actualStaffHandler": "PASS",
+    "customerReader": "PASS"
+  },
+  "infrastructure": {
+    "RecoveryRuleArn": "arn:aws:events:us-east-1:699561669180:rule/staging-region-publication-recovery",
+    "WorkerArn": "arn:aws:lambda:us-east-1:699561669180:function:staging-region-publication-worker",
+    "QueueArn": "arn:aws:sqs:us-east-1:699561669180:staging-region-publication",
+    "WorkerRoleArn": "arn:aws:iam::699561669180:role/staging-region-publication-worker",
+    "QueueUrl": "https://sqs.us-east-1.amazonaws.com/699561669180/staging-region-publication",
+    "DeadLetterArn": "arn:aws:sqs:us-east-1:699561669180:staging-region-publication-deadletters"
+  },
+  "artifactBucket": "wizz-regions-artifacts-staging-699561669180",
+  "workerCodeKey": "region-management/312/35566d6d7b522121a9549dae97ca8c22b3472da799293e5678fb92bed9840ff0/worker.zip",
+  "validationManifest": "docs/region-management-validation-312.json",
+  "staffManagedPolicyArn": "arn:aws:iam::699561669180:policy/staging-region-management-api-312-31dfef88",
+  "workerHasNoFinancialAccess": true,
+  "functions": [
+    {
+      "name": "WizzUser-FindRegionByCoordinates-staging",
+      "beforeHash": "mXECIfFwTPuieYG6lIKGAVGn3QnrwFGZSrKAfB0qQA4=",
+      "hash": "YjB7hsFgwV7C9LwMpamM1OILPFkooQu1GWHpWJj8l3A=",
+      "changedFiles": [
+        "lambdas/find-region-by-coordinates.js",
+        "utils/region-coverage-runtime-312.js",
+        "utils/business-metadata-utils.js",
+        "lambdas/auto-populate-business-metadata.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "beforeHash": "OimzWCmx9wlrJH/N+tUsiW9MxL9MhWZ+gA66eJ8e274=",
+      "hash": "Hv3AMHK52oFyJoSUixD3iRQsfT9utFQ5IS7nSy34eQY=",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "region-management-api-312.js"
+      ],
+      "otherEntriesPreserved": true,
+      "rolePreserved": true
+    }
+  ],
+  "readerReadOnlySmoke": {
+    "success": true,
+    "regionId": "Rmhvcpnn3iy5f1"
+  },
+  "authentication401": true,
+  "consumerEnabled": true,
+  "recoveryEnabled": true,
+  "workerAuditAppendOnly": true,
+  "newStaffPolicyAuditGrantAppendOnly": true,
+  "uiReceipt": "docs/region-management-ui-publication-312.json",
+  "hostingJob": "214"
+}

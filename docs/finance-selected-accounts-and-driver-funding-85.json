@@ -1,0 +1,93 @@
+{
+  "part": 85,
+  "environment": "Staging",
+  "selectedAccounts": "User supplied one phone for the existing customer and driver accounts; identities resolved privately and verified in Cognito",
+  "identity": {
+    "customerMatched": true,
+    "driverMatched": true,
+    "verifiedPhoneAccounts": true,
+    "driverWallet": {
+      "status": "ACTIVE",
+      "currency": "IQD",
+      "availableBalance": 0,
+      "lockedBalance": 0,
+      "version": 2,
+      "note": "Balance before funding; current balance is recorded in funding and driverReadiness."
+    },
+    "readOnly": true
+  },
+  "funding": {
+    "prepared": true,
+    "source": "PLATFORM",
+    "recipient": "selected test driver",
+    "amountIqd": 10000,
+    "driverBalanceBeforeIqd": 0,
+    "driverBalanceAfterIqd": 10000,
+    "pairedLedgerEntries": 2,
+    "authenticOperatorAudit": true,
+    "externalDepositClaimed": false,
+    "completed": true,
+    "balanceConserved": true,
+    "idempotencyProtected": true
+  },
+  "fundingVerification": {
+    "pairedEntriesVerified": 2,
+    "balanced": true,
+    "classifiedByWalletReader": true
+  },
+  "scopePreparation": {
+    "prepared": true,
+    "hosts": 13,
+    "exactOrderCount": 3,
+    "customerCount": 1,
+    "driverCount": 1,
+    "checkoutMatchesCanonicalOrder": true,
+    "firstCase": "COD_COMPLETE_NO_DISCOUNT",
+    "discount": "NONE",
+    "scopePublished": false,
+    "financialActivation": false,
+    "secondDriverNeededForReassignment": true
+  },
+  "driverReadiness": {
+    "approved": true,
+    "financialStatusApproved": true,
+    "liveStateExists": true,
+    "online": false,
+    "positionFreshWithin120Seconds": false,
+    "hasCurrentOrder": false,
+    "activeOrdersCount": 0,
+    "walletAvailableIqd": 10000,
+    "walletLockedIqd": 0,
+    "testPositionChanged": false,
+    "readOnly": true
+  },
+  "userSimulatorBuild": true,
+  "financialActivation": false,
+  "orderCreated": false,
+  "nextRequiredAction": "Driver opens the existing test account and goes online to refresh live position; then recheck before scoped canary admission",
+  "maintenanceAuthorization": "User explicitly authorized test wallet funding. Transfer executed with real AWS operator identity, not a fabricated staff/Cognito login or bank receipt.",
+  "onlineMinimumCorrection": {
+    "minimumRequiredIqd": 25000,
+    "additionalTransfer": {
+      "prepared": true,
+      "source": "PLATFORM",
+      "recipient": "selected test driver",
+      "amountIqd": 15000,
+      "driverBalanceBeforeIqd": 10000,
+      "driverBalanceAfterIqd": 25000,
+      "pairedLedgerEntries": 2,
+      "authenticOperatorAudit": true,
+      "externalDepositClaimed": false,
+      "completed": true,
+      "balanceConserved": true,
+      "idempotencyProtected": true
+    },
+    "verification": {
+      "pairedEntriesVerified": 2,
+      "balanced": true,
+      "classifiedByWalletReader": true
+    },
+    "reason": "Initial funding covered sample order exposure but missed the existing online minimum; corrected after user report.",
+    "currentAvailableIqd": 25000
+  }
+}

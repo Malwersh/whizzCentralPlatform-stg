@@ -1,0 +1,54 @@
+{
+  "part": 231,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "boud99LSHfmchGfk8PLdIqM54h03OhQ/7M+EqeGQdqs=",
+      "codeSha256": "EspFjIv5LjYNN6ePxkdfGqkKs0whLuFkNKK9g7zbHNc=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true,
+      "previousPublishedCodeSha256": "IQTvdCNk72dve4hTJ2CX2m51AIEp+rvFVftQXqSiU5Q=",
+      "branchBinding": "Verified branch and order relationship inside financial writer; merchant adapter needs no WizzOrders read permission"
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "baseCodeSha256": "BQRMMOsixRpSvGTpWKRUU2RlS6GqCMcwXcSV16q5N3A=",
+      "codeSha256": "e/Sid+0Jhs63ddUlmPRdmysUnfG8J26GXwmXFgbw6v0=",
+      "changedFiles": [
+        "order_returns.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true,
+      "previousPublishedCodeSha256": "lH3APC9QqQsJlsxB5+sPOifVQ2cDPaiX2VAhwsyyM6E=",
+      "branchBinding": "Verified branch and order relationship inside financial writer; merchant adapter needs no WizzOrders read permission"
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "baseCodeSha256": "g012bsXnoMEgS5eZSN4gdwI95/ey2/sQ1NURssnEADo=",
+      "codeSha256": "GD0Ob2l6aH2Q0YSPXiRW5SfPORltsHHJnazBUdmHpm0=",
+      "changedFiles": [
+        "merchant_order_handler.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "OrderService-staging",
+      "baseCodeSha256": "uBS2OUvMAq7xd6FqGXvv06BA8YBd3CuEw048N7D3xM8=",
+      "codeSha256": "hOPCaI3c8XMUvpqx8QzGB04qKtRf6QLbir/esmAMagg=",
+      "changedFiles": [
+        "dist/index.js",
+        "financial-cancellation-client.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialWritesByAgent": false,
+  "scope": "STAGING_NEW_POLICY_CUSTOMER_CANCELLATION"
+}

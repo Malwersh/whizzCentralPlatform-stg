@@ -1,0 +1,188 @@
+{
+  "drift": {
+    "part": 151,
+    "at": "2026-10-18T19:20:11.424246+00:00",
+    "readOnly": true,
+    "applied": false,
+    "functions": [
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "staging-cod-integration",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "staging-merchant-response-99",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "drift": [],
+        "state": "Active",
+        "lastUpdateStatus": "Successful"
+      }
+    ],
+    "roles": [
+      {
+        "role": "Wizz-Merchants-staging-MerchantOrderFunctionRole-AZ12ipBY0zyt",
+        "changed": false
+      },
+      {
+        "role": "WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+        "changed": false
+      },
+      {
+        "role": "staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+        "changed": false
+      },
+      {
+        "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+        "changed": false
+      },
+      {
+        "role": "staging-merchant-response-99",
+        "changed": false
+      },
+      {
+        "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+        "changed": false
+      },
+      {
+        "role": "wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+        "changed": false
+      },
+      {
+        "role": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+        "changed": false
+      },
+      {
+        "role": "wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+        "changed": false
+      },
+      {
+        "role": "wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "changed": false
+      }
+    ],
+    "frontend": {
+      "baselineJob": "105",
+      "latestSuccessfulJob": "105",
+      "activeJobs": []
+    },
+    "clean": true
+  },
+  "packageLoad": {
+    "part": 151,
+    "applied": false,
+    "handlers": [
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "staging-cod-integration",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "staging-merchant-response-99",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      }
+    ]
+  },
+  "permissionGeneratorTests": {
+    "passed": 2
+  },
+  "applied": false
+}

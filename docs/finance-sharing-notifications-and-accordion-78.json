@@ -1,0 +1,158 @@
+{
+  "part": 78,
+  "stackName": "staging-commercial-sharing-notices-78",
+  "functions": [
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "beforeSha256": "HmnvP5ui0BbNb+AhVIelk6Hb0vq8NsPzmSR2/6no+SI=",
+      "afterSha256": "cd5KpeeNCCJp1/gyzo9sMclyAIwYLiWKar2c1lsEIAg=",
+      "changedFiles": [
+        "commercial-retention.js"
+      ],
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "beforeSha256": "SDvp1hSDTcib2DcHsArYOLem7mBHsXXYLHGujXcqmHg=",
+      "afterSha256": "PzfmqeylCVRy9hs2avKCE1oStezzz44rvx8dvsee7bs=",
+      "changedFiles": [
+        "commercial-retention.js"
+      ],
+      "configurationPreserved": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+      "beforeSha256": "1PefWQ8tPx+xYJDUk1dRPgskKRzp8rcReqWk9zI0pJY=",
+      "afterSha256": "dNXkotf9AvUGp4XiysXyqX3FUuJo7LTdmYgZq1kusFg=",
+      "changedFiles": [
+        "src/handlers/push-merchant-order.js",
+        "src/utils/commercial-sharing-push.js"
+      ],
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "beforeSha256": "DgN6mThS7i99e8sRaKB16FYvv7UttxeOfkB3Y/9QRPg=",
+      "afterSha256": "TPjQe1BYsdleXLdYTqwnzYGVoCL//ZiWQKPXT7pu6Rk=",
+      "changedFiles": [
+        "index.js",
+        "commercial-management.js",
+        "commercial-notices.js"
+      ],
+      "configurationPreserved": true
+    }
+  ],
+  "financialActivation": false,
+  "deliveryEnabled": true,
+  "invalidPushCancelled": true,
+  "anonymousStaffRejected": true,
+  "finalPushSha256": "hZQ0e6biufQPXURo64ToPT6TTeAQO0o7qmkHhypuf+8=",
+  "backfilledNoticeCount": 2,
+  "targetingDryRunChecks": [
+    {
+      "verified": true,
+      "targetCount": 2,
+      "ownerScoped": true,
+      "sharedDevicesExcluded": true
+    },
+    {
+      "verified": true,
+      "targetCount": 2,
+      "ownerScoped": true,
+      "sharedDevicesExcluded": true
+    }
+  ],
+  "probeDeleted": true,
+  "liveWorkerResult": {
+    "scanned": 2,
+    "sent": 0,
+    "more": false
+  },
+  "providerFeedbackPatches": [
+    {
+      "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+      "afterSha256": "0k6c7SDw0OXjj4WuCCPd6o+jZvKXIrR9k4J228qI3CU=",
+      "changedFile": "src/utils/commercial-sharing-push.js"
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "afterSha256": "kpPeMRxhCXWJbUi8lvFycaRnDdM7h9M8RBNS2bkOtbo=",
+      "changedFile": "commercial-notices.js"
+    }
+  ],
+  "providerFeedback": {
+    "scanned": 2,
+    "sent": 0,
+    "more": false,
+    "providerCodes": []
+  },
+  "immediateRetryResult": {
+    "scanned": 2,
+    "sent": 0,
+    "more": false,
+    "providerCodes": []
+  },
+  "frontend": {
+    "baseJobId": "93",
+    "jobId": "94",
+    "changedFiles": [
+      "commercial-management.js",
+      "pages/merchants.html",
+      "pages/promotions.html"
+    ],
+    "sha256": "47cf74aa1a506849b5463db07a9f8a14bc3219e79efde44efa871d57dd0a271b",
+    "backendChanged": false,
+    "applicationDataWrites": false,
+    "status": "SUCCEED",
+    "hostedFilesMatched": true
+  },
+  "dynamoTest": {
+    "passed": true,
+    "realDynamoTransactions": true,
+    "draftAndNoticeCommittedTogether": true,
+    "replayDoesNotDuplicateNotice": true,
+    "concurrentLeaseSingleSend": true,
+    "completedNoticeNotResent": true,
+    "pushWasMocked": true,
+    "table": "staging-notice-outbox-test-1792257430942-c538efe2-99dc-402b-afbf-4bdb2bc6bb05",
+    "isolatedTableDeleted": true
+  },
+  "backfill": {
+    "queuedCount": 2,
+    "skippedCount": 0,
+    "financialTermsChanged": false,
+    "ownerConsentSubmitted": false
+  },
+  "pushDelivery": {
+    "confirmed": false,
+    "providerFailureCodes": [
+      "messaging/third-party-auth-error"
+    ],
+    "appAndServerFirebaseProjectsMatch": true,
+    "requiredExternalAction": "Repair APNs credentials in Firebase project wizz-business-app for iOS app com.whizz.merchants",
+    "officialErrorReference": "https://firebase.google.com/docs/cloud-messaging/error-codes"
+  },
+  "tests": {
+    "staffAndDeletion": 438,
+    "flutterFocused": 15,
+    "browserAccordionAndKeyboard": true,
+    "responsiveWidths": [
+      375,
+      1280
+    ],
+    "flutterAnalysisErrors": 0,
+    "flutterAnalysisWarnings": 0,
+    "existingStyleInfos": 9
+  },
+  "merchantSimulator": {
+    "build": "iOS Debug",
+    "installedAndLaunched": true
+  },
+  "limits": [
+    "FCM delivery attempts are at-least-once; app inbox deduplicates by eventId and APNs collapse key is stable",
+    "No real-device terminated/background push delivery confirmed because APNs authentication is failing",
+    "Backfill writes notification intents only; no owner consent, commercial terms, grants, order or financial balances changed",
+    "Existing unpublished branch-device push changes in the local handler were preserved locally and not included in the live overlay",
+    "Financial gates unchanged and closed"
+  ]
+}

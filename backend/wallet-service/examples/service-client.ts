@@ -197,15 +197,11 @@ export class WalletServiceClient {
     });
   }
 
-  /**
-   * Create wallet (when driver registers)
-   */
-  async createWallet(driverId: string): Promise<any> {
-    return this.request('/wallet/create', {
-      method: 'POST',
-      body: JSON.stringify({ driverId }),
-    });
+  /** @deprecated Wallet provisioning requires the configured trigger IAM role, not a service JWT. */
+  async createWallet(_driverId: string): Promise<never> {
+    throw new Error('Wallet provisioning is IAM-only. Use the trusted Cognito confirmation trigger.');
   }
+
 }
 
 /**

@@ -1,0 +1,12 @@
+{
+  "status": "LOCAL_SHARED_BUILDER_AND_GOODS_REFACTOR_NOT_DEPLOYED",
+  "module": "backend/wallet-service/src/platformPromotionFunding.ts",
+  "existingGoodsSourceReusesBuilder": true,
+  "deliveryLivePathConnected": false,
+  "cashReservation": {"onePlatformWalletUpdate": true, "aggregateLiquidityCheck": true, "separateGoodsDeliveryHolds": true, "balancedChainedLedger": true, "audit": true, "executesTransaction": false},
+  "transactionComposer": "existing quote-order composer reused; guarded checks merge, conflicting writes reject",
+  "verification": {"typescriptCompile": "PASS", "newTests": 7, "targetedTestsPassed": 105},
+  "remaining": ["trusted order composition and versioned allocation", "delivery cash capture/release", "merchant payable proof", "refund reversal", "UI and staged end-to-end verification"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

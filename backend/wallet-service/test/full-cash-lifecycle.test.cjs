@@ -1,0 +1,37 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),ready=require('./helpers/full-cash-flow-fixture.cjs');
+const {createStagingCodReassignment}=require('../dist/codReassignment'),{createStagingCodReturn}=require('../dist/codReturn'),{createStagingCodIntegration}=require('../dist/codIntegration');
+const key={PK:'ORDER#order1',SK:'META'},d={kind:'DRIVER',subjectId:'driver1'},owner={kind:'MERCHANT_OWNER',subjectId:'owner1'};
+const selector=f=>({orderId:'order1',offerId:f.get('WizzOrders',key).financialAcceptance.offerId,attempt:1});
+const options=(f,actor=d)=>({db:f.db,now:()=>f.time,enableFullCash:true,enableDeliveryFunding:true,reassignmentWindowSeconds:60,authenticate:async()=>actor});
+test('V3 unassignment refunds exactly its collateral and retains order funding budget',async()=>{const f=await ready();const r=await createStagingCodReassignment(options(f)).unassign({...selector(f),cashCollected:false,reason:'Emergency'});assert.equal(r.kind,'COD_UNASSIGNED');assert.equal(f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}).availableBalance,20000);assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'FULL_CASH_FUNDING_COMMITMENT'}).status,'COMMITTED');assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'ASSIGNMENT_RELEASE#1'}).schemaVersion,3);await f.wave.run({orderId:'order1',branchId:'branch1',waveNumber:2,driverIds:['driver2']});assert.equal(f.sent.find(x=>x.driverId==='driver2'&&x.message.offer.waveNumber===2).message.offer.driverWalletHold.minorAmount,8700000);});
+test('V3 owner cancellation releases collateral and budget without platform cash movement',async()=>{const f=await ready();await createStagingCodReassignment(options(f,owner)).cancelBeforePickup({...selector(f),cashCollected:false,branchId:'branch1',goodsRetainedByBranch:true});assert.equal(f.get('WizzOrders',key).status,'cancelled');assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'FULL_CASH_FUNDING_COMMITMENT'}).status,'RELEASED');assert.equal(f.get('staging-PlatformStaff',{pk:'DELIVERY_RESERVATION#order1',sk:'META'}).status,'RELEASED');assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'MERCHANT_PAYABLE'}),undefined);assert.equal(f.calls.some(c=>c.input.Key?.walletId==='WALLET#PLATFORM'),false);});
+test('V3 return receipt releases original collateral and budget exactly once',async()=>{const f=await ready(),order=f.get('WizzOrders',key);order.status=order.orderStatus='arrived_at_customer';const service=createStagingCodReturn(options(f)),v=selector(f),r=await service.requestReturn({...v,reason:'CUSTOMER_UNREACHABLE',cashCollected:false});const chosen={...v,returnId:r.returnId};await service.arriveReturn(chosen);const result=await createStagingCodReturn(options(f,owner)).confirmReceipt({...chosen,branchId:'branch1',expectedVersion:2,allItemsReceived:true,condition:'INTACT',driverResponsibility:'NONE',cashCollected:false});assert.equal(result.status,'CONFIRMED');assert.equal(f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}).availableBalance,20000);assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'FINANCIAL_OUTCOME'}).schemaVersion,3);assert.equal(f.get('staging-Holds',{orderId:'order1',sk:'MERCHANT_PAYABLE'}),undefined);});
+test('integration worker verifies new acceptance and updates metrics once',async()=>{const f=await ready();const event=[...f.rows.values()].find(r=>r.kind==='COD_ACCEPTANCE_OUTBOX');const service=createStagingCodIntegration({db:f.db,now:()=>f.time,enableFullCash:true,enableDeliveryFunding:true});const r=await service.processEvent(event.operationId);assert.equal(r.status,'INTEGRATED');assert.equal((await service.processEvent(event.operationId)).replayed,true);});
+test('replacement driver completes against their new collateral, retaining release evidence',async()=>{
+ const {createFullCashCompletion}=require('../dist/fullCashCompletion'),f=await ready();
+ await createStagingCodReassignment(options(f)).unassign({...selector(f),cashCollected:false,reason:'Emergency'});
+ await f.wave.run({orderId:'order1',branchId:'branch1',waveNumber:2,driverIds:['driver2']});
+ const message=f.sent.find(x=>x.driverId==='driver2'&&x.message.offer.waveNumber===2).message;
+ await f.accept('driver2',{waveNumber:2,offerId:message.offer.offerId});
+ const order=f.get('WizzOrders',key);order.status=order.orderStatus='arrived_at_customer';
+ const complete=createFullCashCompletion({db:f.db,now:()=>f.time,enabled:true,authenticateDriver:async()=>({driverId:'driver2',subjectId:'driver2'})});
+ const archive=f.get('staging-Holds',{orderId:'order1',sk:'ASSIGNMENT_RELEASE#1'}),saved=archive.operationId;
+ archive.operationId='tampered';await assert.rejects(complete.complete({orderId:'order1',cashCollected:true}));archive.operationId=saved;
+ await complete.complete({orderId:'order1',cashCollected:true});
+ assert.equal(f.get('WizzOrders',key).status,'delivered');
+ assert.equal(f.get('staging-Wallets',{walletId:'WALLET#DRIVER#driver1',sk:'META'}).availableBalance,20000);
+ assert.equal(f.get('staging-Wallets',{walletId:'WALLET#MERCHANT#branch1',sk:'META'}).lockedBalance,7875);
+});
+test('completion outbox counts delivery and creates one driver notice',async()=>{
+ const {createFullCashCompletion}=require('../dist/fullCashCompletion'),f=await ready();
+ const integration=createStagingCodIntegration({db:f.db,now:()=>f.time,enableFullCash:true,enableDeliveryFunding:true});
+ const acceptance=[...f.rows.values()].find(x=>x.kind==='COD_ACCEPTANCE_OUTBOX');await integration.processEvent(acceptance.operationId);
+ const o=f.get('WizzOrders',key);o.status=o.orderStatus='arrived_at_customer';
+ await createFullCashCompletion({db:f.db,enabled:true,now:()=>f.time,authenticateDriver:async()=>({driverId:'driver1',subjectId:'driver1'})}).complete({orderId:'order1',cashCollected:true});
+ const completion=[...f.rows.values()].find(x=>x.kind==='COD_COMPLETION_OUTBOX');assert.ok(completion);
+ assert.equal((await integration.processEvent(completion.operationId)).status,'INTEGRATED');
+ assert.equal((await integration.processEvent(completion.operationId)).replayed,true);
+ assert.equal(f.get('WizzDriverPerformanceMetrics_staging',{PK:'DRIVER#driver1',SK:'METRICS'}).financialCompletedCount,1);
+ assert.equal([...f.rows.values()].filter(x=>x.financialEventKind==='COD_COMPLETION_OUTBOX').length,1);
+});

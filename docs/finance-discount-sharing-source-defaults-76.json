@@ -1,0 +1,121 @@
+{
+  "part": 76,
+  "functions": [
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "beforeSha256": "UVL9PPZ8z/92JfM4iiSsfrcF3Ek8HW06IKcUD1crt8E=",
+      "afterSha256": "HmnvP5ui0BbNb+AhVIelk6Hb0vq8NsPzmSR2/6no+SI=",
+      "changedFiles": [
+        "commercial-retention.js",
+        "financial-purge.js"
+      ],
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "beforeSha256": "rpPImLkinGSDlBGKaGrU+e3DdWbKMmqehSOM/6zMuRM=",
+      "afterSha256": "SDvp1hSDTcib2DcHsArYOLem7mBHsXXYLHGujXcqmHg=",
+      "changedFiles": [
+        "commercial-retention.js"
+      ],
+      "configurationPreserved": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "beforeSha256": "VEIPYkkYjsq++AOlyqVH3HekAMnGjVv5TLbboc3VUSY=",
+      "afterSha256": "nDpJC1lCLDw5SzqtR0RieW5Lsb4GG9bfY4NIL7UR8EU=",
+      "changedFiles": [
+        "functions/create-order/commercial-runtime.js",
+        "functions/create-order/quote-runtime/orderCommercialSource.js"
+      ],
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "beforeSha256": "g1TEoRTkFu7o9UxgyeHFCuu1sYqYEZrtlCI1HvI/Yy0=",
+      "afterSha256": "P1mZVo/xOjVlvx9IYq3aSJZZjGly/ZdAe/lZ4OnrIZY=",
+      "changedFiles": [
+        "commercial-management.js",
+        "commercial-options.js"
+      ],
+      "configurationPreserved": true
+    }
+  ],
+  "stacks": [
+    {
+      "name": "staging-finance-commercial-writer-access-58",
+      "resourceModified": "CommercialWriterAccess",
+      "newGrant": "BRANCH#* only on existing MerchantPlatform table",
+      "checks": 2
+    },
+    {
+      "name": "staging-finance-commercial-retention-access-61",
+      "resourceModified": "ExpiryCommercialRetention",
+      "newGrant": "BRANCH#* only on existing MerchantPlatform table",
+      "checks": 2
+    }
+  ],
+  "applicationDataWrites": false,
+  "financialActivation": false,
+  "anonymousChecks": {
+    "staff": 401,
+    "writer": 409
+  },
+  "amplify": {
+    "baseJobId": "90",
+    "jobId": "91",
+    "changedFiles": [
+      "commercial-management.js",
+      "commercial-funding-picker.js",
+      "pages/merchants.html",
+      "pages/promotions.html"
+    ],
+    "sha256": "c6e8dcbcd227e08206f4d7321548698a3860b6b543006729e54a18214876bf6b",
+    "status": "SUCCEED",
+    "hostedFilesMatched": true
+  },
+  "environment": "Staging",
+  "behavior": {
+    "merchantDefault": "MERCHANT_100_PERCENT",
+    "platformDefault": "PLATFORM_100_PERCENT",
+    "sharing": "strictly_between_zero_and_one_hundred_percent; separately owner-consented; branch-and-campaign scoped",
+    "period": "inherited from canonical campaign dates; no separate period entry",
+    "agreement": "new agreements require empty funding lists; old immutable agreement records and saved order snapshots retained",
+    "campaignEdit": "previous sharing not applied to changed campaign content/version/dates; source-funded default applies until renewed consent"
+  },
+  "tests": {
+    "staffAndDeletion": 432,
+    "wallet": 683,
+    "customerBackend": 39,
+    "merchantFlutterFocused": 9,
+    "browser": "passed; mocked HTTP, no writes",
+    "candidate": "actual bundled writer module loaded and merchant/platform defaults plus sharing verified",
+    "dynamo": {
+      "passed": true,
+      "realDynamoTransactions": true,
+      "twoBranchesOnePlatformCampaign": true,
+      "ownerConsentRequired": true,
+      "stableRetry": true,
+      "campaignUnmodified": true,
+      "revocationAbortsEntireSave": true,
+      "table": "staging-discount-sharing-test-1792255635505-551fc5c7-9c0b-463b-a208-9b06771cc502",
+      "isolatedTableDeleted": true
+    }
+  },
+  "mobile": {
+    "merchantSimulator": "iPhone 16 Pro",
+    "build": "iOS simulator Debug",
+    "installedAndLaunched": true,
+    "analysisErrors": 0,
+    "analysisWarnings": 0,
+    "existingStyleInfos": 4,
+    "otherAppsRebuilt": false
+  },
+  "limits": [
+    "No human consent submitted; isolated owner identity used only inside test harness without Cognito impersonation",
+    "No human campaign, agreement, order or balance changed",
+    "No end-to-end financial activation or customer-driver-merchant order test in this batch",
+    "CloudFormation templates updated narrowly; do not redeploy entire local stacks without drift reconciliation",
+    "Old global campaign funding fields retained as historical data but not used to override source funding in the new order reader"
+  ]
+}

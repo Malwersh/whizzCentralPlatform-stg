@@ -1,0 +1,9 @@
+'use strict';
+// Offline overlay review only. Merge these files into a freshly inspected live
+// notification package, retaining its dependencies/configuration, before rollout.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const out=process.argv[2],root=path.resolve(__dirname,'..');if(!out||!path.isAbsolute(out))throw Error('ABSOLUTE_OUTPUT_REQUIRED');
+const files=['src/handlers/push-wave-offer.js','src/utils/dispatch-cycle-keys.js','src/utils/pinned-wave-push.js','src/utils/pinned-wave-push-handler.js'],hashes={};
+for(const file of files){const data=fs.readFileSync(path.join(root,'backend',file)),target=path.join(out,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,data);hashes[file]=crypto.createHash('sha256').update(data).digest('hex');}
+const manifest={schemaVersion:1,stage:'staging',mode:'OFF',publicationReady:false,overlayOnly:true,functionName:'wizzcentral-notifications-staging-pushSendWaveOffer',handler:'src/handlers/push-wave-offer.sendWaveOffer',sourceSha256:hashes,requiredGate:'PINNED_LEGACY_PUSH_MODE=OFF',requiredAccount:'699561669180',iamProposal:'backend/serverless.notifications.yml; no actual grants',retained:['Existing Firebase runtime, internal-key authentication, token registry and HTTP endpoint','Unversioned handler logic and unrelated package files'],blockers:['Merge with freshly inspected live package and existing dependencies','Simulate projected GetItem permissions on driver/offer and lifecycle/token reads','Coordinate source, sender, receiver, acceptance/retention, retry scheduling and client contracts','Verify real devices and provider acknowledgements before independent gate activation']};
+fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');console.log(JSON.stringify(manifest));

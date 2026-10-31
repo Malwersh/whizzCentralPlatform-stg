@@ -1,0 +1,31 @@
+{
+  "part": 361,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_NO_LAYOUT_CONTENT_SEEDED",
+  "layoutRecordsWritten": 0,
+  "financialRecordsWritten": 0,
+  "newIamPermissions": false,
+  "tests": {
+    "node": 27,
+    "flutter": 13,
+    "browserScenarios": 2,
+    "actualBundleWiring": true
+  },
+  "backend": {
+    "function": "staging-wizz-staff-service",
+    "sha256": "pKtlckNhCYgLdgpbMbNwcnZUtMufvjEGVEN08ekSY8M=",
+    "configurationPreserved": true,
+    "allOtherEntriesPreserved": true
+  },
+  "publicFeedUnconfiguredVerified": true,
+  "hosting": {
+    "jobId": "229",
+    "previousJob": "228",
+    "sourceHashes": {
+      "home-layout.js": "3d2141b3e4f6c7cacbe3115792c43df05350737ef9ca2c25bb7477e633a71679",
+      "pages/home-layout.html": "f86bac852c2976cea9031f8d95cb49a7fbed953506b65299cf3d7b07eee9a1e0",
+      "pages/promotions.html": "8d96caf226354d0057039bca7a91149ce43331a3fd8d0f40dc1eab87be14c73a"
+    },
+    "allOtherEntriesPreserved": true
+  }
+}

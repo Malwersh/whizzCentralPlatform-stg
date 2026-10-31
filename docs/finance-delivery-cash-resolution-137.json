@@ -1,0 +1,13 @@
+{
+  "status": "LOCAL_READ_ONLY_TERMINAL_PLANNER_NOT_INTEGRATED_OR_DEPLOYED",
+  "module": "backend/wallet-service/src/platformPromotionResolution.ts",
+  "reuses": ["strongGet", "exactCheck", "updateChecked"],
+  "outcomes": ["CAPTURED to SETTLED holds", "RELEASED holds"],
+  "returns": ["hold updates and audit", "guarded original platform wallet check", "combined funding wallet delta"],
+  "standaloneWalletUpdate": false,
+  "requires": "atomic authorized order lifecycle, campaign budget/usage and balanced financial journal",
+  "verification": {"typescriptCompile": "PASS", "newResolutionTests": 7, "targetedTestsPassed": 35},
+  "remaining": ["V2 completion/cancellation writer", "balanced combined journal", "merchant accrual proof", "post-completion refunds", "admission and deployment"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

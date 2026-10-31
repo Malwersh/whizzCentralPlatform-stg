@@ -1,0 +1,101 @@
+{
+  "part": 361,
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "environment": "staging",
+  "discountRecordsChanged": false,
+  "ordersCreated": 0,
+  "financialRecordsWritten": 0,
+  "functions": [
+    {
+      "function": "WizzUser-ValidatePromoCode-staging",
+      "sha256": "uf/0Q/zidrGZJFuM7/edZbc92k+3vbYsjzvyHcnKOzw=",
+      "changedFiles": [
+        "functions/shared/discount-contract.js",
+        "functions/shared/discount-engine.js",
+        "functions/shared/discount-reservation.js",
+        "_discount_review/user-validate-promo-code/index.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "WizzUser-ApplyPromoCode-staging",
+      "sha256": "trfQ2uDt/PgqRKzjq5nbB898/3QVQ0yfB8Vf7TDcQCg=",
+      "changedFiles": [
+        "functions/shared/discount-contract.js",
+        "functions/shared/discount-engine.js",
+        "functions/shared/discount-reservation.js",
+        "_discount_review/user-apply-promo-code/index.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "sha256": "n1znOSjEMSdALf74GYqQVLldAZ9KEklhCk6/TWaEpSM=",
+      "changedFiles": [
+        "_discount_review/user-create-order/index.js",
+        "functions/create-order/index.js",
+        "functions/shared/discount-contract.js",
+        "functions/shared/discount-engine.js",
+        "functions/shared/discount-reservation.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "sha256": "lOF3j36Y1Lr/6XCC2qn+W+t99tRApNWrN35Z+mwfBvM=",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "WizzUser-GetStoreDiscounts-staging",
+      "sha256": "WvsxnvSpI80L/qLLmgTdf5jD+Ept/EoCv2WRwHCDp8s=",
+      "changedFiles": [
+        "functions/shared/discount-contract.js",
+        "functions/shared/discount-engine.js",
+        "functions/shared/discount-reservation.js",
+        "_discount_review/user-get-store-discounts/index.js",
+        "menu-item-prices-361.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-discount-management-v1-sam",
+      "sha256": "wG/90+30nlz3PSaaQGkAo7udzZLUE9IsUmKbJuyR88o=",
+      "changedFiles": [
+        "_discount_review/merchant-discounts/index.js",
+        "discount_management_handler.js",
+        "shared/discount-contract.js",
+        "shared/discount-engine.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ],
+  "tests": {
+    "customerNode": 35,
+    "merchantNode": 29,
+    "customerFlutter": 34,
+    "merchantFlutter": 14,
+    "actualCandidateCalculators": 7
+  },
+  "catalogReadPermission": {
+    "role": "WizzUser-backend-staging-GetStoreDiscountsFunctionR-RV4aB8RdgTDk",
+    "actions": [
+      "dynamodb:GetItem"
+    ],
+    "tables": [
+      "WhizzMerchants_Products",
+      "WhizzMerchants_Categories",
+      "staging-MerchantPlatform"
+    ],
+    "writesAllowed": false
+  },
+  "readOnlyCanary": "Existing branch discounts listed successfully"
+}

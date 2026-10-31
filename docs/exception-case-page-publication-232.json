@@ -1,0 +1,17 @@
+{
+  "part": 232,
+  "baseJobId": "128",
+  "jobId": "129",
+  "changedFiles": [
+    "pages/settings.html",
+    "settings-order-exception-cases.js",
+    "pages/finance.html",
+    "finance.js",
+    "pages/order-exceptions.html",
+    "order-exception-cases.js"
+  ],
+  "otherFilesPreserved": true,
+  "status": "SUCCEED",
+  "sha256": "1fc969e9bfead0388555c5efe3339afa76d6cfc6e198812cc56ecb3165f19ae8",
+  "hostedBytesVerified": true
+}

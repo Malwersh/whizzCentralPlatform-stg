@@ -1,0 +1,29 @@
+{
+  "status": "RELEASE277_INSTALLED_LAUNCHED",
+  "scope": "Remove earnings from bottom navigation; retain modern earnings in More",
+  "visibleTabs": [
+    "home",
+    "trips",
+    "wallet",
+    "notifications",
+    "more"
+  ],
+  "routeIdsPreserved": [
+    0,
+    1,
+    2,
+    4,
+    5
+  ],
+  "oldEarningsRouteId3": "More",
+  "earningsDestination": "MoreTab -> EarningsScreen",
+  "verification": {
+    "navigationMoreEarningsChecks": 18,
+    "tabMappingAnalysis": "NO_ISSUES",
+    "releaseBuild": "PASS"
+  },
+  "backendChanged": false,
+  "humanAcceptance": "DEFERRED_NOT_PASSED",
+  "installed": true,
+  "launched": true
+}

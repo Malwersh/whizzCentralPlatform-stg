@@ -1,0 +1,185 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Existing SAM commercial/quote writer grants; no feature activation or data mutation.",
+  "Conditions": {
+    "StagingAccountAndRegion": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "699561669180"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "CommercialWriterAccess": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "PolicyName": "CommercialOrderAtomicSources58",
+        "Roles": [
+          "WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN"
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "ReadCommercialAgreementSources",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "COMMERCIAL_AGREEMENT#*",
+                    "PERSON#*",
+                    "BRANCH#*"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "ReadCommercialApprovals",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "COMMERCIAL_AGREEMENT#*",
+                    "DISCOUNT_FUNDING#*"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "ReadCommercialRegions",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Regions"
+            },
+            {
+              "Sid": "ReservePlatformPromotionFunds",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:UpdateItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+              "Condition": {
+                "ForAllValues:StringEquals": {
+                  "dynamodb:LeadingKeys": [
+                    "WALLET#PLATFORM"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "PlatformPromotionLedger",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+              "Condition": {
+                "ForAllValues:StringEquals": {
+                  "dynamodb:LeadingKeys": [
+                    "WALLET#PLATFORM"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "PlatformPromotionReservationAndAudit",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AuditLog"
+              ]
+            },
+            {
+              "Sid": "ConsumeDeliveryQuote",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "CUSTOMER#*"
+                  ]
+                }
+              }
+            },
+            {
+              "Sid": "DeliveryQuoteCustomerGuard",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging"
+            },
+            {
+              "Sid": "DeliveryQuoteReferenceFences",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_addresses_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Regions",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_RegionsDerived_staging"
+              ]
+            },
+            {
+              "Sid": "DeliveryQuotePolicyFence",
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+              "Condition": {
+                "ForAllValues:StringEquals": {
+                  "dynamodb:LeadingKeys": [
+                    "OPERATIONAL_SETTINGS#DELIVERY_PRICING"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-29",
+  "item": "M06",
+  "runtimeReadOnlyAudit": {
+    "worker": {
+      "state": "Active",
+      "responseMode": "REQUIRED",
+      "handler": "index.handler",
+      "sha256": "jDIAsIg+b9hon0AEo4IKXgYX0RP9sJHj2nNaej/zNuA=",
+      "sourceMarkers": {
+        "resumeMerchantPause": true,
+        "SKIPPED_STATE_CHANGED": true,
+        "pause_auto_resume": true,
+        "MERCHANT_RESUME": true,
+        "platformSuspended": true,
+        "ordersBlocked": true
+      },
+      "implementationPath": "_discount_review/merchant-response-worker/index.js"
+    },
+    "timer": {
+      "state": "ENABLED",
+      "schedule": "rate(1 minute)",
+      "targetsCorrectWorker": true
+    },
+    "order-receiver-business-staging-status-v1-sam": {
+      "orderReceptionExactMatch": true,
+      "responseMode": "REQUIRED"
+    },
+    "order-receiver-regional-staging-unified-auth-v4-sam": {
+      "orderReceptionExactMatch": true,
+      "responseMode": "REQUIRED"
+    }
+  },
+  "tests": {
+    "pendingResponseAndPause": 17,
+    "hoursAndStatus": 17,
+    "downloadedResumeFunctionBody": 11
+  },
+  "liveFunctionTestLimit": "Downloaded resume function body executed with local tested imports and in-memory fixtures; no live pause or production data mutation.",
+  "automaticResume": "First successful worker run after due time; enabled rate(1 minute), not exact-second scheduling.",
+  "humanAcceptance": [
+    {
+      "id": "M06-01",
+      "case": "Pause an accepting test branch for 15 minutes; confirm customer cannot submit a new order and existing orders stay available."
+    },
+    {
+      "id": "M06-02",
+      "case": "Wait through the due time and a subsequent worker run; confirm acceptance resumes."
+    },
+    {
+      "id": "M06-03",
+      "case": "While paused, explicitly close branch manually; confirm scheduled resume does not reopen it."
+    },
+    {
+      "id": "M06-04",
+      "case": "While paused, suspend branch centrally; confirm scheduled resume does not override suspension."
+    },
+    {
+      "id": "M06-05",
+      "case": "Save and reload a seven-day schedule from owner and authorized branch device; confirm customer opening state and branch isolation."
+    }
+  ],
+  "serverWrites": false
+}

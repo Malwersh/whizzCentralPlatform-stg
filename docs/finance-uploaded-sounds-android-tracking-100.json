@@ -1,0 +1,121 @@
+{
+  "part": 100,
+  "status": "STAGING_DEPLOYED_ANDROID_TESTED_APPS_UPDATED",
+  "publication": {
+    "functions": [
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "a1JNst55g6eNM9CK80Vv1cZjdiadqOPDNKpcQJCbvQg=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSoundSettings",
+        "codeSha256": "MemqSH8thsBs2Vl74AopgwoXQ/K65binQDvwqAsb8Bg=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushTokensRegister",
+        "codeSha256": "J3ZVSJYZu+rOI91FKq/u5QcyK34dGh44tC9ilGGoUq8=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "codeSha256": "Pbp9eKQhJog7KVMEqRKVD0G0w/acgF0CTYXkpz3FRFI=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "codeSha256": "xzfurAgrBRHxMFNYQoScEKd0mV+lugCDCLh5Jmi1i9Y=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+        "codeSha256": "4+I97T3NLdiyFRfYuNnQFM95/W7mSUhFxt4wBoITm5w=",
+        "state": "Active"
+      },
+      {
+        "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+        "codeSha256": "1eU31ZlU+WdnfxRdLffROb805VeZorDVZfE13A9hrD4=",
+        "state": "Active"
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "codeSha256": "4BrxC5Ko0gPd8dXN8sTVWxctebX4z+vZtIWynxjBcn4=",
+        "state": "Active"
+      }
+    ],
+    "amplifyJobId": "100"
+  },
+  "originalSounds": {
+    "merchant": "first_nitification_sound.wav",
+    "driver": "Driver_Noti.mp3 preserved; same audio converted to driver_original.wav for cross-platform notification support",
+    "driverOnline": "original ascending cue added in Part99; no previous online sound existed"
+  },
+  "uploads": {
+    "browserInput": "audio formats supported by browser decoder, <=15MiB and <=5seconds",
+    "storage": "immutable content-addressed PCM WAV, <=256000 bytes; existing operational settings partition",
+    "activation": "existing staff settings permissions, enrollment, recent authentication, version check and approval workflow",
+    "device": "SHA256 verified, iOS Library/Sounds, Android file provider URI and per-file channel; original/default fallback until ready acknowledgment",
+    "libraryLimit": 12
+  },
+  "androidTracking": {
+    "ongoing": true,
+    "silent": true,
+    "lockScreenPrivacy": "private; OS lock-screen notification settings apply",
+    "source": "canonical server order update, per-account authenticated token capability",
+    "tested": [
+      "visible after leaving app",
+      "removed on terminal delivery",
+      "older replay cannot revive terminal notification",
+      "different orders keep distinct notification IDs",
+      "other-account push ignored"
+    ],
+    "liveFcmDelivery": "requires human real order test; emulator smoke used local synthetic messages only"
+  },
+  "checks": {
+    "soundContractAndAssets": 5,
+    "browserRealAudioUploadConversionPreview": "PASS",
+    "androidNotificationUnit": 3,
+    "androidEmulatorSmoke": "PASS",
+    "anonymousUploadAndPolicy": 401,
+    "liveUiBytes": "MATCH",
+    "customerArrivalAndAndroidTests": 6
+  },
+  "financialChanges": false,
+  "iamChanges": false,
+  "physicalIosLiveActivity": "DEFERRED_APPLE_TEAM_AUTH",
+  "devices": {
+    "customerAndroid": {
+      "build": "PASS_ARM64",
+      "installedOnEmulator": true,
+      "emulator": "Pixel_4 API33 ARM64",
+      "smokeScreenshot": "/private/tmp/android100-tracking.png"
+    },
+    "merchantIos": {
+      "build": "PASS",
+      "installedInPlace": true,
+      "pairedDeviceSoundSyncIncluded": true
+    },
+    "driverIos": {
+      "build": "PASS",
+      "installedInPlace": true
+    },
+    "driverAndroid": {
+      "build": "PASS"
+    },
+    "merchantAndroid": {
+      "build": "PASS",
+      "gradle": "BUILD SUCCESSFUL in 1m 53s; 413 tasks",
+      "configurationFixes": [
+        "configure app before Flutter plugin evaluation",
+        "include Flutter engine Maven repository when using PREFER_SETTINGS"
+      ]
+    }
+  },
+  "financialCanaryAdmissionChanged": false,
+  "remaining": [
+    "Human real-order FCM end-to-end check on Android",
+    "Physical iOS Live Activity test remains deferred for Apple team authentication"
+  ],
+  "localBuildStorage": "Generated evidence and Gradle 8.14.3 cache preserved on external volume; original paths retained with symbolic links; private evidence ignored by Git and outside Flutter clean."
+}

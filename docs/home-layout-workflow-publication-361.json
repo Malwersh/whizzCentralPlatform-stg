@@ -1,0 +1,38 @@
+{
+  "part": 361,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_BYTES_VERIFIED",
+  "baseJob": "232",
+  "changedFiles": [
+    "home-layout.js",
+    "pages/home-layout.html"
+  ],
+  "allOtherEntriesPreserved": true,
+  "backendChanged": false,
+  "layoutRecordsWritten": 0,
+  "financialRecordsWritten": 0,
+  "tests": [
+    "Chrome 390px",
+    "Chrome 1280px",
+    "independent edit/preview/cancel",
+    "isolated save",
+    "pause/reorder remain drafts",
+    "review before publish",
+    "conflict retains unsaved input",
+    "read-only controls"
+  ],
+  "sourceHashes": {
+    "home-layout.js": "b3de9a660de9277fdc79a01d827bcac1ba9b0dc8fe59470104f3b5eb60caa68d",
+    "pages/home-layout.html": "ef151be9e5014dd984bbc239dce0fb30e5d1f3714e366a2f364e49d894d5b8ba"
+  },
+  "baseCaptureProof": "backend/.tmp/home-layout-workflow-361/current-capture-proof.json",
+  "preservedCurrentUpdates": [
+    "campaign-image.js",
+    "home-slideshow.js",
+    "pages/promotions.html",
+    "commercial-management.js",
+    "pages/merchants.html"
+  ],
+  "jobId": "233",
+  "preservedCurrentUpdatesByteVerified": true
+}

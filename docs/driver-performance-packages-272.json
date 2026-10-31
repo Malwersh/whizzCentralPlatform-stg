@@ -1,0 +1,45 @@
+{
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "functions": [
+    {
+      "label": "driver",
+      "function": "DriversApi-staging",
+      "before": "cqqGl1C377pSrQb3ENo+SDB7e3MJQRHU4Mi4+GxSau0=",
+      "revision": "35aa8ca0-c5b3-4b9f-8710-d4be727b3d73",
+      "candidate": "H38DxQ7aMkh6hU6mLH9JmVJY6WQEVYMcw4RiREcqKOo=",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "driver-performance.js",
+        "driver-offer-display-receipt.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "before": "cIuVdmYoTu3KhWGnzcVtWANfxr7Fhe0DDrXJgfHWODc=",
+      "revision": "aa66ab3c-eccb-4ea0-ae12-745ac5df33e4",
+      "candidate": "3IW/aG+/69UW+kUFZAEsMrmPFIHg53V4rkeKrezzl8g=",
+      "changedFiles": [
+        "order-exception-runtime-229.js",
+        "driver-performance-decision-runtime-272.js",
+        "staff-order-management-runtime.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "before": "JjtxIlNuQZ3aYPhkPmxQfzjuBOIBpH6xBm1s3UlRu5I=",
+      "revision": "0cdaf1bc-4f32-469c-bc22-b935d6992804",
+      "candidate": "ff8NC02HUkqngn4Cyy/8cdIUQPBwZxGsQ7GSfL/Iy6E=",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "allOtherEntriesIdentical": true
+    }
+  ],
+  "businessWrites": 0,
+  "financialPolicyChanged": false,
+  "publication": "docs/driver-performance-publication-272.json"
+}

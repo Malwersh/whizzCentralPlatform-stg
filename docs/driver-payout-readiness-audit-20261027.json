@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-27",
+  "status": "AUDIT_COMPLETE_IMPLEMENTATION_REQUIRED",
+  "workItems": [
+    "F03",
+    "F05"
+  ],
+  "launch": "COD_ONLY",
+  "findings": [
+    {
+      "source": "backend/wallet-service/src/fullCashCompletion.ts",
+      "finding": "Driver normal COD fare is retained in cash; do not create a second withdrawal entitlement."
+    },
+    {
+      "source": "backend/wallet-service/src/exceptionFinancials.ts",
+      "finding": "Verified exception fare can credit driver AVAILABLE; credit is not yet a complete disbursement workflow."
+    },
+    {
+      "source": "backend/wallet-service/src/cancellationCompensation.ts",
+      "finding": "Cancellation compensation execution credits driver wallet; source journal and case must remain linked."
+    },
+    {
+      "source": "backend/wallet-service/src/topupService.ts",
+      "finding": "Topup adds available collateral funds; existing availableBalance does not prove unrestricted withdrawal."
+    },
+    {
+      "source": "backend/wallet-service/src/ledgerEffects.ts",
+      "finding": "Ledger rules classify AVAILABLE/LOCKED movements, not remaining withdrawable provenance."
+    },
+    {
+      "source": "../whizzDrivers-stg/frontend/lib/models/wallet_balance.dart",
+      "finding": "Driver model exposes available and locked, not an authoritative withdrawable balance."
+    }
+  ],
+  "implementationRequired": [
+    "Versioned disbursement policy and explicit eligible source rules; no automatic AVAILABLE=WITHDRAWABLE conversion",
+    "Verified source references and consumed/pending allocation so spending or concurrent holds cannot duplicate entitlement",
+    "Authenticated driver request and staff review with limits; server-derived amounts and destination",
+    "Atomic payout reservation distinct from order collateral, with idempotency and version fences",
+    "Separate approval, execution and driver receipt states; no PAID on mere approval",
+    "Cashbox/source accounting or verified transfer evidence according to selected method",
+    "Documented failure release and reconciliation; uncertain external payment never auto-retried as a new payout",
+    "Driver wallet and admin UI with status, source amount, reference and receipt; monthly statement supports payout effects"
+  ],
+  "policyQuestion": {
+    "title": "Launch payout method",
+    "recommended": "STAFF_REVIEWED_CASH_DELIVERY_WITH_DRIVER_RECEIPT",
+    "state": "ASKED_USER_PENDING_RESPONSE",
+    "alternatives": [
+      "STAFF_RECORDED_ZAINCASH",
+      "BOTH"
+    ]
+  },
+  "notImplementedClaims": [
+    "No driver payout endpoint or payable balance was added by this audit",
+    "No paid wallet movements or provider operations were executed",
+    "Merchant payout cannot be relabelled as driver payout without independent owner and accounting checks"
+  ],
+  "requiredTests": [
+    "Foreign-wallet authorization and staff limits",
+    "No second payment for retained COD cash",
+    "No withdrawal of order collateral or disputed/unknown-source funds",
+    "Concurrent acceptance/payout and duplicate requests",
+    "Approval without physical payment is not PAID",
+    "Execution failure versus uncertain execution reconciliation",
+    "Single driver confirmation and immutable journal",
+    "Statement and wallet reconciliation after payment and release"
+  ],
+  "businessWrites": false,
+  "deployment": false
+}

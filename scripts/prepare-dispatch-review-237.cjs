@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('fs'),assert=require('assert/strict'),ts=require('../backend/wallet-service/node_modules/typescript');
+const p='backend/.tmp/order-exceptions-work/review-237';
+let s=fs.readFileSync(p+'/_discount_review__central-staff__index.js','utf8');
+const ast=ts.createSourceFile('live.js',s,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);let found;
+function walk(n){if(ts.isVariableDeclaration(n)&&n.name?.getText(ast)==='require_dispatch_reviews')found=n;ts.forEachChild(n,walk);}walk(ast);assert(found);
+const call=found.initializer,prop=call.arguments[0].properties[0];assert(ts.isMethodDeclaration(prop));assert.equal(prop.parameters.map(n=>n.name.getText(ast)).join(','),'exports2,module2');
+let body=fs.readFileSync('backend/staff-service/dispatch-reviews.js','utf8').replace("require('@aws-sdk/lib-dynamodb')",'require_dist_cjs60()').replace("require('./catalog')",'require_catalog()').replace('module.exports=','module2.exports=');
+s=s.slice(0,prop.body.getStart(ast))+'{\n'+body+'\n}'+s.slice(prop.body.end);
+const before='require_dispatch_reviews().route({ db: rollout.db, scopeContains: rollout.containsOrder, table, employee, guard, audit, enrolled, recent, claims, query: event.queryStringParameters }';assert.equal(s.split(before).length,2);s=s.replace(before,'require_dispatch_reviews().route({ ...require_dispatch_reviews().reviewAccess({ db, rollout }), table, employee, guard, audit, enrolled, recent, claims, query: event.queryStringParameters }');
+fs.writeFileSync(p+'/staff-candidate.js',s);console.log('Bounded replacement: review module plus its access adapter call; all unrelated code preserved.');

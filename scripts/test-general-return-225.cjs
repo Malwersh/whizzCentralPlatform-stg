@@ -1,0 +1,17 @@
+'use strict';
+// Actual captured runtime, real saved order and read-only DynamoDB; transaction stays local.
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),{spawn}=require('child_process'),rl=require('readline');
+const p='/private/tmp/return-225',c=JSON.parse(fs.readFileSync(p+'/config.private.json')),order=JSON.parse(fs.readFileSync(p+'/order.private.json')),ts=require('../backend/wallet-service/node_modules/typescript');
+const child=spawn('python3',['scripts/checkout-readonly-db-224.py'],{env:{...process.env,READONLY_CONFIG_PATH:p+'/config.private.json'},stdio:['pipe','pipe','inherit']});let id=0,tx=null;const pending=new Map();rl.createInterface({input:child.stdout}).on('line',s=>{const r=JSON.parse(s),x=pending.get(r.id);pending.delete(r.id);r.ok?x.resolve(r.result):x.reject(Error(r.error));});
+const db={send:cmd=>{const name=cmd.constructor.name.replace(/\d+$/,'');if(name==='TransactWriteCommand'){assert.ok(!tx,'one proposed transaction');tx=cmd.input;return Promise.resolve({});}assert.equal(name,'GetCommand');return new Promise((resolve,reject)=>{pending.set(++id,{resolve,reject});child.stdin.write(JSON.stringify({id,name,input:cmd.input})+'\n');});}};
+function fn(file,name){const text=fs.readFileSync(file,'utf8'),ast=ts.createSourceFile(file,text,ts.ScriptTarget.Latest,true);return ast.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text===name).getText(ast);}
+const live=require('./load-live-lifecycle-219.cjs')(p+'/base/index.js');
+async function run(file){
+ const {createFinanceRollout}=require('../backend/shared/checkout-finance-runtime-222');const rollout=createFinanceRollout({db,env:{...c.Environment.Variables,AWS_REGION:'us-east-1'}});
+ const actor={kind:'DRIVER',subjectId:order.financialAcceptance.driverSubjectId||order.financialAcceptance.subjectId};
+ // Driver identity is read from the actual accepted driver's record, never sent as authentication to AWS.
+ const d=await db.send({constructor:{name:'GetCommand'},input:{TableName:'WhizzDrivers_staging',Key:{driverId:order.driverId},ConsistentRead:true}});actor.subjectId=d.Item.cognitoSub||d.Item.driverId;
+ const ctx={process:{env:c.Environment.Variables},configuration:()=>({enableFullCash:true,enableDeliveryFunding:true}),clients:()=>({db,cognito:{},rollout}),createStagingCodReturn:live.createStagingCodReturn,authenticateFinancialIdentity:async()=>actor,__name:x=>x};vm.runInNewContext(fn(file,'financialCodReturn')+';this.call=financialCodReturn;',ctx);
+ return ctx.call('request_return',{orderId:order.orderId,offerId:order.financialAcceptance.offerId,attempt:Number(order.assignmentAttemptCounter),reason:'OTHER',cashCollected:false},'offline-identity-not-sent');
+}
+(async()=>{await assert.rejects(run(p+'/base/index.js'),/FINANCE_ROLLOUT_OUT_OF_SCOPE/);assert.equal(tx,null);const r=await run(p+'/candidate.js');assert.equal(r.status,'RETURNING');assert.ok(tx.TransactItems.some(x=>x.Update?.TableName==='WizzOrders'));assert.ok(!tx.TransactItems.some(x=>['staging-Wallets','staging-LedgerEntries'].includes((x.Update||x.Put||x.Delete)?.TableName)));fs.writeFileSync(p+'/proposed-return-transaction.private.json',JSON.stringify(tx,null,2));console.log('PASS: captured live runtime reproduces general-order rejection; candidate builds RETURNING transaction from real order/offer/driver/hold. Transaction intercepted locally, no order or financial writes, offline identity only.');})().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>child.stdin.end());

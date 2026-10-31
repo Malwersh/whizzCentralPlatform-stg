@@ -1,0 +1,71 @@
+{
+  "part": 259,
+  "status": "PASS",
+  "iamChanged": false,
+  "checks": [
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-PlatformStaff",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-PlatformStaff",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "WhizzMerchants_Businesses",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "WhizzMerchants_Businesses",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-AccountDeletion",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-AccountDeletion",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "action": "lambda:InvokeFunction",
+      "decision": "allowed"
+    }
+  ]
+}

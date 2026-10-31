@@ -1,0 +1,144 @@
+{
+  "date": "2026-10-30",
+  "part": 361,
+  "repo": "whizzCentralPlatform-stg",
+  "sourceBranch": "feature/malwersh/bootstrap",
+  "mirrorBranch": "integration/team-sync-20261030",
+  "approvalTarget": "staging-main",
+  "state": "READY_FOR_COLLEAGUE_REVIEW_AFTER_PUSH",
+  "baseCommit": "852fd23d7f176e0b7bcecbc318909f2e50e84595",
+  "includesDesignSource": true,
+  "includesBackendAndTests": true,
+  "scope": [
+    "Flexible home sections: cuisine/brand/open/offers/distance/rating filters and completed-order ranking",
+    "Classification management and bounded stored popularity snapshot with hourly refresh",
+    "Clear access to customer home management from promotions page",
+    "Canonical per-piece discount calculation shared by customer/merchant/staff services and staged deployment evidence"
+  ],
+  "tests": [
+    "36 home-rules Node tests passed; responsive browser workflow checks retained",
+    "7 actual deployment calculator modules verified",
+    "Home rules published as hosting 234; navigation as 235",
+    "Six Lambda functions updated with original configurations and other ZIP entries preserved"
+  ],
+  "deployment": "See item-markdown-publication-361.json and home-rules-publication-361.json in central repository; staging already updated, no need for blind full redeployment.",
+  "humanOrderAcceptance": "A new per-piece offer and complete order still need the agreed human acceptance test. No test campaign or financial records were fabricated.",
+  "pullInstructions": [
+    "Approve and merge the open PR into staging-main, then git pull --ff-only origin staging-main",
+    "For review before merge: fetch origin and use feature/malwersh/bootstrap; pulling staging-main before approval will not include these commits"
+  ],
+  "files": [
+    {
+      "path": "backend/src/utils/discount-contract.js",
+      "sha256": "e5c98401bd6f9d379ce4d23c960e75ce9fd0724b4a1fa7c764bc9c371688325f"
+    },
+    {
+      "path": "backend/src/utils/discount-engine.js",
+      "sha256": "8f1da0d2eac1878bc692067a68178f817b3c99533fdeca65e9434ed601598a13"
+    },
+    {
+      "path": "backend/staff-service/discount-contract.js",
+      "sha256": "e5c98401bd6f9d379ce4d23c960e75ce9fd0724b4a1fa7c764bc9c371688325f"
+    },
+    {
+      "path": "backend/staff-service/discount-engine.js",
+      "sha256": "8f1da0d2eac1878bc692067a68178f817b3c99533fdeca65e9434ed601598a13"
+    },
+    {
+      "path": "backend/staff-service/home-layout.js",
+      "sha256": "b8b8d812547df3731750938c385bfb6bf907ed769a68aea69ae7dcc84bd26468"
+    },
+    {
+      "path": "backend/staff-service/home-slideshow.js",
+      "sha256": "874773e0e6d6c7ff3e7bf714ea58e7f001af78f69760018f19d91aa1e78a57dd"
+    },
+    {
+      "path": "backend/staff-service/index.js",
+      "sha256": "c0ad254228ec5e38dd669741da4b94da76d97a620b481e8101fc0a197c5b4918"
+    },
+    {
+      "path": "backend/staff-service/template.yaml",
+      "sha256": "0236d1af7fd4e933a0b5a9730af97a8fbf4dcdaab4fa094f4a7b81e45771af25"
+    },
+    {
+      "path": "backend/staff-service/test/home-layout-361.test.cjs",
+      "sha256": "391665f502c35e067ad5852b85a3e1feb76a1c462f4a20d02202e303811f57aa"
+    },
+    {
+      "path": "docs/customer-discovery-redesign-361.json",
+      "sha256": "3535a48f3de0ddb3349315e567aacc6145b8a209eb027daa9b10213b0fa87bd8"
+    },
+    {
+      "path": "docs/resume-checkpoint-latest.md",
+      "sha256": "b179b1462ebac9b9d089c30e2f81e4a848591a9b13e0b5aa2989503311676ac3"
+    },
+    {
+      "path": "frontend/home-layout.js",
+      "sha256": "1bb24f8cee970d9d77bdd377ad7474f5995505b3648458512d5b3f938575fbb5"
+    },
+    {
+      "path": "frontend/pages/home-layout.html",
+      "sha256": "d399396874d7e1b58b343c51264276f9080ca4e60491c33fd39e6c1472c2d58e"
+    },
+    {
+      "path": "frontend/pages/promotions.html",
+      "sha256": "d91d114f34010f21af307881021fa04c131c7c8572fe901440965c1346c40c4f"
+    },
+    {
+      "path": "scripts/test-home-layout-browser-361.cjs",
+      "sha256": "9ffe2e2b1c1d1ea9f08417c546fe3bb13e64fbf4dec0b2cd5b54e93b0dd29ca4"
+    },
+    {
+      "path": "backend/staff-service/home-discovery.js",
+      "sha256": "5485401d16067f434b0e769557341c39ad64276fb40e24fa86e5f61d7d831adf"
+    },
+    {
+      "path": "backend/staff-service/test/home-discovery-rules.test.cjs",
+      "sha256": "956880563799b04fdf2dc92d2bb32d407bb8ce71dafffa68c4a30c7d1e5f8505"
+    },
+    {
+      "path": "docs/home-navigation-publication-361.json",
+      "sha256": "f20a36c07f036483e173c6777b6a7d10701a7edcfa4b966710fa78df9f6ad732"
+    },
+    {
+      "path": "docs/home-rules-publication-361.json",
+      "sha256": "0aab0bfddf19b29584a67c87fd6932cc2aaa9d01de9ddbd28437f990fbbd9fe7"
+    },
+    {
+      "path": "docs/item-discount-overlap-fix-361.json",
+      "sha256": "a8bd6308d18f40e9763ce70b35887675d7f541b630d8dcab23d572e1976a48af"
+    },
+    {
+      "path": "docs/item-markdown-implementation-361.json",
+      "sha256": "ed2a3d5bee4d8305eb3808abdf791d4d3110ff4953a197af59067ae1e1153f61"
+    },
+    {
+      "path": "docs/item-markdown-publication-361.json",
+      "sha256": "590a568e30d56ae0286eadd5a87aee18e46313382c91cf376347905b1317af8c"
+    },
+    {
+      "path": "scripts/check-markdown-bundles-361.cjs",
+      "sha256": "a71874d2fbef5a705ccd8a522729bfda7403127887962861c9ec3c119cc23664"
+    },
+    {
+      "path": "scripts/patch-item-list-361.cjs",
+      "sha256": "6933e40ddf2d062336d18a512aa641a24a021bcb69640a58a41ee3911c0aac88"
+    },
+    {
+      "path": "scripts/prepare-home-rules-361.py",
+      "sha256": "d39188023613ccf0980b6fb9097a5f0afa1b692f9d23b07f934b9b30689685f7"
+    },
+    {
+      "path": "scripts/prepare-item-markdown-361.cjs",
+      "sha256": "0937b7a2c7e4ff4e361d07baa2ecc474749f80dc298bf8e0524dc1b156933b87"
+    },
+    {
+      "path": "scripts/publish-home-rules-361.py",
+      "sha256": "0d454a6849ab3608074f85fec7f27dd7cab35ccffa518c7afb7fd6f6bf72c0a6"
+    },
+    {
+      "path": "scripts/test-home-rules-wiring-361.cjs",
+      "sha256": "151547dc1f63b8eb8a2d9d4812f2b1e36898773a4f5de572108061e14dfcdf3e"
+    }
+  ]
+}

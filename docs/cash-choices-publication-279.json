@@ -1,0 +1,15 @@
+{
+  "part": 279,
+  "status": "PUBLISHED_VERIFIED",
+  "jobId": "158",
+  "baseJobId": "157",
+  "changedFiles": [
+    "customer-cash-review.js",
+    "pages/customer-cash-review.html"
+  ],
+  "unrelatedEntriesPreserved": true,
+  "sha256": {
+    "customer-cash-review.js": "20ec18b09ee39199173d83d0c00cdd0132dde1ad9e3c977a5dc8034b859ba565",
+    "pages/customer-cash-review.html": "9cd8de4a0e524e3a316acfbea75353fff50e73385634c2b71a4a69aab41fe18f"
+  }
+}

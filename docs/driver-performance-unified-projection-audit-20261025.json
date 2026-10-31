@@ -1,0 +1,24 @@
+{
+  "status": "CONFIRMED_GAP_DESIGN_RECORDED_NOT_IMPLEMENTED",
+  "scope": "Unified persisted driver performance projection for dispatch, driver UI and administrative readers",
+  "current": {
+    "driverUi": "GET /driver/performance?rules=4 executes readPerformance per request on the server; no modern persisted aggregate written",
+    "dispatch": "Reads legacy metricsSnapshot fields from WizzDriverLiveState_staging",
+    "modernAndLegacyUnified": false,
+    "wavesRecomputeModernHistoryToday": false
+  },
+  "design": {
+    "authoritativeFacts": "Immutable verified offer responses/display receipts, assignment outcomes, administrative decisions/appeals and verified rating review records",
+    "sharedReadModel": "Persisted per-driver versioned aggregate with rates, numerator/denominator, coverage/status per indicator, policy version, source watermark, computedAt and refresh status",
+    "updates": "Event-driven idempotent recomputation outside wave request path, plus reconciliation and scheduled refresh for rolling-window expiry",
+    "concurrency": "Deduplicate source events, coalesce bursts and publish conditionally so older workers cannot overwrite newer snapshots",
+    "consumers": "Dispatch, performance UI and admin read the same version; drill-down event history is paged separately",
+    "freshness": "Bounded freshness and explicit pending/stale status; no invented perfect/zero score and no automatic adverse attribution from missing history",
+    "rollout": "Backfill, compare against current verified calculator, shadow dispatch, then controlled activation; preserve evidence-based exceptions, appeals and small-sample policy"
+  },
+  "priority": "BEFORE_D01_VEHICLE_DOCUMENT_REGION_AUDIT",
+  "financialWrites": false,
+  "deploymentPerformed": false,
+  "implementation": "LOCAL_READY_AWAITING_EXPLICIT_AWS_DEPLOYMENT_APPROVAL_AFTER_AUTOMATIC_REJECTION",
+  "implementationEvidence": "docs/driver-performance-projection-291.json"
+}

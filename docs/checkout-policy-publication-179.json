@@ -1,0 +1,23 @@
+{
+  "function": "WizzUser-CreateOrder-staging",
+  "baseCodeSha256": "IHjkWcQBAu3FNIIe22hnNEqhbM1RKMVhlS+gn+KpeK8=",
+  "codeSha256": "SrX//3S6Hpo+o/rH5G1OsbK8wK3qdF0XjrmU9GutnaA=",
+  "changedEntries": [
+    "functions/create-order/commercial-runtime.js"
+  ],
+  "otherEntriesIdentical": true,
+  "newIamPermissions": false,
+  "transactionContainsOnlyConditionChecks": true,
+  "finalOrderLifecycleFencesRetained": true,
+  "defaultReaderModePreservedForOtherCallers": true,
+  "status": "PUBLISHED_VERIFIED",
+  "configurationPreserved": true,
+  "iamChanged": false,
+  "nodeTestsPassed": 30,
+  "packagedLivePolicyProofPassed": true,
+  "operatorProofTransactionsContainOnlyConditionChecks": true,
+  "budgetAndWalletReadPermissionsVerified": true,
+  "ordersCreated": 0,
+  "balancesChanged": false,
+  "customerRetryPending": true
+}
