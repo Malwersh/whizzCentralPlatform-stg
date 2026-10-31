@@ -1,0 +1,71 @@
+{
+  "part": 361,
+  "date": "2026-10-30",
+  "status": "IMPLEMENTED_PUBLISHED_STAGING_INSTALLED_HUMAN_ORDER_PENDING",
+  "contract": {
+    "newMode": "perItem",
+    "legacyMode": "order",
+    "legacyOffersMigrated": false,
+    "target": "specificItems; 1–40 selected products",
+    "types": [
+      "percentage",
+      "fixedAmount"
+    ],
+    "money": "server-only canonical catalog pricing; savings rounded down per unit to existing 250 IQD quantum; multiplied by quantity",
+    "constraints": [
+      "No minimum basket, cap or customer-specific limit for unconditional crossed-out unit prices",
+      "Existing one-offer-per-order policy retained; no stacking introduced",
+      "Approved shared campaigns retain immutable terms and require a replacement campaign for changes"
+    ],
+    "display": [
+      "Old unit price struck through with net price from server projection",
+      "Menu and product detail and cart retain original catalog price for authoritative validation",
+      "Basket invoice shows server discount and net total; commit revalidates exact discount",
+      "Optional/required meal-choice prices remain canonical; unit display omitted when base projection does not price those selections"
+    ],
+    "security": [
+      "Verified account/branch context preserved",
+      "Read-only catalog preview, bounded selectors, 60 second projections, account/branch/product/price/expiry guards",
+      "No new campaign/order/financial records created by deployment"
+    ]
+  },
+  "tests": {
+    "customerNode": 35,
+    "merchantNode": 29,
+    "customerFlutter": 34,
+    "merchantFlutter": 14,
+    "actualCandidateModules": 7,
+    "iosSimulatorBuilds": [
+      "customer",
+      "merchant"
+    ]
+  },
+  "installed": {
+    "customer": "iPhone 16 Pro",
+    "merchant": "iPhone 16"
+  },
+  "humanChecks": [
+    {
+      "id": "UX361-ITEM-01",
+      "action": "Create 20% per-piece offer for a 5000 IQD simple meal; verify 5000 struck out and 4000 in store/detail/cart; commit one then three units",
+      "status": "PENDING"
+    },
+    {
+      "id": "UX361-ITEM-02",
+      "action": "Pause/expire/edit before checkout; authoritative revalidation must reject stale saving without any duplicated debit",
+      "status": "PENDING"
+    },
+    {
+      "id": "UX361-ITEM-03",
+      "action": "Legacy fixed order discount still applied once; existing approved shared offer remains read-only",
+      "status": "PENDING"
+    },
+    {
+      "id": "UX361-ITEM-04",
+      "action": "Meal options: verify final selected configuration savings and original catalog/options price fences at checkout",
+      "status": "PENDING"
+    }
+  ],
+  "publicationReport": "item-markdown-publication-361.json",
+  "githubPushPerformed": false
+}

@@ -136,6 +136,18 @@ function calculateDiscountAmount(discount, total, items, deliveryFee) {
 // Customer checkout policy: multiples of 250 IQD, rounded down after eligibility and caps.
 // Keep the fils calculator above precise for internal calculations and legacy snapshots.
 function calculateCheckoutDiscountAmount(discount, total, items, deliveryFee) {
+ if(discount.calculationMode==='perItem') {
+  if(!supported(discount))throw Error('INVALID_ITEM_DISCOUNT');
+  let saving=0;
+  for(const item of items||[]) {
+   if(!(discount.applicable_item_ids||[]).includes(item.itemId||item.id))continue;
+   if(!Number.isSafeInteger(item.price)||item.price<0||!Number.isSafeInteger(item.quantity)||item.quantity<1)throw Error('INVALID_ITEM_DISCOUNT');
+   const unit=calculateAmount({...discount,calculationMode:'order'},item.price,[{...item,quantity:1}],0,false);
+   saving+=Number(BigInt(unit)/250000n*250000n)*item.quantity;
+   if(!Number.isSafeInteger(saving))throw Error('INVALID_ITEM_DISCOUNT');
+  }
+  return saving;
+ }
  // Floor percentage arithmetic first: rounding a fractional fils up can cross
  // a whole-IQD boundary and exceed the exact calculated saving.
  const amount=calculateAmount(discount,total,items,deliveryFee,false);

@@ -1,0 +1,9 @@
+{
+  "part": 361,
+  "change": "Overlapping offer definitions are advisory, not a creation veto",
+  "cause": "Legacy frontend rejected item promotions whenever an active all-items promotion existed, ignoring dates and missing item/category cross-scope matching",
+  "behavior": "Named advisory for intersecting active/scheduled offers in intersecting time windows. Existing server one-goods-offer selection unchanged. Shared-lock restrictions unchanged. No campaigns stopped/deleted or changed.",
+  "tests": 8,
+  "status": "IMPLEMENTED_TESTED_SIMULATOR_BUILD",
+  "backendDeploymentRequired": false
+}

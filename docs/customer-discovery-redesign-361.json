@@ -33,7 +33,7 @@
     {
       "id": "UX361-03",
       "name": "Central home section composition",
-      "status": "CORE_PUBLISHED_STAGING_REMAINING_TEMPLATES_PENDING",
+      "status": "FLEXIBLE_RULES_PUBLISHED_STAGING_HUMAN_ACCEPTANCE_PENDING",
       "acceptance": [
         "Admin creates/reorders/previews/publishes scheduled region/audience-targeted sections with rollback",
         "Typed layouts and sources: curated, recent, rating, proximity, favorites, order history and real popularity",
@@ -49,10 +49,9 @@
         "Account/region context reset; schedule checked during cached rendering"
       ],
       "remaining": [
-        "Additional layout templates and campaign placement between merchant sections",
-        "Real proximity and completed-order popularity sources",
-        "Personal order history source",
-        "Human end-to-end layout publication acceptance"
+        "Personal order-history source",
+        "Additional campaign/product presentation templates",
+        "Human end-to-end layout and classification acceptance"
       ]
     },
     {
@@ -85,6 +84,35 @@
         "Small RTL viewport/large text, selection/price semantics and real offer eligibility tests",
         "Existing checkout/quote/discount regressions remain passing",
         "Build customer simulator for visual review; Android+iPhone release acceptance remains separate"
+      ]
+    },
+    {
+      "id": "UX361-07",
+      "name": "Explicit per-unit merchant item markdown and authoritative crossed-out pricing",
+      "status": "IMPLEMENTED_PUBLISHED_STAGING_INSTALLED_HUMAN_ORDER_PENDING",
+      "evidence": "docs/item-markdown-implementation-361.json",
+      "publication": "docs/item-markdown-publication-361.json",
+      "humanTests": [
+        {
+          "id": "UX361-ITEM-01",
+          "action": "Create 20% per-piece offer for a 5000 IQD simple meal; verify 5000 struck out and 4000 in store/detail/cart; commit one then three units",
+          "status": "PENDING"
+        },
+        {
+          "id": "UX361-ITEM-02",
+          "action": "Pause/expire/edit before checkout; authoritative revalidation must reject stale saving without any duplicated debit",
+          "status": "PENDING"
+        },
+        {
+          "id": "UX361-ITEM-03",
+          "action": "Legacy fixed order discount still applied once; existing approved shared offer remains read-only",
+          "status": "PENDING"
+        },
+        {
+          "id": "UX361-ITEM-04",
+          "action": "Meal options: verify final selected configuration savings and original catalog/options price fences at checkout",
+          "status": "PENDING"
+        }
       ]
     }
   ],
@@ -172,6 +200,41 @@
       "pages/promotions.html",
       "commercial-management.js",
       "pages/merchants.html"
+    ]
+  },
+  "flexibleSectionRules": {
+    "status": "PUBLISHED_STAGING_VERIFIED",
+    "schema": "Backward-compatible source + typed filters + ranking + layout",
+    "implemented": [
+      "Cuisine and brand catalog with explicit branch assignments, preserving referenced classifications",
+      "Independent source / cuisine-brand-open-offers-proximity-rating filters / default-manual-rating-new-distance-orders ranking",
+      "Carousel and compact list layouts",
+      "Completed-order snapshots over rolling 7/30 days refreshed hourly; META only, deduplicated, flagged test orders excluded; no per-home order aggregation",
+      "Real account/region offer eligibility with bounded raw-offer caching; quote eligibility still authoritative",
+      "Cross-version guards between classification catalog and saved layout",
+      "Old clients omit unsupported rules rather than rendering mislabeled results"
+    ],
+    "metricsBasis": "Current completed status by order creation date; not a financial sales/revenue metric",
+    "distanceBasis": "Geographical proximity for ordering; delivery road distance/fees remain authoritative storefront preview",
+    "tests": {
+      "node": 36,
+      "flutter": 16,
+      "chromeViewports": [
+        390,
+        1280
+      ],
+      "bundledRuntimeRoutes": true,
+      "iosSimulatorBuild": true
+    },
+    "hostingJob": "234",
+    "scheduler": "staging-home-discovery-refresh-361",
+    "existingSectionsUnchanged": true,
+    "catalogSeeded": false,
+    "financialRecordsWritten": 0,
+    "remainingOutsideCurrentRuleScope": [
+      "Personal order-history recommendations",
+      "Additional campaign/product-specific presentation templates",
+      "Human end-to-end section/catalog publishing acceptance"
     ]
   }
 }

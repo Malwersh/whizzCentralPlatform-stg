@@ -1,0 +1,9 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "jobId": "235",
+  "previousJob": "234",
+  "changedFiles": [
+    "pages/promotions.html"
+  ],
+  "allOtherEntriesPreserved": true
+}

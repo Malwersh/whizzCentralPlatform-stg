@@ -24,6 +24,7 @@ function recent(claims){const age=Math.floor(Date.now()/1000)-claims.auth_time;i
 function guard(person){return {ConditionCheck:{TableName:table,Key:key(person.employeeId),ConditionExpression:'#v = :v AND #s = :active',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':person.version,':active':'ACTIVE'}}};}
 function audit(actor,action,before,after,id){return require('./audit-trail').write(table,null,actor,action,before,after,id);}
 async function handler(event){
+ if(event?.action==='home_discovery_tick'&&!event.httpMethod&&!event.requestContext)return require('./home-discovery').rebuild({db,table});
  if(event?.action==='commercial_notice_tick'&&!event.httpMethod&&!event.requestContext)return require('./commercial-notices').tick({db});
  if(event?.action==='merchant_device_payout')return require('./merchant-device-payouts').handle({db,enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},event);
  if(event?.action==='settlement_schedule_owner')return require('./commercial-owner').handle({db,cognito,table,enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},event);
@@ -78,6 +79,7 @@ async function handler(event){
   if(path==='/staff/order-exceptions'||path.startsWith('/staff/order-exceptions/'))return response(200,await require('./order-exception-cases').route({db,table,employee,guard,audit,enrolled,recent,claims,allowed,query:event.queryStringParameters,accessToken:token},actor,method,path,input));
   if(path==='/staff/settings/dispatch-followup'||path.startsWith('/staff/settings/dispatch-followup/'))return response(200,await require('./dispatch-followup').settings({db,table,employee,guard,audit,requirePermission,recent,claims,allowed,enrolled,settingsRoute:require('./operational-settings').route},actor,method,path,input));
   if(path==='/staff/dispatch-reviews'||path.startsWith('/staff/dispatch-reviews/')){const rollout=require('./finance-rollout').createFinanceRollout({db});return response(200,await require('./dispatch-reviews').route({...require('./dispatch-reviews').reviewAccess({db,rollout}),table,employee,guard,audit,enrolled,recent,claims,query:event.queryStringParameters},actor,method,path,input));}
+  if(path==='/staff/home-discovery/catalog')return response(200,await require('./home-discovery').route({db,table,guard,audit},actor,method,input));
   if(path==='/staff/home-layout'||path.startsWith('/staff/home-layout/'))return response(200,await require('./home-layout').route({db,table,guard,audit},actor,method,path,input));
   if(path==='/staff/slideshow'||path.startsWith('/staff/slideshow/'))return response(200,await require('./home-slideshow').route({db,table,guard,audit},actor,method,path,input));
   if(path==='/staff/benefits')return response(200,await require('./platform-benefits').route({db,table,guard,audit,enrolled,recent,claims},actor,method,method==='GET'?event.queryStringParameters||{}:input));

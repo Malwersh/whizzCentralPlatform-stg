@@ -1,15 +1,19 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
-const copy=v=>structuredClone(v),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const copy=v=>structuredClone(v);
+function canonical(s){if(!s||!s.source||!s.id)return s;return {...s,ranking:s.ranking??({rating:'rating',new:'new',curated:'manual'}[s.source]||'default'),layout:s.layout??'carousel',windowDays:s.windowDays??30,filters:{cuisineIds:[],brandIds:[],openNow:false,offersOnly:false,maxDistanceKm:null,minimumRating:null,...s.filters}};}
+function stable(v){return Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;}
+const same=(a,b)=>JSON.stringify(stable(canonical(a)))===JSON.stringify(stable(canonical(b)));
 const sources={region:'مطاعم المنطقة',rating:'الأعلى تقييمًا',new:'الجديد في ويز',curated:'مختارات الإدارة',favorites:'المحفوظة'};
 const audiences={all:'الجميع',guest:'الضيوف',signedIn:'المسجلون'};
+let catalog={version:0,cuisines:[],brands:[],profiles:{},canEdit:false},catalogDraft;
 let state,options={regions:[],merchants:[]},busy=false,editing=null,returnFocus=null;
 async function api(path,body){
  await window.Auth.ensureSession();const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),20000);
  try{const r=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:abort.signal});const data=await r.json();if(!r.ok)throw Error(r.status===409?'تغيّرت المسودة أو الصلاحيات. حدّث القائمة قبل المتابعة؛ بيانات المحرر لم تُفقد.':r.status===403?'لا تملك صلاحية هذا الإجراء.':'تعذر تأكيد العملية. حدّث القائمة للتحقق قبل إعادة المحاولة.');return data;}finally{clearTimeout(timer);}
 }
-function field(label,control){const n=el('label',label);n.append(control);return n;}
+function field(label,control){if(!['INPUT','SELECT','TEXTAREA'].includes(control.tagName)){const n=el('fieldset'),legend=el('legend',label);n.className='field-group';n.append(legend,control);return n;}const n=el('label',label);control.setAttribute('aria-label',label);n.append(control);return n;}
 function action(label,fn,{disabled=false,secondary=true}={}){const b=el('button',label);b.type='button';b.className=secondary?'secondary':'';b.disabled=disabled||busy;b.onclick=fn;return b;}
 function select(values,value,change){const n=el('select');for(const [id,label]of Object.entries(values)){const o=el('option',label);o.value=id;n.append(o);}n.value=value;n.onchange=()=>change(n.value);return n;}
 function badge(text){const n=el('span',text);n.className='badge';return n;}
@@ -45,9 +49,10 @@ function render(){
  $('review').disabled=busy||!state.permissions.publish||!delta.length;
  $('rollback').disabled=busy||!state.permissions.publish||!state.history?.length;
  $('refresh').disabled=busy;
+ $('catalog-open').disabled=busy||!catalog.canEdit;
  $('version').textContent=`${state.draft.length} أقسام في المسودة · النسخة المنشورة ${state.published?.revision??'لم تُنشر بعد'}`;
 }
-async function load(){[state,options]=await Promise.all([api('/staff/home-layout'),api('/staff/slideshow/options')]);render();}
+async function load(){[state,options,catalog]=await Promise.all([api('/staff/home-layout'),api('/staff/slideshow/options'),api('/staff/home-discovery/catalog')]);render();}
 async function write(operation,extra,message){
  if(busy)return false;busy=true;render();lockEditor(true);$('message').textContent='جارٍ الحفظ…';
  try{const result=await api('/staff/home-layout/'+operation,{baseVersion:state.version,...extra});
@@ -77,7 +82,15 @@ function openEditor(id){
 function drawEditor(){
  const s=editing.value,root=$('editor-fields');root.replaceChildren();const title=el('input');title.id='section-title';title.value=s.title;title.maxLength=80;title.required=true;title.oninput=()=>s.title=title.value;
  const count=el('input');count.type='number';count.min=1;count.max=12;count.required=true;count.value=s.limit;count.oninput=()=>s.limit=Number(count.value);
- root.append(field('عنوان القسم',title),field('مصدر المطاعم',select(sources,s.source,v=>{s.source=v;drawEditor();})),field('الجمهور',select(audiences,s.audience,v=>s.audience=v)),field('عدد المطاعم',count));
+ root.append(field('عنوان القسم',title),field('مصدر المطاعم',select({region:'المطاعم المتاحة في المنطقة',curated:'مطاعم أختارها يدويًا',favorites:'المحفوظة لدى الزبون',...(['rating','new'].includes(s.source)?{[s.source]:sources[s.source]+' (قسم سابق)'}:{})},s.source,v=>{s.source=v;if(s.ranking==='manual'&&v!=='curated')s.ranking='default';drawEditor();})),field('الجمهور',select(audiences,s.audience,v=>s.audience=v)),field('عدد المطاعم',count));
+ const rankingOptions={default:'الترتيب المعتاد',rating:'الأعلى تقييمًا',distance:'الأقرب لنقطة الزبون',new:'الأحدث انضمامًا',orders:'الأكثر طلبًا',...(s.source==='curated'?{manual:'ترتيبي اليدوي'}:{})};
+ s.ranking??=({rating:'rating',new:'new',curated:'manual'}[s.source]||'default');s.layout??='carousel';s.windowDays??=30;
+ s.filters={cuisineIds:[],brandIds:[],openNow:false,offersOnly:false,maxDistanceKm:null,minimumRating:null,...s.filters};
+ root.append(field('ترتيب المطاعم',select(rankingOptions,s.ranking,v=>{s.ranking=v;drawEditor();})),field('طريقة العرض',select({carousel:'بطاقات أفقية',compactList:'قائمة مختصرة'},s.layout,v=>s.layout=v)));
+ if(s.ranking==='orders')root.append(field('فترة الطلبات المكتملة',select({'7':'آخر ٧ أيام','30':'آخر ٣٠ يومًا'},String(s.windowDays),v=>s.windowDays=Number(v))));
+ for(const [key,label]of [['openNow','المفتوح والمتاح للطلب فقط'],['offersOnly','مطاعم لها عروض مؤهلة للزبون']]){const input=el('input');input.type='checkbox';input.checked=s.filters[key];input.onchange=()=>s.filters[key]=input.checked;root.append(field(label,input));}
+ for(const [key,label,list]of [['cuisineIds','نوع الطعام — عدم الاختيار يعني الجميع',catalog.cuisines],['brandIds','العلامة التجارية — عدم الاختيار يعني الجميع',catalog.brands]])root.append(field(label,picker(list,s.filters[key],()=>{})));
+ for(const [key,label,min,max]of [['maxDistanceKm','نطاق القرب التقريبي (كم) — اختياري',0.1,100],['minimumRating','أقل تقييم موثّق — اختياري',1,5]]){const input=el('input');input.type='number';input.min=min;input.max=max;input.step='0.1';input.value=s.filters[key]??'';input.oninput=()=>s.filters[key]=input.value===''?null:Number(input.value);root.append(field(label,input));}
  const enabled=el('input');enabled.type='checkbox';enabled.checked=s.enabled;enabled.onchange=()=>s.enabled=enabled.checked;root.append(field('تفعيل القسم عند النشر',enabled));
  root.append(field('المناطق — عدم الاختيار يعني جميع مناطق الخدمة',picker(options.regions,s.regionIds,()=>{})));
  if(s.source==='curated'){
@@ -92,7 +105,7 @@ function drawEditor(){
 function lockEditor(value){for(const input of $('editor').querySelectorAll('input,select,button'))input.disabled=value||(!state?.permissions.edit&&input.id!=='editor-close'&&input.id!=='editor-preview');}
 function closeEditor(force=false){if(busy)return;if(!force&&editing&&!same(editing.original,editing.value)&&!confirm('تجاهل التغييرات غير المحفوظة لهذا القسم؟'))return;$('editor').close();editing=null;returnFocus?.focus();}
 function previewSection(section,parent){
- const card=el('article');card.className='preview-card';card.append(el('h3',section.title||'عنوان القسم'),el('p',`${sources[section.source]} · ${section.enabled?'مفعّل':'متوقف'} · حتى ${section.limit} مطاعم`));
+ const card=el('article');card.className='preview-card';card.append(el('h3',section.title||'عنوان القسم'),el('small',`الترتيب: ${{default:'المعتاد',manual:'يدوي',rating:'التقييم',new:'الأحدث',distance:'القرب',orders:'الطلبات المكتملة'}[section.ranking||'default']} · الشروط: ${section.filters?.cuisineIds?.length||0} تصنيفات طعام، ${section.filters?.brandIds?.length||0} علامات${section.filters?.offersOnly?' · عروض فقط':''}${section.filters?.openNow?' · مفتوح الآن':''}`),el('p',`${sources[section.source]} · ${section.enabled?'مفعّل':'متوقف'} · حتى ${section.limit} مطاعم`));
  const row=el('div');row.className='preview-row';const selected=section.source==='curated'?section.merchantIds.map(id=>options.merchants.find(x=>x.id===id)?.label||'مطعم غير متاح'):Array(Math.min(3,section.limit)).fill('نتيجة حسب منطقة الزبون');
  for(const name of selected.slice(0,section.limit)){const tile=el('div');tile.className='preview-tile';tile.append(el('span','صورة المطعم'),el('p',name));row.append(tile);}card.append(row);parent.append(card);
 }
@@ -105,5 +118,19 @@ $('review').onclick=review;$('publication-close').onclick=()=>{if(!busy)$('publi
 $('publish').onclick=async()=>{if(!state.permissions.publish||busy)return;$('publish').disabled=true;if(await write('publish',{},'نُشرت تغييرات الرئيسية المحفوظة؛ تظهر بعد تحديث التطبيق.'))$('publication').close();else $('publish-message').textContent=$('message').textContent;$('publish').disabled=false;};
 $('rollback').onclick=async()=>{const previous=state.history?.at(-1);if(previous&&confirm('استعادة ترتيب الرئيسية المنشور سابقًا؟ المسودة الحالية تبقى محفوظة.'))await write('rollback',{revision:previous.revision},'استُعيد النشر السابق؛ المسودة الحالية محفوظة.');};
 $('refresh').onclick=async()=>{if(busy)return;try{await load();$('message').textContent='حُدّثت القائمة.';}catch(e){$('message').textContent=e.message;}};
+function catalogEditor(){
+ const root=$('catalog-fields');root.replaceChildren();
+ for(const [type,label]of [['cuisines','تصنيفات الطعام'],['brands','العلامات التجارية']]){
+  const card=el('article');card.append(el('h3',label));const add=el('div');add.className='actions';const input=el('input');input.placeholder='اسم جديد';input.maxLength=70;input.setAttribute('aria-label',label+' — اسم جديد');add.append(input,action('إضافة',()=>{const value=input.value.trim();if(!value)return;if(catalogDraft[type].some(x=>x.label===value)){$('catalog-message').textContent='الاسم موجود بالفعل.';return;}catalogDraft[type].push({id:crypto.randomUUID(),label:value});catalogEditor();}));card.append(add);
+  for(const row of catalogDraft[type]){const line=el('div');line.className='actions';const rename=el('input');rename.value=row.label;rename.maxLength=70;rename.setAttribute('aria-label','اسم '+row.label);rename.oninput=()=>row.label=rename.value;line.append(rename);const used=Object.values(catalogDraft.profiles).some(p=>type==='cuisines'?p.cuisineIds.includes(row.id):p.brandId===row.id);line.append(action(used?'مستخدم لدى مطعم':'حذف',()=>{catalogDraft[type]=catalogDraft[type].filter(x=>x.id!==row.id);catalogEditor();},{disabled:used}));card.append(line);}root.append(card);
+ }
+ const assignment=el('article');assignment.append(el('h3','ربط المطعم بالتصنيفات والعلامة'));
+ const names=Object.fromEntries(options.merchants.map(x=>[x.id,x.label]));
+ if(options.merchants.length){const selected=catalogDraft.selectedMerchant||options.merchants[0].id;catalogDraft.selectedMerchant=selected;const profile=catalogDraft.profiles[selected]??={cuisineIds:[],brandId:null};assignment.append(field('المطعم',select(names,selected,v=>{catalogDraft.selectedMerchant=v;catalogEditor();})),field('أنواع الطعام',picker(catalogDraft.cuisines,profile.cuisineIds,()=>{})),field('العلامة التجارية',select({'':'دون علامة',...Object.fromEntries(catalogDraft.brands.map(x=>[x.id,x.label]))},profile.brandId||'',v=>profile.brandId=v||null)));}root.append(assignment);
+}
+$('catalog-open').onclick=()=>{catalogDraft=copy(catalog);$('catalog-message').textContent='';catalogEditor();$('catalog-dialog').showModal();};
+$('catalog-close').onclick=()=>{if(!busy)$('catalog-dialog').close();};
+$('catalog-save').onclick=async()=>{if(busy)return;busy=true;$('catalog-save').disabled=true;try{await api('/staff/home-discovery/catalog',{baseVersion:catalog.version,cuisines:catalogDraft.cuisines,brands:catalogDraft.brands,profiles:catalogDraft.profiles});catalog=await api('/staff/home-discovery/catalog');$('catalog-dialog').close();$('message').textContent='حُفظت التصنيفات وربط المطاعم. تستخدمها الأقسام المطابقة بعد تحديث التطبيق.';}catch(e){$('catalog-message').textContent=e.message;}finally{busy=false;$('catalog-save').disabled=false;render();}};
+$('catalog-dialog').addEventListener('cancel',e=>{if(busy)e.preventDefault();});
 load().catch(e=>$('message').textContent=e.message);
 })();
