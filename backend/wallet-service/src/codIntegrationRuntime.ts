@@ -28,7 +28,7 @@ async function codAndDispatch(event: Record<string, unknown>) {
 export async function handler(event:Record<string,unknown>,context?:Parameters<typeof import('./dispatchReviewHostRuntime').handler>[1]) {
  const result=await codAndDispatch(event);
  console.info('COD_INTEGRATION_SUMMARY',JSON.stringify(result));
- if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY'].includes(process.env.DISPATCH_REVIEW_EXECUTION_MODE??''))return result;
+ if(!['SAFE_INITIAL_LEGACY','SAFE_LEGACY_RETRY','SAFE_FINANCIAL_INITIAL_RETRY','SAFE_FINANCIAL_RETRY'].includes(process.env.DISPATCH_REVIEW_EXECUTION_MODE??''))return result;
  const review=await (await import('./dispatchReviewHostRuntime')).handler(event,context??{});
  return {...result,review};
 }

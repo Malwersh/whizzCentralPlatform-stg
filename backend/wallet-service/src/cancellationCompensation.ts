@@ -48,6 +48,7 @@ export function createCancellationCompensation({db,authority,now=Date.now}:any){
  const ek={orderId:v.orderId,sk:'CASE_EVENT#'+v.caseId+'#'+v.idempotencyKey},requestDigest=quoteHash({...v,actorId:actor.subjectId}),prior=await strongGet(db,H,ek);
  if(prior){if(prior.actorId!==actor.subjectId||prior.requestDigest!==requestDigest)return fail();return {...prior.receipt,replayed:true};}
  if(row.appealReviewRequired||(row.caseAppeals||[]).some((a:Row)=>a.status==='OPEN'))return fail('CANCEL_COMPENSATION_APPEAL_PENDING');
+ if(v.action==='CLOSE'&&row.correctionReview?.status==='PENDING')return fail('CORRECTION_CASE_WORK_REMAINS');
  if(row.version!==v.expectedVersion||row.financialClosure)return fail();
  const at=new Date(now()).toISOString(),next:Row={...row,version:row.version+1,updatedAt:at},ops:Row[]=[];let amount=0,result:Row={},posting=false;
  if(v.action==='APPROVE'){

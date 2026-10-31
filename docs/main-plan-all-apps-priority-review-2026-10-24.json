@@ -24,7 +24,9 @@
     "Merchant financial employee human test deferred by user",
     "No new driver-only priority lane overriding the whole plan",
     "No native platform release checks before operational P0",
-    "Do not implement delegated products/import work"
+    "Do not implement delegated products/import work",
+    "2026-10-28: user authorized reviewing and integrating colleague product implementation; this supersedes delegation-only restriction for integration corrections. Remaining delegated scope retained.",
+    "2026-10-28: user explicitly requested completion of colleague product scope including bulk images, column mapping, inventory and actual staging deployment; completed as release 336. Delegation-only restriction superseded for this scope."
   ],
   "workItems": [
     {
@@ -74,14 +76,19 @@
         "ADMIN"
       ],
       "name": "المتاح والمحجوز وكفاية الرصيد وحدود المحافظ وسجل الحركات",
-      "currentStatus": "BALANCE_AND_MONTHLY_STATEMENT_DELIVERED_RESIDUAL_RECONCILIATION_OPEN",
+      "currentStatus": "OPERATING_LIMITS_PUBLISHED_355_HUMAN_ACCEPTANCE_PENDING",
       "priority": "P0-OPS",
-      "remaining": "نُفذ كشف الحركات الشهري وPDF وتوضيح المتاح/المحجوز وإزالة شرط25000العام. المتبقي مطابقة حدود الحساب ومصادر الرصيد المؤهل للصرف؛ لا يعتبر صافي حركات الشهر رصيدًا افتتاحيًا/ختاميًا.",
+      "remaining": "نُشرت حدود الشحن بالوصل وسقف اعتماد المسؤول اليومي وصرف السائق من إعدادات مركزية ذات إصدار. بقي القبول البشري المرتب؛ أُنجز تدقيق هوية إنشاء المحفظة ضمن A05 بالتحديث 356؛ إعدادات بوابة الدفع والتحويلات مستقلة ولم تتغير. يوم عداد اعتماد الشحن UTC محفوظ دون إعادة تصفير.",
       "sourceOrEvidence": [
         "../whizzDrivers-stg/frontend/lib/models/wallet_balance.dart",
         "backend/wallet-service/src/reconciliation.ts",
         "docs/monthly-wallet-266.json",
-        "../whizzDrivers-stg/docs/wallet-ui-pdf-269.json"
+        "../whizzDrivers-stg/docs/wallet-ui-pdf-269.json",
+        "backend/wallet-service/src/driverPayoutEligibility.ts",
+        "backend/wallet-service/test/driver-payout-eligibility.test.cjs",
+        "docs/reconciliation-implementation-354.json",
+        "docs/wallet-operating-limits-implementation-355.json",
+        "docs/wallet-operating-limits-publication-355.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -203,14 +210,20 @@
         "ADMIN"
       ],
       "name": "شكوى مرتبطة بطلب مسلّم وصور وتذكرة وحالة وقرار وسبب وإعادة مراجعة",
-      "currentStatus": "P0_GAP_NOT_END_TO_END",
+      "currentStatus": "PUBLISHED_341_MODERN_GUEST_APPLICABILITY_AUDITED_LOCAL_CONTINUATION_342_HUMAN_QUEUED",
       "priority": "P0-OPS",
-      "remaining": "توسعة الدعم الموجود إلى دورة شكوى مرتبطة بالطلب ومسؤول ومهلة وسلامة وقرار وتعويض؛ لا قناة دعم موازية",
+      "remaining": "الخادم المنشور لا يقبل إنشاء طلب ضيف جديد في المسار الحديث؛ أُصلحت متابعة الضيف محليًا بطلب التحقق والحفاظ على السلة والنقطة والعودة لإتمام الطلب المرتبط بالحساب. مسار الشكوى 341 منشور للمستخدم المسجل صاحب الطلب. تبقى نسخة التطبيق والاختبارات البشرية المؤجلة، وإثبات ملكية طلبات الضيوف التاريخية فجوة منفصلة لا تُحل برمز ضيف قديم أو رقم هاتف غير موثق. حفظ الأدلة ضمن X02. ظهرت إخفاقات قديمة في اختبارات الفاتورة وسُجل إصلاحها دون إضعاف اشتراط مراجعة الإجمالي.",
       "sourceOrEvidence": [
         "docs/cod-launch-execution-tracker.json",
-        "docs/finance-reference/master-implementation-v1.0-ar.txt"
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/customer-order-complaints-341.json",
+        "docs/customer-order-complaints-deployment-plan-341.json",
+        "docs/customer-order-complaints-human-acceptance-341.csv",
+        "docs/customer-order-complaints-publication-341.json",
+        "docs/guest-checkout-identity-audit-342.json",
+        "docs/guest-checkout-human-acceptance-342.csv"
       ],
-      "freshRuntimeAuditRequired": true,
+      "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
     },
     {
@@ -222,10 +235,11 @@
       "name": "ربط التعويض الموجه القائم بصاحب الطلب والقضية وحالة الاستخدام",
       "currentStatus": "PUBLISHED_HUMAN_ACCEPTANCE_PENDING",
       "priority": "P0-OPS",
-      "remaining": "اختبار منحة موجودة مؤهلة في قضية مفتوحة؛ توسيع ربطها بشكوى ما بعد التسليم عند تنفيذC05، دون اعتبارها رد نقد",
+      "remaining": "نُشر امتداد الربط إلى شكوى C05: المنحة الشخصية تطابق مبلغ القرار المعتمد، ولا تغلق الشكوى قبل إثبات الربط وسريان المنحة؛ لا يُعد ذلك ردًا نقديًا. الاختبار البشري المؤجل باقٍ.",
       "sourceOrEvidence": [
         "docs/customer-benefit-compensation-verification-252.json",
-        "backend/staff-service/customer-benefit-compensation.js"
+        "backend/staff-service/customer-benefit-compensation.js",
+        "docs/customer-order-complaints-publication-341.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -239,14 +253,22 @@
         "ADMIN"
       ],
       "name": "سياسات الإلغاء والعودة ومسؤولية الأطراف وإظهار الشروط وحفظ الإصدار",
-      "currentStatus": "EXISTING_POLICY_COVERAGE_AUDIT_REQUIRED",
+      "currentStatus": "THREE_APP_POLICIES_PUBLISHED_BACKENDS_APPS_DEPLOYED_344_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "مطابقة النصوص والروابط قبل الطلب ومعنى النقد والتعويض والمهل والطعام مقابل غير الغذائي مع التنفيذ؛ لا افتراض رسوم غير معلنة",
+      "remaining": "نشر المستخدم الإصدار الأول لسياسات التطبيقات الثلاثة؛ فُعل ربط التسجيل والقراءة وثُبتت النسخة344. المتبقي قبول التسجيل البشري لكل دور وصفحات السياسات العامة قبل إصدار المتاجر وبقية متطلبات C07 المستقلة.",
       "sourceOrEvidence": [
         "docs/checkout-policy-publication-179.json",
-        "docs/finance-reference/master-implementation-v1.0-ar.txt"
+        "docs/finance-reference/master-implementation-v1.0-ar.txt",
+        "docs/customer-order-policy-343.json",
+        "docs/customer-order-policy-343-review.txt",
+        "docs/customer-order-policy-human-acceptance-343.csv",
+        "docs/application-legal-policies-344.json",
+        "docs/application-legal-research-344.json",
+        "docs/application-legal-cms-publication-344.json",
+        "docs/application-legal-human-acceptance-344.csv",
+        "docs/application-legal-consumers-publication-344.json"
       ],
-      "freshRuntimeAuditRequired": true,
+      "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
     },
     {
@@ -849,12 +871,14 @@
         "ADMIN"
       ],
       "name": "فصل الفروع والعضويات والجلسات والهاتف الشخصي وهاتف الفرع",
-      "currentStatus": "IMPLEMENTED_SCOPE_ACCEPTANCE_OPEN",
+      "currentStatus": "PUBLISHED_345_BRANCH_ISOLATION_MERCHANT_REALTIME_AND_CUTOVER_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "منع بقاء نطاقفرع قديم وتبديلالحساب والقراءةوالكتابةالأجنبية وموافقاتالشراكة علىالنطاقالصحيح",
+      "remaining": "نُشرت حواجز التبديل والاستعادة والخروج ونطاق الطلب والتحقق الفعلي من اتصال المطعم، وثُبتت نسخة345. وافق المستخدم على انتقال الاتصالات القديمة؛ ثبت أنها30اتصالًا منتهيًا وأزيلت سجلاتها فقط دون حسابات أو طلبات أو أموال. بقي القبول البشري المرتب. تدقيق تفويض قنوات الزبون والسائق محفوظ في بندP0مستقل.",
       "sourceOrEvidence": [
         "docs/merchant-onboarding-branches-staff-transition-plan.md",
-        "../whizzMerchants-stg/backend/functions/auth/branch_devices.js"
+        "../whizzMerchants-stg/backend/functions/auth/branch_devices.js",
+        "docs/merchant-branch-isolation-345.json",
+        "../whizzMerchants-stg/docs/branch-isolation-publication-345.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -905,10 +929,24 @@
       "remaining": "قبولOTPالمستقلوالاقترانوالانتهاءوالسحبأثناءالعملية واستمراراستقبالالطلبات دون جلسةمالية مفتوحة",
       "sourceOrEvidence": [
         "../whizzMerchants-stg/backend/functions/auth/device_pairing_verification.js",
-        "docs/merchant-onboarding-branches-staff-transition-plan.md"
+        "docs/merchant-onboarding-branches-staff-transition-plan.md",
+        "docs/branch-device-audit-351.json"
       ],
-      "freshRuntimeAuditRequired": true,
-      "humanAcceptanceSeparate": true
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "audit20261029": {
+        "scope": "Source audit and local regression; not a deployed-runtime certification",
+        "backendTestsPassed": 89,
+        "flutterTestsPassed": 11,
+        "fix": "Ignore a delayed employee profile response when its staff session differs from the current session.",
+        "deployment": "Merchant frontend build 351 installed and launched on merchant iPhone 16 simulator; no server changes.",
+        "remaining": [
+          "Human independent OTP pairing, lock/expiry, device revocation during operation and background reception acceptance"
+        ],
+        "runtimeEvidence": "docs/branch-device-audit-351.json",
+        "deployedStageVerified": true,
+        "productsBundleNormalizedMatch": true
+      }
     },
     {
       "id": "M06",
@@ -917,15 +955,19 @@
         "ADMIN"
       ],
       "name": "ساعات العمل وحالة الاستقبال ووضع مشغول بمدة وتعديل البيانات",
-      "currentStatus": "PARTIAL_TIMED_BUSY_COVERAGE_UNPROVEN",
+      "currentStatus": "RUNTIME_AUDITED_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-SCOPE-CHECK",
-      "remaining": "إثباتالمساراليدويالمستخدموالحظرالمركزي؛ حالةمشغولمؤقتةوالعودةالآلية لا تُدعىمنفذةقبلتدقيقها",
+      "remaining": "اختبارات التطبيق البشرية: الإيقاف والعودة وعدم تجاوز الإغلاق اليدوي وحظر الإدارة؛ جدول الأسبوع؛ طلب الاسم والموقع وموافقة/رفض الإدارة وانعكاس البيانات للزبون.",
       "sourceOrEvidence": [
         "../whizzMerchants-stg/backend/functions/auth/branch_device_status.js",
-        "docs/merchant-onboarding-branches-staff-transition-plan.md"
+        "docs/merchant-onboarding-branches-staff-transition-plan.md",
+        "docs/merchant-hours-pause-audit-351.json",
+        "docs/merchant-business-profile-audit-351.json"
       ],
-      "freshRuntimeAuditRequired": true,
-      "humanAcceptanceSeparate": true
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "runtimeEvidence": "docs/merchant-hours-pause-audit-351.json",
+      "businessProfileEvidence": "docs/merchant-business-profile-audit-351.json"
     },
     {
       "id": "M07",
@@ -1058,14 +1100,17 @@
         "CUSTOMER"
       ],
       "name": "تعثر الإسناد وملكية متابعة ومهلة وتصعيد وقرار مخول",
-      "currentStatus": "EXISTING_REVIEW_MINIMUM_COMPLETENESS_AUDIT",
+      "currentStatus": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED_340",
       "priority": "P0-OPS",
-      "remaining": "عدمتركالمراجعةانتظارًامجهولًا؛ تدقيقالمسؤولوالإشعاروالتوقيتوالمؤشرواكتشافالحالاتوالإجراءالنهائي",
+      "remaining": "اكتمل تنفيذ المتابعة: فهرس تعثر فعلي، صندوق تنبيهات داخل المنصة، مسؤول متابعة وملاحظة موثقة، مهل مراجعة وتصعيد قابلة للتحكم وتحفظ لكل حالة، وإغلاق التنبيه وفق الحالة الفعلية فقط. الاختبارات البشرية الستة محفوظة بالترتيب ولم تسجل ناجحة. لا إلغاء آلي أو تحرير أموال من المراقب، ولا تغيير لمنفذ قرارات الإدارة المالي.",
       "sourceOrEvidence": [
         "frontend/dispatch-reviews.js",
-        "backend/wallet-service/src/dispatchReviewExecutor.ts"
+        "backend/wallet-service/src/dispatchReviewExecutor.ts",
+        "docs/dispatch-followup-340.json",
+        "docs/dispatch-followup-publication-340.json",
+        "docs/dispatch-followup-human-acceptance-340.csv"
       ],
-      "freshRuntimeAuditRequired": true,
+      "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
     },
     {
@@ -1110,12 +1155,14 @@
         "ADMIN"
       ],
       "name": "الصلاحيات الحية وMFAوالدخول الحديث والسقوف وسجل الموظف",
-      "currentStatus": "IMPLEMENTED_ACCEPTANCE_MATRIX_OPEN",
+      "currentStatus": "WALLET_PROVISIONING_IAM_HARDENED_356_PUBLISHED_ACCEPTANCE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "اختبارالأدوارالمستخدمةوالسحبأثناءالكتابةودونإعادةفرضموظفمعتمدثانفيstaging/DIRECTخلافالقرار",
+      "remaining": "أُغلق اعتماد إنشاء المحفظة على سر قديم واستُبدل بهوية IAM محصورة بمشغّل تسجيل السائق؛ تحقق عزل القراءة الذاتية عن المعرفات المدخلة. تبقى اختبارات التسجيل الحقيقي والأدوار وسحب الصلاحيات مرتبة ضمن القبول البشري. لا تعني هذه المراجعة تدقيقًا كاملًا لكل مصادقة التطبيقات.",
       "sourceOrEvidence": [
         "backend/staff-service/catalog.js",
-        "backend/wallet-service/src/exceptionStaffAuthority.ts"
+        "backend/wallet-service/src/exceptionStaffAuthority.ts",
+        "docs/wallet-authorization-implementation-356.json",
+        "docs/wallet-authorization-publication-356.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -1127,12 +1174,18 @@
         "MERCHANT"
       ],
       "name": "سجل العمليات والفشل والقيم قبل/بعد وهوية الموظف التاريخية",
-      "currentStatus": "IMPLEMENTED_COVERAGE_AUDIT_REQUIRED",
+      "currentStatus": "STAFF_FUNDING_AND_DRIVER_PAYOUT_AUDIT_358_359_360_HARDENED_REMAINING_SOURCE_COVERAGE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "تغطيةالإجراءاتالماليةوالحساسةوتصفيةالنطاقوعدمإظهارالأسرار؛ تحسينالتجميعوالبحثالكبيرلاحقًا",
+      "remaining": "تحديثات 358–360 توثق سجل الإدارة والشحن اليدوي وحدود المحفظة وصرف السائق. سجل الصرف يثبت هوية المسؤول أو السائق من المصدر الموثق، الحالة والمتاح والمحجوز قبل/بعد ومراجع قيود المحفظة وسند الصندوق ضمن المعاملة نفسها. تبقى سجلات التحويل والبوابات والمصادر المستقلة وعرض مصادر المحفظة المصرّح وتغطية الفشل والقبول البشري. صفحة سجل الإدارة STAFF_AUDIT_ONLY ولا تدعي جمع سجل المحافظ.",
       "sourceOrEvidence": [
         "docs/merchant-staff-settlements-verification-259.json",
-        "docs/merchant-onboarding-branches-staff-transition-plan.md"
+        "docs/merchant-onboarding-branches-staff-transition-plan.md",
+        "docs/audit-trail-implementation-358.json",
+        "docs/audit-trail-publication-358.json",
+        "docs/financial-audit-implementation-359.json",
+        "docs/financial-audit-publication-359.json",
+        "docs/driver-payout-audit-implementation-360.json",
+        "docs/driver-payout-audit-publication-360.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -1143,15 +1196,19 @@
         "ADMIN"
       ],
       "name": "المطابقة المالية والنقد والالتزامات وصافي إيراد المنصة",
-      "currentStatus": "EXISTING_RECONCILIATION_MINIMUM_AUDIT",
+      "currentStatus": "MODERN_WALLET_RECONCILIATION_AND_CORRECTION_POSITIONS_PUBLISHED_HUMAN_REVIEW_OPEN",
       "priority": "P0-OPS",
-      "remaining": "تقريرتشغيليموثوقلأرصدةوحجوزاتومستحقاتومصروفاتوتعويضات؛ إجماليالنقدليسالربح؛ فرقمجهوليبقىللمراجعة",
+      "remaining": "اختبار قراءة بشري من صفحة المحافظ والمطابقة وحسابات الشركة، ومراجعة الفروق الافتتاحية أو الحركات غير المصنفة بإثباتات أصلية؛ لا إصلاح آلي. الفحص الحالي محدود الحجم وغير ذري ولا يثبت وحده اكتمال تدقيق كل مصادر النقد أو الفترة المالية.",
       "sourceOrEvidence": [
         "backend/wallet-service/src/reconciliation.ts",
-        "docs/finance-plan-reconciliation-2026-10-20.json"
+        "docs/finance-plan-reconciliation-2026-10-20.json",
+        "docs/reconciliation-implementation-354.json",
+        "docs/reconciliation-publication-354.json"
       ],
-      "freshRuntimeAuditRequired": true,
-      "humanAcceptanceSeparate": true
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "runtimeEvidence": "docs/reconciliation-publication-354.json",
+      "automatedTests354": 76
     },
     {
       "id": "A08",
@@ -1196,15 +1253,69 @@
         "CUSTOMER"
       ],
       "name": "تصحيح مالي بعد تسوية سابقة وتسوية الرصيد السالب",
-      "currentStatus": "PARTIAL_ADVANCED_AFTER_PAYOUT_FLOW",
+      "currentStatus": "PUBLISHED_STAGING_STANDALONE_CORRECTION_PAYOUT_CASE_REVIEW_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-SCOPE-CHECK",
-      "remaining": "تحديدمسارتصحيحموثقإذااستحقتحقالآن بعدالصرف؛ الأتمتةالمتقدمةوالردالبنديP1،لا تعديللتاريخمقفلأودفعمكرر",
+      "remaining": "تبقى اختبارات القبول البشرية المرتبة: صرف تصحيح مستقل من الصندوق وتأكيد استلام المطعم ومطابقته، المقاصة بصافي صفر، ترحيل المديونية عبر أكثر من تسوية، إلغاء/فشل الصرف وإعادة المحاولة، ربط القضية ومنع إغلاقها قبل تمام التصحيحات. مراجعات السائق والزبون والسلامة والعهدة مستقلة ولا تُغلق بتصحيح المطعم.",
       "sourceOrEvidence": [
         "backend/wallet-service/src/exceptionFinancials.ts",
-        "docs/finance-pricing-settlements-returns-unified-plan.md"
+        "docs/finance-pricing-settlements-returns-unified-plan.md",
+        "docs/post-payout-correction-audit-351.json",
+        "docs/post-payout-correction-implementation-351.json",
+        "docs/post-payout-correction-implementation-352.json",
+        "docs/post-payout-correction-publication-352.json",
+        "docs/post-payout-correction-implementation-353.json",
+        "docs/post-payout-correction-publication-353.json"
       ],
-      "freshRuntimeAuditRequired": true,
-      "humanAcceptanceSeparate": true
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "runtimeEvidence": "docs/post-payout-correction-publication-353.json",
+      "implementationSequence": [
+        {
+          "id": "A10.1",
+          "task": "Approve correction basis and funding/responsibility using authenticated review and original paid proof."
+        },
+        {
+          "id": "A10.2",
+          "task": "Post separate balanced immutable journal, positive adjustment payable or merchant receivable; never rewrite paid record or subtract operational wallet below zero."
+        },
+        {
+          "id": "A10.3",
+          "task": "Apply approved recoverable amount to future eligible settlements per agreement; carry remaining debt, never create negative payout."
+        },
+        {
+          "id": "A10.4",
+          "task": "Admin and merchant UI show original paid amount, later correction, recovered amount and remaining debt."
+        },
+        {
+          "id": "A10.5",
+          "task": "Test retries, concurrent corrections/payouts, multi-branch isolation, authorization changes, reversal and exactly-once recovery."
+        }
+      ],
+      "implementationEvidence": "docs/post-payout-correction-implementation-353.json",
+      "approvedPolicy": {
+        "recoveryMode": "OFFSET_NEXT_SETTLEMENT",
+        "carryRemainder": true,
+        "centrallyEditable": true,
+        "existingReservationsRemainPinned": true
+      },
+      "orderedHumanAcceptance": [
+        "Owner requests standalone approved credit without future sales; admin reviews and pays from registered cashbox, owner confirms receipt, admin reconciles",
+        "Credit/debt produce net zero: offset only, no cash receipt or cashbox movement",
+        "Debt exceeds next payout and carries until fully recovered",
+        "Cancel before execution or prove not-paid; reservations released, retry no double payment",
+        "Link correction to case, attempt early completion and closure, settle correction, complete review, preserve unrelated safety/driver/customer reviews",
+        "Two branches and revoked financial authority remain isolated"
+      ],
+      "completedImplementation353": [
+        "Standalone owner-requested cash correction payout with registered cashbox, owner receipt and reconciliation",
+        "No artificial sales batch, no original payable or operating merchant wallet debit",
+        "Independent immutable correction source proof, same payout controls and retry identity",
+        "Linked case correction-review state with atomic versioned metadata and open/closed queue pointer",
+        "Completion requires rejected correction or fully settled sealed allocation/payout evidence",
+        "Only explicitly linked financial appeal belonging to merchant owner can complete; unrelated appeals remain open",
+        "Closure guards deployed in actual driver-financial service and staff cancellation routes",
+        "Retention inventory supports standalone source and preserves correction financial evidence"
+      ]
     },
     {
       "id": "A11",
@@ -1247,10 +1358,11 @@
       "name": "الحذف والاحتفاظ وأرشفة الأدلة وحواجز الأموال والجلسات القديمة",
       "currentStatus": "PUBLISHED_FOUNDATION_NEW_ENTITY_COVERAGE_AUDIT",
       "priority": "P0-OPS",
-      "remaining": "تغطيةالقضاياوالمنحوالمتابعاتوالصوروالنياتالجديدةوالمهامالمعلقةبعدالتحديثات؛ لا حذفبشريآليللاختبار",
+      "remaining": "تغطيةالقضاياوالمنحوالمتابعاتوالصوروالنياتالجديدةوالمهامالمعلقةبعدالتحديثات؛ لا حذفبشريآليللاختبار يشمل ذلك قضايا ما بعد التسليم وأدلة الصور في C05؛ تمنع الحواجز المنشورة تنظيف الحساب إلى حين مراجعة الحفظ، ولا يضع مدة احتفاظ تلقائية جديدة.",
       "sourceOrEvidence": [
         "docs/account-deletion-audit-and-plan.md",
-        "docs/account-deletion-retention-operations.md"
+        "docs/account-deletion-retention-operations.md",
+        "docs/customer-order-complaints-341.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -1283,7 +1395,8 @@
       "sourceOrEvidence": [
         "docs/finance-reference/master-implementation-v1.0-ar.txt",
         "docs/cod-launch-exceptions-matrix-251.csv",
-        "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt"
+        "docs/finance-reference/delivery-pricing-driver-earnings-v1.3-ar.txt",
+        "docs/checkout-regression-repair-357.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -1408,14 +1521,106 @@
         "CUSTOMER"
       ],
       "name": "المنتجات والقوائم والإدخال اليدوي وCSV/Excelوالخيارات والصور والمخزون والنشر",
-      "currentStatus": "DELEGATED",
-      "priority": "EXCLUDED_COLLEAGUE",
-      "remaining": "كاملنطاقالتسليممحالللمستخدمالزميل؛ يراقبعقدالتكاملفقطولايبدأتنفيذموازٍ. ليسمكتملًاولامحذوفًامنالخطة",
+      "currentStatus": "MERCHANT_IMPORT_DEPLOYED_336_UX_FIXED_338_ADMIN_IMPORT_UI_NOT_IMPLEMENTED",
+      "priority": "P0-OPS",
+      "remaining": "استيراد تطبيق المطعم والصور وربط الأعمدة والمخزون منشور، وأضيف قالب Excel مبسط ودليل المستخدم وإصلاح خيارات المنتج في 338. لا توجد حاليًا واجهة استيراد من المنصة نيابة عن المطعم؛ يلزم مسار إداري مصرح به مع اختيار الفرع والتدقيق إذا اعتمد هذا النطاق. لا تُعتبر هذه الإمكانية منفذة بمجرد وجود واجهات API للمطعم. الاختبار البشري وبوابات إطلاق Android/iOS محفوظة منفصلة.",
       "sourceOrEvidence": [
-        "docs/merchant-products-import-colleague-handoff-2026-10-24.txt"
+        "docs/merchant-products-import-colleague-handoff-2026-10-24.txt",
+        "docs/products-import-review-335.json",
+        "docs/products-import-completion-336.json",
+        "docs/products-336-staging-publication.json",
+        "docs/products-336-isolated-staging-uat.json",
+        "docs/products-336-native-api-uat.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true,
+      "adminImportStatus": "NOT_IMPLEMENTED_VERIFIED_SOURCE_2026_10_28"
+    },
+    {
+      "id": "X-GUEST-LEGACY-342",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "إثبات ملكية طلبات الضيوف التاريخية إن وجدت قبل فتح الشكوى الخاصة",
+      "currentStatus": "SCOPE_AND_SECURE_IDENTITY_LINK_DESIGN_REQUIRED",
+      "priority": "P0-SCOPE-CHECK",
+      "remaining": "لا يوجد إنشاء طلب ضيف جديد في المسار الحديث. عند الحاجة لخدمة طلبات ضيوف تاريخية يجب إثبات ملكيتها عبر هوية موثقة وتصميم مستقل قبل إتاحة بياناتها أو تعويضها؛ لا اعتماد لرمز الضيف القديم وحده ولا تعديل ملكية القيود المالية.",
+      "sourceOrEvidence": [
+        "docs/guest-checkout-identity-audit-342.json"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X-TEST-342",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN"
+      ],
+      "name": "تحديث اختبارات الفاتورة القديمة لعقد مراجعة الإجمالي ومسار إنشاء الطلب الحالي",
+      "currentStatus": "AUTOMATED_BASELINE_FAILURES_REPAIRED_357_SCOPED_ENV_TEST_SEPARATE",
+      "priority": "P0-OPS",
+      "remaining": "أُصلحت الإخفاقات القديمة الـ19 في اختبار تطبيق الزبون والـ6 في اختبار إنشاء الطلب: محاكاة مراجعة الإجمالي الصريحة ومعاينة السعر، وفصل غياب سجل حجز المخزون عن سجل المؤسسة في محاكي قاعدة البيانات. نجح 87 اختبار Flutter و62 اختبار خادم مرتبطًا. اختبار واحد مشروط ببيئة FINANCE_TEST_CHECKOUT_ATTEMPT بقي متجاوزًا وغير محتسب؛ الاختبارات البشرية والإطلاق مستقلان. لم يتغير كود التشغيل أو شروط تأكيد الطلب.",
+      "sourceOrEvidence": [
+        "docs/guest-checkout-identity-audit-342.json",
+        "docs/checkout-regression-repair-357.json"
       ],
       "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "X-REALTIME-AUTH-345",
+      "applications": [
+        "CUSTOMER",
+        "DRIVER",
+        "MERCHANT",
+        "ADMIN"
+      ],
+      "name": "التحقق الحقيقي من هوية اتصالات التحديث الفوري ونطاق موضوعات الطلبات للسائق والزبون",
+      "currentStatus": "PUBLISHED_346_REALTIME_IDENTITY_OFFER_INBOX_AND_MERCHANT_CUE_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+      "priority": "P0-OPS",
+      "remaining": "نُشر تحقق توقيع JWT وهوية الاتصال ونطاق الاشتراك والإرسال الخاص، وأصلح وصول إشعار السائق دون بطاقة العرض وصوت المطعم وفصل تسجيل الجهاز عند الخروج. بقي اختبار طلب حقيقي أمامي/خلفي وقفل الشاشة وإعادة الاتصال وتبديل الحساب وAndroid وفق RT346-01..07؛ لا يعتبر نجاح FCM أو بناء المحاكي إثباتًا للاستلام.",
+      "sourceOrEvidence": [
+        "docs/realtime-identity-offers-346.json"
+      ],
+      "freshRuntimeAuditRequired": false,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "D-SINGLE-WORK-SESSION",
+      "applications": [
+        "DRIVER",
+        "ADMIN"
+      ],
+      "name": "جلسة عمل واحدة للسائق مرتبطة بالجهاز والمركبة ونقل التشغيل بين الأجهزة",
+      "currentStatus": "DEFERRED_BY_USER_NOT_IMPLEMENTED",
+      "priority": "P1",
+      "remaining": "أجّل المستخدم هذا البند صراحة في29أكتوبر2026. يربط لاحقًا جهاز تشغيل واحدًا بالمركبة الفعالة، مع انتقال مؤكد ومنع النقل أثناء طلب نشط. توجد حاليًا مركبة فعالة واحدة وحواجز التنافس لقبول الطلب؛ لا يوجد قفل حصري لجهاز التشغيل. لا يُعد البند منفذًا.",
+      "sourceOrEvidence": [
+        "../whizzDrivers-stg/backend/driver-vehicles-308.js",
+        "backend/wallet-service/src/driverOfferAcceptance.ts",
+        "../wizzuser-stg/backend/src/realtime-identity-scope-346.js"
+      ],
+      "freshRuntimeAuditRequired": true,
+      "humanAcceptanceSeparate": true
+    },
+    {
+      "id": "UX-CUSTOMER-361",
+      "applications": [
+        "CUSTOMER",
+        "ADMIN",
+        "MERCHANT"
+      ],
+      "name": "واجهة اكتشاف وطلب موحدة: رئيسية ديناميكية ومتجر وتخصيص وجبة وعروض ترحيبية",
+      "priority": "P0-USER-REQUESTED",
+      "currentStatus": "ACTIVE_AUDIT_AND_FIRST_DESIGN_IMPLEMENTATION",
+      "remaining": "تنفيذ المراحل الموثقة في customer-discovery-redesign-361.json؛ لا تُعد إدارة أقسام الرئيسية أو العروض الترحيبية أو الخيارات التابعة مكتملة بمجرد تحسين شكل الواجهة. يبقى المسار التشغيلي A06 متوقفًا بطلب المستخدم.",
+      "sourceOrEvidence": [
+        "docs/customer-discovery-redesign-361.json"
+      ],
+      "humanAcceptanceSeparate": true,
+      "freshRuntimeAuditRequired": true
     }
   ],
   "originalSpecificationSectionCoverage": [
@@ -2832,6 +3037,7 @@
         "C06",
         "C07",
         "M02",
+        "X-REALTIME-AUTH-345",
         "M05",
         "M06",
         "A10"
@@ -2916,17 +3122,16 @@
     }
   ],
   "counts": {
-    "workItems": 61,
+    "workItems": 65,
     "specificationSectionsMapped": 127,
     "historicalPackagesMapped": 14,
     "priorityCounts": {
-      "P0-OPS": 41,
+      "P0-OPS": 45,
+      "P1": 10,
       "P0-SCOPE-CHECK": 3,
-      "P1": 9,
       "P0-IF-ENABLED": 1,
       "P2-PROVIDER": 3,
-      "P0-RELEASE-AFTER-OPS": 3,
-      "EXCLUDED_COLLEAGUE": 1
+      "P0-RELEASE-AFTER-OPS": 3
     }
   },
   "executionUpdates": [
@@ -3034,6 +3239,69 @@
       "backgroundGPSValidated": false,
       "operationalBacklogUnchanged": true,
       "manualAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "DISPATCH_FOLLOWUP_340",
+      "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED_340",
+      "evidence": "docs/dispatch-followup-340.json",
+      "humanAcceptance": "DEFERRED_ORDERED_NOT_PASSED",
+      "next": "C05_COMPLETED_ORDER_COMPLAINT_EXISTING_SUPPORT"
+    },
+    {
+      "id": "CUSTOMER_ORDER_COMPLAINTS_341",
+      "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_QUEUED",
+      "evidence": "docs/customer-order-complaints-341.json",
+      "humanAcceptance": "DEFERRED_ORDERED_NOT_PASSED",
+      "cloudChanged": true,
+      "blockedBy": null,
+      "publicationEvidence": "docs/customer-order-complaints-publication-341.json",
+      "userApproval": true
+    },
+    {
+      "id": "WALLET_OPERATING_LIMITS_355",
+      "status": "PUBLISHED_STAGING_VERIFIED_RELEASE355_INSTALLED_LAUNCHED",
+      "evidence": "docs/wallet-operating-limits-implementation-355.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "WALLET_AUTHORIZATION_356",
+      "status": "PUBLISHED_STAGING_VERIFIED",
+      "evidence": "docs/wallet-authorization-implementation-356.json",
+      "publication": "docs/wallet-authorization-publication-356.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED",
+      "nativeUpdateRequired": false
+    },
+    {
+      "id": "CHECKOUT_REGRESSION_REPAIR_357",
+      "status": "LOCAL_TEST_ONLY_VERIFIED",
+      "evidence": "docs/checkout-regression-repair-357.json",
+      "cloudChanges": false,
+      "runtimeChanges": false,
+      "humanAcceptance": "DEFERRED_NOT_PASSED"
+    },
+    {
+      "id": "STAFF_AUDIT_TRAIL_358",
+      "status": "PUBLISHED_STAGING_VERIFIED",
+      "evidence": "docs/audit-trail-implementation-358.json",
+      "publication": "docs/audit-trail-publication-358.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED",
+      "next": "Independent wallet audit schema and identity coverage within A06"
+    },
+    {
+      "id": "MANUAL_FUNDING_AUDIT_359",
+      "status": "PUBLISHED_STAGING_VERIFIED",
+      "evidence": "docs/financial-audit-implementation-359.json",
+      "publication": "docs/financial-audit-publication-359.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED",
+      "financialOperationsExecuted": 0
+    },
+    {
+      "id": "DRIVER_PAYOUT_AUDIT_360",
+      "status": "PUBLISHED_STAGING_VERIFIED",
+      "evidence": "docs/driver-payout-audit-implementation-360.json",
+      "publication": "docs/driver-payout-audit-publication-360.json",
+      "humanAcceptance": "DEFERRED_NOT_PASSED",
+      "financialOperationsExecuted": 0
     }
   ],
   "orderedDeferredDriverAcceptance": {
@@ -3425,5 +3693,171 @@
     "publication": "docs/driver-map-tools-publication-329.json",
     "humanAcceptanceDeferredAndListed": true,
     "doesNotCloseOtherMainPlanItems": true
+  },
+  "guestCheckoutIdentity342": {
+    "evidence": "docs/guest-checkout-identity-audit-342.json",
+    "modernGuestOrderCreation": "NOT_ADMITTED_BY_PUBLISHED_REQUIRED_ROUTE",
+    "frontendContinuation": "LOCAL_AUTOMATED_VERIFIED_NATIVE_INSTALLATION_PENDING",
+    "legacyGuestHistoricalClaims": "OPEN_SEPARATE_IDENTITY_LINK_GAP",
+    "financialGuards": "UNCHANGED",
+    "next": "C07 policy audit",
+    "regressionDebt": "19 legacy Flutter failures reproduced at HEAD; 6 unmodified backend handler fixture failures; repair tracked, not marked PASS"
+  },
+  "customerOrderPolicy343": {
+    "evidence": "docs/customer-order-policy-343.json",
+    "status": "SUPERSEDED_UNPUBLISHED_BY_USER_DIRECTION_344",
+    "publishScope": "Only three create-order zip entries; no IAM or financial-rule changes",
+    "humanAcceptance": "QUEUED_NOT_RUN",
+    "partnerSignupScope": "SEPARATE_ROUTE_AND_CONSENT_COVERAGE_AUDIT_REQUIRED"
+  },
+  "applicationLegal344": {
+    "evidence": "docs/application-legal-policies-344.json",
+    "status": "THREE_APP_POLICIES_PUBLISHED_BACKENDS_APPS_DEPLOYED_344_HUMAN_ACCEPTANCE_OPEN",
+    "next": "QUEUED_HUMAN_REGISTRATION_AND_POLICY_NAVIGATION_ACCEPTANCE_FOR_THREE_ROLES",
+    "checkoutPolicyRemoved": true,
+    "deploymentPlan": "docs/application-legal-dependent-deployment-344.json",
+    "publicPolicyUrls": "HUMAN_READABLE_WEB_PAGES_QUEUED_BEFORE_STORE_RELEASE_PUBLIC_JSON_READER_ALREADY_LIVE",
+    "consumerPublication": "docs/application-legal-consumers-publication-344.json",
+    "ownerPublishedRoles": [
+      "CUSTOMER",
+      "DRIVER",
+      "MERCHANT"
+    ],
+    "installedBuild": 344
+  },
+  "merchantBranchIsolation345": {
+    "evidence": "docs/merchant-branch-isolation-345.json",
+    "status": "PUBLISHED_345_BRANCH_ISOLATION_MERCHANT_REALTIME_AND_CUTOVER_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+    "acceptance": "docs/branch-isolation-human-acceptance-345.csv",
+    "next": "X_REALTIME_AUTH_345_BEFORE_M05",
+    "legacyCutover": "COMPLETED_VERIFIED_30_ALREADY_GONE_SOCKET_ROWS_REMOVED"
+  },
+  "realtimeIdentity346": {
+    "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/realtime-identity-offers-346.json",
+    "beforeNext": "M05 branch devices/PIN",
+    "actualManagerWriterVerified": true,
+    "humanAcceptance": "RT346-01..07"
+  },
+  "driverMapCoverage347": {
+    "status": "IMPLEMENTED_9_TESTS_PASSED_IOS_AND_ANDROID_BUILT_RELEASE347_INSTALLED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/driver-map-coverage-347.json",
+    "humanAcceptance": "OUTSIDE_AND_INSIDE_REAL_DEVICE_PENDING",
+    "eligibilityAndRegionRulesUnchanged": true
+  },
+  "customerBasketInvoice348": {
+    "status": "PUBLISHED_STAGING_POINT_PREVIEW_CONFIRMED_HUMAN_CONTINUE_PENDING",
+    "evidence": "../wizzuser-stg/docs/basket-invoice-and-coverage-348.json",
+    "sourcePackageAudit": "14 owned modules; no missing module or direct shared export",
+    "driverNotice": "Release348 installed; city/country only, no coordinate fallback",
+    "next": "Current basket acceptance, then realtime genuine offer acceptance before M05"
+  },
+  "driverOutsideStart349": {
+    "status": "IMPLEMENTED_12_TESTS_PASSED_RELEASE349_INSTALLED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/driver-outside-start-349.json",
+    "humanAcceptance": "DISMISS_THEN_GO_NOTICE_REOPEN_AND_RETURN_TO_COVERED_POSITION_PENDING"
+  },
+  "driverTrialLocation350": {
+    "status": "RELEASE350_INSTALLED_AND_LAUNCHED_SCOPED_TEST_LOCATION_RESTORED",
+    "profile": "../whizzDrivers-stg/frontend/config/staging-test-driver.json",
+    "buildCommand": "scripts/build-driver-trial.sh release",
+    "evidence": "../whizzDrivers-stg/docs/resume-checkpoint-latest.md",
+    "coverageReadOnlyVerification": "HTTP200 Al-Manathirah Center, 5 stores",
+    "identityAndProductionGating": "Existing test passed; general builds and other accounts retain GPS",
+    "preserveDuringCurrentHumanTrial": true
+  },
+  "walletOperatingLimits355": {
+    "status": "PUBLISHED_STAGING_VERIFIED",
+    "backendTests": 62,
+    "nativeTests": 18,
+    "browserTest": "PASS",
+    "packageBridgeTest": "PASS",
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "nativeBuild": 355,
+    "nativeInstalled": true,
+    "next": "A05 wallet creation caller identity and trigger authorization audit; no secret literal in documentation",
+    "nativeLaunch": "SUCCESS"
+  },
+  "walletAuthorization356": {
+    "status": "PUBLISHED_STAGING_VERIFIED_HUMAN_SIGNUP_ACCEPTANCE_PENDING",
+    "automatedNodeTests": 69,
+    "authorizerTests": 16,
+    "positiveSignupAcceptance": "DEFERRED_NOT_PASSED",
+    "financialMutations": 0,
+    "nativeUpdateRequired": false,
+    "unrelatedApiMethodsPreserved": true
+  },
+  "checkoutRegressionRepair357": {
+    "status": "LOCAL_TEST_ONLY_VERIFIED_NO_RUNTIME_DEPLOYMENT_NEEDED",
+    "flutterPassed": 87,
+    "flutterSkipped": 1,
+    "backendPassed": 62,
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "runtimeCodeChanged": false
+  },
+  "auditTrail358": {
+    "status": "PUBLISHED_STAGING_BYTE_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+    "backendTests": 21,
+    "actualBundleRouteTest": "PASS",
+    "browserWidths": [
+      390,
+      1280
+    ],
+    "source": "STAFF_AUDIT_ONLY",
+    "walletAuditCoverage": "OPEN",
+    "historicalNamesBackfilled": false,
+    "newIamPermissions": false,
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "hostingJob": "228"
+  },
+  "financialAudit359": {
+    "status": "PUBLISHED_STAGING_SHA_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+    "scope": [
+      "manual topup create/approve/reject",
+      "wallet operating limits proposals/review"
+    ],
+    "testsPassed": 74,
+    "historicalRowsRewritten": false,
+    "realFinancialOperations": 0,
+    "nativeUpdateRequired": false,
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "next": "Driver cash payout audit and remaining independent wallet sources"
+  },
+  "driverPayoutAudit360": {
+    "status": "PUBLISHED_STAGING_SHA_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+    "testsPassed": 53,
+    "actualRuntimeAuthoritySdkBridge": "PASS",
+    "historicalRowsModified": false,
+    "realPayoutsExecuted": 0,
+    "nativeUpdateRequired": false,
+    "humanAcceptance": "DEFERRED_NOT_PASSED",
+    "next": "Transfer/provider audit and authorized wallet audit source presentation"
+  },
+  "userRequestedPauseAfter360": {
+    "status": "PAUSED_BY_USER",
+    "lastCompleted": "DRIVER_PAYOUT_AUDIT_360",
+    "resumeAt": "Transfer/provider audit and authorized wallet audit source presentation within A06",
+    "currentDiscussion": "Customer home composition and central merchandising; discussion/read-only inspection only, no implementation authorized"
+  },
+  "customerHomeReadOnlyDiscussion": {
+    "status": "DISCUSSION_ONLY_NO_IMPLEMENTATION",
+    "mainExecutionRemainsPaused": true,
+    "verifiedCurrentSource": "../wizzuser-stg/frontend/lib/screens/home_screen.dart",
+    "findings": [
+      "Home section composition/order/titles fixed in Flutter (_buildStoresSection)",
+      "HomeSlideshow and its scheduled audience/region-targeted content read central service; admin UI in promotions page",
+      "Popular section sorts by rating, not completed-order popularity",
+      "Nearby section primary path takes first six region businesses without explicit distance sort inside selector"
+    ],
+    "possibleDirectionNotYetAuthorized": "Centrally managed home sections with predefined layouts, scheduling, region/audience eligibility and real data sources; independent personalized favorites/recent/order-history sources",
+    "runtimeCodeChanged": false,
+    "cloudChanges": false,
+    "resumeMainPlanAt": "A06 remaining transfer/provider audit and authorized cross-source wallet audit reader"
+  },
+  "activeUserRequestedDesign361": {
+    "status": "ACTIVE",
+    "operationalPlanStillPausedAfter360": true,
+    "noCopiedBrandAssets": true,
+    "noGoldTextOnWhite": true
   }
 }

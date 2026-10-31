@@ -1,3 +1,5 @@
+import {walletCreationCaller,walletCreationInput} from './walletCreationAuth';
+import {walletLimitsOverview,walletLimitsAction} from './walletLimitsSettings';
 import {monthlyWalletPage} from './monthlyWalletHistory';
 import {financialOwners} from './financialOwners';
 import {gatewaySettings,saveGatewaySettings,testGatewaySettings,acceptGatewayLive,publicGatewayConfig,createGatewayPayment,checkGatewayPayment,gatewayHistory,gatewayWebhook,reconcileGatewayPayments,recoverGatewayPayment,resolveUncreatedGatewayPayment,importGatewayUatCredentials,authorizeGatewayPilot} from './zaincashGateway';
@@ -95,8 +97,8 @@ export async function handler(
     const financialRoute = path.startsWith('/wallet/funding/admin') || path === '/wallet/topup/requests' || /\/wallet\/topup\/[^/]+\/(approve|reject)$/.test(path);
     if (financialRoute && !finance) return buildErrorResponse(403, 'FINANCE_MANAGER_REQUIRED', 'صلاحية المدير المالي مطلوبة');
     if (path.startsWith('/wallet/funding/') && !driverId && !adminId) return buildErrorResponse(401,'UNAUTHORIZED','يرجى تسجيل الدخول');
-    if (path === '/wallet/funding/admin/transfer-settings' && method === 'GET') return buildSuccessResponse(await transferSettingsOverview());
-    if (path === '/wallet/funding/admin/transfer-settings' && method === 'POST') return buildSuccessResponse(await proposeTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)));
+    if (path === '/wallet/funding/admin/transfer-settings' && method === 'GET') return buildSuccessResponse(event.queryStringParameters?.view==='wallet-operating-limits'?await walletLimitsOverview():await transferSettingsOverview());
+    if (path === '/wallet/funding/admin/transfer-settings' && method === 'POST') {const input=parseBody(event.body);return buildSuccessResponse(String(input?.action||'').endsWith('_WALLET_LIMITS')?await walletLimitsAction(adminId,Number(authorizer?.authTime||0),input):await proposeTransferSettings(adminId,Number(authorizer?.authTime||0),input));}
     if (path === '/wallet/funding/admin/transfer-settings/approve' && method === 'POST') return buildSuccessResponse(await approveTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)?.changeId));
     if (path === '/wallet/funding/admin/transfer-settings/cancel' && method === 'POST') return buildSuccessResponse(await cancelTransferSettings(adminId,Number(authorizer?.authTime || 0),parseBody(event.body)?.changeId));
     if (path === '/wallet/funding/admin/transfers' && method === 'GET') return buildSuccessResponse(await listTransferRequests(event.queryStringParameters?.cursor));
@@ -220,14 +222,7 @@ export async function handler(
     }
 
     if (path === '/wallet/create' && method === 'POST') {
-      // Wallet creation endpoint (called by Cognito trigger or service accounts)
-      const triggerSecret = event.headers?.['x-trigger-secret'];
-      const expectedSecret = process.env.WALLET_TRIGGER_SECRET || 'wallet-creation-trigger-secret-2025';
-      
-      // Allow if: service account OR valid trigger secret
-      if (!serviceId && triggerSecret !== expectedSecret) {
-        return buildErrorResponse(401, 'UNAUTHORIZED', 'Only service accounts or Lambda triggers can create wallets');
-      }
+      walletCreationCaller(event);
       return await createWallet(event.body);
     }
 
@@ -408,11 +403,7 @@ async function getMyTransactions(
  * Service only - called by Cognito trigger or backend services
  */
 async function createWallet(body: string | null): Promise<APIGatewayProxyResult> {
-  const data = parseBody(body);
-
-  if (!data.driverId) {
-    return buildErrorResponse(400, 'INVALID_REQUEST', 'driverId is required');
-  }
+  const data = walletCreationInput(parseBody(body));
 
   console.log('Service creating wallet for driver:', data.driverId);
 
@@ -576,13 +567,14 @@ async function createTopupRequest(
   if(replay)return buildSuccessResponse(replay);
   const config = await getFundingConfig();
   if (!config.manual.enabled) throw fundingError('التحويل اليدوي غير متاح حالياً','METHOD_DISABLED',409);
+  if(data.limitsVersion!==undefined&&data.limitsVersion!==config.limitsVersion)throw fundingError('تغيرت حدود الشحن؛ أعد تحميل الصفحة','CONFIG_CHANGED',409);
   if (data.configVersion !== config.version) throw fundingError('تغيرت بيانات التحويل؛ أعد تحميل الإعدادات','CONFIG_CHANGED',409);
   if (typeof data.transferReference !== 'string' || !/^[a-zA-Z0-9-]{4,80}$/.test(data.transferReference)) throw fundingError('مرجع التحويل غير صالح');
   await validateReceipt(driverId, data.evidenceRef);
   const result = await topupService.createTopupRequest({
     idempotencyKey: data.idempotencyKey,
     transferReference: data.transferReference,
-    fundingSnapshot: config.manual,
+    fundingSnapshot: {...config.manual,configVersion:config.version,limitsVersion:config.limitsVersion},
     driverId,
     amount: data.amount,
     method: data.method,

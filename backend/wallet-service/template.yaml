@@ -15,6 +15,9 @@ Globals:
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
 
 Parameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
   ZaincashReturnUrl:
     Type: String
     Default: ''
@@ -203,6 +206,7 @@ Resources:
       Description: Cognito trigger to create wallet for new drivers
       Environment:
         Variables:
+          DRIVER_USER_POOL_ID: !Ref DriverCognitoUserPoolId
           WALLET_API_URL: !Sub https://${WalletServiceApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
       Policies:
         - Version: '2012-10-17'
@@ -544,6 +548,9 @@ Resources:
       MethodResponses:
       - StatusCode: '200'
         ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
           method.response.header.Access-Control-Allow-Headers: true
           method.response.header.Access-Control-Allow-Methods: true
           method.response.header.Access-Control-Allow-Origin: true
@@ -558,6 +565,9 @@ Resources:
         IntegrationResponses:
         - StatusCode: '200'
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
             method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
             method.response.header.Access-Control-Allow-Origin: '''*'''
@@ -610,6 +620,9 @@ Resources:
       MethodResponses:
       - StatusCode: '200'
         ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
           method.response.header.Access-Control-Allow-Headers: true
           method.response.header.Access-Control-Allow-Methods: true
           method.response.header.Access-Control-Allow-Origin: true
@@ -624,6 +637,9 @@ Resources:
         IntegrationResponses:
         - StatusCode: '200'
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
             method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
             method.response.header.Access-Control-Allow-Origin: '''*'''
@@ -676,6 +692,9 @@ Resources:
       MethodResponses:
       - StatusCode: '200'
         ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
           method.response.header.Access-Control-Allow-Headers: true
           method.response.header.Access-Control-Allow-Methods: true
           method.response.header.Access-Control-Allow-Origin: true
@@ -690,6 +709,9 @@ Resources:
         IntegrationResponses:
         - StatusCode: '200'
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
             method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
             method.response.header.Access-Control-Allow-Origin: '''*'''
@@ -742,6 +764,9 @@ Resources:
       MethodResponses:
       - StatusCode: '200'
         ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
           method.response.header.Access-Control-Allow-Headers: true
           method.response.header.Access-Control-Allow-Methods: true
           method.response.header.Access-Control-Allow-Origin: true
@@ -756,6 +781,9 @@ Resources:
         IntegrationResponses:
         - StatusCode: '200'
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             method.response.header.Access-Control-Allow-Headers: '''Content-Type,Authorization,X-Staff-Session'''
             method.response.header.Access-Control-Allow-Methods: '''GET,OPTIONS'''
             method.response.header.Access-Control-Allow-Origin: '''*'''
@@ -781,6 +809,7 @@ Resources:
       Description: Centralized wallet service for Wizz platform
       Environment:
         Variables:
+          WALLET_CREATION_CALLER_ROLE_ARN: !Ref WalletCreationCallerRoleArn
           ZAINCASH_RETURN_URL: !Ref ZaincashReturnUrl
           ZAINCASH_WEBHOOK_URL: !Ref ZaincashWebhookUrl
           PLATFORM_ENVIRONMENT: !Ref Environment
@@ -1156,7 +1185,8 @@ Resources:
             Path: /wallet/create
             Method: POST
             RestApiId: !Ref WalletServiceApi
-            # No Auth = allows IAM-signed requests from Lambda trigger
+            Auth:
+              Authorizer: AWS_IAM
 
         GetWallet:
           Type: Api
@@ -1480,31 +1510,49 @@ Resources:
       GatewayResponses:
         UNAUTHORIZED:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
               Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         ACCESS_DENIED:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
               Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         AUTHORIZER_FAILURE:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
               Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         AUTHORIZER_CONFIGURATION_ERROR:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
               Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         DEFAULT_4XX:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
               Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"
         DEFAULT_5XX:
           ResponseParameters:
+  WalletCreationCallerRoleArn:
+    Type: String
+    Description: Exact IAM role ARN of the Cognito wallet creation trigger; required, no shared secret fallback.
             Headers:
               Access-Control-Allow-Origin: "'*'"
               Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Staff-Session'"

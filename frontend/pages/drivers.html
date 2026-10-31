@@ -11,9 +11,6 @@
     <!-- Security: DOMPurify for XSS Protection -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <link rel="stylesheet" href="../styles/material-3-design-system.css">
-    <link rel="stylesheet" id="wizz-shell-styles" href="../styles/app-shell.css?v=20261022-rtl1">
-    <link rel="stylesheet" id="wizz-admin-styles" href="../styles/admin-ui.css?v=20261025-shell2"><link rel="preload" href="../assets/fonts/NotoSansArabic.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1">
     <script src="../styles/wizz-theme-config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -582,9 +579,9 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-</head>
+<link rel="stylesheet" href="../styles/arabic-ui.css?v=20261017-ar1"></head>
 
-<body class="wizz-shell" data-page="drivers">
+<body data-page="drivers">
     <!-- Sidebar include placeholder -->
     <div id="sidebar-placeholder"></div>
 
@@ -678,9 +675,11 @@
                     </thead>
                     <tbody id="driversTableBody">
                         <!-- Driver data will be loaded dynamically from WhizzDrivers_dev table -->
-                        <tr class="table-skeleton" aria-hidden="true"><td colspan="8"><span class="skl" style="width: 100%;"></span></td></tr>
-                        <tr class="table-skeleton" aria-hidden="true"><td colspan="8"><span class="skl" style="width: 86%;"></span></td></tr>
-                        <tr class="table-skeleton" aria-hidden="true"><td colspan="8"><span class="skl" style="width: 94%;"></span></td></tr>
+                        <tr>
+                            <td colspan="8" class="text-center" style="padding: 2rem;">
+                                <i class="fas fa-spinner fa-spin"></i> جارٍ تحميل بيانات السائقين...
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

@@ -8,7 +8,7 @@ const H='staging-Holds',C='WizzCentral_Platform_Discounts';
 const fail=(code,status=409)=>{throw Object.assign(Error(code),{status});};
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.:#-]{0,149}$/.test(v);
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
-const validKey=k=>['CUSTOMER_CANCELLATION','MERCHANT_CANCELLATION','CUSTOMER_CASH_REVIEW'].includes(k)||/^RETURN#[1-9][0-9]{0,2}$/.test(k||'');
+const validKey=k=>['CUSTOMER_CANCELLATION','MERCHANT_CANCELLATION','CUSTOMER_CASH_REVIEW','CUSTOMER_POST_DELIVERY'].includes(k)||/^RETURN#[1-9][0-9]{0,2}$/.test(k||'');
 const checked=(table,key,row)=>({ConditionCheck:{TableName:table,Key:key,...fence(row)}});
 const closed=row=>!!row.financialClosure||row.exceptionResolution?.status==='RESOLVED'||row.kind==='CUSTOMER_CASH_REVIEW_CASE'&&row.state==='CLOSED';
 function voucherState(c,g,now){
@@ -44,7 +44,7 @@ async function route(ctx,actor,method,input={}){
    cursor=result.LastEvaluatedKey;if(!cursor)break;if(page===19)fail('CUSTOMER_COMPENSATION_LIST_LIMIT');
   }}
   let link=null;if(saved){if(saved.orderId!==order.orderId||saved.caseId!==caseId)fail('CUSTOMER_COMPENSATION_PROOF_INVALID');const [c,g]=await Promise.all([get(C,{discountId:saved.campaignId}),get(BENEFIT_TABLE,benefitGrantKey(saved.campaignId,order.userSub))]);link={campaignId:saved.campaignId,title:saved.title,amountIqd:saved.amountIqd,recordedAt:saved.createdAt,state:g?.compensationReference?.caseId===caseId&&g?.compensationReference?.orderId===order.orderId&&c?.benefit?.amountIqd===saved.amountIqd?voucherState(c,g,now):'UNAVAILABLE',cashRefundPerformed:false};}
-  return {orderNumber:order.orderNumber||order.orderId,caseId,version:row.version,closed:closed(row),canRecord:!saved&&!closed(row)&&allowed(actor,'finance.approve')&&allowed(actor,'promotions.grant'),items,link,cashRefundPerformed:false};
+  return {orderNumber:order.orderNumber||order.orderId,caseId,version:row.version,closed:closed(row),canRecord:!saved&&!closed(row)&&(input.caseKey!=='CUSTOMER_POST_DELIVERY'||row.state==='REMEDY_PENDING')&&allowed(actor,'finance.approve')&&allowed(actor,'promotions.grant'),items,link,cashRefundPerformed:false};
  }
  if(!allowed(actor,'finance.approve')||!allowed(actor,'promotions.grant'))fail('PERMISSION_REQUIRED',403);
  if(!ctx.enrolled)fail('ENROLLMENT_REQUIRED',403);ctx.recent(ctx.claims);
@@ -54,6 +54,7 @@ async function route(ctx,actor,method,input={}){
  if(closed(row)||row.version!==input.expectedVersion||row.appealReviewRequired||row.caseAppeals?.some(x=>['OPEN','REVIEW_REQUIRED'].includes(x.status)))fail('CUSTOMER_COMPENSATION_CASE_CHANGED');
  const campaignKey={discountId:input.campaignId},grantKey=benefitGrantKey(input.campaignId,order.userSub),[campaign,grant]=await Promise.all([get(C,campaignKey),get(BENEFIT_TABLE,grantKey)]);
  if(!campaign||!eligible(campaign,grant,order.userSub)||voucherState(campaign,grant,now)!=='AVAILABLE'||digest(campaign)!==input.campaignRevision||digest(grant)!==input.grantRevision)fail('CUSTOMER_COMPENSATION_VOUCHER_CHANGED');
+ if(input.caseKey==='CUSTOMER_POST_DELIVERY'){const d=row.decisions?.at(-1);if(!d||d.outcome!=='ACCEPTED'||d.remedyAmountIqd!==campaign.benefit.amountIqd||row.state!=='REMEDY_PENDING')fail('CUSTOMER_COMPENSATION_CASE_CHANGED');}
  const amount=campaign.benefit.amountIqd;if(!Number.isSafeInteger(actor.approvalLimit)||actor.approvalLimit<amount)fail('EXCEPTION_APPROVAL_LIMIT',403);
  const at=new Date(now).toISOString(),link={...linkKey,kind:'CUSTOMER_BENEFIT_COMPENSATION',orderId:order.orderId,caseId,caseKey:input.caseKey,campaignId:campaign.discountId,title:campaign.title||campaign.name,amountIqd:amount,grantVersion:grant.version+1,campaignRevision:digest(campaign),requestId:input.requestId,requestDigest:fingerprint,actorId:actor.employeeId,reason:input.reason.trim(),createdAt:at,cashRefundPerformed:false,financialPosting:false};
  const grantNext={...grant,version:grant.version+1,compensationReference:{orderId:order.orderId,caseId,requestId:input.requestId,linkedAt:at},updatedAt:at};

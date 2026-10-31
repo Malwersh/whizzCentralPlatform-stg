@@ -160,14 +160,17 @@ exports.unregister = async (event) => {
       })
     );
 
-    if (existing?.Item && String(existing.Item.subjectId) !== String(subjectId)) {
+    if (existing?.Item && (String(existing.Item.subjectId) !== String(subjectId) || existing.Item.app !== app)) {
       return forbidden('Token does not belong to this user');
     }
 
     await dynamodb.send(
       new DeleteCommand({
         TableName: TOKENS_TABLE,
-        Key: { token }
+        Key: { token },
+        ConditionExpression: 'attribute_not_exists(#token) OR (#subject = :subject AND #app = :app)',
+        ExpressionAttributeNames: {'#token': 'token', '#subject': 'subjectId', '#app': 'app'},
+        ExpressionAttributeValues: {':subject': subjectId, ':app': app}
       })
     );
 
@@ -177,7 +180,8 @@ exports.unregister = async (event) => {
     if (msg.includes('Missing Authorization') || msg.includes('Invalid token')) {
       return unauthorized('Invalid or missing token');
     }
-    console.error('push-tokens.unregister error', e);
+    if (e?.name === 'ConditionalCheckFailedException') return forbidden('Token ownership changed');
+    console.error('push-tokens.unregister error', {name: e?.name});
     return serverError('Failed to unregister token', { details: msg });
   }
 };

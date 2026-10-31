@@ -10,7 +10,7 @@ const clone=structuredClone;
 function setup(earning='3000',transform=()=>{},orderId='order1',flowOptions={}){
  const rows=new Map(),calls=[],sent=[],source=input(earning);let time=Date.parse(at);
  source.order.orderId=orderId;transform(source);
- const keys=(table,r)=> table==='whizz-order-ratings-staging'?{pk:r.pk}:table==='WizzOrders'?{PK:r.PK,SK:r.SK}:table==='WizzDispatchJobs_staging'||table==='WaveOffers_staging'?{orderId:r.orderId,SK:r.SK}:
+ const keys=(table,r)=> table==='WizzUser_websocket_connections_staging'?{connectionId:r.connectionId}:table==='whizz-order-ratings-staging'?{pk:r.pk}:table==='WizzOrders'?{PK:r.PK,SK:r.SK}:table==='WizzDispatchJobs_staging'||table==='WaveOffers_staging'?{orderId:r.orderId,SK:r.SK}:
   table==='staging-Wallets'||table==='staging-LedgerEntries'?{walletId:r.walletId,sk:r.sk}:table==='staging-Holds'?{orderId:r.orderId,sk:r.sk}:
   table==='staging-WalletNotifications'?{eventId:r.eventId}:table==='WizzDriverPerformanceMetrics_staging'?{PK:r.PK,SK:r.SK}:table==='staging-AuditLog'?{datePartition:r.datePartition,sk:r.sk}:table==='staging-WalletLifecycle'?{operationId:r.operationId}:
   ['WizzCentral_Regions','WizzCentral_RegionsDerived_staging'].includes(table)?{regionId:r.regionId}:table==='WizzCentral_RegionNeighbors_staging'?{neighbor_pair_id:r.neighbor_pair_id}:table==='WizzUser_users_staging'?{userId:r.userId}:['WhizzMerchants_Discounts','WizzCentral_Platform_Discounts'].includes(table)?{discountId:r.discountId}:table==='WhizzMerchants_Businesses'?{businessId:r.businessId}:['WhizzDrivers_staging','WizzDriverLiveState_staging'].includes(table)?{driverId:r.driverId}:{pk:r.pk,sk:r.sk};
@@ -39,8 +39,8 @@ function setup(earning='3000',transform=()=>{},orderId='order1',flowOptions={}){
    if(parts.length){parts.push(term.slice(start));return parts.every(evaluate);}
    if(term.startsWith('(')&&term.endsWith(')'))return evaluate(term.slice(1,-1));
    const absence=term.match(/^attribute_not_exists\(([^)]+)\)$/);if(absence)return row?.[field(absence[1])]===undefined;
-   const m=term.match(/^(#?[A-Za-z0-9_]+)\s*(=|>)\s*(:[A-Za-z0-9_]+)$/);
-   assert.ok(m,'unsupported condition '+term);const left=row?.[field(m[1])],right=q.ExpressionAttributeValues[m[3]];return m[2]==='>'?typeof left==='number'&&typeof right==='number'&&left>right:quoteCanonical(left)===quoteCanonical(right);
+   const m=term.match(/^([#A-Za-z0-9_.]+)\s*(=|>)\s*(:[A-Za-z0-9_]+)$/);
+   assert.ok(m,'unsupported condition '+term);const left=m[1].split('.').reduce((current,part)=>current?.[field(part)],row),right=q.ExpressionAttributeValues[m[3]];return m[2]==='>'?typeof left==='number'&&typeof right==='number'&&left>right:quoteCanonical(left)===quoteCanonical(right);
   }
   return evaluate(q.ConditionExpression);
  }

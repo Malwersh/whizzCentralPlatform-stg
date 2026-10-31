@@ -1,0 +1,23 @@
+{
+  "part": 337,
+  "scope": "staging",
+  "status": "PUBLISHED_BYTE_VERIFIED",
+  "hostingJob": "217",
+  "previousHostingJob": "216",
+  "changedFiles": [
+    "assets/js/contrast-controls.js",
+    "assets/js/navigation.js",
+    "styles/wizz-theme-config.js",
+    "styles/platform-theme.css",
+    "styles/design-system.css"
+  ],
+  "otherEntriesPreserved": true,
+  "sourceHashes": {
+    "assets/js/contrast-controls.js": "f333b27b3675b2546e1d53ed7a1992d015c7cefed22388e5b13b33965a0b2ee8",
+    "assets/js/navigation.js": "9eea6ad22763035dcfc325d1e452848cfb15856666ffae9c56b0bdf471d5a9c0",
+    "styles/wizz-theme-config.js": "3b81025e0240d415887218ee98a969d3c2fb033b1a5b6cab7b2dd95026a4bd10",
+    "styles/platform-theme.css": "3e5afe2e99e14adc97e4c3c0663c2e60e770033dd90579c35a0003a4826d268b",
+    "styles/design-system.css": "ddfae41666c9f0924d5d4be0e8b9fcfc91868c382e0b9092793501f22b1e2141"
+  },
+  "publishedAt": "2026-10-28T18:32:03.236922+00:00"
+}

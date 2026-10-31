@@ -154,7 +154,21 @@ Resources:
               Resource:
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Regions
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_RegionsDerived_staging
+            - Sid: HomeDiscoveryOrderMetricsProjection
+              Effect: Allow
+              Action: dynamodb:Scan
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+              Condition:
+                "Null": {"dynamodb:Attributes": "false"}
+                "ForAllValues:StringEquals":
+                  "dynamodb:Attributes": [PK, SK, orderId, businessId, branchId, restaurantId, storeId, merchantId, status, orderStatus, createdAt, isTestOrder, isTest, testMode]
       Events:
+        HomeDiscoveryRefresh:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+            Input: '{"action":"home_discovery_tick"}'
+            Enabled: true
         Staff:
           Type: Api
           Properties:

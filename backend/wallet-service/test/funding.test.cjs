@@ -5,6 +5,7 @@ const funding=require('../dist/fundingService');
 const service=new TopupService();
 const request={driverId:'driver-id',amount:25000,method:'MANUAL_VERIFICATION',evidenceRef:'receipts/driver-id/uuid.jpg',transferReference:'REF1234',idempotencyKey:'12345678-1234-1234-1234-123456789012'};
 test('manual topups reject low amounts, missing evidence, invalid method and missing retry key',async()=>{
+ docClient.send=async()=>({});
  for(const change of [{amount:24999},{amount:25000.1},{evidenceRef:undefined},{method:'CASH_AGENT'},{idempotencyKey:undefined},{transferReference:undefined}]) await assert.rejects(()=>service.createTopupRequest({...request,...change}));
 });
 test('retry returns the original request and prevents changes under the same key',async()=>{
@@ -15,7 +16,7 @@ test('retry returns the original request and prevents changes under the same key
 test('new request reserves transfer reference and receipt atomically without increasing balance',async()=>{
  let transaction;let reads=0;
  docClient.send=async command=>{
-  if(command.constructor.name==='GetCommand')return ++reads===1?{}:{Item:{walletId:'WALLET#DRIVER#driver-id',status:'ACTIVE',version:1}};
+  if(command.constructor.name==='GetCommand'){if(command.input.Key?.idempotencyKey==='CONFIG#WALLET_OPERATING_LIMITS')return {};return ++reads===1?{}:{Item:{walletId:'WALLET#DRIVER#driver-id',status:'ACTIVE',version:1}};}
   transaction=command.input;return {};
  };
  const result=await service.createTopupRequest(request);
@@ -89,3 +90,5 @@ test('topup creation rejects a wallet with a deletion marker before storing an i
  docClient.send=async c=>{if(c.constructor.name==='TransactWriteCommand'){wrote=true;return {};}return c.input.Key?.walletId?{Item:{walletId:c.input.Key.walletId,status:'ACTIVE',version:1,deletionRequestId:'request'}}:{};};
  await assert.rejects(()=>service.createTopupRequest(request),e=>e.code==='ACCOUNT_CLOSING');assert.equal(wrote,false);
 });
+test('manual request uses current configured bounds and atomically pins policy and funding version',async()=>{const limits={version:2,manualMinimumIqd:10000,manualMaximumIqd:100000,manualApprovalDailyIqd:200000,driverPayoutMaximumIqd:1000000000};let tx;docClient.send=async c=>{const q=c.input;if(c.constructor.name==='GetCommand'){if(q.Key?.idempotencyKey==='CONFIG#WALLET_OPERATING_LIMITS')return {Item:{config:limits}};if(q.Key?.walletId)return {Item:{walletId:q.Key.walletId,status:'ACTIVE',version:1}};return {};}tx=q;return {};};await assert.rejects(service.createTopupRequest({...request,amount:9999}),e=>e.code==='FUNDING_AMOUNT_LIMIT');await assert.rejects(service.createTopupRequest({...request,amount:100001}),e=>e.code==='FUNDING_AMOUNT_LIMIT');await service.createTopupRequest({...request,amount:15000,fundingSnapshot:{configVersion:3,enabled:true}});const guards=tx.TransactItems.filter(x=>x.ConditionCheck).map(x=>x.ConditionCheck);assert.equal(guards.find(g=>g.Key.idempotencyKey==='CONFIG#WALLET_OPERATING_LIMITS').ExpressionAttributeValues[':v'],2);assert.equal(guards.find(g=>g.Key.idempotencyKey==='CONFIG#FUNDING').ExpressionAttributeValues[':v'],3);});
+test('approval uses configured daily cap in precheck and atomic remaining counter without resetting history',async()=>{const limits={version:2,manualMinimumIqd:10000,manualMaximumIqd:100000,manualApprovalDailyIqd:200000,driverPayoutMaximumIqd:1000000000};let tx,n=75000;docClient.send=async c=>{const q=c.input;if(c.constructor.name==='GetCommand'){if(q.Key?.idempotencyKey==='CONFIG#WALLET_OPERATING_LIMITS')return {Item:{config:limits}};if(q.Key?.idempotencyKey?.startsWith('FINANCE_DAILY#'))return {Item:{approvedAmount:150000}};if(q.Key?.topupId)return {Item:{...request,amount:n,topupId:'topup',walletId:'WALLET#DRIVER#driver-id',createdById:'driver-id',status:'PENDING'}};if(q.Key?.walletId)return {Item:{walletId:q.Key.walletId,status:'ACTIVE',version:1,availableBalance:0}};return {};}tx=q;return {};};await assert.rejects(service.approveTopupRequest({topupId:'topup',approvedById:'manager',approvedByRole:'finance_manager'}),/200000/);assert.equal(tx,undefined);n=40000;await service.approveTopupRequest({topupId:'topup',approvedById:'manager',approvedByRole:'finance_manager'});const daily=tx.TransactItems.find(o=>o.Update?.Key.idempotencyKey?.startsWith('FINANCE_DAILY#')).Update;assert.equal(daily.ExpressionAttributeValues[':remaining'],160000);assert.match(daily.UpdateExpression,/ADD approvedAmount/);assert(tx.TransactItems.some(o=>o.ConditionCheck?.Key.idempotencyKey==='CONFIG#WALLET_OPERATING_LIMITS'));});

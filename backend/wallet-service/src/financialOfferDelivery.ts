@@ -39,9 +39,18 @@ export function createStagingFinancialOfferDelivery(options:{db:Pick<DynamoDBDoc
   let a=ack(f.saved,f.reference);
   if(!a.websocketAccepted&&!a.websocketUnavailable){
    if(typeof f.state?.connectionId!=='string'||!f.state.connectionId.trim())await mark('websocketUnavailable');
-   else{await options.beforeSend(orderId,driverId);let accepted=false;try{await options.postSocket(f.state.connectionId,message);accepted=true;}catch(error:any){if(error?.statusCode===410||error?.$metadata?.httpStatusCode===410)await mark('websocketUnavailable');}
+   else{
+    // A LiveState connection pointer is not proof of the socket's owner.
+    // Old/unverified sockets receive no private offer; canonical FCM remains independent.
+    let trusted=false,lookupFailed=false;
+    try {
+     const connection=await strongGet(db,'WizzUser_websocket_connections_staging',{connectionId:f.state.connectionId}),scope=connection?.identityScope346;
+     trusted=scope?.version===1&&scope.role==='DRIVER'&&scope.subjectId===f.reference.driverId&&scope.driverId===driverId&&scope.expiresAt>Math.floor(now()/1000)&&connection?.isActive!==false&&connection?.status!=='disconnected';
+    }catch(_){lookupFailed=true;}
+    if(!trusted&&!lookupFailed)await mark('websocketUnavailable');
+    if(trusted){await options.beforeSend(orderId,driverId);let accepted=false;try{await options.postSocket(f.state.connectionId,message);accepted=true;}catch(error:any){if(error?.statusCode===410||error?.$metadata?.httpStatusCode===410)await mark('websocketUnavailable');}
     // An uncertain socket send must not prevent the independent push attempt.
-    if(accepted)await mark('websocketAccepted');}
+    if(accepted)await mark('websocketAccepted');}}
   }
   f=await check();a=ack(f.saved,f.reference);
   if(!a.pushAccepted){

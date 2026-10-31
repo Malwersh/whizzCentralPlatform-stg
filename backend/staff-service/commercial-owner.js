@@ -14,6 +14,6 @@ async function handle(ctx,event){
   // A currently valid, live Cognito session is sufficient for explicit consent.
   // Do not force a second phone login solely because auth_time is older than five minutes.
   const result=event.action==='settlement_schedule_owner'?await require('./settlement-schedules').owner(ctx,claims.sub,event.httpMethod,event.input,{subjectId:claims.sub,authTime:claims.auth_time,revalidate:async()=>{const live=await ctx.cognito.send(new GetUserCommand({AccessToken:event.accessToken}));const a=Object.fromEntries((live.UserAttributes||[]).map(x=>[x.Name,x.Value]));if(a.sub!==claims.sub||a.phone_number_verified!=='true')throw Object.assign(Error('UNAUTHORIZED'),{status:401});}}):await require('./commercial-management').service(ctx,{kind:'OWNER',sub:claims.sub},event.httpMethod,event.input);return {statusCode:200,result};
- }catch(e){return {statusCode:e.status||503,code:e.status?e.message:/^PAYOUT_/.test(e.code||'')?e.code:'COMMERCIAL_UNAVAILABLE'};}
+ }catch(e){return {statusCode:e.status||503,code:e.status?e.message:/^(PAYOUT_|CORRECTION_)/.test(e.code||'')?e.code:'COMMERCIAL_UNAVAILABLE'};}
 }
 module.exports={handle};

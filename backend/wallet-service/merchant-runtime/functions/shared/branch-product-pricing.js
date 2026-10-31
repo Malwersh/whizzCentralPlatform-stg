@@ -124,8 +124,9 @@ function readBranchOptionSelection(value) {
 }
 
 // backend/wallet-service/src/orderGoodsPricing.ts
-var TABLE = "WhizzMerchants_Products";
-var PLATFORM = "staging-MerchantPlatform";
+var TABLE = process.env.INVENTORY_PRODUCTS_TABLE || "WhizzMerchants_Products";
+var PLATFORM = process.env.INVENTORY_PLATFORM_TABLE || "staging-MerchantPlatform";
+var CATEGORY_TABLE = process.env.INVENTORY_CATEGORIES_TABLE || "WhizzMerchants_Categories";
 var knownFields = [
   "productId",
   "businessId",
@@ -140,6 +141,7 @@ var knownFields = [
   "searchableName",
   "createdAt",
   "updatedAt",
+  "stock",
   "optionGroups",
   "imageUrls",
   "images",
@@ -151,7 +153,6 @@ var knownFields = [
   "publishedCategory"
 ];
 var unsupported = [
-  "stock",
   "inventory",
   "trackInventory",
   "unit",
@@ -167,7 +168,7 @@ var unsupported = [
   "deletionStatus",
   "isActive"
 ];
-var fencedFields = ["productId", "businessId", "price", "categoryId", "isAvailable", "updatedAt", "optionGroups", ...unsupported];
+var fencedFields = ["productId", "businessId", "price", "categoryId", "isAvailable", "updatedAt", "optionGroups", "stock", ...unsupported];
 var OrderGoodsPricingError = class extends Error {
   constructor(code) {
     super(code);
@@ -213,7 +214,9 @@ function createStagingOrderGoodsPricing(options) {
     }
     const publishedVersion = typeof activeMenu?.publishedVersion === "string" ? activeMenu.publishedVersion : void 0;
     const lines = [];
-    const products = /* @__PURE__ */ new Map(), pinnedProducts = /* @__PURE__ */ new Set();
+    const products = /* @__PURE__ */ new Map(), liveProducts = /* @__PURE__ */ new Map(), pinnedProducts = /* @__PURE__ */ new Set();
+    const quantities = /* @__PURE__ */ new Map();
+    for (const s of selections) quantities.set(s.productId, (quantities.get(s.productId) || 0) + s.quantity);
     const conditions = [], categories = /* @__PURE__ */ new Set();
     let goodsGross = moneyFromMinor(0), conditionBytes = 0, usesOptionCatalog = false;
     for (const item of selections) {
@@ -221,15 +224,25 @@ function createStagingOrderGoodsPricing(options) {
       try {
         if (products.has(item.productId)) product = products.get(item.productId);
         else if (publishedVersion) {
+          const live = (await options.db.send(new import_lib_dynamodb.GetCommand({ TableName: TABLE, Key: { productId: item.productId }, ConsistentRead: true }))).Item;
+          if (!live || live.businessId !== branchId || live.isAvailable !== true || live.isDeleted === true || live.deletedAt != null) return fail("GOODS_UNAVAILABLE");
+          liveProducts.set(item.productId, live);
           const snapshot = (await options.db.send(new import_lib_dynamodb.GetCommand({ TableName: PLATFORM, Key: { pk: "BRANCH#" + branchId, sk: `MENU_VERSION#${publishedVersion}#PRODUCT#${item.productId}` }, ConsistentRead: true }))).Item;
           product = snapshot?.version === publishedVersion ? snapshot.product : void 0;
         } else product = (await options.db.send(new import_lib_dynamodb.GetCommand({ TableName: TABLE, Key: { productId: item.productId }, ConsistentRead: true }))).Item;
-        if (product) products.set(item.productId, product);
-      } catch {
+        if (product) {
+          products.set(item.productId, product);
+          if (!publishedVersion) liveProducts.set(item.productId, product);
+        }
+      } catch (error) {
+        if (error instanceof OrderGoodsPricingError) throw error;
         return fail("GOODS_PRICING_UNAVAILABLE");
       }
       if (!product || product.productId !== item.productId || product.businessId !== branchId || product.isAvailable !== true) return fail("GOODS_UNAVAILABLE");
       if (Object.keys(product).some((k) => !knownFields.includes(k)) || !quoteEntityIdValid(product.categoryId)) return fail("GOODS_PRICING_UNSUPPORTED");
+      const liveStock = liveProducts.get(item.productId)?.stock;
+      if (liveStock !== void 0 && (!Number.isSafeInteger(liveStock) || liveStock < 0 || liveStock > 1e6)) return fail("GOODS_PRICING_UNSUPPORTED");
+      if (liveStock !== void 0 && liveStock < quantities.get(item.productId)) return fail("GOODS_UNAVAILABLE");
       let unitPrice, lineTotal;
       try {
         if (typeof product.price !== "number" || !Number.isFinite(product.price) || product.price <= 0 || product.price > 1e9) return fail("GOODS_PRICING_UNSUPPORTED");
@@ -274,6 +287,7 @@ function createStagingOrderGoodsPricing(options) {
         conditionBytes += Buffer.byteLength(JSON.stringify(condition));
         if (conditionBytes > 2e5) return fail("GOODS_PRICING_UNSUPPORTED");
         conditions.push(condition);
+        if (publishedVersion) conditions.push({ ConditionCheck: { TableName: TABLE, Key: { productId: item.productId }, ConditionExpression: "businessId=:b AND isAvailable=:yes AND attribute_not_exists(deletedAt) AND (attribute_not_exists(isDeleted) OR isDeleted=:no)", ExpressionAttributeValues: { ":b": branchId, ":yes": true, ":no": false } } });
         pinnedProducts.add(item.productId);
       }
       lines.push({ ...item, ...item.selectedOptions ? { lineId: "CONFIG#" + quoteHash({ productId: item.productId, selectedOptions: item.selectedOptions }) } : {}, unitPrice, lineTotal });
@@ -282,8 +296,8 @@ function createStagingOrderGoodsPricing(options) {
         const categoryNames = Object.fromEntries(categoryFields.map((f, i) => ["#c" + i, f]));
         let category;
         try {
-          category = publishedVersion ? product.publishedCategory : (await options.db.send(new import_lib_dynamodb.GetCommand({
-            TableName: "WhizzMerchants_Categories",
+          category = (await options.db.send(new import_lib_dynamodb.GetCommand({
+            TableName: CATEGORY_TABLE,
             Key: { categoryId: product.categoryId },
             ConsistentRead: true,
             ProjectionExpression: Object.keys(categoryNames).join(", "),
@@ -301,8 +315,8 @@ function createStagingOrderGoodsPricing(options) {
             categoryExpressions.push(`#c${i} = :c${i}`);
           }
         }
-        if (!publishedVersion) conditions.push({ ConditionCheck: {
-          TableName: "WhizzMerchants_Categories",
+        conditions.push({ ConditionCheck: {
+          TableName: CATEGORY_TABLE,
           Key: { categoryId: product.categoryId },
           ConditionExpression: categoryExpressions.join(" AND "),
           ExpressionAttributeNames: categoryNames,

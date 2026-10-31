@@ -33,6 +33,10 @@ function patchTerms(before, patch, source) {
  return next;
 }
 function supported(raw) {
+ if(raw.calculationMode!==undefined&&!['order','perItem'].includes(raw.calculationMode))return false;
+ if(raw.calculationMode==='perItem'&&(!['percentage','fixedAmount'].includes(type(raw.type||raw.discountType))||raw.applicability!=='specificItems'||
+  !Array.isArray(raw.applicable_item_ids)||raw.applicable_item_ids.length>40||
+  Number(raw.minimumOrderAmount??raw.minimum_order_amount??0)!==0||raw.maxDiscountAmount!=null||raw.maxDiscount!=null||!universal(raw)))return false;
  const segments=raw.customerSegments||['all'];
  if(['isActive','singleUse','firstOrderOnly','applicableToAll','stackable'].some(k=>raw[k]!==undefined&&typeof raw[k]!=='boolean'))return false;
  if(['targetRegionIds','targetRestaurants','allowedBusinessIds','businessIds','customerIds','targetSegments','occasions','applicable_item_ids','applicable_category_ids'].some(k=>raw[k]!==undefined&&(!Array.isArray(raw[k])||raw[k].some(v=>typeof v!=='string'||!v||v.length>150))))return false;

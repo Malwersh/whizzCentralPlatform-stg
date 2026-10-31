@@ -5,7 +5,7 @@ const ts=require('../backend/wallet-service/node_modules/typescript');
 const destination=path.join(path.resolve(process.env.WIZZUSER_RUNTIME_ROOT||path.resolve(__dirname,'../../wizzuser-stg')),'backend/src/functions/create-order/quote-runtime');
 const check=process.argv.includes('--check');
 const sourceRoot=path.resolve(__dirname,'../backend/wallet-service/src');
-const pending=['financeRollout','deliveryQuoteOrder','orderGoodsPricing','orderCommercialSource','deliveryPromotionSelection','deliveryPromotionCustomer','merchantPendingResponse'];
+const pending=['productInventory','financeRollout','deliveryQuoteOrder','orderGoodsPricing','orderCommercialSource','deliveryPromotionSelection','deliveryPromotionCustomer','merchantPendingResponse'];
 const visited=new Set();
 const authorityFiles=['catalog','commercial-party'];
 for(const name of pending){

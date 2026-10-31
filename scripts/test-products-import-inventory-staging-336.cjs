@@ -1,0 +1,38 @@
+'use strict';
+// Isolated staging tables only. No real merchant, financial record, driver or dispatch notification.
+const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
+const {DynamoDBClient,CreateTableCommand,DescribeTableCommand,DeleteTableCommand}=require('@aws-sdk/client-dynamodb');
+const {DynamoDBDocumentClient,PutCommand,GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
+const base=path.resolve(__dirname,'..'),run=String(Date.now()),prefix='staging-products-uat336-'+run+'-';
+const names={products:prefix+'products',platform:prefix+'platform',categories:prefix+'categories',orders:prefix+'orders',businesses:prefix+'businesses'};
+Object.assign(process.env,{PRODUCTS_TABLE:names.products,CATEGORIES_TABLE:names.categories,MERCHANT_PLATFORM_TABLE:names.platform,BUSINESSES_TABLE:names.businesses,INVENTORY_PRODUCTS_TABLE:names.products,INVENTORY_CATEGORIES_TABLE:names.categories,INVENTORY_PLATFORM_TABLE:names.platform,INVENTORY_ORDERS_TABLE:names.orders});
+const raw=new DynamoDBClient({region:'us-east-1'}),db=DynamoDBDocumentClient.from(raw,{marshallOptions:{removeUndefinedValues:true}}),created=[],evidence={run,names,checks:[],realBusinessMutations:false};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function table(name,keys,gsi){await raw.send(new CreateTableCommand({TableName:name,BillingMode:'PAY_PER_REQUEST',KeySchema:keys.map((k,i)=>({AttributeName:k,KeyType:i?'RANGE':'HASH'})),AttributeDefinitions:[...keys,...(gsi?['businessId']:[])].map(AttributeName=>({AttributeName,AttributeType:'S'})),...(gsi?{GlobalSecondaryIndexes:[{IndexName:'BusinessIdIndex',KeySchema:[{AttributeName:'businessId',KeyType:'HASH'}],Projection:{ProjectionType:'ALL'}}]}:{}),Tags:[{Key:'Purpose',Value:'isolated-products-336-uat'},{Key:'RunId',Value:run}]}));created.push(name);for(let i=0;i<60;i++){if((await raw.send(new DescribeTableCommand({TableName:name}))).Table.TableStatus==='ACTIVE')return;await wait(1000);}throw Error('TABLE_NOT_READY');}
+async function execute(){
+ for(const [n,k,g] of [[names.products,['productId'],true],[names.platform,['pk','sk']],[names.categories,['categoryId']],[names.orders,['PK','SK']],[names.businesses,['businessId']]])await table(n,k,g);
+ await db.send(new PutCommand({TableName:names.categories,Item:{categoryId:'food',businessId:'uatbranch',categoryName:'أطباق الاختبار',isActive:true}}));
+ await db.send(new PutCommand({TableName:names.businesses,Item:{businessId:'uatbranch'}}));
+ const {createProductImportService}=require('../../whizzMerchants-stg/backend/functions/products/product_import');
+ const {createMenuVersionService}=require('../../whizzMerchants-stg/backend/functions/products/menu_versions');
+ const {createStagingOrderGoodsPricing}=require('../backend/wallet-service/dist/orderGoodsPricing');
+ const {reserveProductInventory,reconcileOrderInventory,setProductStock}=require('../backend/wallet-service/dist/productInventory');
+ const image='https://wizz-merchants-staging-businessphotosbucket-up3j1qega8m5.s3.amazonaws.com/merchants/uatbranch/product-images/test.jpg';
+ const csv=['اسم,سعر,كمية,صورة,ملاحظات',...Array.from({length:8},(_,i)=>'طبق '+i+',1500,'+(i===0?1:3)+',image.jpg,تجاهل')].join('\n');
+ const service=createProductImportService(db,{actor:()=>({sub:'uat-owner'})});
+ let job=await service.preview('uatbranch',{format:'CSV',mode:'ADD_ONLY',csv,columnMapping:{name:'اسم',price:'سعر',stock:'كمية',imageFile:'صورة'},defaultCategoryId:'food',images:{'image.jpg':image}});
+ assert.equal(job.counts.valid,8);evidence.checks.push('mapped Arabic file + owned image + quantities preview');
+ const selected=job.rows.map(r=>r.rowId),first=await service.commit('uatbranch',job.jobId,{expectedVersion:1,offset:0,selectedRowIds:selected});assert.equal(first.status,'APPLYING');assert.equal(first.nextOffset,6);
+ const replay=await service.commit('uatbranch',job.jobId,{expectedVersion:1,offset:0,selectedRowIds:selected});assert.equal(replay.nextOffset,6);
+ const resumed=await service.get('uatbranch',job.jobId);job=await service.commit('uatbranch',job.jobId,{expectedVersion:resumed.version,offset:resumed.nextOffset,selectedRowIds:selected});assert.equal(job.counts.applied,8);evidence.checks.push('real DynamoDB atomic batches, lost-response replay and resumable completion');
+ const versions=createMenuVersionService(db,{actor:()=>({sub:'uat-owner'})}),a=await versions.publish('uatbranch',{requestId:require('crypto').randomUUID()});assert.equal(a.productCount,8);evidence.checks.push('immutable complete publication');
+ const pricing=createStagingOrderGoodsPricing({db}),p1=job.rows[0].productId,p2=job.rows[1].productId;
+ const quote=await pricing.price({branchId:'uatbranch',items:[{productId:p1,quantity:1}]});assert.equal(quote.goodsGross.minorAmount,1500000);
+ async function purchase(orderId,productId,count){const order={PK:'ORDER#'+orderId,SK:'META',orderId,storeId:'uatbranch',status:'pending',items:[{itemId:productId,quantity:count}]};const quote=await pricing.price({branchId:'uatbranch',items:[{productId,quantity:count}]});const ops=await reserveProductInventory(db,order,[...quote.conditions,...quote.conditions.filter(o=>o.ConditionCheck?.TableName===names.products)]);await db.send(new TransactWriteCommand({TransactItems:[...ops,{Put:{TableName:names.orders,Item:order,ConditionExpression:'attribute_not_exists(PK)'}}]}));return order;}
+ const competing=await Promise.allSettled([purchase('race1',p1,1),purchase('race2',p1,1)]);assert.equal(competing.filter(x=>x.status==='fulfilled').length,1);assert.equal((await db.send(new GetCommand({TableName:names.products,Key:{productId:p1},ConsistentRead:true}))).Item.stock,0);await assert.rejects(pricing.price({branchId:'uatbranch',items:[{productId:p1,quantity:1}]}));evidence.checks.push('competing last-piece orders: exactly one atomic success, no oversell');
+ const o=await purchase('cancel-test',p2,2);await db.send(new PutCommand({TableName:names.orders,Item:{...o,status:'cancelled',readyAt:new Date().toISOString()}}));assert.equal((await reconcileOrderInventory(db,'uatbranch','cancel-test')).status,'REVIEW_REQUIRED');await reconcileOrderInventory(db,'uatbranch','cancel-test','RESTOCK',{sub:'uat-owner'});await reconcileOrderInventory(db,'uatbranch','cancel-test','RESTOCK',{sub:'uat-owner'});assert.equal((await db.send(new GetCommand({TableName:names.products,Key:{productId:p2},ConsistentRead:true}))).Item.stock,3);evidence.checks.push('cancelled prepared stock held for review, approved restock exactly once');
+ await setProductStock(db,'uatbranch',{productId:p2,stock:5,expectedStock:3,requestId:'adjust-test'},{sub:'uat-owner'});await assert.rejects(setProductStock(db,'uatbranch',{productId:p2,stock:6,expectedStock:3,requestId:'stale-test'},{}));evidence.checks.push('manual stock adjustment rejects stale screen quantity');
+ await versions.publish('uatbranch',{requestId:require('crypto').randomUUID()});await versions.rollback('uatbranch',{requestId:require('crypto').randomUUID(),version:a.publishedVersion});evidence.checks.push('published menu rollback does not reset live stock');
+ evidence.status='PASS';
+}
+(async()=>{try{await execute();}catch(e){evidence.status='FAIL';evidence.error={name:e.name,message:e.message};process.exitCode=1;}finally{for(const name of created.reverse()){try{await raw.send(new DeleteTableCommand({TableName:name}));}catch(e){evidence.cleanupErrors??=[];evidence.cleanupErrors.push({name,error:e.name});process.exitCode=1;}}evidence.cleanupRequested=created;fs.mkdirSync(path.join(base,'docs'),{recursive:true});fs.writeFileSync(path.join(base,'docs/products-336-isolated-staging-uat.json'),JSON.stringify(evidence,null,2)+'\n');console.log(JSON.stringify(evidence,null,2));}})();

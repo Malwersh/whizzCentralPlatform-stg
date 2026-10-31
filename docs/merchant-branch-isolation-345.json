@@ -1,0 +1,69 @@
+{
+  "part": 345,
+  "scope": "M02_MERCHANT_BRANCH_SESSION_REQUEST_AND_REALTIME_ISOLATION",
+  "status": "PUBLISHED_STAGING_MERCHANT345_INSTALLED_LEGACY_CUTOVER_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+  "resolved": [
+    "Late business list response cannot clear newer branch selection, including A-B-A",
+    "Branch persistence serializes writes and logout clears after any pending selection save",
+    "Late restore cannot revive a logged-out identity or replace current branch",
+    "Stored selection bound to authenticated subject; mismatched branch cache ignored",
+    "Captured mutations invalidated immediately on selection change before preferences finish writing",
+    "Order lists tied to selected branch; old responses and foreign rows excluded",
+    "Reception status belongs to selected branch; old toggle completion cannot update new branch",
+    "Realtime socket and polling responses discarded across branch changes/logout",
+    "Conflicting path/query/body branch IDs rejected by owner handlers",
+    "Legacy details lookup requires selected branch when multiple owned branches exist, with pagination and ownership validation",
+    "Device product update retains same-branch condition and only server-created menu version side effect",
+    "Merchant websocket verifies RSA JWT signature, issuer, client, expiry and branch ownership; no UUID fallback",
+    "Merchant subscriptions pinned to verified connection/branch and protected by transactional ownership/lifecycle/session fences",
+    "Old merchant HTTP virtual connections and unused legacy socket entrypoints return410",
+    "Raw websocket event/message credential logging removed"
+  ],
+  "preserved": [
+    "Existing personal identity, branch phone and owner phone remain separate",
+    "Employee permissions and central revocation policy preserved",
+    "Existing shared-discount consent and financial scope paths retained",
+    "Live finance wrappers, environment values and unrelated deployment entries preserved",
+    "No business profile, financial balance, order or compensation data written by agent"
+  ],
+  "verification": {
+    "merchantNodePassed": 95,
+    "realtimeNodePassed": 12,
+    "flutterPassed": 34,
+    "analyzerErrors": 0,
+    "analyzerWarnings": 0,
+    "existingStyleInfosRemain": true,
+    "deployedPackages": 14,
+    "allPublishedHashesVerified": true,
+    "liveDenialProbesVerified": true,
+    "iosSimulatorBuild": 345,
+    "merchantInstalledAndLaunched": true,
+    "humanBranchSwitchAndRealSocketDelivery": "QUEUED_NOT_RUN"
+  },
+  "publication": "../whizzMerchants-stg/docs/branch-isolation-publication-345.json",
+  "cutover": {
+    "status": "COMPLETED_VERIFIED",
+    "explicitUserApproval": true,
+    "captured": 30,
+    "closedSockets": 0,
+    "alreadyGoneSockets": 30,
+    "virtualSessionRows": 0,
+    "alreadyAbsentRows": 0,
+    "skippedVerified": 0,
+    "skippedChangedScope": 0,
+    "legacyRowsRemoved": 30,
+    "conditionalConflicts": 0,
+    "failures": 0,
+    "businessProfilesOrdersAndMoneyUntouched": true,
+    "remainingCapturedUnverifiedRows": 0,
+    "completedAtUtc": "2026-10-29T02:03:02.814265+00:00"
+  },
+  "auditBoundary": {
+    "activeMerchantSocketApi": "igcrhwc84c/staging",
+    "legacyMerchantSocketLambdasRetired": true,
+    "customerAndDriverRealtimeAuthorization": "SEPARATE_P0_AUDIT_REQUIRED_SHARED_LEGACY_JWT_DECODER_REMAINS_OUTSIDE_MERCHANT_GUARD",
+    "existingCompleteFlowsNotRebuilt": true
+  },
+  "next": "Audit shared customer/driver realtime authorization before M05; human branch-switch and socket delivery acceptance remains queued",
+  "humanAcceptance": "docs/branch-isolation-human-acceptance-345.csv"
+}

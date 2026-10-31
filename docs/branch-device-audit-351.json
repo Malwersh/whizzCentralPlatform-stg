@@ -1,0 +1,168 @@
+{
+  "date": "2026-10-29",
+  "item": "M05",
+  "merchantBuild": 351,
+  "installedOn": "iPhone 16 simulator E2B409D5-6821-4BDC-BDAC-D415977B971E",
+  "backendTestsPassed": 89,
+  "frontendTestsPassed": 11,
+  "runtimeReadOnlyAudit": {
+    "functions": [
+      {
+        "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+        "checks": [
+          {
+            "module": "branch_devices.js",
+            "matches": true
+          },
+          {
+            "module": "shared/branch-device-access.js",
+            "matches": true
+          },
+          {
+            "module": "merchant-platform/branch-device-security.js",
+            "matches": true
+          }
+        ]
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "checks": [
+          {
+            "module": "branch_devices.js",
+            "matches": false
+          },
+          {
+            "module": "shared/branch-device-access.js",
+            "matches": true
+          },
+          {
+            "module": "merchant-platform/branch-device-security.js",
+            "matches": true
+          }
+        ]
+      },
+      {
+        "name": "order-receiver-regional-staging-product-management-v4-sam",
+        "checks": []
+      },
+      {
+        "name": "order-receiver-regional-staging-location-settings-v1-sam",
+        "checks": [
+          {
+            "module": "branch_devices.js",
+            "matches": false
+          },
+          {
+            "module": "shared/branch-device-access.js",
+            "matches": false
+          },
+          {
+            "module": "merchant-platform/branch-device-security.js",
+            "matches": true
+          }
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "path": "/auth/branch-devices",
+        "method": "GET",
+        "authorization": "COGNITO_USER_POOLS"
+      },
+      {
+        "path": "/auth/branch-devices",
+        "method": "POST",
+        "authorization": "COGNITO_USER_POOLS"
+      },
+      {
+        "path": "/branch-device/businesses/{businessId}/working-hours",
+        "method": "GET",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/businesses/{businessId}/working-hours",
+        "method": "PUT",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/merchant/order/{orderId}/confirm",
+        "method": "PUT",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/categories",
+        "method": "GET",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device",
+        "method": "POST",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/merchant/order/{orderId}/status",
+        "method": "PUT",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/merchant/order/{orderId}/reject",
+        "method": "PUT",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/products",
+        "method": "GET",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/products",
+        "method": "POST",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/products/{productId}",
+        "method": "DELETE",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/products/{productId}",
+        "method": "GET",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/products/{productId}",
+        "method": "PUT",
+        "authorization": "CUSTOM"
+      },
+      {
+        "path": "/branch-device/merchant/orders/{businessId}",
+        "method": "GET",
+        "authorization": "CUSTOM"
+      }
+    ],
+    "deviceAuthorizers": [
+      {
+        "name": "MerchantBranchDevice",
+        "type": "TOKEN",
+        "cacheSeconds": 0
+      }
+    ]
+  },
+  "interpretation": [
+    "Device runtime POST /branch-device uses unified auth, whose reviewed device/auth security modules match local transformed source.",
+    "All 15 inspected API method definitions require Cognito or CUSTOM authorization; device authorizer TTL is zero.",
+    "Orders runtime device module differs only by unused settlements action; shared access and security module match.",
+    "Hours contains older copies of some device runtime actions; its API routes use hours operations rather than device runtime actions.",
+    "Product bundle matches current source rebuild after esbuild syntax/whitespace normalization; byte differences were formatting only."
+  ],
+  "serverMutation": "None",
+  "remaining": [
+    "Human independent OTP pairing, lock/expiry, device revocation during operation and background reception acceptance"
+  ],
+  "productsBundleParity": {
+    "formatNormalizedMatch": true,
+    "normalizedSha256": "0bbca9ecf3e3336c31ca0015c68ce2acbe9df820e10a901721ac01e08e84d2ca"
+  },
+  "deployedStageVerified": "staging",
+  "additionalProductScopeTestsPassed": 31
+}

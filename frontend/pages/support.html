@@ -182,6 +182,8 @@
             let merchantChatWS = null;
             let merchantAuthConnecting = false;
             let merchantSessions = new Map();
+            let requestedComplaintSession341 = new URLSearchParams(location.search).get('sessionId');
+            const requestedComplaintOrder341 = new URLSearchParams(location.search).get('orderId');
             let closedSessions = new Map();  // Store recently closed sessions
             let merchantStatusWatchId = null; // 🔍 Watchdog for reflecting merchant WS state into UI
             // 🔄 Reconnect state (exponential backoff)
@@ -615,6 +617,9 @@
 
             // Minimal sessions list renderer for incoming sessions
             function updateSessionsList() {
+                if (/^complaint_[a-f0-9]{48}$/.test(requestedComplaintSession341 || '') && merchantSessions.has(requestedComplaintSession341) && merchantSessions.get(requestedComplaintSession341).orderId === requestedComplaintOrder341) {
+                    const target = requestedComplaintSession341; requestedComplaintSession341 = null; selectSession(target);
+                }
                 const list = document.getElementById('sessionsList');
                 const activeCount = document.getElementById('activeSessions');
                 if (!list) return;

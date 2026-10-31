@@ -55,7 +55,7 @@ function createReviewReader(ctx,actor){
   const digestOrder={...order};delete digestOrder.financeRollout;
   const baseDigest=hash({source,job,order:digestOrder,branch,hold:hold??null,attempts});
   const publicDecision=decision?{requestId:decision.requestId,action:decision.action,status:decision.status,reason:decision.reason,createdAt:decision.createdAt,resultCode:decision.resultCode??null,executedAt:decision.executedAt??null,stale:['PENDING_EXECUTION','BLOCKED_DEPENDENCY'].includes(decision.status)&&decision.baseDigest!==baseDigest}:null;
-  const item={...q,caseId,baseDigest,active,branchId:branch.businessId,branchName:branch.businessName??branch.name??branch.businessId,regionId:branch.regionId,reason:q.source==='SEARCH'?source.dispatchReview?.reason??source.noDriverReason:source.reason??source.state,phase:q.source==='SEARCH'?'SEARCH_EXHAUSTED':source.state,orderStatus:order.status,goodsState:before?'BEFORE_PICKUP_RECORDED':'REQUIRES_CHECK',holdState:hold?.status??'NOT_RECORDED',pendingAcceptance:pending,decision:publicDecision,executionReady:false,
+  const item={...q,caseId,baseDigest,active,operationalReviewActive:active&&(q.source==='SEARCH'?before:!['cancelled','delivered','completed'].includes(order.status)),branchId:branch.businessId,branchName:branch.businessName??branch.name??branch.businessId,regionId:branch.regionId,reason:q.source==='SEARCH'?source.dispatchReview?.reason??source.noDriverReason:source.reason??source.state,phase:q.source==='SEARCH'?(['cancelled','delivered','completed'].includes(order.status)?'ORDER_CLOSED':job.status==='assigned'||order.driverId||order.assignedDriverId?'DRIVER_ASSIGNED':job.status==='no_driver_available'?'SEARCH_EXHAUSTED':'SEARCH_RESUMED'):source.state,orderStatus:order.status,goodsState:before?'BEFORE_PICKUP_RECORDED':'REQUIRES_CHECK',holdState:hold?.status??'NOT_RECORDED',pendingAcceptance:pending,decision:publicDecision,executionReady:false,
    canRequestRetry:!decision&&ready&&branch.status==='approved'&&branch.isActive===true&&branch.ordersBlocked!==true&&branch.platformSuspended!==true&&allowed(actor,'orders.assign',branch.regionId),
    canRequestCancel:!decision&&ready&&allowed(actor,'orders.cancel',branch.regionId),
    canRequestReservationReview:!decision&&active&&q.source==='ACCEPTANCE'&&allowed(actor,'orders.assign',branch.regionId)};
@@ -72,13 +72,15 @@ async function route(ctx,actor,method,path,input={}){
  if((ctx.mode??process.env.DISPATCH_REVIEW_MODE)!=='REQUESTS_ONLY')throw fail('DISPATCH_REVIEW_DISABLED',503);
  if(!allowed(actor,'orders.read'))throw fail('PERMISSION_REQUIRED',403);
  const {get,fresh,load,readFence}=createReviewReader(ctx,actor);
+ if(method==='GET'&&path===PATH+'/alerts')return require('./dispatch-followup').alerts(ctx,actor,{load,readFence,fresh});
+ if(method==='POST'&&path===PATH+'/followup')return require('./dispatch-followup').mutate(ctx,actor,input,{load,readFence,fresh});
  if(method==='GET'&&path===PATH){
   const query=ctx.query||{};
-  if(query.orderId){const c=await load(query);await readFence(c);await fresh();return {item:c.item,mode:'REQUESTS_ONLY'};}
+  if(query.orderId){const c=await load(query);await readFence(c);await fresh();return {item:{...c.item,followup:await require('./dispatch-followup').decorate(ctx,c,actor)},mode:'REQUESTS_ONLY'};}
   let cursor;if(query.cursor){try{const c=JSON.parse(Buffer.from(query.cursor,'base64url').toString());if(query.cursor.length>2048||c.actorId!==actor.employeeId||c.version!==actor.version||!id(c.key?.orderId)||typeof c.key.SK!=='string'||c.key.SK.length>220||Object.keys(c.key).sort().join(',')!=='SK,orderId')throw Error();cursor=c.key;}catch{throw fail('INVALID_CURSOR',400);}}
   const projection=Object.fromEntries(fields.job.map((k,i)=>['#p'+i,k]));
   const result=await ctx.db.send(new ScanCommand({TableName:JOBS,ConsistentRead:true,Limit:25,ExclusiveStartKey:cursor,ProjectionExpression:Object.keys(projection).join(','),ExpressionAttributeNames:projection})),items=[];
-  for(const row of result.Items||[]){if(ctx.scopeContains&&!ctx.scopeContains(row.orderId))continue;if(!candidate(row)&&!(row.SK==='METADATA'&&row.dispatchReviewOutcome?.caseId))continue;try{const c=await load({orderId:row.orderId,source:row.SK==='METADATA'?'SEARCH':'ACCEPTANCE',attemptId:row.attemptId});if(c.item.active||c.item.decision){await readFence(c);items.push(c.item);}}catch(e){if(e.message!=='REVIEW_UNAVAILABLE')throw e;}}
+  for(const row of result.Items||[]){if(ctx.scopeContains&&!ctx.scopeContains(row.orderId))continue;if(!candidate(row)&&!(row.SK==='METADATA'&&row.dispatchReviewOutcome?.caseId))continue;try{const c=await load({orderId:row.orderId,source:row.SK==='METADATA'?'SEARCH':'ACCEPTANCE',attemptId:row.attemptId});if(c.item.active||c.item.decision){await readFence(c);items.push({...c.item,followup:await require('./dispatch-followup').decorate(ctx,c,actor)});}}catch(e){if(e.message!=='REVIEW_UNAVAILABLE')throw e;}}
   await fresh();return {items,nextCursor:result.LastEvaluatedKey?Buffer.from(JSON.stringify({actorId:actor.employeeId,version:actor.version,key:result.LastEvaluatedKey})).toString('base64url'):null,mode:'REQUESTS_ONLY'};
  }
  if(method!=='POST'||path!==PATH+'/decisions')throw fail('NOT_FOUND',404);
@@ -91,9 +93,10 @@ async function route(ctx,actor,method,path,input={}){
  if(c.baseDigest!==input.baseDigest)throw fail('REVIEW_CHANGED');
  const flag={RETRY_SEARCH:'canRequestRetry',CANCEL_BEFORE_PICKUP:'canRequestCancel',CHECK_RESERVATION:'canRequestReservationReview'}[input.action];if(!c.item[flag])throw fail('REVIEW_ACTION_NOT_ALLOWED');
  const row={...c.decisionKey,kind:'DISPATCH_REVIEW_DECISION',schemaVersion:1,caseId:c.item.caseId,orderId:c.item.orderId,branchId:c.item.branchId,regionId:c.item.regionId,selector:validate(input.selector),baseDigest:c.baseDigest,requestId:input.requestId,requestDigest,action:input.action,reason:input.reason.trim(),status:'PENDING_EXECUTION',actorId:actor.employeeId,actorVersion:actor.version,createdAt:new Date().toISOString()};
- const tx=[ctx.guard(actor),...c.guards,{Put:{TableName:ctx.table,Item:row,ConditionExpression:'attribute_not_exists(pk)'}},ctx.audit(actor.employeeId,'DISPATCH_REVIEW_DECISION_REQUESTED',{orderId:row.orderId,caseId:row.caseId},{requestId:row.requestId,action:row.action,status:row.status},row.requestId)];
+ const followupWrites=await require('./dispatch-followup').decisionFollowup(ctx,actor,c);
+ const tx=[ctx.guard(actor),...c.guards,...followupWrites,{Put:{TableName:ctx.table,Item:row,ConditionExpression:'attribute_not_exists(pk)'}},ctx.audit(actor.employeeId,'DISPATCH_REVIEW_DECISION_REQUESTED',{orderId:row.orderId,caseId:row.caseId},{requestId:row.requestId,action:row.action,status:row.status},row.requestId)];
  if(tx.length>100||Buffer.byteLength(JSON.stringify(tx))>3500000)throw fail('REVIEW_INCOMPLETE',503);
  try{await ctx.db.send(new TransactWriteCommand({TransactItems:tx}));}catch(e){const saved=await get(ctx.table,c.decisionKey);if(saved?.requestId===row.requestId&&saved.actorId===actor.employeeId&&saved.requestDigest===requestDigest){await fresh();return receipt(saved,true);}if(e.name==='TransactionCanceledException')throw fail('REVIEW_CHANGED');throw e;}
  return receipt(row);
 }
-module.exports={route,PATH,hash,createReviewReader,reviewAccess};
+module.exports={route,PATH,hash,createReviewReader,reviewAccess,followupSettings:(...args)=>require('./dispatch-followup').settings(...args)};

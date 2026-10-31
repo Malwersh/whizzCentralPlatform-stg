@@ -32,6 +32,7 @@
     if(profile.activationRequired)return prefix+'account-security.html';
     if(profile.employee.roles.includes('bootstrap_admin'))return getPostLoginUrl();
     if(profile.permissions.includes('staff.read'))return prefix+'staff.html';
+    if(profile.permissions.includes('audit.read'))return prefix+'audit-trail.html';
     if(profile.permissions.includes('settings.read'))return prefix+'settings.html';
     if(profile.permissions.includes('finance.read'))return prefix+'finance.html';
     if(profile.permissions.includes('drivers.read'))return prefix+'drivers.html';

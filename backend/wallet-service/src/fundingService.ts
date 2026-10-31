@@ -3,13 +3,16 @@ import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from 
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { docClient, TABLES, GetCommand, TransactWriteCommand } from './db';
 import { WalletError } from './types';
+import {readWalletLimits} from './walletOperatingLimits';
 const s3 = new S3Client({});
 const bucket = process.env.FUNDING_RECEIPTS_BUCKET || '';
 const configKey = { idempotencyKey: 'CONFIG#FUNDING', sk: 'META' };
 export const fundingError = (message: string, code = 'INVALID_FUNDING_REQUEST', status = 400) => new WalletError(message, code, status);
 export async function getFundingConfig() {
  const { Item } = await docClient.send(new GetCommand({ TableName: TABLES.IDEMPOTENCY_KEYS, Key: configKey, ConsistentRead: true }));
- return Item?.config || { version: 0, manual: { enabled: false, phone: '07800868280', name: 'محمد علي دعاش', minimum: 25000 }, zaincash: { enabled: false }, card: { enabled: false } };
+ const config=Item?.config || { version: 0, manual: { enabled: false, phone: '07800868280', name: 'محمد علي دعاش', minimum: 25000 }, zaincash: { enabled: false }, card: { enabled: false } };
+ const limits=await readWalletLimits(docClient,TABLES.IDEMPOTENCY_KEYS);
+ return {...config,limitsVersion:limits.version,manual:{...config.manual,minimum:limits.manualMinimumIqd,maximum:limits.manualMaximumIqd}};
 }
 export async function saveFundingConfig(input: any, actor: string) {
  const previous = await getFundingConfig();

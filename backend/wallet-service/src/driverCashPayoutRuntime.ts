@@ -1,3 +1,4 @@
+import {auditActor,driverAuditActor} from './financialAudit';
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb';
 import {DynamoDBDocumentClient,QueryCommand} from '@aws-sdk/lib-dynamodb';
 import {CognitoIdentityProviderClient} from '@aws-sdk/client-cognito-identity-provider';
@@ -36,8 +37,9 @@ export async function handler(event:Row){try{
   const p=await strongGet(db,'WhizzDrivers_staging',{driverId});
   if(!p||p.driverId!==driverId||(p.cognitoSub??driverId)!==driverId||p.deletedAt!=null||p.deletionRequestId!=null||p.isDeleted===true)return fail('DRIVER_PAYOUT_DRIVER_UNAVAILABLE');
   const guards:Row[]=[exactCheck('WhizzDrivers_staging',{driverId},p,[...Object.keys(p),'deletedAt','deletionRequestId','isDeleted']),{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+driverId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}];
-  if(!driver){const access=role==='APPROVE'?await staff.financial(a as any,amount):role==='STAFF'?await staff.executeCash(a as any):await staff.readCash(a as any);if(role==='STAFF'&&!allowed(access.employee,'finance.request'))return fail('DRIVER_PAYOUT_PERMISSION_REQUIRED');guards.push(access.guard);}
-  return {actorId:a.subjectId,driver,driverName:p.name||p.fullName||'السائق',guards};
+  let auditIdentity:Row|undefined=driver?driverAuditActor(a.subjectId,p):undefined;
+  if(!driver){const access=role==='APPROVE'?await staff.financial(a as any,amount):role==='STAFF'?await staff.executeCash(a as any):await staff.readCash(a as any);if(role==='STAFF'&&!allowed(access.employee,'finance.request'))return fail('DRIVER_PAYOUT_PERMISSION_REQUIRED');guards.push(access.guard);auditIdentity=auditActor(a.subjectId,access.employee);}
+  return {actorId:a.subjectId,driver,driverName:p.name||p.fullName||'السائق',guards,auditIdentity};
  }});
  return {statusCode:200,result:{enabled:true,...await api.handle(body)}};
 }catch(e:any){const known=typeof e?.code==='string'&&/^(DRIVER_PAYOUT_|PAYOUT_|EXCEPTION_|UNAUTHORIZED$)/.test(e.code)&&e.code!=='DRIVER_PAYOUT_UNAVAILABLE';return {statusCode:e?.code==='UNAUTHORIZED'?401:known?409:503,code:known?e.code:'DRIVER_PAYOUT_UNAVAILABLE'};}}

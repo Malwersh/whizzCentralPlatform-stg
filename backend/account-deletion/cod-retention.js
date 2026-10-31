@@ -46,7 +46,8 @@ async function pendingCod({db,driverIds=[],branchId,orderIds=[],maxPages=100}){
  const holdRows=await scan(db,'staging-Holds',maxPages);
  const cash=holdRows.filter(r=>cashRetention.pending(r)&&owned(r)).map(r=>({orderId:r.orderId,operationId:r.caseId,status:'CUSTOMER_CASH_REVIEW_PENDING'}));
  const reviews=require('./quality-review-retention-290').pendingQualityReviews(holdRows,driverIds);
- return [...events,...dispatch,...cash,...reviews];
+ const complaints=holdRows.filter(r=>r.kind==='CUSTOMER_POST_DELIVERY_CASE'&&owned(r)).map(r=>({orderId:r.orderId,operationId:r.caseId,status:r.state==='CLOSED'?'POST_DELIVERY_CASE_RETENTION_REVIEW':'POST_DELIVERY_COMPLAINT_PENDING'}));
+ return [...events,...dispatch,...cash,...reviews,...complaints];
 }
 
 async function reviewRows(db,maxPages){
