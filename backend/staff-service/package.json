@@ -73,7 +73,13 @@
     "dispatch-followup-monitor.js",
     "dispatch-followup-runtime.js",
     "customer-order-complaints.js",
-    "audit-trail.js"
+    "audit-trail.js",
+    "home-layout.js",
+    "home-promotion-settings.js",
+    "promotion-scenes.js",
+    "home-discovery.js",
+    "interface-layout.js",
+    "offer-slot.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",

@@ -1,0 +1,62 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "functions": {
+    "staging-wizz-staff-service": {
+      "sha256": "lFQ4tprcX4gC2sLYNqSxwuhysAVuj//oY9cjGrWezrw=",
+      "verified": true,
+      "iamChanged": false
+    },
+    "order-receiver-regional-staging-product-management-v4-sam": {
+      "sha256": "FbpDYoOK5GdyQbwXN2lvCusHkiZLz0VrWNEtX8zH6UQ=",
+      "verified": true
+    },
+    "WizzUser-GetBusinessProducts-staging": {
+      "sha256": "8HvOGLrqYjzsl57AW+ApK6ac188H566wBLkP5YxPMC8=",
+      "verified": true
+    },
+    "WizzUser-GetBusinesses-staging": {
+      "sha256": "Lu8HRMdOlJsup2cX+v8oL6MEzF2N4OxynQXcZAVJ85k=",
+      "verified": true
+    },
+    "WizzUser-GetBusiness-staging": {
+      "sha256": "HZthwldvxre1pxMPa5UxydJUK7z8mjakqQmSz2QFa2I=",
+      "verified": true
+    }
+  },
+  "publicFeedVerified": true,
+  "hostingJob": "245",
+  "part": 378,
+  "environment": "staging",
+  "customerSimulatorBuild": 324,
+  "merchantSimulatorBuild": 350,
+  "automatedChecks": {
+    "centralBackend": 24,
+    "merchantBackend": 27,
+    "customerFlutter": 9,
+    "merchantFlutter": 4,
+    "browserWidths": [
+      390,
+      1280
+    ]
+  },
+  "authoredDataChanged": false,
+  "iamChanged": false,
+  "behavior": {
+    "activities": "Authoritative merchant onboarding policy is shared by the home editor; canonical businessTypeId is preserved in customer responses and models. Previously published legacy selectors are supported for compatibility.",
+    "classifications": "Central classifications may be scoped to canonical activities. Branch, product, and menu-category assignments are separate and checked for branch ownership.",
+    "merchant": "Owner can select central classifications in the product and menu-category editor; normal draft, audit, request replay and menu publication remain in effect.",
+    "publication": "Effective product and category classifications are frozen in menu version snapshots. A derived publishedCuisineIds field on the business supports home discovery without scanning menus. Rollback restores the aggregate.",
+    "centralAssignments": "Central product/category assignments take effect on next merchant menu publication, not by changing prices or draft products.",
+    "filters": "Classification strip and section rules match explicit branch assignments or published classified products."
+  },
+  "humanChecksPending": [
+    "Create an activity-compatible central classification and assign to a product and an owned menu category.",
+    "Publish the menu, verify the corresponding home filter and confirm draft edits are absent before publication.",
+    "Switch branches during taxonomy loading and verify no cross-branch result is applied.",
+    "Verify menu rollback restores the previous classification results."
+  ],
+  "limitations": [
+    "Legacy published activity selectors are intentionally retained until their authored strip is updated to canonical activity IDs.",
+    "Product classification changes from employee device sessions require the branch owner; existing device menu permissions are not expanded."
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "part": 362,
+  "environment": "staging",
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "homeContentUnchanged": true,
+  "templateContentWritten": false,
+  "financialRecordsWritten": 0,
+  "allOtherEntriesPreserved": true,
+  "tests": {
+    "backend": 22,
+    "flutter": 33,
+    "browserViewports": [
+      390,
+      1280
+    ]
+  },
+  "backend": {
+    "function": "staging-wizz-staff-service",
+    "sha256": "FA8UdmpL2Y/++QkSDVcoLkkPxxC/4WQS938XVh9GAvM=",
+    "configurationPreserved": true
+  },
+  "publicInterfaceCanary": true,
+  "derivedSnapshots": {
+    "rebuilt": true,
+    "asOf": "2026-10-31T21:36:56.050Z",
+    "financialRecordsWritten": 0
+  },
+  "hosting": {
+    "jobId": "236",
+    "previousJob": "235",
+    "sourceHashes": {
+      "pages/customer-interfaces.html": "d3f3c14980c5240a95b179c2346208aefba693780daba231ff4ead59346a6dbf",
+      "interface-layout.js": "7cdc27a115f70b43da2201460f3b655f10cfc55ac9bf3ffdeef2b15b5b342bfd",
+      "pages/home-layout.html": "fbfe59589ca2482f50867819b90498d6add9ce16d0c1237a5e03dd888348e886",
+      "home-layout.js": "3d607949926af11bb5b49ca6c5715e4eea60b101033ac3af1d469923965b194b",
+      "pages/promotions.html": "bd3b599fff7516f0fddfdfc875b0c192ccbaccf6c968cde53b8fddc4662edb3d"
+    }
+  },
+  "approvedCatalogRead": {
+    "policyArn": "arn:aws:iam::699561669180:policy/CustomerInterfaceCatalogRead362",
+    "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+    "action": "dynamodb:Query",
+    "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Products/index/BusinessIdIndex",
+    "explicitUserApproval": true,
+    "form": "Managed policy attachment; inline policy aggregate size limit reached",
+    "additionalPermissions": false
+  }
+}

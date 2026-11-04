@@ -1029,15 +1029,25 @@
     $("offer-image-status").textContent = "جارٍ رفع الصورة…";
     const url = URL.createObjectURL(file);
     try {
-      if (!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size > 10*1024*1024) throw Error("Choose a JPG, PNG or WebP image under 10 MB.");
+      const isGif = file.type === 'image/gif' || /\.gif$/i.test(file.name || '');
+      if ((!isGif && !['image/jpeg','image/png','image/webp'].includes(file.type)) || file.size > 10*1024*1024) throw Error('اختر JPG أو PNG أو WebP حتى 10 MB، أو GIF حتى 3 MB.');
       const img = new Image(); img.src = url; await img.decode();
-      if (img.naturalWidth*img.naturalHeight > 40000000) throw Error("Choose an image under 40 megapixels.");
-      const canvas = document.createElement("canvas"), ratio = Math.min(1,1600/img.naturalWidth,1600/img.naturalHeight);
-      canvas.width = Math.max(1,Math.round(img.naturalWidth*ratio)); canvas.height = Math.max(1,Math.round(img.naturalHeight*ratio));
-      const ctx = canvas.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      let image; for (const quality of [.85,.7,.55,.4]) { image = canvas.toDataURL("image/jpeg",quality).split(",")[1]; if (image.length < 790000) break; }
-      if (image.length >= 790000) throw Error("Image is too detailed. Choose a smaller image.");
-      const result = await api("slideshow/upload",{image});
+      if (img.naturalWidth*img.naturalHeight > 40000000) throw Error('اختر صورة أقل من 40 ميغابكسل.');
+      let image;
+      if (isGif) {
+        if (file.size > 3*1024*1024) throw Error('اختر GIF بحجم أقل من 3 MB.');
+        image = await new Promise((resolve,reject) => {
+          const reader = new FileReader(); reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = () => reject(Error('تعذر قراءة الصورة.')); reader.readAsDataURL(file);
+        });
+      } else {
+        const canvas = document.createElement('canvas'), ratio = Math.min(1,1600/img.naturalWidth,1600/img.naturalHeight);
+        canvas.width = Math.max(1,Math.round(img.naturalWidth*ratio)); canvas.height = Math.max(1,Math.round(img.naturalHeight*ratio));
+        const ctx = canvas.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        for (const quality of [.85,.7,.55,.4]) { image = canvas.toDataURL('image/jpeg',quality).split(',')[1]; if (image.length < 790000) break; }
+        if (image.length >= 790000) throw Error('اختر صورة أصغر.');
+      }
+      const result = await api('slideshow/upload',{image,contentType:isGif ? 'image/gif' : 'image/jpeg'});
       if (generation !== imageGeneration) return;
       campaignImageKey = result.imageKey; campaignImageUrl = result.imageUrl; dirty = true;
       $("offer-image-preview").src = campaignImageUrl; $("offer-image-preview").hidden = false;

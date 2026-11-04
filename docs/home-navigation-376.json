@@ -1,0 +1,47 @@
+{
+  "part": 376,
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "environment": "staging",
+  "customerBuild": 320,
+  "backendTests": 22,
+  "flutterTests": 14,
+  "browserWidths": [
+    390,
+    1280
+  ],
+  "authoredContentChanged": false,
+  "description": "Home category strip reads explicit activity, cuisine and brand selectors. Existing classification catalog reused; no invented merchant tags. Draft/publish/rollback, regions, audience, dates, images and ordering controlled from home editor.",
+  "backendSha256": "ZHPFoT9o7pIDajF09K8kbGzLcqQI22EG6WjACfe66TI=",
+  "publicFeedVerified": true,
+  "hostingJob": "242",
+  "hostingHashes": {
+    "pages/home-layout.html": "b643ef66cdeebda8db5bc90ec5f7c1651aaefa562aa2e40327a27c7886127229",
+    "home-layout.js": "7dfa7803ecebcf29bd21aa18edde4f20e8af1e72ec910bc7463840d78b1f267d"
+  },
+  "adminLocation": "أقسام الرئيسية ← شريط التصنيفات",
+  "classificationLocation": "أقسام الرئيسية ← تصنيفات الطعام والعلامات",
+  "storage": {
+    "catalog": "staging-PlatformStaff / HOME_DISCOVERY / CATALOG",
+    "presentation": "staging-PlatformStaff / HOME_LAYOUT / CURRENT; draftNavigation and published.navigation"
+  },
+  "audit": {
+    "catalogRecordAbsentBeforeChange": true,
+    "previousStrip": "Hardcoded labels/assets with visibility derived from loaded region-authorized businesses",
+    "noAutomaticAssignments": true
+  },
+  "controls": [
+    "up to 20 items, All first and protected",
+    "activity/cuisine/brand selectors",
+    "labels, preset imagery or uploaded square-cropped photos",
+    "ordering, enabled, audience, regions and Baghdad schedule",
+    "draft, publication, rollback, optimistic version and audit"
+  ],
+  "humanAcceptance": [
+    "Create food labels and assign merchant profiles in catalog editor",
+    "Configure strip item source, image, scope and ordering; save draft",
+    "Review and publish home changes",
+    "Reopen home naturally; verify category matches and cart/navigation retained"
+  ],
+  "pagination": "Selected category searches later existing authorized result pages until enough results or end; no order scans and no use of names to infer cuisine",
+  "scopeChanges": "Selection falls back to All when scope changes, configuration disables strip, selected item disappears, or rollback restores legacy strip"
+}

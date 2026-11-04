@@ -1,0 +1,27 @@
+{
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "part": 363,
+  "backendSha256": "tWhWj4VWtKtz4sDUo2B2zI2FgFmiU4inFFXVau/lVxg=",
+  "hostingJob": "238",
+  "customerBuild": 289,
+  "newPermissions": false,
+  "templateRecordsChanged": false,
+  "financialWrites": false,
+  "otherRuntimeAndHostingEntriesPreserved": true,
+  "offerState": "ready",
+  "guestOfferCount": 1,
+  "tests": {
+    "backend": 29,
+    "flutter": 21,
+    "browserWidths": [
+      390,
+      1280
+    ]
+  },
+  "humanChecksPending": [
+    "Authenticated offer selection and replacement",
+    "Existing delivery benefit review",
+    "Full cash order with campaign"
+  ],
+  "customerInstalledOn": "iPhone 16 Pro simulator"
+}

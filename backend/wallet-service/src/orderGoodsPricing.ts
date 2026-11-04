@@ -11,7 +11,7 @@ const CATEGORY_TABLE=process.env.INVENTORY_CATEGORIES_TABLE||'WhizzMerchants_Cat
 // The two existing manual product writers store price in IQD in this table, not order pricing's minor units.
 const knownFields = ['productId', 'businessId', 'globalProductId', 'name', 'description', 'price', 'categoryId',
   'imageUrl', 'barcode', 'isAvailable', 'searchableName', 'createdAt', 'updatedAt',
-  'stock','optionGroups', 'imageUrls', 'images', 'nutritionalInfo', 'allergens', 'preparationTime', 'rating', 'reviewCount','publishedCategory'];
+  'stock','optionGroups', 'imageUrls', 'images', 'nutritionalInfo', 'allergens', 'preparationTime', 'rating', 'reviewCount','publishedCategory','cuisineIds'];
 const unsupported = [ 'inventory', 'trackInventory', 'unit', 'unitPrice', 'salePrice', 'discountPrice',
   'options', 'modifiers', 'variants', 'sizes', 'isDeleted', 'deletedAt', 'deletionStatus', 'isActive'];
 const fencedFields = ['productId', 'businessId', 'price', 'categoryId', 'isAvailable', 'updatedAt', 'optionGroups','stock', ...unsupported];

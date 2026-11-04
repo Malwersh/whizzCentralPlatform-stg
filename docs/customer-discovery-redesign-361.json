@@ -236,5 +236,204 @@
       "Additional campaign/product-specific presentation templates",
       "Human end-to-end section/catalog publishing acceptance"
     ]
+  },
+  "interfaceTemplates": {
+    "status": "PUBLISHED_STAGING_VERIFIED_HUMAN_TEMPLATE_ACCEPTANCE_PENDING",
+    "surfaces": [
+      "home",
+      "store",
+      "product"
+    ],
+    "preserveHomePublished": true,
+    "scope": [
+      "Typed templates and targeting",
+      "Independent section editor and atomic template publication",
+      "Store/product rendering and account-scoped history",
+      "Open/closed compact badge and vertical menu",
+      "Automated checks and staging publication"
+    ],
+    "humanAcceptance": "Pending after automated validation",
+    "implementationRecord": "docs/customer-interfaces-implementation-362.json",
+    "publication": "docs/customer-interfaces-publication-362.json",
+    "tests": {
+      "node": 22,
+      "flutter": 33,
+      "chromeViewports": [
+        390,
+        1280
+      ],
+      "originalHomeEditorRegression": true,
+      "all280HostingFilesVerifiedBeforeOverlay": true
+    },
+    "native": {
+      "build": 284,
+      "installed": true
+    },
+    "nextAction": "Administrator creates/previews/publishes store/product templates and verifies exact-branch last-order sections using real accounts. Human order checks remain pending."
+  },
+  "storeOffersSlot363": {
+    "status": "PUBLISHED_STAGING_CUSTOMER_289_INSTALLED",
+    "title": "عروض المطعم / عروض المتجر",
+    "configurationLocation": "Customer interfaces > Store templates > Offers section",
+    "controls": [
+      "Editable title and description",
+      "Automatic eligible offers or manual existing campaigns",
+      "Merchant/platform/shared source filters",
+      "Items/order/delivery filters",
+      "Spotlight/carousel/list",
+      "Maximum 1–6 cards",
+      "Optional image and source label",
+      "Manual campaign order"
+    ],
+    "invariants": [
+      "Presentation never activates a campaign or changes its eligibility, funding, prices or usage limits",
+      "No automatic sliding or visible background template replacement",
+      "Empty eligible results hide the section",
+      "Existing goods offer replacement requires confirmation",
+      "Delivery benefits reuse existing entitlement selection"
+    ],
+    "validation": {
+      "backend": 29,
+      "flutter": 21,
+      "browserWidths": [
+        390,
+        1280
+      ],
+      "publicGuestFeed": "ready, one eligible campaign",
+      "hostingJob": "238",
+      "customerBuild": 289
+    },
+    "humanTestsPending": [
+      "Signed-in campaign eligibility and terms",
+      "Manual selection/order and hidden ineligible campaigns",
+      "Explicit replacement of selected goods offer",
+      "Delivery benefit selection through existing flow",
+      "Full cash order with final server quote"
+    ]
+  },
+  "storeOffersImages364": {
+    "status": "PUBLISHED_STAGING_CUSTOMER_290_INSTALLED",
+    "hostingJob": "240",
+    "settings": "Store template > Offers section > presentation: card or image",
+    "artwork": "Existing campaign image, original GIF bytes up to 3 MB, no financial conditions modified",
+    "behavior": "Full artwork without cropping, tap opens actual terms; missing/failed image falls back to information card",
+    "tests": "18 backend, 8 Flutter, 390/1280 admin, real GIF upload handler bytes verified",
+    "pending": "Human campaign artwork and physical device animation checks"
+  },
+  "homeRedesign370": {
+    "status": "IMPLEMENTED_TESTED_SIMULATOR_301",
+    "record": "wizzuser-stg/docs/home-redesign-370.json",
+    "next": "User design review; product detail redesign remains separate"
+  },
+  "headerAdvertisingDecision": {
+    "status": "CANCELLED_BY_USER",
+    "date": "2026-11-02",
+    "note": "Do not implement advertising takeover of home header. Navigation uses white-to-transparent backdrop; existing content campaign slideshow remains."
+  },
+  "welcomeAndSearch374": {
+    "status": "PUBLISHED_STAGING_VERIFIED",
+    "hostingJob": "241",
+    "customerSimulatorBuild": 313,
+    "adminPage": "pages/home-layout.html",
+    "features": [
+      "Signed-in template with {name}, guest and nameless templates",
+      "Greeting enabled switch and optional Baghdad schedule",
+      "1–8 rotating search hints; 4–15 seconds per hint",
+      "Existing draft/publish/rollback and permission/version guards",
+      "Session welcome rules retained; reduced motion and background pause"
+    ],
+    "tests": {
+      "backend": 14,
+      "flutter": 8,
+      "browserWidths": [
+        390,
+        1280
+      ]
+    },
+    "humanAcceptance": "Change wording and two search examples, save draft, publish, reopen home naturally; confirm guest and signed-in wording."
+  },
+  "categoryStrip376": {
+    "status": "PUBLISHED_STAGING_VERIFIED",
+    "customerBuild": 320,
+    "hostingJob": "242",
+    "details": "docs/home-navigation-376.json",
+    "existingCatalogReused": true,
+    "humanAcceptancePending": true
+  },
+  "threeHomeStrips377": {
+    "status": "PUBLISHED_STAGING_VERIFIED",
+    "customerBuild": 322,
+    "hostingJob": "243",
+    "details": "docs/home-bars-377.json",
+    "backendTests": 27,
+    "flutterTests": 19,
+    "browserWidths": [
+      390,
+      1280
+    ],
+    "priceCacheLiveCanary": {
+      "branch": "فروج المدينة",
+      "sampleCount": 16,
+      "medianIqd": 9250
+    },
+    "humanAcceptancePending": true
+  },
+  "taxonomyUnification378": {
+    "status": "PUBLISHED_STAGING",
+    "record": "taxonomy-unification-378.json",
+    "humanChecks": "Recorded for the next ordered UAT session"
+  },
+  "discoveryWorkspace379": {
+    "status": "PUBLISHED_STAGING_VERIFIED",
+    "record": "discovery-workspace-379.json",
+    "description": "Separate the three customer strips from their classification source; guided dictionary definition, branch and optional menu assignment, isolated price settings. No authored data migration."
+  },
+  "taxonomySave381": {
+    "record": "taxonomy-save-381.json",
+    "status": "FIX_PUBLISHED",
+    "userRetryPending": true
+  },
+  "menuClassificationFocus382": {
+    "status": "SIMULATOR_BUILD_VERIFIED",
+    "customerBuild": 327,
+    "record": "wizzuser-stg/docs/menu-classification-focus-382.json",
+    "humanTests": "Recorded for ordered UAT"
+  },
+  "productSizesInlineCategory384": {
+    "status": "implemented_local_simulator",
+    "record": "whizzMerchants-stg/docs/product-sizes-inline-category-384.json",
+    "merchantBuild": 351,
+    "automatedTestsPassed": 22,
+    "pending": "Actual branch category creation, menu publication and customer size pricing UAT; taxonomy loading root cause remains unconfirmed"
+  },
+  "homeSectionPlacement398": {
+    "status": "published_verified_staging",
+    "record": "docs/home-section-placement-398.json",
+    "customerBuild": 353
+  },
+  "homePromotionHeader411": {
+    "status": "PUBLISHED_STAGING_ENABLED_SIMULATOR_VALIDATION",
+    "record": "docs/home-promotion-header-411.json",
+    "customerBuild": 372,
+    "centralControl": true,
+    "headerOnlyPublication": true,
+    "humanChecksRecorded": true
+  },
+  "homePromotionScenes412": {
+    "status": "PUBLISHED_STAGING_SIMULATOR_VERIFIED",
+    "record": "docs/home-promotion-scenes-412.json",
+    "customerBuild": 375,
+    "stickyFilters": true,
+    "sceneCopyAndProductsManaged": true
+  },
+  "homePromotionSpeed413": {
+    "record": "docs/home-promotion-speed-413.json",
+    "customerBuild": 376,
+    "expiredFattoushOffersConfirmed": true
+  },
+  "homePromotionFocus414": {
+    "record": "docs/home-promotion-focus-414.json",
+    "customerBuild": 377,
+    "status": "SIMULATOR_BUILD_377_VERIFIED"
   }
 }

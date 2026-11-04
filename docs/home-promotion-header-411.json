@@ -1,0 +1,74 @@
+{
+  "part": 411,
+  "date": "2026-11-03",
+  "status": "PUBLISHED_STAGING_ENABLED_SIMULATOR_VALIDATION",
+  "request": "Animated home promotion header with central control and eligible platform benefits / merchant offers",
+  "configuration": {
+    "location": "إدارة الرئيسية → الشريط العلوي المتحرك — مزايا ويز وعروض المطاعم",
+    "storage": "HOME_LAYOUT / CURRENT, draftPromotionHeader and published.promotionHeader",
+    "fields": [
+      "enabled",
+      "source: both/platform/merchant",
+      "selection: null or {source:benefit/platform/merchant,id}",
+      "backgroundColor",
+      "title",
+      "intervalSeconds:5..15",
+      "startAt",
+      "endAt"
+    ],
+    "default": "Disabled for existing installations until explicitly configured",
+    "activation": "Enabled both sources in navy from the authenticated admin UI; isolated header publication revision 63",
+    "unrelatedDrafts": "Existing pending filter draft retained, not published"
+  },
+  "implementation": [
+    "Supplied logo matches the bundled wizz-wordmark-blue.png byte-for-byte",
+    "Local breathing animation and left-moving carousel; manual swipe; centre focus expands key information",
+    "Fixed header height during animation; no network request per transition",
+    "Automatic readable foreground from background contrast",
+    "Unified offers page partitions platform and merchant content; detail selection uses existing verified offer/benefit paths",
+    "Guest uses public eligible campaigns; account benefits use authenticated existing API",
+    "Source/id selection intersects eligibility and does not bypass targeting, lifecycle, limits or schedules",
+    "No active eligible content means no promotion header",
+    "Account/region changes invalidate previous content; request generation discards late responses",
+    "Expiry timer removes expired entries; no animation while backgrounded or reduced motion enabled",
+    "Existing independent draft/publish/rollback guarded by roles, version and audit; header-only publication preserves other drafts and published sections"
+  ],
+  "validation": {
+    "backendTests": 39,
+    "flutterTests": 20,
+    "browserViewports": [
+      390,
+      1280
+    ],
+    "largeTextScales": [
+      1,
+      2
+    ],
+    "flutterAnalyzer": "No errors or warnings in affected modules; existing informational lints remain",
+    "liveFeed": "Published config read through the real guest API; eligible merchant offer returned",
+    "simulatorBuild": 372,
+    "device": "iPhone 16 Pro simulator",
+    "iamChanges": false,
+    "financialRecordsChanged": false
+  },
+  "deployment": {
+    "hostingJob": "254",
+    "lambda": "staging-wizz-staff-service",
+    "overlayOnly": [
+      "home-promotion-settings.js",
+      "home-taxonomy-378.js",
+      "_discount_review/central-staff/index.js"
+    ],
+    "hostingOverlay": [
+      "home-layout.js",
+      "pages/home-layout.html"
+    ],
+    "backup": "/tmp/header411-before.zip and /tmp/header411b-before.zip; corresponding hosting backups"
+  },
+  "humanChecks": [
+    "Review visual pulse and left transition",
+    "Tap header and inspect the two groups when both have eligible offers",
+    "Choose an existing offer and complete the existing checkout UAT",
+    "Try disabling, source-only, individual offer, custom background and scheduled window from admin"
+  ]
+}
