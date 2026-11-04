@@ -1,0 +1,477 @@
+{
+  "part": 64,
+  "environment": "Staging",
+  "userDate": "2026-10-17",
+  "activationPerformed": false,
+  "financialActivationPerformed": false,
+  "commercialAdministrationEnabled": true,
+  "implementation": "Existing pricing and commercial forms prefill an approved branch-scoped sample; all saves, owner consent and independent approvals use existing authenticated APIs.",
+  "sample": {
+    "schemaVersion": 1,
+    "kind": "APPROVED_STAGING_SAMPLE",
+    "environment": "Staging",
+    "businessId": "business_95ac73c9-feda-4207-9285-550aec61b94c",
+    "businessName": "مطعم فتوش",
+    "pricing": {
+      "deliveryRules": [
+        {
+          "version": 1,
+          "scope": {
+            "type": "BRANCH",
+            "id": "business_95ac73c9-feda-4207-9285-550aec61b94c"
+          },
+          "priority": 1,
+          "status": "DRAFT",
+          "effectiveFrom": "2026-10-17T00:00:00.000Z",
+          "effectiveTo": null,
+          "rounding": "HALF_AWAY_FROM_ZERO",
+          "vehicleType": null,
+          "minimum": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 2000000
+          },
+          "maximum": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 6000000
+          },
+          "fallbackPolicyId": null,
+          "longDistance": {
+            "afterMeters": 10000,
+            "flat": {
+              "currency": "IQD",
+              "scale": 1000,
+              "moneySchemaVersion": 1,
+              "minorAmount": 0
+            },
+            "perKm": {
+              "currency": "IQD",
+              "scale": 1000,
+              "moneySchemaVersion": 1,
+              "minorAmount": 0
+            }
+          },
+          "peaks": [],
+          "id": "FATTOUSH_SAMPLE_DELIVERY",
+          "base": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 1000000
+          },
+          "perKm": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 500000
+          },
+          "tiers": [],
+          "coverage": {
+            "enabled": true,
+            "maxRoadMeters": 10000,
+            "maxDurationSeconds": 1800,
+            "supportedZoneIds": [
+              "Rmhvcpnn3iy5f1"
+            ]
+          },
+          "finalRounding": {
+            "incrementIqd": 250,
+            "mode": "HALF_AWAY_FROM_ZERO"
+          }
+        }
+      ],
+      "driverRules": [
+        {
+          "version": 1,
+          "scope": {
+            "type": "BRANCH",
+            "id": "business_95ac73c9-feda-4207-9285-550aec61b94c"
+          },
+          "priority": 1,
+          "status": "DRAFT",
+          "effectiveFrom": "2026-10-17T00:00:00.000Z",
+          "effectiveTo": null,
+          "rounding": "HALF_AWAY_FROM_ZERO",
+          "vehicleType": null,
+          "minimum": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 1500000
+          },
+          "maximum": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 8000000
+          },
+          "fallbackPolicyId": null,
+          "longDistance": {
+            "afterMeters": 10000,
+            "flat": {
+              "currency": "IQD",
+              "scale": 1000,
+              "moneySchemaVersion": 1,
+              "minorAmount": 0
+            },
+            "perKm": {
+              "currency": "IQD",
+              "scale": 1000,
+              "moneySchemaVersion": 1,
+              "minorAmount": 0
+            }
+          },
+          "peaks": [],
+          "id": "FATTOUSH_SAMPLE_DRIVER",
+          "base": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 1000000
+          },
+          "pickupPerKm": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 250000
+          },
+          "pickupIncludedMeters": 1000,
+          "deliveryPerKm": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 400000
+          },
+          "perMinute": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 0
+          },
+          "finalRounding": {
+            "incrementIqd": 250,
+            "mode": "HALF_AWAY_FROM_ZERO"
+          }
+        }
+      ]
+    },
+    "agreement": {
+      "id": "FATTOUSH_COD_SAMPLE",
+      "values": {
+        "scope": "BRANCH",
+        "effectiveFrom": "2026-10-17T00:00:00.000Z",
+        "effectiveTo": null,
+        "commission": {
+          "kind": "PERCENT",
+          "basis": "AFTER_MERCHANT_DISCOUNT",
+          "fixed": null,
+          "rate": {
+            "numerator": 1000,
+            "denominator": 10000
+          },
+          "rounding": "HALF_AWAY_FROM_ZERO",
+          "finalRounding": {
+            "incrementIqd": 1,
+            "mode": "HALF_AWAY_FROM_ZERO"
+          }
+        },
+        "serviceFee": {
+          "kind": "FIXED",
+          "basis": null,
+          "fixed": {
+            "currency": "IQD",
+            "scale": 1000,
+            "moneySchemaVersion": 1,
+            "minorAmount": 500000
+          },
+          "rate": null,
+          "rounding": "EXACT",
+          "finalRounding": {
+            "incrementIqd": 1,
+            "mode": "HALF_AWAY_FROM_ZERO"
+          }
+        },
+        "allowedFundingPolicyIds": []
+      }
+    },
+    "reason": "تجهيز عينة فتوش المعتمدة لاختبار COD",
+    "firstOrderDiscount": "NONE",
+    "requiresExplicitSave": true,
+    "requiresOwnerConsent": true,
+    "requiresIndependentApproval": true
+  },
+  "selectedActors": {
+    "preparer": "moh.al.daash@gmail.com",
+    "independentApprover": "g87_a@yahoo.com"
+  },
+  "identityReadiness": {
+    "selectedStaff": [
+      {
+        "email": "moh.al.daash@gmail.com",
+        "roles": [
+          "staff_approver",
+          "finance_approver",
+          "finance_settings_approver"
+        ],
+        "status": "ACTIVE",
+        "scope": {
+          "allRegions": true,
+          "regionIds": []
+        },
+        "enabled": true,
+        "confirmed": true,
+        "totpEnrolled": true
+      },
+      {
+        "email": "g87_a@yahoo.com",
+        "roles": [
+          "bootstrap_admin"
+        ],
+        "status": "ACTIVE",
+        "scope": {
+          "allRegions": true,
+          "regionIds": []
+        },
+        "enabled": true,
+        "confirmed": true,
+        "totpEnrolled": true
+      }
+    ],
+    "missingEmails": []
+  },
+  "humanRoleChangesApplied": false,
+  "roleProposal": {
+    "target": "moh.al.daash@gmail.com",
+    "addOnly": [
+      "pricing_editor",
+      "commercial_editor"
+    ],
+    "preserveExistingRoles": true,
+    "status": "NOT_APPLIED_REQUIRES_EXISTING_STAFF_CHANGE_WORKFLOW",
+    "thirdApproverRequired": true,
+    "guardSource": "backend/staff-service/index.js",
+    "guard": "Requester and recipient cannot approve the staff change.",
+    "authorizedThirdApprover": "g87_a@outlook.com",
+    "requester": "g87_a@yahoo.com"
+  },
+  "policiesOrAgreementsCreated": false,
+  "ownerConsentWritten": false,
+  "staffApprovalWritten": false,
+  "fundingAssigned": false,
+  "firstSampleDiscounts": false,
+  "publication": {
+    "functions": [
+      {
+        "host": "staff",
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "BuT+iM5iFgY5X13DyiZiDY09Te9AQC+nYzzMvwLV848=",
+        "revisionId": "bd472258-c9e0-443e-9de3-7f33ad5294ae",
+        "changedEnvironmentKeys": [
+          "COMMERCIAL_ADMIN_ENABLED"
+        ],
+        "commercialAdminEnabled": true,
+        "otherConfigurationPreserved": true
+      },
+      {
+        "host": "merchant",
+        "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+        "codeSha256": "PRSRWAtinVIJZWetbL/1To/cI1plC6YmxQDbV9CsCoE=",
+        "revisionId": "d44f87ab-705d-49dc-a2bb-df078a955be2",
+        "changedEnvironmentKeys": [
+          "COMMERCIAL_ADMIN_ENABLED"
+        ],
+        "commercialAdminEnabled": true,
+        "otherConfigurationPreserved": true
+      }
+    ],
+    "amplify": {
+      "appId": "d2vmebm1e1n95m",
+      "branch": "staging",
+      "jobId": "76",
+      "status": "SUCCEED"
+    },
+    "accessStack": "staging-commercial-owner-access-64",
+    "observedFrontendJobId": "78"
+  },
+  "frontend": {
+    "baseJobId": "75",
+    "baseCodeSha256": "EZRHbWV+Yz/OXZj91kAp07xUpYjZjZjC5hdyLk3N9to=",
+    "candidateCodeSha256": "xrlcNBeXmFZSVJU3aQtkqS5mvZHY/8cxsZTq6Zz6kOY=",
+    "changedFiles": [
+      "pages/delivery-pricing.html",
+      "delivery-pricing.js",
+      "commercial-management.js",
+      "pages/merchants.html",
+      "finance-sample.js",
+      "finance-sample-64.json"
+    ],
+    "preservedFiles": 182
+  },
+  "externalUpdatesPreserved": {
+    "baseFrontendJobId": "75",
+    "staffCodeSha256": "BuT+iM5iFgY5X13DyiZiDY09Te9AQC+nYzzMvwLV848=",
+    "commercialModulesUnchanged": true,
+    "changedExistingStaffFiles": [
+      "promotions.js"
+    ],
+    "additionalExternalUpdate": {
+      "changedFiles": [
+        "promotions.js",
+        "campaign-notifications.js"
+      ],
+      "addedFileCount": 0,
+      "removedFiles": []
+    },
+    "note": "External campaign notifications and account-security updates preserved. No Lambda package replaced by Part64.",
+    "laterFrontendJobId": "78",
+    "laterFrontendAllSixSampleFilesMatched": true
+  },
+  "verification": {
+    "browserSample": {
+      "pricingPreparedWithoutWrite": true,
+      "explicitSaveUsesExistingApi": true,
+      "savedDraftNotOverwritten": true,
+      "readOnlyHidden": true,
+      "agreementPrefilled": true,
+      "foreignBranchBlocked": true,
+      "noOwnerOrApprovalFabricated": true,
+      "realWrites": false
+    },
+    "existingPricingBrowserPassed": true,
+    "existingCommercialBrowserPassed": true,
+    "adminTestsPassed": 25,
+    "iamChecks": 20,
+    "iamChecksAllowed": 20,
+    "merchantSimulator": {
+      "build": "SUCCESS",
+      "installed": true,
+      "launched": true,
+      "simulatorId": "09DA4C20-FD4B-446E-8C2F-9D04E5CFC206",
+      "bundleId": "com.whizz.merchants"
+    },
+    "driverPhysicalAppChanged": false,
+    "publishedFilesMatch": true,
+    "actualMerchantRoleProbe": {
+      "roleInvokeAllowed": true,
+      "targetAnonymousRejected": true,
+      "targetStatusCode": 401
+    },
+    "temporaryProbeDeleted": true,
+    "anonymousOwnerRejected": true,
+    "verifiedAtUtc": "2026-10-17T13:09:41.748039+00:00"
+  },
+  "sourceHashes": {
+    "frontend/pages/delivery-pricing.html": "f90675947c4d7f979009d27d997b155aaad688d99b4e9d658e222ade11633186",
+    "frontend/delivery-pricing.js": "1dff842f572a1a19e7af8e7ada1c6cc890edb7a5d21f724dbb6b7b8054c44330",
+    "frontend/commercial-management.js": "dbf87c63fd3672c356642222dfc4622d76f555774d8525f33611598aacb3dcdd",
+    "frontend/pages/merchants.html": "a5e0d3f8267c220e6a7eb628f75ec0f192458761f724dfc335a4ca0d9ee35038",
+    "frontend/finance-sample.js": "fcddceee7410713028733dcb769daac547a43952924d1485d3eb3a87bd9da167",
+    "frontend/finance-sample-64.json": "d2097e6483869b2431a8b9d79e2d2edf17e99a157edf48eab7fd5998e7c36e5f"
+  },
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "cafbece7bded6fb43c8d1ca030bcd5a6a26e62cb0a4316b1cc0bbae270baeb2d",
+      "reason": "Part54 scoped confirmation binding is retained. Part63 validates whole-IQD preview arithmetic, quote delivery price and cash tip before durable consent; commercial-enabled retry/cancel/account-scope tests passed. Customer simulator updated with feature gates closed."
+    },
+    {
+      "path": "backend/wallet-service/src/money.ts",
+      "beforeSha256": "a650a50ed22593f5cee9c88df9ab01869acff4a32c234fef5ade9497dd39e90e",
+      "afterSha256": "c02c3752fc00f6088cd529bf617b0506fa8be4458da3e1bdd47d029a13865165",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication. Part63 now publishes the reviewed rounding and schema-2 reader blocks into the five existing consumers, preserving all unrelated published COD/SDK/handler code and keeping activation closed."
+    },
+    {
+      "path": "backend/wallet-service/src/deliveryPricing.ts",
+      "beforeSha256": "ee05af2c120e9052d25eeed4f898275ec5a734ac21be99f135e77d219535aab3",
+      "afterSha256": "154584f9ab57b2efc274bbdbe97e183c77b9c264cf3ea21da5ca7de745857da9",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication. Part63 now publishes the reviewed rounding and schema-2 reader blocks into the five existing consumers, preserving all unrelated published COD/SDK/handler code and keeping activation closed."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialPricing.ts",
+      "beforeSha256": "7a2c30ee07aa06ce1e00808a7b279973d6f21b634f5a5884bc5d0ca56866d690",
+      "afterSha256": "f83727625f3bb1c77439a85fa2f87caee17546021f4f0ef38abeb773d8bdaaf1",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published. Part63 now publishes the reviewed rounding and schema-2 reader blocks into the five existing consumers, preserving all unrelated published COD/SDK/handler code and keeping activation closed."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialSource.ts",
+      "beforeSha256": "4abde486156dd14be3c4812774113c299d56c9598e7320c1460c26036be220e8",
+      "afterSha256": "0b81190c88e902ee9613b7fa35889de0d20918a20724a9a01d3a8104f32bd875",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published. Part63 now publishes the reviewed rounding and schema-2 reader blocks into the five existing consumers, preserving all unrelated published COD/SDK/handler code and keeping activation closed."
+    }
+  ],
+  "newApplicationTables": 0,
+  "iamChanges": {
+    "fixedTarget": "arn:aws:lambda:us-east-1:699561669180:function:staging-wizz-staff-service",
+    "action": "lambda:InvokeFunction",
+    "financialGrantsAdded": false,
+    "ownerRoleOnly": true
+  },
+  "rollback": {
+    "frontendArchive": "/private/tmp/finance64/frontend.zip",
+    "configurationSnapshots": "/private/tmp/finance64/*config.private.json",
+    "preserveAllFinancialGuards": true,
+    "commercialAdminParameterDefault": "false",
+    "futureFullStackDeployment": "Reconcile narrow access stack with the equivalent SAM statement and pass CommercialAdminEnabled=true to retain current administrative workflow."
+  },
+  "remainingIntegration": [
+    "Approve Gmail role addition through existing three-actor staff workflow.",
+    "Gmail saves branch-only pricing and agreement drafts in the current UI.",
+    "Owner reviews and accepts agreement from fresh verified merchant login.",
+    "Yahoo independently approves pricing and accepted agreement.",
+    "Verify selected sample through Gateway and devices before scoped financial activation."
+  ],
+  "limitations": [
+    "No simulated actor used to manufacture consent or staff approval.",
+    "UI preparation does not persist any draft or publish prices.",
+    "Commercial administration access is separate from financial rollout gates.",
+    "No financial or order rows written; no OTP or push sent by Part64."
+  ],
+  "postPublicationMetadataAudit": {
+    "checkedAtUtc": "2026-10-17T13:10:27.693897+00:00",
+    "functions": 29,
+    "hashDrift": [],
+    "centralPolicy": {
+      "version": 2,
+      "policyVersion": "dispatch-schema-v2-release50",
+      "dispatchSchemaVersion": 2,
+      "performanceMode": "LEGACY_METRICS",
+      "limits": {
+        "quoteMaxPerCustomerPerMinute": 5,
+        "driverOfferTtlSeconds": 60,
+        "driverPositionMaxAgeSeconds": 120,
+        "reassignmentWindowSeconds": 300,
+        "maximumWaves": 4
+      }
+    },
+    "readOnly": true,
+    "activationPerformed": false
+  }
+}

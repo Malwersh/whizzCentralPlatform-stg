@@ -1,0 +1,7 @@
+'use strict';
+const fs=require('fs'),sdk=require('../backend/wallet-service/node_modules/@aws-sdk/lib-dynamodb'),{DynamoDBClient}=require('../backend/wallet-service/node_modules/@aws-sdk/client-dynamodb');
+const real=sdk.DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'}));let tx;
+const db={send:async c=>{if(c.constructor.name==='TransactWriteCommand'){tx=c.input.TransactItems;throw Object.assign(Error('DIAGNOSTIC_WRITE_BLOCKED'),{name:'ValidationException'});}if(!['GetCommand','QueryCommand','ScanCommand'].includes(c.constructor.name))throw Error('WRITE_BLOCKED');return real.send(c);}};
+const {projectEvidenceDb}=require('../backend/staff-service/settlement-orders');
+const api=require('../backend/wallet-service/dist/merchantStatementsAdmin').createMerchantStatementsAdmin({db:projectEvidenceDb(db),principal:{employeeId:'f40834f8-4091-7054-0e20-dba35a2793ce',authTime:Math.floor(Date.now()/1000),mfaEnrolled:true}});
+(async()=>{const p=await api.preview({branchId:'business_95ac73c9-feda-4207-9285-550aec61b94c',kind:'OFF_CYCLE',reason:'تشخيص للقراءة فقط دون إنشاء كشف',orderIds:['bb728bfe-c2c4-5c95-8492-26ce81ee1ed1']});try{await api.create({...p.request,requestId:require('crypto').randomUUID()});}catch(e){if(!tx)throw e;}fs.writeFileSync('/private/tmp/settlement-save-247-tx.private.json',JSON.stringify(tx),{mode:0o600});console.log('Captured transaction locally; ALL writes blocked. Operations:',tx.length);})().catch(e=>{console.error(e.name,e.message);process.exit(1);});

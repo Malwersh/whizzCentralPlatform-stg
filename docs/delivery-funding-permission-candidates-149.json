@@ -1,0 +1,195 @@
+{
+  "part": 149,
+  "reviewOnly": true,
+  "applied": false,
+  "baselineAt": "2026-10-18T19:03:39.606364+00:00",
+  "simulationCount": 53,
+  "roles": [
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "functions": [
+        "staging-driver-financial-accept"
+      ],
+      "policyName": "DeliveryFunding149",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryFunding1490",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_BUDGET#*",
+                  "DELIVERY_RESERVATION#*",
+                  "DELIVERY_USAGE#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "expectedRolePolicySnapshotSha256": "38fac7dee3e45d7cb4d32080e1a63fbe182a59972686fd9914e00b2c62f790b1"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/staging-merchant-response-99",
+      "functions": [
+        "staging-merchant-response-99"
+      ],
+      "policyName": "DeliveryFunding149",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryFunding1490",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_BUDGET#*",
+                  "DELIVERY_RESERVATION#*",
+                  "DELIVERY_USAGE#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "expectedRolePolicySnapshotSha256": "b6233f5228cbd8c82c8fc34b451afc0820479fb76b58076e6303e2d2418c5adb"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/Wizz-Merchants-staging-MerchantOrderFunctionRole-AZ12ipBY0zyt",
+      "functions": [
+        "order-receiver-merchant-orders-staging-v1"
+      ],
+      "policyName": "DeliveryFunding149",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryFunding1490",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_BUDGET#*",
+                  "DELIVERY_RESERVATION#*",
+                  "DELIVERY_USAGE#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "expectedRolePolicySnapshotSha256": "9632c0f257cec2d73218e28605c26c1a664ebe483bc6c6519d7d1d4e010f510b"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+      "functions": [
+        "WizzUser-CreateOrder-staging"
+      ],
+      "policyName": "DeliveryFunding149",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryFunding1490",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:Query"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "BRANCH#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DeliveryFunding1491",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_BUDGET#*",
+                  "DELIVERY_RESERVATION#*",
+                  "DELIVERY_USAGE#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DeliveryFunding1492",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_FUNDING#*",
+                  "EMPLOYEE#*",
+                  "OPERATIONAL_SETTINGS#MERCHANT_STAFF_PERMISSIONS"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "expectedRolePolicySnapshotSha256": "328adf2fa52793e592ec1e77b31425a0c5ae910218cec8224f2f0af1f294d8d0"
+    }
+  ],
+  "excluded": [
+    "wallets",
+    "ledger",
+    "holds",
+    "Cognito",
+    "DeleteItem",
+    "new tables or indexes"
+  ],
+  "scope": "Only implicitly denied actions from the captured live principal-policy simulation; no activation or deployment."
+}

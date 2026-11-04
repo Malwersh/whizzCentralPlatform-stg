@@ -1,0 +1,12 @@
+{
+  "status": "LOCAL_OPT_IN_ISSUANCE_ACCEPTANCE_REDISPATCH_NOT_DEPLOYED",
+  "reused": ["driverOfferOrderReader", "driverOfferContext", "driverOfferStore", "driverFinancialWave", "driverOfferAcceptance", "existing driver hold writer"],
+  "newSharedUtilities": ["financialOfferVersion", "prepareDeliveryFundingRetention", "retainPlannedEvidence"],
+  "fundingOnAcceptance": "original cash and campaign evidence fenced; no second reservation",
+  "redispatch": "original funding retained across driver assignment attempts",
+  "verification": {"typescriptCompile": "PASS", "newWorkflowTests": 5, "targetedTestsPassed": 119, "stagingOrDevicesTested": false},
+  "allNewCapabilitiesDefaultDisabled": true,
+  "remaining": ["trusted quote/order admission", "multi-version integration/reporting/mobile", "post-delivery refund/partial return", "platform UI and packaging", "coordinated staging and device tests"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

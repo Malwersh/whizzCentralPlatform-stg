@@ -1,0 +1,16 @@
+{
+  "part": 258,
+  "status": "PASS",
+  "readOnlyLiveCheck": true,
+  "recipient": {
+    "name": "محمد علي",
+    "role": "OWNER",
+    "roleLabel": "مالك",
+    "businessName": "مطعم فتوش",
+    "identityBasis": "VERIFIED_OWNER_RECEIPT"
+  },
+  "financialWrites": false,
+  "permissionsChanged": false,
+  "iamChanged": false,
+  "delegatedStaffPayoutEnabled": false
+}

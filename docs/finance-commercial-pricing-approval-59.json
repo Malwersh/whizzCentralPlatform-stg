@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "part": 59,
+  "environment": "Staging",
+  "status": "USER_APPROVED_BASELINE",
+  "approvedClientDate": "2026-10-16",
+  "clientTimezone": "America/Chicago",
+  "recordedAtUtc": "2026-10-17T04:37:25.725672+00:00",
+  "approvalSource": "Explicit user message in this session",
+  "approvalText": "تمام اعتمد المقترح هذا وعند يكون لنا راي اخر في كل الحالات نستطيع تعديل الارقام من المنصه",
+  "baselineProposal": {
+    "document": "docs/finance-commercial-pricing-proposal-58.md",
+    "documentSha256": "920f8db9cb9096a13bde1b069a1dc4dc25efc13f014584e5b8f498ba9249372b",
+    "model": "docs/finance-commercial-pricing-proposal-58.json",
+    "modelSha256": "ae63ee77005e2506be2cd36a11847ef6a1a6e5534f0b264a84f04b293937d5b4"
+  },
+  "currency": "IQD",
+  "customerDelivery": {
+    "baseIqd": 1000,
+    "perKmIqd": 500,
+    "minimumIqd": 2000,
+    "maximumIqd": 6000,
+    "maxRoadMeters": 10000,
+    "maxDurationSeconds": 1800,
+    "finalRounding": {
+      "incrementIqd": 250,
+      "mode": "HALF_AWAY_FROM_ZERO"
+    }
+  },
+  "driverEarning": {
+    "baseIqd": 1000,
+    "deliveryPerKmIqd": 400,
+    "pickupPerKmIqd": 250,
+    "pickupIncludedMeters": 1000,
+    "minimumIqd": 1500,
+    "maximumIqd": 8000,
+    "perMinuteIqd": 0,
+    "additionalLongDistanceIqd": 0,
+    "peakIqd": 0,
+    "finalRounding": {
+      "incrementIqd": 250,
+      "mode": "HALF_AWAY_FROM_ZERO"
+    }
+  },
+  "customerServiceFee": {
+    "kind": "FIXED",
+    "amountIqd": 500,
+    "finalRounding": {
+      "incrementIqd": 1,
+      "mode": "HALF_AWAY_FROM_ZERO"
+    }
+  },
+  "merchantCommission": {
+    "globalDefaultRate": null,
+    "perMerchantAgreement": true,
+    "branchOverrideAllowed": true,
+    "basis": "AFTER_MERCHANT_DISCOUNT",
+    "approvedComparisonExamples": [
+      {
+        "merchant": "A",
+        "percent": 10
+      },
+      {
+        "merchant": "B",
+        "percent": 7
+      },
+      {
+        "merchant": "C",
+        "percent": 0,
+        "explicitExemption": true
+      }
+    ],
+    "finalRounding": {
+      "incrementIqd": 1,
+      "mode": "HALF_AWAY_FROM_ZERO"
+    },
+    "actualMerchantAssignments": []
+  },
+  "discountFunding": {
+    "reviewExampleTotalIqd": 1000,
+    "reviewExampleMerchantIqd": 500,
+    "reviewExamplePlatformIqd": 500,
+    "createsLiveCampaignOrFunds": false,
+    "shareRounding": {
+      "incrementIqd": 1,
+      "mode": "TOWARD_ZERO"
+    },
+    "remainderTo": "PLATFORM"
+  },
+  "futureChanges": {
+    "centralEditable": true,
+    "versionAndAuditRequired": true,
+    "preserveConfirmedQuotesAcceptedOffersAndExistingOrders": true,
+    "specificMerchantAgreementAcceptanceAndStaffApprovalRemainRequired": true
+  },
+  "implementationStatus": {
+    "sharedRoundingImplementedLocally": true,
+    "pricingEditorFieldImplementedLocally": true,
+    "perMerchantChargeSchemaImplementedLocally": true,
+    "newFundingSchemaImplementedLocally": true,
+    "merchantAgreementAndFundingUiComplete": false,
+    "published": false,
+    "liveCurrentPricingWritten": false,
+    "humanMerchantConsentCreated": false,
+    "humanStaffApprovalCreated": false,
+    "financialActivation": false
+  }
+}

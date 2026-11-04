@@ -1,0 +1,141 @@
+{
+  "part": 122,
+  "recordedAt": "2026-10-18T15:40:23.544467+00:00",
+  "status": "PHYSICAL_IOS_INSTALLED_LIVE_ACTIVITY_ENABLED_READY_FOR_QUOTE",
+  "requestedCustomerMerchantDriverPhoneLastFour": "8280",
+  "branch": "Fattoush",
+  "readiness": {
+    "coordinatedHostsCaptured": 15,
+    "prior121AttemptHasNoOrderHoldsOffersOrJobs": true,
+    "driverAvailableIqd": 67500,
+    "driverLockedIqd": 0,
+    "ownerAndApprovedAgreementMatch": true
+  },
+  "physicalCustomerAppLaunchSucceededBeforeBuild": true,
+  "updatedCustomerBuildSucceeded": true,
+  "buildFailure": "No iOS App Development provisioning profile for com.wiz.wizuserapp.liveactivity",
+  "deviceAppReinstalled": true,
+  "existingSessionCleared": false,
+  "rolloutConfigurationChanged": true,
+  "applicationOrFinancialRowsWritten": false,
+  "alternative": "Existing Part121 Android customer7435 build/scope remains the alternative, subject to fresh deadline/readiness check before submission. User asked to choose Android or Apple signing resolution.",
+  "updatedAt": "2026-10-18T15:43:55.404436+00:00",
+  "signingResolvedByUser": true,
+  "liveActivityExtensionPresent": true,
+  "deepCodeSignatureVerified": true,
+  "liveActivityExplicitlyEnabledInBuild": true,
+  "functions": [
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "4BrxC5Ko0gPd8dXN8sTVWxctebX4z+vZtIWynxjBcn4=",
+      "revisionId": "ef3953e9-8ee8-4211-92a2-77e2953d7ca7"
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "codeSha256": "DLSxSxT2gdZ3DBdvnyAhQxmBLNazhXHbaJku+jVZBXM=",
+      "revisionId": "5aaf16f2-b13d-4614-bddc-4ddc6130f0ec"
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "5pDJICSVgutecvgZ5uZbVZsQ/Z50mSa1fQ+t3tz3Bd8=",
+      "revisionId": "c146174f-da2f-4c39-81c5-df4fee170034"
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "ZxUt0RUPXOcwYrKqitGsB47/QNCoJIMBQyJ8HrkFHe8=",
+      "revisionId": "a7ac1b6c-d4b6-42da-8a14-17e4d782483c"
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+      "revisionId": "d757a3f9-1b78-43f5-a0f9-45393387c95a"
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "LL7g7l3aamaYw3URJHV7zgPDopeZahZs0OPTdKMWMcc=",
+      "revisionId": "70ded931-991b-4ec1-87a5-523e553d42fd"
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "DbcS4wGUw0RTd37Nwjzf9mda2p2zdnAMn+iTXZ6nEvw=",
+      "revisionId": "4a277f4c-2a3b-4ce3-8cbb-cd8d4e530255"
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "codeSha256": "2J7BvHTGk/Dnb3Va0Uu9QFdh751uxSkdiTxkL49gPcM=",
+      "revisionId": "99e8d0dd-b493-4021-aabd-161173c00e00"
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "codeSha256": "s5VY//RJOiuDFnauWZCw5SHcMN9aTR+SkN3kj4uaz0w=",
+      "revisionId": "4b066328-a655-4d8e-bb76-9b8a82f87f65"
+    },
+    {
+      "name": "DriversApi-staging",
+      "codeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+      "revisionId": "c2a18f77-8811-4cd2-be5d-7a8abd1e1bdd"
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "t6IygAJq4HYpvXsyhFN+YDYIZ+4r+vs41SsgZCavXfs=",
+      "revisionId": "7f63804d-6f8c-4f9c-9748-332ff384511c"
+    },
+    {
+      "name": "staging-cod-integration",
+      "codeSha256": "DwqZGppZ20ajNgQ/nY42NPYQdDcWg+oQftW4NoRjfsQ=",
+      "revisionId": "d13c1214-41fc-4bb4-b093-48df8ed1d0d1"
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "pf41wS1kwKFNe8Wy4SQ9cmpOATfVLC6zCqVhUaJmjbs=",
+      "revisionId": "1acb385d-8daa-47e4-8dde-0ea8d37db63e"
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "codeSha256": "wXACKH/twuCjnyshTtEe7qSRmjdkT6n8eRB2KhdJqQE=",
+      "revisionId": "46f6c580-8558-4ed7-b7f4-879549b3bb3e"
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "codeSha256": "xzfurAgrBRHxMFNYQoScEKd0mV+lugCDCLh5Jmi1i9Y=",
+      "revisionId": "6ff11bb9-8fda-4fed-8a66-4c84b3ab5d8e"
+    }
+  ],
+  "scopeDeadline": "2026-10-18T16:41:33.356Z",
+  "serverReadiness": [
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityRegister",
+      "state": "Active",
+      "updateStatus": "Successful",
+      "orderLiveActivityUpdates": null,
+      "hasTokenTable": true,
+      "hasApnsKeyReference": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushUpdate",
+      "state": "Active",
+      "updateStatus": "Successful",
+      "orderLiveActivityUpdates": null,
+      "hasTokenTable": true,
+      "hasApnsKeyReference": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushEnd",
+      "state": "Active",
+      "updateStatus": "Successful",
+      "orderLiveActivityUpdates": null,
+      "hasTokenTable": true,
+      "hasApnsKeyReference": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+      "state": "Active",
+      "updateStatus": "Successful",
+      "orderLiveActivityUpdates": "REQUIRED",
+      "hasTokenTable": true,
+      "hasApnsKeyReference": true
+    }
+  ],
+  "actualLiveActivityDeliveryTested": false,
+  "newOrderSentByMaintenance": false
+}

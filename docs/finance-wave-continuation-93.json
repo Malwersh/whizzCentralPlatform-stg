@@ -1,0 +1,53 @@
+{
+  "part": 93,
+  "status": "published_scheduled_exhaustion_observed",
+  "observed": "First financial offer delivered. CurrentWaveNumber stayed 1 after deadline; timeout worker ran every minute and repeatedly failed FINANCIAL_DISPATCH_DISABLED.",
+  "rootCauses": [
+    "Canary activation omitted FINANCIAL_DISPATCH_MODE on timeout host.",
+    "Financial timeout passed expired drivers as permanent exclusions and omitted prior-wave temporary history.",
+    "Financial candidate selection used hardcoded thresholds rather than centrally pinned financial profile.",
+    "Timeout could report nextWaveStarted without checking invocation result.",
+    "Deleted old canonical order left orphan dispatch rows; skip them without fabricating cancellation or restoring the order."
+  ],
+  "fix": "Enable only scoped financial timeout processing, separate permanent unassignments from temporary no-response history, read pinned central profile thresholds/recipient counts/reoffer wave, preserve matching selection/issuance policy and accurate success reporting.",
+  "validation": "51 financial offer regression tests plus 5 focused continuation tests passed, including actual selector counts 1/0/0/1 for a single timed-out driver. TypeScript build passed. First post-publication read confirms timeout gate REQUIRED; awaiting existing one-minute scheduler. Live scheduled run subsequently succeeded and marked the expired search for operational review, without cancellation or assignment.",
+  "limitations": [
+    "Full unified dispatch-cycle financial execution remains gated; this fixes existing scoped financial bridge.",
+    "End-to-end four-wave progression not yet observed.",
+    "One-minute scheduler may advance after deadline with scheduling delay; not a precise per-second trigger."
+  ],
+  "walletOrOrderMutationPerformed": false,
+  "publication": {
+    "functions": [
+      {
+        "name": "WaveSystem_StartWave",
+        "codeSha256": "LL7g7l3aamaYw3URJHV7zgPDopeZahZs0OPTdKMWMcc="
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "codeSha256": "DbcS4wGUw0RTd37Nwjzf9mda2p2zdnAMn+iTXZ6nEvw="
+      }
+    ]
+  },
+  "liveVerification": {
+    "observedAtUtc": "2026-10-17T22:29:48.926Z",
+    "existingSchedulerRan": true,
+    "dispatchStatus": "no_driver_available",
+    "reason": "SEARCH_WINDOW_EXPIRED",
+    "wave1State": "EXPIRED",
+    "financialAcceptance": false,
+    "fourWavePhoneValidation": false
+  },
+  "functions": [
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "LL7g7l3aamaYw3URJHV7zgPDopeZahZs0OPTdKMWMcc="
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "DbcS4wGUw0RTd37Nwjzf9mda2p2zdnAMn+iTXZ6nEvw="
+    }
+  ],
+  "hashEvidence": "Recorded published candidate archives, corroborated against live capture at Part118",
+  "publicationSummary": "Both StartWave and HandleWaveTimeout surgical overlays published; existing scope/config preserved except explicit FINANCIAL_DISPATCH_MODE=REQUIRED on timeout. No generic manual worker invocation."
+}

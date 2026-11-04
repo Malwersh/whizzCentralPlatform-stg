@@ -1,0 +1,57 @@
+{
+  "part": 107,
+  "status": "LOCAL_IMPLEMENTATION_TESTED_NOT_DEPLOYED",
+  "typescriptBuildPassed": true,
+  "tests": {
+    "passed": 88,
+    "failed": 0,
+    "newBatchTests": 21,
+    "realAwsDynamoDbTest": false
+  },
+  "behavior": {
+    "immutableHeaderAndLines": true,
+    "exclusivePayableMembership": true,
+    "atomicCommitWithRequestReceiptAndAudit": true,
+    "reviewedPreviewDigestRequired": true,
+    "periodMustHaveEnded": true,
+    "liveAuthorizationAndScheduleGuardsRequired": true,
+    "branchOwnershipAndDeletionFenced": true,
+    "replayRecoversLostCommitResponse": true,
+    "fullOutageRequiresSameRequestRetry": true,
+    "branchHistoryQueryWithScopedPagination": true,
+    "wholePeriodCoverageClaimed": false,
+    "maxSelectedOrdersPerAtomicBatch": 15
+  },
+  "storage": {
+    "table": "staging-MerchantPlatform",
+    "headerPartition": "MERCHANT_SETTLEMENT#branchId",
+    "headerSortKey": "BATCH#createdAt#batchId",
+    "claimLocation": "staging-Holds MERCHANT_PAYABLE membership fields",
+    "ttlOnFinancialRecords": false
+  },
+  "runtimeApiRegistered": false,
+  "liveBatchCreated": false,
+  "walletOrLedgerChanged": false,
+  "iamOrEnvironmentChanged": false,
+  "payoutImplementedOrAuthorized": false,
+  "remainingBeforeActivation": [
+    "Persisted schedule and agreement timing/consent policy",
+    "Live CREATE/READ permission adapters and route integration",
+    "Retention/deletion/archive compatibility for saved batch, lookup, request and line records",
+    "Live scoped IAM and DynamoDB transaction verification",
+    "UI integration and complete-period selection/large statements",
+    "Review/payout workflow and later-period adjustments"
+  ],
+  "sourceSha256": {
+    "backend/wallet-service/src/merchantSettlementBatch.ts": "51e6de8268afa9af8aaed6079b9abcf5a1eb6cfca74912cf1c23170a18feb106",
+    "backend/wallet-service/src/merchantSettlementPreview.ts": "8aa842f069336499d4284e7f4768d197cc69e426d1bc3802de7f3c6f01a0f2f7",
+    "backend/wallet-service/test/merchant-settlement-batch.test.cjs": "6869075cba0d44994426a1387aa36a8f2fba880775b2975d75d703491b48b11a",
+    "backend/wallet-service/test/helpers/merchant-accrual-fixture.cjs": "9dbd9f63c82785b6dd257360bcacb61dc86011b5f293c1591d2e319320c33074",
+    "backend/wallet-service/test/helpers/driver-financial-fixture.cjs": "ddf09b764e480e1e6ffe07c62708c8a941d0464c34402752e022b2a0bd5f9509"
+  },
+  "continuedBy": {
+    "part": 108,
+    "evidence": "finance-merchant-settlement-retention-108.json",
+    "scope": "Local deletion archive adapter and membership preservation; publication and eventual purge remain gated"
+  }
+}

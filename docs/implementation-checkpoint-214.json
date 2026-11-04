@@ -1,0 +1,75 @@
+{
+  "part": 214,
+  "status": "PUBLISHED_ACTIVE_VERIFIED",
+  "feature": "Arabic restaurant financial period summary print / browser PDF",
+  "userRequestedPlanAddition": true,
+  "scope": "Central financial administration, merchant account date range",
+  "publication": "merchant-period-print-publication-214.json",
+  "hostingJobId": "121",
+  "hostedBytesVerified": true,
+  "sourceSha256": {
+    "frontend/merchant-period-print.js": "ab2634d24978bdcd0718bc6b1bfe4e065a91c610b8a471668690c17fd2625457",
+    "frontend/merchant-financial-account.js": "c4859ccfd1f1ac80df3920fe037d9fd855643b385d8ab0e393e92ef2bd5e3998",
+    "frontend/settlement-orders.js": "42057d6f6a5bc8b4f9ecc58a39796155abb9e0ae3e407b320c4f9b5aff9e3f3d",
+    "frontend/pages/finance.html": "02263e96bf0b5e8269abbfc80a923cce2e5b367d506990d49cf3b7352605c79a"
+  },
+  "verification": {
+    "browserPrintFlow": "PASS",
+    "existingAccountFlow": "PASS",
+    "accountButtonIntegration": "PASS",
+    "freshTraversalAllPages": true,
+    "sessionRevalidatedPerPageAndAtEnd": true,
+    "rejects": [
+      "revocation mid-read",
+      "revocation at final validation",
+      "wallet revision change mid-read",
+      "wallet revision change at final validation",
+      "duplicate movement",
+      "invalid money schema",
+      "repeating cursor",
+      "direct-print size limit",
+      "changed period/merchant context"
+    ],
+    "syntheticDataOnlyInBrowserTests": true,
+    "getOnly": true
+  },
+  "report": {
+    "timezone": "Asia/Baghdad",
+    "dateEndInclusive": true,
+    "currency": "IQD",
+    "fields": [
+      "merchant name and ID",
+      "inclusive period",
+      "generated time and print reference",
+      "verified completed order count",
+      "gross goods",
+      "discount by funder",
+      "already deducted commission",
+      "merchant charges and delivery funding",
+      "net entitlement",
+      "entitlement status and unpaid delivery cohort",
+      "actual payments in payment-date cohort",
+      "platform-paid transfer fees",
+      "payment references",
+      "separate current all-period liability",
+      "unverified movement references and exclusion notice",
+      "explicit source coverage"
+    ],
+    "stateFilter": "ALL_STATES_INDEPENDENT_OF_SCREEN_FILTER",
+    "pageLimit": 500,
+    "rowLimit": 10000,
+    "partialPrintAllowed": false,
+    "unknownMovements": "DISCLOSED_AND_EXCLUDED",
+    "savedSettlementOrPaymentProof": false,
+    "historicalClosingBalance": false
+  },
+  "knownSourceLimits": [
+    "Posted merchant ledger movements only; zero-net orders without a ledger entry remain outside current source coverage.",
+    "Current all-period liability is not a historical period closing balance.",
+    "No wallet metadata means the source cannot currently certify a period print; fail closed."
+  ],
+  "financialMutationsPerformed": false,
+  "backendOrIamOrHumanGrantsChanged": false,
+  "priorClosureCheckpoint": "implementation-checkpoint-213.json",
+  "priorClosureRemainingUnchanged": true
+}

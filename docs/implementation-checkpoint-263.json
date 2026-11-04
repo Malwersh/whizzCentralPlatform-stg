@@ -1,0 +1,35 @@
+{
+  "part": 263,
+  "status": "PUBLISHED_STAGING",
+  "whole243Complete": false,
+  "scope": "Evidence-linked per-line treatment plan; physical execution and custody closure remain separate",
+  "hostingJobId": "152",
+  "tests": {
+    "wallet": 1312,
+    "staffFull": 243,
+    "standaloneBundle": 12,
+    "actualCandidateFactory": 12,
+    "overlayIsolation": 1,
+    "newProjection": 1,
+    "browser": "PASS",
+    "browserRegression": "PASS"
+  },
+  "iamChanged": false,
+  "financialPolicyChanged": false,
+  "originalReceiptPreserved": true,
+  "physicalExecutionImplemented": false,
+  "realPlanOrReceiptOrMoneyMutationByAgent": false,
+  "nativeBuildUnchanged": 227,
+  "merchantEmployeeHumanTest": "DEFERRED_BY_USER",
+  "remaining": [
+    "authenticated execution/receiving evidence for remaining quantities",
+    "custody resolution and task completion without replacing the first receipt",
+    "linked appeals and disputes",
+    "244 cash/cancellation/complaint integration"
+  ],
+  "references": [
+    "return-item-plan-263.md",
+    "return-item-plan-publication-263.json",
+    "return-item-plan-verification-263.json"
+  ]
+}

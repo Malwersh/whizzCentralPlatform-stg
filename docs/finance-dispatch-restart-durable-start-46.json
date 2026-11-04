@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_ATOMIC_LEGACY_RESTART_AND_DURABLE_START_VERIFIED",
+  "published": false,
+  "liveFlagsChanged": false,
+  "liveIAMChanged": false,
+  "humanDataChanged": false,
+  "newApplicationTables": false,
+  "newPublicHandlerOrSchedule": false,
+  "flutterChanged": false,
+  "gates": {
+    "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+    "DISPATCH_RESTART_START_MODE": "OFF"
+  },
+  "verifiedModes": [
+    "SAFE_LEGACY_RETRY",
+    "REQUIRED (injected isolated start consumer)"
+  ],
+  "subset": "Proven initial Legacy COD before pickup, no assignment/acceptance history or hold/funding/outcome; explicit authorized staff decision",
+  "reused": [
+    "Existing review request and live staff authority check",
+    "Existing delivery operations policy, coordinator and cycle-specific keys",
+    "Existing fenced Legacy wave producer, sender and response paths",
+    "Existing Jobs partition and cod_dispatch retention"
+  ],
+  "atomicWrites": [
+    "Previous cycle history",
+    "New cycle, assignment, current job progress and order deliveryJobId",
+    "Durable PENDING restart start record",
+    "Decision receipt and staff audit"
+  ],
+  "receipt": "SEARCH_RESTART_QUEUED; not notification or driver delivery proof",
+  "sourceGuards": [
+    "Full source/version, live employee permission and region, Cognito identity and MFA",
+    "No HOLD/PROMOTION_FUNDING/FINANCIAL_OUTCOME, completed bounded holds inventory",
+    "No acceptance history, pickup/cash/return or prior assignment",
+    "Fresh central policy version and values condition",
+    "Prior response outbox inventory complete and integrated before restart",
+    "Branch/lifecycle fences and immutable cycle/job links"
+  ],
+  "durableStart": {
+    "kind": "DISPATCH_RESTART_START",
+    "key": "orderId / DISPATCH_RESTART#restartId",
+    "states": [
+      "PENDING",
+      "STARTING",
+      "STARTED",
+      "STALE",
+      "SUPPRESSED_DELETION",
+      "NEEDS_REVIEW"
+    ],
+    "leaseMilliseconds": 30000,
+    "maximumAttempts": 20,
+    "backoff": "Existing 15s exponential pattern capped at 900s, never extends search deadline",
+    "scanEvaluatedLimit": 25,
+    "emptyFilteredPageReturnsCursor": true,
+    "deliveryProof": "APPLIED transition plus READY same-cycle wave with all recipients delivered, or matching durable assignment; callback success alone insufficient",
+    "entryPoint": "Trusted dependency-injected consumer; no deployed handler or schedule"
+  },
+  "financialWrites": false,
+  "retention": "Pending/review starts block cleanup; terminal start and cycle history archived as cod_dispatch under existing policy; no raw source/person data after redaction",
+  "tests": {
+    "walletPassed": 625,
+    "newRestartTests": 14,
+    "deletionPassed": 235,
+    "newRetentionTests": 2,
+    "staffPassed": 142,
+    "totalPassed": 1002,
+    "finalFocusedRestartPassed": 14,
+    "typeScriptBuild": true,
+    "yamlParsedAndGatesOff": true,
+    "javaScriptSyntax": true,
+    "whitespaceChecks": true,
+    "browser": {
+      "safeText": true,
+      "requestOnlyNoExecutionClaim": true,
+      "stableRequestAfterFailure": true,
+      "changedContentNewId": true,
+      "readOnly": true,
+      "emptyPageWithCursor": true,
+      "failedReadClearsCases": true,
+      "changedSessionDiscardsResponse": true,
+      "executedReceiptShown": true,
+      "blockedRetryDoesNotLookSuccessful": true,
+      "unresolvedReservationNoReleaseClaim": true,
+      "queuedRestartNotPresentedAsDelivery": true,
+      "realWrites": false
+    },
+    "isolatedDynamoDB": {
+      "scope": "REAL_DYNAMODB_ISOLATED_LEGACY_RESTART_AND_DURABLE_START",
+      "applicationTablesAccessed": false,
+      "published": false,
+      "realCognitoCalls": 0,
+      "realNotifications": 0,
+      "humanMoneyChanged": false,
+      "concurrentRestartOneCycleHistoryReceiptAndStart": true,
+      "boundedScanContinuationStartsPendingRow": true,
+      "pendingStartSurvivesGapAndLostInvokeAck": true,
+      "noWalletLedgerOrHoldMutation": true,
+      "policyAndReservationRacesRollBackAllRestartWrites": true,
+      "deletionSuppressesPendingStart": true,
+      "tableDeleted": true
+    },
+    "liveIAMSimulated": false,
+    "realProviderOrDeviceTest": false
+  },
+  "artifactManifest": {
+    "schemaVersion": 1,
+    "stage": "staging",
+    "mode": "OFF",
+    "executionReady": false,
+    "publicationReady": false,
+    "noPublicHandlerOrSchedule": true,
+    "supportedModes": [
+      "SAFE_INITIAL_LEGACY",
+      "SAFE_LEGACY_RETRY"
+    ],
+    "restartStartMode": "OFF",
+    "restartArtifactSha256": "1b7596f3b2109b295b45f6e8498966107c9dafae984da5e974c20a433d71bc9a",
+    "artifactSha256": "fc83f882d81211c0ad7287d4111eeea1f76857e8440919aee82802d3a5437e11",
+    "subset": "Explicit staff-authorized cancellation or restart of proven initial unreserved Legacy COD; no wallet/ledger changes",
+    "retrySearch": "SAFE_LEGACY_RETRY: atomic initial unreserved Legacy restart plus durable start; OFF by default",
+    "reservationCheck": "NEEDS_REVIEW; no inference of release from timeout",
+    "lifecycle": "Decision suppression/redaction and existing financial-years archive/purge; source and actor fences",
+    "blockers": [
+      "Live restart consumer wiring, bounded scan continuation and coordinated deadline scheduling",
+      "Financial cancellation/funding/return workflows and definitive reservation reconciliation",
+      "Cancellation integration/outbox notifications and device synchronization",
+      "Live IAM, packages, Cognito workflow and lifecycle verification before activation"
+    ]
+  },
+  "iam": "Proposal only: policy Get/condition, Jobs Put/Update and projected Scan; no wallet/ledger/hold mutation permissions",
+  "sourceSha256": {
+    "backend/wallet-service/src/dispatchReviewExecutor.ts": "50ecc8c2438ae9fe6226eab9a7473fe5d11a66aefa69eb2bb3a9d6daf1e19442",
+    "backend/wallet-service/src/dispatchRestartStart.ts": "8fb573cd5c57a1e64456fe489ca09ab28e8c577eea6cd68f3d3f46cb23b5b209",
+    "backend/wallet-service/src/dispatchCoordinator.ts": "716d6f9639c4106eaac22ed84202e48cce4eebe887fdda358733355c10473ff9",
+    "backend/wallet-service/test/dispatch-restart-start.test.cjs": "0b7f96bd292552ecfcf6b8e63aa06352d5c1a7f5c35616ab1b7aa0a888fcd037",
+    "backend/wallet-service/test/dispatch-review-executor.test.cjs": "e9222b306e697d704ae6cbd976dfe9bb4888b68ac3f9a073bb622567cd3a1907",
+    "backend/wallet-service/test/helpers/dispatch-review-executor-fixture.cjs": "729490816093785de3845e2e4ee9a2849ca93857503c9d76ede408c2271109f2",
+    "backend/account-deletion/cod-retention.js": "e498b735ea6827eeae17f82f9312877e1347fb2b1dbf9cb23c07c4b6b4c130b0",
+    "backend/account-deletion/test/cod-retention.test.cjs": "efddaa9b7ec075db61586992f5644c29435aed963f6ed8cdc96f55c5589ee5ef",
+    "backend/staff-service/template.yaml": "48ab597736abefee3af759be22366db3487c30cfa4ab906d65c7030abe6c58ff",
+    "frontend/dispatch-reviews.js": "9749f549126f0ca56b4ef24806c40a9298b91e5a36e84c2812920d923b3882e9",
+    "scripts/build-dispatch-review-executor.cjs": "bac14a2fb04bb825c906c882f35079736f5a436d60ff4c9d5fafc3bc0ac45eca",
+    "scripts/test-dispatch-review-executor-staging.cjs": "1055ec668001d530d2df3f30e43013c2cafb7a9ab46762bc96a9ea49f2ffbc42",
+    "scripts/test-dispatch-cycle-staging.cjs": "ed77b67887cd9709bdac5b5e8bc69a2d2fca1247ceac11d102f3e10198102c43",
+    "scripts/test-dispatch-restart-start-staging.cjs": "78c29b2b85051134557c884b25bc1d3aa524dc24c70e9fe7d0d1b968d3c14bdb",
+    "scripts/test-dispatch-review-executor-browser.cjs": "315673ace59d04fe986e86787ef703f3512ff1b51b48bb52f78eaa411a727f3e"
+  },
+  "limitations": [
+    "No deployed consumer/discovery/schedule or activation; persisted start requires host continuation and retries",
+    "Live StartWave and timeout scheduling must be coordinated before enabling retry",
+    "Bounded Scan is a Staging bridge, not a permanent indexed scalable queue",
+    "Full source/response guard inventory must fit existing 100-operation transaction limit; incomplete or oversized evidence fails closed",
+    "NEEDS_REVIEW operator monitoring/resolution still needs live workflow integration",
+    "Financial reassignment, funding, returns and reservation reconciliation remain outside initial Legacy subset",
+    "STARTED is durable start evidence, not proof of sound, human receipt or exactly-once external delivery",
+    "Receipt retains queued result; this slice does not build a start-queue monitoring UI"
+  ],
+  "next": [
+    "Wire consumer discovery, cursor continuation and timeouts into constrained host with independent gates OFF",
+    "Reconcile live bundles, simulate IAM and run coordinated provider/device verification",
+    "Enable only an explicitly reviewed Staging subset after verification"
+  ],
+  "docs": "finance-pricing-settlements-returns-unified-plan.md section 64"
+}

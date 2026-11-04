@@ -1,0 +1,357 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Staging scoped rollout identity reads and review fences. No money writes or activation.",
+  "Conditions": {
+    "StagingAccountAndRegion": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "699561669180"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "CreateOrderRolloutFence": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "PolicyName": "FinanceRolloutIdentity54",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ORDER#*"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "Roles": [
+          "WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN"
+        ]
+      }
+    },
+    "StaffReviewRolloutRead": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "PolicyName": "FinanceRolloutIdentity54",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ORDER#*"
+                  ]
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "PK",
+                    "SK",
+                    "orderId",
+                    "userSub",
+                    "storeId",
+                    "businessId",
+                    "financeRollout",
+                    "driverId",
+                    "assignedDriverId",
+                    "status",
+                    "orderStatus",
+                    "pickedUpAt",
+                    "deliveredAt",
+                    "completedAt",
+                    "financialOutcome",
+                    "financialRelease",
+                    "returnCaseId",
+                    "returnStatus",
+                    "cashCollected",
+                    "cashCollectedAmount",
+                    "cancellationRequestId",
+                    "cancellationStatus",
+                    "deletionRequestId",
+                    "deletionStatus",
+                    "deletedAt",
+                    "isDeleted",
+                    "dispatchReviewOutcome"
+                  ]
+                },
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ORDER#*"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+              "Condition": {
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "orderId",
+                    "SK",
+                    "kind",
+                    "status",
+                    "state",
+                    "restaurantId",
+                    "dispatchJobId",
+                    "dispatchCycle",
+                    "dispatchReview",
+                    "financialDispatch",
+                    "financialSearchVersion",
+                    "noDriverReason",
+                    "attemptId",
+                    "cycleId",
+                    "branchId",
+                    "version",
+                    "reason",
+                    "updatedAt",
+                    "createdAt",
+                    "dispatchReviewOutcome"
+                  ]
+                },
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:Query",
+                "dynamodb:Scan"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+              "Condition": {
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "orderId",
+                    "SK",
+                    "kind",
+                    "status",
+                    "state",
+                    "restaurantId",
+                    "dispatchJobId",
+                    "dispatchCycle",
+                    "dispatchReview",
+                    "financialDispatch",
+                    "financialSearchVersion",
+                    "noDriverReason",
+                    "attemptId",
+                    "cycleId",
+                    "branchId",
+                    "version",
+                    "reason",
+                    "updatedAt",
+                    "createdAt",
+                    "dispatchReviewOutcome"
+                  ]
+                },
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                },
+                "StringEquals": {
+                  "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+              "Condition": {
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "orderId",
+                    "sk",
+                    "holdId",
+                    "status",
+                    "version",
+                    "updatedAt"
+                  ]
+                },
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ACCOUNT_LIFECYCLE#MERCHANT#*",
+                    "BUSINESS_LIFECYCLE#MERCHANT#*"
+                  ]
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "pk",
+                    "sk"
+                  ]
+                },
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses"
+              ]
+            }
+          ]
+        },
+        "Roles": [
+          "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx"
+        ]
+      }
+    },
+    "WalletNoticeRolloutRead": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "PolicyName": "FinanceRolloutIdentity54",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ORDER#*"
+                  ]
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "PK",
+                    "SK",
+                    "orderId",
+                    "userSub",
+                    "storeId",
+                    "businessId",
+                    "financeRollout",
+                    "driverId",
+                    "assignedDriverId"
+                  ]
+                },
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                }
+              }
+            }
+          ]
+        },
+        "Roles": [
+          "staging-wizz-wallet-servi-WalletNotificationWorkerR-65KXCbUPWrkw"
+        ]
+      }
+    },
+    "WavePushRolloutRead": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "StagingAccountAndRegion",
+      "Properties": {
+        "PolicyName": "FinanceRolloutIdentity54",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ORDER#*"
+                  ]
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "PK",
+                    "SK",
+                    "orderId",
+                    "userSub",
+                    "storeId",
+                    "businessId",
+                    "financeRollout",
+                    "driverId",
+                    "assignedDriverId"
+                  ]
+                },
+                "Null": {
+                  "dynamodb:Attributes": "false"
+                }
+              }
+            }
+          ]
+        },
+        "Roles": [
+          "wizzcentral-notifications-staging-us-east-1-lambdaRole"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "status": "PREPARED_NOT_PUBLISHED",
+  "functions": [
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "before": "pe0M7TNrH5VsHfyTjkADaM4SJJjoAt7UAfHW5v+7bho=",
+      "revision": "9c5d15b8-66af-45f2-8907-96fb3016b5af",
+      "candidate": "jCy9jntFdawFdPu6heDDXCp1fVSwSoBFe3OmlPWhtLM=",
+      "changedFiles": [
+        "driver-quality-review-runtime-289.js",
+        "driver-quality-driver-runtime-290.js",
+        "index.js"
+      ],
+      "allOtherEntriesIdentical": true,
+      "existingPermissionsVerified": []
+    },
+    {
+      "label": "driver",
+      "function": "DriversApi-staging",
+      "before": "hXBZjqz2e2Na9kvAsmG1iRSWprSnEPxTdWwGYX9cU8g=",
+      "revision": "336ea49b-2914-411a-b750-45bb8ac88b4e",
+      "candidate": "7I5awRbziBe+xZ2c/O4MTVGpiAPSSkyjHbr5jwaAXNs=",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "financial-accept-client.js",
+        "driver-quality-incidents-290.js",
+        "driver-quality-proof-290.js"
+      ],
+      "allOtherEntriesIdentical": true,
+      "existingPermissionsVerified": [
+        [
+          "dynamodb:Query",
+          "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds"
+        ]
+      ]
+    },
+    {
+      "label": "deletion-request",
+      "function": "staging-account-deletion-requests",
+      "before": "eVABwkiDz+ngKWXw0CIzxjbuERPB2t7T4Y41sJsRugw=",
+      "revision": "41c29e04-7612-4507-bf7b-054eb1b48aff",
+      "candidate": "gVa1f4Z9+BowcxT8xGMiUpfzDj+mRrPtVSomQ3BEmoI=",
+      "changedFiles": [
+        "cod-retention.js",
+        "driver-evidence.js",
+        "policy.js",
+        "quality-review-retention-290.js"
+      ],
+      "allOtherEntriesIdentical": true,
+      "existingPermissionsVerified": []
+    },
+    {
+      "label": "deletion-worker",
+      "function": "staging-account-deletion-worker",
+      "before": "nGl0E/UuGljvMpH7iYLs8CDpNS2DY3JZ6WG+WeTqBE0=",
+      "revision": "40afaf9e-f7b0-4a19-ad9b-7f2a23c12506",
+      "candidate": "siEjcL6JyhluClm5PiDBpsBWYbH7CPwvVYaRKjm+Sw4=",
+      "changedFiles": [
+        "cod-retention.js",
+        "policy.js",
+        "quality-review-retention-290.js"
+      ],
+      "allOtherEntriesIdentical": true,
+      "existingPermissionsVerified": []
+    }
+  ],
+  "newIam": "DRIVER_QUERY_HOLDS_ONLY_REQUIRED",
+  "newTables": false,
+  "apiGatewayChanges": false,
+  "financialCalculationsChanged": false
+}

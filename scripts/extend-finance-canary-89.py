@@ -1,0 +1,13 @@
+"""Extend only the existing, user-requested one-order canary; never change membership or DRAIN scopes."""
+import pathlib,json,importlib.util,datetime,subprocess
+R=pathlib.Path(__file__).resolve().parents[1];O=pathlib.Path('/private/tmp/finance89');O.mkdir(exist_ok=True,mode=0o700);sp=importlib.util.spec_from_file_location('c',R/'scripts/capture-financial-readers-63.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+def main():
+ s=m.session();l=s.client('lambda');plan=json.loads(pathlib.Path('/private/tmp/finance86/activation-plan.private.json').read_text());rows=[];old=None
+ for f in plan['functions']:
+  c=l.get_function_configuration(FunctionName=f['name']);e=c['Environment']['Variables'];cfg=json.loads(e['FINANCE_ROLLOUT_CONFIG']);assert len(cfg['scopes'])==1 and cfg['scopes'][0]['mode']=='SCOPED';assert len(cfg['scopes'][0]['orders'])==1
+  assert cfg==old or old is None,'SCOPE_DRIFT';old=cfg;assert cfg['scopes'][0]['orders']==plan['scope']['scopes'][0]['orders'] and cfg['scopes'][0]['drivers']==plan['scope']['scopes'][0]['drivers'];rows.append(c)
+ assert old;nextCfg=json.loads(json.dumps(old));nextCfg['scopes'][0]['admitUntil']=(datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(minutes=30)).isoformat(timespec='milliseconds').replace('+00:00','Z');raw=json.dumps(nextCfg,separators=(',',':'));digest=subprocess.check_output(['node','-e',"console.log(require('./backend/wallet-service/dist/deliveryQuoteRecord').quoteHash(JSON.parse(require('fs').readFileSync(0,'utf8'))))"],input=raw.encode(),cwd=R).decode().strip();p=O/'before.private.json';p.write_text(json.dumps(rows,default=str));p.chmod(0o600);done=[]
+ for c in rows:
+  live=l.get_function_configuration(FunctionName=c['FunctionName']);assert live['RevisionId']==c['RevisionId'];e={**c['Environment']['Variables'],'FINANCE_ROLLOUT_CONFIG':raw,'FINANCE_ROLLOUT_SHA256':digest};l.update_function_configuration(FunctionName=c['FunctionName'],RevisionId=c['RevisionId'],Environment={'Variables':e});l.get_waiter('function_updated_v2').wait(FunctionName=c['FunctionName'],WaiterConfig={'Delay':1,'MaxAttempts':90});a=l.get_function_configuration(FunctionName=c['FunctionName']);assert a['CodeSha256']==c['CodeSha256'] and a['Environment']['Variables']==e;done.append(c['FunctionName']);print(json.dumps({'extended':c['FunctionName']}),flush=True)
+ result={'functions':len(done),'orderCount':1,'membershipPreserved':True,'orderPinPreserved':True,'gateValuesPreserved':True,'admitUntil':nextCfg['scopes'][0]['admitUntil'],'codeChanged':False};(O/'extension.json').write_text(json.dumps(result,indent=2));print(json.dumps(result))
+if __name__=='__main__':main()

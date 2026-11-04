@@ -1,0 +1,8 @@
+@font-face {
+  font-family: "Wizz Arabic";
+  src: url("../assets/fonts/NotoSansArabic.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+

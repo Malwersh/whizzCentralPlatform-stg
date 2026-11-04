@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_LEGACY_CYCLE_KEY_NAMESPACE_VERIFIED",
+  "published": false,
+  "liveFlagsChanged": false,
+  "liveIAMChanged": false,
+  "humanDataChanged": false,
+  "newApplicationTables": false,
+  "realNotifications": 0,
+  "flutterChanged": false,
+  "defaultCreatorUsesNewKeyVersion": false,
+  "retryExecutionEnabled": false,
+  "financialNamespaceSupported": false,
+  "keyContract": {
+    "explicitCycleKeyVersion": 2,
+    "prefix": "CYCLE#SHA256(cycleId)#",
+    "legacyReadCompatible": true,
+    "fallbackAcrossCycles": false,
+    "offerId": "OFFER_<orderId>_C<48hex-cycle-driver-wave-digest>_W<n>",
+    "cycleFieldBoundByDigest": true
+  },
+  "reused": [
+    "Existing coordinator and candidate selector",
+    "Existing Legacy producer, response/acceptance bridge and transport ACK",
+    "Existing response integration and loser closure",
+    "Existing push handler and financial retention"
+  ],
+  "tests": {
+    "walletPassed": 611,
+    "newWalletTests": 7,
+    "deletionPassed": 233,
+    "newDeletionAndPushTests": 3,
+    "staffPassed": 142,
+    "typeScriptBuild": true,
+    "bundleBuilds": [
+      "dispatch-coordinator-runtime",
+      "pinned-legacy-runtime",
+      "pinned-wave-notifications-review"
+    ],
+    "javaScriptSyntax": true,
+    "yamlParsed": true,
+    "whitespaceChecks": true,
+    "cycleRollover": "In-memory simulation of future trusted transaction output, not an implemented restart API",
+    "realDynamoDB": false,
+    "liveIAMSimulated": false,
+    "realProviderOrDevices": false
+  },
+  "proposedIAMOnly": "Notifications projected GetItem on WizzDispatchJobs_staging and cycle/key-version fields; no grants",
+  "limits": [
+    "Legacy key contract only; FINANCIAL v2 refused",
+    "Initial Creator unchanged; no live migration or gate activation",
+    "RETRY_SEARCH remains BLOCKED_DEPENDENCY until atomic new-cycle writer plus resumable start",
+    "Late START/TIMEOUT must use a distinct new assignmentId; cycleId alone is insufficient",
+    "Provider send already in flight cannot be recalled",
+    "Financial cancellation, returns and reservation reconciliation remain pending"
+  ],
+  "sourceSha256": {
+    "backend/src/utils/dispatch-cycle-keys.js": "a6ca5b1bd542d88ca6753daef81fa620ff7154fe61f7de4d56a4d82898265ea5",
+    "backend/wallet-service/src/dispatchCycle.ts": "532b16f8d38a7602bb40c5a780634b4da67db6207bff4547ccd2241ec17c176a",
+    "backend/wallet-service/src/dispatchLegacy.ts": "fdbd2a8624ebd37a413ce08699df5c2f8d77b8f4a04a4be12cde4a4b74a28444",
+    "backend/wallet-service/src/dispatchCoordinator.ts": "dea91984e90753c6d962b29e669460e3fbfdba1e4bd3d53b61368608a6e0fbae",
+    "backend/wallet-service/src/dispatchCandidates.ts": "b5121c6f9a9b0b1161524d4d98a6a9a00caccf60f4986365c7d48c8e38a0f04b",
+    "backend/wallet-service/src/dispatchLegacyBridge.ts": "c7093a89971783247a70d2a631f0edb4b2ace2d26d258fb10f36021b9f9490c6",
+    "backend/wallet-service/src/dispatchLegacyDelivery.ts": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+    "backend/wallet-service/src/dispatchLegacySource.ts": "e1dd9d9e8eaf062358338894348647ebcfa9157574778f3b6186cd063e2ab4f3",
+    "backend/wallet-service/src/dispatchResponseIntegration.ts": "f8fe45594b1dfbde3612bf0d9625ce6c999047db6e20fbdecca4fd1038430708",
+    "backend/src/utils/pinned-wave-push.js": "24494c3eed1646cb891ef41760af5b01b8ba5eaf6627558ca994e9cd09dbb51d",
+    "backend/src/utils/pinned-wave-push-handler.js": "a5c8459ed755ed5bc85c3cc8df348e4889d01553177932fc7fa58a0a09764f8e",
+    "backend/serverless.notifications.yml": "c3265f00baece8d4fb9e80cdccd7794e6742ffa0e7adf118e5f1c25690db7afe",
+    "backend/account-deletion/cod-retention.js": "e460ba658305b643c7f2052e2616937f2a0c7c6490d6ff683b4d6e965bccfa90",
+    "scripts/build-pinned-wave-notifications-review.cjs": "528ef4e2a137d7c5a1213fc3029d8ac843a754d297a1fbce1bbe091b5eb15d11",
+    "backend/wallet-service/test/dispatch-cycle-keys.test.cjs": "7cd9d78afdd110e577708fb3fd56c4d5e39c8e52e60be44341d1852d7285f510",
+    "backend/wallet-service/test/dispatch-legacy-delivery.test.cjs": "a2b9eb6b8303d72cddbd43901bc5df8182790d9cd2901ce775db0676696deeb1",
+    "backend/wallet-service/test/dispatch-response-integration.test.cjs": "a7db0ac40a65dabbf2af5a9dc8a701f861619da34bfe473c5a79952ff45bc4f5",
+    "backend/wallet-service/test/helpers/dispatch-legacy-source-fixture.cjs": "895d46fce6f76e6f56c73818ce771aba9fd427283519449dd84a72b2ac359d54",
+    "backend/wallet-service/test/helpers/dispatch-legacy-fixture.cjs": "8344429144cc081286604d863e7b42cfae61466c6144c876f593ddfbacee84b1",
+    "backend/account-deletion/test/pinned-wave-push.test.cjs": "46c50ae94220c7a93ab39636969abc3c5dc8d7f5cac0953c823054ca6b017808",
+    "backend/account-deletion/test/cod-retention.test.cjs": "9fa016585af64d3172cc51a527ae3671e9fc7b5a6e0c1dec90d843b2f9b6395b"
+  },
+  "next": [
+    "Atomic staff-authorized retry-search: archive old cycle, fresh policy, new cycle and assignmentId, decision receipt",
+    "Durable resumable start with coordinated readers and lifecycle fences",
+    "Real isolated DynamoDB, IAM/package and device verification before activation"
+  ],
+  "docs": "finance-pricing-settlements-returns-unified-plan.md section 63"
+}

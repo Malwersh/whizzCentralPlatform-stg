@@ -1,0 +1,490 @@
+{
+  "auditDate": "2026-10-20",
+  "environment": "staging",
+  "readOnly": true,
+  "functions": [
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "JUlnpHkuiZH2HecHnHpKcrJ+1SjEnMTmqlRVJ0XOtYc=",
+      "liveCodeSha256": "JUlnpHkuiZH2HecHnHpKcrJ+1SjEnMTmqlRVJ0XOtYc=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:04.000+0000"
+    },
+    {
+      "name": "WizzUser-GetBusinesses-staging",
+      "referencePart": 182,
+      "referenceEvidence": "store-delivery-agreement-publication-182.json",
+      "expectedCodeSha256": "DJEISAmGv3amXr8KmffTHAJLv6gPzzFGnGLZXMsgk/8=",
+      "liveCodeSha256": "DJEISAmGv3amXr8KmffTHAJLv6gPzzFGnGLZXMsgk/8=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-19T15:35:53.000+0000"
+    },
+    {
+      "name": "WizzUser-GetBusiness-staging",
+      "referencePart": 182,
+      "referenceEvidence": "store-delivery-agreement-publication-182.json",
+      "expectedCodeSha256": "W8RmJEdVbrqiHgnaVS2MjMppTJv/kHmzFsyUuCbiSms=",
+      "liveCodeSha256": "W8RmJEdVbrqiHgnaVS2MjMppTJv/kHmzFsyUuCbiSms=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-19T15:36:10.000+0000"
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "rh/3P2E3lkUZKVYglsxKbDbwXUTugvk5oAZVnxqx56Y=",
+      "liveCodeSha256": "rh/3P2E3lkUZKVYglsxKbDbwXUTugvk5oAZVnxqx56Y=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:40.000+0000"
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "2+5P9bDxzUxzqvsTQEam0CD/2s0bR65zS2YA6zPKd5A=",
+      "liveCodeSha256": "2+5P9bDxzUxzqvsTQEam0CD/2s0bR65zS2YA6zPKd5A=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_COD_RETURNS_MODE": "REQUIRED",
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "FINANCIAL_COD_COMPLETION_MODE": "REQUIRED",
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCIAL_COD_ASSIGNMENTS_MODE": "REQUIRED",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "FINANCIAL_PUSH_VALIDATION_MODE": "REQUIRED",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:25.000+0000"
+    },
+    {
+      "name": "staging-cod-integration",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "ih9BrwkJOrwqe5yCYabtfGCw4C3COrOfBcxT/SpNA9M=",
+      "liveCodeSha256": "ih9BrwkJOrwqe5yCYabtfGCw4C3COrOfBcxT/SpNA9M=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCIAL_COD_INTEGRATION_MODE": "REQUIRED",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:28.000+0000"
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "fk69P6+ynt4H+r2z3ZG+S6E0Ck0N+D3/ErGLWueIg80=",
+      "liveCodeSha256": "fk69P6+ynt4H+r2z3ZG+S6E0Ck0N+D3/ErGLWueIg80=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:01.000+0000"
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "3rXu5W7iHgpjOrjDqDPDBxYu8HagcYqeUfwQ7RVMvCY=",
+      "liveCodeSha256": "3rXu5W7iHgpjOrjDqDPDBxYu8HagcYqeUfwQ7RVMvCY=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:14:58.000+0000"
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "pSJf8e8Ohy8hBAQknbsAjbbgI0EbTP0Jr6gg2Hdy54U=",
+      "liveCodeSha256": "pSJf8e8Ohy8hBAQknbsAjbbgI0EbTP0Jr6gg2Hdy54U=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "DISPATCH_FINANCIAL_HOST_MODE": "REQUIRED",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:07.000+0000"
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "Fene+Xlsoh7zMHkfJ2cWNYbH0IMIVi4b+XmKjiV/8JI=",
+      "liveCodeSha256": "Fene+Xlsoh7zMHkfJ2cWNYbH0IMIVi4b+XmKjiV/8JI=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "DISPATCH_FINANCIAL_HOST_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:10.000+0000"
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "RwO5q0p9bqpgVsR6F43VxKdI1ywkv6fkQkwUa7W4f+I=",
+      "liveCodeSha256": "RwO5q0p9bqpgVsR6F43VxKdI1ywkv6fkQkwUa7W4f+I=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+        "DISPATCH_FINANCIAL_HOST_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:13.000+0000"
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "referencePart": 212,
+      "referenceEvidence": "merchant-account-publication-212.json",
+      "expectedCodeSha256": "v98wRMARkpKuZXpdJNX2aEAaTWc/TFC37tcy7U/TkMA=",
+      "liveCodeSha256": "v98wRMARkpKuZXpdJNX2aEAaTWc/TFC37tcy7U/TkMA=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "SETTLEMENT_SCHEDULE_ADMIN_ENABLED": "true"
+      },
+      "lastModified": "2026-10-20T04:47:10.000+0000"
+    },
+    {
+      "name": "WizzUser-GetOrder-staging",
+      "referencePart": 193,
+      "referenceEvidence": "customer-tracking-live-activity-193.json",
+      "expectedCodeSha256": "UkADeW1zoHOiNgjKLqcQHvyaINybjBYIUvXqVr3kB7s=",
+      "liveCodeSha256": "UkADeW1zoHOiNgjKLqcQHvyaINybjBYIUvXqVr3kB7s=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-19T19:22:49.000+0000"
+    },
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "referencePart": 193,
+      "referenceEvidence": "customer-tracking-live-activity-193.json",
+      "expectedCodeSha256": "tV5eYUtmxBDQEct+xeuiGm5yVUkDNpP2peo67QiFgi4=",
+      "liveCodeSha256": "tV5eYUtmxBDQEct+xeuiGm5yVUkDNpP2peo67QiFgi4=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-19T19:23:22.000+0000"
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+      "referencePart": 202,
+      "referenceEvidence": "live-activity-background-202.json",
+      "expectedCodeSha256": "q4MDtWRTO728AyTznkED2Cxn+Zst/yAmlYuWFmryEaE=",
+      "liveCodeSha256": "q4MDtWRTO728AyTznkED2Cxn+Zst/yAmlYuWFmryEaE=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-19T20:55:23.000+0000"
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushUpdate",
+      "referencePart": 193,
+      "referenceEvidence": "customer-tracking-live-activity-193.json",
+      "expectedCodeSha256": "DSAoohwFgf5mlQu3OQejRIfCnLc7Q3XQtH4w6eyUyrE=",
+      "liveCodeSha256": "DSAoohwFgf5mlQu3OQejRIfCnLc7Q3XQtH4w6eyUyrE=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-19T19:26:09.000+0000"
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushEnd",
+      "referencePart": 193,
+      "referenceEvidence": "customer-tracking-live-activity-193.json",
+      "expectedCodeSha256": "s4F/2CHdd0mNXQJc8rdJrFyeHklDh15+lKcpshdLjiw=",
+      "liveCodeSha256": "s4F/2CHdd0mNXQJc8rdJrFyeHklDh15+lKcpshdLjiw=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-19T19:27:14.000+0000"
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "wX4mFzg3ujbKqTX2EvMgoWrnFk8j4tcjlIjik/YrTAs=",
+      "liveCodeSha256": "wX4mFzg3ujbKqTX2EvMgoWrnFk8j4tcjlIjik/YrTAs=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:16.000+0000"
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "cDil3WsuMNJGvFy80D8p95h1H7GiyZufPn753hjiUTk=",
+      "liveCodeSha256": "cDil3WsuMNJGvFy80D8p95h1H7GiyZufPn753hjiUTk=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:19.000+0000"
+    },
+    {
+      "name": "DriversApi-staging",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "LkxVIfBJTV4MHFWJXd5R4T0eAn4iYbzl5mARzIfhvaQ=",
+      "liveCodeSha256": "LkxVIfBJTV4MHFWJXd5R4T0eAn4iYbzl5mARzIfhvaQ=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_COD_RETURNS_MODE": "REQUIRED",
+        "FINANCIAL_DISPATCH_MODE": "REQUIRED",
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCIAL_COD_ASSIGNMENTS_MODE": "REQUIRED",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "FINANCIAL_COD_COMPLETION_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:22.000+0000"
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "UGtFUWG/FNzDrwgvWY9svPNhDAhzixx7BMb97AT1MQ0=",
+      "liveCodeSha256": "UGtFUWG/FNzDrwgvWY9svPNhDAhzixx7BMb97AT1MQ0=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_COD_NOTIFICATIONS_MODE": "REQUIRED",
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:34.000+0000"
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "referencePart": 208,
+      "referenceEvidence": "full-cash-publication-208.json",
+      "expectedCodeSha256": "Dlzb9a0cWFJCOjh0FZP0rE5gTOqfehmHfISRSr7f2nA=",
+      "liveCodeSha256": "Dlzb9a0cWFJCOjh0FZP0rE5gTOqfehmHfISRSr7f2nA=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+        "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+        "PINNED_FINANCIAL_PUSH_MODE": "REQUIRED"
+      },
+      "lastModified": "2026-10-20T03:15:37.000+0000"
+    },
+    {
+      "name": "staging-wizz-wallet-service",
+      "referencePart": 209,
+      "referenceEvidence": "merchant-payout-publication-209.json",
+      "expectedCodeSha256": "lUoVjsJw4a8XQgMCdSqAFvDBY369mStj15O/xJZxbhM=",
+      "liveCodeSha256": "lUoVjsJw4a8XQgMCdSqAFvDBY369mStj15O/xJZxbhM=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-20T03:51:55.000+0000"
+    },
+    {
+      "name": "staging-wizz-wallet-lifecycle",
+      "referencePart": 209,
+      "referenceEvidence": "merchant-payout-publication-209.json",
+      "expectedCodeSha256": "p5G53HUMz0hvYcFSXEyzkV7D5+ctitGF/sx07vRtvQQ=",
+      "liveCodeSha256": "p5G53HUMz0hvYcFSXEyzkV7D5+ctitGF/sx07vRtvQQ=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-20T03:52:14.000+0000"
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "referencePart": 209,
+      "referenceEvidence": "merchant-payout-publication-209.json",
+      "expectedCodeSha256": "gUY72px8yNxqdahlKsW0O6RN2KtMb+3347X0Jfef6Wc=",
+      "liveCodeSha256": "gUY72px8yNxqdahlKsW0O6RN2KtMb+3347X0Jfef6Wc=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-20T03:52:32.000+0000"
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "referencePart": 209,
+      "referenceEvidence": "merchant-payout-publication-209.json",
+      "expectedCodeSha256": "wGmxkhNdz4he3f5V6/t5qhP52DO++gNE09wC3t783rY=",
+      "liveCodeSha256": "wGmxkhNdz4he3f5V6/t5qhP52DO++gNE09wC3t783rY=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {},
+      "lastModified": "2026-10-20T03:52:24.000+0000"
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "referencePart": 209,
+      "referenceEvidence": "merchant-payout-publication-209.json",
+      "expectedCodeSha256": "dSGVZ1NQpJsdMQBk8bhoSJqkJS0xyJXTb+N7p2eZJYM=",
+      "liveCodeSha256": "dSGVZ1NQpJsdMQBk8bhoSJqkJS0xyJXTb+N7p2eZJYM=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "FINANCIAL_EXPIRY_ENABLED": "true"
+      },
+      "lastModified": "2026-10-20T03:52:39.000+0000"
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "referencePart": 209,
+      "referenceEvidence": "merchant-payout-publication-209.json",
+      "expectedCodeSha256": "BQRMMOsixRpSvGTpWKRUU2RlS6GqCMcwXcSV16q5N3A=",
+      "liveCodeSha256": "BQRMMOsixRpSvGTpWKRUU2RlS6GqCMcwXcSV16q5N3A=",
+      "codeMatches": true,
+      "lastUpdateStatus": "Successful",
+      "flags": {
+        "SETTLEMENT_SCHEDULE_ADMIN_ENABLED": "true"
+      },
+      "lastModified": "2026-10-20T03:51:36.000+0000"
+    }
+  ],
+  "financialMutationsPerformed": false,
+  "functionInvocationsPerformed": false,
+  "hostingLatest": {
+    "jobId": "120",
+    "startTime": "2026-10-19 23:48:28.181000-05:00",
+    "status": "SUCCEED",
+    "endTime": "2026-10-19 23:48:36.285000-05:00"
+  },
+  "employeeTransfersStack": {
+    "StackName": "staging-merchant-device-transfers",
+    "StackStatus": "REVIEW_IN_PROGRESS"
+  },
+  "employeeTransfersChangeSets": [
+    {
+      "ChangeSetName": "employee-transfers-release75",
+      "Status": "CREATE_COMPLETE",
+      "ExecutionStatus": "AVAILABLE"
+    }
+  ],
+  "relatedRules": [
+    {
+      "name": "staging-account-deletion-FinancialExpiryExpiry-2IMb6ilcNa0B",
+      "state": "ENABLED",
+      "schedule": "rate(1 day)"
+    },
+    {
+      "name": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+      "state": "ENABLED",
+      "schedule": "rate(1 minute)"
+    }
+  ],
+  "hostedSourceMatches": {
+    "pages/finance.html": true,
+    "finance.js": true,
+    "settlement-orders.js": true,
+    "settlement-statements.js": true,
+    "settlement-statement-details.js": true,
+    "merchant-payouts.js": true,
+    "merchant-financial-account.js": true
+  },
+  "writeWorkflow": {
+    "staging-wizz-wallet-service": {
+      "PLATFORM_ENVIRONMENT": "staging",
+      "PLATFORM_WRITE_MODE": "DIRECT",
+      "SETTLEMENT_SCHEDULE_ADMIN_ENABLED": "NOT_SET"
+    },
+    "staging-wizz-staff-service": {
+      "PLATFORM_ENVIRONMENT": "staging",
+      "PLATFORM_WRITE_MODE": "DIRECT",
+      "SETTLEMENT_SCHEDULE_ADMIN_ENABLED": "true"
+    }
+  },
+  "runtimeExtra": {
+    "rules": [
+      {
+        "name": "staging-account-deletion-WorkerRetry-hzPjfx7sLOmF",
+        "state": "ENABLED",
+        "schedule": "rate(1 minute)",
+        "targets": [
+          "staging-account-deletion-worker"
+        ]
+      },
+      {
+        "name": "staging-cod-lifecycle-CodIntegrationWorkerRetryInte-LlysduSg9yRo",
+        "state": "ENABLED",
+        "schedule": "rate(1 minute)",
+        "targets": [
+          "staging-cod-integration"
+        ]
+      },
+      {
+        "name": "staging-wizz-staff-servic-DeletionWorkerRetryDeleti-BXgszFLq6huL",
+        "state": "ENABLED",
+        "schedule": "rate(1 minute)",
+        "targets": [
+          "staging-wizz-staff-deletions"
+        ]
+      },
+      {
+        "name": "staging-wizz-staff-servic-RevocationWorkerRetryRevo-qOHB2OYQI0xn",
+        "state": "ENABLED",
+        "schedule": "rate(1 minute)",
+        "targets": [
+          "staging-wizz-staff-revocations"
+        ]
+      },
+      {
+        "name": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+        "state": "ENABLED",
+        "schedule": "rate(1 minute)",
+        "targets": [
+          "WaveSystem_HandleWaveTimeout"
+        ]
+      }
+    ],
+    "streamMappings": [],
+    "walletWorkflowFlags": {
+      "PLATFORM_DIRECT_OPERATOR_IDS": "CONFIGURED_NON_BOOLEAN"
+    }
+  }
+}

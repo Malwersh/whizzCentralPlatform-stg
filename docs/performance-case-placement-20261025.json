@@ -1,0 +1,13 @@
+{
+  "status": "PUBLISHED_BYTE_VERIFIED",
+  "hostingJob": "209",
+  "previousHostingJob": "208",
+  "changedFiles": [
+    "driver-performance-case.js",
+    "pages/order-exceptions.html"
+  ],
+  "allOtherHostedEntriesIdentical": true,
+  "businessMutations": false,
+  "caseOrder": "ORD1792911323338",
+  "fix": "Performance review directly below case summary; explicit unavailable or permission states; no financial or performance decisions changed."
+}

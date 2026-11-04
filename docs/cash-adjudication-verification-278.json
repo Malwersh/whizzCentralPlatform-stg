@@ -1,0 +1,95 @@
+{
+  "part": 278,
+  "status": "PASS",
+  "verifiedAt": "2026-10-22T14:16:46.726561+00:00",
+  "effectiveFunctions": {
+    "staging-driver-financial-accept": {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "baseCodeSha256": "Dc5ZdjEjKa3hxQsmQc4B1twbI5pUNB28QUfm68dzF98=",
+      "packageSha256": "04e504678d78abd3f8cf45981f32c01ee742c895b8e81a1907b1e5643e2da569",
+      "changedFiles": [
+        "customer-cash-runtime-266.js"
+      ],
+      "deployedCodeSha256": "BOUEZ414q9P4z0WYHzLAHudCyJW46BoZB7HlZD4tpWk=",
+      "allDeployedBytesVerified": true
+    },
+    "staging-wizz-staff-service": {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "CyawIMR6LMQg5pok+eHmkI9Hy2Sgqgt4OHksoQUB2nM=",
+      "changedFiles": [
+        "settlement-runtime.js",
+        "cash-adjudication-read-278.js",
+        "settlement-evidence-fields.json",
+        "merchant-account.js",
+        "settlement-orders.js"
+      ],
+      "packageSha256": "d5d01a44ac2ea74e40bf33ed2c9189854aec429fc5db080a90c40b545b185f20",
+      "deployedCodeSha256": "1dAaRKwup05AvzPtLJGJhUrsQp/F2wgKkMQLVFsYXyA=",
+      "allDeployedBytesVerified": true
+    },
+    "staging-account-deletion-worker": {
+      "label": "deletion",
+      "function": "staging-account-deletion-worker",
+      "baseCodeSha256": "XCfrUbuVOQ0DH9Rr7w/LcCwYU61Zl0CsnLRJbQ8NhBc=",
+      "packageSha256": "456963709aa1781481031f08fc4ae2d7b650c9cbe74c7eb9010565d39bfc7aeb",
+      "changedFiles": [
+        "customer-cash-retention.js"
+      ],
+      "deployedCodeSha256": "RWljcJqheBSBAx8I/Eri17ZQycvnTH65AQVl05v8eus=",
+      "allDeployedBytesVerified": true
+    },
+    "staging-account-deletion-financial-expiry": {
+      "label": "expiry",
+      "function": "staging-account-deletion-financial-expiry",
+      "baseCodeSha256": "iFK+TO3bW1wGZStUAY4xxQwAS8zdBlF2HWjPGfH2k1c=",
+      "packageSha256": "1cc3934329d8c5cc1cae8b05a29985160debd465ef0183e373b839d895be840e",
+      "changedFiles": [
+        "customer-cash-retention.js"
+      ],
+      "deployedCodeSha256": "HMOTQynYxcwcrosFopmFFg3r1GXvAYPjc7g52JW+hA4=",
+      "allDeployedBytesVerified": true
+    },
+    "staging-wizz-wallet-service": {
+      "label": "wallet",
+      "function": "staging-wizz-wallet-service",
+      "baseCodeSha256": "lcBRl2rrSg24i61rkSmCekjHLdHcoBuQfPVH256AVco=",
+      "changedFiles": [
+        "dist/ledgerEffects.js"
+      ],
+      "packageSha256": "17c0e1fc405183fe42b16cf7de144dcaa93c13fc2441c4d9045670705ea116a0",
+      "deployedCodeSha256": "F8Dh/EBRg/5CsWz33hRNyqk8E/wkQcTZBFZwcF6hFqA=",
+      "allDeployedBytesVerified": true
+    },
+    "staging-wizz-wallet-lifecycle": {
+      "label": "lifecycle",
+      "function": "staging-wizz-wallet-lifecycle",
+      "baseCodeSha256": "5UdXAtKiLp5YHl69qJuzHeBU8edyv81hiGl0vKArEhw=",
+      "changedFiles": [
+        "dist/ledgerEffects.js"
+      ],
+      "packageSha256": "7189dd0d4bfe92d462365d03b0c598df8544ca99645766c5c9ee7ffd4e69523d",
+      "deployedCodeSha256": "cYndDUv+ktRiNl0DsMWY34VEyplkV2bFye5//U5pUj0=",
+      "allDeployedBytesVerified": true
+    }
+  },
+  "hostingJobId": "157",
+  "tests": {
+    "wallet": 1394,
+    "staff": 244,
+    "retention": 268,
+    "actualCashBundle": 27,
+    "actualMerchantReaderBundle": 49,
+    "actualWalletLedgerBundle": 30,
+    "browserScenarios": 2
+  },
+  "iamOrConfigurationChanged": false,
+  "historicalCase": "version14 RESOLVED, merchant PAID6250, hold RELEASED; no new cash case",
+  "topUpTestOrder": "delivered9000; CLOSED version8; merchant payable5450; no adjudication backfilled",
+  "allBusinessMutationsByAgent": false,
+  "newAdministrativeHumanAcceptance": "PENDING",
+  "scope": "Active, financially unsettled full-cash orders; existing posted outcomes are never rewritten",
+  "receivableHandling": "CUSTOMER_RECEIVABLE keeps an OPEN debt and AWAITING_CUSTOMER_PAYMENT case; no fictitious payment/write-off",
+  "merchantEmployeeHumanTest": "DEFERRED_BY_USER"
+}

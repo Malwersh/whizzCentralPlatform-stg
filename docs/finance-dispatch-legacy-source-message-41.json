@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_LEGACY_SOURCE_AND_MESSAGE_VERIFIED",
+  "published": false,
+  "installedOnPhone": false,
+  "liveFlagsChanged": false,
+  "liveIAMChanged": false,
+  "humanDataChanged": false,
+  "realNotificationsSent": 0,
+  "newApplicationTables": false,
+  "newAPI": false,
+  "newScreen": false,
+  "temporarySyntheticDynamoDBTableDeleted": true,
+  "notificationDelivery": "HELD_UNCHANGED",
+  "liveCodeInspection": [
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "revisionId": "b4ea18be-73d0-41d0-bbd8-84dec9d9b421",
+      "handler": "functions/create-order/index.handler",
+      "handlerSha256": "ce27c821404d1a5ba4278cc6b50aabf20767c6c856c987eb7830b926eab695a5",
+      "archiveSha256": "6e50206f57ce125166fa71c24c81fb82011439e23ab721f5d86e9bd6dc8b98ae",
+      "size": 52796
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "revisionId": "52581dbc-cceb-4dd4-8b2e-9cf820bf19f4",
+      "handler": "index.handler",
+      "handlerSha256": "5aafcdf408f80e6dec8b66518437c3da21e4c920cdeeff2137d859a736f4419c",
+      "archiveSha256": "8f898570e1a802f47b61e94a2004e24f535040f35d1e8fa7b211c4334e8d78c4",
+      "size": 21373
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "revisionId": "12586032-f355-49ee-b4ea-df658ba5a3b5",
+      "handler": "index.handler",
+      "handlerSha256": "8c8bb9a3d97c1b183ea1516da816335d96ecc3656fa39122cd99e1516231ba75",
+      "archiveSha256": "a673f3711c93e36a487e9f4888055017cf424dc7a4aa7d54f6ff4d3aaa2334dc",
+      "size": 54671
+    }
+  ],
+  "reused": [
+    "Existing orderPrice proof extracted unchanged from merchantSalesReport",
+    "Existing candidate selector and shared Legacy offer formatter",
+    "Existing coordinator/executor, acceptance bridge, reservation and response receipt",
+    "Existing branch, live state, order, WaveOffers and DispatchJobs logical tables",
+    "Existing driver model, Home and Push cache",
+    "Existing financial evidence retention projection"
+  ],
+  "contract": {
+    "version": 1,
+    "moneyUnit": "IQD_WHOLE",
+    "supported": "Known-writer, full-equation and compatibility-proven COD; pending; whole-IQD goods + explicit delivery + cash tip only",
+    "hold": "goods",
+    "displayEarnings": "delivery + cash tip, once",
+    "unsupported": "Prepaid, financial markers, discounts, other charges, fractional whole-IQD or unknown/mismatched price proof fail closed",
+    "unsupportedError": "LEGACY_SOURCE_REVIEW_REQUIRED",
+    "persistentReviewStateWritten": false,
+    "zeroDeliveryPreserved": true,
+    "newOfferTTLAdded": false,
+    "wsMaxBytes": 24000,
+    "pushDataMaxBytes": 3500,
+    "pushDataByteCheck": "JSON after flattening values to strings, with notification-envelope headroom",
+    "sameStoredPresentationForRetryAndPush": true,
+    "pickupFingerprintRecheckedBeforeSendAndAccept": true,
+    "distanceBasis": "HAVERSINE_BRANCH_TO_CUSTOMER",
+    "durationBasis": "LEGACY_5_MIN_PER_KM_ESTIMATE",
+    "mapboxRouteApproval": false,
+    "fixedDriverTestLocationChanged": false
+  },
+  "tests": {
+    "walletPassed": 581,
+    "deletionPassed": 218,
+    "driverFlutterPassed": 42,
+    "newWalletTests": 13,
+    "newDeletionTests": 1,
+    "newFlutterTests": 4,
+    "typeScriptBuild": true,
+    "offlineBundles": true,
+    "bundlesDefault": "OFF",
+    "publicationReady": false,
+    "flutterAnalyzeErrors": 0,
+    "flutterAnalyzeExistingUnusedWarnings": 9,
+    "flutterAnalyzeStyleNotes": true,
+    "iosReleaseNoCodesign": true,
+    "iosReleaseSizeMB": 51.5,
+    "androidBuild": false,
+    "realDeviceTest": false,
+    "whitespaceChecks": true,
+    "syntheticDynamoDB": {
+      "scope": "REAL_DYNAMODB_ISOLATED_LEGACY_SOURCE",
+      "applicationTablesAccessed": false,
+      "published": false,
+      "realOffersSent": 0,
+      "humanFundsChanged": false,
+      "selection": "SYNTHETIC_FIXED_RECIPIENTS",
+      "source": "REAL_SOURCE_ADAPTER_WITH_SYNTHETIC_ROWS",
+      "storedMessageReplayAndPushProjection": true,
+      "goodsOnlyExistingHoldAndOneTipNoMoneyWrites": true,
+      "zeroFeeAndLargeWholeIqdPreserved": true,
+      "sourceMutationRollsBackOffer": true,
+      "changedPickupPreventsAcceptance": true,
+      "tableDeleted": true
+    }
+  },
+  "artifactManifests": {
+    "coordinator": {
+      "schemaVersion": 1,
+      "mode": "OFF",
+      "executionReady": false,
+      "financialExecutorImplemented": true,
+      "creatorAdapterImplemented": true,
+      "candidateProviderImplemented": true,
+      "legacySourceImplemented": true,
+      "legacyExecutorImplemented": true,
+      "legacyResponsesImplemented": true,
+      "legacyAcceptanceBridgeImplemented": true,
+      "responseIntegrationImplemented": true,
+      "publicationReady": false,
+      "sha256": "790750aba0edc5117cb19d7bcba497cc54d17a2459735947f5d65d3c858fd10c",
+      "requiredLocalFiles": {
+        "WaveSystem_StartWave": [
+          "driver-selection.js",
+          "legacy-offer-contract.js"
+        ]
+      },
+      "legacyContractSha256": "999438215bf20058d55a4d7116128a919ce162149a618d32d335ab0241074812",
+      "selectionModuleSha256": "5ec27d40d5e9efd6b787d31b4bfbdd732d7b1c0735df4340e77b9289196469e2",
+      "destinations": [
+        "WaveSystem_CreateDispatchJob",
+        "WaveSystem_StartWave",
+        "WaveSystem_HandleWaveTimeout",
+        "WaveSystem_HandleDriverAccept",
+        "WaveSystem_HandleDriverReject"
+      ],
+      "blockers": [
+        "Legacy source historical coverage, reservation bridge verification and coordinated sender/entry-point activation",
+        "Response outbox queue/IAM, retention and live verification; client notification integration",
+        "Coordinated IAM and live-package verification",
+        "Central wave editor, recovery and full behavior compatibility"
+      ]
+    },
+    "bridge": {
+      "schemaVersion": 1,
+      "mode": "OFF",
+      "publicationReady": false,
+      "destination": "STAGING_DRIVER_API",
+      "file": "pinned-legacy-runtime.js",
+      "sha256": "b6a51c14109bcca32166aabd68fc3c06fa54cbd106f9ddcdcd04c5b22121ed2e",
+      "requiredAssignmentRuntime": "dispatch-cycle-runtime.js with atomic DISPATCH_ACCEPTANCE marker",
+      "requiredTarget": "arn:aws:lambda:us-east-1:699561669180:function:WaveSystem_HandleDriverAccept",
+      "blockers": [
+        "Coordinated driver API and assignment Lambda bundles, live IAM and table verification",
+        "Reservation service identity/metadata and lost-response integration test",
+        "Pending/review UI; response outbox delivery/client behavior and retention live verification",
+        "Live legacy source coverage and coordinated sender/client verification; central policy rollout"
+      ]
+    }
+  },
+  "limitations": [
+    "No enabled entry-point or actual push/websocket sender binding, IAM or provider validation",
+    "Historical human orders not read; supported source subset does not prove all legacy records",
+    "Unsupported source raises an error; persistent review workflow and UI remain to be connected",
+    "Candidate selection in isolated DynamoDB scenario uses fixed synthetic recipients; source and transactions are real",
+    "Haversine estimate is not road distance or Mapbox-approved ETA",
+    "Raw modifiers travel in full message; complete product-option UI and authenticated full offer-list reconciliation are pending",
+    "No new commissions, money settlement, performance metrics, Score/Tiers or recovery enablement",
+    "No change to existing published numeric operating policy, no app installation or human money/data mutation"
+  ],
+  "next": [
+    "Bind existing sender and full server reconciliation to the authoritative source",
+    "Operational review UI and unsupported/pending handling",
+    "Live package/IAM/reservation/route dependency and coordinated device verification before limited activation"
+  ],
+  "sourceSha256": {
+    "backend/wallet-service/src/legacyOrderPrices.ts": "b3344d2862abedf27f665ee3acdf18ee86c420e8f494acf6d92e9c44172f6b52",
+    "backend/wallet-service/src/merchantSalesReport.ts": "a57489bbd43eb8c31fafdd178142b0c356ffb2e5bcb75bf35024b1d790523021",
+    "backend/wallet-service/src/dispatchLegacySource.ts": "90613b01bea646bb7a65d44e041432a7bd77be69e846924454006734313c8cdc",
+    "backend/wallet-service/src/dispatchLegacy.ts": "227468f81d58db6782867cc1881ead323269ad66b138feaad2de4fd6b5c46971",
+    "backend/wallet-service/src/dispatchCoordinatorRuntime.ts": "22c152f2f88b69d83304b18d6acbd943a4b126c56b6b7f696a7f3ded01032206",
+    "lambda/WaveSystem_StartWave/legacy-offer-contract.js": "999438215bf20058d55a4d7116128a919ce162149a618d32d335ab0241074812",
+    "backend/account-deletion/cod-retention.js": "ffb245f54db6fe751f40d5f14d9ca5ecfeef0f92845a9580107838cdad95f131",
+    "backend/account-deletion/test/cod-retention.test.cjs": "77b6cd6dba0ce01ccd20e089da68c8a310a6f376b387e3f1345b74098c18b1cb",
+    "backend/wallet-service/test/helpers/dispatch-legacy-source-fixture.cjs": "b2a787f9982f6e739bc9fe2f3c062cf8f98f096ccf62d46cd0719933dd850399",
+    "backend/wallet-service/test/dispatch-legacy-source.test.cjs": "4f4ba778117cfb65d2b2c161d07288d2a7747873ec710446be16de429affd5f3",
+    "scripts/build-dispatch-coordinator-runtime.cjs": "4883ffd5660dabc453263f5693e6af4df4a01e448977eaf303eba11ce9aef3f4",
+    "scripts/build-pinned-legacy-runtime.cjs": "773af979b699d9ac8b7b9fae175d87aa8f9debf12654be586730a54d847cc6dd",
+    "scripts/test-dispatch-cycle-staging.cjs": "665fc1cb4251a5933a49498fe5f855d59e0ce2d3f8193d3f3deb31d073ffbe58",
+    "scripts/test-dispatch-legacy-source-staging.cjs": "c37345862b95e3a8072f3becc33a450e7e6675683ef0898638b328c528869f94",
+    "../whizzDrivers-stg/frontend/lib/models/wave_offer.dart": "6b4a26ca264f39c49271e6f591308f4097e54e5d00b8d92c99a83aefb90b10c0",
+    "../whizzDrivers-stg/frontend/lib/services/push_notifications_service.dart": "667049bb229ff369e49ceeb5016b5a315b84655da64c5afffd71b2035e3284e4",
+    "../whizzDrivers-stg/frontend/lib/features/home/spark_home_simple_arabic.dart": "3c213bdfea1027a684d00788fe3912b0a51d5bc4e350f08970791393750191c3",
+    "../whizzDrivers-stg/frontend/test/models/legacy_source_wave_offer_test.dart": "931673cf97343aea38ad3d483980e3b6d518260af3223af74b9c087245d0fb43"
+  },
+  "docs": "finance-pricing-settlements-returns-unified-plan.md section 59"
+}

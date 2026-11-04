@@ -1,0 +1,15 @@
+{
+  "part": 186,
+  "capturedAt": "2026-10-19T17:12:42.496481+00:00",
+  "retiredScopeId": "fattoush-agreement-183",
+  "expiredAt": "2026-10-19T17:09:03.875Z",
+  "orderId": "36d6f80d-b267-5190-8d37-a63ad0d5577a",
+  "orderAbsent": true,
+  "cashHoldsAbsent": true,
+  "campaignReservationAbsent": true,
+  "dispatchJobAbsent": true,
+  "retirementAuthorizedOnlyForThisUnadmittedScope": true,
+  "admittedHistoricalScopesMustRemain": true,
+  "freshAttemptPrepared": true,
+  "activated": false
+}

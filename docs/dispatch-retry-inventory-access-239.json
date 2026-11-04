@@ -1,0 +1,26 @@
+{
+  "part": 239,
+  "status": "PUBLISHED_IAM_READ_ONLY_INVENTORY",
+  "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+  "policyName": "FinancialInitialRetryOfferInventory239",
+  "policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "ReadPriorOfferInventoryForFinancialRetry",
+        "Effect": "Allow",
+        "Action": "dynamodb:Query",
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "????????-????-????-????-????????????"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "newPolicyCannotWriteOffersWalletsOrLedger": true,
+  "manualDecisionExecution": false
+}

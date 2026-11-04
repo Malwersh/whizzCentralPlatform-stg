@@ -1,0 +1,33 @@
+{
+  "part": 344,
+  "scope": "LEGAL_CMS_ADMIN_ONLY",
+  "status": "ADMIN_CMS_PUBLISHED_VERIFIED_DRAFTS_NOT_PUBLISHED",
+  "baseStaffCodeSha256": "n5fvax3Hvd3HkfQwMde4PhoMmKALUS5RYkeo1HS7/qo=",
+  "businessDataWrites": 0,
+  "iamChanges": false,
+  "configurationChanges": false,
+  "policiesPublished": false,
+  "registrationGuardDeployment": false,
+  "nativeAppsInstalled": false,
+  "changedStaffEntries": [
+    "_discount_review/central-staff/index.js",
+    "customer-legal-documents-344.js",
+    "customer-legal-contract-344.js",
+    "customer-legal-defaults-344.json",
+    "driver-legal-defaults-344.json",
+    "merchant-legal-defaults-344.json"
+  ],
+  "unrelatedEntriesPreserved": true,
+  "hostingFiles": [
+    "pages/settings.html",
+    "pages/legal-documents.html",
+    "customer-legal-settings-344.js",
+    "assets/brand/wizz-primary.png"
+  ],
+  "staffCodeSha256": "+PSI6ZXnYiFfLoJuJPP9jXmpEEBvsAWLBxLuV38Lifo=",
+  "staffPublished": true,
+  "unauthenticatedSmokeStatus": 401,
+  "hostingJobId": "221",
+  "hostedBytesVerified": true,
+  "url": "https://staging.d2vmebm1e1n95m.amplifyapp.com/pages/legal-documents.html"
+}

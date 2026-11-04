@@ -1,0 +1,140 @@
+{
+  "part": 266,
+  "status": "PUBLISHED",
+  "scope": "staging",
+  "functions": [
+    {
+      "label": "deletion",
+      "function": "staging-account-deletion-worker",
+      "baseCodeSha256": "P+xBzw1BVfCl8ZqqaNn5eJHmddwSTXBwHUjQnHoQPg0=",
+      "packageSha256": "5c27eb51bb95390d031fd46bef0fcb702c1853ad599740ac9cb4496d0f0d8417",
+      "changedFiles": [
+        "cod-retention.js",
+        "customer-cash-retention.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "XCfrUbuVOQ0DH9Rr7w/LcCwYU61Zl0CsnLRJbQ8NhBc=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "expiry",
+      "function": "staging-account-deletion-financial-expiry",
+      "baseCodeSha256": "dSGVZ1NQpJsdMQBk8bhoSJqkJS0xyJXTb+N7p2eZJYM=",
+      "packageSha256": "8852be4ceddb5b5c06652b54018e31c50c004bccdd0651761d68cf19f1f69357",
+      "changedFiles": [
+        "cod-retention.js",
+        "customer-cash-retention.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "iFK+TO3bW1wGZStUAY4xxQwAS8zdBlF2HWjPGfH2k1c=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "baseCodeSha256": "amQuEAzGzE+OVa/wXIcAnW/wurSxndQyh6FwKq27gFk=",
+      "packageSha256": "0dce5976312329ade1c50b2641ce01d6dc1b239a54341dbc4147e6ebc77317df",
+      "changedFiles": [
+        "index.js",
+        "customer-cash-runtime-266.js",
+        "order-exception-runtime-229.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "Dc5ZdjEjKa3hxQsmQc4B1twbI5pUNB28QUfm68dzF98=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "KpFkBFvZQ57h1W8QRrTQ1EkVv4Y3mWkl8AfhPm014Uk=",
+      "packageSha256": "ad1274d8701d612bad7e01047945dc7bdd1eb20571db04f2cf81b192f3dcc5a1",
+      "changedFiles": [
+        "order-exception-cases.js",
+        "order-exception-case-client.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "rRJ02HAdYSutfgEEeUXce90esgVx2wTyz4GxkvPcxaE=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "order",
+      "function": "OrderService-staging",
+      "baseCodeSha256": "hOPCaI3c8XMUvpqx8QzGB04qKtRf6QLbir/esmAMagg=",
+      "packageSha256": "754004e5a5458b228e5d067a41aef3a19a2f8aab7c9070b3089a4084592f2dcb",
+      "changedFiles": [
+        "dist/index.js",
+        "customer-cash-case-client.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "dUAE5aVFiyKOXQZ6Qa7zoZoviqt8kHCzCJpAhFkvLcs=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "driver",
+      "function": "DriversApi-staging",
+      "baseCodeSha256": "oqbc9lVfOY8x7VmZjOUYpY45fKj1nycjJ7VAowuOgrI=",
+      "packageSha256": "9d0237896c982eb43d6fea02eb7d6f56e27eef4fa36a2d26e09652e0750e3e14",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "financial-accept-client.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "nQI3iWyYLrQ9b+oC631vVuJ+70+jai0m4JZS4HUOPhQ=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "monitor",
+      "function": "staging-order-exception-sla-232",
+      "baseCodeSha256": "quvpsgORn2vva/MlT3Z4c59iuCxmgM/2/V6spKYxdgo=",
+      "packageSha256": "c3633a02853d6f70b2e133a128b618afc5511a8a36e1ea38a300d04d2f77a8ef",
+      "changedFiles": [
+        "index.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "B4TQS0/r4winVXK2acSwdHJHz/hq7OGvrSYxM31tUQs=",
+      "configurationPreserved": true,
+      "cloudFormationCodeOnly": true
+    }
+  ],
+  "iamChanged": false,
+  "configurationChanged": false,
+  "realCaseOrFinancialMutationByAgent": false,
+  "historicalCasesMigrated": false,
+  "nativeSimulatorBuilds": {
+    "customerDebug": 215,
+    "driverDebug": 216
+  },
+  "financialAdjustmentsForShortfall": "SEPARATE_EXECUTION_PENDING",
+  "electronicRefundSource": "NOT_ENABLED",
+  "reviewedExistingMonitorDrift": "Preserved live financial/custody SLA snapshot correction; code-only stack update reconciles template.",
+  "negativeSmoke": [
+    {
+      "action": "customer_cash_case",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    },
+    {
+      "action": "driver_cash_case",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    },
+    {
+      "action": "staff_cash_case",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    }
+  ],
+  "hosting": {
+    "baseJobId": "154",
+    "jobId": "155",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "order-exception-cases.js",
+      "pages/order-exceptions.html",
+      "customer-cash-review.js",
+      "pages/customer-cash-review.html"
+    ],
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

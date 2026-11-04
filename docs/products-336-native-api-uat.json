@@ -1,0 +1,27 @@
+{
+  "branchId": "uatproducts336_1793203568",
+  "checks": [
+    "authenticated baseline publication and branch category creation",
+    "authenticated JPEG upload, branch ownership and public image read",
+    "actual API column mapping, images and stock; two-batch resume",
+    "actual API immutable publication of all products",
+    "authenticated inventory quantity adjustment and review list",
+    "actual API rollback and republish without changing current quantities",
+    "deployed customer reader returns all 8 published products with correct image and branch category",
+    "deployed inventory listener enabled with per-record retries and encrypted failure queue; handler invocation succeeds"
+  ],
+  "categoryId": "cat_0f47a4b95f2a416bf0317d6fae4d14b1",
+  "imageUrl": "https://wizz-merchants-staging-businessphotosbucket-up3j1qega8m5.s3.amazonaws.com/merchants/uatproducts336_1793203568/product-images/c72d5d35-ad20-43de-8a33-ce1cf0d9e50e.jpg",
+  "productIds": [
+    "imp_f52fe74a8273a2b5f0e0637ca35580e8",
+    "imp_45f7e6b53f8b1fff7dd9f3acae840aac",
+    "imp_6ab2637dfa992f08fa2572566e2028fc",
+    "imp_b6d173205d16b95bb1409a4631b5030d",
+    "imp_97be506ffd0249fdc0606b30cc586a30",
+    "imp_80af45da082d584a560de970b2d2f72e",
+    "imp_4458bab2f92675515e636ba05efea3d9",
+    "imp_e96eb20259eb17239eee2205bc2373e1"
+  ],
+  "status": "PASS",
+  "financialOrdersCreated": false
+}

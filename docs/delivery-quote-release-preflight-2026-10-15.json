@@ -1,0 +1,600 @@
+{
+  "schemaVersion": 1,
+  "accountId": "699561669180",
+  "region": "us-east-1",
+  "readOnly": true,
+  "tables": {
+    "WizzUser_favorites_staging": {
+      "exists": true,
+      "keySchema": [
+        {
+          "AttributeName": "favoriteId",
+          "KeyType": "HASH"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "userId-createdAt-index",
+          "keySchema": [
+            {
+              "AttributeName": "userId",
+              "KeyType": "HASH"
+            },
+            {
+              "AttributeName": "createdAt",
+              "KeyType": "RANGE"
+            }
+          ]
+        },
+        {
+          "name": "userId-businessId-index",
+          "keySchema": [
+            {
+              "AttributeName": "userId",
+              "KeyType": "HASH"
+            },
+            {
+              "AttributeName": "businessId",
+              "KeyType": "RANGE"
+            }
+          ]
+        }
+      ]
+    },
+    "staging-DeliveryQuotes": {
+      "exists": false
+    }
+  },
+  "functions": {
+    "WizzUser-CreateOrder-staging": {
+      "exists": true,
+      "roleArn": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+      "runtime": "nodejs20.x",
+      "handler": "functions/create-order/index.handler",
+      "revisionId": "bec2a707-48fe-41b8-8819-f76e35a4f72f",
+      "codeSha256": "iEh5m7ooGUT84wXnXrANviRdEwxLje/EfsW8q30Nx3E=",
+      "flags": {},
+      "files": {
+        "functions/create-order/index.js": "1018def703b541d6d93ebc92fac14649132689051e6d5d03a561d4d6f33d3cdb"
+      }
+    },
+    "staging-account-deletion-worker": {
+      "exists": true,
+      "roleArn": "arn:aws:iam::699561669180:role/staging-account-deletion-WorkerRole-u5xpbVRU9G0Q",
+      "runtime": "nodejs22.x",
+      "handler": "worker.handler",
+      "revisionId": "219dfb24-6fd8-4ac0-98b7-e78188c792b1",
+      "codeSha256": "MFxp2hO2tl4ubZH7vCRMKzlxTAFUd0WFRIcl3BtGD0o=",
+      "flags": {},
+      "files": {
+        "worker.js": "fec471c28ee2fce8894a89b1ac2074c7e56031a9437d63ca4649ca05cc774594"
+      }
+    },
+    "WizzUser-DeliveryQuotes-staging": {
+      "exists": false
+    }
+  },
+  "mapboxSecret": {
+    "exists": false
+  },
+  "quoteApiResources": [],
+  "apiId": "4jut6787c8",
+  "configuration": {
+    "currentPricingPolicyExists": false,
+    "version": null,
+    "deliveryRuleCount": 0,
+    "orderEnvironmentBindings": {
+      "USERS_TABLE": {
+        "present": true,
+        "matchesExpected": true
+      },
+      "USER_POOL_ID": {
+        "present": true,
+        "matchesExpected": true
+      },
+      "USER_POOL_CLIENT_ID": {
+        "present": true,
+        "matchesExpected": true
+      }
+    }
+  },
+  "iamSimulation": {
+    "accountId": "699561669180",
+    "region": "us-east-1",
+    "cloudWrites": false,
+    "scope": "CANDIDATE_ADDITIONS_ONLY_NOT_EXISTING_ROLE_EFFECTIVE_POLICY",
+    "cases": [
+      {
+        "case": "order-customer",
+        "results": [
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "case": "order-policy",
+        "results": [
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "decision": "allowed"
+          }
+        ]
+      },
+      {
+        "case": "order-foreign-partition",
+        "results": [
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "case": "cleanup-customer",
+        "results": [
+          {
+            "action": "dynamodb:Query",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:Query",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:Query",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:Scan",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:Scan",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:Scan",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "case": "cleanup-foreign-partition",
+        "results": [
+          {
+            "action": "dynamodb:Query",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:Scan",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "case": "quote-customer",
+        "results": [
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:GetItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:UpdateItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:PutItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:DeleteItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzUser_users_staging",
+            "decision": "allowed"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+            "decision": "implicitDeny"
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+            "decision": "implicitDeny"
+          }
+        ]
+      }
+    ]
+  },
+  "preparation": {
+    "schemaVersion": 1,
+    "scope": "STAGING_QUOTE_PREPARATION_ONLY",
+    "accountId": "699561669180",
+    "region": "us-east-1",
+    "deployable": false,
+    "activationReady": false,
+    "cloudWrites": false,
+    "inspectionSha256": "a703f605f4ce5cdc0b1ac8effba2462d8b1b3f105a6ee416a13183d2a07e366c",
+    "functions": {
+      "WizzUser-CreateOrder-staging": {
+        "baseRevisionId": "bec2a707-48fe-41b8-8819-f76e35a4f72f",
+        "baseCodeSha256": "iEh5m7ooGUT84wXnXrANviRdEwxLje/EfsW8q30Nx3E=",
+        "roleArn": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+        "codeSha256": "VUd9kLQbUI2aJt1vYWKKtZ5hTAlfgH+JKziFIlLCyUA=",
+        "preservedFiles": 11373,
+        "replacedFiles": [
+          "functions/create-order/index.js"
+        ],
+        "addedFiles": [
+          "functions/create-order/account-guard.js",
+          "functions/create-order/quote-runtime/deliveryQuoteOrder.js",
+          "functions/create-order/quote-runtime/deliveryQuoteRecord.js",
+          "functions/create-order/quote-runtime/money.js",
+          "functions/delivery-quotes/runtime.js"
+        ],
+        "sourceEdits": [
+          {
+            "beforeSha256": "ea0cf8b5ef487b35b5610694b9a436d1eeb61166519afa56273a656cb3334a69",
+            "afterSha256": "7a1ced029a53b581ca7b2a87b5741121e6bf13a43ed69ca6c6addd810a86d7dc"
+          },
+          {
+            "beforeSha256": "c50da43d5c77d24950721a66a0a8257dab2e8f11a2cabc9977d40631c783b5b8",
+            "afterSha256": "fcb549ff3c4aa761bc8750bccb89ac12be4de7752be1b774d601ffd583b2167f"
+          },
+          {
+            "beforeSha256": "d058251cd6eeb30a628165914dd64a4af14c582514dd38b11b08beb0af4a87f5",
+            "afterSha256": "72291e9350d22edc89940add34a2940c95ed0d085a72f4ec2d6a0f0d212cfb14"
+          },
+          {
+            "beforeSha256": "f10cb304b8be8900efd0f30e6d241dc9ebfc1bda6e9c59ff774416b191bd8863",
+            "afterSha256": "32635c05067ba8d6cf515433c9ed99310bd0095144c5e6a8aa9b0dbc9ddc4d8b"
+          },
+          {
+            "beforeSha256": "a7f42bde9f42bb22673d3b18057d1d0a7d9d026c058fcdcd201b3f87f1df2766",
+            "afterSha256": "f9d56a9ee39c52df01482325b6b6d3a79315b641f80e5d0f07a0f2788a3b304e"
+          },
+          {
+            "beforeSha256": "1c0de6e68e5979713e12494582e46047be002265781936bf1a8183762963501f",
+            "afterSha256": "9eddedf75c72075bbfe426d28b8e57ad77ab7cc5d62037d675a8e48ca835fb84"
+          },
+          {
+            "beforeSha256": "33862c31b5194b797a327a657f6765f518f08f0f04b10b39654e43b52d76c33f",
+            "afterSha256": "03201d65a41a5c7ee8c50c60447600e483ba5e6f80acd05dbc2be1dbe6355e38"
+          },
+          {
+            "beforeSha256": "5439a1b85e3068993ce3f89b7958880f243354c9528cbeda6cea8f75bebe27b1",
+            "afterSha256": "7584f25669087bbee6822f01f636b590e9e2fc3bb7bd5f06c26e751c13637b1e"
+          }
+        ]
+      },
+      "WizzUser-DeliveryQuotes-staging": {
+        "newFunction": true,
+        "codeSha256": "IkZgksgePbb1BvxjF4VVqEDo2j1KB5wq7RoyTzatdFw=",
+        "files": [
+          "functions/create-order/account-guard.js",
+          "functions/delivery-quotes/index.js",
+          "functions/delivery-quotes/runtime.js"
+        ]
+      },
+      "staging-account-deletion-worker": {
+        "baseRevisionId": "219dfb24-6fd8-4ac0-98b7-e78188c792b1",
+        "baseCodeSha256": "MFxp2hO2tl4ubZH7vCRMKzlxTAFUd0WFRIcl3BtGD0o=",
+        "roleArn": "arn:aws:iam::699561669180:role/staging-account-deletion-WorkerRole-u5xpbVRU9G0Q",
+        "codeSha256": "2iGujnC1OhO+pbPycwDT7b1bz/PiyeNdK8D+H/o7ff8=",
+        "preservedFiles": 4755,
+        "replacedFiles": [
+          "customer-cleanup.js",
+          "worker.js"
+        ],
+        "addedFiles": [
+          "customer-delivery-quotes.js"
+        ]
+      }
+    },
+    "flags": {
+      "api": "false",
+      "order": "OFF",
+      "customerCleanup": "false",
+      "flutterDefault": false
+    },
+    "rolloutOrder": [
+      "create table and credential container; initialize credential securely",
+      "publish and verify cleanup package and IAM; enable quote cleanup only",
+      "configure approved pricing policy and bounded API request limits",
+      "publish quote API disabled and scoped IAM; verify live authorization and resources",
+      "publish order candidate OFF after revision/hash comparison; verify existing discounts and authentication",
+      "run synthetic Cognito/Gateway/DynamoDB tests and safe rollback",
+      "coordinate activation with compatible checkout build"
+    ],
+    "blockers": [
+      "quote table and Mapbox credential are not provisioned/verified",
+      "approved pricing policy and rate limits need operational verification",
+      "scoped IAM and live deletion guards need verification",
+      "live package candidates require synthetic integration, revision recheck and deployment approval",
+      "full SAM lint retains conditional API warning W1028",
+      "retention, backup restore and real-device checkout validation remain required"
+    ],
+    "artifactSha256": {
+      "cleanup-iam-additions.json": "369b7d785edce76c2a041d58ebf91ed5c16429c0c52d37c1a3258fac10ee978f",
+      "cleanup.rollback.zip": "305c69da13b6b65e2e6d91fbbc244c2b39714c0154774585448725dc1b460f4a",
+      "create-order.candidate.js": "8a67dc96286ebb23f867dc9d0d30a01f06346fc72d9aa232610a0b76a5a1538d",
+      "create-order.candidate.zip": "55477d90b41b508d9a26dd6f61628ab59e614c095f807f892b38852252c2c940",
+      "customer-cleanup.candidate.zip": "da21ae8e70b53a13bea5b3f27300d3edbd5bcff3e2c9e35d2bc0fe1ffa3b7dff",
+      "customer-cleanup.js.candidate.js": "a570d661323d99e50ff07dad00e8612e320de1874946af1d9c97cdd8077e2b46",
+      "environment-updates.review.json": "e81d637c24d960db31ab28386f14b21f2cf0775cffbf9bcf03e4047601ba8f78",
+      "mapbox-secret.template.json": "39579fbd653e1e4e43986ca251a35a91f9dd5f3f543ae15f918e3ef449fb1f2a",
+      "order-iam-additions.json": "064db4fe59e7a3fbb1c75d5a486d2ab24e677b0f28b68b48d6ce03558a904713",
+      "order.rollback.zip": "8848799bba281944fce305e75eb00dbe245d130c4b8defc47ec5bcab7d0dc771",
+      "quote-api.candidate.zip": "22466092c81e3db6f506fc63178555a840e8da3d4a079c2aed1a324f36ad745c",
+      "quote-iam-without-secret.json": "63a9d4aeb580103e8577117782dda6f711bca26a200b24b5e76d463c245737d7",
+      "quote-table.template.json": "3860fe7b7fd97a6c308225f6cea48f6c04775a3c22d56bd8f9d35bd2a4693f96",
+      "worker.js.candidate.js": "687cb2bea4146d47ac5d799950a895f1aa44ce1000993dcab6a0ed450ee68fc0"
+    }
+  },
+  "localArtifactDirectory": "/private/tmp/delivery-quote-release12/review-ready"
+}

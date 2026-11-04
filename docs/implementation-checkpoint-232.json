@@ -1,0 +1,78 @@
+{
+  "part": 232,
+  "status": "PUBLISHED_STAGING_CASE_ADMINISTRATION_AND_SLA",
+  "approvedByUser": {
+    "responseAndEscalationSeconds": {
+      "SAFETY": [
+        60,
+        300
+      ],
+      "CUSTODY": [
+        180,
+        600
+      ],
+      "COD": [
+        300,
+        900
+      ],
+      "FINANCIAL": [
+        14400,
+        86400
+      ],
+      "STANDARD": [
+        86400,
+        172800
+      ]
+    },
+    "postDeliveryClaimSeconds": 86400,
+    "appealSeconds": 259200,
+    "lateSafetyAndCashReviewAllowed": true
+  },
+  "currentWork": [
+    "Case queue metadata and frozen case SLA",
+    "Signed merchant retention/preparation evidence",
+    "Independent live staff authority and fenced pre-pickup cancellation decisions",
+    "Administrative UI and settings, then tests/deployment"
+  ],
+  "publishedThrough": 232,
+  "financialWritesByAgent": false,
+  "wholeSpecificationComplete": false,
+  "publication": "exception-cases-publication-232.json",
+  "hosting": "exception-case-page-publication-232.json",
+  "implemented": [
+    "Frozen approved case deadline settings, editable for future cases and decisions",
+    "Scoped global staff case queue, public order lookup, evidence and financial permission filtering",
+    "Owner retention/preparation evidence, explicit cancellation review before pickup, optimistic concurrency and immutable decisions",
+    "Assigned cancellation preserves live online availability, releases only original collateral and leaves compensation independent",
+    "Metadata-only scheduled deadline monitor; no financial or commercial write permissions"
+  ],
+  "tests": {
+    "wallet": 1187,
+    "staff": 239,
+    "caseRead": 4,
+    "focused": 27,
+    "merchantFlutter": 3,
+    "browserSettings": "PASS",
+    "browserCaseReview": "PASS",
+    "capturedStaffEntry": "PASS",
+    "bundledMerchantAdapter": "PASS",
+    "liveSmoke": "PASS",
+    "failed": 0
+  },
+  "native": {
+    "merchantSimulator": {
+      "build": 218,
+      "installed": true,
+      "launched": true,
+      "processId": 93442
+    },
+    "driverPhysicalBuild": 211,
+    "customerPhysicalBuild": 213
+  },
+  "physicalPositiveCaseTest": "NOT_RUN",
+  "remaining": [
+    "Authorized disposition before physical return, replacement custody and safe-disposition evidence",
+    "Remaining merchant cancellation entry coverage and all A/B/C cases",
+    "Funded compensation, claims, appeals and end-to-end physical acceptance"
+  ]
+}

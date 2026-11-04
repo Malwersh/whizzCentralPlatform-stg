@@ -1,0 +1,11 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "baseHostingJobId": "193",
+  "hostingJobId": "194",
+  "changedFiles": [
+    "pickup-issues.js",
+    "pages/pickup-issues.html"
+  ],
+  "hostedBytesMatched": true,
+  "businessActionsExecuted": false
+}

@@ -1,0 +1,45 @@
+{
+  "part": 242,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "iiHBi59ve18mfpwDqIFCZ5o2RCBgdd9sNkB3MKi6qeY=",
+      "codeSha256": "rejkn+/ujttNeSh2Gep2T646WDx6LIIJ1tvXIenTLJ8=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "aJP4Go5PvaH3jAWuhdF+jvG7NsfRVusn/EXgY3AI00M=",
+      "codeSha256": "lVGEudxAHN/goPJ0fMMh3xZggIMRGHZhUym6Kuc8iDE=",
+      "changedFiles": [
+        "settlement-runtime.js",
+        "merchant-account-index-runtime.js",
+        "merchant-account.js",
+        "settlement-orders.js",
+        "settlement-evidence-fields.json",
+        "order-exception-cases.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialDecisionsByAgent": false,
+  "wholeSpecificationComplete": false,
+  "hosting": {
+    "baseJobId": "136",
+    "jobId": "137",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "pages/order-exceptions.html",
+      "order-exception-cases.js"
+    ],
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

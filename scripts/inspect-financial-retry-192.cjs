@@ -1,0 +1,21 @@
+'use strict';
+// Read-only preview of one real, already-recorded decision. No fake JWT/claims and no writes.
+const fs=require('node:fs'),path=require('node:path');
+const req=require('node:module').createRequire(require.resolve('../backend/wallet-service/dist/dispatchFinancialRetry'));
+const {DynamoDBClient}=req('@aws-sdk/client-dynamodb'),{DynamoDBDocumentClient,GetCommand}=req('@aws-sdk/lib-dynamodb');
+const {planInitialFinancialRetry}=require('../backend/wallet-service/dist/dispatchFinancialRetry');
+const {createReviewReader}=require('../backend/staff-service/dispatch-reviews');
+const {exactCheck}=require('../backend/wallet-service/dist/driverFinancialTransaction');
+const caseId='254030a354294ab77b82feaa0ed06144b70050c10503b25801643d42093c9a1e',orderId='0277eafa-183c-506a-8eae-cb4b3c65b1a4';
+(async()=>{if(process.env.AWS_PROFILE!=='Wizz_stg_UserApp'||process.env.AWS_REGION!=='us-east-1')throw Error('STAGING_ONLY');
+ const raw=DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'}),{marshallOptions:{removeUndefinedValues:true}}),db={send:command=>{if(!['GetCommand','QueryCommand'].includes(command.constructor.name))throw Error('READ_ONLY');return raw.send(command);}};
+ const get=async(TableName,Key)=>(await db.send(new GetCommand({TableName,Key,ConsistentRead:true}))).Item;
+ const decision=await get('staging-PlatformStaff',{pk:'DISPATCH_REVIEW#'+caseId,sk:'DECISION'});if(decision?.requestId!=='3f0a4da0-1577-44ea-a9e1-fc11bea93bf0'||decision.orderId!==orderId)throw Error('DECISION_CHANGED');
+ const actor=await get('staging-PlatformStaff',{pk:'EMPLOYEE#'+decision.actorId,sk:'PROFILE'}),guard=()=>exactCheck('staging-PlatformStaff',{pk:actor.pk,sk:actor.sk},actor);
+ const context=await createReviewReader({db,table:'staging-PlatformStaff',employee:async()=>actor,guard},actor).load(decision.selector);
+ const job=await get('WizzDispatchJobs_staging',{orderId,SK:'METADATA'}),order=await get('WizzOrders',{PK:'ORDER#'+orderId,SK:'META'});
+ const plan=await planInitialFinancialRetry({db,order,job,decision,context,at:new Date().toISOString()});
+ const composed=require('../backend/wallet-service/dist/dispatchTransaction').composeDispatchTransaction(plan.writes,[...context.guards,...plan.guards]);
+ const result={maxConditionBytes:Math.max(...composed.map(op=>Buffer.byteLength((op.Update??op.Put??op.ConditionCheck).ConditionExpression??''))),readOnly:true,orderId,caseId,status:decision.status,sourceDigestMatches:context.baseDigest===decision.baseDigest,ready:plan.ready,resultCode:plan.resultCode,writeTargets:plan.writes.map(op=>{const q=op.Update??op.Put;return {table:q.TableName,key:q.Key??{orderId:q.Item.orderId,SK:q.Item.SK}};}),guardCount:plan.guards.length};
+ fs.writeFileSync('/private/tmp/financial-retry-preview-192.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+})().catch(error=>{console.error(error.name,error.message);process.exitCode=1;});

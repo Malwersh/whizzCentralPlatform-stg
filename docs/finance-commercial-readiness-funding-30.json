@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "PREPARATION_AND_ISOLATED_FUNDING_VERIFIED_ACTIVATION_PENDING",
+  "financialActivation": "OFF",
+  "runtimeCodePublished": false,
+  "liveIamChanged": false,
+  "liveEnvironmentChanged": false,
+  "operatingLimitsApproved": false,
+  "credentialsProvisioned": false,
+  "fundingVerification": {
+    "scope": "REAL_DYNAMODB_ISOLATED_CANONICAL_COMMERCIAL_FUNDING",
+    "applicationTablesAccessed": false,
+    "humanFundsChanged": false,
+    "financialActivation": "OFF",
+    "results": [
+      {
+        "scenario": "duplicate",
+        "successfulCommits": 1,
+        "reservationCount": 1,
+        "ledgerEntries": 2,
+        "auditEvents": 1,
+        "snapshotUnchanged": true
+      },
+      {
+        "scenario": "approval-withdrawn",
+        "entireTransactionRejected": true,
+        "noOrderOrReservation": true
+      },
+      {
+        "scenario": "wallet-changed",
+        "entireTransactionRejected": true,
+        "noOrderOrReservation": true
+      },
+      {
+        "scenario": "insufficient",
+        "rejectedBeforePlan": true
+      }
+    ],
+    "tableDeleted": true
+  },
+  "liveReadinessAudit": {
+    "account": "699561669180",
+    "region": "us-east-1",
+    "readOnly": true,
+    "secretValuesRead": false,
+    "humanDataRead": false,
+    "functions": [
+      {
+        "kind": "quote",
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "revisionId": "ae6f3439-c0fc-42c7-8782-d7e3129682e5",
+        "codeSha256": "mzLcBrKT/gORjTJ4vP9bGEQDFyVVCf4g8Jc+egooqRY="
+      },
+      {
+        "kind": "driver",
+        "name": "staging-driver-financial-accept",
+        "revisionId": "6ab218c4-85e5-4570-903c-88b6536e9f9c",
+        "codeSha256": "Dc7KCOOLyTbFpGKfCNHsJRTwXSNovovNNniV7WQ8ntU="
+      },
+      {
+        "kind": "writer",
+        "name": "WizzUser-CreateOrder-staging",
+        "revisionId": "69e670a1-6d6e-4675-b071-7c2cb2fa5173",
+        "codeSha256": "T57c7nVFMBR8XyN2KlaLBkxBiFVRX7k2MvTh7N9Qklw="
+      },
+      {
+        "kind": "cleanup",
+        "name": "staging-account-deletion-worker",
+        "revisionId": "11d8d656-0604-4dd7-b00a-768f5ff9a204",
+        "codeSha256": "oBAW+hk9Yc787BETzjPjWyPG5Y/6iyC3UYo2ST1Df0s="
+      }
+    ],
+    "selectedEnvironment": {
+      "quote": {
+        "DELIVERY_QUOTES_ENABLED": "false",
+        "MAPBOX_SECRET_ARN": "",
+        "DELIVERY_QUOTE_MAX_PER_MINUTE": ""
+      },
+      "driver": {
+        "FINANCIAL_COD_RETURNS_MODE": "OFF",
+        "FINANCIAL_POSITION_MAX_AGE_SECONDS": "UNCONFIGURED",
+        "FINANCIAL_OFFER_TTL_SECONDS": "UNCONFIGURED",
+        "FINANCIAL_DISPATCH_MODE": "OFF",
+        "FINANCIAL_COD_COMPLETION_MODE": "OFF",
+        "FINANCIAL_COD_ASSIGNMENTS_MODE": "OFF",
+        "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "UNCONFIGURED"
+      },
+      "writer": {},
+      "cleanup": {}
+    },
+    "configuredSecretMetadata": [],
+    "pricingPolicy": {
+      "valid": false,
+      "exists": false
+    },
+    "writerIam": [
+      {
+        "action": "dynamodb:GetItem",
+        "table": "staging-MerchantPlatform",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "table": "staging-MerchantPlatform",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "table": "staging-PlatformStaff",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "table": "staging-PlatformStaff",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "table": "staging-Wallets",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "table": "staging-Holds",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "table": "staging-LedgerEntries",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "table": "staging-AuditLog",
+        "decision": "implicitDeny"
+      }
+    ],
+    "proposedWriterPolicy": {
+      "status": "REVIEW_ONLY_NOT_ATTACHED",
+      "checks": [
+        {
+          "action": "dynamodb:GetItem",
+          "table": "staging-MerchantPlatform",
+          "decision": "allowed",
+          "expected": "allowed"
+        },
+        {
+          "action": "dynamodb:ConditionCheckItem",
+          "table": "staging-MerchantPlatform",
+          "decision": "allowed",
+          "expected": "allowed"
+        },
+        {
+          "action": "dynamodb:GetItem",
+          "table": "staging-PlatformStaff",
+          "decision": "allowed",
+          "expected": "allowed"
+        },
+        {
+          "action": "dynamodb:ConditionCheckItem",
+          "table": "staging-PlatformStaff",
+          "decision": "allowed",
+          "expected": "allowed"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "table": "staging-Wallets",
+          "decision": "allowed",
+          "expected": "allowed"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "table": "staging-Holds",
+          "decision": "allowed",
+          "expected": "allowed"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "table": "staging-LedgerEntries",
+          "decision": "allowed",
+          "expected": "allowed"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "table": "staging-AuditLog",
+          "decision": "allowed",
+          "expected": "allowed"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "table": "staging-Wallets",
+          "decision": "implicitDeny",
+          "expected": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "table": "staging-LedgerEntries",
+          "decision": "implicitDeny",
+          "expected": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:DeleteItem",
+          "table": "staging-Holds",
+          "decision": "implicitDeny",
+          "expected": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "table": "staging-DeliveryQuotes",
+          "decision": "implicitDeny",
+          "expected": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "table": "staging-PlatformStaff",
+          "decision": "implicitDeny",
+          "expected": "implicitDeny"
+        }
+      ],
+      "sourceSha256": "7acfa2d913ad940293e0234c49c6121515491cecc98f54d709671382d271e6b5"
+    },
+    "readiness": {
+      "scope": "METADATA_READINESS_ONLY",
+      "gatesClosed": true,
+      "configurationChecks": [
+        {
+          "id": "QUOTE_ROUTING_SECRET_CONFIGURED",
+          "passed": false
+        },
+        {
+          "id": "DRIVER_ROUTING_SECRET_CONFIGURED",
+          "passed": false
+        },
+        {
+          "id": "QUOTE_CUSTOMER_QUOTA_CONFIGURED",
+          "passed": false
+        },
+        {
+          "id": "DRIVER_OFFER_TTL_CONFIGURED",
+          "passed": false
+        },
+        {
+          "id": "DRIVER_POSITION_MAX_AGE_CONFIGURED",
+          "passed": false
+        },
+        {
+          "id": "REASSIGNMENT_WINDOW_CONFIGURED",
+          "passed": false
+        },
+        {
+          "id": "QUOTE_CLEANUP_ENABLED",
+          "passed": false
+        },
+        {
+          "id": "PUBLISHED_PRICING_POLICY_VALID",
+          "passed": false
+        },
+        {
+          "id": "COMMERCIAL_WRITER_IAM_READY",
+          "passed": false
+        },
+        {
+          "id": "ACCEPTED_APPROVED_AGREEMENT",
+          "passed": false
+        },
+        {
+          "id": "APPROVED_DISCOUNT_FUNDING",
+          "passed": false
+        },
+        {
+          "id": "PREASSIGNMENT_REJECTION_ATOMIC_RELEASE",
+          "passed": false
+        },
+        {
+          "id": "PUBLISHED_ROLES_END_TO_END_CANARY",
+          "passed": false
+        },
+        {
+          "id": "OPERATING_LIMITS_APPROVED",
+          "passed": false
+        },
+        {
+          "id": "ROLLBACK_VERIFIED",
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "QUOTE_ROUTING_SECRET_CONFIGURED",
+        "DRIVER_ROUTING_SECRET_CONFIGURED",
+        "QUOTE_CUSTOMER_QUOTA_CONFIGURED",
+        "DRIVER_OFFER_TTL_CONFIGURED",
+        "DRIVER_POSITION_MAX_AGE_CONFIGURED",
+        "REASSIGNMENT_WINDOW_CONFIGURED",
+        "QUOTE_CLEANUP_ENABLED",
+        "PUBLISHED_PRICING_POLICY_VALID",
+        "COMMERCIAL_WRITER_IAM_READY",
+        "ACCEPTED_APPROVED_AGREEMENT",
+        "APPROVED_DISCOUNT_FUNDING",
+        "PREASSIGNMENT_REJECTION_ATOMIC_RELEASE",
+        "PUBLISHED_ROLES_END_TO_END_CANARY",
+        "OPERATING_LIMITS_APPROVED",
+        "ROLLBACK_VERIFIED"
+      ],
+      "activationAuthorized": false
+    }
+  },
+  "localTests": 7,
+  "proposal": "finance-commercial-writer-access-proposal-30.json",
+  "limitations": [
+    "Isolated canonical source reservation plus an order absence fence, not the entire HTTP checkout writer, quote consumption or campaign usage transaction.",
+    "Cognito/Gateway/Lambda role settlement canary remains pending.",
+    "No operator agreement acceptance or platform approval was fabricated; live agreement and funding records were not scanned.",
+    "Commercial pre-assignment rejection and atomic funding release remain unimplemented and blocked.",
+    "Operating examples explained to the user are unapproved and were not installed."
+  ]
+}

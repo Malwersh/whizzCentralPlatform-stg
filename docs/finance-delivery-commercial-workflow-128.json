@@ -1,0 +1,36 @@
+{
+  "status": "SUPERSEDED_BY_PART129_TWO_STEP_ACTIVATION",
+  "actions": [
+    "SAVE_DELIVERY",
+    "ACCEPT_DELIVERY",
+    "APPROVE_DELIVERY"
+  ],
+  "entryCapability": "ctx.deliveryFundingEnabled === true; no live host enabled",
+  "reuse": [
+    "commercial-management service core",
+    "commercial-party resolver",
+    "existing commercial funding staff permissions",
+    "version fences",
+    "idempotency markers",
+    "lifecycle guards",
+    "audit",
+    "runtime generator"
+  ],
+  "verification": {
+    "commercialAndSharingTests": 54,
+    "newDeliveryCases": 9,
+    "runtimeSyncCheck": "PASS"
+  },
+  "requiresIndependentApprovalEvenInDirectMode": false,
+  "liveFinancialChanges": 0,
+  "remaining": [
+    "host capability wiring",
+    "merchant proposal/self-service authority",
+    "delivery notifications and pending list",
+    "trusted eligible policy resolver",
+    "budget and usage reservations",
+    "order financial lifecycle",
+    "UI and staged verification"
+  ],
+  "supersededBy": "finance-delivery-two-step-activation-129.json"
+}

@@ -1,0 +1,76 @@
+{
+  "part": 219,
+  "status": "PUBLISHED_IMPLEMENTATION_VERIFIED_DEVICE_ACCEPTANCE_PENDING",
+  "scope": "Review current cancellation/return/funding release implementation and restore missing merchant-auth activation",
+  "cashPayoutAcceptance": {
+    "checkpoint": "implementation-checkpoint-218.json",
+    "deferredByUser": true,
+    "expectedNetIqd": 43575,
+    "noPayoutPerformed": true
+  },
+  "finding": "Actual merchant auth return adapter was present, but its two required mode gates and exact financial target were missing from Lambda environment. The upstream financial writer and driver routes were active.",
+  "repair": "Added exactly three staging environment values; preserved code, all other environment, role and API authorization. Updated staging-only template conditions to retain activation on redeploy.",
+  "publication": "owner-lifecycle-publication-219.json",
+  "routeEvidence": "lifecycle-routes-audit-219.json",
+  "tests": {
+    "newFinancialMatrix": 62,
+    "sameMatrixAgainstCapturedLiveFinancialWriter": 62,
+    "walletServiceTotal": 1141,
+    "fail": 0,
+    "merchantOwnerAdapter": 3,
+    "exactLiveOwnerAdapter": "PASS: old failure reproduced and required config validated with synthetic identities",
+    "driverNativeReturnFlow": 3,
+    "merchantNativeReturnFlow": 4
+  },
+  "cases": [
+    "Platform-only, merchant-only, shared funding",
+    "Free delivery and negative platform contribution scenario",
+    "Platform goods discount exposure pinned to original commitment",
+    "Pre-pickup cancellation",
+    "Clean return and original-collateral release once",
+    "Damaged, missing, partial or disputed receipt retains collateral and budget",
+    "Lost committed return response and replay recovery",
+    "Foreign owner and changed receipt rejected",
+    "No fabricated payable or merchant accrual for cancelled/returned order",
+    "No platform cash movement in full-cash release path"
+  ],
+  "deviceAcceptance": "User explicitly deferred new physical order and requested continued code review; normal new orders require no per-order internal preparation",
+  "financialWritesPerformed": false,
+  "humanPermissionsChanged": false,
+  "capturedFunctions": [
+    {
+      "name": "DriversApi-staging",
+      "handler": "lambda_driver_api_v2.handler",
+      "codeSha256": "c58hmjkHfoUiEKka6Dlqr2Hav9s/XhPN2oWYrLA6ys4="
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "handler": "merchant_order_handler.handler",
+      "codeSha256": "g012bsXnoMEgS5eZSN4gdwI95/ey2/sQ1NURssnEADo="
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "handler": "unified_auth_handler.handler",
+      "codeSha256": "BQRMMOsixRpSvGTpWKRUU2RlS6GqCMcwXcSV16q5N3A="
+    },
+    {
+      "name": "staging-cod-integration",
+      "handler": "index.handler",
+      "codeSha256": "9wYinZogEzo8ONqw4GY1O9apRG4dl8s8bKXMtxvF98k="
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "handler": "index.financialAcceptanceHandler",
+      "codeSha256": "sg6uaNxfM52IrZXvkoUst/vin+O/LACm746wsid2FS8="
+    }
+  ],
+  "sourceSha256": {
+    "scripts/publish-owner-lifecycle-219.py": "c64a140489c517e29004eb9850ed3db95ef0d2d469a04d10baf3ed65227e33f9",
+    "scripts/test-owner-lifecycle-entry-219.cjs": "42f70c341351ca787b82d2906c059bffcb3449fbae7a7d998552c9385c802a3f",
+    "scripts/load-live-lifecycle-219.cjs": "622c8f3320f8d7a245a6c2e78c87df3defe6060906ac888f5333e4a5ea27e71e",
+    "backend/wallet-service/test/full-cash-lifecycle-matrix-219.test.cjs": "7c794a5ffee48a4c561199e1c3617948d41cb68ab1b539387cfcdd280bfba946",
+    "backend/wallet-service/test/helpers/full-cash-lifecycle-matrix-fixture.cjs": "2d80652904bd3d6b776d054da4af31f344ccd7cfc3bc2569a0c5bde129cb00a7",
+    "../whizzMerchants-stg/backend/template.yaml": "9645bb4a3753863b10805a7304987ccd4d93042316d6f06323faf0fd95bb9e8e"
+  },
+  "nextCodeReview": "Customer Live Activity behavior during return, arrival at merchant, disputed receipt and confirmed return"
+}

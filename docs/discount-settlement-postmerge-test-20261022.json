@@ -1,0 +1,149 @@
+{
+  "date": "2026-10-22",
+  "scope": "Authenticated post-merge previews only; physical delivery deferred by user",
+  "releaseReady": false,
+  "ordersCreated": 0,
+  "redemptionsPerformed": 0,
+  "walletVerification": {
+    "capturedAt": "2026-10-22T15:27:31.998862+00:00",
+    "wallets": {
+      "driver": {
+        "availableIqd": "19500",
+        "lockedIqd": "0",
+        "balancesAndVersionUnchanged": true
+      },
+      "merchant": {
+        "availableIqd": "0",
+        "lockedIqd": "60425",
+        "balancesAndVersionUnchanged": true
+      },
+      "platform": {
+        "availableIqd": "58525",
+        "lockedIqd": "0",
+        "balancesAndVersionUnchanged": true
+      }
+    }
+  },
+  "nativeBuild": {
+    "success": true,
+    "customerCommit": "069832d",
+    "fixes": [
+      "Restore share_plus and shimmer dependencies",
+      "Align Pod deployment target to iOS 15",
+      "Commit resolved Dart and Swift package dependencies"
+    ]
+  },
+  "automatedTests": {
+    "defaultCommercialConfiguration": {
+      "passed": 42,
+      "failed": 19,
+      "skipped": 1,
+      "failureScope": "Legacy delivery_quote_checkout_test expects order submission without required commercial consent"
+    },
+    "legacyConfiguration": {
+      "passed": 28,
+      "failed": 1,
+      "failureScope": "OrderService response fixture expects CONFIG#server but parsed order ID is locally generated"
+    },
+    "settlementBoundary": "152 protected settlement files and four lifecycle adapters verified"
+  },
+  "findings": [
+    {
+      "severity": "release-blocking",
+      "name": "Goods benefit removes fixed delivery agreement",
+      "baselineIqd": 9000,
+      "goodsBenefitIqd": 500,
+      "actualTotalIqd": 9000,
+      "expectedTotalIfAgreementPreservedIqd": 8500,
+      "detail": "Corrected preview returns goods discount 500 but delivery changes from agreed 1500 to reference 2000; schema changes from 3 to 1 and agreement proof disappears."
+    },
+    {
+      "severity": "release-blocking",
+      "name": "Delivery benefit replaces fixed delivery agreement without customer savings",
+      "baselineIqd": 9000,
+      "deliveryBenefitIqd": 500,
+      "actualTotalIqd": 9000,
+      "detail": "First preview run returns schema 2 and removes fixed agreement proof. Must preserve colleague agreement semantics or explicitly reject an incompatible/no-savings benefit; do not silently consume it."
+    }
+  ],
+  "limits": [
+    "Preview never submits an order or redeems a benefit",
+    "Physical pickup, delivery, and ledger posting were not exercised",
+    "Legacy checkout test failures remain to be reconciled with required commercial consent and current response fixtures"
+  ],
+  "previewChecks": {
+    "approvedAccount": true,
+    "savedAddressAvailable": true,
+    "benefitsUnchangedByPreviews": true,
+    "blockedMutationRequests": 0,
+    "clientConfirmationPreview": {
+      "proposalSeen": true,
+      "declinedWithoutOrder": true,
+      "pending": false
+    },
+    "finishedAt": "2026-10-22T15:27:38.404650Z"
+  },
+  "previewCases": [
+    {
+      "name": "one-item-baseline",
+      "status": 409,
+      "code": "MINIMUM_ORDER_NOT_MET",
+      "schemaVersion": null
+    },
+    {
+      "name": "baseline",
+      "status": 200,
+      "code": null,
+      "schemaVersion": 3
+    },
+    {
+      "name": "goods-benefit",
+      "status": 200,
+      "code": null,
+      "schemaVersion": 1
+    },
+    {
+      "name": "delivery-benefit",
+      "status": 200,
+      "code": null,
+      "schemaVersion": 2
+    },
+    {
+      "name": "denied-stacking",
+      "status": 409,
+      "code": "BENEFIT_STACKING_DENIED",
+      "schemaVersion": null
+    }
+  ],
+  "cleanup": {
+    "complete": true,
+    "campaigns": [
+      {
+        "id": "benefit-postmerge-goods_amount-c317da97",
+        "paused": true
+      },
+      {
+        "id": "benefit-postmerge-delivery_amount-3e44c0c5",
+        "paused": true
+      }
+    ],
+    "originalRestaurantHoursRestored": true,
+    "grants": [
+      {
+        "id": "benefit-postmerge-goods_amount-c317da97",
+        "grantedUses": 1,
+        "reservedUses": 0,
+        "usedUses": 0
+      },
+      {
+        "id": "benefit-postmerge-delivery_amount-3e44c0c5",
+        "grantedUses": 1,
+        "reservedUses": 0,
+        "usedUses": 0
+      }
+    ],
+    "ordersCreatedByPreviewTest": 0,
+    "redemptionsPerformed": 0,
+    "cleanedAt": "2026-10-22T15:28:09.409749+00:00"
+  }
+}

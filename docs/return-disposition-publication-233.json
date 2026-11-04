@@ -1,0 +1,69 @@
+{
+  "part": 233,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "8ek0ZrfzOi1Jj+pJ6Oytpkn4R5MpDabT9hH0gO9iq0c=",
+      "codeSha256": "xq4yxZTuyaBEyY+iMmYxbx1ciAPo+/UYUx1QmFj5y3Y=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "FqkEn2RoRV8QZPx2NuP1IvWHbdECzsrxy5faNEX4HGw=",
+      "codeSha256": "KYDIyH/LKsAYMiMHlmB7SxNWHauz63D1NBIDyVNZUAE=",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "baseCodeSha256": "tY/rp7UIKUEiICrazT6dt+oKonf3pApD/D/6Wznh5yA=",
+      "codeSha256": "KIUaWd6JAq5Zqr6oU8osmy3S85sXiC26NsV3NU3Nmqk=",
+      "changedFiles": [
+        "order_returns.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+      "baseCodeSha256": "Bg53gJotIGDYDjno5+TC6wPRc3WTOjTFLzIeLrgXjGQ=",
+      "codeSha256": "XXuF4FlEAzBvfmmpCkx3mPINRL854Z6LdnSk4WvbKUY=",
+      "changedFiles": [
+        "src/handlers/order-arrival-content.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushUpdate",
+      "baseCodeSha256": "W35Vogugh/O+I0snP4bzaiFbhE6S3b4j+itTd8piK2Q=",
+      "codeSha256": "9DObPci60M9Eh7eLFcq9Ss8LbSsynfR9zCP+BWl5S9U=",
+      "changedFiles": [
+        "src/handlers/order-arrival-content.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushEnd",
+      "baseCodeSha256": "TxrBSWMdxHCkpdaXV8AV9VOcdja4R1bpJP3q59jO4zY=",
+      "codeSha256": "mnY4kfuDdRwshX3rRoubwaxEthmmuqiojaDT4E3BTCE=",
+      "changedFiles": [
+        "src/handlers/order-arrival-content.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialWritesByAgent": false,
+  "scope": "STAGING_GENERAL_NEW_POLICY_ORDERS"
+}

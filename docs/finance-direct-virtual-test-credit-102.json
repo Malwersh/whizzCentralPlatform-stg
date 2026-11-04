@@ -1,0 +1,27 @@
+{
+  "part": 102,
+  "environment": "staging",
+  "status": "COMPLETED",
+  "authorization": "User explicitly requested direct credit to the previously verified test driver and confirmed all funds are virtual test numbers.",
+  "funding": {
+    "prepared": true,
+    "addedIqd": 50000,
+    "beforeIqd": 17500,
+    "afterIqd": 67500,
+    "lockedIqd": 0,
+    "virtualTestFunds": true,
+    "platformWalletTouched": false,
+    "completed": true,
+    "ledgerVerified": true,
+    "idempotencyProtected": true
+  },
+  "bookkeeping": {
+    "ledgerType": "TOPUP",
+    "testFundingExplicit": true,
+    "externalDepositClaimed": false,
+    "actor": "actual AWS maintenance operator, not a fabricated employee",
+    "clearingJournalSum": 0,
+    "walletVersionFenced": true
+  },
+  "financialRolloutChanged": false
+}

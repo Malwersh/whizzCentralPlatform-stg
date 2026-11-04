@@ -1,0 +1,18 @@
+{
+  "status": "EXECUTED_STACK_UPDATE_COMPLETE_INDEX_ACTIVE",
+  "stack": "whizz-order-ratings-staging",
+  "changedResourceOnly": "RatingsTable",
+  "newIndex": "DriverRatingChronology281",
+  "keySchema": [
+    "driverRatingKey",
+    "driverRatingSort"
+  ],
+  "projection": "KEYS_ONLY",
+  "replacesTable": false,
+  "changesOriginalStarsOrComments": false,
+  "driverReadOnlyPolicy": "docs/driver-rating-window-policy-281.json",
+  "metadataBackfill": "Add derived chronology keys conditionally to existing verified driver ratings only; never alter original rating values. Current audit found zero items.",
+  "requiresIndexActiveBeforeDriverPublication": true,
+  "indexStatus": "ACTIVE",
+  "executed": true
+}

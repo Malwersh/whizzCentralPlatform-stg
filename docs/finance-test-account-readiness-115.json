@@ -1,0 +1,46 @@
+{
+  "readOnly": true,
+  "identityReady": {
+    "customer": true,
+    "merchant": true,
+    "driver": true
+  },
+  "customerProfileCount": 1,
+  "driverProfileCount": 1,
+  "branches": [
+    {
+      "businessId": "business_1791634772438_p2hlg6w5qii",
+      "businessName": "فروج المدينة",
+      "name": null,
+      "status": "approved"
+    },
+    {
+      "businessId": "business_membership_test_e1c77b0203f34816ae316e5927aa1993",
+      "businessName": "مطعم اختبار عضوية الموظف",
+      "name": null,
+      "status": "approved"
+    },
+    {
+      "businessId": "business_fcade368-5514-44bb-a421-b8adafdd6ec3",
+      "businessName": "فروج المدينة جديد",
+      "name": "فروج المدينة جديد",
+      "status": "approved"
+    }
+  ],
+  "driverWallet": {
+    "availableBalance": "67500",
+    "lockedBalance": "0",
+    "status": "ACTIVE"
+  },
+  "driverHasOrder": false,
+  "coordinatedHosts": 15,
+  "rolloutAgreement": true,
+  "applicationWrites": false,
+  "part": 115,
+  "status": "ACCOUNT_READINESS_VERIFIED_WAITING_SELECTED_BRANCH",
+  "recordedAt": "2026-10-18T13:43:25.547293+00:00",
+  "previousFattoushScopeReused": false,
+  "newOrderCreated": false,
+  "merchantBranchesRequireApprovedCommercialAgreement": true,
+  "next": "Select an owned branch, prepare its agreement through proposal/owner consent/independent approval, then prepare a fresh one-order scope and customer Android build; never reuse the prior account selector."
+}

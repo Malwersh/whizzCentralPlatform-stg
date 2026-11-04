@@ -1,0 +1,4 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');const {assignedArrivalEstimate:estimate}=require('../dist/orderArrivalEstimate');
+test('parallel preparation uses max instead of adding both durations',()=>{const e=estimate('2026-10-17T12:00:00.000Z',300,180,'2026-10-17T12:20:00.000Z');assert.equal(e.estimatedDeliveryTime,'2026-10-17T12:23:00.000Z');});
+test('late driver and already ready restaurant include only remaining pickup and delivery',()=>{const e=estimate('2026-10-17T12:00:00.000Z',600,180,'2026-10-17T11:55:00.000Z');assert.equal(e.estimatedDeliveryTime,'2026-10-17T12:13:00.000Z');assert.equal(e.deliveryEstimate.driverWaitIncluded,true);});
+test('invalid routes never produce a fabricated arrival',()=>{for(const d of [0,-1,NaN,0.5,86401])assert.throws(()=>estimate('2026-10-17T12:00:00.000Z',d,180));});

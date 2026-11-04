@@ -1,0 +1,42 @@
+{
+  "part": 234,
+  "status": "PUBLISHED_STAGING_DOCUMENTED_MERCHANT_CANCELLATION",
+  "scope": "Documented owner merchant cancellation before pickup, assigned and unassigned, linked customer requests and independent review rights",
+  "wholeSpecificationComplete": false,
+  "financialWritesByAgent": false,
+  "publishedThrough": 234,
+  "publication": "merchant-cancellation-publication-234.json",
+  "hosting": "merchant-cancellation-page-publication-234.json",
+  "implemented": [
+    "Owner-authenticated documented before-pickup cancellation for assigned and unassigned orders",
+    "Explicit actual preparation state, custody/no-cash statements and stable idempotency",
+    "Original collateral/funding release only; no invented customer fee, driver wage or merchant payable",
+    "Prepared merchant compensation and assigned-driver exceptional fare remain independent review rights",
+    "Earlier customer review request is linked and superseded atomically",
+    "Branch deletion race guard, case read access for operations or finance and metadata-only SLA support"
+  ],
+  "tests": {
+    "wallet": 1200,
+    "bundledMerchantEngine": 8,
+    "capturedFinancialLifecycle": 65,
+    "staffAndCaseRead": 243,
+    "merchantFlutter": 12,
+    "rbac": 3,
+    "browser": "PASS",
+    "adapter": "PASS",
+    "liveSmoke": "PASS",
+    "failed": 0
+  },
+  "native": {
+    "merchant": {
+      "build": 220,
+      "device": "iPhone16Pro simulator",
+      "installed": true,
+      "launched": true,
+      "processId": 6929
+    },
+    "driverPhysicalBuild": 212,
+    "customerPhysicalBuild": 214
+  },
+  "physicalPositiveNewCancellationTest": "NOT_RUN"
+}

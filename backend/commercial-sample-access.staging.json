@@ -1,0 +1,52 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Staging merchant owner commercial workflow invoke only; no financial writes or activation.",
+  "Conditions": {
+    "StagingOnly": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "699561669180"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "MerchantOwnerCommercialInvoke": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Condition": "StagingOnly",
+      "Properties": {
+        "ManagedPolicyName": "staging-merchant-commercial-owner-invoke-64",
+        "Roles": [
+          "Wizz-Merchants-staging-UnifiedAuthFunctionRole-5TqBUPbFZ9wo"
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "lambda:InvokeFunction"
+              ],
+              "Resource": [
+                "arn:aws:lambda:us-east-1:699561669180:function:staging-wizz-staff-service"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "part": 237,
+  "status": "PUBLISHED_STAGING_GENERAL_DISPATCH_REVIEW",
+  "wholeSpecificationComplete": false,
+  "publication": "dispatch-review-general-publication-237.json",
+  "cause": "Embedded review route still used historical scoped-only rollout adapter despite general release mode REQUIRED",
+  "implemented": [
+    "General release operational review of persisted server-pinned orders; existing historical mode preserved",
+    "Live employee, regional, branch, deletion, order and financial fences preserved",
+    "Established decision digest remains compatible with deployed executor; admission pin has an additional atomic guard"
+  ],
+  "tests": {
+    "staff": 242,
+    "capturedReview": 17,
+    "executor": 24,
+    "digestCompatibility": "PASS",
+    "failed": 0
+  },
+  "moneyOrOrderWritesByAgent": false,
+  "iamChanges": false
+}

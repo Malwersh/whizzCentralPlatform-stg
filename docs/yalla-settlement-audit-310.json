@@ -1,0 +1,103 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-23T04:21:07.336144+00:00",
+  "readOnly": true,
+  "orderId": "691d5628-2497-5a60-88d6-25971d6aa0d2",
+  "orderNumber": "ORD1792721062420",
+  "operationId": "FCS:1d6a2cd40547abe1cc1216f3fba02e78881a56632857b86c",
+  "discount": {
+    "name": "Yalla",
+    "id": "ff1280dc-6d41-40bd-9b62-817df8794895",
+    "fundedBy": "MERCHANT",
+    "amountIqd": 500,
+    "usageCount": 1,
+    "customerUsageCount": 1
+  },
+  "amountsIqd": {
+    "goodsGross": 7000,
+    "goodsDiscount": 500,
+    "customerGoods": 6500,
+    "deliveryFee": 1500,
+    "serviceFee": 500,
+    "tip": 0,
+    "cashCollected": 8500,
+    "driverEntitlementRetainedCash": 2750,
+    "driverExtraWalletCredit": 0,
+    "settledCollateral": 5750,
+    "merchantPayableUnpaid": 5450,
+    "merchantCommission": 1050,
+    "commissionRatePercent": 15,
+    "platformRevenue": 1550,
+    "fixedAgreementDeliverySupport": 1000,
+    "baselineDeliverySupport": 250,
+    "totalDeliverySupport": 1250,
+    "platformNetContribution": 300
+  },
+  "merchantPaymentStatus": "LOCKED_PENDING_SETTLEMENT",
+  "journal": {
+    "table": "staging-MerchantPlatform",
+    "pk": "FULL_CASH_JOURNAL#691d5628-2497-5a60-88d6-25971d6aa0d2",
+    "status": "POSTED",
+    "debitIqd": 7000,
+    "creditIqd": 7000,
+    "lines": [
+      {
+        "account": "DRIVER_PREPAID_COLLATERAL",
+        "side": "DEBIT",
+        "amountIqd": 5750
+      },
+      {
+        "account": "MERCHANT_PAYABLE",
+        "side": "CREDIT",
+        "amountIqd": 5450
+      },
+      {
+        "account": "MERCHANT_COMMISSION_REVENUE",
+        "side": "CREDIT",
+        "amountIqd": 1050
+      },
+      {
+        "account": "SERVICE_FEE_REVENUE",
+        "side": "CREDIT",
+        "amountIqd": 500
+      },
+      {
+        "account": "PLATFORM_DELIVERY_PROMOTION_EXPENSE",
+        "side": "DEBIT",
+        "amountIqd": 1000
+      },
+      {
+        "account": "BASE_DELIVERY_SUBSIDY_EXPENSE",
+        "side": "DEBIT",
+        "amountIqd": 250
+      }
+    ]
+  },
+  "ledger": {
+    "readPages": 2,
+    "relatedEntries": 4,
+    "completionEntries": 2
+  },
+  "checks": {
+    "completedAndCash8500": true,
+    "merchantFundedGoods500": true,
+    "fixedDelivery1500": true,
+    "merchantPayable5450": true,
+    "driverRetains2750NoWalletCredit": true,
+    "holdSettled5750": true,
+    "fundingConsumed": true,
+    "oneCanonicalOperation": true,
+    "journalPostedAndBalanced": true,
+    "merchantDiscountOnce": true,
+    "singleCompletionPerWallet": true,
+    "driverLockedClearedForThisSettlement": true,
+    "netPlatform300": true,
+    "cashConserved": true,
+    "noCustomerPaymentCase": true,
+    "yallaUsageOnce": true
+  },
+  "limits": [
+    "Accounting verification for one staging test order; no real cash or merchant payout inferred.",
+    "Duplicate checks inspect persisted entries; no replay/financial invocation performed."
+  ]
+}

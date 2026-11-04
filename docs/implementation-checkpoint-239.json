@@ -1,0 +1,19 @@
+{
+  "part": 239,
+  "status": "PUBLISHED_AND_VERIFIED_REAL_DRIVER_ACCEPTANCE",
+  "publication": "dispatch-retry-inventory-access-239.json",
+  "positiveTest": "dispatch-retry-positive-239.json",
+  "wholeSpecificationComplete": false,
+  "cause": "Existing scheduled executor lacked Query permission to verify absence of earlier driver offers",
+  "implemented": [
+    "Query-only permission for WaveOffers_staging, restricted to UUID-shaped order partition keys",
+    "No new write permissions for orders, offers, wallets or ledger",
+    "Same authenticated staff decision retried automatically and executed once",
+    "Real driver accepted the offer; assignment and active 6250 IQD full-cash hold verified"
+  ],
+  "orderNumber": "ORD1792545370610",
+  "requestId": "614e4574-84f4-4020-a020-4d4ada6502e2",
+  "manualOrderReset": false,
+  "agentAcceptedForDriver": false,
+  "next": "User completes actual restaurant pickup, then continue approved exception/return test."
+}

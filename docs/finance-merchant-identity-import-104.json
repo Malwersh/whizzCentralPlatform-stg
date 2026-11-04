@@ -1,0 +1,26 @@
+{
+  "part": 104,
+  "status": "PUBLISHED_HUMAN_VERIFICATION_PAUSED_PENDING_OTP",
+  "cause": "Authentication helper eagerly imported an order-writer policy absent from the auth package, raising MODULE_NOT_FOUND before identity verification.",
+  "fix": "Load the policy only inside the guarded WizzOrders mutation path, before sending the write.",
+  "functions": [
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "cyzXiQCglJyWHixquafA4FkSYZyTdnEEYh23CGZecVM="
+    }
+  ],
+  "changedArchiveEntries": [
+    "shared/merchant-lifecycle.js"
+  ],
+  "testsPassed": 29,
+  "livePackageImportsVerified": true,
+  "orderPolicyStillRequiredBeforeWrites": true,
+  "iamChanged": false,
+  "environmentChanged": false,
+  "applicationDataChanged": false,
+  "humanLoadedBusinessesVerified": false,
+  "liveNegativeChecks": {
+    "businessListInvalidSession": 401,
+    "branchDraftsInvalidSession": 401
+  }
+}

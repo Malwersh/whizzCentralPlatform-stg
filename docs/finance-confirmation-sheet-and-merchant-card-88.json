@@ -1,0 +1,43 @@
+{
+  "part": 88,
+  "userConfirmation": {
+    "presentation": "Scrollable RTL modal bottom sheet with fixed final total and explicit confirmation button",
+    "includes": [
+      "Restaurant and item quantities",
+      "Recipient and phone when present",
+      "Delivery address",
+      "Payment method",
+      "Delivery instructions when present",
+      "Goods, discount, service, delivery, tip and final server total"
+    ],
+    "expiredProposalCannotApprove": true,
+    "rawTechnicalErrorShown": false,
+    "simulatorBuildSucceeded": true,
+    "simulatorInstalled": true
+  },
+  "merchantAmounts": {
+    "bug": "Card divided normalized IQD by 1000 again and rounded, displaying 7 and 10 for a 7000/9500 order",
+    "fix": "Display normalized Order model values directly using grouped IQD formatting",
+    "moneyUnitTestsPassed": 4,
+    "physicalBuildSucceeded": true,
+    "physicalInstalled": true,
+    "automaticLaunch": "Blocked because phone locked"
+  },
+  "widgetTests": {
+    "narrowScreenBottomSheetPassed": true,
+    "expiredConfirmationReturnsFalse": true
+  },
+  "actualCanarySnapshot": {
+    "state": "pending at 2026-10-17T21:34:15Z",
+    "goodsIqd": 7000,
+    "serviceFeeIqd": 500,
+    "deliveryFeeIqd": 2000,
+    "customerTotalIqd": 9500,
+    "merchantCommissionIqd": 700,
+    "merchantConsentOrOrderAcceptanceSubmittedByAgent": false,
+    "driverAvailableIqd": 25000,
+    "driverLockedIqd": 0
+  },
+  "backendMoneyWritesByThisPart": false,
+  "fullDeliverySettlementVerified": false
+}

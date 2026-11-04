@@ -84,6 +84,7 @@ export class SettlementService {
 
     // 1. Get hold record
     const hold = await this.getHold(orderId);
+    if ((hold as any).financialSchemaVersion !== undefined) throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
     
     if (hold.status !== 'CAPTURED') {
       throw new InvalidHoldStateError(

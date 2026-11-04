@@ -1,0 +1,16 @@
+{
+  "part": 221,
+  "function": "staging-wizz-staff-service",
+  "baseCodeSha256": "QRTNNZUjshYvypqvtEduSJAdd73wbKh97zO19WAv7rM=",
+  "codeSha256": "SJTdjKl26oonl1TVAxy7Xx8ujJObbPux8hiBeBXhbSY=",
+  "changedFiles": [
+    "merchant-account.js",
+    "merchant-account-index-runtime.js"
+  ],
+  "otherEntriesPreserved": true,
+  "status": "PUBLISHED_VERIFIED",
+  "moneyMutationRequested": false,
+  "iamOrEnvironmentChanged": false,
+  "configurationPreserved": true,
+  "negativeAuthSmoke": 401
+}

@@ -1,0 +1,24 @@
+{
+  "status": "PUBLISHED_BYTE_VERIFIED",
+  "hostingJob": "214",
+  "previousHostingJob": "213",
+  "changedFiles": [
+    "pages/regions.html",
+    "assets/js/rbac.js",
+    "region-management-312.js",
+    "region-management-312.css",
+    "region-geometry-worker-312.js",
+    "region-geometry-runtime-312.js"
+  ],
+  "sourceHashes": {
+    "pages/regions.html": "ff895cf9e10448091950414aa60a74f02da871fe27b119b719e5713ca06b7fbd",
+    "assets/js/rbac.js": "3b818fedc07e0496ddf9742d805b2b20476a54c343aff4c8ee92277b7546d3ed",
+    "region-management-312.js": "25fdf6af9ece66d5474e1ec7a49eb03171a3d72afd5af8d77d9dba11202db977",
+    "region-management-312.css": "60c84e1637cb429ce2ee8d59ca1f50958bbee55379ad38cb4655f70a39f0f224",
+    "region-geometry-worker-312.js": "45d42cf8a8ab069e2122a9a6a97948f79927f3dd70d7397de80155ec2c1f83a3",
+    "region-geometry-runtime-312.js": "9920427b26645cef4a30c38f96aa36fd08329a2d3825b792958da854672b1e95"
+  },
+  "otherEntriesPreserved": true,
+  "hostedCandidateBrowser": "PASS",
+  "publishedAt": "2026-10-26T03:46:58.606189+00:00"
+}

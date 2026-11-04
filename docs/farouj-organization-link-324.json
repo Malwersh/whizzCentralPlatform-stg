@@ -1,0 +1,35 @@
+{
+  "part": 324,
+  "status": "LINKED_VERIFIED",
+  "environment": "staging",
+  "organizationId": "6f65975d-6891-408c-b1d1-828f73dcf18d",
+  "organizationName": "فروج المدينة",
+  "brandId": "404f5abc-bc27-4eac-9350-78768b16be1d",
+  "branches": [
+    {
+      "businessId": "business_1791634772438_p2hlg6w5qii",
+      "name": "فروج المدينة",
+      "active": true
+    },
+    {
+      "businessId": "business_fcade368-5514-44bb-a421-b8adafdd6ec3",
+      "name": "فروج المدينة جديد",
+      "active": false
+    }
+  ],
+  "sameVerifiedOwner": true,
+  "separateBranchesPreserved": true,
+  "secondBranchRecordUnchanged": true,
+  "firstBranchOnlyIdentityAndVersionFieldsUpdated": true,
+  "commercialAgreementsCreated": false,
+  "ordersOrWalletsModified": false,
+  "operationId": "0872c323-4380-47d8-ab36-1a8ade48b6f8",
+  "updatedAt": "2026-10-23T13:58:43.445Z",
+  "existingCommercialGetRehearsal": {
+    "commercialGet": "PASS_EMPTY_AGREEMENTS",
+    "ownerScopeGuards": 4,
+    "realFinancialWrites": 0
+  },
+  "humanAcceptance": "Reload owner commercial screen; it should show no agreements instead of the missing-organization error.",
+  "next": "Choose explicit commission basis/rate and service fee, then use existing commercial workflow and actual owner acceptance."
+}

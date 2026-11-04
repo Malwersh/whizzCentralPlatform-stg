@@ -1,0 +1,17 @@
+'use strict';
+// Offline schema transition proposal, derived from reviewed live legacy code + approved scalar limits.
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
+const {nodes}=require('./prepare-dispatch-coordinated-release.cjs');
+const {validateOperationsValues}=require('../backend/staff-service/dispatch-settings-contract');
+function propose(startSource,creatorSource,approved){
+ const check=(source,pattern,value)=>{if(source.match(pattern)?.[1]!==String(value))throw Error('LEGACY_EVIDENCE_DRIFT');};
+ check(startSource,/const WAVE_TIMEOUT_SECONDS = (\d+)/,90);check(creatorSource,/const DISPATCH_TIMEOUT_MINUTES = (\d+)/,15);check(creatorSource,/const MAX_WAVES = (\d+)/,4);check(startSource,/const WAVE_SIZE = (\d+)/,5);
+ const context={};vm.runInNewContext(nodes(startSource).getWaveThresholds.text+';this.thresholds=getWaveThresholds;',context,{timeout:1000});
+ const normalWaves=Array.from({length:4},(_,i)=>{const x=context.thresholds(i+1);return {number:i+1,radiusMeters:x.MAX_DISTANCE_KM*1000,recipients:i===3?'ALL':5,minimumAcceptancePercent:Math.round(x.MIN_ACCEPTANCE_RATE*100),minimumCompletionPercent:Math.round(x.MIN_COMPLETION_RATE*100),maximumConsecutiveDeclines:x.MAX_CONSECUTIVE_REJECTIONS};});
+ const legacy={normalWaves,offerTtlSeconds:90,waveDurationSeconds:90,totalDispatchSeconds:900,reassignmentWindowSeconds:900,positionMaxAgeSeconds:null,newDriverExemption:{belowCompletedTrips:5,missingHistory:'LEGACY_COMPAT'},repeatOffers:{reofferFromWave:4,excludeUnassignedDrivers:true,policy:'LEGACY_COMPAT'},recovery:{enabled:false,radiusMeters:null,boostBasisPoints:null,maximumPickupEtaSeconds:null,durationSeconds:null,budgetMinor:null,legacyReference:{radiusMeters:30000,boostBasisPoints:2500}}};
+ const financial=JSON.parse(JSON.stringify(legacy));Object.assign(financial,{offerTtlSeconds:approved.driverOfferTtlSeconds,waveDurationSeconds:approved.driverOfferTtlSeconds,positionMaxAgeSeconds:approved.driverPositionMaxAgeSeconds,reassignmentWindowSeconds:approved.reassignmentWindowSeconds});financial.normalWaves[3].recipients=5;financial.recovery.legacyReference=null;
+ const values=Object.fromEntries(['quoteMaxPerCustomerPerMinute','driverOfferTtlSeconds','driverPositionMaxAgeSeconds','reassignmentWindowSeconds','maximumWaves'].map(k=>[k,approved[k]]));
+ return validateOperationsValues({...values,dispatch:{schemaVersion:2,performanceMode:'LEGACY_METRICS',profiles:{LEGACY:legacy,FINANCIAL:financial}}});
+}
+if(require.main===module){const root=path.resolve(__dirname,'..'),start=fs.readFileSync('/private/tmp/dispatch50-live/source/WaveSystem_StartWave/index.js','utf8'),creator=fs.readFileSync('/private/tmp/dispatch48-live/source/WaveSystem_CreateDispatchJob/index.js','utf8'),approved=JSON.parse(fs.readFileSync(path.join(root,'docs/finance-staging-operating-limits.json')));const report={schemaVersion:1,status:'SCHEMA_TRANSITION_PROPOSAL_NOT_ACTIVATION',source:'Live legacy thresholds/90-second offers/15-minute initial search; financial approved scalar bounds; v1.6 and recovery disabled',values:propose(start,creator,approved),sourceSha256:{start:crypto.createHash('sha256').update(start).digest('hex'),creator:crypto.createHash('sha256').update(creator).digest('hex')}};fs.writeFileSync(path.join(root,'docs/finance-dispatch-policy-transition-50.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({proposalPrepared:true,activation:false}));}
+module.exports={propose};

@@ -1,0 +1,193 @@
+{
+  "part": 156,
+  "accountId": "699561669180",
+  "region": "us-east-1",
+  "stage": "staging",
+  "applied": false,
+  "functions": [
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "handler": "index.handler",
+      "baseRevisionId": "085f320d-f5cb-4a86-baf1-35cf1ec72b3b",
+      "baseCodeSha256": "TGVWs/dMHlhPn72Pub/L4JMBzKKKPuMJPClwpOVQXpU=",
+      "candidate": "WaveSystem_CreateDispatchJob.candidate.zip",
+      "codeSha256": "EwycipiSn+M9yzkzFc9qFw1Cdfu9KVL+cJ7iLTxIxC4=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "environmentSha256": "ecd95df9a941ecbe323bc380bccce87308d108457bac55d5358deedf39916365"
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "handler": "index.handler",
+      "baseRevisionId": "f263632c-7914-411c-8763-52e1f4b5fcbe",
+      "baseCodeSha256": "8S4yzYAYIb5x82nlKLrJH0uwddI5RfRCnlwrJN03MQY=",
+      "candidate": "WaveSystem_StartWave.candidate.zip",
+      "codeSha256": "TN5+prUg6KkEseCLAbKFdsd+jokdXI2uZo5yH8ZRJiw=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "index.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "environmentSha256": "b32e74782b6aea6e73198e4dfd2fda90f08b0b30fbcccaee1fe88dece951bf7d"
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "handler": "index.handler",
+      "baseRevisionId": "463ecd90-f037-4f52-80cd-c2553c42f916",
+      "baseCodeSha256": "chG8kofrYBN7MwvqjV8k3Vr6Lu4vqCNQZkHYxQs1Efg=",
+      "candidate": "WaveSystem_HandleWaveTimeout.candidate.zip",
+      "codeSha256": "XJDX+KiPpnDAM7bW85hbENynWjnMjmv3qgc8ZbEES24=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "index.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "environmentSha256": "127c9b5d319b6867269455d59a835f5cf3feacb6d3292653bd80a166899c0ca1"
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "handler": "index.financialAcceptanceHandler",
+      "baseRevisionId": "3333e0e0-6f3c-4176-9e47-566711bec36f",
+      "baseCodeSha256": "q366ehuxv6jookgMb9ZtKW11mMwzlsZDT/gYa4D9q1g=",
+      "candidate": "staging-driver-financial-accept.candidate.zip",
+      "codeSha256": "hwPSaaFTNimXC52ZLRKEn1gP7sif0IbLltkjvYJpAI4=",
+      "changedFiles": [
+        "index.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "environmentSha256": "981d69e2ab2eea28e15f71162406136c12e7f4fb669477bd8f9455c6b5048c1b"
+    },
+    {
+      "name": "DriversApi-staging",
+      "handler": "lambda_driver_api_v2.handler",
+      "baseRevisionId": "c2a18f77-8811-4cd2-be5d-7a8abd1e1bdd",
+      "baseCodeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+      "candidate": "DriversApi-staging.candidate.zip",
+      "codeSha256": "EcOpHtbuFmFQEbgSy3cbISzEalMikuVjstufi/zuwDM=",
+      "changedFiles": [
+        "financial-accept-client.js",
+        "lambda_driver_api_v2.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "environmentSha256": "d4d18f461e32aad0be7ca9827f1ff0153668f737067f97e0068dd64ef7250b27"
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "handler": "src/handlers/push-wave-offer.sendWaveOffer",
+      "baseRevisionId": "6ff11bb9-8fda-4fed-8a66-4c84b3ab5d8e",
+      "baseCodeSha256": "xzfurAgrBRHxMFNYQoScEKd0mV+lugCDCLh5Jmi1i9Y=",
+      "candidate": "wizzcentral-notifications-staging-pushSendWaveOffer.candidate.zip",
+      "codeSha256": "MCbtGIPJz5p8B2PGKw4OatWYP/0kxpKLfIRb68DR670=",
+      "changedFiles": [
+        "src/handlers/push-wave-offer.js",
+        "src/utils/financial-offer-notification-runtime.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "environmentSha256": "478562b81fc0b29fd518127eb2fcbfbd71548c8c7ac98dff7c15df80719d6ad0"
+    }
+  ],
+  "permissions": [
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "policyName": "FinancialCycleCreator156",
+      "functions": [
+        "WaveSystem_CreateDispatchJob"
+      ],
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "ValidateBranch",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses"
+          },
+          {
+            "Sid": "CaptureDispatchPolicy",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          },
+          {
+            "Sid": "FenceMerchantDeletion",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "BUSINESS_LIFECYCLE#MERCHANT#*",
+                  "ACCOUNT_LIFECYCLE#MERCHANT#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "baselineRolePolicySnapshotSha256": "0ad784a07b4936c9e951283241450382556b161b3859f1a89186c0bb3a134785"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+      "policyName": "FinancialPushValidation156",
+      "functions": [
+        "wizzcentral-notifications-staging-liveActivityPushEnd",
+        "wizzcentral-notifications-staging-pushSendMerchantOrderTokens",
+        "wizzcentral-notifications-staging-pushTokensUnregister",
+        "wizzcentral-notifications-staging-pushTokensRegister",
+        "wizzcentral-notifications-staging-liveActivityPushUpdate",
+        "wizzcentral-notifications-staging-pushSendOrderUpdate",
+        "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "wizzcentral-notifications-staging-liveActivityRegister",
+        "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "wizzcentral-notifications-staging-pushSoundSettings",
+        "wizzcentral-notifications-staging-pushAdminSendTest"
+      ],
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "InvokeReadOnlyProofAction",
+            "Effect": "Allow",
+            "Action": [
+              "lambda:InvokeFunction"
+            ],
+            "Resource": "arn:aws:lambda:us-east-1:699561669180:function:staging-driver-financial-accept"
+          }
+        ]
+      },
+      "baselineRolePolicySnapshotSha256": "37edf204bfe0a2b0e2155902dfd98817cf4d3ecadb9cafd747ca6cb071dc9dea"
+    }
+  ],
+  "configurationChanges": {},
+  "financialDataWrites": false,
+  "apiGatewayChanges": false,
+  "frontendChanges": false,
+  "preconditions": [
+    "Fresh code/environment/role-policy drift check",
+    "Explicit scoped permanent IAM and publication approval",
+    "Exact candidate hashes and successful handler loading"
+  ],
+  "rollback": "Captured original ZIPs and expected revisions; remove only newly added named policies after confirming no dependency. No history/balance rewrites."
+}

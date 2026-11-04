@@ -1,0 +1,13 @@
+{
+  "part": 145,
+  "scope": "local verified V1/V2 mixed merchant settlement reporting",
+  "checks": {"typescript": "passed", "runtimeSync": "passed", "targetedTestsPassed": 116, "finalDetachedProjectionTestsPassed": 4},
+  "mixedSummarySchema": 3,
+  "sourceAccrualSchemasPreserved": [1, 2],
+  "homogeneousSummaryCompatibilityPreserved": true,
+  "deployed": false,
+  "financialMutation": false,
+  "payoutAuthorized": false,
+  "periodCoverageProven": false,
+  "remaining": ["dispatch response and host packaging review", "delivery policy platform UI and controls", "refunds and partial returns", "legacy coupon timestamp repair", "coordinated staging and device verification"]
+}

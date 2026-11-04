@@ -1,0 +1,62 @@
+{
+  "status": "PUBLISHED_ENABLED_VERIFIED_PHYSICAL_TEST_DEFERRED",
+  "resumeAt": "208 deployed general COD release verified; next physical order / Live Activity test only when user resumes testing",
+  "lastFullSuite": {
+    "passed": 1052,
+    "failed": 0
+  },
+  "newModelPublished": true,
+  "newModelRouted": true,
+  "newSourceFiles": [
+    "fullCashSettlement.ts",
+    "fullCashOffer.ts",
+    "fullCashCompletion.ts"
+  ],
+  "publishedEvidence": [
+    "financial-admin-repair-204.json",
+    "schedule-session-repair-205.json",
+    "settlement-presentation-publication-206.json",
+    "finance-operations-publication-207.json",
+    "live-activity-background-202.json",
+    "discount-tip-test-199.json",
+    "full-cash-publication-208.json",
+    "full-cash-verification-208.json",
+    "full-cash-page-publication-208.json",
+    "full-cash-device-208.json"
+  ],
+  "currentAwsRefresh": "CLI SSO refreshed and STS account verified; boto3 uses in-memory CLI credential adapter",
+  "scopeAdmissionLastRecordedUntil": "2026-10-19T21:33:20.990Z",
+  "nextSteps": [
+    "New physical order and Live Activity end-to-end test deferred by user",
+    "Real card capture provider integration deferred until contract; card orders remain unavailable"
+  ],
+  "changesThisTurn": "Integrated, tested, published and enabled general full-cash COD across the staging backend. Published finance page job 117 with exact hosted byte verification. Installed and launched Release 208 customer/driver apps on iMohammed. Verified 20 deployed code/config/resource sets and exact access policies. Negative invocations rejected invalid envelopes, missing staff authentication and missing customer fields. No test order, statement approval, payout or financial operation requested during verification.",
+  "latestUserDirection": "Completed tested changes must be integrated, published and generally active across all three staging apps; no account-specific or order-specific test client setup",
+  "releaseDefinition": "Source integrated + tested + packaged + published + enabled + verified",
+  "accountDeletionSuite": {
+    "passed": 260,
+    "failed": 0
+  },
+  "cardPaymentDecision": {
+    "user": "No contracted provider; prepare path but keep card payments unavailable",
+    "enabled": false,
+    "realCaptureAdapter": "DEFERRED_BY_USER"
+  },
+  "deploymentNote": "Resolved AWS environment size limit by bounded gzip/base64 storage of original scope JSON; original text restored before handler imports and original canonical SHA256 validated. All historical membership and expiration preserved.",
+  "applicationBuilds": {
+    "customer": 208,
+    "driver": 208,
+    "mode": "Release",
+    "installedOn": "iMohammed",
+    "bothProcessesObserved": true
+  },
+  "generalRelease": {
+    "environment": "staging",
+    "updatedFunctions": 20,
+    "activatedFunctions": 15,
+    "mode": "REQUIRED",
+    "model": "FULL_CASH_AT_DELIVERY_V1",
+    "historicalScopesPreserved": true,
+    "accountSpecificCheckoutSelector": false
+  }
+}

@@ -50,6 +50,9 @@ Parameters:
     NoEcho: true
     Description: Service account password
 
+Conditions:
+  IsStaging: !Equals [!Ref Environment, staging]
+
 Resources:
   OrderServiceFunction:
     Type: AWS::Serverless::Function
@@ -62,7 +65,10 @@ Resources:
       Description: Centralized Order Service for cancellation and Hold release
       Environment:
         Variables:
+          ENVIRONMENT: !Ref Environment
           ORDERS_TABLE: WizzOrders
+          WEBSOCKET_CONNECTIONS_TABLE: !Sub WizzUser_websocket_connections_${Environment}
+          WEBSOCKET_ENDPOINT: !If [IsStaging, "https://igcrhwc84c.execute-api.us-east-1.amazonaws.com/staging", ""]
           WALLET_SERVICE_URL: !Ref WalletServiceUrl
           SERVICE_COGNITO_CLIENT_ID: !Ref ServiceCognitoClientId
           SERVICE_COGNITO_CLIENT_SECRET: !Ref ServiceCognitoClientSecret
@@ -70,6 +76,30 @@ Resources:
           SERVICE_PASSWORD: !Ref ServicePassword
           CREATE_DISPATCH_JOB_LAMBDA: WaveSystem_CreateDispatchJob
       Policies:
+        - !If
+          - IsStaging
+          - Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem]
+                Resource:
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff
+              - Effect: Allow
+                Action: [cognito-idp:AdminGetUser]
+                Resource: !Sub arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_wz7vwZZxz
+          - !Ref AWS::NoValue
+        - !If
+          - IsStaging
+          - Statement:
+              - Effect: Allow
+                Action: [dynamodb:Query, dynamodb:DeleteItem]
+                Resource:
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_websocket_connections_staging
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WizzUser_websocket_connections_staging/index/*
+              - Effect: Allow
+                Action: execute-api:ManageConnections
+                Resource: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:igcrhwc84c/staging/POST/@connections/*
+          - !Ref AWS::NoValue
         - DynamoDBCrudPolicy:
             TableName: WizzOrders
         - Statement:

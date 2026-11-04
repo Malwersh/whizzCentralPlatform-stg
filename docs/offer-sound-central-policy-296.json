@@ -1,0 +1,43 @@
+{
+  "revision": 296,
+  "recordedAt": "2026-10-25T17:55:37.065217+00:00",
+  "userReported295": "تعذر تشغيل الصوت",
+  "centralPolicy": {
+    "version": 3,
+    "driverNewOffer": "driver_original",
+    "muted": false,
+    "changed": false
+  },
+  "changes": [
+    "Fix native custom filename validation",
+    "Isolate failed custom sound installs from other policy selections",
+    "Single-flight policy refresh, force refresh on preview",
+    "Record non-personal Dart bridge result and native audio failure safely"
+  ],
+  "verification": {
+    "swiftFoundationValidatorCases": 18,
+    "flutterTestsPassed": 6,
+    "realNativeSimulatorChannel": {
+      "file": "driver_original.wav",
+      "playing": true,
+      "volume": 0.6000000238418579,
+      "route": [
+        "Speaker"
+      ],
+      "recordedAt": "2026-10-25T17:54:02Z"
+    },
+    "isolatedProbeRemoved": true,
+    "merchantRestored": true
+  },
+  "release": {
+    "buildNumber": 296,
+    "status": "INSTALLED_AND_LAUNCHED",
+    "entrypoint": "lib/main.dart",
+    "hardwareAudibility": "PENDING_USER_CONFIRMATION",
+    "deviceCurrently": "CONNECTED",
+    "validatedBundleVersion": "296",
+    "validatedEntrypoint": "lib/main.dart",
+    "installedAt": "2026-10-25T20:26:30.884454+00:00"
+  },
+  "next": "User to run More → Offer sound test. Hardware audibility pending confirmation; inspect limited diagnostic if failure."
+}

@@ -16,14 +16,17 @@ class CustomerPointsService {
         try {
             console.log(`🔍 Fetching real points data for customer: ${customerId}`);
             
-            const response = await fetch(`${this.baseUrl}/customers/${customerId}/points`, {
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let response;
+            try{response = await fetch(`${this.baseUrl}/customers/${customerId}/points`, {
+                signal:controller.signal,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     // Include auth token if available
                     ...(this._getAuthHeaders())
                 }
-            });
+            });}finally{clearTimeout(timer);}
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -79,10 +82,13 @@ class CustomerPointsService {
         try {
             console.log(`🎭 Trying demo endpoint for customer: ${customerId}`);
             
-            const response = await fetch(`${this.baseUrl}/customers/${customerId}/points/demo`, {
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let response;
+            try{response = await fetch(`${this.baseUrl}/customers/${customerId}/points/demo`, {
+                signal:controller.signal,
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
-            });
+            });}finally{clearTimeout(timer);}
 
             if (!response.ok) {
                 throw new Error(`Demo endpoint failed: ${response.status}`);
@@ -140,13 +146,16 @@ class CustomerPointsService {
         try {
             console.log('📊 Fetching system-wide points statistics...');
             
-            const response = await fetch(`${this.baseUrl}/customers/points/bulk`, {
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let response;
+            try{response = await fetch(`${this.baseUrl}/customers/points/bulk`, {
+                signal:controller.signal,
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(this._getAuthHeaders())
                 }
-            });
+            });}finally{clearTimeout(timer);}
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);

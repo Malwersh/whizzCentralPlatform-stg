@@ -1,0 +1,11 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {fixture}=require('./helpers/merchant-settlement-schedule-fixture.cjs');
+const {createMerchantSettlementScheduleWorkflow:create}=require('../dist/merchantSettlementScheduleWorkflow');
+const id='f40834f8-4091-7054-0e20-dba35a2793ce';
+function setup(allow=true){const f=fixture();f.put('staging-PlatformStaff',{pk:'EMPLOYEE#'+id,sk:'PROFILE',employeeId:id,roles:['bootstrap_admin'],status:'ACTIVE',version:1,scope:{allRegions:true},mfaRequired:true});const now=()=>Date.parse('2026-10-18T12:00:00.000Z');const staff=enabled=>create({db:f.db,principal:{kind:'STAFF',employeeId:id,authTime:now()/1000,mfaEnrolled:true},now,allowSameStaffApproval:enabled});return {...f,admin:staff(allow),staff};}
+test('Cognito subject and single administrator preserve consent, audit and idempotency',async()=>{const f=setup();const p=(await f.admin.propose(f.input())).proposal;assert.equal(p.approvalPolicy,'SINGLE_ADMIN');await assert.rejects(f.admin.approve(f.choice(p)));await f.owner().consent(f.choice(p));const result=await f.admin.approve(f.choice(p));assert.equal(result.current.approvedBy,id);assert.equal((await f.admin.approve(f.choice(p))).replayed,true);assert.equal(f.writes.length,3);});
+test('single administrator policy cannot be supplied by client or used after revocation',async()=>{const f=setup();await assert.rejects(f.admin.propose({...f.input(),approvalPolicy:'SINGLE_ADMIN'}));const p=(await f.admin.propose(f.input())).proposal;await f.owner().consent(f.choice(p));await assert.rejects(f.staff(false).approve(f.choice(p)),/INDEPENDENT/);});
+test('independent proposals retain their original approval policy',async()=>{const f=setup(false);const p=(await f.admin.propose(f.input())).proposal;await f.owner().consent(f.choice(p));await assert.rejects(f.staff(true).approve(f.choice(p)),/INDEPENDENT/);});
+
+test('expired verified session requests reauthentication instead of claiming missing permission',async()=>{const f=setup();const now=()=>Date.parse('2026-10-18T12:00:00.000Z');const old=create({db:f.db,principal:{kind:'STAFF',employeeId:id,authTime:now()/1000-301,mfaEnrolled:true},now,allowSameStaffApproval:true});await assert.rejects(old.propose(f.input()),/SCHEDULE_REAUTH_REQUIRED/);assert.equal(f.writes.length,0);});

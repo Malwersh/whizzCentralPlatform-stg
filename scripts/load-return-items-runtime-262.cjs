@@ -1,0 +1,3 @@
+'use strict';
+const runtime=require('../backend/shared/return-items-runtime-262'),sdk=require('../backend/wallet-service/node_modules/@aws-sdk/lib-dynamodb');
+for(const [file,names]of [['codReturn',['createStagingCodReturn']],['returnItems',['createReturnItemManifest','verifyReturnItemReceipt']]]){const id=require.resolve('../backend/wallet-service/dist/'+file);require(id);for(const name of names)require.cache[id].exports[name]=name==='createStagingCodReturn'?options=>runtime[name]({...options,db:{send:c=>{const kind=c.constructor.name.replace(/\d+$/,'');return options.db.send(sdk[kind]&&!(c instanceof sdk[kind])?new sdk[kind](c.input):c);}}}):runtime[name];}

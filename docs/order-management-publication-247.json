@@ -1,0 +1,36 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "functions": {
+    "financial": {
+      "function": "staging-driver-financial-accept",
+      "baseCodeSha256": "hqOOk5J6sElTGb22P8S7gFiBgFjbne0Cn5R38iMlNh4=",
+      "codeSha256": "yScOBvaUPfJAPxUYdWgeh8Z/4URrMdyB/HKGu5wnRJ8=",
+      "changedFiles": [
+        "index.js",
+        "staff-order-management-runtime.js"
+      ],
+      "configurationPreserved": true
+    },
+    "staff": {
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "YCIXXWroGh7a5O/N5pJ5QLdgCUVJcDItiBM4rWGlVXY=",
+      "codeSha256": "r4Ict+ifDnThxfLrpan4OdeB0LMgoG4+HO8PYliLMIM=",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "order-management.js"
+      ],
+      "configurationPreserved": true
+    }
+  },
+  "realOrdersChanged": false,
+  "financialWritesPerformed": false,
+  "iamChanged": false,
+  "validation": {
+    "typeScriptCompile": "PASS",
+    "targetedTestsPassed": 22,
+    "fullCashLifecycleTestsPassed": 71,
+    "staffServiceTestsPassed": 358,
+    "browserManagementWorkflow": "PASS",
+    "anonymousFinancialInvocation": "401"
+  }
+}

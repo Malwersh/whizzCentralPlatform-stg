@@ -1,0 +1,1383 @@
+{
+  "schemaVersion": 1,
+  "part": 50,
+  "dateLocal": "2026-10-16",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "status": "POLICY_EDITOR_HOST_RETENTION_PUBLISHED_GATES_OFF",
+  "published": true,
+  "activated": false,
+  "humanOrderWalletOrGrantRowsChanged": false,
+  "productionTouched": false,
+  "privateReleaseDirectory": "/private/tmp/dispatch50-release-final",
+  "policyTransitionProposal": {
+    "schemaVersion": 1,
+    "status": "SCHEMA_TRANSITION_PROPOSAL_NOT_ACTIVATION",
+    "source": "Live legacy thresholds/90-second offers/15-minute initial search; financial approved scalar bounds; v1.6 and recovery disabled",
+    "values": {
+      "quoteMaxPerCustomerPerMinute": 5,
+      "driverOfferTtlSeconds": 60,
+      "driverPositionMaxAgeSeconds": 120,
+      "reassignmentWindowSeconds": 300,
+      "maximumWaves": 4,
+      "dispatch": {
+        "schemaVersion": 2,
+        "performanceMode": "LEGACY_METRICS",
+        "profiles": {
+          "LEGACY": {
+            "normalWaves": [
+              {
+                "number": 1,
+                "radiusMeters": 5000,
+                "recipients": 5,
+                "minimumAcceptancePercent": 70,
+                "minimumCompletionPercent": 85,
+                "maximumConsecutiveDeclines": 2
+              },
+              {
+                "number": 2,
+                "radiusMeters": 10000,
+                "recipients": 5,
+                "minimumAcceptancePercent": 60,
+                "minimumCompletionPercent": 75,
+                "maximumConsecutiveDeclines": 3
+              },
+              {
+                "number": 3,
+                "radiusMeters": 15000,
+                "recipients": 5,
+                "minimumAcceptancePercent": 50,
+                "minimumCompletionPercent": 60,
+                "maximumConsecutiveDeclines": 5
+              },
+              {
+                "number": 4,
+                "radiusMeters": 20000,
+                "recipients": "ALL",
+                "minimumAcceptancePercent": 0,
+                "minimumCompletionPercent": 0,
+                "maximumConsecutiveDeclines": 999
+              }
+            ],
+            "offerTtlSeconds": 90,
+            "waveDurationSeconds": 90,
+            "totalDispatchSeconds": 900,
+            "reassignmentWindowSeconds": 900,
+            "positionMaxAgeSeconds": null,
+            "newDriverExemption": {
+              "belowCompletedTrips": 5,
+              "missingHistory": "LEGACY_COMPAT"
+            },
+            "repeatOffers": {
+              "reofferFromWave": 4,
+              "excludeUnassignedDrivers": true,
+              "policy": "LEGACY_COMPAT"
+            },
+            "recovery": {
+              "enabled": false,
+              "radiusMeters": null,
+              "boostBasisPoints": null,
+              "maximumPickupEtaSeconds": null,
+              "durationSeconds": null,
+              "budgetMinor": null,
+              "legacyReference": {
+                "radiusMeters": 30000,
+                "boostBasisPoints": 2500
+              }
+            }
+          },
+          "FINANCIAL": {
+            "normalWaves": [
+              {
+                "number": 1,
+                "radiusMeters": 5000,
+                "recipients": 5,
+                "minimumAcceptancePercent": 70,
+                "minimumCompletionPercent": 85,
+                "maximumConsecutiveDeclines": 2
+              },
+              {
+                "number": 2,
+                "radiusMeters": 10000,
+                "recipients": 5,
+                "minimumAcceptancePercent": 60,
+                "minimumCompletionPercent": 75,
+                "maximumConsecutiveDeclines": 3
+              },
+              {
+                "number": 3,
+                "radiusMeters": 15000,
+                "recipients": 5,
+                "minimumAcceptancePercent": 50,
+                "minimumCompletionPercent": 60,
+                "maximumConsecutiveDeclines": 5
+              },
+              {
+                "number": 4,
+                "radiusMeters": 20000,
+                "recipients": 5,
+                "minimumAcceptancePercent": 0,
+                "minimumCompletionPercent": 0,
+                "maximumConsecutiveDeclines": 999
+              }
+            ],
+            "offerTtlSeconds": 60,
+            "waveDurationSeconds": 60,
+            "totalDispatchSeconds": 900,
+            "reassignmentWindowSeconds": 300,
+            "positionMaxAgeSeconds": 120,
+            "newDriverExemption": {
+              "belowCompletedTrips": 5,
+              "missingHistory": "LEGACY_COMPAT"
+            },
+            "repeatOffers": {
+              "reofferFromWave": 4,
+              "excludeUnassignedDrivers": true,
+              "policy": "LEGACY_COMPAT"
+            },
+            "recovery": {
+              "enabled": false,
+              "radiusMeters": null,
+              "boostBasisPoints": null,
+              "maximumPickupEtaSeconds": null,
+              "durationSeconds": null,
+              "budgetMinor": null,
+              "legacyReference": null
+            }
+          }
+        }
+      }
+    },
+    "sourceSha256": {
+      "start": "6bc4215a185ee9457a4756cbc3690068a85bf455081b2d433709b421efb15cf8",
+      "creator": "5aafcdf408f80e6dec8b66518437c3da21e4c920cdeeff2137d859a736f4419c"
+    }
+  },
+  "policyPublication": {
+    "version": 2,
+    "policyVersion": "dispatch-schema-v2-release50",
+    "migrationBy": "SYSTEM_RELEASE_50",
+    "scalarLimitsChanged": false,
+    "replayed": false,
+    "activation": false
+  },
+  "publication": [
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "9K9V6WLpY3/D/GixykDPAzu2t5ZJRtUchidVhVqSMXU=",
+      "revisionId": "e7e7ab15-a867-4737-a343-775c440ca391",
+      "environmentUnchanged": true,
+      "activation": false
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "E4iRy4TrUBn++WygDOJMxymHy4vcvAi5WCKCDZ6zwMc=",
+      "revisionId": "ff32631b-bf2f-407f-87f2-3c5f48e2d61e",
+      "environmentUnchanged": true,
+      "activation": false
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "yOpcsKF1Jh4QFfh8jC9XqDk8qEv+4S6E/bwJZxoPPDk=",
+      "revisionId": "113c3162-ef34-40de-8238-191f23e8e6b2",
+      "environmentUnchanged": true,
+      "activation": false
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "HalqAFH3dXm7fw7KHEvB38diX645Ae+HPf5Sk8oDsg0=",
+      "revisionId": "a8ec9038-2f56-4823-acba-11875c2633ca",
+      "environmentUnchanged": true,
+      "activation": false
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "codeSha256": "UrVOYB0uaAgzIxbriZdqlvbJNa7OVJE3y7VWBgfEx4Q=",
+      "revisionId": "7911360a-e8dd-4d32-a5a0-33cd67a86eca",
+      "environmentUnchanged": true,
+      "activation": false
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "codeSha256": "pViy+z6n5rYCebxC/bTyGquGZXU/z5dJ3t0YYCb3Ufo=",
+      "revisionId": "2316280f-730d-41cf-8ff0-d2d2c7d1a8e6",
+      "environmentUnchanged": true,
+      "activation": false
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "codeSha256": "x1ZbIOdmUkwg340dHN34TV0wDf4tEREzny+ucqHwp6Q=",
+      "revisionId": "6c96f160-81ff-4ef4-8cbd-4b1ae2088558",
+      "environmentUnchanged": true,
+      "activation": false
+    },
+    {
+      "name": "staging-cod-integration",
+      "codeSha256": "/3REFzxqSsEgpx5vRdaYQcKyuQuaAiJf6jnhA+0/V0k=",
+      "revisionId": "3d0a521f-a342-448a-a922-767a01c4f3b5",
+      "environmentUnchanged": true,
+      "activation": false
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "J73EsBUMjqDGSz412MGaU+S2VYwDJGdxt9u1VWbiKb4=",
+      "revisionId": "f52dea21-e9aa-4dfc-bbc1-1c305599afe1",
+      "environmentUnchanged": true,
+      "activation": false
+    }
+  ],
+  "verification": {
+    "functions": 9,
+    "activation": false,
+    "configurationMatchesReviewedPlan": true,
+    "hostBindingsApplied": 2,
+    "unrelatedEnvironmentPreserved": true
+  },
+  "archives": [
+    {
+      "name": "staging-wizz-staff-service",
+      "unchangedEntries": 4509,
+      "changed": [
+        "dispatch-settings-contract.js",
+        "dispatch-settings.js"
+      ],
+      "added": [],
+      "rollbackVerified": true
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "unchangedEntries": 0,
+      "changed": [
+        "index.js"
+      ],
+      "added": [
+        "dispatch-settings-contract.js"
+      ],
+      "rollbackVerified": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "unchangedEntries": 2934,
+      "changed": [
+        "financial-runtime.js"
+      ],
+      "added": [
+        "dispatch-settings-contract.js"
+      ],
+      "rollbackVerified": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "unchangedEntries": 2930,
+      "changed": [
+        "financial-runtime.js"
+      ],
+      "added": [
+        "dispatch-settings-contract.js"
+      ],
+      "rollbackVerified": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "unchangedEntries": 0,
+      "changed": [
+        "index.js"
+      ],
+      "added": [
+        "dispatch-settings-contract.js"
+      ],
+      "rollbackVerified": true
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "unchangedEntries": 4754,
+      "changed": [
+        "cod-retention.js"
+      ],
+      "added": [],
+      "rollbackVerified": true
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "unchangedEntries": 4757,
+      "changed": [
+        "cod-retention.js",
+        "customer-cleanup.js"
+      ],
+      "added": [],
+      "rollbackVerified": true
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "unchangedEntries": 4753,
+      "changed": [
+        "cod-retention.js",
+        "financial-purge.js"
+      ],
+      "added": [],
+      "rollbackVerified": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "unchangedEntries": 1,
+      "changed": [
+        "index.js"
+      ],
+      "added": [
+        "dispatch-review-host-runtime.js"
+      ],
+      "rollbackVerified": true
+    }
+  ],
+  "financialReaderCompatibility": {
+    "readers": 4,
+    "unrelatedFinancialCodeUnchanged": true,
+    "oldAndExpandedValuesAccepted": true,
+    "activation": false
+  },
+  "liveReadOnlyReaderVerification": {
+    "scope": "EXTRACTED_PUBLISHED_READER_FUNCTIONS_REAL_CENTRAL_GET",
+    "readers": [
+      {
+        "function": "WizzUser-DeliveryQuotes-staging",
+        "version": 2,
+        "centralValuesMatched": true,
+        "transactionPinsWholeExpandedPolicy": true
+      },
+      {
+        "function": "WaveSystem_StartWave",
+        "version": 2,
+        "centralValuesMatched": true,
+        "transactionPinsWholeExpandedPolicy": true
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "version": 2,
+        "centralValuesMatched": true,
+        "transactionPinsWholeExpandedPolicy": true
+      },
+      {
+        "function": "staging-driver-financial-accept",
+        "version": 2,
+        "centralValuesMatched": true,
+        "transactionPinsWholeExpandedPolicy": true
+      }
+    ],
+    "realLambdaHandlerInvoked": false,
+    "lambdaRoleAssumed": false,
+    "financialWrites": false,
+    "activation": false
+  },
+  "frontend": {
+    "baseJobId": "67",
+    "baseArtifactVerified": true,
+    "jobId": "68",
+    "status": "SUCCEED",
+    "onlyChanged": [
+      {
+        "path": "pages/settings.html",
+        "sha256": "c010b5c3172c397205e332966c01668c3c84d228b8a7a2b15b6ef26fd0100483"
+      },
+      {
+        "path": "settings-delivery-operations.js",
+        "sha256": "c2ecc85a26269e50a8d191c6676d39b6cbe31a7fc60a48e83c2cc134e7419fcc"
+      }
+    ],
+    "preservedEntries": 179,
+    "activation": false,
+    "publicBytesMatchedAfterCachePropagation": true
+  },
+  "retentionIam": [
+    {
+      "function": "staging-account-deletion-worker",
+      "role": "arn:aws:iam::699561669180:role/staging-account-deletion-WorkerRole-u5xpbVRU9G0Q",
+      "policyName": "DispatchReviewRetention50",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:Scan",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "StringEquals": {
+                "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+              },
+              "ForAllValues:StringEquals": {
+                "dynamodb:Attributes": [
+                  "pk",
+                  "sk",
+                  "kind",
+                  "schemaVersion",
+                  "orderId",
+                  "branchId",
+                  "regionId",
+                  "status",
+                  "caseId",
+                  "requestId",
+                  "requestDigest",
+                  "baseDigest",
+                  "action",
+                  "resultCode",
+                  "executionId",
+                  "receipt",
+                  "createdAt",
+                  "executedAt",
+                  "actorId",
+                  "actorVersion",
+                  "legalHold",
+                  "retentionHold",
+                  "financialArchiveConfirmed",
+                  "codFinancialEvidence",
+                  "accountDeletionRequestId",
+                  "financialRetainUntil"
+                ]
+              }
+            }
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DISPATCH_REVIEW#*"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "applied": true
+    },
+    {
+      "function": "staging-account-deletion-financial-expiry",
+      "role": "arn:aws:iam::699561669180:role/staging-account-deletion-FinancialExpiryRole-IuLxJxc5s29r",
+      "policyName": "DispatchReviewRetention50",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:DeleteItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DISPATCH_REVIEW#*"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "applied": true
+    }
+  ],
+  "retentionIamEffective": [
+    {
+      "function": "staging-account-deletion-worker",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "missingContext": []
+    },
+    {
+      "function": "staging-account-deletion-worker",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "missingContext": []
+    },
+    {
+      "function": "staging-account-deletion-worker",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "missingContext": []
+    },
+    {
+      "function": "staging-account-deletion-worker",
+      "action": "dynamodb:Scan",
+      "decision": "allowed",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "missingContext": []
+    },
+    {
+      "function": "staging-account-deletion-financial-expiry",
+      "action": "dynamodb:GetItem",
+      "decision": "allowed",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "missingContext": []
+    },
+    {
+      "function": "staging-account-deletion-financial-expiry",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "missingContext": []
+    },
+    {
+      "function": "staging-account-deletion-financial-expiry",
+      "action": "dynamodb:DeleteItem",
+      "decision": "allowed",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "missingContext": []
+    }
+  ],
+  "retentionScopeSimulation": [
+    {
+      "function": "staging-account-deletion-worker",
+      "role": "arn:aws:iam::699561669180:role/staging-account-deletion-WorkerRole-u5xpbVRU9G0Q",
+      "policyName": "DispatchReviewRetention50",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:Scan",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "StringEquals": {
+                "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+              },
+              "ForAllValues:StringEquals": {
+                "dynamodb:Attributes": [
+                  "pk",
+                  "sk",
+                  "kind",
+                  "schemaVersion",
+                  "orderId",
+                  "branchId",
+                  "regionId",
+                  "status",
+                  "caseId",
+                  "requestId",
+                  "requestDigest",
+                  "baseDigest",
+                  "action",
+                  "resultCode",
+                  "executionId",
+                  "receipt",
+                  "createdAt",
+                  "executedAt",
+                  "actorId",
+                  "actorVersion",
+                  "legalHold",
+                  "retentionHold",
+                  "financialArchiveConfirmed",
+                  "codFinancialEvidence",
+                  "accountDeletionRequestId",
+                  "financialRetainUntil"
+                ]
+              }
+            }
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DISPATCH_REVIEW#*"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "applied": false,
+      "currentEffectiveChecks": [
+        {
+          "action": "dynamodb:GetItem",
+          "decision": "implicitDeny",
+          "missingContext": [
+            "s3:prefix"
+          ]
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "decision": "implicitDeny",
+          "missingContext": [
+            "s3:prefix"
+          ]
+        },
+        {
+          "action": "dynamodb:ConditionCheckItem",
+          "decision": "implicitDeny",
+          "missingContext": [
+            "s3:prefix"
+          ]
+        },
+        {
+          "action": "dynamodb:Scan",
+          "decision": "implicitDeny",
+          "missingContext": [
+            "s3:prefix"
+          ]
+        }
+      ],
+      "scopeSimulation": [
+        {
+          "case": "decision",
+          "decision": "allowed"
+        },
+        {
+          "case": "foreign_employee",
+          "decision": "implicitDeny"
+        },
+        {
+          "case": "restricted_scan",
+          "decision": "allowed"
+        },
+        {
+          "case": "secret_scan",
+          "decision": "implicitDeny"
+        },
+        {
+          "case": "all_scan",
+          "decision": "implicitDeny"
+        }
+      ]
+    },
+    {
+      "function": "staging-account-deletion-financial-expiry",
+      "role": "arn:aws:iam::699561669180:role/staging-account-deletion-FinancialExpiryRole-IuLxJxc5s29r",
+      "policyName": "DispatchReviewRetention50",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:DeleteItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DISPATCH_REVIEW#*"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "applied": false,
+      "currentEffectiveChecks": [
+        {
+          "action": "dynamodb:GetItem",
+          "decision": "implicitDeny",
+          "missingContext": []
+        },
+        {
+          "action": "dynamodb:DeleteItem",
+          "decision": "implicitDeny",
+          "missingContext": []
+        },
+        {
+          "action": "dynamodb:ConditionCheckItem",
+          "decision": "implicitDeny",
+          "missingContext": []
+        }
+      ],
+      "scopeSimulation": [
+        {
+          "case": "decision",
+          "decision": "allowed"
+        },
+        {
+          "case": "foreign_employee",
+          "decision": "implicitDeny"
+        }
+      ]
+    }
+  ],
+  "hostAccess": [
+    {
+      "function": "staging-cod-integration",
+      "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+      "rule": {
+        "arn": "arn:aws:events:us-east-1:699561669180:rule/staging-cod-lifecycle-CodIntegrationWorkerRetryInte-LlysduSg9yRo",
+        "state": "DISABLED",
+        "schedule": "rate(1 minute)"
+      },
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "cognito-idp:AdminGetUser",
+            "Resource": "arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_wz7vwZZxz"
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": [
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion"
+            ]
+          },
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:Query",
+            "Resource": [
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds"
+            ]
+          },
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:UpdateItem",
+            "Resource": [
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+            ]
+          },
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:PutItem",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "EMPLOYEE#*",
+                  "DISPATCH_REVIEW#*",
+                  "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS",
+                  "CONTROL#DISPATCH_REVIEW_HOST"
+                ]
+              }
+            }
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:PutItem",
+              "dynamodb:UpdateItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DISPATCH_REVIEW#*",
+                  "AUDIT",
+                  "CONTROL#DISPATCH_REVIEW_HOST"
+                ]
+              }
+            }
+          },
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:Scan",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "StringEquals": {
+                "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+              },
+              "ForAllValues:StringEquals": {
+                "dynamodb:Attributes": [
+                  "pk",
+                  "sk",
+                  "kind",
+                  "status"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "moneyWritesDeniedInNewPolicy": [
+        {
+          "table": "staging-Wallets",
+          "action": "dynamodb:PutItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-Wallets",
+          "action": "dynamodb:UpdateItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-Wallets",
+          "action": "dynamodb:DeleteItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-LedgerEntries",
+          "action": "dynamodb:PutItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-LedgerEntries",
+          "action": "dynamodb:UpdateItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-LedgerEntries",
+          "action": "dynamodb:DeleteItem",
+          "decision": "implicitDeny"
+        }
+      ],
+      "activation": false,
+      "policyApplied": true,
+      "timeout": 60,
+      "onlyEnvironmentAdded": {
+        "DISPATCH_REVIEW_HOST_ACCOUNT_ID": "699561669180",
+        "DISPATCH_REVIEW_HOST_RULE_ARN": "arn:aws:events:us-east-1:699561669180:rule/staging-cod-lifecycle-CodIntegrationWorkerRetryInte-LlysduSg9yRo"
+      },
+      "environmentDigest": "ee86c4bb33c484b1bb8d42811bcea902fece064e7df42395620d67434b740eb2",
+      "codeUnchanged": true,
+      "revisionId": "b79a0b4a-c242-4f89-9be1-e60fee31ae00"
+    },
+    {
+      "function": "WaveSystem_HandleWaveTimeout",
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "rule": {
+        "arn": "arn:aws:events:us-east-1:699561669180:rule/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+        "state": "ENABLED",
+        "schedule": "rate(1 minute)"
+      },
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": [
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion"
+            ]
+          },
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:Query",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:PutItem",
+              "dynamodb:UpdateItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+          },
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:UpdateItem",
+            "Resource": [
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+              "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging"
+            ]
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DISPATCH_REVIEW#*",
+                  "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS"
+                ]
+              }
+            }
+          },
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:Scan",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+            "Condition": {
+              "StringEquals": {
+                "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+              },
+              "ForAllValues:StringEquals": {
+                "dynamodb:Attributes": [
+                  "orderId",
+                  "SK",
+                  "kind",
+                  "state",
+                  "status",
+                  "dispatchCycle"
+                ]
+              }
+            }
+          },
+          {
+            "Effect": "Allow",
+            "Action": "lambda:InvokeFunction",
+            "Resource": "arn:aws:lambda:us-east-1:699561669180:function:WaveSystem_StartWave"
+          }
+        ]
+      },
+      "moneyWritesDeniedInNewPolicy": [
+        {
+          "table": "staging-Wallets",
+          "action": "dynamodb:PutItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-Wallets",
+          "action": "dynamodb:UpdateItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-Wallets",
+          "action": "dynamodb:DeleteItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-LedgerEntries",
+          "action": "dynamodb:PutItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-LedgerEntries",
+          "action": "dynamodb:UpdateItem",
+          "decision": "implicitDeny"
+        },
+        {
+          "table": "staging-LedgerEntries",
+          "action": "dynamodb:DeleteItem",
+          "decision": "implicitDeny"
+        }
+      ],
+      "activation": false,
+      "policyApplied": true,
+      "timeout": 60,
+      "onlyEnvironmentAdded": {
+        "DISPATCH_HOST_ACCOUNT_ID": "699561669180",
+        "DISPATCH_HOST_RULE_ARN": "arn:aws:events:us-east-1:699561669180:rule/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM"
+      },
+      "environmentDigest": "704c11820ac655dcf125bc2b9464d5731987c80374b9dd03bb87df99f66571fd",
+      "codeUnchanged": true,
+      "revisionId": "dcd72278-4bf8-4e66-88c4-ae6ff64339ab"
+    }
+  ],
+  "hostIamEffective": {
+    "checks": [
+      {
+        "function": "staging-cod-integration",
+        "action": "cognito-idp:AdminGetUser",
+        "resource": "arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_wz7vwZZxz",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:Query",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:Query",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "function": "staging-cod-integration",
+        "action": "dynamodb:Scan",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:Query",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:Scan",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed"
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "lambda:InvokeFunction",
+        "resource": "arn:aws:lambda:us-east-1:699561669180:function:WaveSystem_StartWave",
+        "decision": "allowed"
+      }
+    ],
+    "allAllowed": true,
+    "activation": false
+  },
+  "closedSmoke": {
+    "checkedAt": "2026-10-17T02:01:02.027Z",
+    "scope": "EMPTY_OR_UNAUTHENTICATED_EARLY_RETURNS",
+    "cases": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "statusCode": 200,
+        "disabled": null,
+        "responseSha256": "8d36c1e4442c99cb5283b95901b2f5e271242605b2c9fa936e49cfae75215529"
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "expectedRejection": true,
+        "errorType": "Error",
+        "errorMessage": "Missing dispatchJobId in event"
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "statusCode": 400,
+        "disabled": null,
+        "responseSha256": "9f0eeb05da0de047887f078c756706d8889bf1f89aafb9cf0093c619ba37cfad"
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "statusCode": 500,
+        "disabled": null,
+        "responseSha256": "49d4d1fdac7e516f64a7b53cd72393304d242a06a6def071f36d9d2cbf74863f"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "50b64f0f53cb1215c3f7f18c2f310be8e5daf5b83a922a5018672eea1e66fef2"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "cff1b0bb2921c6ec488106351652bcadd86de0c41ba55eb9b29b16160c7af533"
+      },
+      {
+        "name": "DriversApi-staging",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "ebe2605aef23a140c2782fa5200273b951bf0287a43e0c56dc1e56583ee92e35"
+      },
+      {
+        "name": "staging-cod-integration",
+        "statusCode": null,
+        "disabled": true,
+        "responseSha256": "3e3063a3a2714ae49a6c70354c08ce57e82dc7547893f5fb6c16156eaf90ec32"
+      }
+    ],
+    "baselineMatched": true,
+    "timeoutWorkerInvoked": false,
+    "humanRecordsUsed": false,
+    "providerMessagesSent": false
+  },
+  "financialClosedSmoke": {
+    "cases": [
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "statusCode": 503,
+        "code": "QUOTES_NOT_ENABLED"
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "statusCode": 409,
+        "code": "INVALID_FINANCIAL_ACCEPTANCE"
+      }
+    ],
+    "activation": false,
+    "humanRecordsUsed": false
+  },
+  "coordinatedDynamoDb": {
+    "scope": "REAL_ISOLATED_DYNAMODB_POLICY_REVIEW_HOST_RETENTION",
+    "liveApplicationTablesAccessed": false,
+    "realCognitoCalls": 0,
+    "realNotifications": 0,
+    "humanMoneyChanged": false,
+    "published": false,
+    "discoveryExecutesOneAuthorizedCancellation": true,
+    "deletionRetainsReceiptAndRedactsDecisionIdentity": true,
+    "independentApprovalDoesNotChangeExistingCycle": true,
+    "discoveredRestartPinsApprovedPolicyAndDurableStart": true,
+    "deletionBlocksQueuedRestartWithoutSending": true,
+    "noLedgerOrHoldWrites": true,
+    "tableDeleted": true
+  },
+  "tests": {
+    "wallet": 649,
+    "accountDeletion": 235,
+    "staff": 143,
+    "candidateWrapperCompatibility": 3,
+    "browser": "passed including old cached markup and full schema preservation",
+    "realCoordinatedDynamoDb": "passed; disposable table deleted",
+    "hostPermissionSimulationChecks": 40,
+    "retentionPermissionSimulationChecks": 7,
+    "closedLambdaSmokeCases": 10,
+    "typescriptBuild": "passed",
+    "templateJsonYaml": "parsed",
+    "flutterChanged": false
+  },
+  "scopeNotes": [
+    "Four published financial/quote reader validators changed alone; all bytes outside those function bodies preserved. Existing money writers and StartWave selection were not replaced.",
+    "Published COD prefix preserved; review discovery appended in independently gated module. Local source entry point also wired for future reviewed builds.",
+    "No new production table, Lambda function or schedule. Review host reuses the existing disabled COD integration rule. Timeout rule remains enabled as before.",
+    "Timeout Lambda limit changed 30 to 60 seconds on Staging only; offer/search/product limits unchanged.",
+    "Schema migration used SYSTEM_RELEASE_50 with CURRENT/VERSION/audit transaction. It did not impersonate either a requesting or approving employee. Future settings changes retain independent approval.",
+    "Named inline IAM deltas were applied directly on existing roles; local templates document scopes but no whole CloudFormation stack update was executed. Reconcile manual policy ownership before whole-stack rollout."
+  ],
+  "remainingBeforeActivation": [
+    "Actual authenticated staff/driver and device/provider acknowledgments across the scoped end-to-end path; isolated tests used synthetic identity/provider adapters.",
+    "Define and verify limited rollout/canary scope before any mode or review schedule is enabled; no global activation authorized by this evidence.",
+    "Measure backlog/cursor age, scan limits and shared worker time budget under Staging load before expansion.",
+    "Financial reassignment/returns/adjudication, funded recovery and v1.6 Score/Tiers remain separately gated or unfinished."
+  ],
+  "sourceSha256": {
+    "backend/staff-service/dispatch-settings.js": "1477c40874019c7f5988432546a7daf280cc11fea9e049ba91ce1a26bae2c6bd",
+    "backend/staff-service/test/dispatch-settings.test.cjs": "b27e1d2b7322c3d4e2174d79c71da9e0472ff6ecde35c9cafb1872ccaef90f61",
+    "frontend/settings-delivery-operations.js": "c2ecc85a26269e50a8d191c6676d39b6cbe31a7fc60a48e83c2cc134e7419fcc",
+    "frontend/pages/settings.html": "791485dee1e5594726e55823769c4385daa5f7c477559c9f8a1f1319a1c1c312",
+    "backend/wallet-service/src/dispatchReviewHost.ts": "4c6eaa5b5bbd4c43eea6afdeaeb4564b6739bc103f5e4998634e3803bdfb8897",
+    "backend/wallet-service/src/dispatchReviewHostRuntime.ts": "134dbf98b8c1b893060ae5ff460227af29e979e807265f4c44cdaabda5cf6c00",
+    "backend/wallet-service/src/codIntegrationRuntime.ts": "4e15dafba84a75fcbf7856a6f7cef56f883434c87ad72e74a76d2d0bd2572702",
+    "backend/wallet-service/test/dispatch-review-host.test.cjs": "4040972274818bf273eff4d14f96fac613b22699d8d0f2a9d618a386708e0507",
+    "backend/account-deletion/cod-retention.js": "144fa94a04aa7ce6a7514a897d40a690f0269a5c81c27102427fe34ac22631ce",
+    "backend/wallet-service/cod-lifecycle.staging.json": "cdbfb4b932e310853b4c520535e06e1961323979bd194f7c7440d9cf1b6aafbd",
+    "lambda/wave-system/template.yaml": "2125bf257fd0ab93b26306acdbb17abc8937381efa0bb137c3db734eed01f841",
+    "../wizzuser-stg/backend/src/functions/delivery-quotes/runtime.js": "4c20e963066b0ce3ff09ac28aeddf47c0a8781325310670105a48525068cc40e",
+    "scripts/prepare-dispatch-policy-dependencies.cjs": "dd7869f64d7d1d956f7449133ac06ece9ae2d72064c98aeec7f4d5e3733fb7dd",
+    "scripts/prepare-dispatch-policy-transition.cjs": "1dac1f7cec8a702d67302876a31e390fe5c3ca59e695eefe7a2d4348293ab44f",
+    "scripts/prepare-dispatch-host-access.cjs": "9450cab249bed9bda6ec41bcc4ccc875eea0b0bcc21da8f3dbac2ee173c24f9d",
+    "scripts/publish-dispatch-policy-dependencies-staging.py": "a6aa6aa84840c3efbd2a7268fd780ca39159d371eae8da5a9d2cab3637eaed20",
+    "scripts/publish-dispatch-policy-editor-staging.py": "8210a0beae457481380968b39b9e1b208e3f99d613b7ee7e3ce235d6b8942f6e",
+    "scripts/publish-dispatch-host-access-staging.py": "2c7cb650ef508e89fbf3fa1d06fb0d4e19eb539bdeaf760b2cb68c0044c6555e",
+    "scripts/verify-dispatch-host-access-staging.py": "dfd8f151de084394eb11528222af26a515b83322ad6372c5a7ee777a526e1bf1",
+    "scripts/verify-dispatch-policy-readers-staging.cjs": "234455e37ae80fc14ad075d1dd5192c9deaeda0f4d6ef78ca21ebd44809d8ad5",
+    "scripts/test-dispatch-policy-host-retention-staging.cjs": "3377d1fd4b5bdc6ca15e72a1e5fbaf2983452450a1598593da0df7e3c3421488",
+    "scripts/test-dispatch-settings-browser.cjs": "08bac9a8604f5df8704e74fb5740a96a1c847f3e56cde473db3edf46819d82f1",
+    "scripts/test/dispatch-policy-dependencies.test.cjs": "478459b2bbd3dce0a271de38d8f259416b9b21dd9fa0378eb0d5a95f61b7fd6d"
+  }
+}

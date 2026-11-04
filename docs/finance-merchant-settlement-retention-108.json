@@ -1,0 +1,51 @@
+{
+  "part": 108,
+  "status": "LOCAL_TESTED_NOT_DEPLOYED",
+  "recordedAt": "2026-10-18T05:03:28.166375+00:00",
+  "scope": "Preserve frozen merchant settlement selections during branch deletion; no payouts or source deletions",
+  "verification": {
+    "accountDeletionTestsPassed": 250,
+    "settlementCompatibilityTestsPassed": 45,
+    "failures": 0,
+    "realAwsTransactionsTested": false,
+    "actualCodBatchRecordsValidated": true,
+    "payableMembershipRedactionAndRetryVerified": true
+  },
+  "implemented": [
+    "Complete bounded branch Query inventory before archive writes",
+    "Header/line digests and cross-record membership validation; unknown/private fields rejected",
+    "Archive all batch/line/lookup/request records before destructive merchant assets and branch cleanup",
+    "Lease, ownership, lifecycle, source and archive conditions on each transaction",
+    "Retry does not extend retention clocks; conflict or hold stops cleanup",
+    "Preserve settlementBatchId, settlementLineDigest and settlementClaimedAt in COD redacted sources and financial evidence",
+    "Financial purge explicitly blocks settlement archives until settlement purge policy/adapter is implemented"
+  ],
+  "retention": {
+    "table": "staging-AccountDeletionFinancialArchive",
+    "kind": "merchant_settlement",
+    "minimumRetentionFrom": "Approved deletion-job financialYears, not a new default",
+    "expiresAtOrTtlAdded": false,
+    "purgeBlocked": true,
+    "sourceRecordsChanged": false
+  },
+  "publicationPerformed": false,
+  "iamOrEnvironmentChanged": false,
+  "walletOrLedgerChanged": false,
+  "remainingBeforeActivation": [
+    "Approved live schedule and CREATE/READ authorization adapters",
+    "Schedule-version and agreement timing retention requirements",
+    "Approved eventual settlement purge adapter; archive rows currently retained without TTL",
+    "Scoped IAM/package publication inventory and real DynamoDB verification",
+    "API/UI and complete-period selection; adjustments/review/payout remain independent"
+  ],
+  "pausedTest": "Part103 merchant discount/Android tracking test remains paused pending OTP recovery",
+  "sourceSha256": {
+    "backend/account-deletion/settlement-retention.js": "fb0ffb514bee426d74494a6873f9cdd75915065bad703871863fe4d21964a4cd",
+    "backend/account-deletion/merchant-worker.js": "e2452a09a10b242e72ad25532def4bf4de80067b5b147005d4ef8f771f99b935",
+    "backend/account-deletion/cod-retention.js": "1a5536258e0d8ebd8a12dd26798db9a540e904ca00e15309230181802a180e36",
+    "backend/account-deletion/financial-purge.js": "233c4682abfb8703a1e2b62b5a85dccd378c420a2bcff681c3d023ec7fd68267",
+    "backend/account-deletion/test/settlement-retention.test.cjs": "0bbc5273198fc831805d05f9cf7aa9e8b5a7b20e3d6c140807466d19148b86ba",
+    "backend/account-deletion/test/cod-retention.test.cjs": "19aea07b2cdffd7478dd1e5bc7fd43ad15c11c1c1497e6e1634094ea11574bc3",
+    "backend/wallet-service/test/merchant-settlement-batch.test.cjs": "6b1e7f66212a59bd22a20447cd01fe8e8f4bfd640a848a7b8faec6522ab41c67"
+  }
+}

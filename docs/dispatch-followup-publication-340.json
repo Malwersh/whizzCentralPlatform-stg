@@ -1,0 +1,148 @@
+{
+  "part": 340,
+  "scope": "staging",
+  "status": "PUBLISHED_BYTE_VERIFIED",
+  "functions": [
+    {
+      "tag": "staff",
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "qkzb98s9QvPsExT5DhPNhKCI+6Sz7PLqOmRS0AZVxH4=",
+      "candidateSHA256": "594e66d2de72d52f13cd12deaa165701fd50b2cadd2bed07852606c67291c202",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "dispatch-reviews-340.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true,
+      "publishedCodeSha256": "WU5m0t5y1S8TzRLeqhZXAf1QssrdK+0HhSYGxnKRwgI="
+    },
+    {
+      "tag": "integration",
+      "name": "staging-cod-integration",
+      "baseCodeSha256": "ovyL5NWgORh4m5xhAIdhs/9S25ptIH1seszcLDYsEqQ=",
+      "candidateSHA256": "5e97ef1e6dfd59b3fdb911b2b594eacdc33db9c8d6bdc73116d59f627037eb77",
+      "changedFiles": [
+        "index.js",
+        "dispatch-followup-runtime-340.js",
+        "dispatch-followup-monitor-340.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true,
+      "publishedCodeSha256": "XpfvHm39WbP9uRGytZTqzcM9ucjWvccxFtWfYnA363c="
+    }
+  ],
+  "financialModulesPreserved": true,
+  "newFinancialActions": false,
+  "iam": {
+    "role": "staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+    "policy": "DispatchFollowup340",
+    "newFinancialPermissions": false,
+    "newQueryIndex": "DispatchReviewStatus340",
+    "inboxPartition": "DISPATCH_FOLLOWUP_INBOX#OPEN"
+  },
+  "policyInitializedOrPreserved": {
+    "version": 1,
+    "reviewMinutes": 5,
+    "escalationMinutes": 15
+  },
+  "index": {
+    "name": "DispatchReviewStatus340",
+    "status": "ACTIVE",
+    "projection": "KEYS_ONLY"
+  },
+  "monitorGate": "REQUIRED",
+  "publishedAt": "2026-10-28T20:06:51.902952+00:00",
+  "hosting": {
+    "jobId": "218",
+    "previousJob": "217",
+    "changedFiles": [
+      "assets/js/navigation.js",
+      "dispatch-reviews.js",
+      "pages/orders.html",
+      "pages/settings.html",
+      "dispatch-followup-ui.js",
+      "dispatch-followup-340.css",
+      "dispatch-review-alerts.js",
+      "settings-dispatch-followup.js"
+    ],
+    "sourceHashes": {
+      "assets/js/navigation.js": "28b903d600dccbb59caab4399c7261a66847b7a89ff5c973ee696be17ed83ca3",
+      "dispatch-reviews.js": "b8e3c65c456fe7aa5c735876375b6f2f0b013981c3126726b4ee4e2fb33892e2",
+      "pages/orders.html": "852dcc1324dda4bcae0a067ae9decc725ca6a7d8873f0a28b8df109a31c4d177",
+      "pages/settings.html": "f212ff458819f80613c41de100b316402aeed50bfca061d031634a70ec7a3a84",
+      "dispatch-followup-ui.js": "19f8fd830d66fbd9bad8370c2a8429569fc225ce46eecb06fe5218d0b0a78e92",
+      "dispatch-followup-340.css": "a6383477ec2cdd5e74578a6dbc8d17540c9abc067d6f101e2558a830f67f80b5",
+      "dispatch-review-alerts.js": "a487be5e73830c1b35f015b58b2c79d8c12fca835e9298d32eb4a23ee5ce762d",
+      "settings-dispatch-followup.js": "d122a7d5eb5a27135e6f02ea878298e1fa6ce14b011e2e4e48f520f8ef27da11"
+    },
+    "otherEntriesPreserved": true,
+    "settingsPublishedShellPreserved": true
+  },
+  "monitorFinal": {
+    "beforeSha256": "XpfvHm39WbP9uRGytZTqzcM9ucjWvccxFtWfYnA363c=",
+    "codeSha256": "wY+AyDRXGneXfaPBCMhL74dh3PrdyDMv6qj4yLn0lKE=",
+    "changedFiles": [
+      "dispatch-followup-monitor-340.js"
+    ],
+    "unrelatedZipEntriesPreserved": true,
+    "indexedPagesPerTick": 5,
+    "itemsPerPage": 50,
+    "skipTerminalSourceBeforeBranchReads": true
+  },
+  "scheduledVerification": {
+    "lastTickAt": "2026-10-28T20:12:36.470Z",
+    "observed": 149,
+    "saved": 0,
+    "failed": 0,
+    "leaseUntil": 0,
+    "hasContinuation": false,
+    "existingScheduleUnchanged": true
+  },
+  "durableRestartFix": {
+    "functions": [
+      {
+        "name": "staging-wizz-staff-service",
+        "beforeCodeSha256": "WU5m0t5y1S8TzRLeqhZXAf1QssrdK+0HhSYGxnKRwgI=",
+        "codeSha256": "H16hja/MWDIImoWhaLeJhxHrbAXWs53F5bc5FQhKQEw=",
+        "changedFiles": [
+          "dispatch-reviews-340.js"
+        ],
+        "otherEntriesPreserved": true,
+        "configurationPreserved": true,
+        "lastModified": "2026-10-28T20:28:59.000+0000"
+      },
+      {
+        "name": "staging-cod-integration",
+        "beforeCodeSha256": "wY+AyDRXGneXfaPBCMhL74dh3PrdyDMv6qj4yLn0lKE=",
+        "codeSha256": "du7yWQZ9E1FhT7wbrhPkK+fzkLEwuOfwyWLOABzSq7o=",
+        "changedFiles": [
+          "dispatch-followup-monitor-340.js"
+        ],
+        "otherEntriesPreserved": true,
+        "configurationPreserved": true,
+        "lastModified": "2026-10-28T20:29:17.000+0000"
+      }
+    ],
+    "publishedAt": "2026-10-28T20:29:21.978967+00:00",
+    "keepOpenUntilDurableStarted": true,
+    "hosting": {
+      "jobId": "219",
+      "previousJob": "218",
+      "sourceHashes": {
+        "dispatch-reviews.js": "8620a1701e3fd079abd77befd3589cd06bd412ad06b30ce5d6bb2c5de24ac4ca",
+        "dispatch-followup-ui.js": "817047097743da8573f5f06980f9e68c21bd415969984686c64b683f4fbb1f59"
+      },
+      "otherEntriesPreserved": true
+    },
+    "scheduledVerification": {
+      "lastTickAt": "2026-10-28T20:30:37.101Z",
+      "observed": 149,
+      "saved": 0,
+      "failed": 0,
+      "leaseUntil": 0,
+      "hasContinuation": false,
+      "existingScheduleUnchanged": true,
+      "afterLatestPublication": true
+    }
+  }
+}

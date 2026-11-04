@@ -1,0 +1,36 @@
+{
+  "part": 259,
+  "status": "ACTIVE",
+  "version": 2,
+  "previousVersion": 1,
+  "updatedAt": "2026-10-21T21:05:35.228145+00:00",
+  "updatedBy": "SYSTEM_RELEASE_259",
+  "addedPermissions": [
+    "finance.payout.receive",
+    "finance.payout.request",
+    "reports.finance.read",
+    "wallet.settlements.read"
+  ],
+  "roles": [
+    {
+      "id": "BRANCH_MANAGER",
+      "version": 2,
+      "enabled": true
+    },
+    {
+      "id": "FINANCIAL_EMPLOYEE",
+      "version": 2,
+      "enabled": true
+    },
+    {
+      "id": "OPERATIONAL_EMPLOYEE",
+      "version": 1,
+      "enabled": true
+    }
+  ],
+  "scope": "staging",
+  "explicitOwnerGrantStillRequired": true,
+  "currentBranchMembershipsUnchanged": true,
+  "financialWrites": false,
+  "iamChanged": false
+}

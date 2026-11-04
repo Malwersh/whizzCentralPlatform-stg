@@ -1,0 +1,76 @@
+{
+  "release": 342,
+  "date": "2026-10-28",
+  "scope": "C05 guest applicability and modern verified checkout continuation",
+  "liveAudit": {
+    "function": "WizzUser-CreateOrder-staging",
+    "handler": "functions/create-order/index.handler",
+    "codeSha256Base64": "d20s3Hr4khgJ/6Ue9z+k55u499qlxZQwtYWjsMAIjxY=",
+    "modes": {
+      "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+      "FINANCE_GENERAL_RELEASE_MODE": "REQUIRED",
+      "DELIVERY_QUOTE_MODE": "REQUIRED",
+      "COMMERCIAL_PRICING_MODE": "REQUIRED"
+    },
+    "entrypoint": "actual exports.handler delegates normal create requests to handleOrder321; unused commercial-order-router legacy fallback is not the deployed entrypoint",
+    "identity": "general admission rejects missing subject; quote order requires non-guest customer and immutable subject plus live profile conditional proof",
+    "capturedRuntimeTests": {
+      "passed": 6,
+      "databaseReads": 0,
+      "databaseWrites": 0
+    },
+    "runtimeHashes": {
+      "financeRollout.js": "0ea0ed5ddaf96e3ea25fb9274d12777bfabad9c4d0a7de94a00cfae3e0ba6ad5",
+      "deliveryQuoteOrder.js": "77c92cfffc205592f0ac74e161135e2531ec61550c283a294d80486a9039e972"
+    }
+  },
+  "conclusion": "New guest orders are not admitted by the modern launch route. Fix the UI to ask for a registered identity; do not authorize complaints with legacy guest tokens or phone strings.",
+  "implementation": {
+    "repository": "wizzuser-stg",
+    "status": "IMPLEMENTED_LOCAL_AUTOMATED_VERIFIED_NOT_INSTALLED",
+    "behavior": [
+      "Guest browsing and public delivery preview remain available",
+      "Checkout prompts for phone verification before private invoice/address/order operations",
+      "Phone and email sign-in can return to caller; guest navigation hidden within continuation",
+      "Explicit deep snapshot preserves active anonymous basket with customization and quantity",
+      "Wait for account-scoped basket reload; never silently replace a saved account basket",
+      "Retain public selected pin without copying guest or another account saved-address identity",
+      "Return to checkout and require normal review/confirmation; no automatic order send",
+      "Account switch aborts continuation; one-use snapshot cannot be restored under another identity"
+    ],
+    "customerCommit": "51725a4"
+  },
+  "tests": {
+    "targetedFlutter": {
+      "passed": 83,
+      "skipped": 1
+    },
+    "sourceServerIdentity": {
+      "passed": 6
+    },
+    "publishedRuntimeIdentity": {
+      "passed": 6
+    },
+    "broadServerRegression": {
+      "passed": 68,
+      "failed": 6,
+      "failedFile": "backend/wallet-service/test/quote-order-handler.test.cjs",
+      "status": "PRE_EXISTING_UNMODIFIED_BACKEND_HANDLER_FIXTURE_FAILURES_NOT_CLAIMED_PASS"
+    },
+    "legacyFlutterRegression": {
+      "failed": 19,
+      "file": "frontend/test/delivery_quote_checkout_test.dart",
+      "baseline": "Same 19 failures reproduced against isolated pre-change HEAD 5700a1b; older fixtures omit explicit review approval required by current confirmation contract; no production financial guard relaxed"
+    },
+    "analysis": "No Dart errors or warnings; existing informational lints remain"
+  },
+  "legacyGuestOrders": {
+    "status": "SEPARATE_UNSUPPORTED_IDENTITY_LINK_GAP",
+    "limits": "Historical guest bearer tokens and arbitrary phone numbers are not registered customer identities. Do not issue targeted grants to synthetic guest IDs, expose private support history, or rewrite settled order ownership. A secure historical ownership-claim design remains separate if required."
+  },
+  "businessMutationsExecuted": false,
+  "awsWritesExecuted": false,
+  "nativeInstallationExecuted": false,
+  "humanAcceptance": "QUEUED_NOT_RUN",
+  "next": "C07 cancellation/return policy wording and version audit; retain historical guest-claim gap and baseline test repair in main plan"
+}

@@ -1,0 +1,55 @@
+{
+  "part": 329,
+  "scope": "staging",
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "label": "staff",
+      "name": "staging-wizz-staff-service",
+      "previousHash": "gJimHEHfeY9/x8nUB4uNm8a8c7jCQK0ZBWixIN1B6vs=",
+      "candidateHash": "qkzb98s9QvPsExT5DhPNhKCI+6Sz7PLqOmRS0AZVxH4=",
+      "changedFiles": [
+        "_discount_review/central-staff/driver-map-settings-329.js",
+        "_discount_review/shared/driver-map-settings-329.js",
+        "_discount_review/central-staff/index.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "label": "driver",
+      "name": "DriversApi-staging",
+      "previousHash": "5IZi3lqWlvydsBR/LP7/hBjeNnI/RM41UJ2jf7atImM=",
+      "candidateHash": "BfSQqFcwPYJcMGCJeTJchMSqzhPq88VErmbzy4BoADw=",
+      "changedFiles": [
+        "driver-map-activity.js",
+        "driver-map-settings-329.js",
+        "lambda_driver_api_v2.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ],
+  "realOrderOrFinancialMutation": false,
+  "iam": {
+    "role": "drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+    "policyName": "ReadDriverMapSettings329",
+    "readOnlySingleSettingsPartition": true
+  },
+  "initializedPolicy": {
+    "version": 1,
+    "phone": "+9647831367435"
+  },
+  "unauthenticatedSmoke": 401,
+  "hosting": {
+    "jobId": "216",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "pages/settings.html",
+      "settings-driver-map-329.js"
+    ],
+    "otherPublishedFilesPreserved": true,
+    "hostedBytesVerified": true
+  },
+  "completedAt": "2026-10-28T04:29:42.546Z"
+}

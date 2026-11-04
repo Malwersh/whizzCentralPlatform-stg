@@ -1,0 +1,41 @@
+{
+  "correction": "EXCEPTION_ACCRUAL_GL_V1",
+  "platformWalletFundingRequired": false,
+  "part": 242,
+  "status": "PASS",
+  "invalidTokenChecks": [
+    {
+      "action": "APPROVE_EXCEPTION_ENTITLEMENTS",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "action": "EXECUTE_EXCEPTION_ENTITLEMENTS",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "action": "APPROVE_EXCEPTION_GUARANTEE",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "action": "EXECUTE_EXCEPTION_GUARANTEE",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "action": "CLOSE_EXCEPTION_FINANCIALS",
+      "unauthenticatedStatus": 401
+    }
+  ],
+  "publishedHashesVerified": true,
+  "realOrder": {
+    "number": "ORD1792545370610",
+    "status": "returned",
+    "returnStatus": "REVIEW_REQUIRED",
+    "condition": "DAMAGED",
+    "holdStatus": "ACTIVE",
+    "holdAmountIqd": 6250,
+    "financialDecisionOrPaymentPerformed": false
+  },
+  "merchantSimulatorBuildInstalled": 223,
+  "merchantLaunched": true,
+  "wholeSpecificationComplete": false
+}

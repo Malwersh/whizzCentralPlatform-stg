@@ -1,0 +1,45 @@
+{
+  "part": 335,
+  "environment": "staging",
+  "scope": "Pricing screen navigation and progressive disclosure only",
+  "changes": [
+    "Overview with three plain-language choices: customer charge, driver earning, cash rounding",
+    "Only one workspace panel visible at a time, with direct hash navigation and keyboard focus",
+    "Reuse existing loaded policy, editor, permission flags and save endpoints",
+    "Editor positioned within selected pricing workspace; technical fields collapsed",
+    "Preserve tier and peak fieldsets across repeated editor opens",
+    "Cash rounding separate from shared delivery/driver policy save",
+    "Missing general-rule indicator; no invented prices",
+    "New rule identifiers and start date generated for editing only; no automatic save"
+  ],
+  "validation": [
+    "Desktop and 390px mobile workspace navigation",
+    "Unchanged existing-rule save payload",
+    "Branch exceptions and inherited general reference",
+    "Repeated editor openings preserve tier/peak inputs",
+    "Hidden shared save in cash workspace",
+    "No horizontal overflow"
+  ],
+  "financialWrites": 0,
+  "pricingPolicyChanged": false,
+  "backendChanged": false,
+  "hostingAssets": [
+    "pages/delivery-pricing.html",
+    "delivery-pricing.js",
+    "pricing-workspace.js",
+    "styles/pricing-layout.css"
+  ],
+  "hosting": {
+    "jobId": "171",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "delivery-pricing.js",
+      "pricing-workspace.js",
+      "styles/pricing-layout.css"
+    ],
+    "baseJob": "170"
+  },
+  "previousHostingTargetFilesUnchanged": true,
+  "componentRegressionSuites": "333 and 334 PASS"
+}

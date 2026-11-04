@@ -1,0 +1,318 @@
+# Addendum v1.6 — Driver Performance Metrics & Dispatch Priority Integration
+## Iraq Multi-Vendor Delivery Platform
+
+### Objective
+
+تنفيذ نظام موحد لقياس أداء السائقين وتصنيفهم وربط المؤشرات المؤهلة بأولوية استقبال عروض التوصيل، مع دمجه بمحرك الموجات الحالي دون استبداله.
+
+يجب الفصل بين:
+1. Driver Performance Metrics.
+2. Driver Performance Score.
+3. Driver Rewards Tier.
+4. Dispatch Eligibility.
+5. Dispatch Ranking.
+6. Driver Statistics & Historical Reporting.
+
+## 1. Existing Dispatch Compatibility
+
+المحرك الحالي:
+- Wave 1: نطاق 5 كم، أفضل 5 سائقين، قبول ≥70% وإكمال ≥85%، رفض متتالٍ ≤2.
+- Wave 2: نطاق 10 كم، أفضل 5 آخرين، قبول ≥60% وإكمال ≥75%، رفض متتالٍ ≤3.
+- Wave 3: نطاق 15 كم، أفضل 5 سائقين، قبول ≥50% وإكمال ≥60%، رفض متتالٍ ≤5.
+- Wave 4: نطاق 20 كم، جميع المؤهلين دون حدود الأداء السابقة.
+- يوجد منطق قديم لموجة خامسة طارئة حتى 30 كم وبونص 25% يحتاج توحيداً مع مسار Recovery.
+
+يجب عدم تغيير إعدادات الإنتاج الحالية بصمت.
+
+افحص المسار القديم والمسار المالي الجديد، ووحّد مصادر مؤشرات الأداء دون تشغيل محركي إسناد متعارضين.
+
+## 2. Performance Metrics Definitions
+
+أنشئ تعريفات دقيقة للمؤشرات:
+
+**Acceptance Rate**
+- نافذة آخر 100 عرض حصري مؤهل.
+- Accepted / Eligible Delivered Offers.
+- سجل الرفض الصريح والمهلة المنتهية وعدم وصول العرض تقنياً.
+- لا تدخل العروض الملغاة أو غير المسلمة تقنياً في المقام.
+
+**Completion Rate**
+- نافذة آخر 100 التزام مقبول ومؤهل.
+- يعتبر التسليم الناجح والإرجاع الصحيح الموثق إكمالاً تشغيلياً.
+- تُستبعد الإلغاءات الخارجة عن مسؤولية السائق.
+- تمييز Driver-at-Fault Cancellation بصورة مستقلة.
+
+**Customer Rating**
+- متوسط آخر 100 تقييم صالح من 1 إلى 5.
+- بيانات قليلة = Provisional.
+- دعم استبعاد التقييمات المرتبطة بأخطاء غير منسوبة للسائق بعد المراجعة.
+- حفظ سجل الاستبعاد والسبب.
+
+**On-Time Pickup**
+- يعتمد وقت الوصول المتوقع عند قبول المهمة.
+- يستبعد أو يصحح التأخير غير المنسوب للسائق.
+- يسجل وقت وصول السائق ووقت جاهزية المطعم.
+
+**On-Time Delivery**
+- يعتمد الوقت المستهدف الأصلي مع الاستثناءات الموثقة.
+- لا تستخدم تحديثات ETA لإخفاء تأخر السائق.
+- افصل التأخير بسبب المطعم أو المنصة أو ظروف الطريق.
+
+**Quality & Reliability**
+- نجاح إثبات التسليم.
+- الالتزام بتعليمات الإرجاع.
+- تسليم المنتجات بصورة صحيحة.
+- المخالفات المؤكدة.
+- استبعاد الشكاوى غير المحققة من الجزاءات النهائية.
+
+**Safety**
+- تقييم مستقل للأهلية والمخاطر.
+- لا تعامل البلاغات غير المثبتة باعتبارها مخالفات.
+- الحالات الأمنية الجسيمة تحتاج مراجعة منظمة.
+
+## 3. Performance Score
+
+المعادلة الأولية:
+
+Score =
+0.30 × Completion Rate
++ 0.25 × On-Time Performance
++ 0.20 × (Customer Rating / 5 × 100)
++ 0.15 × Acceptance Rate
++ 0.10 × Quality Score
+
+جميع المؤشرات المئوية ضمن 0–100.
+
+اجعل الأوزان قابلة للتعديل من لوحة الإدارة، مع شرط أن يكون مجموعها 100%.
+
+حدد طريقة معلنة للتعامل مع المؤشرات غير المتوفرة والبيانات قليلة العينة.
+
+لا تستخدم قيماً افتراضية غير مميزة وكأنها نتائج فعلية للسائق.
+
+احفظ نسخة قواعد الحساب وحجم العينة والتوقيت والاستثناءات.
+
+## 4. Rewards Tiers
+
+المستويات المقترحة:
+- New / Provisional: سائق جديد ببيانات غير كافية.
+- Bronze: أقل من 60.
+- Silver: 60 إلى أقل من 75.
+- Gold: 75 إلى أقل من 90.
+- Platinum: 90 إلى 100.
+
+هذه حدود تجريبية قابلة للتعديل.
+
+ادعم:
+- الحد الأدنى للعينة.
+- متطلبات Completion Rate.
+- متطلبات Customer Rating.
+- قواعد الجودة والسلامة.
+- الترقية.
+- فترة السماح قبل التخفيض.
+- سجل المستويات.
+- حق الاعتراض.
+
+لا تحجب العروض الطبيعية عن السائق الجديد لمجرد نقص البيانات.
+
+## 5. Dispatch Eligibility
+
+طبّق قبل ترتيب المرشحين:
+- Active Account.
+- Online and Available.
+- Approved Vehicle.
+- Valid Documents.
+- Valid Service Zone.
+- Acceptable Pickup Distance / ETA.
+- No Conflicting Assignment.
+- Sufficient COD Wallet Balance.
+- Order Category Eligibility.
+
+شروط السلامة والوثائق والمحفظة إلزامية ولا يمكن تجاوزها بواسطة Platinum أو Recovery.
+
+## 6. Dispatch Ranking
+
+استخدم نتيجة منفصلة عن Performance Score.
+
+الأوزان التجريبية داخل كل موجة:
+- Pickup ETA: 60%.
+- Performance Score: 25%.
+- Fair Opportunity: 15%.
+
+يجب تطبيع المدخلات إلى نطاق موحد، ومعالجة البيانات الناقصة.
+
+لا تضف Reward Tier كعامل نقاط مستقل إذا كان مشتقاً من Performance Score.
+
+إذا كانت الإدارة تريد أفضلية تجارية للمستويات، فلتكن قاعدة صريحة محدودة لا تسبب ازدواج تقييم أو تجاوز حد وقت الوصول المقبول.
+
+يجب اختبار أثر كل قاعدة على:
+- Time to Assign.
+- Pickup ETA.
+- Customer Delivery ETA.
+- Acceptance Rate.
+- Completion Rate.
+- Distribution of Offers by Tier.
+- New Driver Opportunity.
+- No-driver Cancellation Rate.
+
+## 7. Fair Opportunity
+
+صمم عامل Fair Opportunity بطريقة قابلة للقياس.
+
+مثلاً:
+- فرص العروض المؤهلة خلال نافذة حديثة.
+- التوزيع مقارنة بالسائقين المتاحين في المنطقة نفسها.
+- عدم معاقبة السائق بسبب اختياره العمل لساعات أقل.
+- استثناء العروض التي لم يكن السائق مؤهلاً لها.
+- عدم إعطاء أفضلية تضمن احتكار الطلبات.
+
+لا تجعل هذا العامل معتمداً على عدد الأرباح أو الإكراميات.
+
+## 8. Driver-facing Metrics
+
+داخل Driver App → Performance، اعرض:
+- Acceptance Rate.
+- Completion Rate.
+- Customer Rating.
+- On-Time Pickup.
+- On-Time Delivery.
+- Quality Score.
+- Current Tier.
+- Performance Score.
+- Progress to Next Tier.
+- Calculation Window.
+- Eligible Event Counts.
+- Excluded Events.
+- Last Updated.
+
+يجب أن يستطيع السائق فتح تفاصيل كل مؤشر وفهم لماذا تغير.
+
+اعرض سجل الأحداث المؤثرة بصورة مناسبة، دون كشف معلومات زبائن حساسة.
+
+## 9. Separate Statistics
+
+اعرض في Driver Statistics:
+- Lifetime Completed Trips.
+- Lifetime Delivered Orders.
+- Lifetime Proper Returns.
+- Accepted Offers.
+- Driver Cancellations.
+- Customer Cancellations.
+- Merchant Cancellations.
+- Online Hours.
+- Active Hours.
+- Trip History.
+- Earnings History.
+
+هذه مؤشرات معلوماتية ولا تدخل كلها في ترتيب الإسناد.
+
+تظل الأرباح والإكراميات منفصلة عن Performance Score وعن COD Wallet Balance.
+
+## 10. Administration
+
+أنشئ أو وسّع:
+
+Driver Management → Performance & Rewards
+
+الأقسام:
+- Performance Overview.
+- Metric Definitions.
+- Metric Weights.
+- Rating Moderation.
+- Tier Configuration.
+- Dispatch Priority Rules.
+- New Driver Policy.
+- Fair Opportunity Settings.
+- Metric Exclusions.
+- Driver Appeals.
+- Performance History.
+- Dispatch Impact Analytics.
+
+يجب أن تكون التغييرات:
+- Versioned.
+- Audited.
+- Effective-dated.
+- Protected by RBAC.
+- Previewable before publication.
+
+لا تُعد كتابة نتائج التاريخ باستخدام قواعد اليوم دون الإشارة إلى إصدار المعادلة.
+
+## 11. Integration With Existing Waves
+
+لا تستبدل نطاقات البحث الحالية قبل اختبار البديل.
+
+اعتمد:
+1. Hard Eligibility Filtering.
+2. Wave-specific Policy.
+3. Candidate Ranking.
+4. Offer Creation.
+5. Acceptance / Timeout / Decline Tracking.
+6. Confirmed Assignment.
+7. Performance Event Update.
+
+الموجة الرابعة وRecovery يجب أن توسعا فرص الإسناد دون تجاوز قيود الأهلية.
+
+عند رفض السائق:
+- يسجل الرفض مرة واحدة.
+- يتحدث Acceptance Rate فقط إذا كان العرض مؤهلاً للحساب.
+- لا تسجل عقوبة ثانية مستقلة عن الحدث نفسه دون سبب.
+- لا تُرسل عروض مكررة بشكل مزعج.
+
+## 12. Rollout
+
+ابدأ بالتدرج:
+
+Phase 1: Data Audit & Event Definitions.
+Phase 2: Metrics Calculation & Driver Display.
+Phase 3: Customer Rating Integration.
+Phase 4: Score & Tier Engine.
+Phase 5: Dispatch Shadow Mode.
+Phase 6: Controlled Dispatch Rollout.
+Phase 7: Fairness Audit & Optimization.
+
+أضف Feature Flags لإيقاف تأثير الأداء على الإسناد دون تعطيل عرض المؤشرات.
+
+## 13. Required Tests
+
+اختبر:
+- آخر 100 عرض.
+- آخر 100 التزام.
+- أقل من 100 حدث.
+- عدم وصول عرض تقنياً.
+- رفض متتالٍ.
+- قبول عرض ثم إلغاؤه من الزبون.
+- إلغاء بسبب المطعم.
+- إلغاء بسبب السائق.
+- إرجاع COD صحيح.
+- إرجاع Prepaid صحيح.
+- تقييمات قليلة.
+- تقييم سلبي بسبب خطأ مطعم.
+- إعادة حساب مؤشر بعد اعتراض.
+- وصول السائق في الموعد مع تأخير المطعم.
+- تغيير ETA.
+- ترقية وتخفيض المستوى.
+- سائق جديد.
+- سائق Platinum بعيد مقابل Silver قريب.
+- عدم كفاية محفظة COD.
+- فشل الموجات العادية.
+- تفعيل Recovery.
+- تكرار أحداث قبول العروض.
+- تزامن محركي الإسناد القديم والجديد.
+- تغيير أوزان الأداء.
+- تغيير إعدادات موجة خلال طلب جارٍ.
+- فشل خدمة المواقع.
+- قابلية إعادة إنتاج سبب ترتيب السائقين.
+
+## 14. Acceptance Criteria
+
+- مؤشرات الأداء صحيحة وقابلة للتدقيق.
+- لا يعاقب السائق على الإلغاءات والأخطاء غير المنسوبة إليه.
+- المستويات قابلة للإدارة مركزياً.
+- السائق الجديد لا يُحرم من الفرص.
+- يؤثر الأداء على ترتيب العروض بصورة محدودة وعادلة.
+- وقت الوصول والأهلية يظلان من العوامل الأساسية.
+- لا تتداخل المقاييس المالية مع مؤشرات الجودة.
+- يستطيع المدير تفسير سبب ترتيب سائق معين.
+- النظام متوافق مع موجات البحث الحالية.
+- يمكن تعطيل سياسة الأولوية الجديدة فوراً دون إيقاف الإسناد.
+
+ابدأ بفحص الكود وإعداد Gap Analysis. نفذ الحسابات والواجهات أولاً، ثم اختبر أثرها على الإسناد في Shadow Mode. لا تُفعّل أوزان الأولوية الجديدة في الإنتاج قبل مراجعة النتائج واعتماد إعداداتها.

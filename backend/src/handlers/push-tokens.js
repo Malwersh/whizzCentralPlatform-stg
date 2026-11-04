@@ -3,7 +3,8 @@ const {
   DynamoDBDocumentClient,
   PutCommand,
   DeleteCommand,
-  GetCommand
+  GetCommand,
+  TransactWriteCommand
 } = require('@aws-sdk/lib-dynamodb');
 
 const { verifyJwtMulti } = require('../utils/jwt-multi-verify');
@@ -77,7 +78,8 @@ exports.register = async (event) => {
         return forbidden('Internal registration only supports guest subjectId (must start with GUEST_)');
       }
     } else {
-      const { payload } = await verifyJwtMulti(event, userTypeHintFromApp(app));
+      const { payload, pool } = await verifyJwtMulti(event, userTypeHintFromApp(app));
+      if (pool !== ({user:'users',driver:'drivers',merchant:'merchants'})[app]) return forbidden('Token does not belong to this app');
       subjectId = payload.sub;
 
       // Optional: accept subjectId in payload but enforce match
@@ -89,8 +91,7 @@ exports.register = async (event) => {
     const nowIso = new Date().toISOString();
     const nowEpoch = Date.now();
 
-    await dynamodb.send(
-      new PutCommand({
+    const item={
         TableName: TOKENS_TABLE,
         Item: {
           token,
@@ -98,6 +99,9 @@ exports.register = async (event) => {
           app,
           platform,
           deviceId,
+          soundEnabled: body.soundEnabled !== false,
+          soundReady: Array.isArray(body.soundReady)?body.soundReady.filter(v=>typeof v==='string'&&/^(custom_[a-f0-9]{64}|[a-z_]{1,40})$/.test(v)).slice(0,30):[],
+          orderTrackingVersion: body.orderTrackingVersion===1?1:0,
           // For merchant app we optionally bind the token to a businessId.
           // This enables sending merchant order pushes by businessId (storeId) without relying on cross-system subjectId mapping.
           businessId: app === 'merchant' && businessId ? businessId : undefined,
@@ -109,8 +113,15 @@ exports.register = async (event) => {
           lastSeenAt: nowIso,
           ttl: Math.floor(nowEpoch / 1000) + 60 * 60 * 24 * 180 // 180 days
         }
-      })
-    );
+      };
+    if(allowInternal)await dynamodb.send(new PutCommand(item));
+    else {
+      if(process.env.STAGE!=='staging')throw new Error('Staging push lifecycle configuration required');
+      const type=({user:'CUSTOMER',driver:'DRIVER',merchant:'MERCHANT'})[app];
+      const checks=[{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:`ACCOUNT_LIFECYCLE#${type}#${subjectId}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}];
+      if(app==='merchant'&&businessId)checks.push({ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:`BUSINESS_LIFECYCLE#MERCHANT#${businessId}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}});
+      await dynamodb.send(new TransactWriteCommand({TransactItems:[...checks,{Put:item}]}));
+    }
 
     return ok({ success: true, subjectId, app, platform });
   } catch (e) {
@@ -149,14 +160,17 @@ exports.unregister = async (event) => {
       })
     );
 
-    if (existing?.Item && String(existing.Item.subjectId) !== String(subjectId)) {
+    if (existing?.Item && (String(existing.Item.subjectId) !== String(subjectId) || existing.Item.app !== app)) {
       return forbidden('Token does not belong to this user');
     }
 
     await dynamodb.send(
       new DeleteCommand({
         TableName: TOKENS_TABLE,
-        Key: { token }
+        Key: { token },
+        ConditionExpression: 'attribute_not_exists(#token) OR (#subject = :subject AND #app = :app)',
+        ExpressionAttributeNames: {'#token': 'token', '#subject': 'subjectId', '#app': 'app'},
+        ExpressionAttributeValues: {':subject': subjectId, ':app': app}
       })
     );
 
@@ -166,7 +180,16 @@ exports.unregister = async (event) => {
     if (msg.includes('Missing Authorization') || msg.includes('Invalid token')) {
       return unauthorized('Invalid or missing token');
     }
-    console.error('push-tokens.unregister error', e);
+    if (e?.name === 'ConditionalCheckFailedException') return forbidden('Token ownership changed');
+    console.error('push-tokens.unregister error', {name: e?.name});
     return serverError('Failed to unregister token', { details: msg });
   }
+};
+
+// Authenticated device policy refresh; contains only shared operational settings.
+exports.soundSettings = async event => {
+ if(event.httpMethod==='OPTIONS')return {statusCode:200,headers:corsHeaders,body:''};
+ try{await verifyJwtMulti(event);}catch(_){return unauthorized('Invalid or missing token');}
+ try{return ok({success:true,notificationPolicy:await require('./notification-sound-policy').readPolicy(dynamodb)});}
+ catch(_){return serverError('Notification settings unavailable');}
 };

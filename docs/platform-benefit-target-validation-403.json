@@ -1,0 +1,17 @@
+{
+  "part": 403,
+  "status": "deployed",
+  "hostingJob": "252",
+  "rootCause": "BENEFIT_BRANCH_UNAVAILABLE: selected test branches have no regionId",
+  "changes": [
+    "Explain branch and region validation errors in Arabic",
+    "Mark unmapped branches unavailable in target selector",
+    "Validate selected branches by name before submitting",
+    "Align title length to backend maximum 150"
+  ],
+  "verification": [
+    "JavaScript syntax passed",
+    "Real browser fixture: mapped branch saves; unmapped branch disabled and forced invalid selection rejected"
+  ],
+  "customerDraft": "No changes or resubmission performed"
+}

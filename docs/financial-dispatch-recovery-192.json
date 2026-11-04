@@ -1,0 +1,118 @@
+{
+  "part": 192,
+  "status": "ACTUAL_DRIVER_ACCEPTED_AND_INTEGRATED",
+  "orderId": "0277eafa-183c-506a-8eae-cb4b3c65b1a4",
+  "caseId": "254030a354294ab77b82feaa0ed06144b70050c10503b25801643d42093c9a1e",
+  "requestId": "3f0a4da0-1577-44ea-a9e1-fc11bea93bf0",
+  "subset": "Real staff-authorized funded COD retry before any driver offer or acceptance",
+  "preserves": [
+    "Original immutable price, commission and driver tip",
+    "Original delivery subsidy reservation",
+    "Admitted historical cohort memberships and expiry",
+    "Previous cycle and failed wave evidence"
+  ],
+  "rootCause": "Rollout guard read driver identity from V2 envelope outer fields instead of baseOffer",
+  "testsPassed": 293,
+  "isolatedRealDynamoDB": {
+    "decisionExecuted": true,
+    "offersSaved": true,
+    "originalScopeRemainsExpired": true,
+    "originalPricePreserved": true,
+    "applicationTablesAccessed": false,
+    "humanDataUsed": false,
+    "temporaryTableDeleted": true
+  },
+  "actualOrderReadOnlyPreview": {
+    "ready": true,
+    "sourceDigestMatches": true,
+    "maxConditionBytes": 2070
+  },
+  "newApplicationTables": false,
+  "newWalletOrLedgerWritePermissions": false,
+  "plannedReadAccessExpiry": "2026-10-19T20:00:00Z",
+  "originalAdmissionReopened": false,
+  "actualDecisionExecuted": true,
+  "actualDriverOfferSent": true,
+  "actualDriverAcceptanceVerified": true,
+  "integrationStatus": "INTEGRATED",
+  "orderStatus": "assigned",
+  "customerTotalIqd": 9500,
+  "customerDeliveryIqd": 1500,
+  "driverTipIqd": 500,
+  "originalFinancialSnapshotPreserved": true,
+  "originalDeliveryFundingHoldPreserved": true,
+  "oneActualDriverWinner": true,
+  "driverHoldCreatedByActualAcceptance": true,
+  "additionalFixes": [
+    "Deduplicate identical conjunctive read fences to stay below DynamoDB operator limit without omitting unique predicates",
+    "Correct the sender transport credential to match the existing notification receiver; no credential value logged",
+    "Apply V2 identity predicate to integration worker without changing financial functions"
+  ],
+  "codePublication": [
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "LhhVOoaRE9smPnxwm51TtGEiuJ5Vmswe2VX1sS7pidc=",
+      "configurationPreserved": true,
+      "otherEntriesIdentical": true,
+      "changedFiles": [
+        "finance-rollout.js",
+        "dispatch-cycle-runtime.js",
+        "financial-runtime.js"
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "G6gY4CVM9uJMUNscwL1uHKwecC11fzk0mO7pv02CM38=",
+      "configurationPreserved": true,
+      "otherEntriesIdentical": true,
+      "changedFiles": [
+        "finance-rollout.js",
+        "dispatch-cycle-runtime.js",
+        "financial-runtime.js"
+      ]
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "rpJl8702OttwTeVl1BdGzCa5lUMvvpMCP7ZwnMCaDwA=",
+      "configurationPreserved": true,
+      "otherEntriesIdentical": true,
+      "changedFiles": [
+        "finance-rollout.js",
+        "index.js"
+      ]
+    }
+  ],
+  "integrationGuardPublication": {
+    "name": "staging-cod-integration",
+    "codeSha256": "fkYBxuWgg0a1g9vs3gyuudbkXkLvZqQEQoAO9b5x9q8=",
+    "configurationPreserved": true,
+    "financialFunctionsUnchanged": true
+  },
+  "readAccess": [
+    {
+      "name": "WaveSystem_StartWave",
+      "role": "wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+      "policyName": "FundedDispatchRecoveryRead192",
+      "expiresAt": "2026-10-19T20:00:00Z",
+      "verified": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "role": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "policyName": "FundedDispatchRecoveryRead192",
+      "expiresAt": "2026-10-19T20:00:00Z",
+      "verified": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "policyName": "FundedDispatchRecoveryRead192",
+      "expiresAt": "2026-10-19T20:00:00Z",
+      "verified": true
+    }
+  ],
+  "recoveryExpiry": "2026-10-19T19:20:32.698Z",
+  "backgroundPushDeviceVerification": "Not confirmed on this order: driver accepted over websocket before push acknowledgement; sender credential mismatch corrected",
+  "deliveryAndSettlementCompleted": false,
+  "verifiedAt": "2026-10-19T19:14:51.905Z"
+}

@@ -1,0 +1,6 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {validate,DEFAULTS,readPolicy}=require('../../shared/driver-map-settings-329');
+const {route}=require('../driver-map-settings-329');
+test('central contact and activity settings strictly validate editable values',()=>{assert.deepEqual(validate(DEFAULTS),DEFAULTS);for(const change of [{customerServicePhone:'911'},{customerServicePhone:'javascript:alert(1)'},{heatEnabled:'true'},{busyMinimumReady:1},{busyMinimumReady:21},{refreshSeconds:1},{refreshSeconds:121},{unknown:1}])assert.throws(()=>validate({...DEFAULTS,...change}));});
+test('runtime reads exactly one policy and never silently invents configured values',async()=>{class Get{constructor(input){this.input=input;}}let key;const result=await readPolicy({send:async c=>{key=c.input;return {Item:{version:3,values:{...DEFAULTS,heatEnabled:false,busyMinimumReady:5}}};}},Get);assert.equal(key.TableName,'staging-PlatformStaff');assert.equal(key.Key.pk,'OPERATIONAL_SETTINGS#DRIVER_MAP_TOOLS');assert.equal(result.busyMinimumReady,5);assert.equal(result.heatEnabled,false);await assert.rejects(readPolicy({send:async()=>({})},Get));});
+test('regional staff cannot edit global driver map policy',async()=>{await assert.rejects(route({}, {scope:{allRegions:false}},'GET','/staff/settings/driver-map',{}),e=>e.status===403);});

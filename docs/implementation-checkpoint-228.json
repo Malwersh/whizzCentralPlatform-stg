@@ -1,0 +1,45 @@
+{
+  "part": 228,
+  "status": "PUBLISHED_PHYSICAL_RETURN_FLOW_ACCEPTED",
+  "finding": [
+    "Splash restored old local order after server returned no active order",
+    "Overview rendered terminal returned orders with collection reminder",
+    "Return screen required home button instead of automatic exit",
+    "Clean return cleared isSearching although isActive remained true"
+  ],
+  "repair": [
+    "Successful server no-active response clears stale cache; no local resurrection",
+    "Overview redirects terminal/no-active state to home",
+    "Return screen automatically finishes after verified returned",
+    "Unexpired existing search session reconnects via normal authenticated start-searching endpoint",
+    "Financial writer preserves isSearching only for an already active driver on clean return"
+  ],
+  "tests": {
+    "sourceFinancialMatrix": 64,
+    "capturedLiveArtifactMatrix": 64,
+    "driverNavigationAndReturn": 7,
+    "failed": 0,
+    "analyzer": "No errors or warnings; 11 style/deprecation infos"
+  },
+  "publication": "return-search-publication-228.json",
+  "application": {
+    "bundle": "com.wiz.wizdriverapp",
+    "build": 210,
+    "mode": "Release",
+    "device": "iMohammed",
+    "installed": true,
+    "launched": true
+  },
+  "freshServerReadAfterLaunch": {
+    "status": "available",
+    "isActive": true,
+    "isSearching": true,
+    "currentOrderId": null,
+    "activeOrdersCount": "0",
+    "locationUpdatedAt": "2026-10-20T20:43:29.008Z"
+  },
+  "financialWritesByAgent": false,
+  "orderMutationsByAgent": false,
+  "permissionsChanged": false,
+  "userVisualAcceptance": "User confirmed home screen opened and driver remains online"
+}

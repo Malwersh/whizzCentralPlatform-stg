@@ -1,0 +1,114 @@
+{
+  "part": 259,
+  "status": "PASS",
+  "verifiedAt": "2026-10-21T21:17:38.737980+00:00",
+  "scope": "staging",
+  "deployedServicesVerified": [
+    {
+      "function": "staging-wizz-staff-service",
+      "currentCodeSha256": "/oqx2RE8yZNAlFOgMY1CVcXKuQdrtUEgtsvp8rwozAM=",
+      "taskComponentsVerified": [
+        "staff-capabilities.js",
+        "_discount_review/central-staff/index.js",
+        "settlement-runtime.js",
+        "merchant-device-payouts.js",
+        "index.js"
+      ],
+      "concurrentDifferencesPreserved": [
+        "settlement-runtime.js",
+        "financial-compatibility.js"
+      ]
+    },
+    {
+      "function": "order-receiver-regional-staging-product-management-v4-sam",
+      "currentCodeSha256": "V6m3DgLxy287Qo575PzqgETIafFhfswm/wowahiKSaw=",
+      "taskComponentsVerified": [
+        "merchant-platform/staff-capabilities.js",
+        "_discount_review/merchant-products/index.js"
+      ],
+      "concurrentDifferencesPreserved": []
+    },
+    {
+      "function": "order-receiver-regional-staging-location-settings-v1-sam",
+      "currentCodeSha256": "YnDAU9OC6lfStZwMXYYWHWUaMBGt7g4lgq4X8OI0Ags=",
+      "taskComponentsVerified": [
+        "merchant-platform/staff-capabilities.js"
+      ],
+      "concurrentDifferencesPreserved": []
+    },
+    {
+      "function": "staging-merchant-device-transfers",
+      "currentCodeSha256": "o+rXe3S/bG4u85vo8CIBhIhcrk4iEfvyqbB7qNzF7wg=",
+      "taskComponentsVerified": [
+        "index.js"
+      ],
+      "concurrentDifferencesPreserved": []
+    },
+    {
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "currentCodeSha256": "/OKT/9rFhKv46HVl1GQuZ0Gr2E6vBZQ8OvdVhJwff1k=",
+      "taskComponentsVerified": [
+        "merchant-platform/staff-capabilities.js",
+        "branch_devices.js",
+        "branch_device_settlements.js",
+        "merchant-platform/branch-profile-policy.js"
+      ],
+      "concurrentDifferencesPreserved": []
+    },
+    {
+      "function": "staging-merchant-device-wallet-read",
+      "currentCodeSha256": "3WMXmM9qzcr4rb2tUiqvcl3q0Y9ujC/3gKUUAO6bKUQ=",
+      "taskComponentsVerified": [
+        "index.js"
+      ],
+      "concurrentDifferencesPreserved": []
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "currentCodeSha256": "DKcUsW47XpwWpIWOfzr/Yh/4xSXfRwcFrdrNYX2FMp8=",
+      "taskComponentsVerified": [
+        "merchant-platform/staff-capabilities.js"
+      ],
+      "concurrentDifferencesPreserved": [
+        "financial-compatibility.js",
+        "agreement-runtime182.js",
+        "merchant_pending_response.js"
+      ]
+    },
+    {
+      "function": "order-receiver-business-staging-status-v1-sam",
+      "currentCodeSha256": "Vzou3BzbPS3zRKuLlYoTQuik3eQrTlFGq4IskRAixuM=",
+      "taskComponentsVerified": [
+        "merchant-platform/staff-capabilities.js"
+      ],
+      "concurrentDifferencesPreserved": []
+    },
+    {
+      "function": "order-receiver-regional-staging-discount-management-v1-sam",
+      "currentCodeSha256": "WOFCvJpMpPQzmvBhoXjgmzl/ykCXgaxjWyRixkizVrA=",
+      "taskComponentsVerified": [
+        "_discount_review/merchant-discounts/index.js"
+      ],
+      "concurrentDifferencesPreserved": []
+    }
+  ],
+  "policyVersion": 2,
+  "latestHostingJobId": "149",
+  "negativeSmokeChecks": [
+    {
+      "statusCode": 401,
+      "code": "DEVICE_REVOKED"
+    },
+    {
+      "statusCode": 403,
+      "code": "PAYOUT_OWNER_REQUIRED"
+    }
+  ],
+  "liveBundleTests": 14,
+  "paidPayoutRegression": "PASS_READ_ONLY",
+  "humanEmployeeReceiptAcceptance": "PENDING_EXPLICIT_OWNER_GRANT_AND_FUTURE_REAL_RECEIPT",
+  "payoutOrCashOperationsExecutedByAgent": false,
+  "nativeBuild": 226,
+  "nativeSimulatorInstalledAndLaunched": true,
+  "iamChanges": false
+}

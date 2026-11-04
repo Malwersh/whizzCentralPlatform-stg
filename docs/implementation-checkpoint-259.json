@@ -1,0 +1,69 @@
+{
+  "part": 259,
+  "status": "PUBLISHED_STAGING",
+  "summary": "Device/PIN merchant employee settlement reads, payout request and receipt with frozen actual recipient identity",
+  "tests": {
+    "wallet": {
+      "passed": 1279,
+      "failed": 0
+    },
+    "staff": {
+      "passed": 242,
+      "failed": 0
+    },
+    "merchant": {
+      "passed": 208,
+      "failed": 0
+    },
+    "new": {
+      "passed": 14,
+      "failed": 0
+    },
+    "bundle": {
+      "passed": 14,
+      "failed": 0
+    },
+    "flutterWidgets": {
+      "passed": 19,
+      "failed": 0
+    },
+    "verifiedLiveBundle": {
+      "passed": 14,
+      "failed": 0
+    }
+  },
+  "browserPrintRoles": [
+    "OWNER",
+    "BRANCH_MANAGER",
+    "FINANCIAL_EMPLOYEE"
+  ],
+  "browserPolicyEditor": "PASS",
+  "scope": "staging",
+  "nativeSimulatorBuild": 226,
+  "nativeInstalledAndLaunched": true,
+  "policyVersion": 2,
+  "companyApprovalAndReconciliation": "PLATFORM_ONLY",
+  "newPermissions": [
+    "reports.finance.read",
+    "wallet.settlements.read",
+    "finance.payout.request",
+    "finance.payout.receive"
+  ],
+  "explicitOwnerGrantRequiredForExistingEmployees": true,
+  "humanEmployeeReceiptTest": "PENDING_OWNER_GRANT_AND_FUTURE_REAL_RECEIPT",
+  "financialOperationsByAgent": false,
+  "existingPaidPayoutReexecuted": false,
+  "employeeGrantsChangedAutomatically": false,
+  "iamChanged": false,
+  "broaderReturnFinancialClosure": "NOT_COMPLETED",
+  "references": [
+    "merchant-staff-settlements-259.md",
+    "merchant-staff-settlements-publication-259.json",
+    "merchant-staff-settlements-policy-259.json",
+    "merchant-staff-settlements-verification-259.json"
+  ],
+  "concurrentCompatibilityUpdate": "Preserved; employee implementation byte-identical; live bundle employee tests passed",
+  "verificationStatus": "PASS",
+  "paidPayoutRegression": "PASS_READ_ONLY_LIVE_BUNDLE",
+  "pinAfterMembershipUpdate": "Reconfigure PIN against the new membership version using the existing verification flow"
+}

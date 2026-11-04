@@ -1,0 +1,92 @@
+{
+  "driverApi": {
+    "before": "YnSIzfgrCYQphIhgxEQoLyHEET/c4YHnL/Nfg+9kLoU=",
+    "after": "7YXvCI/rwEMGAGsZXwaBykHEYs+IpQKQj4WRaZeI2Ns=",
+    "changedFiles": [
+      "lambda_driver_api_v2.js",
+      "driver-trip-history.js"
+    ],
+    "otherFilesPreserved": true,
+    "moduleBytesVerified": true,
+    "missingProofIsNotAssumedPending": true
+  },
+  "walletHardening": {
+    "before": "fGDV5qegH4WptxZiuGOE7qLdKCS8MlOww5Rs9oQqg+4=",
+    "after": "Mj/bV77KvU+Tiq2cG1G2yb0zwUGpmLXXDHWyWhTDptY=",
+    "changedFiles": [
+      "dist/transferService.js",
+      "dist/transferClient.js",
+      "dist/transferVerification.js",
+      "dist/transferIdentity.js"
+    ]
+  },
+  "transferModulesMatchLive": {
+    "transferService": true,
+    "transferSettings": true,
+    "transferClient": true,
+    "transferVerification": true,
+    "transferIdentity": true
+  },
+  "deviceTransferBundleAudit": {
+    "CONFIG#TRANSFERS": true,
+    "TRANSFER_SETTINGS_CHANGED": true,
+    "attribute_not_exists(deletionRequestId)": true,
+    "TRANSFER_DAILY#": true,
+    "/wallet/branch-device/transfers/": true,
+    "transferFunds": true,
+    "deviceAudit": true,
+    "PERMISSION_REQUIRED": true
+  },
+  "deviceTransferPackaging": "Separate esbuild single-file bundle; audited published code markers, not claimed byte-identical to individual modules",
+  "activeTransferConfig": {
+    "version": "1",
+    "enabled": true,
+    "minAmount": "1000",
+    "maxAmount": "100000",
+    "driverDaily": "100000",
+    "customerDaily": "100000",
+    "merchantDaily": null
+  },
+  "transferSettingsChanged": false,
+  "financialWrites": 0,
+  "hosting": {
+    "baseJob": "201",
+    "job": "202",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "pages/finance.html"
+    ],
+    "bytesVerified": true
+  },
+  "actualCancelledTrip": {
+    "orderNumber": "ORD1792849495126",
+    "compensationIqd": 500,
+    "state": "COMPENSATION_PAID",
+    "alreadyCreditedToWallet": true,
+    "newFinancialEntriesCreated": false
+  },
+  "devices": {
+    "driverRelease": 270,
+    "customerRelease": 248,
+    "merchantRelease": 243,
+    "installedVersionsVerified": true
+  },
+  "tests": {
+    "tripBackend": 7,
+    "transferBackend": 30,
+    "flutterDriverTransfer": 4,
+    "flutterTripEarnings": 17,
+    "flutterCustomerGate": 2,
+    "flutterMerchantGate": 2
+  },
+  "legal": {
+    "userConfirmsNoPaymentLicenseOrTransferContract": true,
+    "commissionAdded": false,
+    "launchTransferClassificationNeedsReview": true,
+    "sources": [
+      "https://cbi.iq/news/view/2577",
+      "https://dijlex.com/iq/ar/legislation/regulations-electronic-payment-services-2024"
+    ]
+  },
+  "humanTransferAfterUpdate": "NOT_PERFORMED"
+}

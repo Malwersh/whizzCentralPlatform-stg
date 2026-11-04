@@ -1,0 +1,19 @@
+{
+  "part": 94,
+  "status": "cancelled_replacement_ready",
+  "authorization": "User explicitly requested cancellation of current order and said they would create a replacement.",
+  "execution": "Exact-order IAM maintenance, actual AWS operator recorded; no owner/staff impersonation. Standard financial pre-assignment cancellation path remains incomplete.",
+  "preconditions": "Expired search no_driver_available/SEARCH_WINDOW_EXPIRED, every offer financial_expired, wave EXPIRED, no acceptance, no holds, no discounts/reserved funding, COD unpaid.",
+  "result": "Atomic order and dispatch cancellation with idempotency receipt and audit; canonical financial snapshot and historical rows preserved.",
+  "walletWrites": 0,
+  "ledgerWrites": 0,
+  "deletes": 0,
+  "financialOutcomeFabricated": false,
+  "replacement": "All 13 configs published with two prior scopes DRAIN and one new exact-order scope. Simulator iOS build succeeded; installed and launched on iPhone 16 Pro.",
+  "verification": {
+    "activeOrdersInCheckoutIndex": 0,
+    "driverAvailableIqd": 25000,
+    "driverLockedIqd": 0,
+    "walletUnchanged": true
+  }
+}

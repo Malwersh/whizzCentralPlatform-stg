@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "part": 52,
+  "environment": "Staging",
+  "preparedAtUtc": "2026-10-17T02:33:16.502112+00:00",
+  "status": "LOCAL_INTEGRATION_AND_CANDIDATES_PREPARED",
+  "published": false,
+  "activated": false,
+  "humanRowsRead": false,
+  "AWSMutations": false,
+  "runtimeScopeGuardImplemented": false,
+  "phaseT1Complete": false,
+  "privateReleaseDirectory": "/private/tmp/finance-transition52-release",
+  "imports": [
+    {
+      "path": "../wizzuser-stg/backend/src/functions/shared/offer-context.js",
+      "publishedSourceSha256": "57a50d56023b2fc6dc07666af695cd5766cc6f4b8b61db435f64c1f031df1497",
+      "currentSourceSha256": "57a50d56023b2fc6dc07666af695cd5766cc6f4b8b61db435f64c1f031df1497",
+      "changedAfterAdoption": false
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/shared/offer-eligibility.js",
+      "publishedSourceSha256": "06e7e8b0e0ac03b96d12a15ba5eab237b857b65d40987ade78b06b613de537a5",
+      "currentSourceSha256": "06e7e8b0e0ac03b96d12a15ba5eab237b857b65d40987ade78b06b613de537a5",
+      "changedAfterAdoption": false
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/shared/offer-attribution.js",
+      "publishedSourceSha256": "c3344b2ab9c2e4bacdb740c198423d1285cb999b38666dfdee4ee86d2c70af69",
+      "currentSourceSha256": "c3344b2ab9c2e4bacdb740c198423d1285cb999b38666dfdee4ee86d2c70af69",
+      "changedAfterAdoption": false
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/shared/discount-reservation.js",
+      "publishedSourceSha256": "e429662f8adbcb6db21a2a53e2b4d5a59237a907b05584eb8b74cbbf0eeaad0d",
+      "currentSourceSha256": "460df4211d06c081f6b7af0033b8329a593a14633c449b064310345139e541a5",
+      "changedAfterAdoption": true
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/shared/discount-engine.js",
+      "publishedSourceSha256": "e18fc581d3624ddc97c34984d21157685e996b16dd82bcdad61a531989e120bd",
+      "currentSourceSha256": "e18fc581d3624ddc97c34984d21157685e996b16dd82bcdad61a531989e120bd",
+      "changedAfterAdoption": false
+    }
+  ],
+  "sourceSha256": {
+    "../wizzuser-stg/backend/src/functions/create-order/index.js": "2e6cd7870c1ca0af7b79cbd7ade7de08b586a53f9464b33cfc2a6ad0c84cbc5b",
+    "../wizzuser-stg/backend/src/functions/shared/offer-context.js": "57a50d56023b2fc6dc07666af695cd5766cc6f4b8b61db435f64c1f031df1497",
+    "../wizzuser-stg/backend/src/functions/shared/offer-eligibility.js": "06e7e8b0e0ac03b96d12a15ba5eab237b857b65d40987ade78b06b613de537a5",
+    "../wizzuser-stg/backend/src/functions/shared/offer-attribution.js": "c3344b2ab9c2e4bacdb740c198423d1285cb999b38666dfdee4ee86d2c70af69",
+    "../wizzuser-stg/backend/src/functions/shared/discount-reservation.js": "460df4211d06c081f6b7af0033b8329a593a14633c449b064310345139e541a5",
+    "../wizzuser-stg/backend/src/functions/shared/discount-engine.js": "e18fc581d3624ddc97c34984d21157685e996b16dd82bcdad61a531989e120bd",
+    "../wizzuser-stg/backend/test/commercial-offer-integration.test.cjs": "b5affa441dfa270e19cf0c271d0a8632039ffadc7ae375b72ef4dd17bb856064",
+    "backend/wallet-service/src/deliveryQuoteOrder.ts": "90b7d091527c1c506e3ccc79df852f94e1c1a4999dcb8cfebec119670df4c992",
+    "backend/wallet-service/test/delivery-quote-order.test.cjs": "9d21bada4be21b4e3152e39a53fb2bf8ca5e1bed8fc991a0c23f6b4d01fbefb2",
+    "backend/wallet-service/test/helpers/quote-order-handler-fixture.cjs": "5c14a3242db16c1dd0b9474df3fc3012e80d287ce1227f5359a44733f57b9f6f",
+    "scripts/prepare-finance-transition-52.cjs": "15c309fbf8ab3fd7cce929218d2d15b0287c2cd4bdc145ed0a694907270b56a5",
+    "scripts/test/finance-transition-preparation.test.cjs": "6f15e467429d4710eaf11fc3f117fd7f139934ec080596230aae4e674b03a91c",
+    "scripts/prepare-delivery-quote-order.cjs": "d33f63a8cddac5c766e083fe6a5935dc2298cfc6873667a5b3d84bb040a5c541",
+    "scripts/verify-finance-transition-register.py": "fb589053e209ed057b02d9d4fbfa8b01dcd06716505213d153d5e8c788cf48ac",
+    "backend/wallet-service/test/quote-order-handler.test.cjs": "efe9ac8985c9fb349a701c7b7ea1727c22523c976e087d220894023a29f2164c",
+    "backend/wallet-service/test/notification-worker.test.cjs": "cbafdedace5d36eb5e1909066c5b706797ff6f9e950f1118e5ba44107c59d6b9",
+    "backend/wallet-service/test/quote-release-preparation.test.cjs": "3ad4c18df425cef38b444c889045bace513e6678a4d881845d50298f188a903c",
+    "../wizzuser-stg/backend/test/discount-reservation.test.cjs": "e74beedeb890554a1556e5930aef7b21465293227c6bf3ff6224a382c10e8f5d",
+    "../wizzuser-stg/backend/src/functions/create-order/quote-runtime/deliveryQuoteOrder.js": "bab7cc3a1b306d06e5e37363cc602d2ebb94d909af3ca9b489131a25caadb343"
+  },
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "90b7d091527c1c506e3ccc79df852f94e1c1a4999dcb8cfebec119670df4c992",
+      "reason": "Part52 adds atomic offer-journey counters to the existing quote/order transaction; no independent write or funds mutation."
+    }
+  ],
+  "candidatePackages": [
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "baseCodeSha256": "blAgb1fOElFm+nHCTIH7ggEUOeI6tyH12G6b1tyLmK4=",
+      "baseRevisionId": "b4ea18be-73d0-41d0-bbd8-84dec9d9b421",
+      "codeSha256": "0HYZQtby8fkehcs3DtdV4jhOynCVKXfgfdbSoyjPtLE=",
+      "preservedFiles": 11046,
+      "replacedFiles": [
+        "functions/create-order/commercial-runtime.js"
+      ],
+      "addedFiles": [],
+      "replacementSourceSha256": "639195ee97611d32502c141192bffa863839e5ea88e083ea12121612d176ab62",
+      "rollbackSha256": "6e50206f57ce125166fa71c24c81fb82011439e23ab721f5d86e9bd6dc8b98ae"
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "baseCodeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+      "baseRevisionId": "ba936035-15b0-401d-bc05-aa818f2e1b02",
+      "codeSha256": "DQSPMCopiAqKSz0vibItjIyrk88tEBleohQDNHVt71A=",
+      "preservedFiles": 8484,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [],
+      "replacementSourceSha256": "77e7f2b78f793df1a3b57a62deb6259967f465f1ba948ba3b3fc7d842318d3c5",
+      "rollbackSha256": "b8e58b1dd7cbae52088d13578cf766b96fdf02c3b69768f5e3619c2433285e38"
+    }
+  ],
+  "entrypointAudit": [
+    {
+      "entrypoint": "customerOrder",
+      "source": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "sourceSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "finding": "Global paired quote/commercial modes; no shared cohort guard.",
+      "adoptionReady": false
+    },
+    {
+      "entrypoint": "quote",
+      "source": "backend/wallet-service/src/deliveryQuoteRuntime.ts",
+      "sourceSha256": "4158f5ab5c70c1ec02166f8b4883b92c0e86f0b938b9c799868a41bc88b2af0b",
+      "finding": "Global enabled flag plus live identity; cohort adoption is not proven.",
+      "adoptionReady": false
+    },
+    {
+      "entrypoint": "creator",
+      "source": "backend/wallet-service/src/dispatchCoordinatorRuntime.ts",
+      "sourceSha256": "4f902ee558d5e6515146c0f084113275ece18bf0faa0d2f4693373700cf7b959",
+      "finding": "Account/stage/mode and server order validation; no approved branch allowlist.",
+      "adoptionReady": false
+    },
+    {
+      "entrypoint": "timeoutHost",
+      "source": "backend/wallet-service/src/dispatchLegacyHost.ts",
+      "sourceSha256": "f6158e76a571e6c72634ab92e2c0691c5754a6a2473c3465ed0b9e4cfe855329",
+      "finding": "Pinned cycle and worker gate; not a rollout cohort guard.",
+      "adoptionReady": false
+    },
+    {
+      "entrypoint": "financialDriver",
+      "source": "backend/wallet-service/src/driverFinancialRuntime.ts",
+      "sourceSha256": "33c0d09aca2e77826db9cb50a59f0eeb382e746bc9575213b0061380bd44e7b2",
+      "finding": "Role/account/stage/action modes; global gates do not define a rollout cohort.",
+      "adoptionReady": false
+    },
+    {
+      "entrypoint": "staffDecisionHost",
+      "source": "backend/wallet-service/src/dispatchReviewHostRuntime.ts",
+      "sourceSha256": "134dbf98b8c1b893060ae5ff460227af29e979e807265f4c44cdaabda5cf6c00",
+      "finding": "Rule/account/region binding and mode; shared rollout cohort not implemented.",
+      "adoptionReady": false
+    },
+    {
+      "entrypoint": "notifications",
+      "source": "backend/wallet-service/notification-worker/index.js",
+      "sourceSha256": "77e7f2b78f793df1a3b57a62deb6259967f465f1ba948ba3b3fc7d842318d3c5",
+      "finding": "Independent modes and deletion/identity checks; no unified rollout cohort.",
+      "adoptionReady": false
+    }
+  ],
+  "tests": {
+    "wallet": {
+      "tests": 653,
+      "pass": 653,
+      "fail": 0
+    },
+    "customer": {
+      "tests": 42,
+      "pass": 42,
+      "fail": 0
+    },
+    "candidateNotificationWorker": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0
+    },
+    "candidatePreparation": {
+      "tests": 3,
+      "pass": 3,
+      "fail": 0
+    },
+    "typeScriptBuild": true,
+    "quoteRuntimeSynchronized": true,
+    "candidateCommercialPreflightLoaded": true
+  },
+  "retiredPreparation": "The historical quote-only patch rejects offer-context source with LEGACY_QUOTE_PATCH_RETIRED; fresh commercial-runtime overlay is required.",
+  "limitations": [
+    "Tests use injected identities/providers and simulated transactions; no real authenticated Lambda/Gateway journey.",
+    "Published live primary order handler and all other files remain byte-identical in the candidate; only its commercial-runtime.js changes.",
+    "Imported audience source uses existing offer journey/history tables; effective role/retention coverage needs verification before activation.",
+    "Financial funding policies remain mandatory; legacy offer snapshot never proves funded status. Delivery-only discounts remain unsupported by the commercial source.",
+    "Scope guard and coordinated role/provider/device checks remain required; do not enable global flags."
+  ],
+  "additionalCampaignFenceFields": [
+    "targetRegionIds",
+    "campaignType"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadCatalogForPreview",
+      "Effect": "Allow",
+      "Action": "dynamodb:GetItem",
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Products",
+        "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Categories"
+      ]
+    },
+    {
+      "Sid": "ReadCustomerOrderCount",
+      "Effect": "Allow",
+      "Action": "dynamodb:GetItem",
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WizzOfferJourney",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "USER#*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadDeliveryFundingEvidence",
+      "Effect": "Allow",
+      "Action": "dynamodb:GetItem",
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "DELIVERY_FUNDING#*",
+            "DELIVERY_BUDGET#*",
+            "DELIVERY_USAGE#*",
+            "EMPLOYEE#*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DiscoverBranchDeliveryPolicies",
+      "Effect": "Allow",
+      "Action": "dynamodb:Query",
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "BRANCH#*"
+          ]
+        }
+      }
+    }
+  ]
+}

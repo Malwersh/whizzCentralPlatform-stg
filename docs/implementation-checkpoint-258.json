@@ -1,0 +1,36 @@
+{
+  "part": 258,
+  "scope": "Recipient name, actual verified role and merchant name in report payment details and signature",
+  "currentRecipient": {
+    "name": "محمد علي",
+    "role": "OWNER",
+    "roleLabel": "مالك",
+    "businessName": "مطعم فتوش",
+    "basis": "Verified owner receipt identity bound to current paid payout"
+  },
+  "changes": [
+    "Read-only staff report identity includes recipient role derived from verified branch ownership and receipt account binding",
+    "Signature now prints name followed by role — merchant name; removes generic name-and-capacity placeholder",
+    "Main beneficiary includes the same role and merchant name",
+    "Client-supplied recipient role remains rejected"
+  ],
+  "limits": [
+    "Current payout request and receipt route supports owner only",
+    "Manager and financial employee device roles have pending settlement/payout capabilities; no automatic delegation or permission changes",
+    "No historical payout or sealed journal data modified"
+  ],
+  "tests": {
+    "wallet": 1265,
+    "focused": 24,
+    "bundled": 24,
+    "print": "PASS",
+    "actualData": "PASS",
+    "pdfOnePage": "PASS"
+  },
+  "documents": [
+    "payout-recipient-access-258.json",
+    "payout-recipient-publication-258.json"
+  ],
+  "businessWrites": false,
+  "iamChanged": false
+}

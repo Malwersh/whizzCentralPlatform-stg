@@ -1,0 +1,30 @@
+{
+  "part": 229,
+  "status": "PUBLISHED_GENERAL_STAGING_NEW_ORDER_POLICY_AND_RETURN_CASES",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "lOv7KkW27JqEI0CEsI3Uwq35ZpicbWuEH3e/sbmlR8k=",
+      "codeSha256": "1ggZCJmeVHPwbRM4DBrTdCWWl9Mp56f3X0BuhJqsw+8=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "baseCodeSha256": "qEmCU76qsx5uuP8hD01OkWOHKj/nMOOuxIvi/gNYtaM=",
+      "codeSha256": "UIn58nINj+lVj94zLq0Ie8DHoNovi6VTmahSwJMzW38=",
+      "changedFiles": [
+        "_discount_review/user-create-order/index.js",
+        "checkout-finance-runtime-222.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialWritesByAgent": false,
+  "permissionsChanged": false
+}

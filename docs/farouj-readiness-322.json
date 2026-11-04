@@ -1,0 +1,191 @@
+{
+  "checkedAt": "2026-10-23T13:38:14.180392+00:00",
+  "environment": "staging",
+  "readOnly": true,
+  "branch": {
+    "businessId": "business_1791634772438_p2hlg6w5qii",
+    "businessName": "فروج المدينة",
+    "status": "approved",
+    "isActive": true,
+    "acceptingOrders": true,
+    "onboardingSchemaVersion": null,
+    "onboardingComplete": null,
+    "organizationId": null,
+    "brandId": null,
+    "commercialAgreementId": null,
+    "commercialAgreementVersion": null,
+    "onboardingDraftId": null,
+    "platformSuspended": null,
+    "ordersBlocked": null,
+    "updatedAt": "2026-10-23T10:46:18.180Z"
+  },
+  "ownerBindingMatches": true,
+  "hasPhone": true,
+  "hasAddress": true,
+  "hasNumericOwnGps": true,
+  "preparation": {
+    "schemaVersion": 1,
+    "acceptanceSeconds": 300,
+    "defaultPreparationMinutes": 20,
+    "autoAccept": false
+  },
+  "minimumOrderIqd": 10000,
+  "coverageHierarchy": [
+    {
+      "regionId": "Rmhvcpnn3iy5f1",
+      "name": "Al-Manathirah Center",
+      "name_ar": "مركز المناذرة",
+      "level": 3,
+      "parent_id": "Rmhvc7snfyul1f",
+      "is_active": true,
+      "effective_is_active": 1,
+      "ownGpsInsideRegisteredPolygon": true
+    },
+    {
+      "regionId": "Rmhvc7snfyul1f",
+      "name": "Al-Manathirah",
+      "name_ar": "قضاء المناذرة",
+      "level": 2,
+      "parent_id": "Rmhv8s11vr0sxq",
+      "is_active": true,
+      "effective_is_active": 1
+    },
+    {
+      "regionId": "Rmhv8s11vr0sxq",
+      "name": "Najaf",
+      "name_ar": "محافظة النجف",
+      "level": 1,
+      "parent_id": "Rmhv8jq5w2bm3q",
+      "is_active": true,
+      "effective_is_active": 1
+    },
+    {
+      "regionId": "Rmhv8jq5w2bm3q",
+      "name": "Iraq",
+      "name_ar": "العراق",
+      "level": 0,
+      "parent_id": null,
+      "is_active": true,
+      "effective_is_active": 1
+    }
+  ],
+  "organizationsForOwner": [
+    {
+      "organizationId": "6f65975d-6891-408c-b1d1-828f73dcf18d",
+      "subjectMatches": true,
+      "deleted": false,
+      "keys": [
+        "createdAt",
+        "name",
+        "organizationId",
+        "pk",
+        "sk",
+        "subjectId",
+        "version"
+      ]
+    }
+  ],
+  "onboardingDrafts": [
+    {
+      "draftId": "7a770c6e-2f07-4e07-9b0f-cd7bd6c1e5c9",
+      "businessId": "business_fcade368-5514-44bb-a421-b8adafdd6ec3",
+      "organizationId": "6f65975d-6891-408c-b1d1-828f73dcf18d",
+      "reviewStatus": "APPROVED",
+      "version": 6
+    }
+  ],
+  "branchCommercialWorkflows": [],
+  "activeCommercialAgreement": false,
+  "products": [
+    {
+      "productId": "2ec7286a-58e0-49e6-b01f-288d9d7d746a",
+      "name": "هم برجر",
+      "price": 3000,
+      "isAvailable": true,
+      "deleted": false
+    },
+    {
+      "productId": "8237249a-a4fb-466e-b426-53cf693431f7",
+      "name": "برجر",
+      "price": 100,
+      "isAvailable": false,
+      "deleted": false
+    }
+  ],
+  "workingHours": [
+    {
+      "opening": "11:00",
+      "weekday": "Sunday",
+      "isClosed": false,
+      "closing": "23:00"
+    },
+    {
+      "opening": "11:00",
+      "weekday": "Monday",
+      "isClosed": false,
+      "closing": "23:00"
+    },
+    {
+      "opening": "11:00",
+      "weekday": "Tuesday",
+      "isClosed": false,
+      "closing": "23:00"
+    },
+    {
+      "opening": "11:00",
+      "isClosed": false,
+      "weekday": "Wednesday",
+      "closing": "23:00"
+    },
+    {
+      "opening": "11:00",
+      "weekday": "Thursday",
+      "isClosed": false,
+      "closing": "23:00"
+    },
+    {
+      "opening": "11:00",
+      "weekday": "Friday",
+      "isClosed": false,
+      "closing": "23:00"
+    },
+    {
+      "opening": "11:00",
+      "weekday": "Saturday",
+      "isClosed": false,
+      "closing": "23:00"
+    }
+  ],
+  "inlineOpeningHours": null,
+  "pricingVersion": 2,
+  "generalRules": [
+    {
+      "id": "APPROVED_BASELINE_GLOBAL_DELIVERY",
+      "kind": "deliveryRules",
+      "status": "PUBLISHED",
+      "destinationRegionIncluded": true
+    },
+    {
+      "id": "APPROVED_BASELINE_GLOBAL_DRIVER",
+      "kind": "driverRules",
+      "status": "PUBLISHED",
+      "coverageNote": "Driver compensation rule has no customer-zone allowlist; coverage enforced by authenticated routing/customer delivery rule."
+    }
+  ],
+  "lifecycle": {
+    "branchDeletion": false,
+    "ownerDeletion": false
+  },
+  "part": 322,
+  "existingOwnerEntity": {
+    "organizationName": "فروج المدينة جديد",
+    "organizationId": "6f65975d-6891-408c-b1d1-828f73dcf18d",
+    "brandId": "404f5abc-bc27-4eac-9350-78768b16be1d",
+    "otherBranchId": "business_fcade368-5514-44bb-a421-b8adafdd6ec3",
+    "otherBranchActive": false,
+    "otherBranchOnboardingComplete": false
+  },
+  "nextStep": "Clarify whether فروج المدينة جديد is a duplicate test registration of the same restaurant or a distinct branch/entity before mapping the existing active branch. Then complete actual commercial terms and genuine acceptance through the existing workflow.",
+  "dataWrites": false,
+  "followUp": "User clarified same establishment with two separate branches. Missing organization/brand corrected by part324; commercial terms and acceptance remain pending. See docs/farouj-organization-link-324.json."
+}

@@ -1,0 +1,87 @@
+{
+  "status": "PREPARED_NOT_DEPLOYED",
+  "functions": [
+    {
+      "function": "DriversApi-staging",
+      "baseHash": "7I5awRbziBe+xZ2c/O4MTVGpiAPSSkyjHbr5jwaAXNs=",
+      "revision": "909ec4b0-e979-41c1-93a5-1a06d5072e64",
+      "candidateHash": "+drIMQzCGJcxIdwufKHVOY7DAHfQriUQ7OffdYw1108=",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "pinned-legacy-runtime.js",
+        "full-cash-rollout-208.js",
+        "driver-performance-snapshot.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+      "configurationChanged": false,
+      "deployed": false
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "baseHash": "D+gg5t6um/MWyWjfnzy6i+e7+RjTBJRW/fsh0LMqg6A=",
+      "revision": "fea65c12-abb0-4c65-b26a-122ed570ab03",
+      "candidateHash": "wVlhHbjDIm6qlY+iKOsX6oNOLFu48+v4aH5Y3P7r43c=",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "driver-performance-admin-291.js",
+        "driver-performance-policy-guard-291.js",
+        "dispatch-settings-contract.js",
+        "finance-rollout.js",
+        "cancellation-compensation-runtime.js",
+        "driver-performance-snapshot.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "configurationChanged": false,
+      "deployed": false
+    },
+    {
+      "function": "WaveSystem_StartWave",
+      "baseHash": "CY1BGOcrye7gJtn/iCRFVcVmsjCXzCFUtSf6Szq6GJk=",
+      "revision": "450aa2ce-10db-4681-b374-9d64a1e41875",
+      "candidateHash": "EBEGBmHZssB8e/ypDF4v+hqiBRjzVZv723JO6cgc3hw=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "dispatch-settings-contract.js",
+        "finance-rollout.js",
+        "financial-wave-policy.js",
+        "financial-runtime.js",
+        "driver-performance-snapshot.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+      "configurationChanged": false,
+      "deployed": false
+    },
+    {
+      "function": "WaveSystem_HandleWaveTimeout",
+      "baseHash": "OCIxH6Qz6HXRWrKJP7ZuEsztkkuDMLUdZQzO87br+lI=",
+      "revision": "fe9ab1be-250f-4488-81cc-dfd44bdc6583",
+      "candidateHash": "iWp5sQ/3xrZZIDvPqPa2snHBMAdNj8+Hi1NOIQkXPso=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "dispatch-settings-contract.js",
+        "finance-rollout.js",
+        "financial-wave-policy.js",
+        "financial-runtime.js",
+        "driver-performance-snapshot.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "configurationChanged": false,
+      "deployed": false
+    },
+    {
+      "function": "WaveSystem_CreateDispatchJob",
+      "baseHash": "z+xgx7XOZgQDzIuF2f/6zpPLhWVsMCr9bZkhetCECGg=",
+      "revision": "11f6b9ba-d1ca-4a2a-acc2-439e74bd7e6c",
+      "candidateHash": "YSKzeUrmdkEoQhqv4r0o6yCQzCE/GrMUUP9D7bF5Fm0=",
+      "changedFiles": [
+        "index.js",
+        "driver-performance-order-forwarder-291.js",
+        "dispatch-cycle-runtime.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "configurationChanged": false,
+      "deployed": false
+    }
+  ],
+  "activation": "OFF_UNTIL_INFRASTRUCTURE_APPROVAL_BACKFILL_AND_PARITY"
+}

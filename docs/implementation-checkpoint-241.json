@@ -1,0 +1,63 @@
+{
+  "part": 241,
+  "status": "PUBLISHED_AND_VERIFIED_REAL_RETURN_TASK_COMPLETION",
+  "wholeSpecificationComplete": false,
+  "scope": "Full physical return receipt independent from condition and financial review; explicit authorized full-guarantee release workflow",
+  "publication": "return-custody-publication-241.json",
+  "realTest": "return-custody-real-reconciliation-241.json",
+  "pathsAndRemainingWork": "return-options-paths-241.md",
+  "implemented": [
+    "Authenticated complete receipt closes driver task for damaged goods as well as intact goods; review and original attestation remain",
+    "SYSTEM reconciliation of existing complete receipt without merchant/staff impersonation or financial mutation",
+    "Driver remains online/available/searching according to prior online state; offline remains offline",
+    "Finance.approve + approval limit + current evidence-linked finding + explicit confirmation for guarantee release; no client-supplied amount, duplicate release or automatic charge",
+    "Merchant UI separates quantity, condition, task completion and guarantee/rights review",
+    "Staff detail exposes receipt, task completion, guarantee amount/status and review action according to permissions"
+  ],
+  "verification": {
+    "walletTests": 1223,
+    "capturedRuntimeTests": 30,
+    "staffTests": 242,
+    "browserScenarios": 4,
+    "merchantWidgetTests": 9,
+    "driverNavigationTests": 2,
+    "merchantSimulatorBuild": 222,
+    "merchantInstalledAndLaunched": true,
+    "driverBinaryUnchanged": 213,
+    "realDriverHomeAndOnlineConfirmedByUser": true,
+    "historicalAttestationPreserved": true,
+    "actualGuaranteeReleaseByAgent": false,
+    "newIamPermissions": false
+  },
+  "realOrder": {
+    "orderNumber": "ORD1792545370610",
+    "orderId": "bb728bfe-c2c4-5c95-8492-26ce81ee1ed1",
+    "status": "returned",
+    "review": "REVIEW_REQUIRED",
+    "driverStatus": "available",
+    "online": true,
+    "searching": true,
+    "activeOrdersCount": 0,
+    "holdStatus": "ACTIVE",
+    "holdAmountIqd": 6250,
+    "driverOriginalFareBasisIqd": 2750,
+    "fareOrCompensationPaid": false
+  },
+  "remaining": [
+    {
+      "part": 242,
+      "status": "NOT_COMPLETE",
+      "scope": "Evidence/policy-based driver fare and merchant compensation approval, funding and payout/accrual with scheduled settlements; no uncollected tips or fictional refunds"
+    },
+    {
+      "part": 243,
+      "status": "NOT_COMPLETE",
+      "scope": "Per-item partial/missing custody resolution, authorized disposition, justified retained guarantee and partial release; driver-liability adjudication and appeals"
+    },
+    {
+      "part": 244,
+      "status": "NOT_COMPLETE",
+      "scope": "Broader option-to-endpoint audit across cancellation, delivery exceptions, cash and post-delivery claims"
+    }
+  ]
+}

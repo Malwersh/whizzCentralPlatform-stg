@@ -1,0 +1,14 @@
+const fs=require('node:fs'),ts=require('../backend/wallet-service/node_modules/typescript'),esbuild=require('../backend/wallet-service/node_modules/esbuild'),cp=require('node:child_process');
+const p='/private/tmp/cash-adjudication-278-read';fs.mkdirSync(p,{recursive:true});
+esbuild.buildSync({entryPoints:['backend/wallet-service/src/cashAdjudicationReadRuntime278.ts'],bundle:true,platform:'node',target:'node22',external:['@aws-sdk/*'],outfile:p+'/cash-adjudication-read-278.js',logLevel:'warning'});
+let source=fs.readFileSync(p+'/staff-runtime-base.js','utf8');const ast=ts.createSourceFile('runtime.js',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS),names=new Map([['deriveMerchantCodAccrual','deriveMerchantCodAccrual'],['summarizeMerchantAccruals','summarizeMerchantAccruals'],['readMerchantAccrualEvidence','readMerchantAccrualEvidence'],['deliveryReportingAmounts','merchantAccrualReportingAmounts'],['exportMerchantSettlementPreview','exportMerchantSettlementPreview']]),edits=[];
+for(const n of ast.statements)if(ts.isFunctionDeclaration(n)&&names.has(n.name?.text)){const params=n.parameters.map(a=>a.name.getText(ast));if(params.some(n=>!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(n)))throw Error('unexpected factory parameters');edits.push({a:n.body.getStart(ast),b:n.body.end,s:'{ return require("./cash-adjudication-read-278.js").'+names.get(n.name.text)+'('+params.join(',')+'); }'});names.delete(n.name.text);}
+// Older bundles omit the CSV helper; it is not called by the mutation service.
+if(names.size&&!(names.size===1&&names.has('exportMerchantSettlementPreview')))throw Error('Unpatched functions: '+[...names.keys()]);
+for(const e of edits.sort((a,b)=>b.a-a.a))source=source.slice(0,e.a)+e.s+source.slice(e.b);
+function once(a,b){if(source.split(a).length!==2)throw Error('anchor '+a);source=source.replace(a,b);}
+once('accountingJournal: p.accountingJournal','accountingJournal: p.accountingJournal, cashAdjudicationJournal:p.cashAdjudicationJournal');
+once('if (source.accountingJournal) operations.push(', 'if(source.cashAdjudicationJournal)operations.push(exactCheck(T7.holds,{orderId,sk:"CASH_ADJUDICATION_JOURNAL"},source.cashAdjudicationJournal));\n        if (source.accountingJournal) operations.push(');
+// Resolve the bundle-local transaction helper and table variable from the existing condition.
+const match=source.match(/if \(source.accountingJournal\) operations.push\((\w+)\((\w+)\.records/);if(!match)throw Error('accounting guard signature changed');source=source.replace('exactCheck(T7.holds,{orderId,sk:',match[1]+'('+match[2]+'.holds,{orderId,sk:');
+fs.writeFileSync(p+'/staff-runtime-candidate.js',source);cp.execFileSync(process.execPath,['--check',p+'/staff-runtime-candidate.js']);console.log('Prepared bounded merchant proof/summary/CSV delegates and source-journal transaction fence.');

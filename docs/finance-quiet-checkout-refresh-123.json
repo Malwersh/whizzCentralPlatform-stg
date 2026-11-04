@@ -1,0 +1,40 @@
+{
+  "part": 123,
+  "recordedAt": "2026-10-18T16:00:07.992006+00:00",
+  "status": "INSTALLED_AND_LAUNCHED_ON_IMOHAMMED_WAITING_LIVE_REVIEW",
+  "issue": "Visible quote renewal cleared the fee, quote-ID renewal invalidated unchanged discounts, review raced an in-flight request and quote expiry forced customers to restart confirmation.",
+  "changes": [
+    "Keep last fee while renewing the same branch/address; invalidate on actual destination/account change",
+    "Coalesce concurrent quote requests and await freshness when reviewing or applying discounts",
+    "Bind discount UI validation to cart/address/fee rather than ephemeral quote ID",
+    "Remove routine refresh/status banners and one-second screen rebuilding",
+    "Revalidate an expired commercial review internally and preserve one idempotency key; ask again when monetary breakdown changes",
+    "Preserve durable pending-attempt recovery and guard repeated taps"
+  ],
+  "checks": {
+    "deliveryAndAmountTestsPassed": 25,
+    "commercialAndRefreshTestsPassed": 8,
+    "newRaceAndExpiryTestsPassed": 3,
+    "commercialScopedBuildOnlyTestSkippedWithoutScopedTestDefines": 1,
+    "dartAnalyzeErrors": 0,
+    "dartAnalyzeWarnings": 0,
+    "existingInformationalLintsRemain": true,
+    "canonicalOrderStillAbsent": true
+  },
+  "serverQuoteTtlChanged": false,
+  "backendCodeOrFinancialPolicyChanged": false,
+  "walletLedgerOrOrderWritesByMaintenance": false,
+  "samePart122ScopeAndSelectorRetained": true,
+  "physicalInstallCompleted": true,
+  "actualPhoneAcceptanceTested": false,
+  "sourceSha256": {
+    "lib/services/delivery_quote_checkout.dart": "a24ce9667bdb5cfb81bae0538dbeb9ed5b48ba26d05c8adcc307c4e78b588ef2",
+    "lib/screens/checkout_screen.dart": "d80b0d110f6064a633a7fce04d4db5d5c9263b63cba979c967c355f954b25640",
+    "test/checkout_quote_refresh_test.dart": "8b4894d245cdaa6cc87671f38ec41a69eb789f98a3cafbd0691975707bc8ceab",
+    "test/delivery_quote_checkout_test.dart": "3011afbbbe92065cfcfec14ec804d51cdb83e984bd1c56ac894717cd0fc8a061"
+  },
+  "physicalLaunchSucceeded": true,
+  "deepSignatureVerified": true,
+  "sessionReset": false,
+  "installedAt": "2026-10-18T16:00:58.189158+00:00"
+}

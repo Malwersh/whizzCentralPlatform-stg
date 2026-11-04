@@ -1,0 +1,25 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "jobId": "186",
+  "baseJobId": "185",
+  "changedFiles": [
+    "pages/cancellation-compensation.html",
+    "cancellation-compensation.js",
+    "cancellation-compensation-link.js",
+    "order-exception-cases.js",
+    "order-management.js",
+    "settlement-statements.js",
+    "pages/finance.html",
+    "pages/orders.html",
+    "pages/settings.html",
+    "pages/order-exceptions.html"
+  ],
+  "hostedBytesMatched": true,
+  "businessActionsExecuted": false,
+  "interfaceWorkflow": [
+    "Assess facts and loss",
+    "Review and approve without payment",
+    "Execute driver credit and merchant accrual",
+    "Close only after merchant payout if owed"
+  ]
+}

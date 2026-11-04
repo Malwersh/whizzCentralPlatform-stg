@@ -1,0 +1,198 @@
+{
+  "status": "STAGING_PUBLISHED_VERIFIED_LIVE_ACCEPTANCE_PENDING",
+  "scope": "STAGING_ONLY",
+  "livePaymentsEnabled": false,
+  "actualPaymentOrBalanceActions": false,
+  "functions": {
+    "requests": {
+      "name": "staging-account-deletion-requests",
+      "before": "gUY72px8yNxqdahlKsW0O6RN2KtMb+3347X0Jfef6Wc=",
+      "after": "eVABwkiDz+ngKWXw0CIzxjbuERPB2t7T4Y41sJsRugw=",
+      "changedFiles": [
+        "driver-evidence.js",
+        "driver-lock.js"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    "worker": {
+      "name": "staging-account-deletion-worker",
+      "before": "RWljcJqheBSBAx8I/Eri17ZQycvnTH65AQVl05v8eus=",
+      "after": "nGl0E/UuGljvMpH7iYLs8CDpNS2DY3JZ6WG+WeTqBE0=",
+      "changedFiles": [
+        "driver-cleanup.js",
+        "customer-cleanup.js"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    "authorizer": {
+      "name": "staging-wizz-wallet-authorizer",
+      "before": "QM1lfqAxiXht0W0xjnqVzDNm1CaftetDHnSonhRMh2A=",
+      "after": "yaJydWhaXRIAMVtJbXg2+G3kUYKA/no0bJJfGpMF78s=",
+      "changedFiles": [
+        "authorizer.py",
+        "staff_policy.py"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    "wallet": {
+      "name": "staging-wizz-wallet-service",
+      "before": "F8Dh/EBRg/5CsWz33hRNyqk8E/wkQcTZBFZwcF6hFqA=",
+      "after": "m2nfCOkGpN1FrkSinOSqxk24SD3poT5s+zYgmVpv918=",
+      "changedFiles": [
+        "dist/index.js",
+        "dist/topupService.js",
+        "dist/zaincashGateway.js"
+      ],
+      "unrelatedEntriesPreserved": true
+    }
+  },
+  "routes": [
+    "GET /wallet/funding/zaincash/config",
+    "GET /wallet/funding/zaincash/payments",
+    "POST /wallet/funding/zaincash/payment",
+    "POST /wallet/funding/zaincash/check",
+    "POST /wallet/funding/zaincash/notification",
+    "GET /wallet/funding/admin/zaincash",
+    "PUT /wallet/funding/admin/zaincash",
+    "POST /wallet/funding/admin/zaincash/test",
+    "POST /wallet/funding/admin/zaincash/import-uat",
+    "POST /wallet/funding/admin/zaincash/accept",
+    "POST /wallet/funding/admin/zaincash/pilot",
+    "POST /wallet/funding/admin/zaincash/recover",
+    "POST /wallet/funding/admin/zaincash/resolve-uncreated",
+    "GET /wallet/funding/admin/zaincash/payments"
+  ],
+  "policies": [
+    {
+      "role": "staging-wizz-wallet-servi-WalletServiceFunctionRole-uclfG6mK9iE6",
+      "name": "ZaincashGateway260",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "secretsmanager:CreateSecret",
+              "secretsmanager:GetSecretValue"
+            ],
+            "Resource": "arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/payments/zaincash/gateway-*"
+          }
+        ]
+      }
+    },
+    {
+      "role": "staging-account-deletion-FunctionRole-sPGSPcNZULcs",
+      "name": "ZaincashFundingDeletionFence260",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:ConditionCheckItem",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-IdempotencyKeys",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "ZC#ACTIVE#*"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "invocationRoles": {
+    "api": "arn:aws:iam::699561669180:role/staging-zaincash-api-invoke",
+    "scheduler": "arn:aws:iam::699561669180:role/staging-zaincash-scheduler-invoke",
+    "scope": "Invoke wallet Lambda only; existing resource policy unchanged"
+  },
+  "schedule": {
+    "scheduler": "staging-zaincash-wallet-reconciliation",
+    "enabled": true
+  },
+  "hosting": {
+    "baseJobId": "196",
+    "jobId": "197",
+    "changedFiles": [
+      "finance.js",
+      "finance-workspace.js",
+      "pages/finance.html",
+      "zaincash-gateway.js",
+      "pages/zaincash-return.html"
+    ],
+    "status": "SUCCEED_VERIFIED",
+    "unrelatedFilesPreserved": true,
+    "currentJobId": "200"
+  },
+  "followups": [
+    {
+      "kind": "BACKEND_LATE_PROVIDER_EVENT_RECOVERY",
+      "before": "sb+yxLfMEog2spcbJo/TYuIivRXIGcLa3aXHYvBzVsg=",
+      "after": "do+4jRwpNP4EW7F+03eVZn1GpHr4uCLpT+YQ/ZSOh0I=",
+      "changedFiles": [
+        "dist/zaincashGateway.js"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "kind": "ADMIN_CONNECTION_TIMEOUT",
+      "hostingJobId": "198",
+      "baseJobId": "197",
+      "changedFiles": [
+        "zaincash-gateway.js",
+        "pages/finance.html"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "kind": "BACKEND_LATE_PROVIDER_EVENT_RECOVERY",
+      "before": "do+4jRwpNP4EW7F+03eVZn1GpHr4uCLpT+YQ/ZSOh0I=",
+      "after": "do+4jRwpNP4EW7F+03eVZn1GpHr4uCLpT+YQ/ZSOh0I=",
+      "changedFiles": [
+        "dist/zaincashGateway.js"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "kind": "ADMIN_CONNECTION_TIMEOUT",
+      "hostingJobId": "199",
+      "baseJobId": "198",
+      "changedFiles": [
+        "finance-workspace.js",
+        "zaincash-gateway.js",
+        "pages/finance.html"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "kind": "BACKEND_LATE_PROVIDER_EVENT_RECOVERY",
+      "before": "do+4jRwpNP4EW7F+03eVZn1GpHr4uCLpT+YQ/ZSOh0I=",
+      "after": "do+4jRwpNP4EW7F+03eVZn1GpHr4uCLpT+YQ/ZSOh0I=",
+      "changedFiles": [
+        "dist/zaincashGateway.js"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "kind": "ADMIN_CONNECTION_TIMEOUT",
+      "hostingJobId": "200",
+      "baseJobId": "199",
+      "changedFiles": [
+        "finance-workspace.js",
+        "zaincash-gateway.js",
+        "pages/finance.html"
+      ],
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "kind": "MATCH_INQUIRY_AND_SIGNATURE_CREDENTIAL_REVISION_FOR_LIVE_ACCEPTANCE",
+      "before": "do+4jRwpNP4EW7F+03eVZn1GpHr4uCLpT+YQ/ZSOh0I=",
+      "after": "m2nfCOkGpN1FrkSinOSqxk24SD3poT5s+zYgmVpv918=",
+      "changedFiles": [
+        "dist/zaincashGateway.js"
+      ],
+      "unrelatedEntriesPreserved": true
+    }
+  ]
+}

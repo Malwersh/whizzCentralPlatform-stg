@@ -1,0 +1,23 @@
+{
+  "part": 240,
+  "status": "PASS",
+  "invalidTokenChecks": [
+    {
+      "action": "report_return_obstacle",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "action": "set_return_acceptance",
+      "unauthenticatedStatus": 401
+    }
+  ],
+  "publishedCodeHashesVerified": true,
+  "historicalDamagedReturnUnchanged": true,
+  "driverBuildInstalled": 213,
+  "driverLaunched": true,
+  "merchantSimulatorBuildInstalled": 221,
+  "merchantLaunched": true,
+  "routing": "CONFIGURED_WITH_APPROVED_SINGLE_SECRET_READ",
+  "realAutomaticReturnEndToEndTest": "NOT_PERFORMED",
+  "ownerOptInByAgent": false
+}

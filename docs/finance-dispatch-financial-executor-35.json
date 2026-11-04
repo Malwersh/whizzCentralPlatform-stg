@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_PINNED_FINANCIAL_EXECUTOR_AND_ACCEPT_DECLINE_VERIFIED_ISOLATED",
+  "published": false,
+  "financialActivation": "OFF_UNCHANGED",
+  "livePolicyChanged": false,
+  "liveFlagsChanged": false,
+  "humanFundsOrOrdersChanged": false,
+  "financialExecutorImplemented": true,
+  "legacyExecutorImplemented": false,
+  "publicationReady": false,
+  "scope": [
+    "Reuse existing financial wave producer, offer context, offer store and sole financial acceptance/hold writer",
+    "Stable stored recipients, fixed offer IDs and retryable notification cursor",
+    "Fenced worker writes and atomic READY plus APPLIED acknowledgement",
+    "Pinned-wave guards in acceptance and decline transactions",
+    "Last decline resumes shared coordinator; committed decline with failed follow-up returns transitionPending",
+    "Declined or expired recipients do not block remaining notification delivery after a lost send acknowledgement"
+  ],
+  "tests": {
+    "typescriptBuild": true,
+    "walletPassed": 514,
+    "newExecutorTests": 13,
+    "dispatchCyclePolicyCheck": true,
+    "customerQuoteRuntimeCheck": true,
+    "runtimeArtifactDefaultClosed": true,
+    "fourRepositoryWhitespaceChecks": true
+  },
+  "isolatedDynamoDB": {
+    "scope": "REAL_DYNAMODB_ISOLATED_PINNED_FINANCIAL_EXECUTOR",
+    "applicationTablesAccessed": false,
+    "published": false,
+    "realOffersSent": 0,
+    "identityAndRoutes": "SYNTHETIC",
+    "financialWrites": "DISPOSABLE_TABLE_ONLY",
+    "readyAndAppliedCommitted": true,
+    "resumeKeepsRecipientsAndEventIds": true,
+    "pinnedAcceptanceSingleHoldAndStop": true,
+    "lastDeclineOneNextIntent": true,
+    "tableDeleted": true
+  },
+  "offlineCoordinatorRuntime": {
+    "schemaVersion": 1,
+    "mode": "OFF",
+    "executionReady": false,
+    "financialExecutorImplemented": true,
+    "legacyExecutorImplemented": false,
+    "publicationReady": false,
+    "sha256": "c2bd427aee57d1196cde26c25f844c1980adcdc422c219523c1044a021083c14",
+    "destinations": [
+      "WaveSystem_StartWave",
+      "WaveSystem_HandleWaveTimeout",
+      "WaveSystem_HandleDriverReject"
+    ],
+    "blockers": [
+      "Creator, candidate selection and legacy executor adapters",
+      "Public legacy acceptance/decline adapters and financial deployment verification",
+      "Coordinated IAM and live-package verification",
+      "Central wave editor, recovery and full behavior compatibility"
+    ]
+  },
+  "offlineFinancialRuntime": {
+    "schemaVersion": 1,
+    "stage": "staging",
+    "file": "financial-runtime.js",
+    "sha256": "564874fb41b2c86dff71999c99b02d720b5bc8c4c48f2cacfdd97afc55df798e",
+    "destinations": [
+      "lambda/WaveSystem_StartWave/financial-runtime.js",
+      "lambda/WaveSystem_HandleWaveTimeout/financial-runtime.js",
+      "staging-driver-financial-accept/index.js"
+    ],
+    "activation": "OFF",
+    "completionActivation": "OFF",
+    "returnsActivation": "OFF",
+    "assignmentsActivation": "OFF",
+    "requiresCoordinatedDeployment": true,
+    "blockers": [
+      "Live package comparison and IAM/Gateway verification",
+      "Policy-backed compensation/adjudication and merchant payouts remain pending",
+      "Human device return/cancellation UX, adjudication and Gateway verification",
+      "Coordinated deployment of acceptance, integration, notification and deletion/retention contracts with flags OFF",
+      "Gateway, live authentication, production-role IAM and device verification remain pending"
+    ]
+  },
+  "notComplete": [
+    "Creator and existing candidate-selection provider integration with captured wave policy",
+    "Legacy wave producer and public legacy accept/decline adapters",
+    "Coordinated Start/Timeout/runtime execution wiring; entry point remains PLAN_ONLY or closed",
+    "ALL above 25 recipients and dispatch-intent retention integration",
+    "Authorized new search cycles and reassignment rollover",
+    "Central v2 editor, funded recovery and performance model",
+    "Real routing secret, live IAM/Gateway verification, delivery and device tests before publication"
+  ],
+  "verificationLimits": [
+    "Only a disposable DynamoDB table was used; application tables were never accessed",
+    "Identity, routes and sends were synthetic, no actual push or driver offer",
+    "Synthetic acceptance created journal and hold records only in the disposable table, then the table was deleted",
+    "Repeated sends can occur with the same eventId; READY/APPLIED does not prove delivery or client deduplication",
+    "No source policy activation, Lambda publication, IAM mutation or phone build"
+  ],
+  "sourceDigests": [
+    {
+      "path": "backend/wallet-service/src/dispatchWaveExecutor.ts",
+      "sha256": "6d485971a0e20eea171727230c01f5f317fda38238282ebf833d4b14d6584674"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchWaveFence.ts",
+      "sha256": "944c6e370d906fddb73e00385058ab82e1450ad38ff0bf75dbdfec57bad57900"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchTransaction.ts",
+      "sha256": "7c402b6b2b1a773c24822d8e8765a2de7fe34fd4ac2f716102dd977527c3735e"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCoordinator.ts",
+      "sha256": "4809849a0680d7b89a22bd55b908912a9b3ac4d9b8114fbc40b1bc0ae3eefdd3"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCoordinatorRuntime.ts",
+      "sha256": "7af4599eb6a4fbb1e13a3890a3a1ce220dd5b520de83f4906fc3b2565577daf3"
+    },
+    {
+      "path": "backend/wallet-service/src/driverOfferContext.ts",
+      "sha256": "8b3f65f0dacfe02c80114b12b6a39836b679f9b44033eceff671f4c1f17b816c"
+    },
+    {
+      "path": "backend/wallet-service/src/driverOfferAcceptance.ts",
+      "sha256": "f8c026d7de896dd6985aa1dae594942be2c62455fdeb552644e1b5b4d5f63da8"
+    },
+    {
+      "path": "backend/wallet-service/src/driverFinancialWave.ts",
+      "sha256": "16c869acc071bb6b449043156368e8ca65600f2279e0988a189ae5ddb9aa1bfc"
+    },
+    {
+      "path": "backend/wallet-service/test/dispatch-executor.test.cjs",
+      "sha256": "cc5eda498efe7d5883aedb044171705534918bc8c0b84da0b9a13e5912bf0963"
+    },
+    {
+      "path": "backend/wallet-service/test/dispatch-coordinator.test.cjs",
+      "sha256": "f1a00040799372565691b231fa73a3ec9b298c6db38c2680989e8e0c53c8d8d5"
+    },
+    {
+      "path": "scripts/build-dispatch-coordinator-runtime.cjs",
+      "sha256": "c3bf9d6ee8f1927117764e130fb6c4e74781c64dc71199c05def3ceb7e5f64a5"
+    },
+    {
+      "path": "scripts/test-dispatch-executor-staging.cjs",
+      "sha256": "53383583e8a410f8811fb32618d3a74213a77ffa7df0faae2772af7b1668f536"
+    },
+    {
+      "path": "scripts/test-dispatch-cycle-staging.cjs",
+      "sha256": "1ee9bebea184da1772212f400c5b1256ed3908ac9fda61615d7ecd5fd8ea2b38"
+    }
+  ]
+}

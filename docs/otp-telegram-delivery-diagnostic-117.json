@@ -1,0 +1,60 @@
+{
+  "part": 117,
+  "checkedAt": "2026-10-18T14:48:38.162701+00:00",
+  "scope": "Latest merchant and customer login attempts for the user-corrected phone ending8280",
+  "status": "TELEGRAM_TIMEOUT_SMS_DELIVERY_UNCONFIRMED",
+  "attempts": [
+    {
+      "label": "merchant",
+      "createdAt": "2026-10-18T14:43:32.938Z",
+      "status": "sent",
+      "isFinalStatus": false,
+      "lastChannel": "sms",
+      "channelFlow": [
+        {
+          "channel": "telegram",
+          "tried": true,
+          "success": false,
+          "error": "Telegram Delivery 30s Timeout"
+        },
+        {
+          "channel": "sms",
+          "tried": true,
+          "success": true,
+          "error": null
+        }
+      ],
+      "reportStatus": "sent"
+    },
+    {
+      "label": "merchant",
+      "createdAt": "2026-10-18T14:40:01.232Z",
+      "status": "sent",
+      "isFinalStatus": false,
+      "lastChannel": "sms",
+      "channelFlow": [
+        {
+          "channel": "telegram",
+          "tried": true,
+          "success": false,
+          "error": "Telegram Delivery 30s Timeout"
+        },
+        {
+          "channel": "sms",
+          "tried": true,
+          "success": true,
+          "error": null
+        }
+      ],
+      "reportStatus": "sent"
+    }
+  ],
+  "merchantAndCustomerUseSameProviderProject": true,
+  "newOtpMessagesSentByMaintenance": false,
+  "providerReportsGenerated": 1,
+  "applicationOrAuthConfigurationChanged": false,
+  "whatsappAttemptInReturnedChannelFlow": false,
+  "whatsappOmissionReason": "NOT_EXPOSED_BY_PROVIDER_RESPONSE",
+  "telegramAccountPhoneMatch": "USER_CONFIRMATION_REQUESTED",
+  "next": "Confirm Telegram account phone; if it matches, provider investigation is required for Telegram Delivery 30s Timeout and unconfirmed SMS. Do not claim delivery from sent status."
+}

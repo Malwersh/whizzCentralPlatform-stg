@@ -1,0 +1,31 @@
+{
+  "part": 340,
+  "environment": "staging",
+  "observedPolicyVersion": 8,
+  "liveFattoushDriverOverrideStillPresent": true,
+  "changes": [
+    "Remove native browser confirmation dependency for reversible local removal",
+    "Resolve current list position using exact rule ID/version before removal",
+    "Show staged removals with branch name and undo button",
+    "Scroll to shared save step and explicitly state policy unchanged until save",
+    "Clear pending removals only after successful load/save"
+  ],
+  "tests": [
+    "Browser remove/undo/re-remove/save/reload fixture PASS",
+    "No browser confirmation dialog used PASS",
+    "Exact branch override removed; general and delivery rules retained PASS",
+    "4 packaging guard tests PASS"
+  ],
+  "financialPolicyWrites": 0,
+  "backendChanged": false,
+  "hosting": {
+    "jobId": "178",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "delivery-pricing.js",
+      "styles/pricing-layout.css"
+    ],
+    "baseJob": "177"
+  }
+}

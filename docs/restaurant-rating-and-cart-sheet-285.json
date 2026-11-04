@@ -1,0 +1,66 @@
+{
+  "status": "PUBLISHED_PUBLIC_LIST_AND_DETAILS_VERIFIED_SIMULATOR285_INSTALLED",
+  "changes": [
+    "Compact RTL cart delete confirmation with48px icon,14px action labels,smaller padding,yellow/navy confirm and neutral cancel",
+    "Remove hardcoded500+ review count from map conversion",
+    "BusinessModel reviews getter returns real count",
+    "Restaurant detail refreshes rating/count via existing business API on open/resume",
+    "Public rating projection uses customerRating and customerRatingCount, validates pair, preserves delivery agreement facts and avoids stale legacy fallback when customer aggregate is empty/invalid"
+  ],
+  "backendReadAudit": {
+    "businessList": "Already customerRating aware before fix",
+    "businessDetails": "Live helper stale; public details returned null rating/count before fix",
+    "actualMerchantAggregate": {
+      "average": 4,
+      "count": 1
+    }
+  },
+  "tests": {
+    "backend": 6,
+    "flutter": 14,
+    "analysis": "No errors;11 existing informational lints in cart/enhanced card"
+  },
+  "businessDataWrites": false,
+  "iamChanges": false,
+  "manualAcceptance": "NOT_RUN",
+  "device": "iPhone16Pro simulator",
+  "publication": {
+    "businessMutations": false,
+    "iamChanges": false,
+    "configurationChanges": false,
+    "functions": [
+      {
+        "name": "WizzUser-GetBusinesses-staging",
+        "codeSha256": "hRqq4Oic3XD3vJKqXihUrhvG1B71CHrpS6Bk/xYH/Sw=",
+        "revisionId": "91655511-bf15-417d-831c-b76503593c94",
+        "configurationPreserved": true,
+        "changedEntries": [
+          "functions/shared/storefront-facts-170.js"
+        ]
+      },
+      {
+        "name": "WizzUser-GetBusiness-staging",
+        "codeSha256": "pVEBvDM7fJBatbTCyub5syLPy+hlFGQncsPGQcphevw=",
+        "revisionId": "b3c0ac96-d87e-431d-b7b0-47b544d20ecc",
+        "configurationPreserved": true,
+        "changedEntries": [
+          "functions/shared/storefront-facts-170.js"
+        ]
+      }
+    ]
+  },
+  "publicApiVerification": {
+    "detail": {
+      "success": true,
+      "found": true,
+      "rating": 4,
+      "reviewCount": 1
+    },
+    "list": {
+      "success": true,
+      "found": true,
+      "rating": 4,
+      "reviewCount": 1
+    }
+  }
+}
