@@ -1,0 +1,18 @@
+{
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "reason": "Curated save used unapproved Products GetItem; now reuses approved branch Query catalog with ownership checks",
+  "newPermissions": false,
+  "templateRecordsChanged": false,
+  "tests": {
+    "backend": 23,
+    "browserViewports": [
+      390,
+      1280
+    ],
+    "curatedSelectionAndSave": true
+  },
+  "allOtherRuntimeAndHostingEntriesPreserved": true,
+  "backendSha256": "5N6k8Y0X0Jblm4kqKS9jveJTNy/OxOTWOowA/pIq5dE=",
+  "existingPublishedTemplateStillReadable": true,
+  "hostingJob": "237"
+}

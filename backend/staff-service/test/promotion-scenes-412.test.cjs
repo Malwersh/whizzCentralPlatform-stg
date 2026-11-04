@@ -1,0 +1,9 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const settings=require('../home-promotion-settings'),{enrich}=require('../promotion-scenes');
+test('scene configuration validates copy, unique identities, and product limits',()=>{const scene={id:'b',enabled:true,title:'مطعم فتوش',subtitle:'الكثير من العروض',productMode:'selected',productIds:['p']};assert.equal(settings.validate({scenes:[scene]}).scenes[0].title,'مطعم فتوش');for(const scenes of [[scene,scene],[{...scene,productIds:Array(7).fill('p')}],[{...scene,title:'<script>'}]])assert.throws(()=>settings.validate({scenes}));});
+test('scene photos are published, available and scoped to their branch, with snapshot fence',async()=>{
+ let version='one';const ctx={db:{send:async c=>c.constructor.name==='GetCommand'?{Item:{publishedVersion:version}}:{Items:[{product:{productId:'p',businessId:'b',name:'Pizza',imageUrl:'https://example.com/p.jpg'}},{product:{productId:'unavailable',businessId:'b',isAvailable:false,imageUrl:'https://example.com/x.jpg'}},{product:{productId:'foreign',businessId:'x',imageUrl:'https://example.com/x.jpg'}}]}}};
+ const config=settings.validate({scenes:[{id:'b',enabled:true,title:'',subtitle:'',productMode:'selected',productIds:['p','foreign','unavailable']}]});
+ const result=await enrich(ctx,{id:'b',name:'فتوش',logoUrl:'https://example.com/logo.jpg'},{},config);assert.deepEqual(result.products.map(p=>p.id),['p']);assert.equal(result.logoUrl,'https://example.com/logo.jpg');
+ let reads=0;const changed={db:{send:async c=>{if(c.constructor.name==='GetCommand')return {Item:{publishedVersion:++reads===1?'old':'new'}};return {Items:[{product:{productId:'p',businessId:'b',imageUrl:'https://example.com/p.jpg'}}]};}}};assert.deepEqual((await enrich(changed,{id:'b',name:'b'},{},settings.validate(null))).products,[]);
+});

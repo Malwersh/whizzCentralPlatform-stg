@@ -1,0 +1,18 @@
+{
+  "part": 404,
+  "status": "deployed-staging",
+  "rootCause": "Published products now include cuisineIds metadata; strict goods pricing schema rejected it",
+  "fix": "Allow classification metadata in canonical goods pricing schema and generated customer runtime",
+  "deployment": {
+    "function": "WizzUser-CreateOrder-staging",
+    "changedFiles": [
+      "functions/create-order/quote-runtime/orderGoodsPricing.js"
+    ],
+    "codeSha256": "rQIIxZinGJnv5TVutOpTRDOLxc6Z8iSOcxSQTzOB3SY="
+  },
+  "validation": {
+    "pricingTests": 20,
+    "actualPublishedBasket": "2 x 10000 IQD = 20000 IQD, read-only fixture",
+    "remaining": "Customer retry through authenticated app and benefit application at checkout"
+  }
+}

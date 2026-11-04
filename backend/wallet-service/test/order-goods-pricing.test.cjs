@@ -106,3 +106,9 @@ test('tracked stock supports bounded inventory and sums configurations before qu
  assert.equal((await setup([p]).price(selection([{productId:'p1',quantity:2,selectedOptions:{sides:['salad']}}]))).goodsGross.minorAmount,5500000);
  await rejects(setup([p]).price(selection([{productId:'p1',quantity:2,selectedOptions:{sides:['salad']}},{productId:'p1',quantity:1,selectedOptions:{sides:['rice']}}])),'GOODS_UNAVAILABLE');
 });
+
+test('published products with discovery classifications preserve server pricing',async()=>{
+ const p={...product(),cuisineIds:['pizza'],publishedCategory:{categoryId:'cat1',categoryName:'بيتزا'}};
+ const out=await setup([p]).price(selection());assert.deepEqual(out.goodsGross,m('5000'));
+ await rejects(setup([{...p,salePrice:100}]).price(selection()),'GOODS_PRICING_UNSUPPORTED');
+});

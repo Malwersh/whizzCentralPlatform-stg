@@ -59,3 +59,19 @@ test('GIF signature is detected when older upload clients omit contentType',asyn
  const result=await route(f.ctx,f.actor,'POST','/staff/slideshow/upload',{image});
  assert.match(result.imageKey,/\.gif$/);assert.deepEqual(f.uploads[0].body,Buffer.from(image,'base64'));
 });
+
+test('header offers respect source, selection, region and actual active offers',async()=>{
+ const f=fixture(),base=f.ctx.db.send;
+ const platform={discountId:'p',title:'Platform',discountSource:'platform',type:'percentage',value:10,status:'active',isActive:true,targetRegionIds:['district']};
+ const merchant={discountId:'m',title:'Merchant',businessId:'merchant1',type:'percentage',value:10,status:'active',isActive:true};
+ f.targets.p=platform;f.targets.m=merchant;
+ let config={enabled:true,source:'both'};
+ f.ctx.db.send=async c=>{if(c.constructor.name==='GetCommand'&&c.input.Key?.pk==='HOME_LAYOUT')return {Item:{published:{promotionHeader:config}}};if(c.constructor.name==='ScanCommand')return {Items:c.input.TableName==='WizzCentral_Platform_Discounts'?[platform]:[merchant]};return base(c);};
+ const event={queryStringParameters:{headerOffers:'1',regionId:'district'}};
+ assert.deepEqual((await publicFeed(f.ctx,event)).campaigns.map(x=>x.id).sort(),['m','p']);
+ config={enabled:true,source:'merchant',selection:{source:'merchant',id:'m'}};assert.deepEqual((await publicFeed(f.ctx,event)).campaigns.map(x=>x.id),['m']);
+ config={enabled:false};const paused=await publicFeed(f.ctx,event);assert.equal(paused.campaigns.length,0);assert.equal(paused.settings.enabled,false);
+ config={enabled:true};f.targets.merchant1.regionId='foreign';assert.deepEqual((await publicFeed(f.ctx,event)).campaigns.map(x=>x.id),['p']);
+ merchant.status='paused';config={enabled:true,source:'merchant'};assert.equal((await publicFeed(f.ctx,event)).campaigns.length,0);
+ merchant.status='active';f.targets.merchant1.regionId='district';const d=await publicFeed(f.ctx,{path:'/staff/public/home-offer',queryStringParameters:{campaignId:'m',offerSource:'merchant',regionId:'district'}});assert.equal(d.offer.source,'merchant');
+});

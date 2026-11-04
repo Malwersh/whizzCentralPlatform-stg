@@ -1,0 +1,21 @@
+{
+  "part": 374,
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "environment": "staging",
+  "customerBuild": 313,
+  "backendTests": 14,
+  "flutterTests": 8,
+  "browserWidths": [
+    390,
+    1280
+  ],
+  "contentChanged": false,
+  "description": "Configurable welcome and rotating search hints share existing home draft/publication and rollback. No default examples or campaign text authored on behalf of administrator.",
+  "backendSha256": "jn0BAbWV1Jxmv3VtcIlKOhv0as5yn9LWm+XsaoR6FeU=",
+  "publicFeedVerified": true,
+  "hostingJob": "241",
+  "hostingHashes": {
+    "pages/home-layout.html": "eb371d3c1d848534c30f74201ae574dfdf2684983e4c794db94e711dc77a5b61",
+    "home-layout.js": "c5e4a993d8d214b7ade7a636962e22965b2c6816983c63da0d5a078d52c00c72"
+  }
+}

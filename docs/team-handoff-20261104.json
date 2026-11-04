@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-04",
+  "integrationBranch": "integration/team-sync-20261030",
+  "reviewBranch": "feature/malwersh/bootstrap",
+  "targetBranch": "staging-main",
+  "pullBeforeApproval": "git fetch origin; git switch integration/team-sync-20261030; git pull --ff-only origin integration/team-sync-20261030",
+  "pullAfterMerge": "git switch staging-main; git pull --ff-only origin staging-main",
+  "notes": [
+    "Includes application source, UI widgets, referenced assets/fonts, tests and implementation records.",
+    "Staging deployments and DynamoDB configuration are separate from Git source; no production deployment requested.",
+    "Do not reset or overwrite colleague changes. Merge approval is handled through the existing pull request."
+  ]
+}

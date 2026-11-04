@@ -117,29 +117,35 @@ async function publicFeed(ctx,event){
  const ancestors=[];let regionId=event.queryStringParameters?.regionId;
  if(regionId&&!id(regionId))throw fail('Invalid region.');
  for(let n=0;regionId&&n<8&&!ancestors.includes(regionId);n++){const r=await get(ctx,TABLES.region,{regionId});if(!r)break;ancestors.push(regionId);regionId=r.parent_id;}
+ if(event.queryStringParameters?.surface)return {interface:await require('./interface-layout').feed(ctx,{signedIn,regionIds:ancestors,identity,offerLive,offerInfo,eligibility:journey.eligibility,getCustomer:()=>journey.customerState(ctx.db,identity),imageUrl:key=>assets(ctx).url(key)},event.queryStringParameters)};
  const customer=await journey.customerState(ctx.db,identity);
  // Campaign discovery reads campaign records directly, without requiring slideshow placement.
+ const headerOffers=event.queryStringParameters?.headerOffers==='1';
+ const merchantOffer=event.queryStringParameters?.offerSource==='merchant';
+ const headerConfig=headerOffers?require('./home-promotion-settings').project((await get(ctx,ctx.table,require('./home-layout').KEY))?.published?.promotionHeader):null;
  const campaignId=event.queryStringParameters?.campaignId;
- const standalone=event.queryStringParameters?.campaigns==='1'||campaignId!==undefined;
+ const standalone=headerOffers||event.queryStringParameters?.campaigns==='1'||campaignId!==undefined;
+ if(headerOffers&&(!headerConfig.enabled||headerConfig.selection?.source==='benefit'))return {campaigns:[],settings:headerConfig};
  if(campaignId!==undefined&&!id(campaignId))throw fail('Invalid campaign.');
- const rows=standalone?(campaignId?[await get(ctx,TABLES.campaign,{discountId:campaignId})]:(await scan(ctx,TABLES.campaign))):[];
- const current=standalone?{version:1,slides:rows.filter(r=>r&&!r.benefit&&!r.isDeleted&&!r.deletedAt&&offerLive(r)).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(r=>{
-  const info=offerInfo(r);return {id:r.discountId,title:info.title,imageKey:r.imageKey||'',updatedAt:r.updatedAt||String(r.version||''),status:'published',audience:'all',regionIds:[],displayOrder:0,startAt:info.startAt||'1970-01-01T00:00:00.000Z',endAt:info.endAt||'9999-01-01T00:00:00.000Z',action:{type:r.discountSource==='campaign'?'campaign':'platform',id:r.discountId}};
+ const rows=standalone?(campaignId?[await get(ctx,merchantOffer?TABLES.discount:TABLES.campaign,{discountId:campaignId})]:headerOffers?[...(headerConfig.source!=='merchant'?await scan(ctx,TABLES.campaign):[]),...(headerConfig.source!=='platform'?await scan(ctx,TABLES.discount):[])]:await scan(ctx,TABLES.campaign)):[];
+ const current=standalone?{version:1,slides:rows.filter(r=>r&&!r.benefit&&!r.isDeleted&&!r.deletedAt&&offerLive(r)&&(!headerOffers||!headerConfig.selection||(headerConfig.selection.source!=='benefit'&&headerConfig.selection.id===r.discountId&&headerConfig.selection.source===(r.businessId?'merchant':'platform')))).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(r=>{
+  const info=offerInfo(r);return {id:r.discountId,title:info.title,imageKey:r.imageKey||'',updatedAt:r.updatedAt||String(r.version||''),status:'published',audience:'all',regionIds:[],displayOrder:0,startAt:info.startAt||'1970-01-01T00:00:00.000Z',endAt:info.endAt||'9999-01-01T00:00:00.000Z',action:{type:r.businessId?'discount':r.discountSource==='campaign'?'campaign':'platform',id:r.discountId}};
  })}:await state(ctx),slides=[];
  for(const s of current.slides.filter(s=>eligible(s,{signedIn,regionIds:ancestors})).sort((a,b)=>a.displayOrder-b.displayOrder||a.id.localeCompare(b.id))){
   let row;try{row=await target(ctx,s);}catch(e){if(e.status===400)continue;throw e;}
   if(['campaign','discount','platform'].includes(s.action.type)&&!offerLive(row))continue;
-  if(s.action.type==='discount'){const merchant=await get(ctx,TABLES.merchant,{businessId:row.businessId});if(!merchant||merchant.isDeleted||merchant.deletedAt||merchant.isActive===false||merchant.platformSuspended===true)continue;}
+  if(s.action.type==='discount'){const merchant=await get(ctx,TABLES.merchant,{businessId:row.businessId});if(!merchant||merchant.isDeleted||merchant.deletedAt||merchant.isActive===false||merchant.platformSuspended===true||(headerOffers&&(!merchant.regionId||!ancestors.includes(merchant.regionId))))continue;}
   let merchants=[];
   if(['platform','campaign','discount'].includes(s.action.type)){
    try{await journey.eligibility(ctx.db,row,{identity,customer,regionIds:ancestors,source:s.action.type==='discount'?'merchant':'platform',preview:true});}catch(e){if(e.status===409)continue;throw e;}
    const merchantIds=row.targetRestaurants?.length?row.targetRestaurants:row.allowedBusinessIds?.length?row.allowedBusinessIds:row.businessIds?.length?row.businessIds:row.businessId?[row.businessId]:[];
-   for(const businessId of merchantIds){const m=await get(ctx,TABLES.merchant,{businessId});if(m&&!m.isDeleted&&!m.deletedAt&&m.isActive!==false&&!m.platformSuspended)merchants.push({id:businessId,name:m.businessName||m.businessNameArabic||m.name||businessId});}
+   for(const businessId of merchantIds){const m=await get(ctx,TABLES.merchant,{businessId});if(m&&!m.isDeleted&&!m.deletedAt&&m.isActive!==false&&!m.platformSuspended&&(!headerOffers||(m.regionId&&ancestors.includes(m.regionId))))merchants.push({id:businessId,name:m.businessName||m.businessNameArabic||m.name||businessId,...(headerOffers?{logoUrl:m.businessPhotoUrl||m.business_photo_url||m.logoUrl||''}:{})});}
    if(merchantIds.length&&!merchants.length)continue;
   }
   if(s.action.type==='merchant'&&(row.isActive===false||row.platformSuspended===true))continue;
   if(s.action.type==='category'&&(row.isActive===false||row.is_active===false))continue;
-  slides.push({id:s.id,title:s.title,imageUrl:s.imageKey?await assets(ctx).url(s.imageKey):'',...(standalone?{standalone:true}:{}),imageVersion:s.updatedAt,endAt:['campaign','discount','platform'].includes(s.action.type)&&offerInfo(row).endAt?new Date(Math.min(Date.parse(s.endAt),Date.parse(offerInfo(row).endAt))).toISOString():s.endAt,action:{...(['platform','campaign','discount'].includes(s.action.type)?{type:'campaign',id:row.discountId,offerSource:s.action.type==='discount'?'merchant':'platform',merchants,allMerchants:!row.targetRestaurants?.length&&!row.allowedBusinessIds?.length&&!row.businessIds?.length&&!row.businessId}:s.action),...(['campaign','platform','discount'].includes(s.action.type)?{code:row.code,description:row.description||''}:{})}});
+  const scene=headerOffers&&s.action.type==='discount'&&merchants[0]?await require('./promotion-scenes').enrich(ctx,merchants[0],row,headerConfig):null;
+  slides.push({...(scene?{scene}:{}),id:s.id,title:s.title,imageUrl:s.imageKey?await assets(ctx).url(s.imageKey):'',...(standalone?{standalone:true}:{}),imageVersion:s.updatedAt,endAt:['campaign','discount','platform'].includes(s.action.type)&&offerInfo(row).endAt?new Date(Math.min(Date.parse(s.endAt),Date.parse(offerInfo(row).endAt))).toISOString():s.endAt,action:{...(['platform','campaign','discount'].includes(s.action.type)?{type:'campaign',id:row.discountId,offerSource:s.action.type==='discount'?'merchant':'platform',offerType:offerInfo(row).type,offerValue:offerInfo(row).value,merchants,allMerchants:!row.targetRestaurants?.length&&!row.allowedBusinessIds?.length&&!row.businessIds?.length&&!row.businessId}:s.action),...(['campaign','platform','discount'].includes(s.action.type)?{code:row.code,description:row.description||''}:{})}});
  }
  if(event.path==='/staff/public/home-offer'){
   const selected=slides.find(s=>s.id===(campaignId||event.queryStringParameters?.slideId));if(!selected)throw fail('Offer unavailable for this account or location.',404);
@@ -162,6 +168,6 @@ async function publicFeed(ctx,event){
   try{await ctx.db.send(new TransactWriteCommand({TransactItems:[{Put:{TableName:journey.TABLE,Item:{pk:'EVENT#'+body.sessionId,sk:day+'#'+body.slideId+'#'+body.type,ttl},ConditionExpression:'attribute_not_exists(pk)'}},{Update:{TableName:journey.TABLE,Key:{pk:'STATS#'+body.slideId,sk:'TOTAL'},UpdateExpression:'ADD #metric :one',ExpressionAttributeNames:{'#metric':body.type==='view'?'views':'taps'},ExpressionAttributeValues:{':one':1}}}]}));}catch(e){if(e.name!=='TransactionCanceledException')throw e;}
   return {recorded:true};
  }
- return standalone?{campaigns:slides}:{version:current.version,slides,layout:await require('./home-layout').feed(ctx,{signedIn,regionIds:ancestors,identity,customer,offerLive,eligibility:journey.eligibility,offerEnd:row=>offerInfo(row).endAt,layoutVersion:Number(event.queryStringParameters?.layoutVersion)||1})};
+ return standalone?{campaigns:slides,...(headerOffers?{settings:headerConfig}:{})}:{version:current.version,slides,layout:await require('./home-layout').feed(ctx,{signedIn,regionIds:ancestors,identity,customer,offerLive,eligibility:journey.eligibility,offerEnd:row=>offerInfo(row).endAt,layoutVersion:Number(event.queryStringParameters?.layoutVersion)||1})};
 }
 module.exports={route,publicFeed,validate,eligible,KEY,assets,validImageMetadata};

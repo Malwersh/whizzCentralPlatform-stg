@@ -1,0 +1,15 @@
+{
+  "part": 414,
+  "date": "2026-11-03",
+  "status": "SIMULATOR_BUILD_377_VERIFIED",
+  "pulse": {
+    "amplitude": 0.22,
+    "previousAmplitude": 0.65,
+    "absoluteScaleCap": 1.25,
+    "openingExpansion": 0.12,
+    "previousOpeningExpansion": 0.7
+  },
+  "surroundings": "Fade during 1450–1650 ms settling/focus; hidden before pulse starts at 1650 ms and before copy starts at 2650 ms. Return for exit passage.",
+  "validation": "8 existing scene, scroll and motion tests pass; phase regression asserts surroundings and copy opacity zero during pulse and logo scale <=1.25 at normal/large text sizes.",
+  "backendChanges": false
+}
