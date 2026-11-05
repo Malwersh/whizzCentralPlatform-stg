@@ -48,3 +48,35 @@ export function createStagingStorefrontPreview(options:{db:Pick<DynamoDBDocument
    basketFingerprint:quoteHash({items:r.items,hasGoodsDiscount:r.hasGoodsDiscount}),requiresFinalConfirmation:true};
  }};
 }
+
+/** Route-only browsing facts. Never selects prices, applies benefits, or authorizes an order. */
+export function createStagingStorefrontRoute(options: {
+ db: Pick<DynamoDBDocumentClient, 'send'>;
+ authenticateCustomer: () => Promise<QuoteCustomer>;
+ createRouter: (db: Pick<DynamoDBDocumentClient, 'send'>) => ReturnType<typeof createCoveredDeliveryRouter>;
+ beforeCalculate: (customer: QuoteCustomer, selection: {branchId: string; addressId: string}) => Promise<void>;
+ now?: () => number;
+}) {
+ return {async preview(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) ||
+      Object.keys(value).sort().join(',') !== 'addressId,branchId') throw Error('INVALID_STOREFRONT_REQUEST');
+  const r = value as Row;
+  if (!quoteEntityIdValid(r.branchId) || !quoteEntityIdValid(r.addressId)) throw Error('INVALID_STOREFRONT_REQUEST');
+  const customer = await options.authenticateCustomer();
+  if (!quoteEntityIdValid(customer?.userId) || !quoteEntityIdValid(customer.subjectId) ||
+      customer.userId === 'guest' || customer.condition?.ConditionCheck?.TableName !== 'WizzUser_users_staging' ||
+      customer.condition.ConditionCheck.Key?.userId !== customer.userId) throw Error('CUSTOMER_UNAVAILABLE');
+  await options.beforeCalculate(customer, {branchId: r.branchId, addressId: r.addressId});
+  const route = await createStagingDeliveryPricingContext({db: options.db,
+    authenticateCustomer: options.authenticateCustomer, router: options.createRouter(options.db), now: options.now})
+    .routeInformation({branchId: r.branchId, addressId: r.addressId});
+  const fresh = await options.authenticateCustomer();
+  if (fresh.userId !== customer.userId || fresh.subjectId !== customer.subjectId) throw Error('CUSTOMER_UNAVAILABLE');
+  const prep = route.preparationMinutes;
+  if (prep !== null && (!Number.isInteger(prep) || prep < 5 || prep > 120)) throw Error('INVALID_PREPARATION_TIME');
+  return {...route, minimumOrderAmountIqd: minimumOrderIqd({minimum_order: route.minimumOrderAmountIqd}),
+    arrivalMinutes: prep === null ? null : {minimum: prep + Math.ceil(route.deliveryDurationSeconds / 60),
+      maximum: prep + Math.ceil(route.deliveryDurationSeconds / 60) + 5},
+    pricingAvailable: false, requiresFinalConfirmation: true};
+ }};
+}

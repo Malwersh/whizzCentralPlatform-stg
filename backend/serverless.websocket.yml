@@ -1,8 +1,9 @@
 service: wizzcentral-websocket
+configValidationMode: error
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs22.x
   region: us-east-1
   stage: ${opt:stage, 'staging'}
   websocketsApiName: WizzCentral-Chat-WebSocket-${self:provider.stage}
@@ -14,15 +15,30 @@ provider:
     WEBSOCKET_SUBSCRIPTIONS_TABLE: websocket-subscriptions-${self:provider.stage}
     CHAT_SESSIONS_TABLE: chat-sessions-${self:provider.stage}
     CHAT_MESSAGES_TABLE: chat-messages-${self:provider.stage}
+    SUPPORT_BUSINESSES_TABLE: ${env:SUPPORT_BUSINESSES_TABLE, 'WhizzMerchants_Businesses'}
+    SUPPORT_MEMBERSHIPS_TABLE: ${self:provider.stage}-MerchantPlatform
+    SUPPORT_SETTINGS_TABLE: ${self:provider.stage}-PlatformStaff
+    SUPPORT_LIFECYCLE_TABLE: ${self:provider.stage}-AccountDeletion
+    SUPPORT_CUSTOMER_ORDERS_TABLE: ${env:SUPPORT_CUSTOMER_ORDERS_TABLE, 'WizzOrders'}
+    SUPPORT_CUSTOMER_PROFILES_TABLE: ${env:SUPPORT_CUSTOMER_PROFILES_TABLE, 'WizzUser_users_staging'}
+    SUPPORT_MESSAGE_RECEIPTS_TABLE: support-message-receipts-${self:provider.stage}
+    SUPPORT_ATTACHMENTS_TABLE: support-attachments-${self:provider.stage}
+    SUPPORT_ATTACHMENTS_BUCKET:
+      Ref: SupportAttachmentsBucket
+    SUPPORT_BUCKET_OWNER:
+      Ref: AWS::AccountId
+    SUPPORT_ALLOWED_ORIGIN: ${env:SUPPORT_ALLOWED_ORIGIN, ''}
     STAGE: ${self:provider.stage}
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
     # Optional auth config (pass via env at deploy time)
-    CENTRAL_PLATFORM_USER_POOL_ID: ${env:CENTRAL_PLATFORM_USER_POOL_ID, 'us-east-1_Cp9YnOQWi'}
-    CENTRAL_PLATFORM_CLIENT_ID: ${env:CENTRAL_PLATFORM_CLIENT_ID, '22rf529lhbqtlvpdk2578h73l1'}
-    MERCHANTS_USER_POOL_ID: ${env:MERCHANTS_USER_POOL_ID, 'us-east-1_gtCR3ndzT'}
-    MERCHANTS_CLIENT_ID: ${env:MERCHANTS_CLIENT_ID, '4qabvh11nmghmf9fmc6e6ludd2'}
+    CENTRAL_PLATFORM_USER_POOL_ID: ${env:CENTRAL_PLATFORM_USER_POOL_ID, ''}
+    CENTRAL_PLATFORM_CLIENT_ID: ${env:CENTRAL_PLATFORM_CLIENT_ID, ''}
+    MERCHANTS_USER_POOL_ID: ${env:MERCHANTS_USER_POOL_ID, ''}
+    MERCHANTS_CLIENT_ID: ${env:MERCHANTS_CLIENT_ID, ''}
     DRIVERS_USER_POOL_ID: ${env:DRIVERS_USER_POOL_ID, ''}
     DRIVERS_CLIENT_ID: ${env:DRIVERS_CLIENT_ID, ''}
+    CUSTOMERS_USER_POOL_ID: ${env:CUSTOMERS_USER_POOL_ID, ''}
+    CUSTOMERS_CLIENT_ID: ${env:CUSTOMERS_CLIENT_ID, ''}
     COGNITO_REGION: ${env:COGNITO_REGION, 'us-east-1'}
     ORDERS_TABLE: ${env:ORDERS_TABLE, 'WizzOrders'}
     DRIVERS_TABLE: ${env:DRIVERS_TABLE, 'WhizzDrivers_staging'}
@@ -37,6 +53,7 @@ provider:
             - dynamodb:DeleteItem
             - dynamodb:Query
             - dynamodb:Scan
+            - dynamodb:ConditionCheckItem
           Resource:
             - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-connections-${self:provider.stage}
             - arn:aws:dynamodb:${self:provider.region}:*:table/websocket-connections-${self:provider.stage}/index/*
@@ -46,6 +63,37 @@ provider:
             - arn:aws:dynamodb:${self:provider.region}:*:table/chat-sessions-${self:provider.stage}/index/*
             - arn:aws:dynamodb:${self:provider.region}:*:table/chat-messages-${self:provider.stage}
             - arn:aws:dynamodb:${self:provider.region}:*:table/chat-messages-${self:provider.stage}/index/*
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:ConditionCheckItem
+          Resource: arn:aws:dynamodb:${self:provider.region}:*:table/support-attachments-${self:provider.stage}
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+          Resource: arn:aws:dynamodb:${self:provider.region}:*:table/support-message-receipts-${self:provider.stage}
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+          Resource:
+            Fn::Join:
+              - ''
+              - - Fn::GetAtt: [SupportAttachmentsBucket, Arn]
+                - '/support-images/*'
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUPPORT_CUSTOMER_ORDERS_TABLE}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUPPORT_CUSTOMER_PROFILES_TABLE}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUPPORT_BUSINESSES_TABLE}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUPPORT_MEMBERSHIPS_TABLE}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUPPORT_SETTINGS_TABLE}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUPPORT_LIFECYCLE_TABLE}
         - Effect: Allow
           Action:
             - execute-api:ManageConnections
@@ -94,11 +142,27 @@ functions:
     timeout: 12
     events:
       - websocket:
+          route: chat_customer_connect
+      - websocket:
           route: chat_message
       - websocket:
           route: chat_typing
       - websocket:
           route: chat_session_close
+  supportAttachments:
+    handler: src/handlers/support-attachments-handler.handler
+    runtime: nodejs22.x
+    timeout: 20
+    events:
+      - http:
+          path: /support/attachments
+          method: post
+      - http:
+          path: /support/attachments
+          method: get
+      - http:
+          path: /support/attachments
+          method: options
   chatBridge:
     handler: src/handlers/chat-bridge.sendChatMessage
     timeout: 29
@@ -110,6 +174,73 @@ functions:
 
 resources:
   Resources:
+    SupportMessageReceiptsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: support-message-receipts-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: receiptId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: receiptId
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+    SupportAttachmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: support-attachments-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: attachmentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: attachmentId
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+    SupportAttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        OwnershipControls:
+          Rules:
+            - ObjectOwnership: BucketOwnerEnforced
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        LifecycleConfiguration:
+          Rules:
+            - Id: ExpireSupportImages
+              Status: Enabled
+              ExpirationInDays: 30
+              AbortIncompleteMultipartUpload:
+                DaysAfterInitiation: 1
+    SupportAttachmentsBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: SupportAttachmentsBucket
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Deny
+              Principal: '*'
+              Action: s3:*
+              Resource:
+                - Fn::GetAtt: [SupportAttachmentsBucket, Arn]
+                - Fn::Join: ['', [{Fn::GetAtt: [SupportAttachmentsBucket, Arn]}, '/*']]
+              Condition:
+                Bool:
+                  aws:SecureTransport: false
     WebSocketConnectionsTable:
       Type: AWS::DynamoDB::Table
       Properties:

@@ -28,3 +28,8 @@ lambda/WaveSystem_CreateDispatchJob/package/
 
 # Private financial exports and local deployment data
 backend/.tmp/
+
+# Local signing backups and generated deployment output
+**/*.jks.*
+**/*.keystore.*
+**/.serverless/

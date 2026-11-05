@@ -47,3 +47,9 @@ test('soft-deleted sibling cannot be included in a draft or accepted/published s
   const g=fixture(),r=await call(g,editor(),body);await call(g,owner,decision(r,'ACCEPT_AGREEMENT'));g.put(B,{...g.get(B,{businessId:'sibling'}),[field]:field==='isDeleted'?true:'2026-10-16T10:00:00.000Z'});await assert.rejects(call(g,approver(),decision(r,'APPROVE_AGREEMENT')),/SCOPE_MISMATCH/);assert.equal(g.get(P,{pk:'COMMERCIAL_AGREEMENT#contract',sk:'CURRENT'}),undefined);
  }
 });
+
+test('legacy merchant missing organization returns explicit setup error without financial writes',async()=>{
+ const f=fixture(),b=f.get(B,{businessId:'branch'});delete b.organizationId;f.put(B,b);
+ await assert.rejects(service(f.ctx,editor(),'GET',{businessId:'branch'}),e=>e.message==='ORGANIZATION_UNAVAILABLE'&&e.status===409);
+ assert.equal(f.commands.filter(c=>c.constructor.name==='TransactWriteCommand').length,0);
+});

@@ -52,7 +52,7 @@ async function serviceCore(ctx,principal,method,input){
  if(!b||b.deletionRequestId!=null||b.deletedAt!=null||b.isDeleted===true||b.ownerId!==b.cognitoUserId)fail('BUSINESS_UNAVAILABLE',404);
  const party=owner?await require('./commercial-party').resolve(ctx.db,b,principal.sub):null;
  if(party?.role==='MANAGER'&&method==='POST'&&!['ACCEPT_FUNDING','ACCEPT_DELIVERY'].includes(input.action))fail('PERMISSION_REQUIRED',403);
- id(b.organizationId);const org=await get(P,{pk:'PERSON#'+b.ownerId,sk:'ORGANIZATION#'+b.organizationId});
+ try{id(b.organizationId);}catch{fail('ORGANIZATION_UNAVAILABLE',409);}const org=await get(P,{pk:'PERSON#'+b.ownerId,sk:'ORGANIZATION#'+b.organizationId});
  if(!org||org.organizationId!==b.organizationId||org.subjectId!==b.ownerId||org.deletionRequestId!=null)fail('ORGANIZATION_UNAVAILABLE',409);
  const branchFields=['businessId','ownerId','cognitoUserId','organizationId','regionId','status','deletionRequestId','deletedAt','isDeleted','commercialAgreementId','commercialAgreementVersion','deliveryOfferRevision','storefrontDeliveryAgreements'];
  const baseGuards=[...(party?.guards||[]),...(!owner?[ctx.guard(actor)]:[]),...leaseFences(b.ownerId,[b.businessId]),check(B,{businessId:b.businessId},b,branchFields),check(P,{pk:org.pk,sk:org.sk},org)];

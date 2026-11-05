@@ -386,12 +386,18 @@ async function handleMerchantConnect(connectionId, message, apiGatewayClient) {
  */
 async function handleChatMessage(connectionId, message, apiGatewayClient) {
     console.log('💬 Processing chat message');
+    if (typeof message === 'string') {
+        try { message = JSON.parse(message); } catch (_) { return { statusCode: 400 }; }
+    }
+    if (!message || typeof message !== 'object') return { statusCode: 400 };
     
     const { payload, sessionId: msgSessionId } = message;
     const sessionId = msgSessionId || payload?.sessionId;
     const messageText = payload?.content || payload?.messageText || message.messageText;
     const senderType = payload?.senderType || message.senderType || 'driver';
     const senderName = payload?.senderName || message.senderName || 'User';
+    const clientMessageId = message.clientMessageId || payload?.clientMessageId;
+    const correlation = typeof clientMessageId === 'string' && clientMessageId.length <= 128 ? { clientMessageId } : {};
     
     if (!sessionId || !messageText) {
         console.warn('❌ Invalid message: missing sessionId or messageText');
@@ -431,16 +437,16 @@ async function handleChatMessage(connectionId, message, apiGatewayClient) {
                 senderName,
                 text: messageText,
                 createdAt: now,
-                metadata: payload?.metadata || {}
+                metadata: { ...(payload?.metadata || {}), ...correlation }
             }
         }));
         
         // Update session
-        const updateExpr = 'SET lastMessageAt = :now';
+        let updateExpr = 'SET lastMessageAt = :now';
         const exprValues = { ':now': now };
         
         // Increment unread counters
-        if (senderType === 'driver') {
+        if (['driver', 'merchant', 'customer', 'user'].includes(senderType)) {
             updateExpr += ', unreadAgent = if_not_exists(unreadAgent, :zero) + :one';
             exprValues[':one'] = 1;
             exprValues[':zero'] = 0;
@@ -480,6 +486,7 @@ async function handleChatMessage(connectionId, message, apiGatewayClient) {
         // Send acknowledgment to sender
         await sendToConnection(connectionId, {
             type: 'message_ack',
+            ...correlation,
             messageId,
             sessionId,
             timestamp: now
