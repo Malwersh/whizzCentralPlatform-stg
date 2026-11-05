@@ -8,13 +8,39 @@ REGION="us-east-1"
 PROFILE="Wizz_stg_UserApp"
 STAGE="staging"
 
+# Use the same Node/Serverless generation as the reviewed package. Fail before
+# exporting credentials or installing dependencies when local tooling is stale.
+SERVERLESS_BIN="${SUPPORT_SERVERLESS_BIN:-serverless}"
+node -e 'if (Number(process.versions.node.split(".")[0]) < 22) { console.error("Node.js 22 or newer is required"); process.exit(1); }'
+if ! command -v "$SERVERLESS_BIN" >/dev/null 2>&1; then
+  echo "Serverless CLI not found: $SERVERLESS_BIN" >&2
+  exit 1
+fi
+serverless_version=$("$SERVERLESS_BIN" --version)
+if ! [[ "$serverless_version" =~ (^|[^0-9])4\.[0-9]+\.[0-9]+ ]]; then
+  echo "Serverless Framework 4 is required; set SUPPORT_SERVERLESS_BIN to a compatible executable." >&2
+  exit 1
+fi
+
+# App identities must be supplied from verified deployment configuration.
+# Never substitute the customer pool for merchant or driver authentication.
+for config_name in MERCHANTS_USER_POOL_ID MERCHANTS_CLIENT_ID DRIVERS_USER_POOL_ID DRIVERS_CLIENT_ID CUSTOMERS_USER_POOL_ID CUSTOMERS_CLIENT_ID SUPPORT_ALLOWED_ORIGIN; do
+  if [[ -z "${!config_name:-}" || "${!config_name}" == "None" ]]; then
+    echo "Missing required deployment configuration: $config_name" >&2
+    exit 1
+  fi
+  export "$config_name"
+done
+
 export AWS_PROFILE="$PROFILE"
 export AWS_REGION="$REGION"
 
 # Serverless (via aws-sdk v2) may not understand SSO profiles.
 # Export temp credentials to env so deployment works reliably.
 echo "🔐 Exporting temporary AWS credentials from SSO profile…"
-eval "$(aws configure export-credentials --profile "$PROFILE" --format env)"
+temporary_credentials=$(aws configure export-credentials --profile "$PROFILE" --format env)
+eval "$temporary_credentials"
+unset temporary_credentials
 unset AWS_PROFILE
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,20 +70,9 @@ if [[ -z "${CENTRAL_PLATFORM_CLIENT_ID:-}" || "${CENTRAL_PLATFORM_CLIENT_ID:-}" 
   exit 1
 fi
 
-# Optional: reuse WizzUser Cognito for merchants/drivers if present as exports
-# These exports were previously used by other services.
-WIZZUSER_POOL_ID=$(aws cloudformation list-exports --region "$REGION" --profile "$PROFILE" --query "Exports[?Name=='WizzUser-backend-${STAGE}-UserPoolId'].Value" --output text 2>/dev/null || true)
-WIZZUSER_CLIENT_ID=$(aws cloudformation list-exports --region "$REGION" --profile "$PROFILE" --query "Exports[?Name=='WizzUser-backend-${STAGE}-UserPoolClientId'].Value" --output text 2>/dev/null || true)
-
 export CENTRAL_PLATFORM_USER_POOL_ID
 export CENTRAL_PLATFORM_CLIENT_ID
 export COGNITO_REGION="$REGION"
-
-# If you prefer, set these explicitly later
-export MERCHANTS_USER_POOL_ID="${WIZZUSER_POOL_ID:-}"
-export MERCHANTS_CLIENT_ID="${WIZZUSER_CLIENT_ID:-}"
-export DRIVERS_USER_POOL_ID=""
-export DRIVERS_CLIENT_ID=""
 
 # Tables used by websocket handler for some routes
 export ORDERS_TABLE="WizzOrders"
@@ -65,13 +80,11 @@ export DRIVERS_TABLE="WhizzDrivers_staging"
 
 cd "$ROOT_DIR"
 
-if [[ ! -f package-lock.json ]]; then
-  echo "📦 Installing backend dependencies (first run)…"
-  npm install --omit=dev
-fi
+echo "📦 Installing locked backend dependencies…"
+npm ci --omit=dev
 
 echo "🚀 Deploying CentralPlatform WebSocket (stage=$STAGE)…"
-serverless deploy \
+"$SERVERLESS_BIN" deploy \
   --config serverless.websocket.yml \
   --stage "$STAGE" \
   --region "$REGION"

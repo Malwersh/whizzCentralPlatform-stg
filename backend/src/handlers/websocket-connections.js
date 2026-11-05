@@ -1,7 +1,12 @@
 const { ApiGatewayManagementApiClient, PostToConnectionCommand } = require("@aws-sdk/client-apigatewaymanagementapi");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, PutCommand, UpdateCommand, ScanCommand, DeleteCommand, GetCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, PutCommand, UpdateCommand, ScanCommand, DeleteCommand, GetCommand, QueryCommand, TransactWriteCommand } = require("@aws-sdk/lib-dynamodb");
+const {createHash} = require('node:crypto');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
+const attachments = require('../utils/support-attachments');
+const {customerOwnsOrder} = require('../utils/support-customer-order-access');
+const { resolveMerchantAccess } = require('../utils/support-merchant-access');
+const { normalizeRole, principalFromClaims, isTrustedConnection, canReadSession } = require('../utils/support-access');
 
 // Initialize DynamoDB client
 const dynamoDBClient = new DynamoDBClient({ region: "us-east-1" });
@@ -15,26 +20,42 @@ const CHAT_MESSAGES_TABLE = process.env.CHAT_MESSAGES_TABLE || 'chat-messages-de
 const ORDERS_TABLE = process.env.ORDERS_TABLE || 'WizzUser_orders_dev';
 const DRIVERS_TABLE = process.env.DRIVERS_TABLE || 'WizzUser_drivers_dev';
 
+const SUPPORT_MERCHANT_TABLES = {
+    businesses: process.env.SUPPORT_BUSINESSES_TABLE,
+    memberships: process.env.SUPPORT_MEMBERSHIPS_TABLE,
+    settings: process.env.SUPPORT_SETTINGS_TABLE,
+    lifecycle: process.env.SUPPORT_LIFECYCLE_TABLE
+};
+async function merchantAccess(subject, businessId) {
+    // No guessed tables or cross-environment fallbacks for authorization data.
+    if (Object.values(SUPPORT_MERCHANT_TABLES).some(value => !value)) return null;
+    return resolveMerchantAccess(dynamoDB, SUPPORT_MERCHANT_TABLES, businessId, subject);
+}
+
 // Support multiple Cognito User Pools (one per app + central platform)
 const COGNITO_REGION = process.env.COGNITO_REGION || 'us-east-1';
 
 // WhizzCentralPlatform Cognito (for support agents)
-const CENTRAL_PLATFORM_USER_POOL_ID = process.env.CENTRAL_PLATFORM_USER_POOL_ID || 'us-east-1_Cp9YnOQWi';
-const CENTRAL_PLATFORM_CLIENT_ID = process.env.CENTRAL_PLATFORM_CLIENT_ID || '22rf529lhbqtlvpdk2578h73l1';
+const CENTRAL_PLATFORM_USER_POOL_ID = process.env.CENTRAL_PLATFORM_USER_POOL_ID;
+const CENTRAL_PLATFORM_CLIENT_ID = process.env.CENTRAL_PLATFORM_CLIENT_ID;
 
 // WhizzMerchants Cognito (for merchants) - phone-based pool (WhizzMerchants-phone-users-staging)
-const MERCHANTS_USER_POOL_ID = process.env.MERCHANTS_USER_POOL_ID || 'us-east-1_gtCR3ndzT';
-const MERCHANTS_CLIENT_ID = process.env.MERCHANTS_CLIENT_ID || '4qabvh11nmghmf9fmc6e6ludd2';
+const MERCHANTS_USER_POOL_ID = process.env.MERCHANTS_USER_POOL_ID;
+const MERCHANTS_CLIENT_ID = process.env.MERCHANTS_CLIENT_ID;
 
 // WhizzDrivers Cognito (for drivers)
-const DRIVERS_USER_POOL_ID = process.env.DRIVERS_USER_POOL_ID || 'us-east-1_Mnrmklxro';
-const DRIVERS_CLIENT_ID = process.env.DRIVERS_CLIENT_ID || '4dkt45gole08kurh0o43rvk8q7';
+const DRIVERS_USER_POOL_ID = process.env.DRIVERS_USER_POOL_ID;
+const DRIVERS_CLIENT_ID = process.env.DRIVERS_CLIENT_ID;
+
+// Customer identity must be configured explicitly for this deployment.
+const CUSTOMERS_USER_POOL_ID = process.env.CUSTOMERS_USER_POOL_ID;
+const CUSTOMERS_CLIENT_ID = process.env.CUSTOMERS_CLIENT_ID;
 
 // Create verifiers for each user pool
 const verifiers = {};
 
 // Central Platform verifier (support agents)
-if (CENTRAL_PLATFORM_USER_POOL_ID !== 'YOUR_USER_POOL_ID') {
+if (CENTRAL_PLATFORM_USER_POOL_ID && CENTRAL_PLATFORM_CLIENT_ID) {
     try {
         verifiers.central = CognitoJwtVerifier.create({
             userPoolId: CENTRAL_PLATFORM_USER_POOL_ID,
@@ -47,7 +68,7 @@ if (CENTRAL_PLATFORM_USER_POOL_ID !== 'YOUR_USER_POOL_ID') {
 }
 
 // Merchants verifier
-if (MERCHANTS_USER_POOL_ID !== 'YOUR_MERCHANTS_POOL_ID') {
+if (MERCHANTS_USER_POOL_ID && MERCHANTS_CLIENT_ID) {
     try {
         verifiers.merchants = CognitoJwtVerifier.create({
             userPoolId: MERCHANTS_USER_POOL_ID,
@@ -60,7 +81,7 @@ if (MERCHANTS_USER_POOL_ID !== 'YOUR_MERCHANTS_POOL_ID') {
 }
 
 // Drivers verifier
-if (DRIVERS_USER_POOL_ID !== 'YOUR_DRIVERS_POOL_ID') {
+if (DRIVERS_USER_POOL_ID && DRIVERS_CLIENT_ID) {
     try {
         verifiers.drivers = CognitoJwtVerifier.create({
             userPoolId: DRIVERS_USER_POOL_ID,
@@ -72,44 +93,41 @@ if (DRIVERS_USER_POOL_ID !== 'YOUR_DRIVERS_POOL_ID') {
     }
 }
 
+if (CUSTOMERS_USER_POOL_ID && CUSTOMERS_CLIENT_ID) {
+    verifiers.customers = CognitoJwtVerifier.create({userPoolId: CUSTOMERS_USER_POOL_ID, clientId: CUSTOMERS_CLIENT_ID, tokenUse: 'id'});
+}
+
+const accessVerifiers = {};
+for (const [role, userPoolId, clientId] of [
+    ['driver', DRIVERS_USER_POOL_ID, DRIVERS_CLIENT_ID],
+    ['merchant', MERCHANTS_USER_POOL_ID, MERCHANTS_CLIENT_ID],
+    ['customer', CUSTOMERS_USER_POOL_ID, CUSTOMERS_CLIENT_ID]
+]) {
+    if (userPoolId && clientId) {
+        accessVerifiers[role] = CognitoJwtVerifier.create({userPoolId, clientId, tokenUse: 'access'});
+    }
+}
+
 const BUILD_VERSION = 'merchant-chat-deploy-2025-11-12T00:00:00Z';
 
 async function verifyJwt(idToken, userType = 'driver') {
     if (!idToken) throw new Error('Missing token');
     
-    // Try to verify with the appropriate user pool based on userType
-    let verifier = null;
-    if (userType === 'support' || userType === 'agent') {
-        verifier = verifiers.central;
-    } else if (userType === 'merchant') {
-        verifier = verifiers.merchants;
-    } else if (userType === 'driver') {
-        verifier = verifiers.drivers;
-    }
-    
-    // If no specific verifier, try all verifiers
-    if (!verifier) {
-        const errors = [];
-        for (const [poolName, v] of Object.entries(verifiers)) {
-            try {
-                const payload = await v.verify(idToken);
-                console.log(`✅ JWT verified successfully with ${poolName} user pool`);
-                return payload;
-            } catch (e) {
-                errors.push(`${poolName}: ${e.message}`);
-            }
-        }
-        console.warn('JWT verification failed with all user pools:', errors.join('; '));
-        throw new Error('Invalid token for all configured user pools');
-    }
-    
+    const pool = {agent: 'central', driver: 'drivers', merchant: 'merchants', customer: 'customers'}[normalizeRole(userType)];
+    const verifier = pool && verifiers[pool];
+    // A token from another app pool must never be used as a fallback identity.
+    if (!verifier) throw new Error('Unsupported identity type or unavailable verifier');
+
     // Verify with specific user pool
     try {
         const payload = await verifier.verify(idToken);
         console.log(`✅ JWT verified successfully for ${userType}`);
         return payload;
     } catch (e) {
-        console.warn(`JWT verify failed for ${userType}:`, e.message || e);
+        const accessVerifier = accessVerifiers[normalizeRole(userType)];
+        if (accessVerifier) {
+            try { return await accessVerifier.verify(idToken); } catch (_) { /* reject below */ }
+        }
         throw new Error('Invalid token');
     }
 }
@@ -134,7 +152,7 @@ const handler = async (event) => {
             };
         }
 
-        console.log(`WebSocket message: ${connectionId}, route: ${routeKey}, body: ${body}`);
+        console.log(`WebSocket message: ${connectionId}, route: ${routeKey}`);
 
         // Initialize API Gateway Management API client
         const apiGatewayClient = new ApiGatewayManagementApiClient({
@@ -153,27 +171,71 @@ const handler = async (event) => {
         if (body) {
             try {
                 message = JSON.parse(body);
-                console.log('Parsed message:', JSON.stringify(message));
+                if (!message || typeof message !== 'object' || Array.isArray(message)) return {statusCode: 400, body: 'Invalid message'};
             } catch (e) {
-                console.log('Failed to parse message body:', body);
-                message = { type: 'unknown', body };
+                return {statusCode: 400, body: 'Invalid JSON'};
             }
         }
 
         // Handle different message types
         const messageType = message?.type || message?.action;
         if (messageType) {
-            // Authorization guard: ensure connection is authenticated unless heartbeat/authenticate
+            // Connection identity is established by JWT verification; chat frames cannot grant roles.
             const connAuth = await dynamoDB.send(new GetCommand({
                 TableName: WEBSOCKET_CONNECTIONS_TABLE,
                 Key: { connectionId },
                 ConsistentRead: true
             }));
-            const isAuthed = !!connAuth.Item?.authenticated;
-            const exempt = ['authenticate', 'heartbeat', 'ping', 'chat_merchant_connect', 'chat_agent_connect', 'chat_driver_connect'];
-            if (!isAuthed && !exempt.includes(messageType)) {
-                console.warn('Blocking message from unauthenticated connection', connectionId, messageType);
-                return await sendToConnection(connectionId, { type: 'error', message: 'Not authenticated' }, apiGatewayClient);
+            const connection = connAuth.Item;
+            if (messageType === 'authenticate') {
+                return await handleAuthentication(connectionId, message, apiGatewayClient);
+            }
+            if (!isTrustedConnection(connection)) {
+                await sendToConnection(connectionId, {type: 'error', code: 'AUTH_REQUIRED', message: 'Reconnect with a valid identity'}, apiGatewayClient);
+                return {statusCode: 401, body: 'Not authenticated'};
+            }
+            const role = connection.userType;
+            const requiredRole = {chat_agent_connect: 'agent', chat_driver_connect: 'driver', chat_merchant_connect: 'merchant', chat_customer_connect: 'customer'}[messageType];
+            if ((requiredRole && role !== requiredRole) ||
+                (['sync_sessions', 'join_channel'].includes(messageType) && role !== 'agent')) {
+                return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'FORBIDDEN');
+            }
+            const identityKey = {agent: 'agentId', driver: 'driverId', merchant: 'merchantId', customer: 'customerId'}[role];
+            if (requiredRole === 'merchant') {
+                const businessId = message.businessId || message.merchantId;
+                if (message.businessId && message.merchantId && message.businessId !== message.merchantId) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'BUSINESS_MISMATCH');
+                const access = await merchantAccess(connection.authSubject, businessId);
+                if (!access) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'BUSINESS_UNAVAILABLE');
+                message.businessId = access.businessId;
+                message.merchantId = access.businessId;
+                message.merchantName = access.businessName;
+                message.merchantEmail = typeof connection.email === 'string' ? connection.email : '';
+            } else if (requiredRole) {
+                if (message[identityKey] && message[identityKey] !== connection.userId) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'IDENTITY_MISMATCH');
+                message[identityKey] = connection.userId;
+            }
+            const sessionActions = ['chat_message', 'agent_message', 'driver_message', 'chat_typing', 'chat_session_close', 'get_session_messages', 'join_channel'];
+            if (sessionActions.includes(messageType) || (requiredRole && message.sessionId)) {
+                if (typeof message.sessionId !== 'string' || !message.sessionId) return await rejectSupportRequest(connectionId, apiGatewayClient, 400, 'SESSION_REQUIRED');
+                const session = await dynamoDB.send(new GetCommand({TableName: CHAT_SESSIONS_TABLE, Key: {sessionId: message.sessionId}, ConsistentRead: true}));
+                // A new participant session may be created by its authenticated owner.
+                const newParticipantSession = requiredRole && role !== 'agent' && !session.Item;
+                if (!newParticipantSession && !canReadSession(connection, session.Item)) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'FORBIDDEN');
+                if (role === 'merchant' && session.Item) {
+                    const businessId = session.Item.businessId || session.Item.merchantId;
+                    if ((message.businessId && message.businessId !== businessId) || !await merchantAccess(connection.authSubject, businessId)) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'BUSINESS_UNAVAILABLE');
+                }
+                if (role === 'customer' && session.Item?.orderId && !await customerOwnsOrder(dynamoDB, process.env, connection.authSubject, session.Item.orderId)) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'ORDER_UNAVAILABLE');
+                if (requiredRole && session.Item?.status === 'closed') return await rejectSupportRequest(connectionId, apiGatewayClient, 409, 'SESSION_CLOSED');
+            }
+            if (['chat_message', 'agent_message', 'driver_message', 'chat_typing'].includes(messageType)) {
+                if (message.senderType && message.senderType !== role) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'SENDER_MISMATCH');
+                message.senderType = role;
+                message._senderSubject = connection.authSubject;
+            }
+            if (messageType === 'chat_session_close') {
+                message.closedByUserType = role;
+                message.closedByUserId = connection.userId;
             }
             switch (messageType) {
                 case 'authenticate':
@@ -187,6 +249,8 @@ const handler = async (event) => {
                 case 'chat_agent_connect':
                     console.log(`👩‍💼 Support agent connecting to live chat: ${connectionId}`);
                     return await handleAgentChatConnect(connectionId, message, apiGatewayClient);
+                case 'chat_customer_connect':
+                    return await handleCustomerChatConnect(connectionId, message, apiGatewayClient);
                 case 'chat_merchant_connect':
                     console.log(`🏪 Merchant connecting to live chat: ${connectionId}`);
                     return await handleMerchantChatConnect(connectionId, message, apiGatewayClient);
@@ -206,6 +270,10 @@ const handler = async (event) => {
                 case 'sync_sessions':
                     console.log(`🔄 Session sync request from ${connectionId}`);
                     return await handleSyncSessions(connectionId, message, apiGatewayClient);
+                case 'join_channel':
+                    await dynamoDB.send(new UpdateCommand({TableName: WEBSOCKET_CONNECTIONS_TABLE, Key: {connectionId},
+                        UpdateExpression: 'SET sessionId = :sid', ExpressionAttributeValues: {':sid': message.sessionId}}));
+                    return await handleGetSessionMessages(connectionId, message, apiGatewayClient);
                 case 'get_session_messages':
                     return await handleGetSessionMessages(connectionId, message, apiGatewayClient);
                 case 'ack':
@@ -258,68 +326,17 @@ const handler = async (event) => {
 async function handleConnect(connectionId, event) {
     try {
         const queryParams = event.queryStringParameters || {};
-        const { token, businessId, userType: requestUserType } = queryParams;
-        console.log(`New WebSocket connection: ${connectionId}, businessId: ${businessId}, userType: ${requestUserType}, hasToken: ${!!token}`);
-
-        // Special handling for support agents - allow without JWT or with browser token
-        if (requestUserType === 'support') {
-            console.log('Support agent connection - bypassing JWT verification');
-            const agentId = queryParams.agentId || 'support-agent-001';
-
-            await dynamoDB.send(new PutCommand({
-                TableName: WEBSOCKET_CONNECTIONS_TABLE,
-                Item: {
-                    connectionId,
-                    userId: agentId,
-                    userType: 'agent',
-                    businessId: businessId || 'default',
-                    platform: queryParams.platform || 'web',
-                    appVersion: queryParams.appVersion || '1.0.0',
-                    connectedAt: new Date().toISOString(),
-                    lastActivity: new Date().toISOString(),
-                    lastHeartbeat: new Date().toISOString(),
-                    isActive: true,
-                    connectionType: 'REAL',
-                    source: 'support_portal',
-                    ttl: Math.floor(Date.now() / 1000) + (24 * 60 * 60),
-                    authenticated: true,
-                    groups: ['support'],
-                    email: 'support@wizzcentral.com'
-                }
-            }));
-
-            console.log(`✅ Support agent connection stored ${connectionId} agentId=${agentId}`);
-            return { statusCode: 200, body: 'Connected' };
+        const headers = event.headers || {};
+        const authorization = Object.entries(headers).find(([key]) => key.toLowerCase() === 'authorization')?.[1];
+        const token = queryParams.token || (typeof authorization === 'string' ? authorization.replace(/^Bearer\s+/i, '') : null);
+        const requestedRole = normalizeRole(queryParams.userType || 'driver');
+        let principal;
+        try {
+            principal = principalFromClaims(await verifyJwt(token, requestedRole), requestedRole);
+        } catch (_) {
+            return {statusCode: 401, body: 'Unauthorized'};
         }
-
-        // For non-support: Verify JWT if provided (skip if browser token or no token in dev)
-        let verified = null;
-        const isBrowserToken = token && (token.startsWith('browser_agent_') || token.startsWith('browser_'));
-        if (!token || isBrowserToken) {
-            console.warn(`⚠️ Connection without valid JWT - allowing in dev mode. connectionId: ${connectionId}`);
-            verified = {
-                sub: queryParams.driverId || `dev-user-${Date.now()}`,
-                email: 'dev@wizzcentral.com',
-                'cognito:groups': []
-            };
-        } else {
-            try {
-                verified = await verifyJwt(token);
-                console.log(`✅ JWT verified for connectionId: ${connectionId}`);
-            } catch (e) {
-                console.error('❌ JWT verification failed:', e.message || e);
-                return { statusCode: 401, body: 'Unauthorized: Invalid token' };
-            }
-        }
-
-        // Determine role / userType from groups
-        const groups = verified['cognito:groups'] || [];
-        let role = 'driver';
-        if (Array.isArray(groups)) {
-            if (groups.includes('support') || groups.includes('admin')) role = 'agent';
-        }
-        const userId = queryParams.driverId || verified.sub;
-        const userType = role === 'agent' ? 'agent' : (requestUserType || 'driver');
+        const {userId, userType, groups} = principal;
 
         // Store connection (schema: HASH key is connectionId)
         await dynamoDB.send(new PutCommand({
@@ -328,7 +345,7 @@ async function handleConnect(connectionId, event) {
                 connectionId,
                 userId,
                 userType,
-                businessId: businessId || 'default',
+                businessId: 'default',
                 platform: queryParams.platform || 'web',
                 appVersion: queryParams.appVersion || '1.0.0',
                 deviceId: queryParams.deviceId || null,
@@ -342,7 +359,7 @@ async function handleConnect(connectionId, event) {
                 ttl: Math.floor(Date.now() / 1000) + (24 * 60 * 60),
                 authenticated: true,
                 groups,
-                email: verified.email || null
+                ...principal
             }
         }));
         console.log(`Authenticated connection stored ${connectionId} userId=${userId} type=${userType}`);
@@ -378,23 +395,14 @@ async function handleDisconnect(connectionId) {
 // Handle authentication
 async function handleAuthentication(connectionId, message, apiGatewayClient) {
     try {
-        const { userId, userType, token } = message;
-
-        // Update connection with authentication info
-        await dynamoDB.send(new UpdateCommand({
-            TableName: WEBSOCKET_CONNECTIONS_TABLE,
-            Key: { connectionId },
-            UpdateExpression: 'SET userId = :userId, userType = :userType, #token = :token, authenticatedAt = :authenticatedAt',
-            ExpressionAttributeNames: {
-                '#token': 'token'
-            },
-            ExpressionAttributeValues: {
-                ':userId': userId,
-                ':userType': userType,
-                ':token': token,
-                ':authenticatedAt': new Date().toISOString()
-            }
-        }));
+        const principal = principalFromClaims(await verifyJwt(message.token, message.userType), message.userType);
+        const previous = await dynamoDB.send(new GetCommand({TableName: WEBSOCKET_CONNECTIONS_TABLE, Key: {connectionId}, ConsistentRead: true}));
+        if (!isTrustedConnection(previous.Item) || previous.Item.authSubject !== principal.authSubject || previous.Item.userType !== principal.userType) {
+            return {statusCode: 403, body: 'Reconnect to change identity'};
+        }
+        await dynamoDB.send(new PutCommand({TableName: WEBSOCKET_CONNECTIONS_TABLE,
+            Item: {...previous.Item, ...principal, authenticatedAt: new Date().toISOString()}}));
+        const {userId, userType} = principal;
 
         // Send authentication confirmation
         return await sendToConnection(connectionId, {
@@ -437,15 +445,24 @@ async function handleHeartbeat(connectionId, apiGatewayClient) {
 // Live Chat Support Functions
 async function handleDriverChatConnect(connectionId, message, apiGatewayClient) {
     try {
-        const { driverId, driverName, driverPhone, sessionId: clientSessionId } = message;
+        const identity = await dynamoDB.send(new GetCommand({TableName: WEBSOCKET_CONNECTIONS_TABLE, Key: {connectionId}, ConsistentRead: true}));
+        const {driverId, sessionId: clientSessionId} = message;
+        const driverName = typeof message.driverName === 'string' ? (message.driverName.trim().slice(0,100) || 'سائق') : 'سائق';
+        const driverPhone = typeof message.driverPhone === 'string' ? message.driverPhone.trim().slice(0,30) : '';
+        if (clientSessionId != null && (typeof clientSessionId !== 'string' || !clientSessionId || clientSessionId.length > 200)) return await rejectSupportRequest(connectionId, apiGatewayClient, 400, 'SESSION_REQUIRED');
 
         // Use client-provided sessionId if available, otherwise generate one
         const sessionId = clientSessionId || `session_${driverId}_${Date.now()}`;
+
+        const existingSession = await dynamoDB.send(new GetCommand({TableName: CHAT_SESSIONS_TABLE, Key: {sessionId}, ConsistentRead: true}));
+        if (existingSession.Item && !canReadSession(identity.Item, existingSession.Item)) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'FORBIDDEN');
+        if (existingSession.Item?.status === 'closed') return await rejectSupportRequest(connectionId, apiGatewayClient, 409, 'SESSION_CLOSED');
 
         // Store driver connection (preserve auth)
         await dynamoDB.send(new PutCommand({
             TableName: WEBSOCKET_CONNECTIONS_TABLE,
             Item: {
+                ...identity.Item,
                 connectionId,
                 userId: driverId,
                 userType: 'driver',
@@ -461,10 +478,12 @@ async function handleDriverChatConnect(connectionId, message, apiGatewayClient) 
         }));
 
         // Create chat session record
-        await dynamoDB.send(new PutCommand({
+        if (!existingSession.Item) await dynamoDB.send(new PutCommand({
             TableName: CHAT_SESSIONS_TABLE,
+            ConditionExpression: 'attribute_not_exists(sessionId)',
             Item: {
                 sessionId,
+                userId: identity.Item.userId,
                 driverId,
                 driverName,
                 driverPhone,
@@ -478,7 +497,7 @@ async function handleDriverChatConnect(connectionId, message, apiGatewayClient) 
         }));
 
         // Notify all agents about new chat session
-        await notifyAgentsOfNewSession(sessionId, {
+        if (!existingSession.Item) await notifyAgentsOfNewSession(sessionId, {
             driverId,
             driverName,
             driverPhone,
@@ -491,7 +510,7 @@ async function handleDriverChatConnect(connectionId, message, apiGatewayClient) 
         const response = {
             type: 'chat_session_created',
             sessionId,
-            status: 'waiting_for_agent',
+            status: existingSession.Item?.status || 'waiting_for_agent',
             message: 'Connected to support. An agent will be with you shortly.'
         };
 
@@ -508,12 +527,14 @@ async function handleDriverChatConnect(connectionId, message, apiGatewayClient) 
 
 async function handleAgentChatConnect(connectionId, message, apiGatewayClient) {
     try {
-        const { agentId, agentName, sessionId } = message;
+        const identity = await dynamoDB.send(new GetCommand({TableName: WEBSOCKET_CONNECTIONS_TABLE, Key: {connectionId}, ConsistentRead: true}));
+        const { agentId, agentName = 'Support Agent', sessionId } = message;
 
         // Store agent connection (preserve auth)
         await dynamoDB.send(new PutCommand({
             TableName: WEBSOCKET_CONNECTIONS_TABLE,
             Item: {
+                ...identity.Item,
                 connectionId,
                 userId: agentId,
                 userType: 'agent',
@@ -583,23 +604,50 @@ async function handleAgentChatConnect(connectionId, message, apiGatewayClient) {
     }
 }
 
+async function handleCustomerChatConnect(connectionId, message, apiGatewayClient) {
+    const identity = (await dynamoDB.send(new GetCommand({TableName: WEBSOCKET_CONNECTIONS_TABLE, Key: {connectionId}, ConsistentRead: true}))).Item;
+    const sessionId = message.sessionId;
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 200) return await rejectSupportRequest(connectionId, apiGatewayClient, 400, 'SESSION_REQUIRED');
+    const existing = (await dynamoDB.send(new GetCommand({TableName: CHAT_SESSIONS_TABLE, Key: {sessionId}, ConsistentRead: true}))).Item;
+    if (existing && !canReadSession(identity, existing)) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'FORBIDDEN');
+    if (existing?.status === 'closed') return await rejectSupportRequest(connectionId, apiGatewayClient, 409, 'SESSION_CLOSED');
+    const orderId = message.orderId;
+    if (orderId != null && (existing && existing.orderId !== orderId || !await customerOwnsOrder(dynamoDB, process.env, identity.authSubject, orderId))) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'ORDER_UNAVAILABLE');
+    // Display labels are untrusted text. Identity always comes from the verified connection.
+    const name = typeof message.customerName === 'string' ? message.customerName.trim().slice(0, 100) : '';
+    const session = existing || {sessionId, userId: identity.authSubject, customerId: identity.authSubject,
+        userType: 'customer', customerName: name || 'زبون', userDisplayName: name || 'زبون',
+        source: 'wizzuser_app', status: 'waiting_for_agent', createdAt: new Date().toISOString(),
+        ...(orderId != null ? {orderId} : {})};
+    if (!existing) await dynamoDB.send(new PutCommand({TableName: CHAT_SESSIONS_TABLE, Item: session, ConditionExpression: 'attribute_not_exists(sessionId)'}));
+    await dynamoDB.send(new PutCommand({TableName: WEBSOCKET_CONNECTIONS_TABLE, Item: {...identity, sessionId}}));
+    if (!existing) await notifyAgentsOfNewSession(sessionId, session, apiGatewayClient);
+    return await sendToConnection(connectionId, {type: 'chat_session_created', sessionId, status: session.status}, apiGatewayClient);
+}
+
 async function handleMerchantChatConnect(connectionId, message, apiGatewayClient) {
     try {
+        const identity = await dynamoDB.send(new GetCommand({TableName: WEBSOCKET_CONNECTIONS_TABLE, Key: {connectionId}, ConsistentRead: true}));
         const { merchantId, merchantName, merchantEmail, sessionId: clientSessionId } = message;
 
         // Use client-provided sessionId if available, otherwise generate one
         const sessionId = clientSessionId || `merchant_session_${merchantId}_${Date.now()}`;
 
         console.log(`🏪 Merchant connecting: ${merchantName} (${merchantId})`);
-        console.log(`📧 Email: ${merchantEmail}`);
+
         console.log(`🔑 Session ID: ${sessionId}`);
+
+        const existingSession = await dynamoDB.send(new GetCommand({TableName: CHAT_SESSIONS_TABLE, Key: {sessionId}, ConsistentRead: true}));
+        if (existingSession.Item && (!canReadSession(identity.Item, existingSession.Item) || existingSession.Item.status === 'closed')) return await rejectSupportRequest(connectionId, apiGatewayClient, 403, 'FORBIDDEN');
 
         // Store merchant connection (preserve auth)
         await dynamoDB.send(new PutCommand({
             TableName: WEBSOCKET_CONNECTIONS_TABLE,
             Item: {
+                ...identity.Item,
                 connectionId,
-                userId: merchantId,
+                userId: identity.Item.authSubject,
+                businessId: merchantId,
                 userType: 'merchant',
                 sessionId,
                 connectedAt: new Date().toISOString(),
@@ -615,14 +663,16 @@ async function handleMerchantChatConnect(connectionId, message, apiGatewayClient
         console.log(`✅ Merchant connection stored in ${WEBSOCKET_CONNECTIONS_TABLE}`);
 
         // Create chat session record
-        await dynamoDB.send(new PutCommand({
+        if (!existingSession.Item) await dynamoDB.send(new PutCommand({
             TableName: CHAT_SESSIONS_TABLE,
+            ConditionExpression: 'attribute_not_exists(sessionId)',
             Item: {
                 sessionId,
+                userId: identity.Item.authSubject,
+                businessId: merchantId,
                 merchantId,
                 merchantName,
                 merchantEmail,
-                userId: merchantId,
                 userType: 'merchant',
                 userDisplayName: merchantName,
                 source: 'whizzMerchants',
@@ -635,7 +685,7 @@ async function handleMerchantChatConnect(connectionId, message, apiGatewayClient
         console.log(`✅ Chat session created in ${CHAT_SESSIONS_TABLE}`);
 
         // Notify all agents about new merchant chat session
-        await notifyAgentsOfNewSession(sessionId, { 
+        if (!existingSession.Item) await notifyAgentsOfNewSession(sessionId, {
             merchantId, 
             merchantName, 
             merchantEmail,
@@ -650,7 +700,7 @@ async function handleMerchantChatConnect(connectionId, message, apiGatewayClient
         const response = {
             type: 'chat_session_created',
             sessionId,
-            status: 'waiting_for_agent',
+            status: existingSession.Item?.status || 'waiting_for_agent',
             message: 'Connected to support. An agent will be with you shortly.'
         };
 
@@ -669,7 +719,42 @@ async function handleChatMessage(connectionId, message, apiGatewayClient) {
     try {
         const rawText = message.messageText ?? message.message ?? message.text;
         const { sessionId, senderType = 'driver', requestId } = message;
+        const clientMessageId = typeof message.clientMessageId === 'string' && message.clientMessageId.length <= 128 ? message.clientMessageId : undefined;
+        if (message.clientMessageId != null && (!clientMessageId || !clientMessageId.trim())) throw attachments.fail('INVALID_MESSAGE_ID');
         const sanitized = sanitizeChatContent(rawText);
+        if (message.imageUrl || message.imageType) throw attachments.fail('ATTACHMENT_REFERENCE_REQUIRED');
+        let receipt;
+        if (clientMessageId) {
+            const table = process.env.SUPPORT_MESSAGE_RECEIPTS_TABLE;
+            if (!table) throw attachments.fail('MESSAGE_RECEIPTS_UNAVAILABLE', 503);
+            const receiptId = createHash('sha256').update(JSON.stringify([sessionId, senderType, message._senderSubject, clientMessageId])).digest('hex');
+            const contentHash = createHash('sha256').update(JSON.stringify([sanitized, message.attachmentId || null])).digest('hex');
+            receipt = {table, receiptId, contentHash};
+        }
+        const acknowledgeReceipt = async () => {
+            if (!receipt) return false;
+            const saved = (await dynamoDB.send(new GetCommand({TableName: receipt.table, Key: {receiptId: receipt.receiptId}, ConsistentRead: true}))).Item;
+            if (!saved) return false;
+            if (saved.sessionId !== sessionId || typeof saved.messageId !== 'string' || !saved.messageId || !Number.isFinite(saved.ttl)) throw attachments.fail('MESSAGE_RECEIPT_INVALID', 503);
+            if (saved.contentHash !== receipt.contentHash) throw attachments.fail('MESSAGE_ID_CONFLICT', 409);
+            if (saved.ttl <= Date.now()/1000) throw attachments.fail('MESSAGE_ID_EXPIRED', 409);
+            await sendToConnection(connectionId, {type: 'message_ack', clientMessageId, messageId: saved.messageId, sessionId}, apiGatewayClient);
+            return true;
+        };
+        if (await acknowledgeReceipt()) return {statusCode: 200, body: 'Already saved'};
+        let attachment;
+        if (message.attachmentId) {
+            attachment = await attachments.getAttachment(dynamoDB, process.env.SUPPORT_ATTACHMENTS_TABLE, message.attachmentId);
+            if (attachment.sessionId !== sessionId || attachment.subjectId !== message._senderSubject || attachment.userType !== senderType || !clientMessageId) throw attachments.fail('ATTACHMENT_FORBIDDEN', 403);
+            if (attachment.status === 'PUBLISHED') {
+                if (attachment.clientMessageId !== clientMessageId) throw attachments.fail('ATTACHMENT_ALREADY_USED', 409);
+                const saved = (await dynamoDB.send(new GetCommand({TableName: CHAT_MESSAGES_TABLE, Key: {sessionId, messageKey: attachment.messageKey}, ConsistentRead: true}))).Item;
+                if (!saved || saved.text !== sanitized || saved.attachment?.attachmentId !== attachment.attachmentId) throw attachments.fail('MESSAGE_ID_CONFLICT', 409);
+                await sendToConnection(connectionId, {type: 'message_ack', clientMessageId, messageId: attachment.messageId, sessionId}, apiGatewayClient);
+                return {statusCode: 200, body: 'Already saved'};
+            }
+            if (attachment.status !== 'UPLOADED') throw attachments.fail('ATTACHMENT_NOT_READY', 409);
+        }
         if (!sessionId || !sanitized) {
             return await sendToConnection(connectionId, { type: 'error', message: 'Missing sessionId or messageText' }, apiGatewayClient);
         }
@@ -691,62 +776,54 @@ async function handleChatMessage(connectionId, message, apiGatewayClient) {
             messageKey,
             messageId,
             senderType,
+            ...(clientMessageId ? {metadata: {clientMessageId}} : {}),
             text: sanitized,
+            ...(attachment ? {attachment: attachments.reference(attachment)} : {}),
             createdAt: nowIso,
             ttl: Math.floor(now / 1000) + 60 * 60 * 24 * 30 // 30 days
         };
-        // Persist message in messages table
-        await dynamoDB.send(new PutCommand({ TableName: CHAT_MESSAGES_TABLE, Item: chatMessageItem }));
-        // Update session metadata (first message timestamps + lastMessageAt + unread counters)
-        const updates = [];
-        const exprValues = { ':lastMessageAt': nowIso };
-        updates.push('lastMessageAt = :lastMessageAt');
-        if (senderType === 'driver' && !sessionRecord.driverFirstMessageAt) {
-            updates.push('driverFirstMessageAt = :firstDriver');
-            exprValues[':firstDriver'] = nowIso;
-        }
-        if (senderType === 'agent' && !sessionRecord.agentFirstResponseAt) {
-            updates.push('agentFirstResponseAt = :firstAgent');
-            exprValues[':firstAgent'] = nowIso;
-        }
-        // Apply SET updates (no ExpressionAttributeNames needed for these simple attributes)
-        if (updates.length) {
-            await dynamoDB.send(new UpdateCommand({
-                TableName: CHAT_SESSIONS_TABLE,
-                Key: { sessionId },
-                UpdateExpression: `SET ${updates.join(', ')}`,
-                ExpressionAttributeValues: exprValues
-            }));
-        }
-        // Increment unread counter for the opposite party
+        // The session fence, counters, message, receipt and optional image binding
+        // commit together. A repeated request never increments unread counters.
+        const firstField = senderType === 'agent' ? 'agentFirstResponseAt' : senderType === 'driver' ? 'driverFirstMessageAt' : null;
+        const counter = senderType === 'agent' ? 'unreadDriver' : 'unreadAgent';
+        const transaction = [
+            {Update: {TableName: CHAT_SESSIONS_TABLE, Key: {sessionId},
+                UpdateExpression: 'SET lastMessageAt=:now' + (firstField ? ', '+firstField+'=if_not_exists('+firstField+', :now)' : '') + ' ADD '+counter+' :one',
+                ConditionExpression: 'attribute_exists(sessionId) AND #s <> :closed',
+                ExpressionAttributeNames: {'#s':'status'}, ExpressionAttributeValues: {':closed':'closed', ':now':nowIso, ':one':1}}},
+            {Put: {TableName: CHAT_MESSAGES_TABLE, Item: chatMessageItem, ConditionExpression: 'attribute_not_exists(messageKey)'}}
+        ];
+        if (receipt) transaction.push({Put: {TableName: receipt.table,
+            Item: {receiptId: receipt.receiptId, sessionId, messageId, contentHash: receipt.contentHash, ttl: chatMessageItem.ttl},
+            ConditionExpression: 'attribute_not_exists(receiptId)'}});
+        if (attachment) transaction.push({Update: {TableName: process.env.SUPPORT_ATTACHMENTS_TABLE, Key: {attachmentId: attachment.attachmentId},
+            UpdateExpression: 'SET #s=:published, messageId=:mid, messageKey=:key, clientMessageId=:cid, #ttl=:ttl',
+            ConditionExpression: '#s=:uploaded AND subjectId=:sub AND sessionId=:sid AND #ttl>:now',
+            ExpressionAttributeNames: {'#s':'status', '#ttl':'ttl'},
+            ExpressionAttributeValues: {':published':'PUBLISHED', ':uploaded':'UPLOADED', ':sub':message._senderSubject, ':sid':sessionId,
+                ':mid':messageId, ':key':messageKey, ':cid':clientMessageId, ':ttl':chatMessageItem.ttl, ':now':Math.floor(now/1000)}}});
         try {
-            if (senderType === 'driver') {
-                await dynamoDB.send(new UpdateCommand({
-                    TableName: CHAT_SESSIONS_TABLE,
-                    Key: { sessionId },
-                    UpdateExpression: 'ADD unreadAgent :one',
-                    ExpressionAttributeValues: { ':one': 1 }
-                }));
-            } else if (senderType === 'agent') {
-                await dynamoDB.send(new UpdateCommand({
-                    TableName: CHAT_SESSIONS_TABLE,
-                    Key: { sessionId },
-                    UpdateExpression: 'ADD unreadDriver :one',
-                    ExpressionAttributeValues: { ':one': 1 }
-                }));
-            }
-        } catch (e) { console.warn('Unread counter update failed', e.message || e); }
+            await dynamoDB.send(new TransactWriteCommand({TransactItems: transaction}));
+        } catch (error) {
+            // A concurrent duplicate or uncertain transaction result is resolved
+            // with a strongly consistent receipt read, never another message put.
+            if (await acknowledgeReceipt()) return {statusCode: 200, body: 'Already saved'};
+            throw error;
+        }
         // Broadcast
         const sessionUserType = sessionRecord?.userType || (sessionRecord?.merchantId ? 'merchant' : 'driver');
         const sessionSource = sessionRecord?.source || (sessionUserType === 'merchant' ? 'whizzMerchants' : 'wizzdriver_app');
         const outbound = {
             type: 'chat_message',
             sessionId,
+            orderId: sessionRecord?.orderId || null,
             userType: sessionUserType,
             source: sessionSource,
             merchantName: sessionRecord?.merchantName || null,
             merchantEmail: sessionRecord?.merchantEmail || null,
             driverName: sessionRecord?.driverName || null,
+            customerName: sessionRecord?.customerName || null,
+            userDisplayName: sessionRecord?.userDisplayName || null,
             driverPhone: sessionRecord?.driverPhone || null,
             metadata: {
                 userType: sessionUserType,
@@ -758,21 +835,25 @@ async function handleChatMessage(connectionId, message, apiGatewayClient) {
             },
             message: {
                 messageId,
+                ...(clientMessageId ? {clientMessageId} : {}),
                 sessionId,
                 messageKey,
                 senderType,
                 text: sanitized,
+                ...(attachment ? {attachment: attachments.reference(attachment)} : {}),
                 createdAt: nowIso
             }
         };
         await broadcastToSession(sessionId, outbound, apiGatewayClient);
+        if (clientMessageId) await sendToConnection(connectionId, {type: 'message_ack', clientMessageId, messageId, sessionId}, apiGatewayClient);
         // Ack to sender if requestId supplied
         if (requestId) {
             await sendToConnection(connectionId, { type: 'ack', requestId, messageId, sessionId }, apiGatewayClient);
         }
         return { statusCode: 200, body: 'Message stored' };
     } catch (error) {
-        console.error('Error handling chat message (refactored):', error);
+        if (error.code && error.status) return rejectSupportRequest(connectionId, apiGatewayClient, error.status, error.code);
+        console.error('Error handling chat message (refactored):', error.name);
         return await sendToConnection(connectionId, { type: 'error', message: 'Failed to send message' }, apiGatewayClient);
     }
 }
@@ -831,7 +912,7 @@ async function handleChatSessionClose(connectionId, message, apiGatewayClient) {
         }
         if (sessionRecord.status === 'closed') {
             // Idempotent: already closed, send ack again (no broadcast needed) and return
-            await sendToConnection(connectionId, { type: 'chat_session_close_ack', sessionId, alreadyClosed: true, timestamp: new Date().toISOString() }, apiGatewayClient);
+            await sendToConnection(connectionId, { type: 'session_closed', sessionId, alreadyClosed: true, timestamp: new Date().toISOString() }, apiGatewayClient);
             return { statusCode: 200, body: 'Session already closed' };
         }
 
@@ -855,6 +936,7 @@ async function handleChatSessionClose(connectionId, message, apiGatewayClient) {
             }));
         } catch (e) {
             console.error('handleChatSessionClose update failed', e);
+            return await rejectSupportRequest(connectionId, apiGatewayClient, 500, 'CLOSE_FAILED');
         }
 
         // Final broadcast
@@ -904,6 +986,7 @@ async function handleSyncSessions(connectionId, message, apiGatewayClient) {
                 : (item.driverName || item.driverPhone));
             return {
                 sessionId: item.sessionId,
+                orderId: item.orderId || null,
                 driverId: item.driverId || null,
                 driverName: item.driverName || null,
                 driverPhone: item.driverPhone || null,
@@ -942,13 +1025,15 @@ async function handleSyncSessions(connectionId, message, apiGatewayClient) {
 
 async function handleGetSessionMessages(connectionId, message, apiGatewayClient) {
     try {
-        const { sessionId, limit = 30, cursor } = message;
+        const { sessionId, limit = 30, cursor, requestId } = message;
+        if ((cursor != null && (typeof cursor !== 'string' || !cursor || cursor.length > 500)) ||
+            (requestId != null && (typeof requestId !== 'string' || !requestId || requestId.length > 100))) return await rejectSupportRequest(connectionId, apiGatewayClient, 400, 'INVALID_HISTORY_REQUEST');
         if (!sessionId) return await sendToConnection(connectionId, { type: 'error', message: 'sessionId required' }, apiGatewayClient);
         const queryParams = {
             TableName: CHAT_MESSAGES_TABLE,
             KeyConditionExpression: 'sessionId = :sid',
             ExpressionAttributeValues: { ':sid': sessionId },
-            Limit: Math.min(limit, 100),
+            Limit: Number.isInteger(limit) && limit > 0 ? Math.min(limit, 100) : 30,
             ScanIndexForward: false // newest first
         };
         if (cursor) {
@@ -960,10 +1045,13 @@ async function handleGetSessionMessages(connectionId, message, apiGatewayClient)
         return await sendToConnection(connectionId, {
             type: 'session_messages',
             sessionId,
+            ...(message.requestId ? {requestId: message.requestId} : {}),
             messages: items.map(i => ({
                 messageId: i.messageId,
                 messageKey: i.messageKey,
                 senderType: i.senderType,
+                metadata: i.metadata || {},
+                ...(i.attachment ? {attachment: i.attachment} : {}),
                 text: i.text,
                 createdAt: i.createdAt
             })),
@@ -971,7 +1059,7 @@ async function handleGetSessionMessages(connectionId, message, apiGatewayClient)
         }, apiGatewayClient);
     } catch (e) {
         console.error('handleGetSessionMessages failed', e);
-        return await sendToConnection(connectionId, { type: 'error', message: 'Failed to load messages' }, apiGatewayClient);
+        return await sendToConnection(connectionId, {type: 'history_error', sessionId: message.sessionId, ...(message.requestId ? {requestId: message.requestId} : {}), code: 'HISTORY_UNAVAILABLE'}, apiGatewayClient);
     }
 }
 
@@ -988,6 +1076,11 @@ async function handleAck(connectionId, message, apiGatewayClient) {
 }
 
 // Helper functions
+async function rejectSupportRequest(connectionId, apiGatewayClient, statusCode, code) {
+    await sendToConnection(connectionId, {type: 'error', code, message: 'Support request rejected'}, apiGatewayClient);
+    return {statusCode, body: code};
+}
+
 async function sendToConnection(connectionId, data, apiGatewayClient) {
     try {
         const command = new PostToConnectionCommand({
@@ -1018,7 +1111,9 @@ async function sendToConnection(connectionId, data, apiGatewayClient) {
 
 async function broadcastToSession(sessionId, data, apiGatewayClient, excludeConnections = []) {
     try {
-        // Get all connections for this session OR all agents
+        const session = await dynamoDB.send(new GetCommand({TableName: CHAT_SESSIONS_TABLE, Key: {sessionId}, ConsistentRead: true}));
+        if (!session.Item) return;
+        // Support queue access is restricted to trusted support agents; participants must own the session.
         const result = await dynamoDB.send(new ScanCommand({
             TableName: WEBSOCKET_CONNECTIONS_TABLE,
             FilterExpression: 'sessionId = :sessionId OR userType = :agent',
@@ -1028,9 +1123,15 @@ async function broadcastToSession(sessionId, data, apiGatewayClient, excludeConn
             }
         }));
 
-        const connections = result.Items || [];
+        const connections = [];
+        for (const conn of result.Items || []) {
+            if (!canReadSession(conn, session.Item)) continue;
+            if (conn.userType === 'merchant' && !await merchantAccess(conn.authSubject, session.Item.businessId || session.Item.merchantId)) continue;
+            if (conn.userType === 'customer' && session.Item.orderId && !await customerOwnsOrder(dynamoDB, process.env, conn.authSubject, session.Item.orderId)) continue;
+            connections.push(conn);
+        }
         const sendPromises = connections
-            .filter(conn => !excludeConnections.includes(conn.connectionId))
+            .filter(conn => canReadSession(conn, session.Item) && !excludeConnections.includes(conn.connectionId))
             .map(conn => sendToConnection(conn.connectionId, data, apiGatewayClient).catch(error => {
                 console.error(`Failed to send to ${conn.connectionId}:`, error);
             }));
@@ -1054,25 +1155,30 @@ async function notifyAgentsOfNewSession(sessionId, sessionInfo, apiGatewayClient
             }
         }));
 
-        const agentConnections = result.Items || [];
+        const agentConnections = (result.Items || []).filter(conn => isTrustedConnection(conn) && conn.userType === 'agent');
         const payload = {
             sessionId,
+            orderId: sessionInfo.orderId || null,
             userType: sessionInfo.userType || (sessionInfo.merchantId ? 'merchant' : 'driver'),
             source: sessionInfo.source || ((sessionInfo.userType || '').toLowerCase() === 'merchant' ? 'whizzMerchants' : 'wizzdriver_app'),
             driverId: sessionInfo.driverId || null,
             driverName: sessionInfo.driverName || null,
             driverPhone: sessionInfo.driverPhone || null,
             merchantId: sessionInfo.merchantId || null,
-            merchantName: sessionInfo.merchantName || sessionInfo.userDisplayName || null,
+            merchantName: sessionInfo.merchantName || null,
+            customerName: sessionInfo.customerName || null,
             merchantEmail: sessionInfo.merchantEmail || null,
-            userDisplayName: sessionInfo.userDisplayName || sessionInfo.merchantName || sessionInfo.driverName || 'User'
+            userDisplayName: sessionInfo.userDisplayName || sessionInfo.merchantName || sessionInfo.customerName || sessionInfo.driverName || 'User'
         };
         const notificationData = {
             type: 'new_chat_session',
             sessionId,
+            orderId: payload.orderId,
             userType: payload.userType,
             source: payload.source,
             driverName: payload.driverName,
+            customerName: payload.customerName,
+            userDisplayName: payload.userDisplayName,
             merchantName: payload.merchantName,
             merchantEmail: payload.merchantEmail,
             metadata: {
@@ -1149,14 +1255,16 @@ async function getActiveChatSessions(limit = 25, msgLimit = 40) {
         let sessions = (scanResult.Items || []).map(item => ({
             sessionId: item.sessionId,
             userType: item.userType || 'driver',
+            orderId: item.orderId || null,
             merchantId: item.merchantId,
             merchantName: item.merchantName,
+            customerName: item.customerName,
             merchantEmail: item.merchantEmail,
             userId: item.userId,
             driverId: item.driverId,
             driverName: item.driverName,
             driverPhone: item.driverPhone,
-            userDisplayName: item.userDisplayName || item.driverName || item.merchantName,
+            userDisplayName: item.userDisplayName || item.driverName || item.merchantName || item.customerName,
             source: item.source || 'wizzdriver_app',
             status: item.status,
             createdAt: item.createdAt,
@@ -2044,4 +2152,4 @@ async function handleOrderReject(connectionId, message, apiGatewayClient) {
     }
 }
 
-module.exports = { handler, getBusinessConnections };
+module.exports = { handler, getBusinessConnections, verifyJwt, merchantAccess };
