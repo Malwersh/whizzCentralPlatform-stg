@@ -1,0 +1,26 @@
+{
+  "task": 431,
+  "date": "2026-11-04",
+  "status": "release_installed_pending_human_validation",
+  "changes": [
+    "Cart joins point-invoice warmup directly without a preceding redundant delivery preview.",
+    "Valid near-expiry invoice is reused for navigation; background warmup handles renewal without extending server expiry.",
+    "Checkout warms point invoices every 15 seconds only while foreground/current and idle.",
+    "Address acceptance no longer waits for quote and offers requests; binding quote invalidated only when address ID changes.",
+    "Address initialization loads pricing and offers concurrently; removed duplicate auto-application because offer loading already invokes it."
+  ],
+  "preserved": [
+    "Exact basket, location, account and promotion cache scoping",
+    "Address-specific final delivery quote",
+    "Authoritative final commercial review and changed-total approval"
+  ],
+  "validation": {
+    "flutter_tests": 32,
+    "build": 395,
+    "device": "Release 395 installed and launched on iMohammed"
+  },
+  "limitations": [
+    "This change removes client-side duplicate waits. Server route/pricing latency still exists when a fresh calculation is genuinely required.",
+    "No server deployment or shared cross-request authentication cache introduced."
+  ]
+}

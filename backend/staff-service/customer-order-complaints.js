@@ -4,6 +4,7 @@
 const {GetCommand,QueryCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {hash,exact}=require('./dispatch-followup-core');
 const {allowed}=require('./catalog');
+const {complaintNotification}=require('./customer-complaint-notification');
 const KEY='CUSTOMER_POST_DELIVERY',H='staging-Holds',O='WizzOrders',S='chat-sessions-staging';
 const TYPES=['MISSING_ITEMS','WRONG_ITEMS','QUALITY','NOT_DELIVERED','SAFETY','OTHER'];
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
@@ -116,6 +117,7 @@ function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,in
   const receipt={success:true,orderId:v.orderId,caseId:c.caseId,version:data.version,status:data.state,action:v.action,financialPosting:false};
   const {TableName,Key,...condition}=exact(H,c.ck,c.row,c.row?Object.keys(c.row):['orderId']).ConditionCheck;
   ops.push(...guards,{Put:{TableName:H,Item:data,...condition}},{Put:{TableName:H,Item:{...eventKey,kind:'POST_DELIVERY_COMPLAINT_EVENT',caseId:c.caseId,requestDigest:digest,actorId:c.actor.subjectId,actorKind:c.actor.kind,action:v.action,at,receipt},ConditionExpression:'attribute_not_exists(orderId)'}},await index({caseId:c.caseId,orderId:v.orderId,caseKey:KEY,caseType:'CUSTOMER_POST_DELIVERY_CASE',state:data.state,open:data.state!=='CLOSED',at,branchId:c.order.storeId,dueAt:data.activePhase?.responseDueAt??at}));
+  const notice=complaintNotification({action:v.action,actor:c.actor,order:c.order,row:data,requestId:v.requestId,at});if(notice)ops.push(notice);
   if(JSON.stringify(await authenticate())!==JSON.stringify(c.actor))fail('UNAUTHORIZED',401);
   try{await db.send(new TransactWriteCommand({TransactItems:dedup(ops)}));}catch(e){const replay=await get(db,H,eventKey);if(replay?.requestDigest===digest)return {...replay.receipt,replayed:true};if(e.name==='TransactionCanceledException')fail();throw e;}
   return receipt;

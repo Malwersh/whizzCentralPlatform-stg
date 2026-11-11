@@ -14,7 +14,7 @@ function patch(file,writer=false){
    if(name.endsWith('/shared/discount-reservation.js')){
     let body=s.slice(n.body.start+1,n.body.end-1);
     const rx=/saving = ([a-zA-Z0-9_]+) === eligibleItems.length - 1 \? remaining : Number\(BigInt\(amount\) \* BigInt\(gross\) \/ BigInt\(basis\)\)/g;
-    let changed=0;body=body.replace(rx,(match)=>{changed++;const item=/const ([a-zA-Z0-9_]+) = eligibleItems\[/.exec(body)[1];return `saving = d.calculationMode === 'perItem' ? calculateCheckoutDiscountAmount(d,gross,[${item}],0) : `+match.slice('saving = '.length)});
+    let changed=0;body=body.replace(rx,(match)=>{changed++;const item=/const ([a-zA-Z0-9_]+) = eligibleItems\[/.exec(body)[1];const binding=/let ([a-zA-Z0-9_]+);\s*try\s*\{\s*\1 = platform \? normalizePlatformPromo/.exec(body)?.[1];if(!binding)throw Error('discount binding missing');return `saving = ${binding}.calculationMode === 'perItem' ? calculateCheckoutDiscountAmount(${binding},gross,[${item}],0) : `+match.slice('saving = '.length)});
     if(changed!==1)throw Error('allocation mismatch '+file+' '+changed);
     body=body.replace('"applicability",','"calculationMode",\n      "applicability",');
     edits.push([n.body.start+1,n.body.end-1,body]);counts.reservation++;return;

@@ -1,0 +1,47 @@
+{
+  "part": 433,
+  "status": "PUBLISHED_VERIFIED",
+  "customerOrderNumber": "ORD1793841722443",
+  "orderId": "46d83601-4ae1-5144-894a-b24a51522f69",
+  "caseId": "OEX:45e7379e901e55499a043fb5d271422b0c7820914c0e4e70",
+  "currentOrder": {
+    "status": "cancelled",
+    "customerFeeIqd": 0,
+    "driverFare": "NOT_APPLICABLE",
+    "merchantCompensation": "REVIEW",
+    "settlementStatus": "REVIEW",
+    "operationId": "a935e3b8-82c0-42df-80cb-d33881156c43",
+    "execution": "Authenticated staff API from existing browser session; no direct database mutation"
+  },
+  "policy": {
+    "immediate": "pending or confirmed; no preparation evidence, assignment or active hold",
+    "assignedOrPrepared": "review workflow preserved",
+    "race": "exact order and dispatch transaction checks; merchant preparation pins exceptionCancellation and rejects pending requests before preparation"
+  },
+  "deployments": [
+    {
+      "function": "staging-driver-financial-accept",
+      "baseSha": "LQJT1ksnJA5FEX3OepS8wy8WTQKfzVlOuBlUv/vmmcg=",
+      "sha": "d7fWv9aQk1Oc2GGFlRkqH90YY/YwwjChKb/+PbGxjnw=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "baseSha": "4TQy9qiDnwyXiUyI1Tte0OAJJPhRG+V6CX+1UM5TeNw=",
+      "sha": "EQoRm2HyX7na59edIM/EUIXapbfi1dYS1yfa5I+V8dU=",
+      "configurationPreserved": true
+    }
+  ],
+  "tests": {
+    "sourceCancellationAndMerchant": 21,
+    "actualFinancialBundle": 13,
+    "merchantFences": 9,
+    "typescript": "PASS",
+    "externalSyntheticTableTest": "Not executed: explicit execution guard stopped it before any AWS write; local fence tests passed."
+  },
+  "nativeCustomerRelease": 396,
+  "humanNewOrderTest": "PENDING",
+  "nativeStatus": "Release 396 installed and launched on iMohammed on 2026-11-05",
+  "deployedBytesVerified": true,
+  "dispatchJobStatus": "cancelled"
+}

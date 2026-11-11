@@ -40,6 +40,12 @@ function titleForAction(action) {
     case 'cancelled_by_store':
     case 'canceled_by_store':
       return 'تم إلغاء الطلب';
+    case 'customer_cancellation_requested':
+      return 'طلب الزبون إلغاء الطلب';
+    case 'order_cancellation_confirmed':
+      return 'تم تأكيد إلغاء الطلب';
+    case 'order_cancellation_updated':
+      return 'تحديث مراجعة الإلغاء';
     case 'order_status_update':
       return 'تحديث على طلب';
     default:
@@ -65,6 +71,7 @@ function bodyForAction({ action, orderNumber, businessName, customerName, totalA
     return extra.length ? `${base} - ${extra.join(' - ')}` : base;
   }
 
+  if(action==='customer_cancellation_requested')return `${base} — طلب إلغاء قيد المراجعة. افتح الطلب لمراجعته.`;
   return base;
 }
 
@@ -142,6 +149,7 @@ exports.sendMerchantOrder = async (event) => {
       businessName,
       orderId,
       orderNumber,
+      eventId:body.eventId, status:body.status, cancellationState:body.cancellationState, cancellationVersion:body.cancellationVersion, cancellationRequestId:body.cancellationRequestId, caseId:body.caseId,
       updatedAt: body.updatedAt || new Date().toISOString(),
     });
 

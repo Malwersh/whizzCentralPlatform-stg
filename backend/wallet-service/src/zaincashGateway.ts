@@ -1,3 +1,4 @@
+import {walletAuditState, financialAudit, auditText} from './financialAudit';
 /** ZainCash wallet funding. Provider success is inquired server-side; redirects never credit money.
  * Durable sessions and immutable config revisions intentionally have NO TTL.
  */
@@ -122,8 +123,18 @@ const audit = (action: string, actor: string, data: Row) => ({
       actorId: actor,
       ...data,
     },
+    ConditionExpression: "attribute_not_exists(sk)",
   },
 });
+function gatewayAdminAudit(action:string,actor:string,employee:Row,before:Row|null,after:Row,references:Row,reason?:string) {
+  return audit(action,actor,{...references, ...(after.revision !== undefined ? {revision:after.revision} : {}), ...(after.mode !== undefined ? {mode:after.mode} : {}), ...financialAudit(actor,employee,before,after,references,reason)});
+}
+function configAuditState(c:Row|null|undefined):Row|null {
+  if(!c)return null;
+  const out:Row={};
+  for(const k of ['revision','mode','enabled','minimum','maximum','verifiedAt','liveAcceptance','pilotAuthorized'])if(c[k]!==undefined)out[k]=c[k];
+  return out;
+}
 async function staff(actor: string, authTime: number) {
   if (!process.env.STAFF_TABLE)
     fail(
@@ -340,12 +351,7 @@ export async function saveGatewaySettings(
   await gatewayIO.tx([
     put(next, previous),
     staffGuard(employee),
-    audit("ZAINCASH_SETTINGS_UPDATED", actor, {
-      revision: next.revision,
-      mode: next.mode,
-      enabled: next.enabled,
-      credentialsChanged: !!input.credentials,
-    }),
+    gatewayAdminAudit("ZAINCASH_SETTINGS_UPDATED",actor,employee,configAuditState(previous),configAuditState(next)!,{configRevision:next.revision,credentialsChanged:!!input.credentials}),
   ]);
   return gatewaySettings();
 }
@@ -368,10 +374,7 @@ export async function testGatewaySettings(
   await gatewayIO.tx([
     put(next, c),
     staffGuard(employee),
-    audit("ZAINCASH_AUTH_TEST_PASSED", actor, {
-      revision: next.revision,
-      mode: c.mode,
-    }),
+    gatewayAdminAudit("ZAINCASH_AUTH_TEST_PASSED",actor,employee,configAuditState(c),configAuditState(next)!,{configRevision:next.revision}),
   ]);
   return gatewaySettings();
 }
@@ -417,10 +420,7 @@ export async function acceptGatewayLive(
   await gatewayIO.tx([
     put(next, c),
     staffGuard(employee),
-    audit("ZAINCASH_LIVE_ACCEPTANCE_RECORDED", actor, {
-      revision: next.revision,
-      evidence: next.acceptanceEvidence,
-    }),
+    gatewayAdminAudit("ZAINCASH_LIVE_ACCEPTANCE_RECORDED",actor,employee,configAuditState(c),configAuditState(next)!,{configRevision:next.revision},next.acceptanceEvidence),
   ]);
   return gatewaySettings();
 }
@@ -488,7 +488,20 @@ async function update(p: Row, changes: Row, extras: any[] = []) {
         Key: key("REVIEW", p.reference),
       },
     });
-  await gatewayIO.tx([put(next, p), ...extras, ...reviewOps]);
+  // Record only actual state transitions, in the same atomic write as the payment.
+  // A state transition is not evidence of a balance movement; settlement has its own audit.
+  const stateAudit = p.state !== next.state ? [audit("ZAINCASH_PAYMENT_STATE_CHANGED", "ZAINCASH_WORKFLOW", {
+    auditSchemaVersion: 2,
+    actorIdentityEvidence: "INTERNAL_PAYMENT_WORKFLOW",
+    actorSnapshot: { service: "ZAINCASH_WORKFLOW" },
+    before: { state:p.state, revision:p.revision },
+    after: { state:next.state, revision:next.revision },
+    references: { driverId:p.driverId, requestId:p.requestId, paymentId:next.paymentId || null, reference:p.reference, configRevision:p.config?.revision ?? null, transactionId:next.transactionId || null },
+    mode:p.mode, amount:p.amount, outcome:"RECORDED",
+    balanceEvidence: next.state === "SUCCESS" && p.mode === "LIVE" ? "SEE_SETTLEMENT_AUDIT" : "NO_BALANCE_MOVEMENT_BY_STATE_CHANGE",
+    reason: auditText(next.reason),
+  })] : [];
+  await gatewayIO.tx([put(next, p), ...extras, ...reviewOps, ...stateAudit]);
   return next;
 }
 export async function createGatewayPayment(driver: string, input: Row) {
@@ -882,6 +895,18 @@ async function settle(p: Row): Promise<Row> {
     await releaseActive(p),
     settledDue(p),
     audit("ZAINCASH_WALLET_CREDIT", "ZAINCASH", {
+      auditSchemaVersion: 2,
+      actorIdentityEvidence: "VERIFIED_PROVIDER_INQUIRY",
+      actorSnapshot: { provider: "ZAINCASH", mode: p.mode },
+      before: { driverWallet: walletAuditState(driver), platformWallet: walletAuditState(platform) },
+      after: { driverWallet: walletAuditState(driver,p.amount), platformWallet: walletAuditState(platform,p.amount) },
+      outcome: "RECORDED",
+      references: {
+        requestId:p.requestId, paymentId:p.paymentId, transactionId,
+        configRevision:p.config.revision,
+        settlementKey:key(`SETTLED#${p.mode}#${p.paymentId}`),
+        ledger:[driver,platform].map(w=>({walletId:w.walletId,sk:`ts#${at}#${transactionId}`})),
+      },
       requestId: p.requestId,
       paymentId: p.paymentId,
       amount: p.amount,
@@ -1320,7 +1345,7 @@ export async function recoverGatewayPayment(
   authTime: number,
   input: Row,
 ) {
-  await staff(actor, authTime);
+  const employee = await staff(actor, authTime);
   if (
     !UUID.test(input.paymentId || "") ||
     typeof input.reason !== "string" ||
@@ -1328,12 +1353,8 @@ export async function recoverGatewayPayment(
   )
     fail("أدخل معرّف العملية من بوابة الشركة وسبب المراجعة");
   await gatewayIO.tx([
-    audit("ZAINCASH_RECOVERY_CHECK_REQUESTED", actor, {
-      driverId: input.driverId,
-      requestId: input.requestId,
-      paymentId: input.paymentId,
-      reason: input.reason.trim().slice(0, 500),
-    }),
+    staffGuard(employee),
+    gatewayAdminAudit("ZAINCASH_RECOVERY_CHECK_REQUESTED",actor,employee,null,{state:"CHECK_REQUESTED",balanceEffect:"NONE"},{driverId:input.driverId,requestId:input.requestId,paymentId:input.paymentId},input.reason.trim().slice(0,500)),
   ]);
   return checkGatewayPayment(input.driverId, input.requestId, input.paymentId);
 }
@@ -1372,12 +1393,7 @@ export async function resolveUncreatedGatewayPayment(
         staffGuard(employee),
         await releaseActive(p),
         removeDue(p),
-        audit("ZAINCASH_PROVIDER_NO_PAYMENT_CONFIRMED", actor, {
-          driverId: p.driverId,
-          requestId: p.requestId,
-          reference: p.reference,
-          evidence: input.evidence.trim().slice(0, 1000),
-        }),
+        gatewayAdminAudit("ZAINCASH_PROVIDER_NO_PAYMENT_CONFIRMED",actor,employee,{state:p.state,revision:p.revision},{state:"NOT_CREATED",revision:p.revision+1,balanceEffect:"NONE"},{driverId:p.driverId,requestId:p.requestId,reference:p.reference},input.evidence.trim().slice(0,1000)),
       ],
     ),
   );
@@ -1447,10 +1463,7 @@ export async function authorizeGatewayPilot(
   await gatewayIO.tx([
     put(next, c),
     staffGuard(employee),
-    audit("ZAINCASH_LIVE_PILOT_AUTHORIZED", actor, {
-      driverIds: c.pilotDriverIds,
-      evidence: next.pilotEvidence,
-    }),
+    gatewayAdminAudit("ZAINCASH_LIVE_PILOT_AUTHORIZED",actor,employee,configAuditState(c),configAuditState(next)!,{configRevision:next.revision,driverIds:c.pilotDriverIds},next.pilotEvidence),
   ]);
   return gatewaySettings();
 }

@@ -1,0 +1,79 @@
+{
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED_AUTHENTICATED_ACCEPTANCE_PENDING",
+  "tests": {
+    "count": 12,
+    "result": "PASS",
+    "coverage": [
+      "Audit permission and global scope",
+      "No DB access for invalid requests",
+      "UTC date partition queries with 31-day bound",
+      "Bounded filtered pagination and source/filter-bound cursors",
+      "Legacy rows without secondary-index attributes",
+      "Secret redaction and unchanged financial values",
+      "UI source/date/reference selection and paging",
+      "Reject response after session changes"
+    ]
+  },
+  "backend": {
+    "route": "GET /staff/audit?source=WALLET_AUDIT",
+    "reads": "staging-AuditLog",
+    "method": "Query by datePartition, never Scan",
+    "package": "/private/tmp/audit-504/candidate.zip",
+    "unrelatedEntriesPreserved": true
+  },
+  "frontend": {
+    "files": [
+      "frontend/audit-trail.js",
+      "frontend/pages/audit-trail.html"
+    ],
+    "features": [
+      "Source switch preserving existing staff view",
+      "Financial date and reference filters",
+      "Actor before/after and financial references",
+      "Explicit continuation and financial-action-only coverage"
+    ]
+  },
+  "deploymentNeeds": {
+    "permission": "dynamodb:Query",
+    "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AuditLog",
+    "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+    "environment": {
+      "FINANCIAL_AUDIT_TABLE": "staging-AuditLog"
+    },
+    "approval": "APPROVED_BY_USER_AND_APPLIED"
+  },
+  "hosting": {
+    "job": "262",
+    "baseJob": "261",
+    "status": "SUCCEED",
+    "sourceArchive": "Original DEPLOY artifact recovered; VERIFY artifact was unavailable",
+    "changedFiles": [
+      "audit-trail.js",
+      "pages/audit-trail.html"
+    ],
+    "allOtherEntriesPreserved": true
+  },
+  "limitations": [
+    "No merged cross-source chronological stream: each selected source has its own pagination",
+    "No historical backfill or invented actor names",
+    "No browser visual acceptance or live authenticated query yet",
+    "No real financial mutation performed"
+  ],
+  "next": [
+    "Authenticated administrator acceptance: choose financial source, select period and inspect known transfer/payment references",
+    "Check financial references against originating ledger/payout documents without changing balances"
+  ],
+  "deployment": {
+    "function": "staging-wizz-staff-service",
+    "codeSha256": "ewnWHKZRAsgDYHYJ7WLznlXo8CiU96tN29V0P5chHTg=",
+    "status": "Successful",
+    "environmentPreservedExceptApprovedAddition": true,
+    "iamPolicy": "FinancialAuditRead504",
+    "permissionCheck": {
+      "dynamodb:Query": "allowed",
+      "dynamodb:PutItem": "implicitDeny",
+      "dynamodb:DeleteItem": "implicitDeny"
+    },
+    "unauthenticatedInvocation": 401
+  }
+}

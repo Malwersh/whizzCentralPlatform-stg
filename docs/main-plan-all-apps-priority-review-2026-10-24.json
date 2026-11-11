@@ -1174,9 +1174,9 @@
         "MERCHANT"
       ],
       "name": "سجل العمليات والفشل والقيم قبل/بعد وهوية الموظف التاريخية",
-      "currentStatus": "STAFF_FUNDING_AND_DRIVER_PAYOUT_AUDIT_358_359_360_HARDENED_REMAINING_SOURCE_COVERAGE_OPEN",
+      "currentStatus": "FINANCIAL_AUDIT_SOURCES_500_507_PUBLISHED_HUMAN_ACCEPTANCE_OPEN",
       "priority": "P0-OPS",
-      "remaining": "تحديثات 358–360 توثق سجل الإدارة والشحن اليدوي وحدود المحفظة وصرف السائق. سجل الصرف يثبت هوية المسؤول أو السائق من المصدر الموثق، الحالة والمتاح والمحجوز قبل/بعد ومراجع قيود المحفظة وسند الصندوق ضمن المعاملة نفسها. تبقى سجلات التحويل والبوابات والمصادر المستقلة وعرض مصادر المحفظة المصرّح وتغطية الفشل والقبول البشري. صفحة سجل الإدارة STAFF_AUDIT_ONLY ولا تدعي جمع سجل المحافظ.",
+      "remaining": "نُشرت سجلات التحويل وزين كاش وعرض سجل الإدارة وسجل المحافظ والدفع بمصادر منفصلة وتصفح مستقل، مع عرض عربي للتغييرات وهوية المنفذ التاريخية عند توثيقها. تبقى مراجعة تغطية جميع المصادر والفشل والسجلات القديمة والقبول البشري؛ لا يدعي العرض دمج جميع المصادر في ترتيب زمني واحد.",
       "sourceOrEvidence": [
         "docs/merchant-staff-settlements-verification-259.json",
         "docs/merchant-onboarding-branches-staff-transition-plan.md",
@@ -1196,19 +1196,21 @@
         "ADMIN"
       ],
       "name": "المطابقة المالية والنقد والالتزامات وصافي إيراد المنصة",
-      "currentStatus": "MODERN_WALLET_RECONCILIATION_AND_CORRECTION_POSITIONS_PUBLISHED_HUMAN_REVIEW_OPEN",
+      "currentStatus": "RECONCILIATION_SOURCE_COVERAGE_508_PUBLISHED_HUMAN_REVIEW_OPEN",
       "priority": "P0-OPS",
       "remaining": "اختبار قراءة بشري من صفحة المحافظ والمطابقة وحسابات الشركة، ومراجعة الفروق الافتتاحية أو الحركات غير المصنفة بإثباتات أصلية؛ لا إصلاح آلي. الفحص الحالي محدود الحجم وغير ذري ولا يثبت وحده اكتمال تدقيق كل مصادر النقد أو الفترة المالية.",
       "sourceOrEvidence": [
         "backend/wallet-service/src/reconciliation.ts",
         "docs/finance-plan-reconciliation-2026-10-20.json",
         "docs/reconciliation-implementation-354.json",
-        "docs/reconciliation-publication-354.json"
+        "docs/reconciliation-publication-354.json",
+        "docs/reconciliation-source-coverage-508.json"
       ],
       "freshRuntimeAuditRequired": false,
       "humanAcceptanceSeparate": true,
       "runtimeEvidence": "docs/reconciliation-publication-354.json",
-      "automatedTests354": 76
+      "automatedTests354": 76,
+      "automatedTests508": 57
     },
     {
       "id": "A08",
@@ -1340,12 +1342,15 @@
         "ALL"
       ],
       "name": "الإشعارات التشغيلية والمالية وأحداثها ومنع تكرارها وتوجيهها",
-      "currentStatus": "PARTIAL_EVENT_COVERAGE_ACCEPTANCE_OPEN",
+      "currentStatus": "SOURCE_AUDIT_510_58_TESTS_PASS_EVENT_MATRIX_RUNTIME_OPEN",
       "priority": "P0-OPS",
-      "remaining": "حصرحدثقبول/إلغاء/حجز/تحرير/مرتجع/شكوى/قرار/صرف وتوجيههوالمخول؛ فحصالخلفيةعلىالأجهزةيأتيلاحقًا",
+      "remaining": "ثبت غياب إنشاء إشعار للزبون ضمن معاملة طلب استكمال معلومات الشكوى وقراراتها وإغلاقها. يبدأ التنفيذ بهذا المسار مع التوجيه الموثق وحواجز الحساب، ثم استكمال إثبات إشعارات المرتجعات والتعويضات وصرف المطعم ومطابقة النشر. 58 اختبارًا ناجحًا للمسارات الحالية؛ القبول الفعلي للأجهزة مؤجل.",
       "sourceOrEvidence": [
         "docs/delivery-financial-notification-validation-155.json",
-        "docs/reception-notification-permissions-99.json"
+        "docs/reception-notification-permissions-99.json",
+        "docs/customer-unified-notifications-494.json",
+        "docs/notification-coverage-audit-510.json",
+        "docs/notification-event-matrix-511.json"
       ],
       "freshRuntimeAuditRequired": true,
       "humanAcceptanceSeparate": true
@@ -3834,10 +3839,10 @@
     "next": "Transfer/provider audit and authorized wallet audit source presentation"
   },
   "userRequestedPauseAfter360": {
-    "status": "PAUSED_BY_USER",
+    "status": "RESUMED_BY_USER",
     "lastCompleted": "DRIVER_PAYOUT_AUDIT_360",
     "resumeAt": "Transfer/provider audit and authorized wallet audit source presentation within A06",
-    "currentDiscussion": "Customer home composition and central merchandising; discussion/read-only inspection only, no implementation authorized"
+    "currentDiscussion": "Operational A06 resumed: transfer/provider audit; latest implementation documented in docs/transfer-provider-audit-500.json"
   },
   "customerHomeReadOnlyDiscussion": {
     "status": "DISCUSSION_ONLY_NO_IMPLEMENTATION",
@@ -3859,5 +3864,837 @@
     "operationalPlanStillPausedAfter360": true,
     "noCopiedBrandAssets": true,
     "noGoldTextOnWhite": true
+  },
+  "customerDiscountExperience427": {
+    "status": "audit_complete_pending_implementation",
+    "evidence": "docs/customer-discounts-audit-427.json",
+    "priority": "User-requested current work",
+    "checkoutSplit": "deferred until unified discount flow is complete; contact/address then invoice/payment"
+  },
+  "checkoutTwoStep428": {
+    "status": "implemented_customer_release_391",
+    "evidence": "docs/checkout-two-step-428.json",
+    "humanTest": "pending delivery and payment round trip, retain selections and send cash order",
+    "discountAutoSelection": "separate pending task 427",
+    "refinement429": {
+      "status": "implemented",
+      "evidence": "docs/checkout-simplification-429.json",
+      "release": 392
+    }
+  },
+  "discountRuntimeFix430": {
+    "status": "deployed_staging",
+    "evidence": "docs/discount-runtime-fix-430.json",
+    "humanRetry": "passed: user confirmed application"
+  },
+  "checkoutNavigationPerformance431": {
+    "task": 431,
+    "date": "2026-11-04",
+    "status": "release_installed_pending_human_validation",
+    "changes": [
+      "Cart joins point-invoice warmup directly without a preceding redundant delivery preview.",
+      "Valid near-expiry invoice is reused for navigation; background warmup handles renewal without extending server expiry.",
+      "Checkout warms point invoices every 15 seconds only while foreground/current and idle.",
+      "Address acceptance no longer waits for quote and offers requests; binding quote invalidated only when address ID changes.",
+      "Address initialization loads pricing and offers concurrently; removed duplicate auto-application because offer loading already invokes it."
+    ],
+    "preserved": [
+      "Exact basket, location, account and promotion cache scoping",
+      "Address-specific final delivery quote",
+      "Authoritative final commercial review and changed-total approval"
+    ],
+    "validation": {
+      "flutter_tests": 32,
+      "build": 395,
+      "device": "Release 395 installed and launched on iMohammed"
+    },
+    "limitations": [
+      "This change removes client-side duplicate waits. Server route/pricing latency still exists when a fresh calculation is genuinely required.",
+      "No server deployment or shared cross-request authentication cache introduced."
+    ]
+  },
+  "beforePreparationCancellation433": {
+    "part": 433,
+    "status": "PUBLISHED_VERIFIED",
+    "customerOrderNumber": "ORD1793841722443",
+    "orderId": "46d83601-4ae1-5144-894a-b24a51522f69",
+    "caseId": "OEX:45e7379e901e55499a043fb5d271422b0c7820914c0e4e70",
+    "currentOrder": {
+      "status": "cancelled",
+      "customerFeeIqd": 0,
+      "driverFare": "NOT_APPLICABLE",
+      "merchantCompensation": "REVIEW",
+      "settlementStatus": "REVIEW",
+      "operationId": "a935e3b8-82c0-42df-80cb-d33881156c43",
+      "execution": "Authenticated staff API from existing browser session; no direct database mutation"
+    },
+    "policy": {
+      "immediate": "pending or confirmed; no preparation evidence, assignment or active hold",
+      "assignedOrPrepared": "review workflow preserved",
+      "race": "exact order and dispatch transaction checks; merchant preparation pins exceptionCancellation and rejects pending requests before preparation"
+    },
+    "deployments": [
+      {
+        "function": "staging-driver-financial-accept",
+        "baseSha": "LQJT1ksnJA5FEX3OepS8wy8WTQKfzVlOuBlUv/vmmcg=",
+        "sha": "d7fWv9aQk1Oc2GGFlRkqH90YY/YwwjChKb/+PbGxjnw=",
+        "configurationPreserved": true
+      },
+      {
+        "function": "order-receiver-merchant-orders-staging-v1",
+        "baseSha": "4TQy9qiDnwyXiUyI1Tte0OAJJPhRG+V6CX+1UM5TeNw=",
+        "sha": "EQoRm2HyX7na59edIM/EUIXapbfi1dYS1yfa5I+V8dU=",
+        "configurationPreserved": true
+      }
+    ],
+    "tests": {
+      "sourceCancellationAndMerchant": 21,
+      "actualFinancialBundle": 13,
+      "merchantFences": 9,
+      "typescript": "PASS",
+      "externalSyntheticTableTest": "Not executed: explicit execution guard stopped it before any AWS write; local fence tests passed."
+    },
+    "nativeCustomerRelease": 396,
+    "humanNewOrderTest": "PENDING",
+    "nativeStatus": "Release 396 installed and launched on iMohammed on 2026-11-05",
+    "deployedBytesVerified": true,
+    "dispatchJobStatus": "cancelled"
+  },
+  "merchantCancellationRealtime434": {
+    "part": 434,
+    "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED",
+    "scope": "Merchant cancellation notifications and event-driven card reconciliation",
+    "backend": [
+      "Committed exceptionCancellation changes forwarded through existing DynamoDB stream without creating a new mapping",
+      "Recipient resolved from a strongly consistent canonical order; no client-selected branch",
+      "FCM notification includes stable eventId and current case reference; stale requested references resolve to current final state",
+      "Branch-device filter preserved and missing branch-device-push dependency supplied in notification packages",
+      "Merchant order list hydrates cancellation metadata and timestamps with consistent base-table reads"
+    ],
+    "application": [
+      "Branch-scoped cancellation event refreshes order card and displays pending-review banner",
+      "Repeated event ID is ignored; cancellation does not trigger a new-order sound",
+      "Periodic order-data fetching removed from attention host, owner/employee order lists and realtime fallback; transport heartbeat and local reminder timers remain",
+      "One-time reconciliation on initial load, resume, reconnect and push/socket events; manual refresh retained",
+      "Cache detects cancellation changes even when order status/timestamp unchanged"
+    ],
+    "tests": {
+      "backend": 8,
+      "flutter": 5,
+      "simulatorBuild": 397,
+      "humanCancellationDuringPreparation": "PENDING"
+    },
+    "deployments": [
+      {
+        "function": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "baseSha": "WY1jaLYCo7Js1s39XsaSW2soz33HBhhmc6+1KtJnavE=",
+        "sha": "vUbbrs1r6Xh66Ds0dYFxbPyzHeXzqcwXXokA0lDs/qU=",
+        "configurationPreserved": true,
+        "deployedBytesVerified": true
+      },
+      {
+        "function": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+        "baseSha": "XXuF4FlEAzBvfmmpCkx3mPINRL854Z6LdnSk4WvbKUY=",
+        "sha": "hMvAxtkknthd7FhPKLx/ivzoEQcVF7tl1WTqtGXUB2k=",
+        "configurationPreserved": true,
+        "deployedBytesVerified": true
+      },
+      {
+        "function": "WaveSystem_CreateDispatchJob",
+        "baseSha": "GH3PhG+hmNT6hrBXXxIHmXwHPWqLZhRBfXIyH/ZNcCw=",
+        "sha": "Dpfz2q9BB34Zh1Aqu6PgP0FtTz4etMRsVdvIvgBmu8g=",
+        "configurationPreserved": true,
+        "deployedBytesVerified": true
+      },
+      {
+        "function": "order-receiver-merchant-orders-staging-v1",
+        "baseSha": "EQoRm2HyX7na59edIM/EUIXapbfi1dYS1yfa5I+V8dU=",
+        "sha": "Kidbf2HL5sOXBCOzKNRSWKNc+EAoR1Auk8/Z5izqofw=",
+        "configurationPreserved": true,
+        "deployedBytesVerified": true
+      }
+    ],
+    "iamChanged": false,
+    "newInfrastructure": false,
+    "testFinancialWrites": false,
+    "native": {
+      "merchantSimulator": "iPhone 16",
+      "build": 397,
+      "installed": true
+    },
+    "limitations": [
+      "Real foreground/background push receipt and latency require a new genuine test order; provider ACK alone is not device-receipt proof."
+    ]
+  },
+  "merchantCancellationDelivery435": {
+    "status": "PUBLISHED_STAGING",
+    "evidence": "docs/merchant-cancellation-realtime-435.json",
+    "remaining": "Confirm genuine device receives notification and card moves to cancelled without manual refresh"
+  },
+  "merchantCancellationSocket437": {
+    "status": "PUBLISHED_STAGING",
+    "evidence": "docs/merchant-cancellation-socket-437.json",
+    "remaining": "Human live cancellation card move without tab navigation"
+  },
+  "liveDriverTracking438": {
+    "feature": "liveDriverTracking438",
+    "date": "2026-11-05",
+    "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_TRIP_PENDING",
+    "scope": "Customer order tracking redesign and real GPS delivery tracking after pickup only",
+    "customerBuild": "Release 401 installed and launched on iMohammed",
+    "driverBuild": "Release 402 installed on iMohammed",
+    "behavior": [
+      "Real driver GPS published through authenticated existing location endpoint",
+      "Customer ownership and current driver assignment checked on server",
+      "Sharing restricted to pickup-to-delivery phases; stale samples rejected",
+      "WebSocket location messages animate marker without fetching invoice or order per GPS point",
+      "Actual road route when routing service is available; no simulated movement or invented ETA",
+      "Compact progress, driver information and expandable order details; no direct chat added"
+    ],
+    "deployment": [
+      "DriversApi-staging",
+      "WizzUser-WebSocketSendUpdate-staging",
+      "WizzUser-WebSocketDefault-staging"
+    ],
+    "permissions": "Dedicated LiveTripTracking438 policies: invoke existing sender; scoped live-state read and connection-index query; existing route secret reference read. No financial permissions added.",
+    "validation": {
+      "backendVisibilityAndScopeTests": 14,
+      "identityAndVisibilityTests": 22,
+      "customerFlutterTests": 8,
+      "builds": "Customer iOS release 401 and driver iOS release 402 succeeded",
+      "runtime": "Ended order tracking event safely skipped; deployed package bytes verified"
+    },
+    "limits": [
+      "Real moving trip and locked-screen background GPS need human validation",
+      "Existing order-status fallback polling unchanged; GPS delivery uses WebSocket events",
+      "Route is pickup-to-destination road geometry; ETA remains existing server order estimate"
+    ],
+    "pendingHumanTests": [
+      "Pickup real test order and observe driver marker movement",
+      "Lock driver device and verify fresh background updates",
+      "Reconnect customer screen and verify last fresh point",
+      "Complete/cancel/unassign and verify sharing stops",
+      "Verify no tracking for another customer or before pickup"
+    ],
+    "dataSafety": "No orders, settlement records or financial data created or modified for tracking tests."
+  },
+  "trackingSimulation439": {
+    "feature": "trackingSimulation439",
+    "date": "2026-11-05",
+    "status": "OFFLINE_SIMULATION_VERIFIED_DRIVER404_INSTALLED_LAUNCHED",
+    "tests": {
+      "driver": 4,
+      "customer": 4,
+      "backend": 6
+    },
+    "validated": [
+      "Driver GPS stream movement, throttling, stationary heartbeat and cancellation of publication after delivery",
+      "Native AppleSettings explicitly enable background updates and prevent automatic GPS pause",
+      "Customer marker interpolates between simulated points, ignores foreign driver and older sample, clears after delivery",
+      "Worker simulated canonical-read flow discovers owner connection and carries road route; no publication before pickup or after terminal status; cancellation during route resolution prevents delivery",
+      "Staging fixed driver override avoids physical GPS and permission lookup; existing identity/nonproduction guards verified"
+    ],
+    "correction": "Build404 uses config/staging-test-driver.json. Trip tracking now respects same scoped staging fixed-location mode as home/search; no American physical GPS published for the Iraqi trial account.",
+    "testPosition": {
+      "latitude": 31.913292,
+      "longitude": 44.476014,
+      "driverId": "34d8e408-1021-7076-6055-7325644f97cb"
+    },
+    "limits": [
+      "Tests use injected GPS streams, maps and cloud clients; not a network end-to-end moving order test",
+      "No actual locked-iPhone background delivery claimed; static test profile is intentionally stationary",
+      "Real background GPS cannot be proven solely by unit tests; keep physical moving/locked-screen test pending"
+    ],
+    "dataSafety": "No synthetic live orders, production GPS writes, offers, wallet or settlement changes. No new backend deployment needed for test additions."
+  },
+  "trackingDesign442": {
+    "feature": "trackingDesign442",
+    "date": "2026-11-05",
+    "status": "CUSTOMER_RELEASE405_INSTALLED_LAUNCHED",
+    "changes": [
+      "Camera follows received driver location at zoom17 tilt45 north-up; manual map touch suspends following; recenter resumes it",
+      "Google normal road map and available building rendering; no guarantee of 3D building coverage in Iraq",
+      "Delivered state replaced duplicate timeline and old success panel with compact success hero and clear rating/home/support actions",
+      "Arabic vehicle type, omit pending/unknown registration placeholders",
+      "Rating screen soft background, navy typography, gold stars and submit action, separate merchant and driver scores; existing owner checks and save semantics preserved"
+    ],
+    "validation": {
+      "flutterTests": 17,
+      "cases": "Marker movement regression, rating identity/save/read-only/error behavior, narrow RTL rating layout at text scale1 and2, tracking progress layout",
+      "analyzer": "No errors; existing tracking-screen warnings/style infos remain",
+      "iosBuild": "Release405 successful; installed and launched iMohammed"
+    },
+    "limits": [
+      "Native perspective and follow camera require visual confirmation on next active trip; latest order already delivered",
+      "No new synthetic GPS or financial mutations in this design step"
+    ],
+    "source": "https://developers.google.com/maps/documentation/android-sdk/views?hl=en"
+  },
+  "trackingMarkers443": {
+    "feature": "trackingMarkers443",
+    "date": "2026-11-05",
+    "status": "CUSTOMER_RELEASE406_INSTALLED_DEVICE_LOCKED_LAUNCH_PENDING",
+    "implementation": [
+      "Transparent 3D-look raster sedan or scooter marker selected from order.vehicleType; unknown type keeps navigation fallback",
+      "Driver heading derived from successive movements; billboard marker avoids flattening the 3D-look image with map tilt",
+      "Customer home marker; restaurant logo loaded once per store with bounded decode and timeout; storefront fallback",
+      "Existing location ownership checks and server lifecycle unchanged"
+    ],
+    "assets": [
+      "frontend/assets/images/tracking-car-3d-443.png",
+      "frontend/assets/images/tracking-scooter-3d-443.png"
+    ],
+    "assetGeneration": {
+      "skill": "imagegen",
+      "mode": "built-in",
+      "promptSet": [
+        "Single top-down miniature delivery sedan, front north; navy #00296B and gold #FDC500 accents; realistic 3D render; transparent; no text/frame/road.",
+        "Single top-down delivery scooter with helmeted courier and cargo box, front north; navy #00296B and gold #FDC500; realistic 3D render; transparent; no text/frame/road."
+      ],
+      "alphaVerified": true
+    },
+    "validation": {
+      "movementAndSampleTests": 2,
+      "flutterAnalyze": "No errors, style infos only",
+      "releaseBuild": 406
+    },
+    "limitations": [
+      "3D-look bitmap markers, not interactive 3D models",
+      "Vehicle type uses current order API field; no backend driver profile migration in this visual change",
+      "Visual review of assets on active native map pending user"
+    ],
+    "backendChanges": false
+  },
+  "realtimeTokenRenewal444": {
+    "feature": "realtimeTokenRenewal444",
+    "date": "2026-11-05",
+    "status": "CUSTOMER_RELEASE407_INSTALLED_LAUNCHED_VISIBLE_SIMULATION_DELIVERING",
+    "rootCause": "Authenticated order WebSocket reused cached ID token without asking SessionService to refresh the access/ID pair. Reopening app could replay expired identity scope.",
+    "fix": "Await existing SessionService.getToken before reading current subject and ID token. Failed refresh never falls back to an authenticated guest connection. Existing server ownership/expiry fences unchanged.",
+    "verification": {
+      "flutterTests": 6,
+      "analyzer": "No errors",
+      "iosBuild": 407,
+      "runtime": "After new build and reopening tracking, first four simulated movement events acknowledged by one current authorized customer connection."
+    },
+    "orderId": "02e63a23-d3f5-5da7-801a-c401e903ebbf",
+    "scope": "No server changes, no financial writes or saved GPS mutations",
+    "limitations": "Regression tests cover identity/model/map; actual refresh proven by renewed runtime connection and delivered events, not a new isolated refresh-service test."
+  },
+  "driverRatingFreshness445": {
+    "feature": "driverRatingFreshness445",
+    "date": "2026-11-05",
+    "status": "DRIVER_RELEASE408_INSTALLED_LAUNCHED",
+    "finding": "MoreTab retained its initial profile while account details fetched a newer profile; both use same DriverService and one-decimal formatting. Canonical profile read customerRating4.2 customerRatingCount5.",
+    "fix": [
+      "Refresh profile silently after account-details route returns",
+      "Refresh on app resume, no periodic polling",
+      "Request generation guard prevents older response overwriting latest; silent failure keeps visible profile"
+    ],
+    "tests": 14,
+    "regression": "Lifecycle resume replaces old4.3 with current4.2",
+    "build": "Release408 using scoped staging-test-driver.json; fixed Iraqi trial coordinates preserved",
+    "mutations": "No ratings or profile records modified"
+  },
+  "customerAccountAudit446": {
+    "status": "Audit completed; fixes pending",
+    "report": "customer-account-audit-446.json",
+    "testsPassed": 20,
+    "firstPriority": "Protect customer profile reads and enforce account ownership",
+    "next": "Replace simulated notification/country settings; synchronize account identity and honest language/wallet behavior"
+  },
+  "customerAccountImplementation447": {
+    "status": "in_progress",
+    "scope": "Complete customer My Account audit findings",
+    "phases": [
+      {
+        "id": 1,
+        "priority": "P0",
+        "name": "Profile authorization and identity isolation",
+        "status": "staging_deployed; negative live checks passed; authenticated device acceptance pending",
+        "acceptance": [
+          "Reject anonymous, revoked, other-owner and deletion-locked reads",
+          "Refresh access token before profile requests",
+          "Ignore response if account changed",
+          "Verify staging negative access without reading another account"
+        ]
+      },
+      {
+        "id": 2,
+        "priority": "P1",
+        "name": "Profile freshness after edit and phone verification",
+        "status": "local_implemented; analyzer passed; device acceptance pending",
+        "acceptance": [
+          "Refresh on return without polling",
+          "Clear profile when identity changes",
+          "Consistent name and phone aliases",
+          "Visible retry on load failure"
+        ]
+      },
+      {
+        "id": 3,
+        "priority": "P1",
+        "name": "Real notification preferences",
+        "status": "implemented_and_deployed_staging; device round-trip and real delivery acceptance pending",
+        "acceptance": [
+          "Persist account-scoped preferences through guarded endpoint",
+          "Restore saved values",
+          "Respect settings in actual notification paths",
+          "No synthetic success; clear failure and guest behavior"
+        ],
+        "implementation": [
+          "Account-bound notification settings GET/PUT with refreshed access token and 15 second timeout",
+          "Fresh-owner check before applying network response; false is persisted as false",
+          "Preference write validates booleans, preserves existing settings and atomically checks lifecycle/ownership",
+          "Campaign sender excludes opted-out customers and rechecks immediately before sending",
+          "Order sender strips alerts/sounds when disabled while retaining silent tracking data",
+          "Foreground notice respects saved account settings",
+          "Sound/permissions link uses OS app settings; no fake sound/vibration/newsletter/reminder controls",
+          "Preference refresh does not block push listener or token registration"
+        ],
+        "humanTests": [
+          "Save each preference off and reopen screen",
+          "Turn it back on and verify restored server value",
+          "Confirm no marketing push when disabled, and delivery when enabled",
+          "Confirm order alerts off keeps live tracking but removes alert/sound",
+          "Check iPhone and Android OS permission/settings link"
+        ],
+        "remainingIntegrationAudit": [],
+        "consentUnification449": {
+          "status": "implemented_and_deployed_staging",
+          "source": "Shared effective consent contract for profile read/write, preferences write and campaign sender",
+          "legacyConflict": "Explicit refusal wins; no bulk updates or automatic opt-in",
+          "writes": "Explicit choice updates both fields atomically; whole-map snapshot condition prevents overwriting concurrent preferences",
+          "ui": "Personal information links to notification settings; name/date saves omit consent and newsletter fields",
+          "build": "Customer Release410 installed and launched on iMohammed",
+          "tests": 57,
+          "liveAuthSmokeChecks": 6,
+          "remaining": [
+            "Manual real-account save/reopen and real notification delivery on Android/iPhone"
+          ]
+        }
+      },
+      {
+        "id": 4,
+        "priority": "P2",
+        "name": "Country and language honesty",
+        "status": "implemented; 40 automated tests passed; Release411 installed and launched on iMohammed 2026-11-07; human acceptance pending",
+        "acceptance": [
+          "Replace simulated country change with actual service-country/address flow",
+          "Do not claim whole-app language change before localization works",
+          "Persist supported preference for guest and account where applicable"
+        ],
+        "report": "customer-country-language-phone-450.json",
+        "implementation": [
+          "Iraq-only real country and current delivery region flow",
+          "Arabic ar_IQ only until complete additional-language localization",
+          "One Iraqi phone normalization and entry component across customer account/auth/checkout and wallet paths; no silent truncation or fabricated numbers"
+        ],
+        "humanTests": [
+          "Verify phone field readable RTL/+964 in login, account verification and delivery step",
+          "Use real region chooser from Account > Country and region; verify home sees same selection",
+          "Verify canonical phone survives OTP and checkout end-to-end without creating a duplicate identity",
+          "Android device acceptance remains deferred in main plan"
+        ],
+        "phoneChange451": {
+          "status": "implemented_and_deployed_staging; Release412 installed and launched on iMohammed; real OTP acceptance pending",
+          "tests": 59,
+          "report": "customer-phone-change-451.json",
+          "humanTests": [
+            "Open My Account > Change phone after old session: actual current number appears without forced login",
+            "When required confirm ownership of current phone, return to same account, then OTP to new phone",
+            "Verify profile shows new phone and next login with new number returns same orders/wallet",
+            "Check duplicate-phone rejection using authorized test identities",
+            "Android physical-device OTP flow remains in deferred acceptance plan",
+            "If a number is inaccessible use support/account recovery rather than bypass ownership proof"
+          ]
+        }
+      },
+      {
+        "id": 5,
+        "priority": "P2",
+        "name": "Wallet and support navigation",
+        "status": "pending",
+        "acceptance": [
+          "Wallet text follows enabled capabilities",
+          "Guest destinations provide sign-in path",
+          "Link existing support-only conversation",
+          "No gold text on white",
+          "Support entry must use a real supported session/order scope; never invent a general chat session"
+        ]
+      },
+      {
+        "id": 6,
+        "priority": "P1",
+        "name": "Account regression and staging/device validation",
+        "status": "pending",
+        "acceptance": [
+          "Addresses default/edit/delete ownership checks",
+          "Favorites and orders correct account",
+          "Legal pages published source",
+          "Deletion status/OTP/receipt isolation without destructive production test",
+          "Document automated versus deferred human checks",
+          "Profile read authenticated owner success and profile/phone return refresh on physical device",
+          "Account deletion requests use refreshed credentials and preserve receipt ownership",
+          "Notification preference migration/marketing-consent consistency and real iOS/Android delivery tests"
+        ]
+      }
+    ],
+    "constraints": [
+      "No polling for profile freshness",
+      "No financial or destructive actions during audit validation",
+      "Preserve existing app designs and operational changes"
+    ],
+    "automatedValidation": {
+      "backendTests": 9,
+      "frontendRegressionTests": 20,
+      "analyzer": "No issues in changed account/service files",
+      "liveAnonymousRead": 401,
+      "liveInvalidTokenRead": 401
+    },
+    "deviceBuild": "Customer Release412 installed and launched on iMohammed; includes country/phone normalization and guarded phone change",
+    "next": "Wallet capability wording and support navigation under customer account plan"
+  },
+  "customerConsentUnification449": {
+    "status": "implemented_and_deployed_staging",
+    "source": "Shared effective consent contract for profile read/write, preferences write and campaign sender",
+    "legacyConflict": "Explicit refusal wins; no bulk updates or automatic opt-in",
+    "writes": "Explicit choice updates both fields atomically; whole-map snapshot condition prevents overwriting concurrent preferences",
+    "ui": "Personal information links to notification settings; name/date saves omit consent and newsletter fields",
+    "build": "Customer Release410 installed and launched on iMohammed",
+    "tests": 57,
+    "liveAuthSmokeChecks": 6,
+    "remaining": [
+      "Manual real-account save/reopen and real notification delivery on Android/iPhone"
+    ]
+  },
+  "customerCountryLanguagePhone450": {
+    "status": "implemented; 40 automated tests passed; Release411 installed and launched on iMohammed 2026-11-07; human acceptance pending",
+    "report": "customer-country-language-phone-450.json",
+    "tests": 40,
+    "next": "Wallet capability wording and support navigation, followed by account deletion credential/receipt isolation audit"
+  },
+  "customerPhoneChange451": {
+    "status": "implemented_and_deployed_staging; Release412 installed and launched on iMohammed; real OTP acceptance pending",
+    "report": "customer-phone-change-451.json",
+    "tests": 59,
+    "realOtpAcceptance": "pending",
+    "next": "Wallet capability wording and support navigation under customer account plan"
+  },
+  "customerExplorationAudit452": {
+    "status": "audit_only; implementation_pending",
+    "report": "customer-exploration-audit-452.json",
+    "next": "Modernize exploration using current location/pricing/availability sources and shared event-driven data, then focused tests and device map acceptance"
+  },
+  "customerExploration453": {
+    "phase": 453,
+    "status": "implemented_release_413_installed",
+    "changes": [
+      "Explore uses home region catalog and selected browsing delivery point; no independent GPS permission or Baghdad fallback",
+      "Removed Explore status/product polling and repeated menu refresh; store opens shared current menu flow",
+      "Uses destination/account scoped StorefrontPricing display cache; first four previews warmed, remaining requested explicitly",
+      "Preserves search and availability/rating filters on catalog updates; marker selection can reset without clearing filters",
+      "White rounded draggable results sheet, RTL search, navy chips, map recenter and unavailable labels; invalid coordinates excluded from markers"
+    ],
+    "validation": {
+      "analyze": "no issues",
+      "filter_tests": 4,
+      "ios_release_build": 413,
+      "device": "iMohammed installed and launched"
+    },
+    "manual_pending": [
+      "Inspect native map rendering, marker selection and sheet drag on device",
+      "Change delivery destination and confirm catalog/route fees correspond to new point",
+      "Open store and verify current menu/options and unavailable status"
+    ],
+    "note": "No backend changes or financial writes. Products are accessed through the shared store menu instead of fetching every visible menu in Explore."
+  },
+  "androidCompatibility455": {
+    "phase": 455,
+    "status": "local_android_builds_verified",
+    "native_splash": "Corrected after comparison with iOS/Flutter: driver #00509D, customer and merchant #FDC500; native Android has no logo in any app. Flutter branded splashes unchanged.",
+    "appearance": "Driver and merchant ThemeMode.system removed; all three explicitly light. iOS native UIUserInterfaceStyle light.",
+    "customer_name": "Wizz; confirmed colleague source changed manifest label to وزز لتوصيل الطعام; that hunk not imported.",
+    "driver_account": "Transient API/transport/malformed-profile errors route to retry, not profile creation; no global sign-out on HTTP access failure. Confirmed missing profile and signed-out sessions retain guarded flows.",
+    "maps": {
+      "inspection": "Home uses standard Google street map, no map style hiding POIs. Initial zoom changed 14 to 16.",
+      "android_renderer_test": "Pixel_4 emulator rendered streets and landmarks successfully with existing native configuration. Standalone manual map diagnostic, not a driver account/dispatch test.",
+      "full_app": "Default main.dart current driver build installed and launched on emulator afterward; no real OTP submitted.",
+      "colleague_build": "Not proven; teammate unavailable. Source changes signing certificate, requires SHA-1 / Maps auth log if reproducible in new build."
+    },
+    "validation": {
+      "driver_tests": 19,
+      "driver_debug_build": "passed, corrected splash; release rebuild pending",
+      "customer_debug_build": "passed, current staging configuration; version 4005 installed preserving app data",
+      "merchant_debug_build": "passed",
+      "driver_release_build": "passed 4006; emulator installation pending insufficient storage"
+    },
+    "chat_review": "Separate initial inventory saved; no mixed PR merged or deployed."
+  },
+  "androidIosParity456": {
+    "phase": 456,
+    "native_splash": {
+      "driver": "#00509D matched iOS LaunchScreen and Flutter SplashPage",
+      "customer": "#FDC500 matched iOS LaunchScreen and Flutter SplashScreen",
+      "merchant": "#FDC500 matched iOS LaunchScreen and Flutter SplashScreen",
+      "logo": "none in Android native startup; existing Flutter logo unchanged"
+    },
+    "customer_emulator": {
+      "before": 4004,
+      "after": 4005,
+      "installed": true,
+      "data_preserved": true,
+      "target": "lib/main.dart in wizzuser-stg/frontend, same shared Flutter UI source as iOS",
+      "staging_defines": "same defines file used by current iOS release builds",
+      "visual_check": "Confirmed current three strips, personalized greeting, discovery sections and floating navigation via screenshot /private/tmp/android456-current-customer.png"
+    },
+    "checks": "Android day/night/pre-12/12+ backgrounds match each app; all three debug builds passed",
+    "driver_release": "Release 4006 build passed (84.5MB); install blocked by emulator INSUFFICIENT_STORAGE; second AVD launch blocked by host disk capacity. Existing apps/data not deleted."
+  },
+  "guestAccountDesign457": {
+    "phase": 457,
+    "status": "implemented_tests_passed",
+    "changes": [
+      "Guest account uses compact navy heading, pale avatar and a single gold login action with navy text",
+      "Secondary registration link; favorites/wallet/orders share the same shortcut component as the signed-in account",
+      "Removed old oversized yellow guest card, unsupported special-offer copy and duplicate guest menu entries",
+      "Existing navigation/authentication callbacks retained"
+    ],
+    "validation": {
+      "flutter_tests": 4,
+      "sizes": [
+        320,
+        390
+      ],
+      "text_scale": 1.5,
+      "analyze": "no issues",
+      "android_release": "4006 built and installed on emulator-5554 preserving data",
+      "visual_check": "Verified new guest account screen on Android emulator, screenshot /private/tmp/guest457-final3.png"
+    },
+    "files": [
+      "frontend/lib/widgets/account_overview.dart",
+      "frontend/lib/screens/improved_account_screen.dart",
+      "frontend/test/guest_account_457_test.dart"
+    ]
+  },
+  "interfaceConnectionCleanup458": {
+    "phase": 458,
+    "date": "2026-11-08",
+    "changes": [
+      "Hide wallet, favorites and orders shortcuts for guests; retain authenticated shortcuts",
+      "Remove customer orders transport pill and connection bar and tracking connection icon",
+      "Disable driver DEBUG banner explicitly",
+      "Remove merchant floating chat transport dot and hide routine healthy chat transport bar; retain actionable failures",
+      "Preserve merchant business availability controls and realtime subscriptions"
+    ],
+    "verification": {
+      "accountWidgetTests": 4,
+      "customerAndroidRelease": 4007,
+      "driverAndroidRelease": 4007,
+      "customerAndDriverInstalledOn": "emulator-5554",
+      "driverVisualCheck": "No DEBUG banner; Google Maps landmarks rendered",
+      "merchantAndroidDebugBuild": "passed",
+      "staticAnalysis": "No errors in inspected customer and merchant files; existing warnings and lint info remain",
+      "physicalDeviceUpdated": false
+    }
+  },
+  "exploreAndroidMap459": {
+    "phase": 459,
+    "date": "2026-11-08",
+    "cause": "Android customer native Maps SDK key rejected with INVALID_ARGUMENT and Authorization failure",
+    "fix": "Use existing customer iOS Maps SDK key for customer Android native SDK; no Cloud restrictions or signing changed",
+    "verification": {
+      "androidRelease4008": "built and installed on emulator-5554; Explore visually rendered streets, landmarks, restaurant logos and destination marker",
+      "filterTests": 4,
+      "iosRelease415": "built, installed and launched on iMohammed B8850CE6-BCC2-551D-B930-3E108456B23F"
+    },
+    "scope": "Native Android map authorization only; pricing, realtime and business logic unchanged"
+  },
+  "githubColleagueReview460": {
+    "status": "review_only_no_application_import_no_merge_no_deployment",
+    "report": "docs/github-colleague-review-460.json",
+    "humanReport": "docs/github-colleague-review-460.txt",
+    "sourceTestsPassed": 231,
+    "applicationChanges": false,
+    "next": "Isolated support-only proposal; preserve financial/auth/operational baseline and re-test exact integration before approval"
+  },
+  "supportFeatureGapAudit461": {
+    "status": "AUDIT_ONLY_NO_INTEGRATION",
+    "report": "docs/support-feature-gap-audit-461.json",
+    "currentTestsPassed": 28,
+    "next": [
+      "Map active deployed support gateway/functions and existing attachment/receipt contracts",
+      "Fix merchant chat adapter first without replacing general authentication",
+      "Add private attachment UI and isolated drafts to existing customer/driver services",
+      "Run integration tests across owner changes, reconnect, lost ACK, image authorization and support staff reply"
+    ],
+    "integrationPerformed": false,
+    "followup": "docs/support-chat-selective-implementation-462.json"
+  },
+  "supportChatSelectiveImplementation462": {
+    "status": "IMPLEMENTED_IOS_BUILT_INSTALLED_LIVE_ACCEPTANCE_PENDING",
+    "report": "docs/support-chat-selective-implementation-462.json",
+    "testsPassed": 215,
+    "backendChanged": false,
+    "installed": [
+      "Customer signed Release416 built and installed iMohammed",
+      "Driver signed Release367 built and installed iMohammed",
+      "Merchant debug simulator build installed and launched on booted iPhone16"
+    ],
+    "pendingHumanAcceptance": [
+      "From merchant selected branch: send text and JPEG/PNG; verify staff reply and private image view",
+      "Customer order complaint: send text/image, receive staff reply, leave/reopen draft and history",
+      "Driver More/support: text/image and staff reply; reconnect and explicit uncertain-send retry",
+      "Verify sign-out/branch switch while chat/upload open on devices",
+      "Merchant outbox is in-process pending state; persisted checkpoint includes session/draft, not a full offline message queue. No offline auto-send."
+    ],
+    "next": "Run the three-app support acceptance with central agent; preserve main operational plan position. No global branch merge."
+  },
+  "customerExploreFilters476": {
+    "status": "implemented-tested",
+    "report": "docs/customer-explore-filters-476.json",
+    "testsPassed": 22,
+    "humanChecks": "pending as listed in report"
+  },
+  "customerCheckoutOfferAudit483": {
+    "report": "docs/customer-checkout-offer-audit-483.json",
+    "status": "implemented-simulator-435-human-eligibility-cycle-pending",
+    "verification": "39 Flutter tests and 24 backend tests passed",
+    "next": "Verify eligible real-account automatic delivery entitlement, removal, and final order flow."
+  },
+  "customerOfferRecovery487": {
+    "status": "implemented-device-validation-pending",
+    "report": "customer-offer-recovery-487.json"
+  },
+  "customerUnifiedNotifications494": {
+    "report": "docs/customer-unified-notifications-494.json",
+    "status": "PUBLISHED_STAGING_DEVICE_ACCEPTANCE_PENDING",
+    "next": "Real-device foreground/background/cold-start acceptance of order/campaign/support; customer notification screen design after acceptance"
+  },
+  "merchantBranchReceipts498": {
+    "status": "IMPLEMENTED_LOCAL_SIMULATOR_BUILD_HARDWARE_ACCEPTANCE_PENDING",
+    "evidence": "docs/merchant-branch-receipts-498.json",
+    "remaining": [
+      "Preview both receipts and sizes from a real order without printer.",
+      "Configure a compatible LAN ESC/POS printer for branch; test print.",
+      "Accept manually/automatically/as employee with app active; verify one kitchen and one customer ticket.",
+      "Restart/reconnect and verify no duplicate same-device output.",
+      "Disconnect printer, check review label, reconnect and explicitly reprint.",
+      "Cancel printed order and check cancellation ticket.",
+      "Verify canonical order financial breakdown and paid/unpaid wording."
+    ],
+    "limitations": [
+      "No physical printer verified; paper, cut, Arabic legibility require hardware acceptance.",
+      "Device-local journal only: designate ONE printing device per branch. No cross-device lease.",
+      "App must be active and receiving order snapshots. No promise of printing while terminated.",
+      "After interrupted sending, explicit operator review/reprint required; never auto retry uncertain output.",
+      "Older accepted orders are manual after printer activation.",
+      "USB/Bluetooth/full POS integrations not implemented in this change."
+    ]
+  },
+  "merchantKitchenDisplay499": {
+    "status": "IMPLEMENTED_LOCAL_TESTS_PASSED",
+    "document": "whizzMerchants-stg/docs/kitchen-display-workflow-499.json",
+    "next": "Simulator installation and two-device end-to-end acceptance; no dedicated KDS hardware purchase required for initial test"
+  },
+  "transferProviderAudit500": {
+    "status": "PUBLISHED_STAGING",
+    "evidence": "docs/transfer-provider-audit-500.json",
+    "testsPassed": 74,
+    "financialOperationsPerformed": 0,
+    "next": "Audit remaining provider lifecycle records and consolidated audit reader",
+    "tests": 75
+  },
+  "gatewayAdministrationAudit501": {
+    "status": "PUBLISHED_STAGING",
+    "evidence": "docs/transfer-provider-audit-501.json",
+    "tests": 75,
+    "next": "Audit remaining provider lifecycle records and consolidated audit reader"
+  },
+  "gatewayLifecycleAudit502": {
+    "status": "PUBLISHED_STAGING",
+    "tests": 77,
+    "evidence": "docs/gateway-lifecycle-audit-502.json",
+    "next": "Unified authorized reader and administration display for financial audit sources"
+  },
+  "unifiedFinancialAuditReview503": {
+    "status": "AUDITED_GAPS_CONFIRMED_NO_RUNTIME_CHANGES",
+    "evidence": "docs/unified-financial-audit-review-503.json",
+    "next": "Implement read-only unified financial audit reader and administration display with bounded queries and source coverage indicators"
+  },
+  "unifiedFinancialAudit504": {
+    "status": "PUBLISHED_STAGING_BYTE_VERIFIED_AUTHENTICATED_ACCEPTANCE_PENDING",
+    "evidence": "docs/unified-financial-audit-504.json",
+    "tests": 12,
+    "next": [
+      "Authenticated administrator acceptance: choose financial source, select period and inspect known transfer/payment references",
+      "Check financial references against originating ledger/payout documents without changing balances"
+    ],
+    "hostingJob": "262"
+  },
+  "financialAuditSourceFix505": {
+    "status": "PUBLISHED_STAGING_BYTE_VERIFIED",
+    "evidence": "docs/financial-audit-source-fix-505.json",
+    "tests": 14,
+    "hostingJob": "263",
+    "codeSha256": "WeX9yO4FV8NYDg2uVAQpXTTqZv1HYiA4KKwhTfYQE1E="
+  },
+  "auditDateFeedback506": {
+    "status": "PUBLISHED_STAGING",
+    "evidence": "docs/audit-date-feedback-506.json",
+    "tests": 15
+  },
+  "auditHumanReadable507": {
+    "status": "PUBLISHED_STAGING_BYTE_VERIFIED",
+    "tests": 16,
+    "hostingJob": "265",
+    "evidence": "docs/audit-human-readable-507.json"
+  },
+  "reconciliationSourceCoverage508": {
+    "status": "PUBLISHED_STAGING",
+    "tests": 57,
+    "humanAcceptance": "OPEN",
+    "evidence": "docs/reconciliation-source-coverage-508.json",
+    "noMoneyMutation": true
+  },
+  "reconciliationFindings509": {
+    "status": "READ_ONLY_FINDINGS_REVIEW_OPEN",
+    "evidence": "docs/reconciliation-findings-509.json",
+    "financialMutations": 0,
+    "unexplainedTestDriverDifferenceIqd": 86750
+  },
+  "notificationCoverageAudit510": {
+    "evidence": "docs/notification-coverage-audit-510.json",
+    "passedTests": 58,
+    "runtimeAcceptance": "OPEN",
+    "financialMutations": 0
+  },
+  "notificationEventMatrix511": {
+    "evidence": "docs/notification-event-matrix-511.json",
+    "status": "EVENT_SOURCE_MATRIX_GAPS_IDENTIFIED",
+    "next": "Atomic complaint customer notifications; then returns and settlements"
+  },
+  "complaintNotifications512": {
+    "evidence": "docs/complaint-notifications-512.json",
+    "status": "SERVER_PUBLISHED_CLIENT_RELEASE_450_BUILT_DEVICE_ACCEPTANCE_PENDING",
+    "testsPassed": 35,
+    "published": true,
+    "iamApproved": true,
+    "backendTestsPassed": 30,
+    "financialMutations": 0,
+    "customerReleaseBuild": 450,
+    "deviceAcceptancePending": true
+  },
+  "githubHandoff513": {
+    "date": "2026-11-11",
+    "status": "REVIEW_HANDOFF",
+    "scope": "Four active staging repositories; preserve reviewed operating logic and colleague branches",
+    "branch": "integration/team-sync-20261030",
+    "reviewBranch": "feature/malwersh/bootstrap",
+    "target": "staging-main",
+    "evidence": "docs/team-handoff-20261111.json",
+    "humanAcceptancePending": [
+      "Customer complaint notification push tap on real device"
+    ]
   }
 }

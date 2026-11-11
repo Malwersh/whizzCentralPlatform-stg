@@ -1,0 +1,20 @@
+{
+  "phase": 456,
+  "native_splash": {
+    "driver": "#00509D matched iOS LaunchScreen and Flutter SplashPage",
+    "customer": "#FDC500 matched iOS LaunchScreen and Flutter SplashScreen",
+    "merchant": "#FDC500 matched iOS LaunchScreen and Flutter SplashScreen",
+    "logo": "none in Android native startup; existing Flutter logo unchanged"
+  },
+  "customer_emulator": {
+    "before": 4004,
+    "after": 4005,
+    "installed": true,
+    "data_preserved": true,
+    "target": "lib/main.dart in wizzuser-stg/frontend, same shared Flutter UI source as iOS",
+    "staging_defines": "same defines file used by current iOS release builds",
+    "visual_check": "Confirmed current three strips, personalized greeting, discovery sections and floating navigation via screenshot /private/tmp/android456-current-customer.png"
+  },
+  "checks": "Android day/night/pre-12/12+ backgrounds match each app; all three debug builds passed",
+  "driver_release": "Release 4006 build passed (84.5MB); install blocked by emulator INSUFFICIENT_STORAGE; second AVD launch blocked by host disk capacity. Existing apps/data not deleted."
+}

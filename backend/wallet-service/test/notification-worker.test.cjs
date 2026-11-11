@@ -81,3 +81,19 @@ test('driver payout notice refreshes wallet and suppresses a closing driver acco
   assert.equal(sends.length,closing?0:1);if(!closing)assert.equal(sends[0].data.action,'open_wallet');
  }
 });
+
+test('customer support notice uses user devices, opens exact conversation and carries no message content',async()=>{
+ const sends=[],notice={...item(),eventId:'CN:test',driverId:'customer',recipientApp:'user',type:'support_reply',sessionId:'conversation',orderId:'order',title:'رد من الدعم',body:'افتح المحادثة'};
+ const client={send:async c=>c.constructor.name==='UpdateCommand'&&c.input.ReturnValues?{Attributes:notice}:c.constructor.name==='QueryCommand'?{Items:[{app:'user',token:'own'},{app:'driver',token:'foreign'}]}:{}};
+ await createWorker(client,async()=>({send:async m=>sends.push(m)}),()=>1700000000000).processEvent(notice.eventId);
+ assert.equal(sends.length,1);assert.equal(sends[0].token,'own');assert.equal(sends[0].data.action,'open_support');assert.equal(sends[0].data.sessionId,'conversation');assert.equal(sends[0].data.orderId,'order');
+});
+
+test('complaint update is scoped to its customer and opens the complaint; deletion suppresses push',async()=>{
+ for(const mode of ['valid','foreign','deleted']){
+  const sends=[],notice={...item(),eventId:'CN:complaint',driverId:'customer',recipientApp:'user',type:'order_complaint_updated',target:'complaint',orderId:'order',caseId:'case',sessionId:'session'};
+  const client={send:async c=>{const q=c.input;if(c.constructor.name==='GetCommand'){if(q.TableName==='staging-Holds')return {Item:{customerId:mode==='foreign'?'other':'customer',caseId:'case',supportSessionId:'session'}};if(q.TableName==='staging-AccountDeletion')return {Item:mode==='deleted'?{pk:'closing'}:undefined};}if(c.constructor.name==='UpdateCommand'&&q.ReturnValues)return {Attributes:notice};if(c.constructor.name==='QueryCommand')return {Items:[{app:'user',token:'own'},{app:'driver',token:'foreign'}]};return {};}};
+  await createWorker(client,async()=>({send:async m=>sends.push(m)}),()=>1700000000000).processEvent(notice.eventId);
+  assert.equal(sends.length,mode==='valid'?1:0);if(sends.length){assert.equal(sends[0].data.action,'open_complaint');assert.equal(sends[0].data.orderId,'order');assert.equal(sends[0].token,'own');}
+ }
+});

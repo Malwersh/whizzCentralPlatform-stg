@@ -1,0 +1,24 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "tests": 77,
+  "typescript": "PASS",
+  "changes": [
+    "Atomic before/after payment state revision audit",
+    "Separate workflow identity from verified provider inquiry identity",
+    "State transition does not claim wallet movement; LIVE success references settlement evidence",
+    "No repeated state audit for unchanged status"
+  ],
+  "remaining": [
+    "Unified authorized reader for wallet and staff audit sources",
+    "Administration display of financial references and paging",
+    "Audit remaining funding providers"
+  ],
+  "financialMutationsPerformed": false,
+  "deployment": {
+    "function": "staging-wizz-wallet-service",
+    "codeSha256": "mkTWCjo+mI1fictiaCHoVkDCgo3zVX/EmJX0YK5Lb38=",
+    "state": "Active",
+    "lastUpdateStatus": "Successful",
+    "otherArchiveEntriesPreserved": true
+  }
+}

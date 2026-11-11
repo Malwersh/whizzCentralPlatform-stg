@@ -6,7 +6,7 @@ const {allowed}=require('./catalog');
 const KEY={pk:'CUSTOMER_INTERFACES',sk:'CURRENT'};
 const fail=(message,status=400)=>Object.assign(Error(message),{status});
 const id=v=>typeof v==='string'&&/^[-\w]{1,128}$/.test(v)&&!['__proto__','prototype','constructor'].includes(v);
-const sources={store:['menu','offers','discounted','featured','lastOrder','previousOrders','recent','curated','category','bestsellers'],product:['description','choices','notes','similar','complementary','curated','discounted','previousOrders','recent','bestsellers']};
+const sources={store:['menu','search','menuTabs','menuContent','offers','discounted','featured','lastOrder','previousOrders','recent','curated','category','bestsellers'],product:['description','choices','notes','similar','complementary','curated','discounted','previousOrders','recent','bestsellers']};
 function ids(v,max=40){if(!Array.isArray(v)||v.length>max||new Set(v).size!==v.length||v.some(x=>!id(x)))throw fail('Invalid identifiers.');return v;}
 function text(v,max=80){if(typeof v!=='string'||!v.trim()||v.length>max||/[<>\u0000-\u001f]/.test(v))throw fail('Invalid text.');return v.trim();}
 function dates(r){const values=[r.startAt||null,r.endAt||null];if(values.some(x=>x!==null&&(typeof x!=='string'||!Number.isFinite(Date.parse(x))))||(values[0]&&values[1]&&Date.parse(values[0])>=Date.parse(values[1])))throw fail('Invalid schedule.');return values;}
@@ -23,8 +23,8 @@ function section(r,surface){
  if(r.source!=='offers'&&r.offerSlot!=null)throw fail('Offer settings require offers source.');
  const offerSlot=r.source==='offers'?require('./offer-slot').validate(r.offerSlot):undefined;
  const [startAt,endAt]=dates(r);
- if(['menu','description','choices'].includes(r.source)&&(!r.enabled||r.audience!=='all'||startAt||endAt))throw fail('Required content must remain visible.');
- if(r.source==='menu'&&(layout!=='vertical'||Object.values(f).some(v=>v!==false&&v!==null)))throw fail('Full menu must remain vertical and unfiltered.');
+ if(['menu','menuTabs','menuContent','description','choices'].includes(r.source)&&(!r.enabled||r.audience!=='all'||startAt||endAt))throw fail('Required content must remain visible.');
+ if(['menu','menuTabs','menuContent','search'].includes(r.source)&&(layout!=='vertical'||Object.values(f).some(v=>v!==false&&v!==null)))throw fail('Full menu must remain vertical and unfiltered.');
  return {id:r.id,title:text(r.title),description:r.description?text(r.description,180):'',source:r.source,layout,ranking,limit:r.limit,enabled:r.enabled,audience:r.audience,deduplicate:r.deduplicate,productIds:list,categoryIds:categories,filters:f,startAt,endAt,...(offerSlot?{offerSlot}:{})};
 }
 function validate(rows){
@@ -33,17 +33,19 @@ function validate(rows){
  const target=r.target||{};if(Object.keys(target).some(k=>!['branchIds','businessTypes','cuisineIds','brandIds','regionIds'].includes(k)))throw fail('Invalid targeting.');
  const t=Object.fromEntries(['branchIds','businessTypes','cuisineIds','brandIds','regionIds'].map(k=>[k,ids(target[k]||[])]));
  if(!Array.isArray(r.sections)||r.sections.length>16)throw fail('Maximum 16 sections.');const sections=r.sections.map(s=>section(s,r.surface));if(new Set(sections.map(s=>s.id)).size!==sections.length)throw fail('Duplicate sections.');
- for(const required of r.surface==='store'?['menu']:['description','choices'])if(sections.filter(s=>s.source===required).length!==1)throw fail('Required content missing/duplicated.');
+ for(const required of r.surface==='store'?(sections.some(s=>s.source==='menu')?['menu']:['menuTabs','menuContent']):['description','choices'])if(sections.filter(s=>s.source===required).length!==1)throw fail('Required content missing/duplicated.');
+ if(r.surface==='store'&&(sections.filter(s=>s.source==='search').length>1||sections.some(s=>s.source==='menu')&&sections.some(s=>['search','menuTabs','menuContent'].includes(s.source))))throw fail('Duplicate store structure.');
  if(sections.some(s=>s.productIds.length||s.categoryIds.length)&&t.branchIds.length!==1)throw fail('Product/category selectors require exactly one branch.');
  const [startAt,endAt]=dates(r);return {id:r.id,name:text(r.name),surface:r.surface,enabled:r.enabled,priority:r.priority,target:t,sections,startAt,endAt};});
 }
 const active=(r,now)=>r.enabled&&(!r.startAt||Date.parse(r.startAt)<=now)&&(!r.endAt||Date.parse(r.endAt)>now);
-function project(current,{surface,branchId,businessType,cuisineIds=[],brandId,regionIds=[],signedIn=false,now=Date.now()}){
+function project(current,{surface,branchId,businessType,cuisineIds=[],brandId,regionIds=[],signedIn=false,now=Date.now(),storeStructureVersion=1}){
  if(!sources[surface])throw fail('Unknown surface.');
  const candidates=(current.published?.templates||[]).filter(t=>t.surface===surface&&active(t,now)&&Object.entries(t.target).every(([key,values])=>!values.length||values.some(v=>({branchIds:[branchId],businessTypes:[businessType],cuisineIds,brandIds:[brandId],regionIds}[key]||[]).includes(v))));
  const specificity=t=>t.target.branchIds.length?5:t.target.brandIds.length?4:t.target.cuisineIds.length?3:t.target.businessTypes.length?2:t.target.regionIds.length?1:0;
  candidates.sort((a,b)=>specificity(b)-specificity(a)||b.priority-a.priority||a.id.localeCompare(b.id));const t=candidates[0];
- return {configured:!!t,version:current.published?.revision||0,surface,templateId:t?.id||null,sections:(t?.sections||[]).filter(s=>active(s,now)&&(s.audience==='all'||s.audience===(signedIn?'signedIn':'guest'))&&(!['lastOrder','previousOrders'].includes(s.source)||signedIn)),validUntil:new Date(Math.min(now+60000,...[t,...(t?.sections||[])].flatMap(r=>[r?.startAt,r?.endAt]).map(x=>Date.parse(x)).filter(x=>x>now))).toISOString()};
+ let displaySections=t?.sections||[];if(surface==='store'&&storeStructureVersion<2&&displaySections.some(s=>s.source==='menuContent'))displaySections=displaySections.filter(s=>!['search','menuTabs'].includes(s.source)).map(s=>s.source==='menuContent'?{...s,source:'menu'}:s);
+ return {configured:!!t,version:current.published?.revision||0,surface,templateId:t?.id||null,sections:displaySections.filter(s=>active(s,now)&&(s.audience==='all'||s.audience===(signedIn?'signedIn':'guest'))&&(!['lastOrder','previousOrders'].includes(s.source)||signedIn)),validUntil:new Date(Math.min(now+60000,...[t,...(t?.sections||[])].flatMap(r=>[r?.startAt,r?.endAt]).map(x=>Date.parse(x)).filter(x=>x>now))).toISOString()};
 }
 async function read(ctx){return (await ctx.db.send(new GetCommand({TableName:ctx.table,Key:KEY,ConsistentRead:true}))).Item||{...KEY,version:0,draft:[],published:null,history:[]};}
 async function feed(ctx,scope,query){
@@ -51,7 +53,7 @@ async function feed(ctx,scope,query){
  const merchant=(await ctx.db.send(new GetCommand({TableName:'WhizzMerchants_Businesses',Key:{businessId:query.branchId}}))).Item;
  if(!merchant||merchant.isDeleted||merchant.deletedAt||merchant.isActive===false||merchant.platformSuspended===true)throw fail('Merchant unavailable.',404);
  const [state,catalog]=await Promise.all([read(ctx),ctx.db.send(new GetCommand({TableName:ctx.table,Key:require('./home-discovery').KEY}))]);const p=catalog.Item?.profiles?.[query.branchId]||{};
- const result=project(state,{...scope,surface:query.surface,branchId:query.branchId,businessType:merchant.businessType||merchant.business_type||'restaurant',cuisineIds:p.cuisineIds||[],brandId:p.brandId});
+ const result=project(state,{...scope,storeStructureVersion:query.storeStructureVersion==='2'?2:1,surface:query.surface,branchId:query.branchId,businessType:merchant.businessType||merchant.business_type||'restaurant',cuisineIds:p.cuisineIds||[],brandId:p.brandId});
  if(result.sections.some(s=>s.source==='bestsellers')){const stats=(await ctx.db.send(new GetCommand({TableName:ctx.table,Key:{pk:'HOME_DISCOVERY',sk:'PRODUCTS#'+query.branchId}}))).Item;result.itemCounts=stats&&Date.parse(stats.expiresAt)>Date.now()?stats.counts:{};}
  if(query.offerSlotsVersion==='1'&&result.sections.some(s=>s.source==='offers')){try{result.offers=await require('./offer-slot').feed(ctx,scope,query.branchId,result.sections.filter(s=>s.source==='offers').map(s=>s.offerSlot));result.offerState='ready';}catch(e){console.warn('Store offer presentation unavailable',{code:e.name||'Error'});result.offers=[];result.offerState='unavailable';}}
  return result;

@@ -16,6 +16,14 @@ async function getMessaging(){
 }
 const digest=token=>createHash('sha256').update(token).digest('hex');
 async function codNoticeAllowed(client,item,at){
+ if(item.type==='order_complaint_updated'){
+  const valid=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.:#-]{0,149}$/.test(v);
+  if(item.recipientApp!=='user'||item.target!=='complaint'||![item.driverId,item.orderId,item.caseId,item.sessionId].every(valid))return false;
+  const {Item:row}=await client.send(new GetCommand({TableName:'staging-Holds',Key:{orderId:item.orderId,sk:'CUSTOMER_POST_DELIVERY'},ConsistentRead:true,ProjectionExpression:'customerId,caseId,supportSessionId'}));
+  if(!row||row.customerId!==item.driverId||row.caseId!==item.caseId||row.supportSessionId!==item.sessionId)return false;
+  return !(await client.send(new GetCommand({TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#CUSTOMER#'+item.driverId,sk:'META'},ConsistentRead:true,ProjectionExpression:'pk,sk'}))).Item;
+ }
+
  if(item.type==='wallet_cash_payout'){
   if(typeof item.driverId!=='string'||!/^[A-Za-z0-9_-]{1,150}$/.test(item.driverId)||!/^DPO:[a-f0-9]{48}$/.test(item.payoutId||''))return false;
   const {Item:driver}=await client.send(new GetCommand({TableName:'WhizzDrivers_staging',Key:{driverId:item.driverId},ConsistentRead:true,ProjectionExpression:'driverId,cognitoSub,isDeleted,deletedAt,deletionRequestId'}));
@@ -74,7 +82,7 @@ function createWorker(client,messaging,clock=()=>Date.now()){
      try{
       if(!await codNoticeAllowed(client,item,clock())){suppressed=true;break;}
       const sender=await messaging();
-      await sender.send({token:record.token,notification:{title:item.title,body:item.body},data:item.type==='dispatch_offer_closed'?{type:'offer_taken',action:'remove_offer',eventId:item.eventId,driverId:item.driverId,offerId:item.offerId,orderId:item.orderId,cycleId:item.cycleId}:{type:item.type,eventId:item.eventId,driverId:item.driverId,topupId:item.topupId || '',amount:item.type==='wallet_cod_lifecycle'?'':String(item.amount || 0),reviewStatus:item.reviewStatus || '',action:item.type==='driver_review_changed'?'refresh_profile':'open_wallet'},android:{priority:'high',notification:{tag:item.eventId}},apns:{headers:{'apns-priority':'10','apns-push-type':'alert','apns-collapse-id':digest(item.eventId).slice(0,48)},payload:{aps:{sound:'default','content-available':1}}}});
+      await sender.send({token:record.token,notification:{title:item.title,body:item.body},data:item.type==='dispatch_offer_closed'?{type:'offer_taken',action:'remove_offer',eventId:item.eventId,driverId:item.driverId,offerId:item.offerId,orderId:item.orderId,cycleId:item.cycleId}:{type:item.type,eventId:item.eventId,driverId:item.driverId,...(item.orderId?{orderId:item.orderId}:{}),...(item.sessionId?{sessionId:item.sessionId}:{}),topupId:item.topupId || '',amount:item.type==='wallet_cod_lifecycle'?'':String(item.amount || 0),reviewStatus:item.reviewStatus || '',action:item.type==='order_complaint_updated'?'open_complaint':item.type==='support_reply'?'open_support':item.type==='driver_review_changed'?'refresh_profile':'open_wallet'},android:{priority:'high',notification:{tag:item.eventId}},apns:{headers:{'apns-priority':'10','apns-push-type':'alert','apns-collapse-id':digest(item.eventId).slice(0,48)},payload:{aps:{sound:'default','content-available':1}}}});
       await client.send(new UpdateCommand({TableName:table,Key:{eventId},UpdateExpression:'ADD deliveredTokenHashes :hash',ConditionExpression:'leaseOwner = :owner',ExpressionAttributeValues:{':hash':new Set([hash]),':owner':owner}}));
       delivered.add(hash);
      }catch(error){

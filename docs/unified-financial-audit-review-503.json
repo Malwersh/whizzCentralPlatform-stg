@@ -1,0 +1,86 @@
+{
+  "status": "AUDITED_GAPS_CONFIRMED_NO_RUNTIME_CHANGES",
+  "scope": "Unified financial administration audit view",
+  "verifiedDeployed": {
+    "walletFunction": "staging-wizz-wallet-service",
+    "codeSha256": "mkTWCjo+mI1fictiaCHoVkDCgo3zVX/EmJX0YK5Lb38=",
+    "auditTable": "staging-AuditLog",
+    "staffTable": "staging-PlatformStaff",
+    "auditKeys": [
+      "datePartition",
+      "sk"
+    ],
+    "indexes": {
+      "byActorId": [
+        "actorId",
+        "createdAt"
+      ],
+      "byTargetId": [
+        "targetId",
+        "createdAt"
+      ]
+    }
+  },
+  "findings": [
+    {
+      "severity": "HIGH",
+      "finding": "General audit UI accepts STAFF_AUDIT_ONLY and does not include wallet audit table",
+      "evidence": [
+        "frontend/audit-trail.js",
+        "backend/staff-service/audit-trail.js"
+      ]
+    },
+    {
+      "severity": "HIGH",
+      "finding": "Some wallet audit writers omit createdAt and targetId, so sparse actor/target indexes cannot provide complete results",
+      "evidence": [
+        "backend/wallet-service/src/transferService.ts",
+        "backend/wallet-service/src/zaincashGateway.ts"
+      ]
+    },
+    {
+      "severity": "MEDIUM",
+      "finding": "Legacy topup approval audit has metadata approvedById but no normalized actor snapshot or before/after",
+      "evidence": [
+        "backend/wallet-service/src/topupService.ts"
+      ]
+    },
+    {
+      "severity": "MEDIUM",
+      "finding": "Audit UI does not render financial references and has no date/source/action/operation filtering controls",
+      "evidence": [
+        "frontend/audit-trail.js",
+        "frontend/pages/audit-trail.html"
+      ]
+    },
+    {
+      "severity": "INFO",
+      "finding": "Company accounting ledger and operational reconciliation exist but do not replace action audit; reconciliation is non-atomic and explicitly reports incompleteness",
+      "evidence": [
+        "frontend/company-accounts.js",
+        "backend/wallet-service/src/reconciliation.ts"
+      ]
+    }
+  ],
+  "confirmedControls": [
+    "Existing staff audit reader requires audit.read and global scope",
+    "Reader rejects malformed limits, action and foreign pagination cursors",
+    "Nested secrets and signed links are redacted",
+    "Historical actor identities are not fabricated",
+    "Gateway history has partition-bound paging and separate review queue"
+  ],
+  "testsRunThisAudit": {
+    "staffAuditTests": 5,
+    "result": "PASS"
+  },
+  "implementationRequirements": [
+    "Read-only finance audit endpoint with explicit permissions and scope, fixed server-owned source allowlist",
+    "Bounded date-partition queries and per-source continuation tokens; expose incomplete source failures",
+    "Normalize timestamps, references, actor evidence and before/after without inventing historical data",
+    "Preserve distinction between payment state and posted financial ledger",
+    "UI source/date/action/reference filters and operation detail references; safe text rendering",
+    "Verify deployed reader permissions before publishing; no financial mutations for acceptance"
+  ],
+  "financialMutationsPerformed": false,
+  "newRuntimeChanges": false
+}

@@ -17,5 +17,5 @@ async function allowed(db,row,now=Math.floor(Date.now()/1000)){
  for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+d.businessId,'ACCOUNT_LIFECYCLE#MERCHANT#'+d.ownerId])if(await get('staging-AccountDeletion',{pk,sk:'META'}))return false;
  return true;
 }
-function deviceMessage(message,tokens){return {...message,tokens,notification:{title:message.notification.title,body:'افتح جهاز الفرع لمتابعة الطلب.'},data:Object.fromEntries(['type','action','businessId','businessName','orderId','orderNumber','updatedAt'].filter(k=>message.data[k]!==undefined).map(k=>[k,message.data[k]]))};}
+function deviceMessage(message,tokens){return {...message,tokens,notification:{title:message.notification.title,body:'افتح جهاز الفرع لمتابعة الطلب.'},data:Object.fromEntries(['type','action','businessId','businessName','orderId','orderNumber','updatedAt','eventId','status','cancellationState','cancellationVersion','cancellationRequestId','caseId'].filter(k=>message.data[k]!==undefined).map(k=>[k,message.data[k]]))};}
 module.exports={allowed,deviceMessage};
