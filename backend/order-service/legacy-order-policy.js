@@ -9,7 +9,7 @@ function workflowRequired(){return Object.assign(Error('FINANCIAL_ORDER_WORKFLOW
 function addCondition(operation,condition){operation.ConditionExpression=(operation.ConditionExpression?'('+operation.ConditionExpression+') AND ':'')+condition;return operation;}
 function preparationAllowed(record,target){
  const graph={pending:['confirmed'],confirmed:['preparing','in_kitchen','ready','ready_for_pickup'],preparing:['ready','ready_for_pickup'],in_kitchen:['ready','ready_for_pickup'],ready:['ready_for_pickup'],ready_for_pickup:[]};
- return owns(record,'financialSnapshot')&&record.financialSnapshot!=null&&!['financialOutcome','codFinancialEvidence'].some(k=>owns(record,k))&&
+ return !(record.exceptionCancellation?.state==='REQUESTED'&&['pending','confirmed'].includes(record.status))&&owns(record,'financialSnapshot')&&record.financialSnapshot!=null&&!['financialOutcome','codFinancialEvidence'].some(k=>owns(record,k))&&
  record.holdId==null&&!['ACTIVE','SETTLED','CAPTURED'].includes(record.holdStatus)&&record.deletionRequestId==null&&record.deletedAt==null&&record.isDeleted!==true&&
  ['financialAcceptance','driverId','assignedDriverId','returnCaseId','returnStatus','cancellationRequestId','cancellationStatus'].every(k=>record[k]==null)&&
  Array.isArray(graph[record.status])&&(record.status===target||graph[record.status].includes(target));
@@ -27,7 +27,7 @@ function fenceMerchantOrderOperation(item,record){
  const target=op.ExpressionAttributeValues?.[':status'];
  if(!item.Update||!preparationAllowed(record,target))throw workflowRequired();
  // Prevent a concurrent accept/return/completion or reassignment from turning this into a stale preparation write.
- const fields=['status','orderStatus',...FINANCIAL_FIELDS,'driverId','assignedDriverId','assignmentAttemptCounter','holdId','holdStatus','returnCaseId','returnStatus','cancellationRequestId','cancellationStatus','deletionRequestId','deletedAt','isDeleted'];
+ const fields=['status','orderStatus','exceptionCancellation',...FINANCIAL_FIELDS,'driverId','assignedDriverId','assignmentAttemptCounter','holdId','holdStatus','returnCaseId','returnStatus','cancellationRequestId','cancellationStatus','deletionRequestId','deletedAt','isDeleted'];
  op.ExpressionAttributeNames={...op.ExpressionAttributeNames};op.ExpressionAttributeValues={...op.ExpressionAttributeValues};
  const conditions=fields.map((k,i)=>{const n='#lf'+i;op.ExpressionAttributeNames[n]=k;if(!owns(record,k))return 'attribute_not_exists('+n+')';const v=':lf'+i;op.ExpressionAttributeValues[v]=record[k];return n+'='+v;});
  return addCondition(op,conditions.join(' AND '));

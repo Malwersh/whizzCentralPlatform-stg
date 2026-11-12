@@ -1,0 +1,53 @@
+{
+  "phase": 452,
+  "date": "2026-11-07",
+  "status": "audit_only; implementation_pending",
+  "entry": "HomeScreen._buildMapScreen -> MapScreenNew(businesses: _allRealBusinesses)",
+  "correct": [
+    "Businesses passed from current region-scoped home catalog",
+    "Marker positions use actual business coordinates",
+    "Store opens modern StoreDetailScreen",
+    "ProductModel passed into modern DishDetailScreen; its optionGroups/addons/variations are read there",
+    "BusinessModel.ratingString already uses dash for missing rating"
+  ],
+  "gaps": [
+    {
+      "priority": "P1",
+      "issue": "Delivery point mismatch",
+      "evidence": "map_screen_new.dart _getCurrentLocation/_calculateRealDistance uses new GPS, legacy DeliveryAddressManager, device GPS fallback; does not read BrowsingLocationService selection",
+      "fix": "Use one current browsing delivery point for marker/camera/distance and pricing; device position only on explicit user action"
+    },
+    {
+      "priority": "P1",
+      "issue": "Old pricing presentation",
+      "evidence": "Business deliveryFee/deliveryTime copied directly; modern home conversion reads pricing.peek/load",
+      "fix": "Reuse authoritative current pricing cache and scope; no hardcoded fee or invented distance"
+    },
+    {
+      "priority": "P1",
+      "issue": "Repeated network polling and visible artificial delay",
+      "evidence": "StatusPollingService.start/updateWatchedIds; product Timer.periodic 30 seconds; after changes explicitly show loader and delay 500ms",
+      "fix": "Remove independent product polling; reuse application events/invalidation and lazy loads without replacing valid content with loaders"
+    },
+    {
+      "priority": "P1",
+      "issue": "Availability differs across views",
+      "evidence": "_businessToStore sets isOpen from isActive only; open filter separately computes flags",
+      "fix": "Reuse comprehensive availability policy including actual hours/status"
+    },
+    {
+      "priority": "P2",
+      "issue": "Region/list changes reset filters and reload GPS",
+      "evidence": "didUpdateWidget clears product cache and calls _initializeMap, resets _filteredBusinesses to all; no generation/owner/region fencing for asynchronous product and marker work",
+      "fix": "Reapply current search/filters, clear invalid selection and fence stale async work"
+    },
+    {
+      "priority": "P2",
+      "issue": "Unnecessary location-permission dependency and lifecycle risks",
+      "evidence": "Geolocator.getCurrentPosition without explicit bounded request before map ready; default Baghdad fallback; myLocationEnabled true; sheet controller not disposed; async marker setState lacks mounted generation fence",
+      "fix": "Render selected delivery point immediately, validate coordinates, explicit permission handling, lifecycle-safe markers and controller disposal"
+    }
+  ],
+  "validation": "Static code trace only; no live-map/device acceptance performed; no code changes or deployment in this audit",
+  "next": "Modernize exploration using current location/pricing/availability sources and shared event-driven data, then focused tests and device map acceptance"
+}

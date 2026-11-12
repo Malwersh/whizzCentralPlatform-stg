@@ -40,3 +40,48 @@ test('Staging finance transfer executes once immediately without a pending appro
 });
 
 test('missing transfer configuration is disabled and cannot move funds',async()=>{let writes=0;docClient.send=async c=>{if(c.constructor.name==='GetCommand')return {};writes++;return {};};await assert.rejects(requestTransfer(actor,input),e=>e.code==='TRANSFERS_DISABLED');assert.equal(writes,0);});
+
+test('transfer audit captures exact available-only snapshots and actual ledger keys',async()=>{
+ const get=mock();await requestTransfer(actor,input);
+ const ops=get().TransactItems;const put=ops.find(x=>x.Put?.Item.action==='TRANSFER_COMPLETED').Put;
+ const audit=put.Item;assert.equal(audit.auditSchemaVersion,2);
+ assert.equal(audit.actorIdentityEvidence,'ID_ONLY');assert.equal(audit.actorType,'DRIVER');
+ assert.equal(audit.before.sourceWallet.availableBalance,50000);assert.equal(audit.after.sourceWallet.availableBalance,25000);
+ assert.equal(audit.after.recipientWallet.availableBalance,25000);
+ assert.equal(audit.after.sourceWallet.lockedBalance,6000);assert.equal(audit.after.sourceWallet.version,2);
+ assert.equal(audit.after.status,'COMPLETED');assert.equal(put.ConditionExpression,'attribute_not_exists(sk)');
+ const keys=ops.filter(x=>x.Put?.Item.category==='TRANSFER').map(x=>({walletId:x.Put.Item.walletId,sk:x.Put.Item.sk}));
+ assert.deepEqual(audit.references.ledger,keys);
+});
+test('pending transfer audit records unchanged balances with committed version fences',async()=>{
+ const get=mock();await requestTransfer({...actor,type:'FINANCE'},input);
+ const audit=get().TransactItems.find(x=>x.Put?.Item.action==='TRANSFER_REQUESTED').Put.Item;
+ assert.equal(audit.after.balanceEffect,'NONE');assert.equal(audit.before.sourceWallet.availableBalance,audit.after.sourceWallet.availableBalance);
+ assert.equal(audit.after.sourceWallet.version,audit.before.sourceWallet.version+1);
+ assert.equal(audit.references.ledger,undefined);
+});
+test('transfer audit redacts credential material without changing ledger or amount',async()=>{
+ const get=mock(undefined,{...input,reason:'Bearer private-token'});
+ await requestTransfer(actor,{...input,reason:'Bearer private-token'});
+ const audit=get().TransactItems.find(x=>x.Put?.Item.action==='TRANSFER_COMPLETED').Put.Item;
+ assert.equal(audit.reason,'[محجوب]');assert.equal(audit.amount,input.amount);
+});
+
+test('cancelling an unexecuted attempt records no invented balance snapshots',async()=>{
+ const get=mock();await require('../dist/transferService').cancelMobileTransfer(actor,input);
+ const ops=get().TransactItems;const audit=ops.find(x=>x.Put?.Item.action==='TRANSFER_ATTEMPT_CANCELLED').Put.Item;
+ assert.equal(audit.before,null);assert.equal(audit.after.status,'CANCELLED');assert.equal(audit.after.balanceEffect,'NONE');
+ assert.equal(ops.filter(x=>x.Update?.Key.walletId).length,0);
+});
+test('finance audit preserves trusted staff identity at action time',async()=>{
+ const get=mock();const send=docClient.send;process.env.STAFF_TABLE='staff';
+ const profile={pk:'EMPLOYEE#'+a,sk:'PROFILE',employeeId:a,name:'Finance Officer',version:3,status:'ACTIVE',roles:['bootstrap_admin'],scope:{allRegions:true}};
+ docClient.send=async c=>c.input.TableName==='staff'?{Item:profile}:send(c);
+ try{
+  await requestTransfer({...actor,type:'FINANCE'},input);
+  const audit=get().TransactItems.find(x=>x.Put?.Item.action==='TRANSFER_REQUESTED').Put.Item;
+  assert.equal(audit.actorIdentityEvidence,'VERIFIED_STAFF_AT_ACTION');assert.equal(audit.actorSnapshot.name,'Finance Officer');
+  profile.name='Renamed';assert.equal(audit.actorSnapshot.name,'Finance Officer');
+  assert.ok(get().TransactItems.some(x=>x.ConditionCheck?.TableName==='staff'));
+ }finally{delete process.env.STAFF_TABLE;}
+});

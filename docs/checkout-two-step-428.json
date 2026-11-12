@@ -1,0 +1,27 @@
+{
+  "id": 428,
+  "status": "implemented_customer_app",
+  "scope": "Checkout delivery details and compact payment",
+  "behavior": [
+    "Complete saved recipient/address opens payment directly after data loads",
+    "Incomplete delivery details or edit opens separate delivery step within same checkout state",
+    "Cart, quote, selected discounts, tip and pending submission remain shared across steps",
+    "Payment shows delivery summary/edit, restaurant summary, collapsed offers/benefits, authoritative invoice, cash payment, optional instructions and tip",
+    "Main confirmation approves only exact displayed unexpired authoritative invoice in unchanged scope; changed or missing proposal still requires commercial confirmation sheet",
+    "No new server endpoints or financial rules",
+    "Confirm footer shows the exact authoritative total when current, otherwise offers invoice review"
+  ],
+  "verification": {
+    "testsPassed": 34,
+    "checks": [
+      "large Arabic text at 320px, delivery summary edit",
+      "expired/changed quote cannot bypass explicit review",
+      "guest cart identity, address retry idempotency, invoice store and benefit preview regressions"
+    ],
+    "release": 391
+  },
+  "remaining": [
+    "Human checkout with current basket",
+    "Unified automatic discount selection and savings celebration remains separate task 427"
+  ]
+}

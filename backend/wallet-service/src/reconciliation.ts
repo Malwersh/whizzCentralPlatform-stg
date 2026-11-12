@@ -52,19 +52,36 @@ async function readTable(TableName: string, deadline = Date.now()+20000) {
   const rows: any[] = [];
   let start: Record<string, any> | undefined;
   for (let page = 0; page < 100; page++) {
-    if(Date.now()>deadline)return {rows,complete:false};
-    const result = await docClient.send(new ScanCommand({ TableName, Limit: 100, ConsistentRead: true, ExclusiveStartKey: start }));
-    rows.push(...(result.Items || []));
-    start = result.LastEvaluatedKey;
-    if (!start) return { rows, complete: true };
+    const remaining=deadline-Date.now();
+    if(remaining<=0)return {rows,complete:false,status:'TIME_LIMIT'};
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),remaining);
+    try {
+      const result=await docClient.send(new ScanCommand({TableName,Limit:100,ConsistentRead:true,ExclusiveStartKey:start}),{abortSignal:controller.signal});
+      rows.push(...(result.Items||[]));start=result.LastEvaluatedKey;
+      if(Date.now()>deadline)return {rows,complete:false,status:'TIME_LIMIT'};
+      if(!start)return {rows,complete:true,status:'COMPLETE'};
+    } catch(error:any) {return {rows,complete:false,status:controller.signal.aborted?'TIME_LIMIT':'SOURCE_UNAVAILABLE'};}
+    finally {clearTimeout(timer);}
   }
-  return { rows, complete: false };
+  return {rows,complete:false,status:'SIZE_LIMIT'};
 }
 export async function reconciliationReport() {
   const startedAt = new Date().toISOString(),deadline=Date.now()+20000;
   const [wallets, holds, ledger] = await Promise.all([readTable(TABLES.WALLETS,deadline), readTable(TABLES.HOLDS,deadline), readTable(TABLES.LEDGER,deadline)]);
   let complete = wallets.complete && holds.complete && ledger.complete;
-  const payouts:any[]=[];
-  if(complete){const active=wallets.rows.filter(w=>w.sk==='META'&&w.ownerType==='DRIVER'&&w.driverPayoutActiveId!=null);for(let i=0;i<active.length;i+=20){if(Date.now()>deadline){complete=false;break;}const page=await Promise.all(active.slice(i,i+20).map(w=>docClient.send(new GetCommand({TableName:'staging-MerchantPlatform',Key:{pk:'DRIVER_PAYOUT#'+w.ownerId,sk:'PAYOUT#'+w.driverPayoutActiveId},ConsistentRead:true,ProjectionExpression:'pk,sk,kind,driverId,payoutId,#s,amount',ExpressionAttributeNames:{'#s':'status'}}))));payouts.push(...page.flatMap(r=>r.Item?[r.Item]:[]));}}
-  return { complete, startedAt, completedAt: new Date().toISOString(), note: 'قراءة للمراجعة فقط؛ الجداول لا تُقرأ كلقطة ذرية واحدة وقد تتغير أثناء الفحص. لا تُعد الفروقات إثباتاً لخطأ أو إذناً لتعديل الرصيد.', ...(complete ? reconcile(wallets.rows, holds.rows, ledger.rows, Date.now(), payouts) : { wallets: [], issues: [], error: 'تجاوز الفحص حد الحجم أو المهلة؛ أعد المحاولة، ولا يمكن إصدار نتيجة مكتملة' }) };
+  const payouts:any[]=[];let payoutStatus=complete?'COMPLETE':'NOT_CHECKED';
+  if(complete){
+    const active=wallets.rows.filter(w=>w.sk==='META'&&w.ownerType==='DRIVER'&&w.driverPayoutActiveId!=null);
+    for(let i=0;i<active.length;i+=20){
+      const remaining=deadline-Date.now();if(remaining<=0){complete=false;payoutStatus='TIME_LIMIT';break;}
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),remaining);
+      try{
+        const page=await Promise.all(active.slice(i,i+20).map(w=>docClient.send(new GetCommand({TableName:'staging-MerchantPlatform',Key:{pk:'DRIVER_PAYOUT#'+w.ownerId,sk:'PAYOUT#'+w.driverPayoutActiveId},ConsistentRead:true,ProjectionExpression:'pk,sk,kind,driverId,payoutId,#s,amount',ExpressionAttributeNames:{'#s':'status'}}),{abortSignal:controller.signal})));
+        if(Date.now()>deadline){complete=false;payoutStatus='TIME_LIMIT';break;}
+        payouts.push(...page.flatMap(r=>r.Item?[r.Item]:[]));
+      }catch{complete=false;payoutStatus=controller.signal.aborted?'TIME_LIMIT':'SOURCE_UNAVAILABLE';break;}
+      finally{clearTimeout(timer);}
+    }
+  }
+  return { complete, coverage:{payouts:{status:payoutStatus,rowsRead:payouts.length},wallets:{status:wallets.status,rowsRead:wallets.rows.length},holds:{status:holds.status,rowsRead:holds.rows.length},ledger:{status:ledger.status,rowsRead:ledger.rows.length}}, startedAt, completedAt: new Date().toISOString(), note: 'قراءة للمراجعة فقط؛ الجداول لا تُقرأ كلقطة ذرية واحدة وقد تتغير أثناء الفحص. لا تُعد الفروقات إثباتاً لخطأ أو إذناً لتعديل الرصيد.', ...(complete ? reconcile(wallets.rows, holds.rows, ledger.rows, Date.now(), payouts) : { wallets: [], issues: [], error: 'لم تكتمل قراءة جميع المصادر؛ راجع حالة كل مصدر وأعد المحاولة. لا يمكن إصدار نتيجة مطابقة مكتملة' }) };
 }

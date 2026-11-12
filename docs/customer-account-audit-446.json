@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-05",
+  "scope": "Customer My Account read-only audit",
+  "status": "Audit complete; no application or cloud mutations",
+  "findings": [
+    {
+      "priority": "P0",
+      "area": "Profile read authorization",
+      "evidence": "API 4jut6787c8 resource 6z4zpl GET authorizationType NONE; live WizzUser-GetUserProfile-staging reads path user_id without caller ownership check",
+      "action": "Require authentication and enforce subject ownership; verify deployed stage and negative access tests before closure"
+    },
+    {
+      "priority": "P1",
+      "area": "Notification preferences",
+      "evidence": "notification_settings_screen.dart _save returns synthetic success; settings update commented out",
+      "action": "Persist preferences and connect actual notification behavior"
+    },
+    {
+      "priority": "P1",
+      "area": "Account identity freshness",
+      "evidence": "improved_account_screen.dart _hasLoadedOnce prevents reload; navigation returns do not refresh; UserProfileService uses cached accessToken",
+      "action": "Account-scoped state, fresh credentials and refresh after profile/phone updates"
+    },
+    {
+      "priority": "P2",
+      "area": "Country and region",
+      "evidence": "country_settings_screen.dart TODO and delayed local-only IQ selection",
+      "action": "Use real service regions/address flow; remove simulated success"
+    },
+    {
+      "priority": "P2",
+      "area": "Language",
+      "evidence": "Language selection does not update root fixed ar_SA locale; guest choice local state only",
+      "action": "Implement actual locale state or expose only supported launch language"
+    },
+    {
+      "priority": "P2",
+      "area": "Wallet wording",
+      "evidence": "Transfer-centric balance/phone wording remains when transfer feature is disabled",
+      "action": "Align wording with enabled wallet capabilities"
+    },
+    {
+      "priority": "P2",
+      "area": "Support access",
+      "evidence": "CustomerSupportChatScreen exists but no account menu entry",
+      "action": "Provide support entry to existing support-only flow"
+    }
+  ],
+  "existing_paths": [
+    "Personal information API",
+    "Saved addresses add/edit/default/delete",
+    "Shared favorites destination",
+    "Orders destination",
+    "Wallet context and transfer gate",
+    "OTP phone verification",
+    "Account deletion status/OTP/request",
+    "Published legal pages"
+  ],
+  "validation": {
+    "automated_tests_passed": 20,
+    "log": "/tmp/tracking438/account-audit446-tests.log",
+    "coverage": [
+      "Account overview",
+      "Wallet transfer gate",
+      "Address lifecycle",
+      "Saved delivery address",
+      "Customer phone auth",
+      "Account-scoped notification inbox"
+    ],
+    "limitations": "No real profile/phone/address changes, financial actions or account deletion performed; no other customer profile accessed. Code-path presence does not prove full device end-to-end success."
+  }
+}

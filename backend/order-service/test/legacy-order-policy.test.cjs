@@ -44,3 +44,17 @@ test('legacy ready is unchanged and malformed financial branch index or duplicat
  for(const value of [undefined,'branch#delivered#b7','branch#ready#unbounded']){const item=update('ready');item.Update.ExpressionAttributeValues[':storeStatus']=value;assert.throws(()=>p.canonicalFinancialPreparation(item,{status:'preparing',financialSnapshot:{}}),/WORKFLOW_REQUIRED/);}
  const duplicate=update('ready');duplicate.Update.UpdateExpression+=', orderStatus=:other';assert.throws(()=>p.canonicalFinancialPreparation(duplicate,{status:'preparing',financialSnapshot:{}}),/WORKFLOW_REQUIRED/);
 });
+
+test('pending cancellation prevents preparation and cancellation is pinned in the same write fence',()=>{
+ const row={financialSnapshot:{digest:'frozen'},commercialPricing:{},status:'confirmed',exceptionCancellation:{state:'REQUESTED',version:1}};
+ assert.equal(p.preparationAllowed(row,'in_kitchen'),false);
+ assert.throws(()=>p.fenceMerchantOrderOperation(update('in_kitchen'),row),{code:'FINANCIAL_ORDER_WORKFLOW_REQUIRED'});
+ const allowed={...row,exceptionCancellation:undefined};delete allowed.exceptionCancellation;
+ const op=update('in_kitchen');p.fenceMerchantOrderOperation(op,allowed);
+ const alias=Object.entries(op.Update.ExpressionAttributeNames).find(([,v])=>v==='exceptionCancellation')[0];
+ assert.ok(op.Update.ConditionExpression.includes('attribute_not_exists('+alias+')'));
+ const prepared={...row,status:'in_kitchen'};
+ assert.equal(p.preparationAllowed(prepared,'ready'),true);
+ const next=update('ready');p.fenceMerchantOrderOperation(next,prepared);
+ assert.ok(Object.values(next.Update.ExpressionAttributeValues).includes(prepared.exceptionCancellation));
+});

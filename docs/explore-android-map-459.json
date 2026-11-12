@@ -1,0 +1,12 @@
+{
+  "phase": 459,
+  "date": "2026-11-08",
+  "cause": "Android customer native Maps SDK key rejected with INVALID_ARGUMENT and Authorization failure",
+  "fix": "Use existing customer iOS Maps SDK key for customer Android native SDK; no Cloud restrictions or signing changed",
+  "verification": {
+    "androidRelease4008": "built and installed on emulator-5554; Explore visually rendered streets, landmarks, restaurant logos and destination marker",
+    "filterTests": 4,
+    "iosRelease415": "built, installed and launched on iMohammed B8850CE6-BCC2-551D-B930-3E108456B23F"
+  },
+  "scope": "Native Android map authorization only; pricing, realtime and business logic unchanged"
+}

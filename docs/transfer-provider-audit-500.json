@@ -1,0 +1,56 @@
+{
+  "part": 500,
+  "resumesAfter": 360,
+  "scope": "Transfer request/execution/cancel audit and verified ZainCash wallet credit audit",
+  "status": "PUBLISHED_STAGING",
+  "changes": [
+    "Atomic immutable transfer audit includes state, available/locked balances and version before/after, exact ledger keys, actor type and existing trusted staff snapshots",
+    "Pending approval audit explicitly records no monetary effect and actual version-only fences",
+    "Cancelled unexecuted attempts record no fabricated wallet snapshots",
+    "Transfer audit reasons reuse credential redaction",
+    "ZainCash verified inquiry credit includes both exact wallet snapshots, provider/payment/config references, actual ledger and settlement keys",
+    "Gateway audit puts made conditional against overwrite"
+  ],
+  "preserved": [
+    "No transfer enablement, limits, fee calculations or amounts changed",
+    "No external payments or balance mutations performed",
+    "No historical audit backfill",
+    "No additional database reads or IAM changes"
+  ],
+  "verification": {
+    "testsPassed": 74,
+    "typescript": "PASS via local tsc",
+    "standardBuild": "BLOCKED by pre-existing merchant-runtime source sync mismatch; no dependency versions changed",
+    "testsLog": "/private/tmp/operational-audit-500-tests.log"
+  },
+  "publication": {
+    "state": "NOT_PUBLISHED",
+    "candidateModules": [
+      "dist/transferService.js",
+      "dist/zaincashGateway.js"
+    ],
+    "prerequisites": [
+      "Compare staging deployed modules with local candidates and preserve unrelated runtime changes",
+      "Resolve or explicitly isolate existing merchant-runtime discount source synchronization mismatch before packaging"
+    ]
+  },
+  "remaining": [
+    "Review actor snapshots on gateway configuration/recovery actions and non-credit lifecycle audits",
+    "Audit other deployed topup providers before declaring all gateways covered",
+    "Authorized cross-source audit reader and UI remain separate work",
+    "Human acceptance remains deferred and not passed"
+  ],
+  "deployment": {
+    "function": "staging-wizz-wallet-service",
+    "codeSha256": "S5VtSDjxsVBC5wUeiZqyPRGfOQoSlz2zASDM87i6LxM=",
+    "state": "Active",
+    "lastUpdateStatus": "Successful",
+    "isolatedFiles": [
+      "dist/transferService.js",
+      "dist/transferService.js.map",
+      "dist/zaincashGateway.js"
+    ],
+    "otherArchiveEntriesPreserved": true,
+    "financialMutationsPerformed": false
+  }
+}

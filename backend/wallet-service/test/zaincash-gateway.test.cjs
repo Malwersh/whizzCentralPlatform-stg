@@ -78,3 +78,45 @@ test('late verified success after FAILED credits once without deleting a newer a
 test('post-success provider failure enters review and never silently reverses or repeats credit',async()=>{setup();await create();await z.checkGatewayPayment('driver',id);time+=16000;const original=z.gatewayIO.request;z.gatewayIO.request=async(url,o)=>{const r=await original(url,o);if(url.includes('/inquiry/'))r.status='FAILED';return r;};assert.equal((await z.checkGatewayPayment('driver',id)).state,'REFUND_REVIEW_REQUIRED');assert.equal(wallets.get('WALLET#DRIVER#driver').availableBalance,75000);assert.equal((await z.gatewayHistory(null,undefined,true)).payments.length,1);});
 
 test('a callback signed with replacement keys cannot certify new credentials if inquiry still used the old credentials',async()=>{setup();await create();await z.checkGatewayPayment('driver',id);time+=16000;rows.get(JSON.stringify(k('CONFIG'))).secretVersion='v2';z.gatewayIO.secret=async c=>({clientId:'client',clientSecret:'secret',apiKey:c.secretVersion==='v1'?'old-signature':'new-signature'});await z.gatewayWebhook({webhook_token:jwt({merchantReferenceId:payment().reference,transactionId:pid,eventId:'rotated-key-event'},'new-signature')});assert.equal(rows.has(JSON.stringify(k('LIVE_WEBHOOK_PROOF#v2'))),false);assert.equal(wallets.get('WALLET#DRIVER#driver').availableBalance,75000);});
+
+test('provider credit audit links verified inquiry to both exact wallet and ledger snapshots',async()=>{
+ setup();await create();await z.checkGatewayPayment('driver',id);
+ const ops=transactions.find(t=>t.some(x=>x.Put?.Item.action==='ZAINCASH_WALLET_CREDIT'));
+ const put=ops.find(x=>x.Put?.Item.action==='ZAINCASH_WALLET_CREDIT').Put,a=put.Item;
+ assert.equal(a.auditSchemaVersion,2);assert.equal(a.actorIdentityEvidence,'VERIFIED_PROVIDER_INQUIRY');
+ assert.equal(a.before.driverWallet.availableBalance,50000);assert.equal(a.after.driverWallet.availableBalance,75000);
+ assert.equal(a.after.platformWallet.availableBalance,75000);assert.equal(a.after.driverWallet.lockedBalance,12500);
+ assert.equal(a.after.driverWallet.version,2);assert.equal(a.references.paymentId,pid);
+ assert.deepEqual(a.references.ledger,ops.filter(x=>x.Put?.TableName===TABLES.LEDGER).map(x=>({walletId:x.Put.Item.walletId,sk:x.Put.Item.sk})));
+ assert.equal(put.ConditionExpression,'attribute_not_exists(sk)');
+ assert.equal(JSON.stringify(a).includes('signing-secret'),false);
+});
+
+ test('admin recovery records trusted identity and atomic staff fence without fabricating wallet balances',async()=>{
+ setup();await create();process.env.STAFF_TABLE='staff';
+ docClient.send=async()=>({Item:{pk:'EMPLOYEE#admin',sk:'PROFILE',employeeId:'admin',name:'Finance operator',status:'ACTIVE',version:7,scope:{allRegions:true},roles:['bootstrap_admin']}});
+ try {
+ await z.recoverGatewayPayment('admin',time/1000,{driverId:'driver',requestId:id,paymentId:pid,reason:'Check provider pending payment'});
+ const ops=transactions.find(t=>t.some(x=>x.Put?.Item.action==='ZAINCASH_RECOVERY_CHECK_REQUESTED'));
+ const a=ops.find(x=>x.Put?.Item.action==='ZAINCASH_RECOVERY_CHECK_REQUESTED').Put.Item;
+ assert.equal(a.actorIdentityEvidence,'VERIFIED_STAFF_AT_ACTION');assert.equal(a.actorSnapshot.name,'Finance operator');
+ assert.equal(a.before,null);assert.equal(a.after.balanceEffect,'NONE');assert.equal(a.references.paymentId,pid);
+ assert.ok(ops.some(x=>x.ConditionCheck?.TableName==='staff'));
+ assert.equal(JSON.stringify(a).includes('clientSecret'),false);
+ } finally {delete process.env.STAFF_TABLE;}
+ });
+
+test('uncertain creation records atomic state transition without secrets or invented balance evidence',async()=>{
+ setup();const original=z.gatewayIO.request;z.gatewayIO.request=async(url,o)=>{if(url.endsWith('/init'))throw Error('lost');return original(url,o);};
+ await create();const ops=transactions.find(t=>t.some(x=>x.Put?.Item.action==='ZAINCASH_PAYMENT_STATE_CHANGED'&&x.Put.Item.after.state==='CREATION_UNCERTAIN'));
+ const a=ops.find(x=>x.Put?.Item.action==='ZAINCASH_PAYMENT_STATE_CHANGED').Put.Item;
+ assert.equal(a.before.state,'CREATING');assert.equal(a.after.revision,a.before.revision+1);assert.equal(a.references.requestId,id);
+ assert.equal(a.balanceEvidence,'NO_BALANCE_MOVEMENT_BY_STATE_CHANGE');assert.ok(ops.some(x=>x.Put?.Item.state==='CREATION_UNCERTAIN'));
+ assert.equal(JSON.stringify(a).includes('clientSecret'),false);
+});
+test('successful state transition points to settlement evidence and retry does not repeat it',async()=>{
+ setup();await create();await z.checkGatewayPayment('driver',id);
+ const all=()=>transactions.flat().filter(x=>x.Put?.Item.action==='ZAINCASH_PAYMENT_STATE_CHANGED'&&x.Put.Item.after.state==='SUCCESS');
+ assert.equal(all().length,1);assert.equal(all()[0].Put.Item.balanceEvidence,'SEE_SETTLEMENT_AUDIT');
+ time+=16000;await z.checkGatewayPayment('driver',id);assert.equal(all().length,1);
+});

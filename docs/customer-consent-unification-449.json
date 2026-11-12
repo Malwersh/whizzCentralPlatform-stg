@@ -1,0 +1,39 @@
+{
+  "id": 449,
+  "date": "2026-11-05",
+  "status": "STAGING_DEPLOYED_RELEASE410_INSTALLED_LAUNCHED",
+  "implemented": [
+    "Shared promotion consent contract: refusal wins on conflicting legacy values; absent approval stays off",
+    "Profile reads expose consistent marketing consent and promotion flag without rewriting stored legacy data",
+    "Explicit preference writes update alias and promotion flag together",
+    "Legacy profile consent writes remain supported and synchronize notification setting",
+    "Name-only profile updates preserve all consent choices",
+    "Notification snapshot fence protects concurrent sibling preference edits",
+    "Personal information offers a single notification settings destination; unsupported newsletter switch removed while stored data preserved",
+    "Failed personal profile reads cannot save fabricated defaults; identity changes discard and clear old profile data",
+    "Campaign sender honors effective consent both at audience selection and before delivery"
+  ],
+  "validation": {
+    "userBackendTests": 22,
+    "centralSenderTests": 7,
+    "flutterTests": 28,
+    "totalAutomatedTests": 57,
+    "changedDartAnalyzer": "No issues found",
+    "liveAuthChecks": "GET profile / PUT profile / PUT preferences with absent or invalid credentials: all six returned 401",
+    "roleReadProjection": "IAM simulation allowed marketing_consent plus the four existing preference attributes",
+    "deployment": "All five functions LastUpdateStatus Successful",
+    "device": "Release410 installed and launched on iMohammed",
+    "realCustomerProfileMutations": 0,
+    "realPushSends": 0
+  },
+  "deploymentScript": "scripts/publish-customer-consent-449.py",
+  "codeHashes": {
+    "WizzUser-GetUserProfile-staging": "ZH+CD4hmdNdrwF3CgwndBcDLbElRTui5YeXgDuP2Ar8=",
+    "WizzUser-UpdateUserProfile-staging": "vc177bxLJ+Ll9DK3+zZbDtpBltX5+PZiw8JK2vX4J1o=",
+    "WizzUser-UpdateUserPreferences-staging": "F5M2XcbkNjAwiav1XfpE/wOE3LGl2tH1iHbxKsqH/QQ=",
+    "wizzcentral-notifications-staging-pushAdminSendTest": "dEwya2MGXFh/WAuOi5YXhLB3nqWEemQva3tm9KC/UTI=",
+    "wizzcentral-notifications-staging-pushSendOrderUpdate": "utO9KectUzqkWUIIWOLiMw392sVgZvFE+k1XYPr8f+s="
+  },
+  "remaining": "Real customer save/reopen and opt-in/opt-out push delivery on physical iPhone and Android remain human acceptance tests in the main plan",
+  "reportedBadRequest": "The reported generic detail: Bad Request did not occur in these test/deployment outputs. Origin remains unconfirmed; no assertion that it came from customer app."
+}

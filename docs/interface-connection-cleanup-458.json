@@ -1,0 +1,21 @@
+{
+  "phase": 458,
+  "date": "2026-11-08",
+  "changes": [
+    "Hide wallet, favorites and orders shortcuts for guests; retain authenticated shortcuts",
+    "Remove customer orders transport pill and connection bar and tracking connection icon",
+    "Disable driver DEBUG banner explicitly",
+    "Remove merchant floating chat transport dot and hide routine healthy chat transport bar; retain actionable failures",
+    "Preserve merchant business availability controls and realtime subscriptions"
+  ],
+  "verification": {
+    "accountWidgetTests": 4,
+    "customerAndroidRelease": 4007,
+    "driverAndroidRelease": 4007,
+    "customerAndDriverInstalledOn": "emulator-5554",
+    "driverVisualCheck": "No DEBUG banner; Google Maps landmarks rendered",
+    "merchantAndroidDebugBuild": "passed",
+    "staticAnalysis": "No errors in inspected customer and merchant files; existing warnings and lint info remain",
+    "physicalDeviceUpdated": false
+  }
+}

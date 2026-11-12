@@ -1,0 +1,23 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "changes": [
+    "Cancellation events delivered on verified branch websocket as well as push",
+    "Strong read checks current owner, lifecycle, branch scope and expiry before sending metadata-only invalidation",
+    "Websocket registration retains userId and connectedAt so verified connections remain discoverable through existing index",
+    "Merchant routes cancellation websocket events through same deduplicated canonical refresh as push; inbox persistence no longer blocks refresh"
+  ],
+  "tests": {
+    "backendSocketAndStream": 11,
+    "merchantScopeRegression": 12,
+    "flutter": 3,
+    "merchantSimulatorBuild": 400
+  },
+  "humanTest": "Pending new cancellation without switching tabs",
+  "permissions": "MerchantCancellationSocket437: Query/GetItem existing staging connection table/index and ManageConnections staging igcrhwc84c only",
+  "financialWrites": false,
+  "liveVerification": {
+    "canonicalCancellationReplay": "sent 1 verified branch websocket connection",
+    "observedAtUTC": "2026-11-05T20:32:25.720Z",
+    "merchantSimulator": "400 installed, launched and reconnected"
+  }
+}

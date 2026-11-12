@@ -16,3 +16,13 @@ test('feed resolves business type from database, not client supplied type',async
 test('item popularity counts completed quantities only, excludes cancelled/tests/duplicate META',()=>{const now=Date.parse('2026-10-31'),row={PK:'ORDER#a',SK:'META',status:'DELIVERED',businessId:'branch',createdAt:'2026-10-30',items:[{productId:'p',quantity:2},{productId:'bad',quantity:-1}]};assert.deepEqual(aggregateProducts([row,row,{...row,PK:'ORDER#b',isTest:true},{...row,PK:'ORDER#c',status:'CANCELLED'},{...row,PK:'ORDER#d',createdAt:'2025-01-01'}],now),{branch:{p:2}});});
 
 test('saving curated section uses only approved branch Query and never product GetItem',async()=>{const f=fixture(),send=f.ctx.db.send;f.ctx.db.send=async c=>{if(c.constructor.name==='GetCommand'&&c.input.TableName==='WhizzMerchants_Products')throw Error('Unapproved product GetItem');return send(c);};await route(f.ctx,f.actor,'POST','/staff/home-layout/interfaces/draft',{baseVersion:0,templates:[template({target:{branchIds:['branch']},sections:[section(),section('curated',{productIds:['p']})]})]});assert.equal(f.writes.length,1);assert.equal(f.current.draft[0].sections[1].productIds[0],'p');});
+
+ test('split store controls retain arbitrary ordering and protect full menu; legacy clients receive one complete menu',()=>{
+ const rows=validate([template({sections:[section('menuTabs',{layout:'vertical'}),section('offers'),section('search',{layout:'vertical'}),section('featured'),section('menuContent',{layout:'vertical'})]})]);
+ const state={published:{revision:8,templates:rows}};
+ assert.deepEqual(project(state,{surface:'store',storeStructureVersion:2}).sections.map(s=>s.source),['menuTabs','offers','search','featured','menuContent']);
+ assert.deepEqual(project(state,{surface:'store'}).sections.map(s=>s.source),['offers','featured','menu']);
+ assert.throws(()=>validate([template({sections:[section('menuTabs',{layout:'vertical'})]})]));
+ assert.throws(()=>validate([template({sections:[section('menuTabs',{layout:'vertical',enabled:false}),section('menuContent',{layout:'vertical'})]})]));
+ assert.throws(()=>validate([template({sections:[section(),section('search',{layout:'vertical'})]})]));
+ });
