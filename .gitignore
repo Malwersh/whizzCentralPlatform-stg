@@ -33,3 +33,6 @@ backend/.tmp/
 **/*.jks.*
 **/*.keystore.*
 **/.serverless/
+
+# macOS transfer metadata
+._*
