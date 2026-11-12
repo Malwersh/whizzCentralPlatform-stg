@@ -221,6 +221,13 @@ Resources:
               ForAnyValue:StringLike:
                 cognito-identity.amazonaws.com:amr: authenticated
       Policies:
+        - PolicyName: MerchantDiscountListing
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:Scan]
+                Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Discounts'
         - PolicyName: StagingAdministration
           PolicyDocument:
             Version: '2012-10-17'
