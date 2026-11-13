@@ -79,7 +79,10 @@
     "promotion-scenes.js",
     "home-discovery.js",
     "interface-layout.js",
-    "offer-slot.js"
+    "offer-slot.js",
+    "merchant-financial-access.js",
+    "merchant-financial-session.js",
+    "merchant-financial-notification-device.js"
   ],
   "scripts": {
     "test": "node --test test/*.cjs",

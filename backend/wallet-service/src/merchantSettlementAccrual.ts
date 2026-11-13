@@ -116,7 +116,7 @@ export function deriveMerchantCodAccrual(input: {
     if (expected.size || sum+(fullCash?BigInt(whole(a.platformNetContribution)):0n)-BigInt(adjustment?.driverCreditIqd??0)+BigInt(adjustment?.merchantReductionIqd??0) !== 0n) return fail();
     if(fullCash){
       if(!same(payable.deliveryFunding,order.financialSnapshot.deliveryFunding)||receipt.payoutPerformed!==false)return fail();
-      const j=input.accountingJournal,posting=prepareFullCashJournal(fullOffer!.settlement);
+      const j=input.accountingJournal,posting=prepareFullCashJournal(fullOffer!.settlement,order.commercialPricing?.cashRounding);
       if(!j||j.pk!=='FULL_CASH_JOURNAL#'+orderId||j.sk!=='META'||j.kind!=='FULL_CASH_ACCOUNTING_JOURNAL'||
         j.schemaVersion!==1||j.status!=='POSTED'||j.orderId!==orderId||j.branchId!==branchId||j.driverId!==order.driverId||
         j.operationId!==operationId||j.settlementModel!==FULL_CASH_SETTLEMENT_MODEL||j.offerDigest!==offer.digest||

@@ -1,0 +1,23 @@
+{
+  "batch": 547,
+  "status": "READ_ONLY_INVENTORY_COMPLETE",
+  "pages": 3,
+  "caseCount": 0,
+  "imageReferenceCount": 0,
+  "results": {},
+  "images": [],
+  "recordsDeleted": 0,
+  "recordsChanged": 0,
+  "imagesCopied": 0,
+  "financialWrites": 0,
+  "scope": "Existing CUSTOMER_POST_DELIVERY_CASE rows only; excludes other return, cash and quality/safety attachment sources",
+  "observedAtLocalDate": "2026-11-12",
+  "migrationRequiredForObservedScope": false,
+  "humanImageAcceptance": "OPEN_NOT_RUN",
+  "deletionSafety": "Existing open/closed complaints continue to block account deletion pending review; no retention duration invented",
+  "next": [
+    "Complete checkout/order-creation inventory coverage",
+    "Inventory attachments in other return/quality/cash evidence sources separately",
+    "Decide retention policy before any automatic evidence purge"
+  ]
+}

@@ -1368,7 +1368,7 @@ function deriveMerchantCodAccrual(input) {
     if (expected.size || sum + (fullCash ? BigInt(whole(a.platformNetContribution)) : 0n) - BigInt(adjustment?.driverCreditIqd ?? 0) + BigInt(adjustment?.merchantReductionIqd ?? 0) !== 0n) return fail10();
     if (fullCash) {
       if (!same3(payable.deliveryFunding, order.financialSnapshot.deliveryFunding) || receipt.payoutPerformed !== false) return fail10();
-      const j = input.accountingJournal, posting = prepareFullCashJournal(fullOffer.settlement);
+      const j = input.accountingJournal, posting = prepareFullCashJournal(fullOffer.settlement, order.commercialPricing?.cashRounding);
       if (!j || j.pk !== "FULL_CASH_JOURNAL#" + orderId || j.sk !== "META" || j.kind !== "FULL_CASH_ACCOUNTING_JOURNAL" || j.schemaVersion !== 1 || j.status !== "POSTED" || j.orderId !== orderId || j.branchId !== branchId || j.driverId !== order.driverId || j.operationId !== operationId || j.settlementModel !== FULL_CASH_SETTLEMENT_MODEL || j.offerDigest !== offer.digest || j.allocationDigest !== fullOffer.settlement.digest || j.postingDigest !== posting.digest || outcome.journalDigest !== posting.digest || payable.journalDigest !== posting.digest || payable.settlementModel !== FULL_CASH_SETTLEMENT_MODEL || outcome.settlementModel !== FULL_CASH_SETTLEMENT_MODEL || j.createdAt !== deliveredAt || !same3(j.lines, posting.lines) || !same3(j.debit, posting.debit) || !same3(j.credit, posting.credit) || !same3(j.funding, posting.funding) || !same3(j.walletLines, walletLines)) return fail10();
     }
     const amounts = {

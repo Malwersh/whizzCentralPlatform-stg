@@ -27,8 +27,8 @@ async function handler(event){
  if(event?.action==='home_discovery_tick'&&!event.httpMethod&&!event.requestContext)return require('./home-discovery').rebuild({db,table});
  if(event?.action==='commercial_notice_tick'&&!event.httpMethod&&!event.requestContext)return require('./commercial-notices').tick({db});
  if(event?.action==='merchant_device_payout')return require('./merchant-device-payouts').handle({db,enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},event);
- if(event?.action==='settlement_schedule_owner')return require('./commercial-owner').handle({db,cognito,table,enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},event);
- if(event?.action==='commercial_owner')return require('./commercial-owner').handle({db,cognito,table,audit,enabled:process.env.COMMERCIAL_ADMIN_ENABLED==='true',deliveryFundingEnabled:process.env.DELIVERY_FUNDING_MANAGEMENT_ENABLED==='true'},event);
+ if(event?.action==='settlement_schedule_owner')return require('./commercial-owner').handle({db,cognito,table,financialLockEnabled:process.env.MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED==='true',enabled:process.env.SETTLEMENT_SCHEDULE_ADMIN_ENABLED==='true'},event);
+ if(event?.action==='commercial_owner')return require('./commercial-owner').handle({db,cognito,table,audit,financialLockEnabled:process.env.MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED==='true',enabled:process.env.COMMERCIAL_ADMIN_ENABLED==='true',deliveryFundingEnabled:process.env.DELIVERY_FUNDING_MANAGEMENT_ENABLED==='true'},event);
  try{
   if(((event.httpMethod==='GET'&&['/staff/public/home-slideshow','/staff/public/home-offer'].includes(event.path))||(event.httpMethod==='POST'&&event.path==='/staff/public/slideshow-events')))return response(200,await require('./home-slideshow').publicFeed({db,table},event));
   const token=(event.headers?.Authorization||event.headers?.authorization||'').replace(/^Bearer\s+/i,'');let claims;

@@ -30,14 +30,18 @@ async function codNoticeAllowed(client,item,at){
   if(!driver||(driver.cognitoSub??driver.driverId)!==item.driverId||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null)return false;
   return !(await client.send(new GetCommand({TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+item.driverId,sk:'META'},ConsistentRead:true,ProjectionExpression:'pk,sk'}))).Item;
  }
+ const returnTask=item.type==='driver_return_task_updated';
+ const exceptionFinance=item.type==='driver_exception_financial_updated';
  const dispatch=item.type==='dispatch_offer_closed';
- if(item.type!=='wallet_cod_lifecycle'&&!dispatch)return true;
+ if(item.type!=='wallet_cod_lifecycle'&&!dispatch&&!returnTask&&!exceptionFinance)return true;
  const mode=dispatch?process.env.DISPATCH_RESPONSE_NOTIFICATIONS_MODE:process.env.FINANCIAL_COD_NOTIFICATIONS_MODE;
  if(mode!=='REQUIRED'||process.env.STAGE!=='staging'||process.env.AWS_REGION!=='us-east-1'||process.env.FINANCIAL_COD_ACCOUNT_ID!=='699561669180')throw Error(dispatch?'DISPATCH_NOTICE_DISABLED':'COD_NOTICE_DISABLED');
  const driverId=dispatch?item.dispatchDriverId:item.financialDriverId,subjectId=dispatch?item.dispatchSubjectId:item.financialSubjectId;
  const rollout=require('./finance-rollout').createFinanceRollout({db:client,now:()=>at});await rollout.order(item.orderId,'NOTIFY');rollout.driver(item.orderId,driverId,subjectId);
  const valid=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(v);
  if(![driverId,subjectId,item.branchId].every(valid)||item.driverId!==subjectId||item.recipientApp!=='driver')return false;
+ if(exceptionFinance&&(!/^EXCEPTION_FINANCIAL_NOTICE#[a-f0-9]{64}$/.test(item.eventId||'')||!valid(item.caseId)||!valid(item.orderId)))return false;
+ if(returnTask&&(!/^RETURN_TASK_NOTICE#[a-f0-9]{64}$/.test(item.eventId||'')||!valid(item.orderId)||!valid(item.returnId)))return false;
  if(dispatch&&(!Number.isFinite(Date.parse(item.dispatchNoticeExpiresAt))||Date.parse(item.dispatchNoticeExpiresAt)<=at))return false;
  if(dispatch&&(![item.offerId,item.orderId,item.cycleId].every(valid)||!/^DR:[a-f0-9]{48}:EVENT$/.test(item.responseOperationId||'')))return false;
  const {Item:driver}=await client.send(new GetCommand({TableName:'WhizzDrivers_staging',Key:{driverId},ConsistentRead:true,
@@ -56,7 +60,7 @@ function createWorker(client,messaging,clock=()=>Date.now()){
   // Scope discovery precedes taking a lease on a new financial/dispatch notice.
   if(process.env.FINANCIAL_COD_NOTIFICATIONS_MODE==='REQUIRED'||process.env.DISPATCH_RESPONSE_NOTIFICATIONS_MODE==='REQUIRED'){
    const selected=(await client.send(new GetCommand({TableName:table,Key:{eventId},ConsistentRead:true}))).Item;
-   if(selected&&['wallet_cod_lifecycle','dispatch_offer_closed'].includes(selected.type)){
+   if(selected&&['wallet_cod_lifecycle','dispatch_offer_closed','driver_return_task_updated','driver_exception_financial_updated'].includes(selected.type)){
     const rollout=require('./finance-rollout').createFinanceRollout({db:client,now:clock});
     if(!rollout.containsOrder(selected.orderId))return;
     await rollout.order(selected.orderId,'NOTIFY');rollout.driver(selected.orderId,selected.dispatchDriverId??selected.financialDriverId,selected.dispatchSubjectId??selected.financialSubjectId);
@@ -81,8 +85,10 @@ function createWorker(client,messaging,clock=()=>Date.now()){
      if(delivered.has(hash))continue;
      try{
       if(!await codNoticeAllowed(client,item,clock())){suppressed=true;break;}
+      if(['merchant_payout_updated','merchant_exception_financial_updated'].includes(item.type)&&process.env.MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED!=='true')continue;
+      if(process.env.MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED==='true'&&!await require('./merchant-financial-device').merchantFinancialDeviceAllowed(client,item,record,clock()))continue;
       const sender=await messaging();
-      await sender.send({token:record.token,notification:{title:item.title,body:item.body},data:item.type==='dispatch_offer_closed'?{type:'offer_taken',action:'remove_offer',eventId:item.eventId,driverId:item.driverId,offerId:item.offerId,orderId:item.orderId,cycleId:item.cycleId}:{type:item.type,eventId:item.eventId,driverId:item.driverId,...(item.orderId?{orderId:item.orderId}:{}),...(item.sessionId?{sessionId:item.sessionId}:{}),topupId:item.topupId || '',amount:item.type==='wallet_cod_lifecycle'?'':String(item.amount || 0),reviewStatus:item.reviewStatus || '',action:item.type==='order_complaint_updated'?'open_complaint':item.type==='support_reply'?'open_support':item.type==='driver_review_changed'?'refresh_profile':'open_wallet'},android:{priority:'high',notification:{tag:item.eventId}},apns:{headers:{'apns-priority':'10','apns-push-type':'alert','apns-collapse-id':digest(item.eventId).slice(0,48)},payload:{aps:{sound:'default','content-available':1}}}});
+      await sender.send({token:record.token,notification:item.recipientApp==='merchant'?{title:'تحديث على حساب المتجر',body:'افتح التطبيق للاطلاع على التفاصيل بعد التحقق.'}:{title:item.title,body:item.body},data:item.recipientApp==='merchant'?{type:item.type,eventId:item.eventId,driverId:item.driverId,...(item.type==='merchant_payout_updated'?{branchId:item.branchId,payoutId:item.payoutId}:{}),action:'open_wallet'}:item.type==='dispatch_offer_closed'?{type:'offer_taken',action:'remove_offer',eventId:item.eventId,driverId:item.driverId,offerId:item.offerId,orderId:item.orderId,cycleId:item.cycleId}:{type:item.type,eventId:item.eventId,driverId:item.driverId,...(item.orderId?{orderId:item.orderId}:{}),...(item.sessionId?{sessionId:item.sessionId}:{}),topupId:item.topupId || '',amount:['wallet_cod_lifecycle','driver_return_task_updated','driver_exception_financial_updated'].includes(item.type)?'':String(item.amount || 0),reviewStatus:item.reviewStatus || '',action:item.type==='driver_return_task_updated'?'open_notifications':item.type==='order_complaint_updated'?'open_complaint':item.type==='support_reply'?'open_support':item.type==='driver_review_changed'?'refresh_profile':'open_wallet'},android:{priority:'high',notification:{tag:item.eventId}},apns:{headers:{'apns-priority':'10','apns-push-type':'alert','apns-collapse-id':digest(item.eventId).slice(0,48)},payload:{aps:{sound:'default','content-available':1}}}});
       await client.send(new UpdateCommand({TableName:table,Key:{eventId},UpdateExpression:'ADD deliveredTokenHashes :hash',ConditionExpression:'leaseOwner = :owner',ExpressionAttributeValues:{':hash':new Set([hash]),':owner':owner}}));
       delivered.add(hash);
      }catch(error){

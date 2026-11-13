@@ -37,9 +37,11 @@ test('a competing lease prevents a second sender',async()=>{
 test('rejection creates a separate deterministic notification without crediting the wallet',async()=>{
  const {walletNotification}=require('../dist/walletNotifications');const result=walletNotification({...item(),topupId:'TOPUP'},'REJECTED',new Date().toISOString());assert.equal(result.Put.Item.eventId,'TOPUP#REJECTED');assert.equal(result.Put.Item.deliveryStatus,'PENDING');assert.equal(result.Put.ConditionExpression,'attribute_not_exists(eventId)');
 });
-function codFixture({orderId='order',mode='REQUIRED',deleted=false,changed=false,tombstone=false,readFailure=false,deleteBeforeSend=false}={}){
+function codFixture({exceptionFinance=false,returnTask=false,orderId='order',mode='REQUIRED',deleted=false,changed=false,tombstone=false,readFailure=false,deleteBeforeSend=false}={}){
  const writes=[],sends=[];let driverReads=0;
  const notice={orderId,eventId:'COD_EVENT:synthetic',driverId:'subject1',financialDriverId:'driver1',financialSubjectId:'subject1',branchId:'branch1',recipientApp:'driver',type:'wallet_cod_lifecycle',title:'تحديث المحفظة',body:'افتح المحفظة',createdAt:new Date(1700000000000).toISOString(),attempts:1};
+ if(exceptionFinance)Object.assign(notice,{type:'driver_exception_financial_updated',eventId:'EXCEPTION_FINANCIAL_NOTICE#'+'a'.repeat(64),caseId:'case1'});
+ if(returnTask)Object.assign(notice,{type:'driver_return_task_updated',eventId:'RETURN_TASK_NOTICE#'+'a'.repeat(64),returnId:'return1'});
  const client={async send(c){const q=c.input;writes.push(q);
   if(c.constructor.name==='UpdateCommand'&&q.ReturnValues)return {Attributes:notice};
   if(c.constructor.name==='QueryCommand')return {Items:[{app:'driver',token:'own-token'},{app:'merchant',token:'other-token'}]};
@@ -97,3 +99,16 @@ test('complaint update is scoped to its customer and opens the complaint; deleti
   assert.equal(sends.length,mode==='valid'?1:0);if(sends.length){assert.equal(sends[0].data.action,'open_complaint');assert.equal(sends[0].data.orderId,'order');assert.equal(sends[0].token,'own');}
  }
 });
+
+test('merchant wallet push never exposes financial amounts, reasons or references from event content',async()=>{
+ const notice={...item(),recipientApp:'merchant',type:'wallet_transfer_completed',transferId:'private-transfer',branchId:'private-branch',title:'50000 transferred',body:'private financial reason'};
+ const sends=[];const client={async send(c){if(c.constructor.name==='UpdateCommand'&&c.input.ReturnValues)return {Attributes:notice};if(c.constructor.name==='QueryCommand')return {Items:[{app:'merchant',token:'own'},{app:'driver',token:'foreign'}]};return {};}};
+ await createWorker(client,async()=>({send:async m=>sends.push(m)}),()=>1700000000000).processEvent(notice.eventId);
+ assert.equal(sends.length,1);assert.deepEqual(sends[0].data,{type:notice.type,eventId:notice.eventId,driverId:notice.driverId,action:'open_wallet'});
+ for(const secret of ['50000','private-transfer','private-branch','private financial reason'])assert.equal(JSON.stringify(sends[0]).includes(secret),false);
+ assert.equal(sends[0].notification.title,'تحديث على حساب المتجر');
+});
+
+test('return task notice opens inbox, omits amount and is suppressed for deleted or changed driver',async()=>{const f=await runCod({returnTask:true});assert.ifError(f.error);assert.equal(f.sends.length,1);assert.equal(f.sends[0].data.action,'open_notifications');assert.equal(f.sends[0].data.amount,'');assert.equal(f.sends[0].data.offerId,undefined);for(const opts of [{deleted:true},{changed:true},{tombstone:true},{deleteBeforeSend:true}]){const denied=await runCod({...opts,returnTask:true});assert.equal(denied.sends.length,0);}});
+
+test('financial case update routes driver to wallet without exposing fake zero or reopening offer',async()=>{const f=await runCod({exceptionFinance:true});assert.ifError(f.error);assert.equal(f.sends.length,1);assert.equal(f.sends[0].data.action,'open_wallet');assert.equal(f.sends[0].data.amount,'');assert.equal(f.sends[0].data.offerId,undefined);const blocked=await runCod({exceptionFinance:true,changed:true});assert.equal(blocked.sends.length,0);});

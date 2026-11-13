@@ -1,3 +1,4 @@
+import {exceptionFinancialNotices} from './exceptionFinancialNotice';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {createCodFlowContext} from './codFlowContext';
 import {createExceptionStaffAuthority} from './exceptionStaffAuthority';
@@ -101,7 +102,7 @@ export function createExceptionFinancials(options:{db:Pick<DynamoDBDocumentClien
  const {Key:unused,...fence}=exactCheck(H,ck,row).ConditionCheck;
  const receipt={success:true,caseId:v.caseId,orderId:v.orderId,action:v.action,status,version:next.version,decisionId:approved?.decisionId??decision?.decisionId,financialPosting,...receiptExtra};
  const index=await exceptionCaseIndexOperation(db,{caseId:v.caseId,orderId:v.orderId,caseKey:v.caseKey,caseType:'COD_DELIVERY_EXCEPTION',state:'SETTLEMENT_PENDING',open:true,branchId:c.offer.branchId,at,dueAt:next.activePhase?.responseDueAt??at});
- ops.push(...guards,index,{Put:{...fence,Item:next}},{Put:{TableName:H,Item:{...ek,caseId:v.caseId,kind:'ORDER_EXCEPTION_CASE_EVENT',actorId:actor.subjectId,actorKind:'STAFF',action:v.action,reason:v.reason.trim(),requestDigest,receipt,createdAt:at,financialPosting},ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.idempotencyKey,logId:v.idempotencyKey,caseId:v.caseId,orderId:v.orderId,actorId:actor.subjectId,actorKind:'STAFF',action:v.action,amountIqd:amount,decisionId:receipt.decisionId,reason:v.reason.trim(),createdAt:at,financialPosting},ConditionExpression:'attribute_not_exists(sk)'}});
+ ops.push(...exceptionFinancialNotices(c,v,receipt),...guards,index,{Put:{...fence,Item:next}},{Put:{TableName:H,Item:{...ek,caseId:v.caseId,kind:'ORDER_EXCEPTION_CASE_EVENT',actorId:actor.subjectId,actorKind:'STAFF',action:v.action,reason:v.reason.trim(),requestDigest,receipt,createdAt:at,financialPosting},ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.idempotencyKey,logId:v.idempotencyKey,caseId:v.caseId,orderId:v.orderId,actorId:actor.subjectId,actorKind:'STAFF',action:v.action,amountIqd:amount,decisionId:receipt.decisionId,reason:v.reason.trim(),createdAt:at,financialPosting},ConditionExpression:'attribute_not_exists(sk)'}});
  if(!equal(actor,await authority.authenticate()))return fail('UNAUTHORIZED');try{await db.send(new TransactWriteCommand({TransactItems:ops as any}));}catch(e){const saved=await strongGet(db,H,ek);if(saved?.requestDigest===requestDigest&&saved.actorId===actor.subjectId)return {...saved.receipt,replayed:true};throw e;}return receipt;
  };
 }

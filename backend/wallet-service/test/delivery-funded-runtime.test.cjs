@@ -5,6 +5,8 @@ function runtime(mode,model){
  const operating={version:1,values:{driverOfferTtlSeconds:60,driverPositionMaxAgeSeconds:120,reassignmentWindowSeconds:120,maximumWaves:4},condition:null};
  const unsupported=()=>{throw Error('UNEXPECTED_UNRELATED_RUNTIME_CALL');};
  const modules={
+ './driverCashPayoutRuntime':{handler:unsupported},
+ './customerOrderComplaintRuntime341':{customerOrderComplaintHandler:unsupported},
  './driverQualityDriverRuntime':{handler:unsupported},'./cancellationCompensation':{handler:unsupported},'./merchantHandover':{handler:unsupported},'./staffOrderManagement':{handler:unsupported},
  './returnContinuation':{createReturnContinuation:factory('continuation',{execute:async()=>({})})},
  './returnCustody':{createReturnCustodyReconciler:()=>async()=>({closed:false})},

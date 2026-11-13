@@ -39,14 +39,14 @@ function codEvidence(row){
 }
 function exact(row,extra=[]){const names={},values={},parts=[];for(const [i,k]of [...new Set([...Object.keys(row),...extra,'legalHold','retentionHold'])].entries()){names['#c'+i]=k;if(row[k]===undefined)parts.push('attribute_not_exists(#c'+i+')');else {values[':c'+i]=row[k];parts.push('#c'+i+'=:c'+i);}}return {ConditionExpression:parts.join(' AND '),ExpressionAttributeNames:names,...(Object.keys(values).length?{ExpressionAttributeValues:values}:{})};}
 async function scan(db,table,maxPages){let rows=[],cursor;for(let page=0;page<maxPages;page++){const r=await db.send(new ScanCommand({TableName:table,ConsistentRead:true,ExclusiveStartKey:cursor,Limit:100}));rows.push(...r.Items||[]);cursor=r.LastEvaluatedKey;if(!cursor)return rows;}throw error('EVIDENCE_INCOMPLETE');}
-async function pendingCod({db,driverIds=[],branchId,orderIds=[],maxPages=100}){
+async function pendingCod({db,driverIds=[],customerIds=[],branchId,orderIds=[],maxPages=100}){
  const owned=r=>driverIds.includes(r.driverId)||driverIds.includes(r.subjectId)||branchId&&r.branchId===branchId||orderIds.includes(r.orderId);
  const events=(await scan(db,EVENTS,maxPages)).filter(r=>isEvent(r)&&!doneEvent(r)&&owned(r)).map(r=>({operationId:r.operationId,status:'COD_INTEGRATION_PENDING'}));
  const dispatch=(await scan(db,'WizzDispatchJobs_staging',maxPages)).filter(r=>isDispatch(r)&&!dispatchDone(r)&&owned(r)).map(r=>({operationId:r.eventId||r.attemptId||r.restartId||r.cycleId,orderId:r.orderId,status:'DISPATCH_INTEGRATION_PENDING'}));
  const holdRows=await scan(db,'staging-Holds',maxPages);
  const cash=holdRows.filter(r=>cashRetention.pending(r)&&owned(r)).map(r=>({orderId:r.orderId,operationId:r.caseId,status:'CUSTOMER_CASH_REVIEW_PENDING'}));
  const reviews=require('./quality-review-retention-290').pendingQualityReviews(holdRows,driverIds);
- const complaints=holdRows.filter(r=>r.kind==='CUSTOMER_POST_DELIVERY_CASE'&&owned(r)).map(r=>({orderId:r.orderId,operationId:r.caseId,status:r.state==='CLOSED'?'POST_DELIVERY_CASE_RETENTION_REVIEW':'POST_DELIVERY_COMPLAINT_PENDING'}));
+ const complaints=holdRows.filter(r=>r.kind==='CUSTOMER_POST_DELIVERY_CASE'&&(owned(r)||customerIds.includes(r.customerId))).map(r=>({orderId:r.orderId,operationId:r.caseId,status:r.state==='CLOSED'?'POST_DELIVERY_CASE_RETENTION_REVIEW':'POST_DELIVERY_COMPLAINT_PENDING'}));
  return [...events,...dispatch,...cash,...reviews,...complaints];
 }
 

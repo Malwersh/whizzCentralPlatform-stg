@@ -14,7 +14,7 @@ const {receipt,error,target}=require('./policy');
 const {receiptAccess}=require('./receipt-access');
 const db=DynamoDBDocumentClient.from(new DynamoDBClient({}),{marshallOptions:{removeUndefinedValues:true}});
 const table=process.env.DELETION_TABLE,auth=accountAuth({allowedTypes:['CUSTOMER','DRIVER','MERCHANT']}),store=dynamoStore({table,db});
-const evidenceByType={CUSTOMER:customerEvidence({db}),DRIVER:driverEvidence({db}),MERCHANT:merchantEvidence({db})};
+const evidenceByType={CUSTOMER:customerEvidence({db,deliveryFundingArchiveEnabled:process.env.DELIVERY_FUNDING_ARCHIVE_ENABLED==='true'}),DRIVER:driverEvidence({db}),MERCHANT:merchantEvidence({db})};
 const executionTypes=new Set(['CUSTOMER','DRIVER','MERCHANT'].filter(type=>process.env.AUTOMATIC_EXECUTION_ENABLED==='true'&&process.env[({CUSTOMER:'MUTATION_GUARDS_VERIFIED',DRIVER:'DRIVER_MUTATION_GUARDS_VERIFIED',MERCHANT:'MERCHANT_MUTATION_GUARDS_VERIFIED'})[type]]==='true'));
 const settings=retentionSettings({db,table:process.env.STAFF_TABLE,approvedInventories:executionTypes});
 async function deletionSecret(){const r=await new SecretsManagerClient({}).send(new GetSecretValueCommand({SecretId:process.env.OTP_SECRET_ARN}));return JSON.parse(r.SecretString);}

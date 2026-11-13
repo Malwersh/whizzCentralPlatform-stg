@@ -1,0 +1,111 @@
+{
+  "batch": 546,
+  "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+  "testsPassed": 25,
+  "scope": [
+    "Checksum-verified immutable private evidence copy under complaint-evidence/",
+    "Attachment metadata TTL removed only within same conditional transaction as case evidence",
+    "Explicit retention hold until policy review; no invented retention duration",
+    "Authenticated support read accepts exact retained descriptor; temporary images still expire"
+  ],
+  "requiredChanges": {
+    "writerRole": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+    "writerPolicy": "docs/complaint-evidence-writer-546-policy.json",
+    "supportSharedRole": "wizzcentral-websocket-staging-us-east-1-lambdaRole",
+    "readerPolicy": "docs/complaint-evidence-reader-546-policy.json",
+    "bucket": "wizzcentral-websocket-sta-supportattachmentsbucket-menmovqpzidh",
+    "lifecycleProposal": "docs/complaint-evidence-546-lifecycle.json",
+    "lifecycleEffect": "30-day object expiry remains for support-images/; protected complaint-evidence/ excluded pending retention review; 1-day incomplete multipart abort retained globally",
+    "writerEnvironment": [
+      "COMPLAINT_EVIDENCE_BUCKET",
+      "COMPLAINT_EVIDENCE_BUCKET_OWNER"
+    ]
+  },
+  "runtimeEvidence": {
+    "metadataTtlSeconds": 86400,
+    "objectExpiryDays": 30,
+    "existingPrefixes": [
+      "support-images/"
+    ],
+    "rootObjects": 0,
+    "writerPutAttachmentPermission": "implicitDeny"
+  },
+  "validation": [
+    "Ownership and source-key validation",
+    "Actual bytes hash and size match",
+    "No overwrite on retry; validate existing destination",
+    "S3 failure cannot add case evidence",
+    "Attachment change race aborts case+metadata transaction",
+    "Read expiry applies to temporary images and rejects forged retained metadata"
+  ],
+  "notYetDone": [
+    "Existing complaint images have not been migrated or claimed recovered; expired/missing source requires review",
+    "A copy produced before a failed case transaction can remain orphaned; inventory/review needed before any purge",
+    "Human authenticated image attachment/read cycle remains unverified; older evidence migration and retention policy review remain open"
+  ],
+  "recordsDeleted": 0,
+  "financialWrites": 0,
+  "liveImagesCopied": 0,
+  "packagedHandlersLoadVerified": true,
+  "liveDeploymentPerformed": true,
+  "approvalReview": {
+    "initialResult": "REJECTED",
+    "resolution": "User explicitly reconfirmed scoped IAM, both Lambda updates and complaint-evidence lifecycle exemption; subsequent execution approved"
+  },
+  "packageDiff": {
+    "writer": [
+      "customer-order-complaint-runtime-341.js",
+      "complaint-image-retention.js"
+    ],
+    "reader": [
+      "src/utils/support-attachments.js",
+      "src/utils/complaint-image-retention.js"
+    ]
+  },
+  "packagedModuleTestsPassed": 11,
+  "authorizationProbes": {
+    "writer": 401,
+    "reader": 401
+  },
+  "iam": {
+    "writerManagedPolicy": "arn:aws:iam::699561669180:policy/staging-ComplaintEvidenceWriter546",
+    "readerInlinePolicy": "ComplaintEvidenceReader546",
+    "reasonForManagedWriter": "Existing role inline policy size limit; identical approved permissions"
+  },
+  "publication": {
+    "writer": {
+      "functionName": "staging-driver-financial-accept",
+      "codeSha256": "J7W7mP7yUgH0ybPKnt23KdANl3TTJV6sz/HuILhA8Qg=",
+      "lastUpdateStatus": "Successful"
+    },
+    "reader": {
+      "functionName": "wizzcentral-websocket-staging-supportAttachments",
+      "codeSha256": "BKIENOToih/kU4Gj90Fs5vbjfgHVzSp2tECqehNFhnY=",
+      "lastUpdateStatus": "Successful"
+    }
+  },
+  "lifecycleVerified": {
+    "Rules": [
+      {
+        "Expiration": {
+          "Days": 30
+        },
+        "ID": "ExpireSupportImages",
+        "Filter": {
+          "Prefix": "support-images/"
+        },
+        "Status": "Enabled"
+      },
+      {
+        "ID": "AbortIncompleteSupportUploads",
+        "Filter": {
+          "Prefix": ""
+        },
+        "Status": "Enabled",
+        "AbortIncompleteMultipartUpload": {
+          "DaysAfterInitiation": 1
+        }
+      }
+    ]
+  }
+}

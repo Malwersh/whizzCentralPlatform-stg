@@ -17,3 +17,4 @@ test('settlement consent envelope uses the same live access-token identity check
  const e={...event(),action:'settlement_schedule_owner',input:{branchId:'branch1'}};const result=await handle(c,e);assert.equal(result.statusCode,200);assert.deepEqual(result.result.proposals,[]);
  c.cognito.send=async()=>({UserAttributes:[{Name:'sub',Value:'different'},{Name:'phone_number_verified',Value:'true'}]});assert.equal((await handle(c,e)).statusCode,401);
 });
+test('financial lock denies commercial reads before loading terms without an owner capability',async()=>{const c={...context(),financialLockEnabled:true};c.db.send=()=>{throw Error('must not read terms');};const r=await handle(c,event());assert.equal(r.statusCode,403);assert.equal(r.code,'PAYOUT_FINANCIAL_UNLOCK_REQUIRED');});

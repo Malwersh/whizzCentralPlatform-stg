@@ -17,7 +17,7 @@ function publicView(row,policy,now){
  const d=row&&decision(row);
  return {success:true,caseKey:KEY,caseId:row?.caseId??null,orderId:row?.orderId,version:row?.version??0,status:row?.state??'NOT_OPENED',type:row?.type??null,description:row?.description??null,evidence:(row?.evidence??[]).filter(e=>e.source==='CUSTOMER').map(e=>Object.fromEntries(['id','kind','text','attachmentId','sessionId','at'].filter(k=>e[k]!==undefined).map(k=>[k,e[k]]))),customerRequest:row?.customerRequest??null,supportSessionId:row?.supportSessionId??null,createdAt:row?.createdAt??null,responseDueAt:row?.activePhase?.responseDueAt??null,decision:d?{decisionId:d.decisionId,outcome:d.outcome,reason:d.publicReason,remedyAmountIqd:d.remedyAmountIqd,remedyKind:d.remedyAmountIqd?'FUTURE_GOODS_DISCOUNT':'NONE',decidedAt:d.at,acknowledgedAt:row.decisionAcknowledgements?.[d.decisionId]??null}:null,appeal:row?.appeals?.at(-1)?{status:row.appeals.at(-1).status,reason:row.appeals.at(-1).reason,submittedAt:row.appeals.at(-1).at}:null,appealWindowSeconds:(row?.casePolicySnapshot??policy).values.appealSeconds,canAppeal:!!d&&!!row.decisionAcknowledgements?.[d.decisionId]&&!row.appeals?.some(a=>a.decisionId===d.decisionId)&&(!row.decisionAcknowledgements?.[d.decisionId]||now<=Date.parse(row.decisionAcknowledgements[d.decisionId])+(row.casePolicySnapshot.values.appealSeconds*1000)),cashRefundPerformed:false,financialPosting:false};
 }
-function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,index,phase,now=Date.now,verifyVoucher}){
+function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,index,phase,now=Date.now,verifyVoucher,retainImage=input=>require('./complaint-image-retention').retain(input)}){
  async function context(orderId){
   if(!id(orderId))fail('INVALID_COMPLAINT',400);
   const actor=await authenticate(),ok={PK:'ORDER#'+orderId,SK:'META'},order=await get(db,O,ok);
@@ -86,7 +86,12 @@ function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,in
      const key={attachmentId:v.attachmentId},image=await get(db,'support-attachments-staging',key);
      if(!image||image.subjectId!==c.actor.subjectId||image.userType!=='customer'||image.sessionId!==data.supportSessionId||image.status!=='PUBLISHED'||!Number.isFinite(image.ttl)||image.ttl<=now()/1000||!image.checksum)fail('COMPLAINT_IMAGE_UNAVAILABLE');
      const mk={sessionId:image.sessionId,messageKey:image.messageKey},message=image.messageKey?await get(db,'chat-messages-staging',mk):null;if(!message||message.attachment?.attachmentId!==image.attachmentId)fail('COMPLAINT_IMAGE_UNAVAILABLE');guards.push(exact('chat-messages-staging',mk,message));
-     evidence.attachmentId=image.attachmentId;evidence.sessionId=image.sessionId;evidence.checksum=image.checksum;evidence.contentType=image.contentType;guards.push(exact('support-attachments-staging',key,image));
+     evidence.attachmentId=image.attachmentId;evidence.sessionId=image.sessionId;evidence.checksum=image.checksum;evidence.contentType=image.contentType;
+     const retained=await retainImage({image,caseId:c.caseId,orderId:v.orderId,subjectId:c.actor.subjectId,at,now:now()});
+     if(!require('./complaint-image-retention').isRetained(retained)||retained.evidenceRetention.caseId!==c.caseId||retained.evidenceRetention.orderId!==v.orderId||retained.subjectId!==image.subjectId||retained.sessionId!==image.sessionId||retained.checksum!==image.checksum)fail('COMPLAINT_IMAGE_RETENTION_UNAVAILABLE');
+     const {TableName:it,Key:ik,...ic}=exact('support-attachments-staging',key,image).ConditionCheck;
+     ops.push({Put:{TableName:it,Item:retained,...ic}});
+     evidence.retained=true;
     }
     data.evidence.push(evidence);if(data.state==='WAITING_CUSTOMER')data.state='IN_REVIEW';
    }else if(v.action==='REQUEST_INFO'){

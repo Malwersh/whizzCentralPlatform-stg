@@ -51,6 +51,15 @@ function createMerchantPersonalWorker({db,cognito,connections,s3,verifiedMutatio
     const pointer=[`TRANSFER_VERIFY#ACTIVE#${r.subjectId}`,`TRANSFER_VERIFY#COOLDOWN#${r.subjectId}`].includes(row.idempotencyKey)||(/^TRANSFER_VERIFY#DAILY#\d+#/.test(row.idempotencyKey)&&row.idempotencyKey.endsWith('#'+r.subjectId));
     if(owned||pointer)await remove(r,'staging-IdempotencyKeys',row,['idempotencyKey','sk'],owned?'principalId':'idempotencyKey');
    }
+   // Personal security capabilities and device preferences are not money evidence.
+   // Historical sessions without subjectId remain denied by lifecycle guards.
+   // Their physical retention needs a separately verified TTL/retention process.
+   for(const row of await rows('staging-MerchantPlatform')){
+    const session=typeof row.pk==='string'&&/^MERCHANT_FINANCIAL_SESSION#[a-f0-9]{64}$/.test(row.pk)&&['SESSION','CHALLENGE'].includes(row.sk)&&['MERCHANT_FINANCIAL_SESSION','MERCHANT_FINANCIAL_CHALLENGE'].includes(row.kind);
+    const rate=typeof row.pk==='string'&&/^MERCHANT_FINANCIAL_RATE#[a-f0-9]{64}$/.test(row.pk)&&row.sk==='OTP';
+    const preference=row.pk==='MERCHANT_FINANCIAL_PUSH#'+r.subjectId&&typeof row.sk==='string'&&/^[a-f0-9]{64}$/.test(row.sk);
+    if(row.subjectId===r.subjectId&&(session||rate||preference))await remove(r,'staging-MerchantPlatform',row,['pk','sk'],'subjectId');
+   }
    for(const row of await rows('WhizzMerchants_Users',true)){const owner=['userId','cognitoSub','cognitoUserId'].find(k=>row[k]===r.subjectId);if(owner)await remove(r,'WhizzMerchants_Users',row,['userId'],owner);}
    for(const row of await rows('WizzCentral_PushDeviceTokens_staging'))if(row.subjectId===r.subjectId&&row.app==='merchant')await remove(r,'WizzCentral_PushDeviceTokens_staging',row,['token'],'subjectId');
    for(const row of await rows('WizzUser_websocket_connections_staging'))if(row.userId===r.subjectId){await lease(r);try{await connections.send(new DeleteConnectionCommand({ConnectionId:row.connectionId}));}catch(e){if(e.name!=='GoneException'&&e.$metadata?.httpStatusCode!==410)throw e;}await remove(r,'WizzUser_websocket_connections_staging',row,['connectionId'],'userId');}

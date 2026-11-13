@@ -1,6 +1,7 @@
 "use strict";
 const {ScanCommand,GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {error}=require('./policy');
+const fundingRetention=require('./customer-delivery-funding-retention');
 const ARCHIVE='staging-AccountDeletionFinancialArchive';
 const TABLES=[['staging-MerchantPlatform',['pk','sk'],'commercial_sharing'],['staging-MerchantPlatform',['pk','sk'],'commercial_agreement'],['staging-PlatformStaff',['pk','sk'],'commercial_approval'],['staging-PlatformStaff',['pk','sk'],'commercial_funding'],['staging-PlatformStaff',['pk','sk'],'commercial_audit'],['staging-PlatformStaff',['pk','sk'],'cod_review'],['WizzDispatchJobs_staging',['orderId','SK'],'cod_dispatch'],['staging-Holds',['orderId','sk'],'cod_hold'],['staging-WalletLifecycle',['operationId'],'cod_event'],['WaveOffers_staging',['orderId','SK'],'cod_offer'],['staging-LedgerEntries',['walletId','sk'],'ledger'],['WizzUser_transactions_staging',['transactionId'],'payment'],['WizzOrders',['PK','SK'],'order'],['staging-IdempotencyKeys',['idempotencyKey','sk'],'transfer'],['staging-AuditLog',['datePartition','sk'],'audit'],['staging-TopupRequests',['topupId','sk'],'topup'],['staging-SandboxPayments',['pk','sk'],'sandbox']];
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
@@ -23,15 +24,18 @@ const noHolds='(attribute_not_exists(legalHold) OR legalHold = :no) AND (attribu
 function financialPurge({db,clock=()=>Math.floor(Date.now()/1000),dryRun=true,maxPages=100,maxDeletes=100}){
  if(!Number.isSafeInteger(maxPages)||maxPages<1||!Number.isSafeInteger(maxDeletes)||maxDeletes<1)throw error('INVALID_PURGE_LIMIT');
  return async()=>{
+  const fundingRetained={WITHIN_RETENTION:0,DOCUMENTED_HOLD:0,SOURCE_LIFECYCLE_REVIEW_REQUIRED:0};
+  const fundingArchives=[];let fundingReview;
   const groups=new Map();let cursor,pages=0,removed=0,archivesRemoved=0,eligible=0,blocked=0;
   // Complete inventory before deleting: a second deletion request may retain or hold the same source.
   do{
-   if(pages++>=maxPages)return {removed,archivesRemoved,eligible,blocked,dryRun,incomplete:true};
+   if(pages++>=maxPages)return {removed,archivesRemoved,eligible,blocked,dryRun,fundingRetained,fundingReview:fundingRetention.reviewGroups(fundingArchives,clock()),incomplete:true};
    const res=await db.send(new ScanCommand({TableName:ARCHIVE,ConsistentRead:true,ExclusiveStartKey:cursor,Limit:100}));
-   for(const a of res.Items||[]){if(a.kind==='merchant_settlement'){if(a.purgeBlocked!==true||a.expiresAt!==undefined)throw error('SETTLEMENT_PURGE_ADAPTER_REQUIRED');blocked++;continue;}const source=sourceOf(a);if(!groups.has(source.id))groups.set(source.id,{...source,archives:[]});groups.get(source.id).archives.push(a);}
+   for(const a of res.Items||[]){const fundingReason=fundingRetention.classify(a,clock());if(fundingReason){fundingArchives.push(a);fundingRetained[fundingReason]++;blocked++;continue;}if(a.kind==='merchant_settlement'){if(a.purgeBlocked!==true||a.expiresAt!==undefined)throw error('SETTLEMENT_PURGE_ADAPTER_REQUIRED');blocked++;continue;}const source=sourceOf(a);if(!groups.has(source.id))groups.set(source.id,{...source,archives:[]});groups.get(source.id).archives.push(a);}
    cursor=res.LastEvaluatedKey;
   }while(cursor);
   const now=clock();
+  fundingReview=fundingRetention.reviewGroups(fundingArchives,now,{complete:true});
   for(const g of groups.values()){
    if(g.archives.some(a=>held(a)||a.expiresAt>now)||g.archives.length>99){blocked++;continue;}
    const {Item:source}=await db.send(new GetCommand({TableName:g.table,Key:g.key,ConsistentRead:true}));
@@ -62,16 +66,16 @@ function financialPurge({db,clock=()=>Math.floor(Date.now()/1000),dryRun=true,ma
     if(g.archives.length+1+financialGuards.length>100){blocked++;continue;}
    }
    eligible++;if(dryRun)continue;
-   if(archivesRemoved+g.archives.length>maxDeletes)return {removed,archivesRemoved,eligible,blocked,dryRun,incomplete:true};
+   if(archivesRemoved+g.archives.length>maxDeletes)return {removed,archivesRemoved,eligible,blocked,dryRun,fundingRetained,fundingReview,incomplete:true};
    const archiveDeletes=g.archives.map(a=>({Delete:{TableName:ARCHIVE,Key:{pk:a.pk,sk:a.sk},ConditionExpression:'requestId = :request AND expiresAt = :expiry AND '+noHolds,ExpressionAttributeValues:{':request':a.requestId,':expiry':a.expiresAt,':no':false}}}));
    if(commercial)for(let i=0;i<archiveDeletes.length;i++){const guard=require('./cod-retention').exact(g.archives[i]);Object.assign(archiveDeletes[i].Delete,guard);}
    const sourceOperation=source?{Delete:{TableName:g.table,Key:g.key,ConditionExpression:'accountDeletionRequestId = :request AND financialArchiveConfirmed = :yes AND financialRetainUntil = :until AND '+noHolds,ExpressionAttributeValues:{':request':source.accountDeletionRequestId,':yes':true,':until':source.financialRetainUntil,':no':false}}}:{ConditionCheck:{TableName:g.table,Key:g.key,ConditionExpression:'attribute_not_exists(#key)',ExpressionAttributeNames:{'#key':Object.keys(g.key)[0]}}};
    if((codSource||commercial)&&source){const guard=require('./cod-retention').exact(source);sourceOperation.Delete.ConditionExpression=guard.ConditionExpression;sourceOperation.Delete.ExpressionAttributeNames=guard.ExpressionAttributeNames;sourceOperation.Delete.ExpressionAttributeValues=guard.ExpressionAttributeValues;}
    try{await db.send(new TransactWriteCommand({TransactItems:[sourceOperation,...archiveDeletes,...financialGuards]}));removed+=source?1:0;archivesRemoved+=g.archives.length;}
    catch(e){if(e.name!=='TransactionCanceledException'||!e.CancellationReasons?.some(r=>r.Code==='ConditionalCheckFailed')||e.CancellationReasons.some(r=>!['None','ConditionalCheckFailed'].includes(r.Code)))throw e;blocked++;}
-   if(archivesRemoved>=maxDeletes)return {removed,archivesRemoved,eligible,blocked,dryRun,incomplete:true};
+   if(archivesRemoved>=maxDeletes)return {removed,archivesRemoved,eligible,blocked,dryRun,fundingRetained,fundingReview,incomplete:true};
   }
-  return {removed,archivesRemoved,eligible,blocked,dryRun,incomplete:false};
+  return {removed,archivesRemoved,eligible,blocked,dryRun,fundingRetained,fundingReview,incomplete:false};
  };
 }
 module.exports={financialPurge,TABLES,sourceOf};

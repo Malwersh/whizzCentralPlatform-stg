@@ -40,7 +40,7 @@ function financialRecord(row,kind,job,now){
  return {requestId:job.requestId,subjectAlias:'DELETED#'+job.requestId,policyVersion:job.policyVersion,kind,data,archivedAt:now,expiresAt:Math.floor(created.getTime()/1000)};
 }
 function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock=()=>new Date().toISOString(),maxPages=100,
- deliveryQuotesEnabled=false,actorType='CUSTOMER',pool=POOL,personalTables=PERSONAL,profileTable='WizzUser_users_staging',profileKey='userId',orderPii=ORDER_PII,financialTables,
+ deliveryQuotesEnabled=false,deliveryFundingArchiveEnabled=false,actorType='CUSTOMER',pool=POOL,personalTables=PERSONAL,profileTable='WizzUser_users_staging',profileKey='userId',orderPii=ORDER_PII,financialTables,
  authTables=['WizzUser_phone_auth_staging','WizzUser_phone_link_staging'],temporaryTables=['WizzUser_temp_users_staging','WizzUser_password_reset_tokens_staging']}){
  if(requestTable!=='staging-AccountDeletion'||archiveTable!=='staging-AccountDeletionFinancialArchive')throw error('INVALID_STAGING_TABLE');
  if(!((actorType==='CUSTOMER'&&pool===POOL&&profileTable==='WizzUser_users_staging'&&profileKey==='userId')||(actorType==='DRIVER'&&pool==='us-east-1_RGTqUXF5C'&&profileTable==='WhizzDrivers_staging'&&profileKey==='driverId')||(actorType==='MERCHANT'&&pool==='us-east-1_gtCR3ndzT'&&profileTable==='WhizzMerchants_Businesses'&&profileKey==='businessId')))throw error('INVALID_CLEANUP_CONFIGURATION');
@@ -54,7 +54,17 @@ function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock
  const ids=job=>job.ownedIds||[job.subjectId,...job.profileIds];
  async function personal(r,job){
   const ownOrders=(await rows('WizzOrders')).filter(o=>actorType==='DRIVER'?ids(job).includes(o.driverId):actorType==='MERCHANT'?ids(job).includes(o.businessId)||ids(job).includes(o.storeId):ids(job).includes(o.userId)||ids(job).includes(o.userSub)||ids(job).includes(o.customerId));
-  if((await require('./cod-retention').pendingCod({db,maxPages,driverIds:actorType==='DRIVER'?ids(job):[],branchId:actorType==='MERCHANT'?job.businessId:undefined,orderIds:ownOrders.map(o=>o.orderId)})).length)throw error('COD_INTEGRATION_PENDING');
+  if((await require('./cod-retention').pendingCod({db,maxPages,customerIds:actorType==='CUSTOMER'?ids(job):[],driverIds:actorType==='DRIVER'?ids(job):[],branchId:actorType==='MERCHANT'?job.businessId:undefined,orderIds:ownOrders.map(o=>o.orderId)})).length)throw error('COD_INTEGRATION_PENDING');
+  if(actorType==='CUSTOMER'){
+   const funding=await require('./customer-delivery-funding-inventory').inventory({db,maxPages,subjectIds:ids(job)});
+   if(funding.blockers.length){
+    if(!deliveryFundingArchiveEnabled||funding.blockers.some(b=>b.code!=='DELIVERY_FUNDING_RETENTION_REVIEW'))throw error('DELIVERY_FUNDING_RETENTION_REVIEW');
+    await require('./customer-delivery-funding-archive').validateSources({db,subjectIds:ids(job),sourceKeys:funding.keys});
+   }
+   const benefits=await require('./customer-benefit-inventory').inventory({db,maxPages,subjectIds:ids(job),orderIds:ownOrders.map(o=>o.orderId)});
+   if(benefits.blockers.length)throw error('BENEFIT_RETENTION_REVIEW');
+  }
+  if(actorType==='CUSTOMER'&&deliveryQuotesEnabled)await require('./customer-delivery-quotes').purge({db,r,job,requestTable,clock,maxPages});
   for(const [table,keys,owners,appField] of personalTables){
    for(const row of await rows(table)){
     const branchNotice=actorType==='MERCHANT'&&table==='staging-WalletNotifications'&&row.recipientApp==='driver'&&['wallet_cod_lifecycle','dispatch_offer_closed'].includes(row.type)&&ids(job).includes(row.branchId);
@@ -144,8 +154,11 @@ function customerCleanup({db,cognito,connections,requestTable,archiveTable,clock
  return {async execute(step,r,job){
   if(r.actorType!==actorType||!r.leaseOwner||!Number.isSafeInteger(r.version)||job.subjectId!==r.subjectId||job.requestId!==r.requestId||job.pool!==pool)throw error('INVALID_CLEANUP_SCOPE');
   if(step==='disableIdentity'){await identity(AdminDisableUserCommand,r,job);await identity(AdminUserGlobalSignOutCommand,r,job);return;}
-  if(step==='personalData'){if(actorType==='CUSTOMER'&&deliveryQuotesEnabled)await require('./customer-delivery-quotes').purge({db,r,job,requestTable,clock,maxPages});return personal(r,job);}
-  if(step==='financialArchive'){await require('./cod-retention').codRetention({db,requestTable,archiveTable,clock,maxPages})(r,job,{actorType,ids:ids(job)});return financial(r,job);}
+  if(step==='personalData')return personal(r,job);
+  if(step==='financialArchive'){if(actorType==='CUSTOMER'&&deliveryFundingArchiveEnabled){
+   const funding=await require('./customer-delivery-funding-inventory').inventory({db,maxPages,subjectIds:ids(job)});
+   await require('./customer-delivery-funding-archive').archive({db,r,job,sourceKeys:funding.keys,clock});
+  }await require('./cod-retention').codRetention({db,requestTable,archiveTable,clock,maxPages})(r,job,{actorType,ids:ids(job)});return financial(r,job);}
   if(step==='walletClosure')return wallets(r,job);
   if(step==='profileClosure'){for(const id of job.profileIds){const row=await get(profileTable,{[profileKey]:id});if(!row)continue;if(row.deletionRequestId!==job.requestId)throw error('PROFILE_GENERATION_CHANGED');if(actorType==='CUSTOMER'&&['profileImage','profileImageUrl','photoUrl','avatarUrl'].some(k=>row[k]))throw error('ASSET_INVENTORY_REQUIRED');await remove(r,profileTable,{[profileKey]:id},row,['deletionRequestId','cognitoSub','cognitoUsername']);}return;}
   if(step==='identityClosure'){await identity(AdminDeleteUserCommand,r,job);return;}

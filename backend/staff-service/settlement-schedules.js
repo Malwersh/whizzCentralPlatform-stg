@@ -53,7 +53,7 @@ async function staff(ctx,actor,method,input){return wrap(ctx,async()=>{
  if(method!=='POST'||!input||typeof input!=='object'||Array.isArray(input))fail('INVALID_SCHEDULE_REQUEST',400);
  const {action,...body}=input;const collectionActions={START_PERIOD_COLLECTION:'start',ADVANCE_PERIOD_COLLECTION:'advance',FREEZE_PERIOD_COLLECTION:'freeze'};if(Object.prototype.hasOwnProperty.call(collectionActions,action))return collections()[collectionActions[action]](body);if(action==='APPROVE_STATEMENT')return statements().approve(body);if(action==='PREVIEW_STATEMENT')return statements().preview(body);if(action==='CREATE_STATEMENT')return statements().create(body);if(action==='PROPOSE')return workflow.propose(body);if(action==='APPROVE')return workflow.approve(body);fail('INVALID_SCHEDULE_REQUEST',400);
 });}
-async function owner(ctx,subjectId,method,input,verifiedOwner){return wrap(ctx,async()=>{
+async function ownerUnlocked(ctx,subjectId,method,input,verifiedOwner){return wrap(ctx,async()=>{
  if(!input||typeof input!=='object'||Array.isArray(input))fail('INVALID_SCHEDULE_REQUEST',400);
  if(require('./merchant-payouts').matches(method,input)){if(!verifiedOwner)fail('PAYOUT_VERIFIED_PRINCIPAL_REQUIRED',403);return require('./merchant-payouts').route(ctx,{owner:verifiedOwner},method,input);}
  const b=await branch(ctx.db,input.branchId);if(subjectId!==b.ownerId)fail('SCHEDULE_OWNER_REQUIRED',403);
@@ -65,4 +65,24 @@ async function owner(ctx,subjectId,method,input,verifiedOwner){return wrap(ctx,a
  const {action,...body}=input;if(method!=='POST'||action!=='CONSENT')fail('INVALID_SCHEDULE_REQUEST',400);
  return createMerchantSettlementScheduleWorkflow({db:ctx.db,principal:{kind:'OWNER',subjectId}}).consent(body);
 });}
+async function owner(ctx,subjectId,method,input,verifiedOwner){
+ if(ctx.financialLockEnabled!==true)return ownerUnlocked(ctx,subjectId,method,input,verifiedOwner);
+ return wrap(ctx,async()=>{
+  if(!input||typeof input!=='object'||Array.isArray(input))fail('PAYOUT_FINANCIAL_INVALID_REQUEST',400);
+  const {createAccess,actions}=require('./merchant-financial-access'),access=createAccess(ctx,verifiedOwner);
+  if(actions.has(input.action)){
+   if(method!=='POST')fail('PAYOUT_FINANCIAL_INVALID_REQUEST',400);
+   return access.act(input);
+  }
+  const gate=await access.protect(input);
+  if(['FINANCIAL_NOTIFICATION_DEVICE','FINANCIAL_NOTIFICATION_DEVICE_STATUS'].includes(input.action)){
+   if(method!=='POST')fail('PAYOUT_FINANCIAL_INVALID_REQUEST',400);
+   const result=await require('./merchant-financial-notification-device').notificationDevice(ctx,verifiedOwner,gate);
+   await gate.verify();return result;
+  }
+  const result=await ownerUnlocked({...ctx,db:gate.db},subjectId,method,gate.body,verifiedOwner);
+  await gate.verify();
+  return result;
+ });
+}
 module.exports={staff,owner,branches};

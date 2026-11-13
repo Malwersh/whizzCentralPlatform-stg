@@ -1,3 +1,4 @@
+import {returnTaskNotice} from './returnTaskNotice';
 import {financialOfferSK} from './financialOfferKey';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal} from './driverFinancialTransaction';
@@ -16,6 +17,7 @@ export async function planReturnedTask(db:Pick<DynamoDBDocumentClient,'send'>,or
  const liveKey={driverId:order.driverId},jobKey={orderId:order.orderId,SK:'METADATA'},live=await strongGet(db,'WizzDriverLiveState_staging',liveKey),job=await strongGet(db,'WizzDispatchJobs_staging',jobKey);
  if(!live||live.currentOrderId!==order.orderId||live.activeOrdersCount!==1||!job||job.assignedDriverId!==order.driverId||job.status!=='assigned'||job.dispatchJobId!==offer.assignmentId)return fail();
  return {orderFields:{status:'returned',orderStatus:'returned',returnedAt:at,returnTaskCompletedAt:at,returnCustodyStatus:'RETURNED_TO_MERCHANT',updatedAt:at},operations:[
+ ...returnTaskNotice(order,offer,at),
  set(exactCheck('WizzDriverLiveState_staging',liveKey,live),{currentOrderId:null,activeOrdersCount:0,isSearching:live.isActive===true,status:live.isActive===true?'available':'offline'}),
  set(exactCheck('WizzDispatchJobs_staging',jobKey,job),{status:'returned',completedAt:at})]};
 }

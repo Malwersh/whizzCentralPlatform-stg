@@ -1,0 +1,31 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadCustomerDeliveryFundingRetention550",
+      "Effect": "Allow",
+      "Action": "dynamodb:Scan",
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "Condition": {
+        "ForAllValues:StringEquals": {
+          "dynamodb:Attributes": [
+            "pk",
+            "sk",
+            "customerId",
+            "orderId",
+            "status",
+            "schemaVersion",
+            "version",
+            "reservedUses",
+            "completedUses",
+            "legalHold",
+            "retentionHold"
+          ]
+        },
+        "StringEquals": {
+          "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+        }
+      }
+    }
+  ]
+}

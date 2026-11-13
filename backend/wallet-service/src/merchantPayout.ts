@@ -1,3 +1,4 @@
+import {merchantPayoutNotice} from './merchantPayoutNotice';
 import {reserveMerchantCorrections,finishMerchantCorrections,correctionAmounts,verifyMerchantCorrectionSettlement,merchantCorrectionPayoutLines} from './merchantCorrectionOffsets';
 import {createCashboxAccountingService,cashboxCustodian,cashEmployeeName,cashEmployeeGuard,cashAccountingDeduplicate,cashPayoutPosting,verifyCashPayoutPosting,cashBalanceKey} from './cashboxAccounting';
 import {cashboxDirectory,cashboxKey,cashboxCode,cashVoucherNumber,cashMovementKey,validateCashbox} from './merchantCashbox';
@@ -216,6 +217,7 @@ export function createMerchantPayoutService(options:{db:Pick<DynamoDBDocumentCli
    const movement=await get(cashMovementKey(row));if(!movement||movement.payoutId!==row.payoutId||movement.voucherNumber!==row.externalReference||!equal(movement.amount,row.amount)||!equal(movement.cashbox,row.cashbox))return fail('PAYOUT_CASHBOX_REGISTER_PROOF_INVALID');
    ops.push(put(P,{...movement,status:next.status,version:movement.version+1,updatedAt:at,updatedBy:a.actorId,...(next.paidAt?{paidAt:next.paidAt}:{}),...(next.failureReference?{failureReference:next.failureReference,failureReason:next.failureReason}:{})},movement));
   }
+  ops.push(...merchantPayoutNotice(next));
   ops.push(put(P,next,row),put(P,{...eventKey,kind:'MERCHANT_PAYOUT_EVENT',branchId:v.branchId,payoutId:row.payoutId,actorId:a.actorId,action:v.action,...(a.merchantIdentity?{merchantActor:a.merchantIdentity}:{}),requestDigest:eventDigest,from:row.status,to:next.status,createdAt:at,retentionClass:'FINANCIAL_SETTLEMENT'}),audit(v.branchId,row.payoutId,a.actorId,v.action,v.requestId));
   try{await write(v.branchId,rule[2],a,ops,amount+(row.executionFee||0));}catch(e){const committed=await get(eventKey);if(committed?.requestDigest===eventDigest&&committed.actorId===a.actorId){const saved=await get(k);if(!saved)return fail('PAYOUT_OUTCOME_UNKNOWN_RETRY_SAME_REQUEST');return {payout:publicRow(saved),replayed:true};}throw e;}
   return {payout:publicRow(next)};

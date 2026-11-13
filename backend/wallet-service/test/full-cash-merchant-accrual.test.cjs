@@ -22,3 +22,12 @@ test('first completed order creates an empty merchant wallet and accrues only pr
  const w=f.get('staging-Wallets',{walletId:'WALLET#MERCHANT#branch1',sk:'META'});assert.equal(w.availableBalance,0);assert.equal(w.lockedBalance,7875);assert.equal(w.version,1);
  assert.equal((await readMerchantAccrualEvidence(f.db,'branch1','order1')).accrual.amounts.merchantNet.minorAmount,7875000);
 });
+test('recorded zero-adjustment rounding is verified consistently with completion and tampering stays rejected',async()=>{
+ const f=await ready(),o=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ o.commercialPricing.cashRounding=require('../dist/cashRounding').calculateCashRounding({policy:{schemaVersion:1,enabled:false,incrementIqd:250,mode:'UP',minimumServiceFeeIqd:250,minimumConflict:'NEXT_COLLECTIBLE_TOTAL'},version:1,paymentMethod:'COD',customerTotal:o.financialSnapshot.order.confirmedCustomerTotal,baseServiceFee:o.financialSnapshot.order.allocation.serviceFee});
+ f.get('staging-Holds',{orderId:'order1',sk:'FULL_CASH_FUNDING_COMMITMENT'}).cashRounding=structuredClone(o.commercialPricing.cashRounding);
+ o.status=o.orderStatus='arrived_at_customer';
+ await createFullCashCompletion({db:f.db,enabled:true,now:()=>f.time,authenticateDriver:async()=>({driverId:'driver1',subjectId:'driver1'})}).complete({orderId:'order1',cashCollected:true});
+ assert.equal((await readMerchantAccrualEvidence(f.db,'branch1','order1')).accrual.amounts.merchantNet.minorAmount,7875000);
+ f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).commercialPricing.cashRounding.digest='bad';await assert.rejects(readMerchantAccrualEvidence(f.db,'branch1','order1'));
+});

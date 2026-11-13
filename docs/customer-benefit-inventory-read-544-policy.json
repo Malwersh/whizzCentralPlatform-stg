@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CustomerBenefitRetentionRead",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Query"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WizzOfferJourney",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "USER#*",
+            "BENEFIT_ORDER#*"
+          ]
+        }
+      }
+    }
+  ]
+}

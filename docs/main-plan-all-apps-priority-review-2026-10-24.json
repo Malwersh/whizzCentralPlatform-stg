@@ -4683,7 +4683,9 @@
     "backendTestsPassed": 30,
     "financialMutations": 0,
     "customerReleaseBuild": 450,
-    "deviceAcceptancePending": true
+    "deviceAcceptancePending": true,
+    "customerReleaseInstalled": true,
+    "customerReleaseLaunched": true
   },
   "githubHandoff513": {
     "date": "2026-11-11",
@@ -4696,5 +4698,592 @@
     "humanAcceptancePending": [
       "Customer complaint notification push tap on real device"
     ]
+  },
+  "operationalNotificationAudit514": {
+    "status": "SOURCE_AUDIT_COMPLETE_IMPLEMENTATION_PENDING",
+    "evidence": "docs/operational-notification-audit-514.json",
+    "existingTestsPassed": 52,
+    "financialMutations": 0,
+    "published": false,
+    "next": "حماية القسم المالي والجهاز أولًا وفق البند 515؛ ثم إشعارات الصرف المقيّدة بالصلاحيات."
+  },
+  "merchantFinancialPrivacy515": {
+    "status": "AUDIT_COMPLETE_OWNER_FINANCIAL_LOCK_NOT_IMPLEMENTED",
+    "evidence": "docs/merchant-financial-privacy-515.json",
+    "existingTestsPassed": 24,
+    "published": false,
+    "next": "تنفيذ بوابة التحقق المالي للمالك وصلاحية الجهاز قبل منتج إشعارات صرف المطعم."
+  },
+  "merchantFinancialSession516": {
+    "status": "LOCAL_SECURITY_SERVICE_TESTED_NOT_ROUTED_OR_DEPLOYED",
+    "implementation": "backend/staff-service/merchant-financial-session.js",
+    "tests": "backend/staff-service/test/merchant-financial-session.test.cjs",
+    "testsPassed": 8,
+    "published": false,
+    "behavior": [
+      "رمز يصل إلى رقم عراقي موثق يعيده مُتحقق هوية مستقل، لا رقم وارد من واجهة المستخدم.",
+      "جلسة خمس دقائق مرتبطة بالمالك والجهاز والفرع وبصمة الهوية الحديثة.",
+      "خمس محاولات للرمز؛ دقيقة بين الإرسال وحد خمس رسائل في الساعة للمالك عبر جميع الأجهزة والفروع.",
+      "لا يخزن رمز التحقق أو رمز الجلسة بصورته الأصلية؛ تحقق الرمز يستهلكه ذريًا.",
+      "إرجاع حراس المعاملة لضمهم إلى أي كتابة مالية؛ فحص الجلسة وحده ليس تصريحًا لكتابة لاحقة."
+    ],
+    "remaining": [
+      "ربط مُتحقق هوية المالك الحي وحواجز الحذف وبصمة الملكية برقم الهاتف الموثق.",
+      "ربط مسارات البيانات المالية بالخادم بالقفل قبل تفعيله.",
+      "واجهة التحقق وحالة القفل، وحذف الجلسة من الذاكرة عند الخلفية أو تبديل الحساب والفرع.",
+      "إعداد الأجهزة المستقبلة للإشعارات المالية والتحقق من الصلاحيات عند القراءة والإرسال.",
+      "فحوص التكامل والنشر وتجربة الجهاز."
+    ],
+    "financialMutations": 0
+  },
+  "merchantFinancialLock517": {
+    "status": "LOCAL_SETTLEMENT_SERVER_AND_UI_INTEGRATION_TESTED_NOT_DEPLOYED",
+    "evidence": "docs/merchant-financial-lock-integration-517.json",
+    "testsPassed": 48,
+    "published": false,
+    "enabled": false,
+    "next": "تغطية مسار المحفظة والتحويلات المستقل وكل نقاط عرض المالية قبل تفعيل القفل."
+  },
+  "merchantFinancialWallet518": {
+    "status": "LOCAL_WALLET_TRANSFER_AND_ANALYTICS_GATES_TESTED_NOT_DEPLOYED",
+    "featureFlagsEnabled": false,
+    "balanceMutations": false,
+    "changes": [
+      "Validate the existing owner OTP session in wallet transfer routes using live Cognito identity, branch ownership, expiry and deletion fences",
+      "Carry financial session conditions into transfer execution, OTP verification, member updates and cancellation transactions",
+      "Attach capability in HTTP header only; lock wallet transfer UI and dashboard revenue behind owner financial gate"
+    ],
+    "validation": {
+      "walletNodeTestsPassed": 35,
+      "flutterTestsPassed": 22,
+      "typescriptBuild": "passed",
+      "flutterAnalyze": "four existing dashboard lint findings; no compile errors"
+    },
+    "remaining": [
+      "Protect remaining financial entry points before activating flags",
+      "Implement owner-controlled device notification preferences and generic merchant financial push payloads",
+      "Review deployment permissions and validate staging end to end"
+    ],
+    "notes": [
+      "Dedicated branch employee PIN authorization remains separate",
+      "No real OTP, payout or transfer performed"
+    ]
+  },
+  "merchantFinancialPushPrivacy519": {
+    "status": "LOCAL_PUSH_REDACTION_TESTED_NOT_DEPLOYED",
+    "scope": "Wallet notification worker merchant deliveries only",
+    "changes": [
+      "Generic merchant title/body; no amount, reason, transfer, branch or topup details in push data",
+      "Preserve event type, event id and open_wallet action for compatibility",
+      "Customer and driver notification payloads unchanged"
+    ],
+    "testsPassed": 17,
+    "remaining": [
+      "Owner-controlled per-device financial push opt-in and revocation",
+      "Protected merchant financial inbox and deep-link verification",
+      "Remaining financial entry point audit and staging deployment"
+    ],
+    "balancesChanged": false
+  },
+  "merchantFinancialDevicePolicy520": {
+    "status": "LOCAL_SERVER_PREFERENCE_AND_DELIVERY_GUARDS_TESTED_NOT_DEPLOYED",
+    "flag": "MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED",
+    "enabled": false,
+    "changes": [
+      "Owner financial session required to save device opt-in",
+      "Re-read push token ownership and expiry; atomic guard during preference save",
+      "Only token digest stored in financial preference",
+      "Before delivery re-read device registration, preference, branch owner and deletion fences"
+    ],
+    "testsPassed": 26,
+    "remaining": [
+      "Owner device preference UI and notification tap routing",
+      "Deployment IAM review for exact preference/token/branch/deletion reads and preference writes",
+      "Staging end-to-end activation with both financial flags; no flags enabled yet"
+    ],
+    "noBalancesChanged": true
+  },
+  "merchantFinancialDeviceUi521": {
+    "status": "LOCAL_DEVICE_UI_AND_TRANSFER_NOTICE_ROUTING_NOT_DEPLOYED",
+    "changes": [
+      "Owner-only device notification switch inside financially gated payouts account page",
+      "Read actual server preference; no optimistic save; missing token or failed save shows retry",
+      "Transfer notice uses subject-bound navigation to authenticated wallet account selector; selected wallet remains protected by owner gate",
+      "Merchant push carries subject reference only in addition to event/type/action, no financial amounts"
+    ],
+    "validation": {
+      "backendTestsPassed": 27,
+      "flutterTestsPassed": 12,
+      "targetedFlutterAnalyze": "No issues found"
+    },
+    "remaining": [
+      "Test notification tap on real device including account switch and cold start",
+      "Dedicated payout receipt notification reference and protected routing still pending",
+      "Remaining financial entry point audit and deployment permissions before activating flags"
+    ],
+    "published": false
+  },
+  "merchantPayoutNotification522": {
+    "status": "LOCAL_ATOMIC_OUTBOX_AND_PROTECTED_REFERENCE_SCREEN_TESTED_NOT_DEPLOYED",
+    "changes": [
+      "Reference-only notice appended atomically to selected payout transitions; deterministic event id per payout version/status",
+      "Payout producer requires explicit notification flag and device-policy flag; missing configuration rejects activation",
+      "Worker checks device preference, current owner, branch, deletion fences and current payout version/status before delivery",
+      "Push tap opens exact payout reference behind owner financial gate; server details must match reference; no receipt acknowledgement from tap"
+    ],
+    "validation": {
+      "nodeTestsPassed": 41,
+      "typescriptBuild": "passed",
+      "settlementRuntimeBundleCheck": "passed",
+      "targetedFlutterAnalyze": "No issues found"
+    },
+    "flagsEnabled": false,
+    "realFinancialOperations": false,
+    "remaining": [
+      "Real-device notification tap tests with cold start, account/branch switch and background lock",
+      "IAM least-privilege review and staging deployment",
+      "Complete remaining financial entry point coverage before owner financial lock activation"
+    ]
+  },
+  "merchantCommercialFinancialGate523": {
+    "status": "LOCAL_COMMERCIAL_TERMS_GATED_NOT_DEPLOYED",
+    "changes": [
+      "Owner commercial service requires branch-bound financial capability when financial flag enabled",
+      "Commercial screen wrapped in owner financial gate; capability forwarded via header only",
+      "Commercial push tap opens gated screen before loading terms; owner identity and paired-device restrictions preserved"
+    ],
+    "validation": {
+      "centralTestsPassed": 12,
+      "merchantProxyTestsPassed": 6,
+      "flutterTestsPassed": 23,
+      "flutterAnalyze": "No compile errors; four pre-existing brace style notices in commercial screen"
+    },
+    "flagsEnabled": false,
+    "remaining": [
+      "Validate notification tap/lifecycle with real device",
+      "Review exact IAM and deploy consistent backend/client flags",
+      "Legacy owner dashboard and notification/cache entry point inventory before rollout"
+    ],
+    "realFinancialOperations": false
+  },
+  "merchantFinancialLegacyAndCache524": {
+    "status": "LOCAL_LEGACY_ENTRY_AND_CACHE_PRIVACY_TESTED_NOT_DEPLOYED",
+    "changes": [
+      "Retired old demo revenue dashboard in favor of authenticated merchant businesses entry",
+      "Financial capability globally clears on background even when no financial page is mounted",
+      "Financial capability clears at sign-out, sign-in and identity initialization",
+      "Legacy financial inbox entries are redacted on read/save and migrated during inbox reload; operational notices unchanged",
+      "Payout inbox entries use branch reference and open protected payout details"
+    ],
+    "validation": {
+      "flutterTestsPassed": 17,
+      "targetedFlutterAnalyze": "No compile errors; one brace lint corrected after analysis"
+    },
+    "flagsEnabled": false,
+    "realFinancialOperations": false,
+    "remaining": [
+      "Combined regression with flags on and exact deployment permission manifest",
+      "Staging deployment and real-device account/branch/background notification acceptance"
+    ]
+  },
+  "merchantFinancialRollout525": {
+    "status": "COMBINED_REGRESSION_PASSED_DEPLOYMENT_PREPARED_NOT_DEPLOYED",
+    "tests": {
+      "backend": 96,
+      "flutterFlagEnabled": 11,
+      "flutterCompatibility": 49,
+      "total": 156
+    },
+    "packageDryRun": "all four required financial modules included",
+    "runtimeBundleCheck": "passed",
+    "permissionManifest": "docs/merchant-financial-rollout-525.json",
+    "flagsEnabledOnStaging": false,
+    "remaining": [
+      "Read and compare live IAM/function configuration",
+      "Deploy reviewed code and scoped permission additions",
+      "Install flagged merchant release and perform real OTP/device/notification acceptance"
+    ],
+    "financialBalancesChanged": false
+  },
+  "merchantFinancialCoreDeployment527": {
+    "status": "CORE_CODE_DEPLOYED_FLAGS_OFF",
+    "checkedAtUtc": "2026-11-11T14:49:14.444909+00:00",
+    "environment": "staging",
+    "deployments": {
+      "staff": {
+        "FunctionName": "staging-wizz-staff-service",
+        "RevisionId": "e0782291-592a-4ab3-9d84-fe47d65ad32f",
+        "CodeSha256": "YB1xLV+pKCT+U7kmhXYFlepgCvG4U+CX+/fxz7C1aWQ=",
+        "LastModified": "2026-11-11T14:48:28.000+0000"
+      },
+      "wallet": {
+        "FunctionName": "staging-wizz-wallet-service",
+        "RevisionId": "21891732-b733-4528-9c99-a3de5d774f46",
+        "CodeSha256": "gyJa/4Ow1jUHybJ9QlhjvGtxfPReEPLW6THACXgYmpo=",
+        "LastModified": "2026-11-11T14:48:21.000+0000"
+      },
+      "worker": {
+        "FunctionName": "staging-wizz-wallet-notification-worker",
+        "RevisionId": "83cd33b4-4ae2-4461-947a-c10504e40b80",
+        "CodeSha256": "IWamPfaJ8MAkk4Z5vih80TKz+sj3OUe3nMQXPjayDZc=",
+        "LastModified": "2026-11-11T14:46:48.000+0000"
+      }
+    },
+    "tests": {
+      "nodePassed": 78,
+      "deployedOwnerUnauthorizedSmoke": "401 UNAUTHORIZED",
+      "lambdaUpdateStatus": "Successful Active for all three",
+      "zipHashesVerified": true
+    },
+    "preservation": "Patched downloaded live archives; preserved finance rollout wrappers, unrelated routes and current settlement runtime. Conditional RevisionId used for all uploads.",
+    "notDeployed": [
+      "Payout notice producer inside settlement runtime: live runtime differs from local; requires separate reviewed patch",
+      "Merchant API proxy changes and CORS",
+      "Merchant app flagged release"
+    ],
+    "activation": "All new backend flags remain off; no activation or OTP, payout or balance change performed",
+    "next": [
+      "Preserve and patch current settlement runtime for payout outbox events",
+      "Deploy merchant proxies and install flagged merchant app",
+      "Verify owner OTP and dedicated staff PIN before coordinated activation"
+    ]
+  },
+  "merchantFinancialProducerProxy528": {
+    "status": "SECURITY_ACTIVE_ON_STAGING_AWAITING_OWNER_ACCEPTANCE",
+    "atUtc": "2026-11-11T14:55:23.285878+00:00",
+    "environment": "staging",
+    "deployments": {
+      "staff": {
+        "FunctionName": "staging-wizz-staff-service",
+        "RevisionId": "4524bea6-b261-42d4-9e25-1cbce42abc2e",
+        "CodeSha256": "AftBR3TtVPKMS5RX2a5RWz28FrDc5uHdSmqKQHFo46U=",
+        "LastModified": "2026-11-11T14:53:04.000+0000"
+      },
+      "merchantProxy": {
+        "FunctionName": "order-receiver-regional-staging-unified-auth-v4-sam",
+        "RevisionId": "8f51ff79-bb73-4cfa-ad94-7df74e529a0d",
+        "CodeSha256": "iNzc5dYQ1ycqyj0I18N6voB9WysMwi4QiL3VpQVpHLM=",
+        "LastModified": "2026-11-11T14:53:41.000+0000"
+      }
+    },
+    "tests": {
+      "actualPublishedPayoutImplementation": 17,
+      "merchantProxy": 11,
+      "flutterFinancialFlagEnabled": 11
+    },
+    "preserved": [
+      "Current merchant-payout-corrections-353 implementation: inserted only transactional outbox operation",
+      "Current staff entry wrapper, commercial routes and settlement calculations",
+      "Current merchant proxy lifecycle import paths and all unrelated archive files"
+    ],
+    "activation": [
+      {
+        "function": "staging-wizz-wallet-notification-worker",
+        "flags": {
+          "MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED": "true"
+        },
+        "status": "Successful"
+      },
+      {
+        "function": "staging-wizz-wallet-service",
+        "flags": {
+          "MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED": "true"
+        },
+        "status": "Successful"
+      },
+      {
+        "function": "staging-wizz-staff-service",
+        "flags": {
+          "MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED": "true",
+          "MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED": "true",
+          "MERCHANT_PAYOUT_NOTIFICATIONS_ENABLED": "false"
+        },
+        "status": "Successful"
+      }
+    ],
+    "build": "Merchant iOS Release 347 built, installed and launched on paired iMohammed; MERCHANT_FINANCIAL_LOCK_ENABLED=true",
+    "remaining": [
+      "Owner OTP and relock acceptance on real device",
+      "Explicit owner financial notification device opt-in",
+      "Enable payout producer and verify cold-start notification and current payout references"
+    ],
+    "financialMutationsPerformed": false,
+    "staffFlagEnabledTestsPassed": 19,
+    "notificationProduction": "Still false until explicit owner device opt-in and acceptance"
+  },
+  "merchantFinancialReadLatency529": {
+    "status": "DEPLOYED_USER_CONFIRMED_DATA_LOADED",
+    "atUtc": "2026-11-11T15:03:39.686498+00:00",
+    "problem": "Owner OTP succeeded, but account and statement reads exceeded the app 20-second timeout. CloudWatch showed staff reads of 21082 and 23443 ms, proxied as 21244 and 25197 ms.",
+    "cause": "Financial wrapper revalidated Cognito, branch, deletion fences and session both before and after every internal database read.",
+    "fix": "Request-scoped read authorization at entry and before returning any result; fresh checks and atomic conditions retained for each financial transaction. No authorization cache across HTTP requests. Notification preference POST also verifies before response.",
+    "tests": {
+      "passed": 35,
+      "regressions": [
+        "Forty internal reads use constant four identity checks at the two boundaries rather than checks per read",
+        "Revocation during read blocks response verification",
+        "Revocation before transaction prevents write",
+        "Session expiry, ownership and replay checks remain"
+      ]
+    },
+    "pending": "Customer retries refresh to verify real read duration; no app update required",
+    "financialMutationPerformed": false,
+    "deployment": {
+      "FunctionName": "staging-wizz-staff-service",
+      "RevisionId": "71ab51b3-8c71-408e-9a9d-3004ff0e8b98",
+      "CodeSha256": "h92dYmPYbjAQELux4Z+swX3/tPT8K2jLu02jzCmsgak=",
+      "LastModified": "2026-11-11T15:03:30.000+0000"
+    },
+    "userAcceptance": "User confirmed account data loaded after server fix; separate gray UI error addressed in 530"
+  },
+  "merchantFinancialCorrectionsLayout530": {
+    "status": "RELEASE_348_INSTALLED",
+    "atUtc": "2026-11-11T15:08:38.169525+00:00",
+    "cause": "ExpansionTile without its own PageStorageKey read the ancestor account ListView scroll offset (double) as expanded state (bool), rendering gray ErrorWidget in Release.",
+    "fix": "Branch-scoped PageStorageKey isolates correction expansion state from scroll state and other branches.",
+    "proof": "New widget test reproduced double is not subtype of bool before fix, then passed. Account and corrections suite: 8 passed.",
+    "build": "Merchant Release 348 built and installed on iMohammed; financial lock remains enabled",
+    "financialLogicChanged": false
+  },
+  "merchantFinancialAccount531": {
+    "status": "DEPLOYED_STAGING_SIMULATOR_RUNNING",
+    "evidence": "docs/merchant-financial-account-531.json",
+    "next": "Human account-screen acceptance; continue merchant financial notification device opt-in acceptance"
+  },
+  "merchantFinancialLayout532": {
+    "status": "UI_TESTED",
+    "evidence": "docs/merchant-financial-layout-532.json"
+  },
+  "merchantFinancialNotifications533": {
+    "status": "STAGING_PRODUCER_ENABLED_APP_VALIDATED",
+    "evidence": "docs/merchant-financial-notifications-533.json",
+    "next": "Actual push delivery verification on next authorized payout; no funds movement for testing"
+  },
+  "returnTaskNotifications536": {
+    "status": "STAGING_DEPLOYED_VERIFIED",
+    "evidence": "docs/return-task-notifications-536.json",
+    "next": "إشعارات قرارات الضمان والمستحقات؛ اختبار بشري للمرتجع لاحقًا"
+  },
+  "exceptionFinancialNotifications537": {
+    "status": "STAGING_DEPLOYED_APP_CHANGES_TESTED",
+    "evidence": "docs/exception-financial-notifications-537.json",
+    "next": "اختبار وصول وفتح إشعار خلال قرار مالي مصرح به؛ تحديث التطبيقين مثبت"
+  },
+  "financialNotificationCoverage538": {
+    "status": "RELEASE_INSTALLED_DEVICE_ACCEPTANCE_PENDING",
+    "evidence": "docs/financial-notification-coverage-538.json",
+    "merchantRelease": 351,
+    "driverRelease": 356,
+    "next": "اختبارات الوصول الفعلي المسجلة ثم متابعة البند التشغيلي التالي"
+  },
+  "merchantFinancialDeletion539": {
+    "status": "PUBLISHED_540_LEGACY_RETENTION_OPEN",
+    "evidence": "docs/merchant-financial-deletion-539.json",
+    "next": "تنظيف أمني محدود للسجلات القديمة المنتهية؛ TTL العام غير مفعل"
+  },
+  "merchantFinancialDeletion540": {
+    "status": "STAGING_DEPLOYED_VERIFIED_LEGACY_RETENTION_OPEN",
+    "evidence": "docs/merchant-financial-deletion-publication-540.json",
+    "next": "اكتمل فحص السجلات الأمنية 541 دون مرشحين للحذف؛ استكمال جرد كيانات X02 الأخرى"
+  },
+  "securitySessionRetention541": {
+    "status": "STAGING_DEPLOYED_DRY_RUN_COMPLETE_NO_ELIGIBLE_RECORDS",
+    "evidence": "docs/security-session-retention-541.json",
+    "scannedRows": 806,
+    "eligible": 0,
+    "deleted": 0,
+    "next": "استكمال جرد قضايا الشكاوى والمزايا والصور ونوايا الطلب ضمن X02؛ التنظيف الفعلي مغلق"
+  },
+  "complaintOwnerRetention542": {
+    "status": "STAGING_DEPLOYED_TESTED",
+    "evidence": "docs/complaint-owner-retention-542.json",
+    "testsPassed": 45,
+    "next": "Complete benefit and support image retention inventory and verify deployment artifact; X02 remains open",
+    "packagedTestsPassed": 3
+  },
+  "retentionInventory543": {
+    "status": "AUDIT_PARTIAL_FOLLOWUP_REQUIRED",
+    "evidence": "docs/retention-inventory-543.json",
+    "next": "Support image retention and benefit reservation inventory; X02 remains open"
+  },
+  "customerBenefitRetention544": {
+    "status": "INTEGRATED_AND_DEPLOYED_IN_545",
+    "evidence": "docs/customer-benefit-retention-544.json",
+    "testsPassed": 52,
+    "next": "Obtain exact read approval, integrate inventory in evidence and pre-cleanup checks, test packaged source and publish targeted changes",
+    "X02Complete": false
+  },
+  "customerBenefitRetention545": {
+    "status": "STAGING_DEPLOYED",
+    "evidence": "docs/customer-benefit-retention-publication-545.json",
+    "testsPassed": 62,
+    "next": "Protect complaint evidence images from transient chat expiry; full benefit archive/cleanup still requires implementation",
+    "X02Complete": false
+  },
+  "complaintImageRetention546": {
+    "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+    "evidence": "docs/complaint-image-retention-546.json",
+    "testsPassed": 25,
+    "next": "Inventory legacy complaint evidence read-only and define retention review; human image attach/read acceptance remains open",
+    "X02Complete": false,
+    "packagedModuleTestsPassed": 11,
+    "published": true
+  },
+  "complaintEvidenceInventory547": {
+    "status": "READ_ONLY_COMPLETE_NO_EXISTING_POST_DELIVERY_CASES",
+    "evidence": "docs/complaint-evidence-inventory-547.json",
+    "cases": 0,
+    "imageReferences": 0,
+    "recordsDeleted": 0,
+    "financialWrites": 0,
+    "allAttachmentSourcesCovered": false,
+    "humanAcceptance": "OPEN",
+    "next": "Checkout/order creation inventory; other quality/return image sources and approved retention policy remain separate",
+    "X02Complete": false
+  },
+  "checkoutRetentionAudit548": {
+    "status": "QUOTED_CHECKOUT_SCOPE_AUDITED_AUTOMATED_VERIFIED_RELATED_RESERVATIONS_OPEN",
+    "evidence": "docs/checkout-retention-audit-548.json",
+    "testsPassed": 71,
+    "cloudWrites": 0,
+    "X02Complete": false,
+    "next": "Inventory delivery-promotion usage/funding and product inventory reservation references before extending cleanup"
+  },
+  "customerReservationRetentionAudit549": {
+    "status": "READ_ONLY_AUDIT_COMPLETE_RETENTION_ADAPTER_OPEN",
+    "evidence": "docs/customer-reservation-retention-audit-549.json",
+    "testsPassed": 24,
+    "financialWrites": 0,
+    "recordsDeleted": 0,
+    "next": "Implement customer delivery funding retention preflight and archive policy without deleting financial evidence; verify live IAM before rollout.",
+    "X02Complete": false
+  },
+  "customerDeliveryFundingRetention550": {
+    "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_RETENTION_ARCHIVE_OPEN",
+    "evidence": "docs/customer-delivery-funding-retention-550.json",
+    "testsPassed": 315,
+    "X02Complete": false,
+    "financialWrites": 0,
+    "next": "Published terminal archive adapter in batch 551; source retention lifecycle and human acceptance remain open.",
+    "publishedVerification": {
+      "requests": {
+        "publishedSourceExact": true,
+        "unrelatedEntriesUnchanged": true,
+        "testsPassed": true,
+        "codeSha256": "5W/RNKRVO5r1zSldKGhM4+1mssGz8OWiRVYR6zidvtc=",
+        "testsPassedCount": 29
+      },
+      "worker": {
+        "publishedSourceExact": true,
+        "unrelatedEntriesUnchanged": true,
+        "testsPassed": true,
+        "codeSha256": "AUznZvbXzDDlzIWdLLn7QNN6nZETc0AC9JO2FxTjvjc=",
+        "testsPassedCount": 27
+      }
+    }
+  },
+  "customerFundingArchive551": {
+    "status": "PUBLISHED_STAGING_ENABLED_AUTOMATED_VERIFIED_SOURCE_RETENTION_LIFECYCLE_OPEN",
+    "testsPassed": 333,
+    "evidence": "docs/customer-funding-archive-551.json",
+    "X02Complete": false,
+    "financialWrites": 0,
+    "next": "Design source-record retention/expiry without breaking settlement replay, with holds and archived evidence checks; complete human acceptance later per plan.",
+    "publishedVerification": {
+      "requests": {
+        "codeSha256": "zVyCSAM1JsT0lJdzDQIiHBZRRZQ+TnZZ73Rw57dacKE=",
+        "state": "Active",
+        "archiveEnabled": "true",
+        "unrelatedFilesByteIdentical": true,
+        "testsPassed": 46
+      },
+      "worker": {
+        "codeSha256": "rlWKGDNkjKIzRrzG7KIjbOlmyuvj/cNyTCtYHzbza7I=",
+        "state": "Active",
+        "archiveEnabled": "true",
+        "unrelatedFilesByteIdentical": true,
+        "testsPassed": 59
+      }
+    }
+  },
+  "customerFundingSourceRetention552": {
+    "status": "PUBLISHED_STAGING_RETENTION_COMPATIBILITY_VERIFIED_SOURCE_PURGE_STILL_BLOCKED",
+    "evidence": "docs/customer-funding-source-retention-552.json",
+    "testsPassed": 338,
+    "X02Complete": false,
+    "financialWrites": 0,
+    "next": "Complete source locator and shared claim/replay guards before permitting deletion of expired funding source records; retain fail-closed behavior until verified."
+  },
+  "customerFundingSourceReview553": {
+    "status": "DEPLOYED_STAGING_DRY_RUN_VERIFIED",
+    "testsPassed": 346,
+    "scope": "Aggregate complete-inventory review groups funding archives by source hash; blocks shared retention, holds, conflicting source evidence, unresolved replay and usage lifecycle. No delete eligibility granted.",
+    "next": "Implement independently verified and transaction-fenced settlement/replay closure before enabling original funding source expiry.",
+    "financialWrites": 0,
+    "sourceDeletes": 0,
+    "publishedPackageTestsPassed": 23,
+    "deployedHash": "2xIL7lnsPZpgy6KUt1e0GiT82C9SmWjpH5A52kHJT4o=",
+    "actualDeletes": 0
+  },
+  "pauseCheckpoint553": {
+    "status": "RESUMED_AT_USER_REQUEST",
+    "checkpoint": "560 read-only closure review local and tested; 375 account deletion tests passed. 553 remains deployed. No source compaction, deletion or balance changes.",
+    "resumeAt": "Implement journal verification and a shared case lifecycle fence before enabling source compaction.",
+    "currentDiscussion": "Merchant kitchen/customer receipt preview and virtual printer demonstration without physical hardware."
+  },
+  "customerFundingReplay558": {
+    "batch": 558,
+    "status": "IMPLEMENTED_LOCAL_TESTED_NOT_DEPLOYED",
+    "scope": "Read and transaction-fence minimal terminal funding replay proofs; preserve existing reservation formats. No source compaction writer or deletion is enabled.",
+    "validation": {
+      "typescript": "passed",
+      "deliveryTestsPassed": 276,
+      "newReplayTestsPassed": 12,
+      "accountDeletionTestsPassed": 346
+    },
+    "testHarnessFix": "Added explicit fail-on-use mocks for unrelated complaint and cash payout runtime imports; lifecycle assertions unchanged.",
+    "financialWrites": 0,
+    "sourceDeletes": 0,
+    "next": "Implement independently verified closure and source/archive transaction fences before any source compaction; validate full lifecycle before deployment."
+  },
+  "customerFundingReplayPreparation559": {
+    "batch": 559,
+    "status": "IMPLEMENTED_LOCAL_TESTED_NOT_DEPLOYED",
+    "scope": "Pure funding replay preparation: strict source validation, exact archive/source evidence match, expired shared retention claims, no holds, bounded transaction conditions, compatible private replay marker.",
+    "tests": {
+      "accountDeletionPassed": 359,
+      "newTests": 13,
+      "walletReaderCompatibility": "passed"
+    },
+    "safety": {
+      "databaseWrites": 0,
+      "sourceDeletes": 0,
+      "balanceChanges": 0,
+      "closureRequired": true,
+      "deleteEligible": false,
+      "runtimeIntegrated": false
+    },
+    "next": "Independently verify terminal order, settled merchant payable, resolved returns/compensation and cases; include transaction fences before integrating source compaction. Usage counters require a separate lifecycle."
+  },
+  "customerFundingClosureReview560": {
+    "batch": 560,
+    "status": "IMPLEMENTED_LOCAL_TESTED_NOT_DEPLOYED",
+    "scope": "Read-only strongly consistent order and paginated order hold assessment; reports unpaid/invalid merchant liabilities, pending compensation, open/correction cases, documented holds and incomplete evidence. Produces exact row conditions but grants no closure authority.",
+    "tests": {
+      "accountDeletionPassed": 375,
+      "newTests": 16
+    },
+    "remainingBlockers": [
+      "Verify settlement journal and associated monetary evidence, including merchant payout journal when payable is paid",
+      "Add shared case lifecycle transaction fence: Query alone cannot prevent a newly opened case",
+      "Integrate only after complete proof and transaction size validation; usage lifecycle remains separate"
+    ],
+    "effects": {
+      "writes": 0,
+      "deletes": 0,
+      "balanceChanges": 0,
+      "runtimeIntegrated": false
+    },
+    "next": "Implement journal verification and a shared case lifecycle fence before enabling source compaction."
   }
 }

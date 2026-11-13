@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Staging customer deletion requests and scoped SMS verification; irreversible worker not enabled
 Parameters:
+  DeliveryFundingArchiveEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+    Description: Enable verified terminal delivery funding archive after scoped IAM and package verification.
   DeliveryQuotesEnabled:
     Type: String
     Default: 'false'
@@ -81,6 +86,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: staging
+          DELIVERY_FUNDING_ARCHIVE_ENABLED: !Ref DeliveryFundingArchiveEnabled
           DELETION_TABLE: !Ref Requests
           STAFF_TABLE: staging-PlatformStaff
           MUTATION_GUARDS_VERIFIED: !Ref CustomerMutationGuardsVerified
@@ -89,6 +95,37 @@ Resources:
           AUTOMATIC_EXECUTION_ENABLED: !Ref AutomaticExecutionEnabled
           OTP_SECRET_ARN: arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ
       Policies:
+        - Statement:
+            - Sid: CustomerFundingArchiveRead551
+              Effect: Allow
+              Action: dynamodb:GetItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['DELIVERY_RESERVATION#*', 'DELIVERY_USAGE#*']
+                ForAllValues:StringEquals:
+                  dynamodb:Attributes: [pk, sk, schemaVersion, version, customerId, orderId, policyPin, allocation, requestDigest, status, createdAt, settledAt, reservedUses, completedUses, digest, legalHold, retentionHold]
+                Null:
+                  dynamodb:Attributes: 'false'
+                  dynamodb:LeadingKeys: 'false'
+        - Statement:
+            - Sid: CustomerDeliveryFundingRetentionRead550
+              Effect: Allow
+              Action: dynamodb:Scan
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringEquals:
+                  dynamodb:Attributes: [pk, sk, customerId, orderId, status, schemaVersion, version, reservedUses, completedUses, legalHold, retentionHold]
+                StringEquals:
+                  dynamodb:Select: SPECIFIC_ATTRIBUTES
+        - Statement:
+            - Sid: CustomerBenefitRetentionRead
+              Effect: Allow
+              Action: dynamodb:Query
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-WizzOfferJourney
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['USER#*', 'BENEFIT_ORDER#*']
         - DynamoDBCrudPolicy: {TableName: !Ref Requests}
         - Statement:
             - Effect: Allow
@@ -143,14 +180,57 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: staging
+          DELIVERY_FUNDING_ARCHIVE_ENABLED: !Ref DeliveryFundingArchiveEnabled
           DELETION_TABLE: !Ref Requests
           ARCHIVE_TABLE: !Ref FinancialArchive
           MUTATION_GUARDS_VERIFIED: !Ref CustomerMutationGuardsVerified
           DRIVER_MUTATION_GUARDS_VERIFIED: !Ref DriverMutationGuardsVerified
           MERCHANT_MUTATION_GUARDS_VERIFIED: !Ref MerchantMutationGuardsVerified
           AUTOMATIC_EXECUTION_ENABLED: !Ref AutomaticExecutionEnabled
+          MERCHANT_SECURITY_RETENTION_ENABLED: 'false'
           DELIVERY_QUOTES_ENABLED: !Ref DeliveryQuotesEnabled
       Policies:
+        - Statement:
+            - Sid: CustomerFundingArchiveFence551
+              Effect: Allow
+              Action: dynamodb:ConditionCheckItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['DELIVERY_RESERVATION#*', 'DELIVERY_USAGE#*']
+                Null:
+                  dynamodb:LeadingKeys: 'false'
+        - Statement:
+            - Sid: CustomerFundingArchiveRead551
+              Effect: Allow
+              Action: dynamodb:GetItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['DELIVERY_RESERVATION#*', 'DELIVERY_USAGE#*']
+                ForAllValues:StringEquals:
+                  dynamodb:Attributes: [pk, sk, schemaVersion, version, customerId, orderId, policyPin, allocation, requestDigest, status, createdAt, settledAt, reservedUses, completedUses, digest, legalHold, retentionHold]
+                Null:
+                  dynamodb:Attributes: 'false'
+                  dynamodb:LeadingKeys: 'false'
+        - Statement:
+            - Sid: CustomerDeliveryFundingRetentionRead550
+              Effect: Allow
+              Action: dynamodb:Scan
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+              Condition:
+                ForAllValues:StringEquals:
+                  dynamodb:Attributes: [pk, sk, customerId, orderId, status, schemaVersion, version, reservedUses, completedUses, legalHold, retentionHold]
+                StringEquals:
+                  dynamodb:Select: SPECIFIC_ATTRIBUTES
+        - Statement:
+            - Sid: CustomerBenefitRetentionRead
+              Effect: Allow
+              Action: dynamodb:Query
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-WizzOfferJourney
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['USER#*', 'BENEFIT_ORDER#*']
         - Statement:
             - Sid: CustomerDeliveryQuoteCleanup
               Effect: Allow
@@ -297,6 +377,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: staging
+          DELIVERY_FUNDING_ARCHIVE_ENABLED: !Ref DeliveryFundingArchiveEnabled
           FINANCIAL_EXPIRY_ENABLED: !Ref FinancialExpiryEnabled
       Policies:
         - Statement:
@@ -368,6 +449,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: staging
+          DELIVERY_FUNDING_ARCHIVE_ENABLED: !Ref DeliveryFundingArchiveEnabled
           BACKUP_RETENTION_ENABLED: !Ref BackupRetentionEnabled
       Policies:
         - Statement:

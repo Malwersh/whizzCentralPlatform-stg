@@ -1,0 +1,62 @@
+{
+  "batch": 553,
+  "status": "DEPLOYED_STAGING_DRY_RUN_VERIFIED",
+  "testsPassed": 346,
+  "changes": [
+    "Aggregate review per source across deletion requests",
+    "Incomplete inventory always blocks review completion",
+    "Report holds, conflicting evidence, shared retention, missing replay closure and missing usage lifecycle separately",
+    "Aggregate counts only; no personal or source identifiers in report"
+  ],
+  "iamChanges": 0,
+  "actualDeletes": 0,
+  "financialWrites": 0,
+  "next": "Finish original-source lifecycle with settlement/replay compatibility; source deletion remains disabled.",
+  "deployment": {
+    "lambda": "staging-account-deletion-financial-expiry",
+    "hash": "2xIL7lnsPZpgy6KUt1e0GiT82C9SmWjpH5A52kHJT4o=",
+    "state": "Active",
+    "before": {
+      "removed": 0,
+      "archivesRemoved": 0,
+      "eligible": 0,
+      "blocked": 67,
+      "dryRun": true,
+      "fundingRetained": {
+        "WITHIN_RETENTION": 0,
+        "DOCUMENTED_HOLD": 0,
+        "SOURCE_LIFECYCLE_REVIEW_REQUIRED": 0
+      },
+      "incomplete": false
+    },
+    "after": {
+      "removed": 0,
+      "archivesRemoved": 0,
+      "eligible": 0,
+      "blocked": 67,
+      "dryRun": true,
+      "fundingRetained": {
+        "WITHIN_RETENTION": 0,
+        "DOCUMENTED_HOLD": 0,
+        "SOURCE_LIFECYCLE_REVIEW_REQUIRED": 0
+      },
+      "fundingReview": {
+        "sources": 0,
+        "deleteEligible": 0,
+        "complete": true,
+        "blockedBy": {
+          "INCOMPLETE_INVENTORY": 0,
+          "DOCUMENTED_HOLD": 0,
+          "SHARED_RETENTION_ACTIVE": 0,
+          "SOURCE_EVIDENCE_CONFLICT": 0,
+          "REPLAY_CLOSURE_REQUIRED": 0,
+          "USAGE_LIFECYCLE_REQUIRED": 0
+        }
+      },
+      "incomplete": false
+    },
+    "iamChanges": 0,
+    "actualDeletesInvoked": 0
+  },
+  "publishedPackageTestsPassed": 23
+}

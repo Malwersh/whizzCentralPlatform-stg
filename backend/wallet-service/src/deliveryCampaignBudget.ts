@@ -1,3 +1,4 @@
+import {readDeliveryFundingReplay, deliveryFundingReplayFence} from './deliveryFundingReplay';
 import {verifyDeliveryFundingComposition} from './deliveryFundingComposition';
 import {BENEFIT_POLICY_PREFIX,settlePlatformBenefit} from './platformBenefits';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
@@ -68,6 +69,10 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
     const m=allocation.allocation.merchantShare.minorAmount,p=allocation.allocation.platformShare.minorAmount;
     const request={orderId:r.orderId,customerId:r.customerId,policyPin:allocation.policyPin,allocation:allocation.allocation};
     const requestDigest=quoteHash(request),existing=await get(reservationKey(r.orderId));
+    if(existing && readDeliveryFundingReplay(existing,reservationKey(r.orderId),r.orderId)) {
+      if(existing.requestDigest!==requestDigest || existing.status!=='CAPTURED')return fail('DELIVERY_RESERVATION_CONFLICT');
+      return {replayed:true,status:existing.status,operations:[deliveryFundingReplayFence(existing)]};
+    }
     if(existing){verify(existing);if(existing.requestDigest!==requestDigest||!['RESERVED','CAPTURED'].includes(existing.status))return fail('DELIVERY_RESERVATION_CONFLICT');return {replayed:true,status:existing.status,operations:[]};}
     if(policy.schemaVersion===2){
       const hold={...reservationKey(r.orderId),schemaVersion:2,version:1,...request,requestDigest,status:'RESERVED',createdAt:new Date(clock).toISOString()};
@@ -99,7 +104,14 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
       const keepUse=order.status!=='pending'||['confirmedAt','merchantAcceptedAt','acceptedAt','financialAcceptance'].some(k=>order[k]!=null);
       return settlePlatformBenefit(db,{orderId:r.orderId,target:'DELIVERY',outcome:r.outcome,keepUse,expectedFunding:r.expectedFunding});
     }
-    const h=await get(reservationKey(r.orderId));if(!h)return fail('DELIVERY_RESERVATION_UNAVAILABLE');verify(h);
+    const h=await get(reservationKey(r.orderId));if(!h)return fail('DELIVERY_RESERVATION_UNAVAILABLE');
+    if(readDeliveryFundingReplay(h,reservationKey(r.orderId),r.orderId)) {
+      if(!hasExpected || h.status!==r.outcome)return fail('DELIVERY_RESERVATION_CONFLICT');
+      exact(r.expectedFunding,['policyPin','allocation']);
+      if(quoteHash(r.expectedFunding)!==h.fundingDigest)return fail('DELIVERY_RESERVATION_CONFLICT');
+      return {replayed:true,status:h.status,operations:[deliveryFundingReplayFence(h)]};
+    }
+    verify(h);
     if(h.orderId!==r.orderId||!quoteEntityIdValid(h.customerId)||!quoteEntityIdValid(h.policyPin?.policyId)||!Number.isSafeInteger(h.policyPin?.version)||h.policyPin.version<1)return fail();
     if(hasExpected){exact(r.expectedFunding,['policyPin','allocation']);if(quoteHash(r.expectedFunding)!==quoteHash({policyPin:h.policyPin,allocation:h.allocation}))return fail('DELIVERY_RESERVATION_CONFLICT');}
     if(h.requestDigest!==quoteHash({orderId:h.orderId,customerId:h.customerId,policyPin:h.policyPin,allocation:h.allocation}))return fail();

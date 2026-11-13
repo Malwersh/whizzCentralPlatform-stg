@@ -8,7 +8,7 @@ const finishedTransfers=new Set(['COMPLETED','REJECTED','CANCELLED','CANCELED'])
 function belongs(profile,actor){
  return profile.userId===actor.sub||profile.cognitoSub===actor.sub||profile.cognitoUsername===actor.username||(actor.attrs?.email_verified==='true'&&profile.email===actor.attrs.email&&profile.cognitoUsername===actor.attrs.email);
 }
-function customerEvidence({db,maxPages=100}){
+function customerEvidence({db,maxPages=100,deliveryFundingArchiveEnabled=false}){
  if(!db)throw error('EVIDENCE_UNAVAILABLE');
  async function pages(Command,input){
   let cursor,rows=[],count=0;
@@ -51,14 +51,20 @@ function customerEvidence({db,maxPages=100}){
   const walletIds=[...new Set([walletId,...wallets.map(w=>w.walletId)])];
   const ownedOrders=await scanOwned(TABLES.orders,['userId','customerId','userSub'],ids);
   const orders=ownedOrders.filter(row=>!finishedOrders.has(String(row.status||'').toLowerCase()));
-  const cod=await require('./cod-retention').pendingCod({db,maxPages,orderIds:ownedOrders.map(o=>o.orderId)});
+  const cod=await require('./cod-retention').pendingCod({db,maxPages,customerIds:ids,orderIds:ownedOrders.map(o=>o.orderId)});
+  const benefits=await require('./customer-benefit-inventory').inventory({db,maxPages,subjectIds:ids,orderIds:ownedOrders.map(o=>o.orderId)});
+  const funding=await require('./customer-delivery-funding-inventory').inventory({db,maxPages,subjectIds:ids});
+  if(deliveryFundingArchiveEnabled&&funding.records&&!funding.blockers.some(b=>b.code!=='DELIVERY_FUNDING_RETENTION_REVIEW')){
+   await require('./customer-delivery-funding-archive').validateSources({db,subjectIds:ids,sourceKeys:funding.keys});
+   funding.blockers=[];
+  }
   const holds=await scanOwned(TABLES.holds,['walletId'],walletIds,row=>row.status==='ACTIVE');
   const transfers=await scanOwned(TABLES.transfers,['sourceWalletId','recipientWalletId'],walletIds,row=>row.transferId&&!finishedTransfers.has(row.status));
   const paymentStates=new Set(['SUCCESS','COMPLETED','FAILED','CANCELLED','CANCELED','REFUNDED']);
   const payments=await scanOwned(TABLES.legacyTransactions,['userId','walletId'],[...ids,...walletIds],row=>!paymentStates.has(String(row.status||'').toUpperCase()));
   // Snapshot only: the execution adapter must obtain a conditional eligibility lock and
   // enforce it in order/transfer services before these facts authorize irreversible cleanup.
-  return {complete:true,profileIds:[...profiles.keys()],wallets,activeOrders:orders.map(o=>({orderId:o.orderId,status:o.status})),activeHolds:holds.map(h=>({orderId:h.orderId,status:h.status})),pendingTransfers:transfers.map(t=>({transferId:t.transferId,status:t.status})),pendingPayments:[...cod,...payments.map(p=>({transactionId:p.transactionId,status:p.status}))]};
+  return {complete:true,profileIds:[...profiles.keys()],wallets,activeOrders:orders.map(o=>({orderId:o.orderId,status:o.status})),activeHolds:holds.map(h=>({orderId:h.orderId,status:h.status})),pendingTransfers:transfers.map(t=>({transferId:t.transferId,status:t.status})),pendingPayments:[...cod,...funding.blockers.map(b=>({status:b.code})),...benefits.blockers.map(b=>({status:b.code})),...payments.map(p=>({transactionId:p.transactionId,status:p.status}))]};
  };
 }
 module.exports={customerEvidence,belongs,TABLES};

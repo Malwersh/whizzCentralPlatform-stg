@@ -1,3 +1,4 @@
+import {merchantOwnerFinancialGuard} from './merchantOwnerFinancialGuard';
 import {walletCreationCaller,walletCreationInput} from './walletCreationAuth';
 import {walletLimitsOverview,walletLimitsAction} from './walletLimitsSettings';
 import {monthlyWalletPage} from './monthlyWalletHistory';
@@ -28,6 +29,13 @@ import {
 } from './utils';
 import { WalletError, WalletNotFoundError } from './types';
 
+async function protectedMobileAccount(event:APIGatewayProxyEvent,userType:string,principalId:string,businessId?:string){
+ const a=await mobileAccount(userType,principalId,businessId);
+ if(process.env.MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED==='true'&&a.type==='MERCHANT'){
+  a.ownerFinancialGuards=await merchantOwnerFinancialGuard(a,event.headers,{db:docClient});
+ }
+ return a;
+}
 const walletService = new WalletService();
 const holdService = new HoldService();
 const topupService = new TopupService();
@@ -105,18 +113,18 @@ export async function handler(
     if(path==='/wallet/transfers/notifications'){if(authorizer?.userType!=='customer')return buildErrorResponse(403,'CUSTOMER_REQUIRED','حساب مستخدم مطلوب');if(method==='GET')return buildSuccessResponse(await customerNotifications(authorizer.userId,event.queryStringParameters?.cursor));if(method==='POST')return buildSuccessResponse(await readCustomerNotifications(authorizer.userId,parseBody(event.body)));}
     if(path==='/wallet/transfers/accounts'&&method==='GET'){if(authorizer?.userType!=='merchant')return buildErrorResponse(403,'MERCHANT_REQUIRED','حساب مطعم مطلوب');return buildSuccessResponse(await merchantAccounts(authorizer?.userId));}
     if (path.startsWith('/wallet/transfers/') && method === 'GET') {
-      const a=await mobileAccount(authorizer?.userType,authorizer?.userId,event.queryStringParameters?.businessId);
+      const a=await protectedMobileAccount(event,authorizer?.userType,authorizer?.userId,event.queryStringParameters?.businessId);
       if(path==='/wallet/transfers/members')return buildSuccessResponse(await merchantMembers(a));
       if(path==='/wallet/transfers/context')return buildSuccessResponse({...await transferContext(a),phoneVerified:String(authorizer?.phoneVerified)==='true',verifiedPhone:authorizer?.verifiedPhone||''});
       if(path==='/wallet/transfers/recipient')return buildSuccessResponse(await transferRecipient(a,event.queryStringParameters?.phone||'',event.queryStringParameters?.type||'DRIVER'));
       if(path==='/wallet/transfers/status')return buildSuccessResponse(await transferStatus(a,event.queryStringParameters?.requestId||''));
       if(path==='/wallet/transfers/history')return buildSuccessResponse(await transferHistory(a,event.queryStringParameters?.cursor));
     }
-    if(['/wallet/transfers/otp/send','/wallet/transfers/otp/verify'].includes(path)&&method==='POST'){if(process.env.ENVIRONMENT!=='staging')return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);try{return buildSuccessResponse(path.endsWith('/send')?await sendTransferCode(a,(event.headers.Authorization||event.headers.authorization||'').replace(/^Bearer /,''),input):await verifyTransferCode(a,input));}catch(e:any){if(e.name==='TransactionCanceledException')return buildErrorResponse(429,'OTP_LIMIT','انتظر قبل إعادة المحاولة أو اطلب رمزًا جديدًا');throw e;}}
-    if(path==='/wallet/transfers/members'&&method==='POST'){const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await saveMerchantMember(a,Number(authorizer?.authTime||0),input));}
-    if(path==='/wallet/transfers/cancel'&&method==='POST'){const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await cancelMobileTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime||0)},input));}
+    if(['/wallet/transfers/otp/send','/wallet/transfers/otp/verify'].includes(path)&&method==='POST'){if(process.env.ENVIRONMENT!=='staging')return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');const input=parseBody(event.body);const a=await protectedMobileAccount(event,authorizer?.userType,authorizer?.userId,input?.businessId);try{return buildSuccessResponse(path.endsWith('/send')?await sendTransferCode(a,(event.headers.Authorization||event.headers.authorization||'').replace(/^Bearer /,''),input):await verifyTransferCode(a,input));}catch(e:any){if(e.name==='TransactionCanceledException')return buildErrorResponse(429,'OTP_LIMIT','انتظر قبل إعادة المحاولة أو اطلب رمزًا جديدًا');throw e;}}
+    if(path==='/wallet/transfers/members'&&method==='POST'){const input=parseBody(event.body);const a=await protectedMobileAccount(event,authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await saveMerchantMember(a,Number(authorizer?.authTime||0),input));}
+    if(path==='/wallet/transfers/cancel'&&method==='POST'){const input=parseBody(event.body);const a=await protectedMobileAccount(event,authorizer?.userType,authorizer?.userId,input?.businessId);return buildSuccessResponse(await cancelMobileTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime||0)},input));}
     if (path === '/wallet/transfers/request' && method === 'POST') {
-      const input=parseBody(event.body);const a=await mobileAccount(authorizer?.userType,authorizer?.userId,input?.businessId);
+      const input=parseBody(event.body);const a=await protectedMobileAccount(event,authorizer?.userType,authorizer?.userId,input?.businessId);
       if (process.env.ENVIRONMENT !== 'staging') return buildErrorResponse(409,'TRANSFERS_DISABLED','التحويل غير مفعل لهذه البيئة');
       return buildSuccessResponse(await requestTransfer({id:a.principalId,type:a.type,account:a,authTime:Number(authorizer?.authTime || 0)},input));
     }
