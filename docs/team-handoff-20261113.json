@@ -15,6 +15,11 @@
     "Preserves existing colleague branches without merging unreviewed colleague changes.",
     "Source readiness is separate from cloud deployment. See per-feature docs for deployed staging work and locally tested follow-up work.",
     "Customer funding closure/replay follow-ups remain local/read-only work; do not infer production deployment or account purge completion.",
-    "Run flutter pub get in frontend. Merchant builds use --dart-define=MERCHANT_FINANCIAL_LOCK_ENABLED=true to retain the new financial verification flow."
+    "Run flutter pub get in frontend. Merchant builds use --dart-define=MERCHANT_FINANCIAL_LOCK_ENABLED=true to retain the new financial verification flow.",
+    "Pull integration/team-sync-20261030 for the full current source, or approve feature/malwersh/bootstrap into staging-main and pull staging-main. Native binaries and cloud data are not Git source."
+  ],
+  "latestBatch": "2026-11-13 kitchen display and merchant realtime recovery",
+  "latestChanges": [
+    "Main operational plan updated with merchant realtime recovery and closure/order atomic race regression tests."
   ]
 }

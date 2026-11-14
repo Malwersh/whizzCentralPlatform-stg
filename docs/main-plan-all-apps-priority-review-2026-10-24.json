@@ -5285,5 +5285,64 @@
       "runtimeIntegrated": false
     },
     "next": "Implement journal verification and a shared case lifecycle fence before enabling source compaction."
+  },
+  "hostedKitchenDisplay561": {
+    "status": "DEPLOYED_STAGING_PENDING_OWNER_PAIRING_ACCEPTANCE",
+    "scope": "Hosted Arabic kitchen display paired from merchant app; canonical orders remain the only source of truth",
+    "phases": [
+      "1. Pairing, owner approval, branch scope, display/control modes and revocation",
+      "2. Canonical order snapshots and authenticated realtime subscriptions with reconnect recovery",
+      "3. Hosted RTL TV interface with remote focus and merchant screen management",
+      "4. Conflict, revocation, lifecycle and multidevice tests, staging rollout and Samsung acceptance"
+    ],
+    "acceptance": [
+      "No owner tokens on TV",
+      "No price/customer PII on kitchen board",
+      "No control permission from display-only approval",
+      "Server-enforced branch and lifecycle checks",
+      "Cancelled/handed-over order transitions use existing rules",
+      "No silent offline writes",
+      "Automatic reconnect snapshot without duplicate or older state rollback",
+      "HTTPS fixed URL; no manual IP/API key",
+      "Physical Samsung remote test remains required"
+    ],
+    "operationalPlanResume": "Return to financial funding closure verification after kitchen display work",
+    "deployment": "staging-wizz-hosted-kitchen UPDATE_COMPLETE; existing owner and order handlers patched minimally and enabled; original kitchen/printing active",
+    "validation": {
+      "backendTestsPassed": 83,
+      "merchantKitchenBoardTestsPassed": 5,
+      "flutterAnalysis": "No issues in kitchen screen management and entry widget",
+      "tvBrowser": "Passed pairing, three lanes, escaped content, canonical action payload, remote focus, event refresh, offline lock and revocation",
+      "samTemplate": "validate --lint passed",
+      "limitations": [
+        "Not deployed or installed yet",
+        "Real staging two-screen acceptance pending",
+        "Physical Samsung browser and remote pending"
+      ],
+      "stagingSmoke": "PASS HTTPS, pairing code/status, unauthenticated snapshot/action/owner denial, pending websocket denial; no order or wallet changes"
+    },
+    "rolloutManifest": "whizzMerchants-stg/docs/hosted-kitchen-rollout-561.json",
+    "displayUrl": "https://d3ozj1vp60o5bp.cloudfront.net",
+    "merchantSimulatorBuild": 347,
+    "pendingAcceptance": [
+      "Owner pairing and actual branch board",
+      "two-screen order changes, cancellation and revoke",
+      "Samsung browser/remote",
+      "latency and stream monitoring verification"
+    ],
+    "ownerSessionPolicy": "Active authenticated owner session is sufficient for pairing; removed five-minute sign-in freshness requirement at user request; pairing code expiry/branch ownership/lifecycle checks retained"
+  },
+  "merchantOrderRealtimeRecovery20261113": {
+    "status": "implemented_staging",
+    "fixes": [
+      "Canonical merchant WebSocket routing fields retained across authenticated registration",
+      "Fresh ID token, socket readiness, renewal/retry, subscription acknowledgement and buffered screen refresh",
+      "Canonical consistent order reads using existing GetItem permission; fail closed instead of stale index fallback"
+    ],
+    "testsPassed": 77,
+    "closureRace": "Closure before atomic order commit rejects order; commit before closure preserves valid order",
+    "humanVerification": "User confirmed new order reached open merchant app and earlier order completed through delivery",
+    "deployment": "Canonical order reader and shared routing correction deployed to WebSocket Default, Connect and Heartbeat staging functions; merchant simulator build 349 installed",
+    "remaining": "Monitor fresh authenticated connection routing after next branch connection; real-device background/reconnect validation remains in operational test plan"
   }
 }

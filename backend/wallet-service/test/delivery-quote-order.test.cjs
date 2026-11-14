@@ -120,3 +120,18 @@ test('merging lifecycle absence guards never emits empty DynamoDB expression map
   assert.equal(JSON.stringify(checks),input);
  }
 });
+
+test('merchant closing at commit rejects the order and leaves the quote unconsumed', async()=>{
+ const f=await setup(), prepared=await f.prepare();
+ f.beforeTransaction=()=>{ f.branch.acceptingOrders=false; };
+ await reject(prepared.commit(f.order(prepared)), 'QUOTE_INVALIDATED');
+ assert.equal(f.orders.size,0);
+ assert.equal([...f.saved.values()][0].consumption,undefined);
+});
+test('order committed before merchant closes remains a valid pending order', async()=>{
+ const f=await setup(), prepared=await f.prepare();
+ await prepared.commit(f.order(prepared));
+ f.branch.acceptingOrders=false;
+ assert.equal(f.orders.size,1);
+ assert.equal([...f.orders.values()][0].status,'pending');
+});
