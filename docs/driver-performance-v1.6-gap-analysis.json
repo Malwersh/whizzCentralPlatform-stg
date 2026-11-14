@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-16T19:35:51.212561+00:00",
+  "scope": "STAGING_REPOSITORY_GAP_ANALYSIS_WITH_PRIOR_V1_5_1_LIVE_EVIDENCE",
+  "productionAudited": false,
+  "sourceAddendum": "finance-reference/driver-performance-dispatch-priority-v1.6-ar.txt",
+  "liveEvidenceReused": "dispatch-waves-recovery-v1.5.1-audit.json",
+  "runtimeOrFlutterModified": false,
+  "deployed": false,
+  "weightsApplied": false,
+  "shadowActivated": false,
+  "sourceDigests": [
+    {
+      "path": "lambda/WaveSystem_UpdateDriverMetrics/index.js",
+      "sha256": "3eb8c5fd12ec8b9e1afbeb974efa76dd5efa0e3848a71084eee440afc5272a59"
+    },
+    {
+      "path": "lambda/WaveSystem_StartWave/index.js",
+      "sha256": "8c8bb9a3d97c1b183ea1516da816335d96ecc3656fa39122cd99e1516231ba75"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleDriverReject/index.js",
+      "sha256": "29b0d8a2f299ac7f7e229e7a86c014ed0e3188d8517add5450cec0e455b40bdb"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleWaveTimeout/index.js",
+      "sha256": "ed14a5fa49f932c41d2eb36809ad3305d427ade4956f498e963c06c1af3a62bc"
+    },
+    {
+      "path": "backend/wallet-service/src/codIntegration.ts",
+      "sha256": "057ba6e4621d438876f4f820094c6424523f8aec0d98b70c0868cd221254ada0"
+    },
+    {
+      "path": "backend/wallet-service/src/codReturn.ts",
+      "sha256": "fbbb4cccf84d645fa88fd457476530fe7f13b894f560d13f21a3ab7ebc9701f6"
+    },
+    {
+      "path": "backend/wallet-service/src/codIntegrationEvent.ts",
+      "sha256": "4896a7c30c15179a28723271cf2f6109e33d343480f8cad95fa43bc39f78848e"
+    },
+    {
+      "path": "backend/src/services/driver-assignment-service.js",
+      "sha256": "e52bb22a7236c2cac25f624932d04d01b46e0fdaa30ff1a7f19561028c064fb9"
+    },
+    {
+      "path": "backend/staff-service/catalog.js",
+      "sha256": "36465f9f01d6cac4633f3726c5dd49da0fead36d2dcfb8ac04502d4bbc3c6a90"
+    },
+    {
+      "path": "frontend/drivers.js",
+      "sha256": "5195668a1c3bef51e94f9b1247c519fd6c0714cbc92591074c573f9686455268"
+    },
+    {
+      "path": "../whizzDrivers-stg/backend/lambda_driver_api_v2.js",
+      "sha256": "5bb5530ba8eb58fb698a2ade72c3aaabac840f08e3d5a79c0b3c63ec1050a8ce"
+    },
+    {
+      "path": "../whizzDrivers-stg/frontend/lib/features/home/spark_home_simple_arabic.dart",
+      "sha256": "1b63a076f9528fd874997e78694331b6c6bee07421eeb85c906d03a71bb7c077"
+    },
+    {
+      "path": "../whizzDrivers-stg/frontend/lib/features/more/more_tab.dart",
+      "sha256": "bb76659b887c9ca03be1bf6721389e45776771d24223aa5ba72b76ab73a7251a"
+    },
+    {
+      "path": "../whizzDrivers-stg/frontend/lib/features/more/screens/account_details_screen.dart",
+      "sha256": "da1a12d30cbd0ccd10983d89ca737c4ad173b88179b81d195fe5af4a07b40dd1"
+    },
+    {
+      "path": "../whizzDrivers-stg/frontend/lib/services/driver_search_api_service.dart",
+      "sha256": "d18b2465465d222b2a5f14d095eab1d23d58566b3775c558104fb1082445dfa0"
+    },
+    {
+      "path": "../whizzDrivers-stg/frontend/lib/services/trips_service.dart",
+      "sha256": "ec7e716b4a9e7930edf3173a18f309abf09284771b32c2140f6169bbd5655a78"
+    },
+    {
+      "path": "../whizzDrivers-stg/frontend/lib/features/more/screens/feedback_screen.dart",
+      "sha256": "2d99e9dd6f771286501c852c078fc93a71624ba3c1003f4ac5a28465f7bf92a3"
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/screens/order_tracking_screen.dart",
+      "sha256": "43d3f24c1b0a0f89623485b8f6950e5cbb04cff6c3bb0d4881c465390fba0d57"
+    },
+    {
+      "path": "../whizzMerchants-stg/backend/functions/orders/merchant_order_handler.js",
+      "sha256": "a930c0aa1badafd3d5b31a3db7afd40d7890432b2319c1cfcbb3a6edb51aefa3"
+    }
+  ],
+  "findings": {
+    "existingLast100RawOffersAreNotLast100EligibleDeliveredOffers": true,
+    "metricsKeysAndUnitsRequireUnification": true,
+    "properReturnCurrentlyDoesNotIncrementOperationalCompletionInCodIntegration": true,
+    "driverRejectionUiFabricates75PercentAnd30Accepted10RejectedOnFailure": true,
+    "rejectionPreviewUsesAcceptedPlusRejectedRatherThanEligibleDeliveredWindow": true,
+    "customerOrderRatingButtonIsTodoInInspectedFlow": true,
+    "driverAppFeedbackIsNotCustomerDriverRating": true,
+    "separatePerformanceScoreTierAndFairOpportunityNotFoundInInspectedFlows": true,
+    "existingOriginalOnTimeTargetAndAttributionContractNotProven": true,
+    "additionalLegacyAssignmentServiceSourceFoundActivationNotEstablished": true
+  },
+  "pendingDefinitions": [
+    "Exclusive offer semantics versus concurrent five-driver waves",
+    "Sufficient proof of delivery and treatment of unconfirmed delivery",
+    "Pending commitments and window ordering",
+    "Minimum sample thresholds and missing metric policy",
+    "Pickup/delivery on-time combination and grace",
+    "Quality score and verified attribution sources",
+    "Fair opportunity window and ETA normalization",
+    "Tier promotion requirements and downgrade grace"
+  ],
+  "experimentalProposalsOnly": {
+    "performanceWeightsPercent": {
+      "completion": 30,
+      "onTime": 25,
+      "customerRating": 20,
+      "acceptance": 15,
+      "quality": 10
+    },
+    "rankingWeightsPercent": {
+      "pickupEta": 60,
+      "performance": 25,
+      "fairOpportunity": 15
+    },
+    "tierLowerBounds": {
+      "bronze": 0,
+      "silver": 60,
+      "gold": 75,
+      "platinum": 90
+    },
+    "requireApprovalAndShadowReviewBeforeDispatchInfluence": true
+  },
+  "financialBoundaries": [
+    "Operational proper return is not a delivered order or an earning credit",
+    "Performance changes cannot create wallet movements, holds or a second acceptance",
+    "Safety and COD eligibility remain authoritative independently of score or tier"
+  ],
+  "implementationOrder": [
+    "Event audit and definitions",
+    "Metrics calculation and honest driver display",
+    "Customer rating source and moderation",
+    "Score and tiers",
+    "Read-only shadow ranking in existing dispatch coordinator",
+    "Controlled approved rollout",
+    "Fairness audit"
+  ],
+  "priorSourceEvidenceStillMatches": [
+    "lambda/WaveSystem_UpdateDriverMetrics/index.js",
+    "lambda/WaveSystem_StartWave/index.js",
+    "backend/wallet-service/src/codIntegration.ts",
+    "../whizzDrivers-stg/backend/lambda_driver_api_v2.js"
+  ]
+}

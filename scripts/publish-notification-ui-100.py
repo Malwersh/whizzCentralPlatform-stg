@@ -1,0 +1,18 @@
+"""Publish upload controls and restore original defaults as explicitly requested."""
+from pathlib import Path
+import importlib.util,json,io,zipfile,urllib.request,time,uuid
+R=Path(__file__).resolve().parents[1];O=Path('/private/tmp/notification100');sp=importlib.util.spec_from_file_location('c',R/'scripts/capture-financial-readers-63.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m);s=m.session()
+from boto3.dynamodb.types import TypeSerializer,TypeDeserializer
+se=TypeSerializer();de=TypeDeserializer();encode=lambda row:{k:se.serialize(v) for k,v in row.items()};db=s.client('dynamodb');key={'pk':'OPERATIONAL_SETTINGS#ORDER_RECEPTION','sk':'CURRENT'};current={k:de.deserialize(v) for k,v in db.get_item(TableName='staging-PlatformStaff',Key=encode(key),ConsistentRead=True)['Item'].items()};values={**current['values'],'merchantNewOrder':'merchant_original','driverNewOffer':'driver_original','driverGoOnline':'online_chime'}
+if values!=current['values']:
+ version='sound-defaults-100-'+str(uuid.uuid4());next_policy={**key,'version':current['version']+1,'policyVersion':version,'values':values,'updatedBy':'SYSTEM_DEPLOYMENT_100','updatedAt':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'effectiveFor':'NEXT_DEVICE_SOUND_SYNC'}
+ db.transact_write_items(TransactItems=[{'Put':{'TableName':'staging-PlatformStaff','Item':encode(next_policy),'ConditionExpression':'#v=:v','ExpressionAttributeNames':{'#v':'version'},'ExpressionAttributeValues':encode({':v':current['version']})}},{'Put':{'TableName':'staging-PlatformStaff','Item':encode({**next_policy,'sk':'VERSION#'+version}),'ConditionExpression':'attribute_not_exists(sk)'}},{'Put':{'TableName':'staging-PlatformStaff','Item':encode({'pk':'AUDIT','sk':'NOTIFICATION_ORIGINAL_DEFAULTS#'+version,'action':'NOTIFICATION_ORIGINAL_DEFAULTS_RESTORED','actorId':'SYSTEM_DEPLOYMENT_100','reason':'Explicit user request: retain original app sounds as defaults and support uploads','before':current['values'],'after':values}),'ConditionExpression':'attribute_not_exists(sk)'}}])
+print(json.dumps({'originalDefaultsRestored':True,'acceptanceAndReminderPreserved':True}),flush=True)
+amp=s.client('amplify');args={'appId':'d2vmebm1e1n95m','branchName':'staging'};job=amp.list_jobs(**args,maxResults=1)['jobSummaries'][0];assert job['status']=='SUCCEED';meta=amp.get_job(**args,jobId=job['jobId'])['job'];url=next(x['artifactsUrl'] for x in meta['steps'] if x.get('artifactsUrl'));raw=urllib.request.urlopen(url,timeout=90).read();(O/'frontend.before.zip').write_bytes(raw)
+patches={n:(R/'frontend'/n).read_bytes() for n in ['pages/notification-sounds.html','notification-sounds.js','assets/sounds/first_nitification_sound.wav','assets/sounds/driver_original.wav']};buf=io.BytesIO()
+with zipfile.ZipFile(io.BytesIO(raw)) as old,zipfile.ZipFile(buf,'w',zipfile.ZIP_DEFLATED) as new:
+ for n in old.namelist():new.writestr(n,patches[n] if n in patches else old.read(n))
+ for n,data in patches.items():
+  if n not in old.namelist():new.writestr(n,data)
+ assert all(new.read(n)==old.read(n) for n in old.namelist() if n not in patches)
+assert amp.list_jobs(**args,maxResults=1)['jobSummaries'][0]['jobId']==job['jobId'];upload=amp.create_deployment(**args);payload=buf.getvalue();(O/'frontend.candidate.zip').write_bytes(payload);urllib.request.urlopen(urllib.request.Request(upload['zipUploadUrl'],data=payload,method='PUT',headers={'Content-Type':'application/zip'}),timeout=90).close();amp.start_deployment(**args,jobId=upload['jobId']);proof={'jobId':upload['jobId'],'baseJobId':job['jobId'],'originalDefaultsRestored':True,'noFinancialChanges':True};(O/'ui-publication.json').write_text(json.dumps(proof,indent=2));print(json.dumps(proof),flush=True)

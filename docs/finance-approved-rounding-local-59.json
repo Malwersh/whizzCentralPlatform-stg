@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "part": 59,
+  "environment": "Staging",
+  "atUtc": "2026-10-17T04:39:56.979875+00:00",
+  "status": "LOCAL_IMPLEMENTATION_AFTER_USER_APPROVAL",
+  "activationPerformed": false,
+  "published": false,
+  "approvalFile": "docs/finance-commercial-pricing-approval-59.json",
+  "functions": [],
+  "tests": {
+    "walletTestsPassed": 679,
+    "newRoundingTestsIncluded": 6,
+    "staffTestsPassed": 144,
+    "userCommercialTestsPassed": 17,
+    "approvedScenarioTestsPassed": 2,
+    "additionalFocusedSourceFenceVerification": true,
+    "browserLegacy": {
+      "draftForms": true,
+      "editableFinalRounding": false,
+      "sameEngineSimulation": true,
+      "staleResultCleared": true,
+      "safeText": true,
+      "conflict": true,
+      "readOnly": true,
+      "realWrites": false
+    },
+    "browserFinalRounding": {
+      "draftForms": true,
+      "editableFinalRounding": true,
+      "sameEngineSimulation": true,
+      "staleResultCleared": true,
+      "safeText": true,
+      "conflict": true,
+      "readOnly": true,
+      "realWrites": false
+    },
+    "typeScriptBuildPassed": true,
+    "runtimeSynchronizationChecksPassed": true
+  },
+  "financialRuntimeBuild": {
+    "schemaVersion": 1,
+    "stage": "staging",
+    "file": "financial-runtime.js",
+    "sha256": "c8e672bc3fe5f187b6afbf05abc63b8ce3e5df803dc1e3222cab7eb5f3c71d43",
+    "destinations": [
+      "lambda/WaveSystem_StartWave/financial-runtime.js",
+      "lambda/WaveSystem_HandleWaveTimeout/financial-runtime.js",
+      "staging-driver-financial-accept/index.js"
+    ],
+    "activation": "OFF",
+    "completionActivation": "OFF",
+    "returnsActivation": "OFF",
+    "assignmentsActivation": "OFF",
+    "requiresCoordinatedDeployment": true,
+    "blockers": [
+      "Live package comparison and IAM/Gateway verification",
+      "Policy-backed compensation/adjudication and merchant payouts remain pending",
+      "Human device return/cancellation UX, adjudication and Gateway verification",
+      "Coordinated deployment of acceptance, integration, notification and deletion/retention contracts with flags OFF",
+      "Gateway, live authentication, production-role IAM and device verification remain pending"
+    ]
+  },
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "535e6be012354b611903eaeba04d959b7be4259c574c8706f6c36c7eeb0d7b66",
+      "reason": "Part54 binds a Staging test confirmation to a preapproved request while retaining immutable pending replay and default UUID behavior; commercial approval flow is unchanged."
+    },
+    {
+      "path": "backend/wallet-service/src/money.ts",
+      "beforeSha256": "a650a50ed22593f5cee9c88df9ab01869acff4a32c234fef5ade9497dd39e90e",
+      "afterSha256": "c02c3752fc00f6088cd529bf617b0506fa8be4458da3e1bdd47d029a13865165",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/deliveryPricing.ts",
+      "beforeSha256": "ee05af2c120e9052d25eeed4f898275ec5a734ac21be99f135e77d219535aab3",
+      "afterSha256": "154584f9ab57b2efc274bbdbe97e183c77b9c264cf3ea21da5ca7de745857da9",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialPricing.ts",
+      "beforeSha256": "7a2c30ee07aa06ce1e00808a7b279973d6f21b634f5a5884bc5d0ca56866d690",
+      "afterSha256": "19ad99e91c0d362603dd46f4d3161028a47499ac7d5335c0adb4bb7f06166474",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialSource.ts",
+      "beforeSha256": "4abde486156dd14be3c4812774113c299d56c9598e7320c1460c26036be220e8",
+      "afterSha256": "491fa813668e5365cf60da4e8a9ac1c5db5095c73a153b3d4bc9ae4a456beb2b",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    }
+  ],
+  "sourceSha256": {
+    "backend/wallet-service/src/money.ts": "c02c3752fc00f6088cd529bf617b0506fa8be4458da3e1bdd47d029a13865165",
+    "backend/wallet-service/src/deliveryPricing.ts": "154584f9ab57b2efc274bbdbe97e183c77b9c264cf3ea21da5ca7de745857da9",
+    "backend/wallet-service/src/orderCommercialPricing.ts": "19ad99e91c0d362603dd46f4d3161028a47499ac7d5335c0adb4bb7f06166474",
+    "backend/wallet-service/src/orderCommercialSource.ts": "491fa813668e5365cf60da4e8a9ac1c5db5095c73a153b3d4bc9ae4a456beb2b",
+    "backend/wallet-service/test/final-price-rounding.test.cjs": "767ddde01175ef016ccff0aa4ad1e37ffd409c37f76b408cfaa8891fb3a0c214",
+    "backend/staff-service/pricing-runtime/money.js": "a72576ceef41e5af0f789b2ff217f76dfd1228fcb214615542c743239118256d",
+    "backend/staff-service/pricing-runtime/deliveryPricing.js": "9a96fe6d63892fd2263989358057faab53be9429e46ec4bd86a1f0d4de8cedec",
+    "frontend/delivery-pricing.js": "b4975945783fa83be69bda72439692672dddbd5c837fdb39a787553c60205988",
+    "scripts/test-delivery-pricing-browser.cjs": "5f209465633edb4c610f75961c5b7997707fbc0344eaa63e458a17906686d561",
+    "scripts/test/approved-pricing-59.test.cjs": "b009650628fcc5216a026816374e4bd4cd8729f81908b1d63a13b357ddc71330",
+    "scripts/prepare-commercial-pricing-proposal-58.cjs": "14ef0c7d066fa23ac2f25c9adc064f7ee353eece775a35034a616eb122e18790",
+    "docs/finance-commercial-pricing-approval-59.json": "8457f2726d0e436a319b17b049c258589d6961dc712ac0d1c216df6fcf55b7bd",
+    "../wizzuser-stg/backend/src/functions/create-order/quote-runtime/money.js": "523591b9467fc0148bd4149396e2ab25b447bc2648b136c64583cc34db02667f",
+    "../wizzuser-stg/backend/src/functions/create-order/quote-runtime/deliveryPricing.js": "a76fcd18d8c2166bba45812a810824c66e788cedd4e029275224779e60330e62",
+    "../wizzuser-stg/backend/src/functions/create-order/quote-runtime/orderCommercialPricing.js": "9654c9345de473c13188a8f9b7d40e2af8f00cba68cbbbd1fd3991d82f940e47",
+    "../wizzuser-stg/backend/src/functions/create-order/quote-runtime/orderCommercialSource.js": "4e5b3538175916e8b4ea2d2c708989ae313f5aa4ab342c63f82fe6d12dd2f979"
+  },
+  "limits": [
+    "No AWS calls, policy initialization, IAM changes, live price publication, human staff/merchant acceptance, money/hold/order writes, provider request or phone build/install in Part59.",
+    "Delivery discounts under an explicitly quantized rule must preserve funding and match the quantum (or cap the full fee); unsupported sub-quantum discount amounts fail explicitly. Existing unquantized rules retain their behavior.",
+    "Schema-2 funding requires a whole-IQD discount, explicit toward-zero merchant-share rounding and exact platform remainder. Legacy schema-1 funding remains unchanged.",
+    "Current deployed services still run their recorded earlier versions. Published pricing, Quote, commercial writer and wave/acceptance readers must be coordinated before storing/activating new-format settings.",
+    "Merchant agreement, commission/service-fee and funding management UI remains to be completed in existing merchant/campaign areas; the editable final-rounding field is local in the existing pricing editor.",
+    "The build artifact is for review, not permission to replace a live financial bundle wholesale; preserve published COD and unrelated code during packaging.",
+    "The final wallet precision readiness requirement remains unproven for deployed functions. Local tests alone cannot set it true."
+  ]
+}

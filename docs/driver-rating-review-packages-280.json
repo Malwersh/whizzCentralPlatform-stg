@@ -1,0 +1,52 @@
+{
+  "status": "PREPARED_NOT_PUBLISHED",
+  "functions": [
+    {
+      "label": "ratings",
+      "function": "whizz-order-ratings-staging-ratings",
+      "before": "vglm4IN1Njt04sy4gAZ5Jn4+sUIoWEUj6rozEnnJpyQ=",
+      "revision": "1c0814de-32bc-402f-a777-d87842e5c570",
+      "candidate": "4yIo91qR4/VXBabzQbvsVbIZBNzaVFqeW5OSLUh/aG4=",
+      "changedFiles": [
+        "src/handlers/order-ratings.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "before": "53mGdmFThN1h9FxDRTu43Lfp4O2qZ2vf+F96s2z+lok=",
+      "revision": "40318ff6-8d32-4b2b-b932-c862842cf6c0",
+      "candidate": "QtUuvAcxSiiRk/GtBOaySto7v/Mz9onj4rg8Zemx1hw=",
+      "changedFiles": [
+        "order-exception-runtime-229.js",
+        "driver-rating-review-runtime-280.js",
+        "index.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "before": "P1TwmqZbP5Y/gv2y2blN6nNqB7NOwljc3i5gjKLeVTU=",
+      "revision": "feabc0d6-17dd-4dd1-9477-c9b952b9c39b",
+      "candidate": "sp3w74AsBFxzke7DF6YVn57Rde8/cjjuqXFLe9Q3eoI=",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "driver",
+      "function": "DriversApi-staging",
+      "before": "E+DGLpDv/EtxY/4ZfZCNWUexLFLaLB6C4vq3EJjddxU=",
+      "revision": "66fa44dc-7cdc-4a59-83ea-db96c023151d",
+      "candidate": "CCMoVuCWcxx7S7t2ifwCknrG605CPkPbg5aPtrPna7I=",
+      "changedFiles": [
+        "driver-performance.js"
+      ],
+      "allOtherEntriesIdentical": true
+    }
+  ],
+  "financialCalculationChanged": false
+}

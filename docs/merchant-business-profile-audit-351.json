@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-29",
+  "item": "M06-business-profile",
+  "runtimeParity": [
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "handler": "unified_auth_handler.handler",
+      "checks": [
+        {
+          "file": "business_changes.js",
+          "exactMatch": true
+        },
+        {
+          "file": "business-change-review.js",
+          "exactMatch": true
+        }
+      ]
+    },
+    {
+      "name": "order-receiver-regional-staging-business-profile-v4-sam",
+      "handler": "business_profile_handler.handler",
+      "checks": [
+        {
+          "file": "business_profile_handler.js",
+          "exactMatch": true
+        }
+      ]
+    },
+    {
+      "name": "order-receiver-regional-staging-location-settings-v1-sam",
+      "handler": "location_settings_handler.handler",
+      "checks": [
+        {
+          "file": "location_settings_handler.js",
+          "exactMatch": true
+        }
+      ]
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "handler": "index.handler",
+      "checks": [
+        {
+          "file": "merchant-changes.js",
+          "exactMatch": true
+        },
+        {
+          "file": "business-change-review.js",
+          "exactMatch": true
+        }
+      ]
+    }
+  ],
+  "tests": {
+    "merchantProfileLocationReviewAndCapabilities": 29,
+    "adminReview": 5
+  },
+  "verifiedBehavior": [
+    "Direct profile editor accepts description, website and business photo only; name/location and person/phone changes are blocked there.",
+    "Approved branch name and location remain unchanged while proposal is pending.",
+    "Owner-only submission; branch-device employee profile capabilities do not allow name/location requests.",
+    "Administration requires merchants.review for current and proposed destination regions.",
+    "Geometry is revalidated at approval; region checks, branch update, request, review queue and staff audit commit atomically.",
+    "Stale base/version, changed ownership and deletion guards prevent stale approval."
+  ],
+  "newRegressionCases": [
+    "Destination-only or origin-only reviewer cannot list or approve a location move.",
+    "Failed geometry validation prevents every review/business write."
+  ],
+  "humanAcceptance": [
+    "Submit a test name change; confirm customer still sees approved name until admin approval, then refresh.",
+    "Submit location move; verify proposed pin/address and current business remain separate until authorized approval.",
+    "Reject a request and confirm reason appears in merchant history without changing current branch.",
+    "Confirm direct description/website/photo save and unauthorized branch employee restrictions in UI."
+  ],
+  "runtimeChanges": "None required; audited deployed modules matched reviewed source."
+}

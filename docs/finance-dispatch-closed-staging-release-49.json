@@ -1,0 +1,830 @@
+{
+  "schemaVersion": 1,
+  "part": 49,
+  "environment": "Staging",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "status": "PUBLISHED_GATES_OFF",
+  "activated": false,
+  "humanOrderOrFinancialTestWrites": false,
+  "centralPolicyChanged": false,
+  "scheduleOrTimeoutChanged": false,
+  "privateReleaseDirectory": "/private/tmp/dispatch49-release",
+  "preflight": {
+    "account": "699561669180",
+    "region": "us-east-1",
+    "checkedAt": "2026-10-17T01:33:37.611Z",
+    "functions": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "revisionId": "52581dbc-cceb-4dd4-8b2e-9cf820bf19f4",
+        "baseCodeSha256": "j4mFcOGoAvR7YelKIATiT1NQQPNdHo+nshHEM06NeMQ=",
+        "baseEnvironmentDigest": "bef11ef5cc43765d82a896b4b915a422d03fa72dc3d690103d0f4c2f40514553",
+        "closedEnvironmentDigest": "d4c60af7dab135aa4af404e238bbb15f0ad7c4e84fccd50ecfff3d1800be1fc5",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+        "timeout": 30
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "revisionId": "12586032-f355-49ee-b4ea-df658ba5a3b5",
+        "baseCodeSha256": "pnPzcRyT42pIfp9IiAVQF89CTcekqn1U9v9NOqojNNw=",
+        "baseEnvironmentDigest": "4834f633a0cbfaa8c704e02fc919995aec2dcf960df42775882a30cea17fb248",
+        "closedEnvironmentDigest": "050b4b07ed5ec1e4a479b0186d0f29fa791732cd917b1d6b5fd37d90a037ce2e",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+        "timeout": 30
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "revisionId": "1600f0db-fa96-4338-b1af-038d104f01d1",
+        "baseCodeSha256": "4tDShfuMbqBWmZdirNkVKU1ik6FTPm+OnEweZs67nzY=",
+        "baseEnvironmentDigest": "9fceb2a4c5cf4c0f9e68ae46bc2968dd1df8783111b7f5eaaa87eb0f0c065358",
+        "closedEnvironmentDigest": "1045ab7ee60b0413fee43f7a54eb8dc8ed20f7cdb5f665c57c13dab1e250450e",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+        "timeout": 30
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "revisionId": "34b12117-1397-4bbf-b68e-9733af4a51dc",
+        "baseCodeSha256": "x03EVm7XapRL1J9ah3Sdm4jUqAWVc6K3y3I6+x5Bgao=",
+        "baseEnvironmentDigest": "9d709b209cd10cf2e98ccfa7a24a25ba525b5fd3dcc39bff8668a242dc047bce",
+        "closedEnvironmentDigest": "4dc10643a534d741f20de4e95579591ca7994408bc7209140b52020aa9f92f81",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+        "timeout": 30
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "revisionId": "99ede122-a6d7-4d0a-b0c5-b42c7d27e3f8",
+        "baseCodeSha256": "S3oriu+racxOeBAZnZYlmB9NlDUIGhS9pmDFEbfx/Aw=",
+        "baseEnvironmentDigest": "72f1cf88ecb4e7d1fc51e1de1c3164c72b94fadd3bf74a9e24f4041e73a0c3da",
+        "closedEnvironmentDigest": "9bd6149292d4c4f43b096fc909029e1de6fb3d0a60cc2ea3afd0db5ec40c6f71",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+        "timeout": 30
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "revisionId": "f97ab1a9-36cf-4a99-b3a5-d80270c9daa9",
+        "baseCodeSha256": "1PefWQ8tPx+xYJDUk1dRPgskKRzp8rcReqWk9zI0pJY=",
+        "baseEnvironmentDigest": "7fef018a8b0bd2b1fcb646f442cba6fb4f2907f87b208c9ad7ca42b3f4c2807b",
+        "closedEnvironmentDigest": "ebc48dd3f025a88668026d8937d8344411537216e35f9fc5090886a081fd1fcb",
+        "role": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "timeout": 30
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "revisionId": "96df76e3-5ab8-477a-8a4e-0029808fafde",
+        "baseCodeSha256": "lgtP9YYkI5QE0xtAuFol90xLjYN8mngnIYMTrvuIufQ=",
+        "baseEnvironmentDigest": "5ac2ff63c60ad5377f203cfd64e60a4fadb906610c65b13fcb9b626a5e107c4a",
+        "closedEnvironmentDigest": "f6aabd8162d5fe28dd91a79e08e3a124e99a6e55be0fd02a982f6326f5693c18",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+        "timeout": 30
+      },
+      {
+        "name": "staging-cod-integration",
+        "revisionId": "92547ff0-aaca-4410-9c39-35a693d8ddbd",
+        "baseCodeSha256": "SKhfwDJtS/3TWYy0vlDbnu1Wd3Z7CbEpyhJhskbUuSw=",
+        "baseEnvironmentDigest": "1082c7acc7ddd22e95c76f52bb260770a8fe53c003aca38d9de011cf0f4eca79",
+        "closedEnvironmentDigest": "87ce814b84b1cffe06dc2f0df4aa75922aff85bab28c5de9a42873d87c89ab71",
+        "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+        "timeout": 60
+      },
+      {
+        "name": "DriversApi-staging",
+        "revisionId": "edc53f99-27b5-4b71-9c24-0be3fcbf198b",
+        "baseCodeSha256": "s4IwbNr32JLKK2JQx5fxPTex6fVdNQf44N+mxKWajYY=",
+        "baseEnvironmentDigest": "135367da5a25c0a84ed55df96d36be7e5cd8ea3f4fdd198d2db67a3ed3f35095",
+        "closedEnvironmentDigest": "5733b1ea9e0babc792e6c7945e0988d86050ed28734496d668972efd7e6a1ae2",
+        "role": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+        "timeout": 30
+      }
+    ],
+    "activation": false,
+    "writeOperations": 0
+  },
+  "iamPublication": {
+    "role": "drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+    "policyName": "PinnedDispatchJobRead",
+    "policy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PinnedDispatchJobRead",
+          "Effect": "Allow",
+          "Action": "dynamodb:GetItem",
+          "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging"
+        }
+      ]
+    },
+    "applied": true,
+    "alreadyPresent": false,
+    "at": "2026-10-17T01:34:14.421Z"
+  },
+  "effectiveDriverRead": {
+    "action": "dynamodb:GetItem",
+    "decision": "allowed",
+    "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+    "checkedAt": "2026-10-17T01:38:29.338Z"
+  },
+  "readinessAfterReadGrant": {
+    "schemaVersion": 1,
+    "account": "699561669180",
+    "region": "us-east-1",
+    "checkedAt": "2026-10-17T01:34:52.231Z",
+    "published": false,
+    "iamGranted": false,
+    "functions": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+        "featureGates": {},
+        "timeout": 30
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+        "featureGates": {},
+        "timeout": 30
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+        "featureGates": {},
+        "timeout": 30
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+        "featureGates": {},
+        "timeout": 30
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+        "featureGates": {},
+        "timeout": 30
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "featureGates": {},
+        "timeout": 30
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+        "featureGates": {},
+        "timeout": 30
+      },
+      {
+        "name": "staging-cod-integration",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+        "featureGates": {
+          "FINANCIAL_COD_INTEGRATION_MODE": "OFF"
+        },
+        "timeout": 60
+      },
+      {
+        "name": "DriversApi-staging",
+        "codeUnchanged": true,
+        "revisionUnchanged": true,
+        "environmentUnchanged": true,
+        "role": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+        "featureGates": {},
+        "timeout": 30
+      }
+    ],
+    "permissionChecks": [
+      {
+        "function": "WaveSystem_CreateDispatchJob",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "requiredWithGatesOff": true,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_StartWave",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "requiredWithGatesOff": true,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "requiredWithGatesOff": true,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "requiredWithGatesOff": false,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+        "requiredWithGatesOff": false,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+        "requiredWithGatesOff": false,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "requiredWithGatesOff": false,
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "requiredWithGatesOff": false,
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleWaveTimeout",
+        "action": "dynamodb:Scan",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "requiredWithGatesOff": false,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleDriverAccept",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "requiredWithGatesOff": true,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "WaveSystem_HandleDriverReject",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "requiredWithGatesOff": true,
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "function": "DriversApi-staging",
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "requiredWithGatesOff": true,
+        "decision": "allowed",
+        "missingContext": []
+      }
+    ],
+    "operatingPolicy": {
+      "exists": true,
+      "version": 1,
+      "hasDispatch": false,
+      "dispatchValid": false
+    },
+    "packageSnapshotStillCurrent": true,
+    "gateOffReadPermissions": true,
+    "activationReady": false,
+    "liveWriteOperations": 0
+  },
+  "publication": {
+    "published": 9,
+    "expected": 9,
+    "activation": false,
+    "functions": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "revisionId": "7f81c17d-8578-4055-a2da-cc875b44aff7",
+        "codeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+        "closedEnvironmentDigest": "d4c60af7dab135aa4af404e238bbb15f0ad7c4e84fccd50ecfff3d1800be1fc5",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 30,
+        "verifiedAt": "2026-10-17T01:36:03.528Z"
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "revisionId": "ec2a05d3-799a-48e6-a98b-a9ca5cffc875",
+        "codeSha256": "L/kkiVsmLDvNyie3DHrFuE+sVs42oyY8RJGTsm/y5MI=",
+        "closedEnvironmentDigest": "050b4b07ed5ec1e4a479b0186d0f29fa791732cd917b1d6b5fd37d90a037ce2e",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 30,
+        "verifiedAt": "2026-10-17T01:36:23.601Z"
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "revisionId": "4f45349c-0d63-477a-a10a-3dbd1484b277",
+        "codeSha256": "7cA7Cl6jmVon9GD3FGy/gBGdxq9F+M4bK30tet/Kdkc=",
+        "closedEnvironmentDigest": "1045ab7ee60b0413fee43f7a54eb8dc8ed20f7cdb5f665c57c13dab1e250450e",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 30,
+        "verifiedAt": "2026-10-17T01:36:49.024Z"
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "revisionId": "8e7660ed-574e-43c5-8952-6f3c68f8be44",
+        "codeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+        "closedEnvironmentDigest": "4dc10643a534d741f20de4e95579591ca7994408bc7209140b52020aa9f92f81",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 30,
+        "verifiedAt": "2026-10-17T01:36:57.404Z"
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "revisionId": "409b9744-7416-476e-9bfc-e1b88bf3220b",
+        "codeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+        "closedEnvironmentDigest": "9bd6149292d4c4f43b096fc909029e1de6fb3d0a60cc2ea3afd0db5ec40c6f71",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 30,
+        "verifiedAt": "2026-10-17T01:37:14.511Z"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "revisionId": "bc223ea3-a194-452e-b241-357692a8c3b4",
+        "codeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+        "closedEnvironmentDigest": "ebc48dd3f025a88668026d8937d8344411537216e35f9fc5090886a081fd1fcb",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 30,
+        "verifiedAt": "2026-10-17T01:37:35.847Z"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "revisionId": "9bbe762a-a89b-4c9f-8b7f-8e745469563c",
+        "codeSha256": "3wZG7D/1MIJwKOlLvhcdn4co+uS+OP9ENDQckfMHzbE=",
+        "closedEnvironmentDigest": "f6aabd8162d5fe28dd91a79e08e3a124e99a6e55be0fd02a982f6326f5693c18",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 30,
+        "verifiedAt": "2026-10-17T01:37:48.172Z"
+      },
+      {
+        "name": "staging-cod-integration",
+        "revisionId": "489c5b19-a795-4612-9729-6f4f8f1b65f3",
+        "codeSha256": "5aLLEg9suUvxFrRgOrgWyiI5DjkEuhBuprM2ZCfu14U=",
+        "closedEnvironmentDigest": "87ce814b84b1cffe06dc2f0df4aa75922aff85bab28c5de9a42873d87c89ab71",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 60,
+        "verifiedAt": "2026-10-17T01:37:54.573Z"
+      },
+      {
+        "name": "DriversApi-staging",
+        "revisionId": "1ab30819-e7a4-466a-b059-590733dbaf01",
+        "codeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+        "closedEnvironmentDigest": "5733b1ea9e0babc792e6c7945e0988d86050ed28734496d668972efd7e6a1ae2",
+        "closedGates": {
+          "DISPATCH_CYCLE_MODE": "OFF",
+          "DISPATCH_LEGACY_HOST_MODE": "OFF",
+          "DISPATCH_RESTART_START_MODE": "OFF",
+          "DISPATCH_REVIEW_MODE": "OFF",
+          "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+          "PINNED_LEGACY_PUSH_MODE": "OFF",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF"
+        },
+        "unrelatedEnvironmentPreserved": true,
+        "timeout": 30,
+        "verifiedAt": "2026-10-17T01:38:10.731Z"
+      }
+    ]
+  },
+  "verification": {
+    "verifiedAt": "2026-10-17T01:38:31.132Z",
+    "functions": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "codeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+        "revisionId": "7f81c17d-8578-4055-a2da-cc875b44aff7",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "codeSha256": "L/kkiVsmLDvNyie3DHrFuE+sVs42oyY8RJGTsm/y5MI=",
+        "revisionId": "ec2a05d3-799a-48e6-a98b-a9ca5cffc875",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "codeSha256": "7cA7Cl6jmVon9GD3FGy/gBGdxq9F+M4bK30tet/Kdkc=",
+        "revisionId": "4f45349c-0d63-477a-a10a-3dbd1484b277",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "codeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+        "revisionId": "8e7660ed-574e-43c5-8952-6f3c68f8be44",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "codeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+        "revisionId": "409b9744-7416-476e-9bfc-e1b88bf3220b",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "codeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+        "revisionId": "bc223ea3-a194-452e-b241-357692a8c3b4",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "3wZG7D/1MIJwKOlLvhcdn4co+uS+OP9ENDQckfMHzbE=",
+        "revisionId": "9bbe762a-a89b-4c9f-8b7f-8e745469563c",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "codeSha256": "5aLLEg9suUvxFrRgOrgWyiI5DjkEuhBuprM2ZCfu14U=",
+        "revisionId": "489c5b19-a795-4612-9729-6f4f8f1b65f3",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "codeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+        "revisionId": "1ab30819-e7a4-466a-b059-590733dbaf01",
+        "gates": "OFF",
+        "unrelatedEnvironmentPreserved": true
+      }
+    ],
+    "published": 9,
+    "activation": false,
+    "financialWrites": false
+  },
+  "archiveVerification": {
+    "scope": "OFFLINE_PINNED_ARCHIVE_VERIFICATION",
+    "published": false,
+    "functions": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "preservedEntries": 5850,
+        "changed": [
+          "index.js"
+        ],
+        "added": [
+          "dispatch-cycle-runtime.js"
+        ],
+        "rollbackMatches": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "preservedEntries": 2933,
+        "changed": [
+          "index.js"
+        ],
+        "added": [
+          "dispatch-cycle-runtime.js"
+        ],
+        "rollbackMatches": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "preservedEntries": 2929,
+        "changed": [
+          "index.js"
+        ],
+        "added": [
+          "dispatch-cycle-runtime.js"
+        ],
+        "rollbackMatches": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "preservedEntries": 3604,
+        "changed": [
+          "index.js"
+        ],
+        "added": [
+          "dispatch-cycle-runtime.js"
+        ],
+        "rollbackMatches": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "preservedEntries": 4049,
+        "changed": [
+          "index.js"
+        ],
+        "added": [
+          "dispatch-cycle-runtime.js"
+        ],
+        "rollbackMatches": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "preservedEntries": 10513,
+        "changed": [
+          "src/handlers/push-wave-offer.js"
+        ],
+        "added": [
+          "src/utils/dispatch-cycle-keys.js",
+          "src/utils/pinned-wave-push-handler.js",
+          "src/utils/pinned-wave-push.js"
+        ],
+        "rollbackMatches": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "preservedEntries": 4509,
+        "changed": [
+          "index.js"
+        ],
+        "added": [
+          "dispatch-reviews.js"
+        ],
+        "rollbackMatches": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "preservedEntries": 0,
+        "changed": [
+          "index.js"
+        ],
+        "added": [
+          "dispatch-response-runtime.js"
+        ],
+        "rollbackMatches": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "preservedEntries": 11432,
+        "changed": [
+          "lambda_driver_api_v2.js"
+        ],
+        "added": [
+          "pinned-legacy-runtime.js"
+        ],
+        "rollbackMatches": true
+      }
+    ],
+    "unrelatedFilesPreserved": true
+  },
+  "smokeBefore": {
+    "checkedAt": "2026-10-17T01:35:23.071Z",
+    "scope": "EMPTY_OR_UNAUTHENTICATED_EARLY_RETURNS",
+    "cases": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "statusCode": 200,
+        "disabled": null,
+        "responseSha256": "8d36c1e4442c99cb5283b95901b2f5e271242605b2c9fa936e49cfae75215529"
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "expectedRejection": true,
+        "errorType": "Error",
+        "errorMessage": "Missing dispatchJobId in event"
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "statusCode": 400,
+        "disabled": null,
+        "responseSha256": "9f0eeb05da0de047887f078c756706d8889bf1f89aafb9cf0093c619ba37cfad"
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "statusCode": 500,
+        "disabled": null,
+        "responseSha256": "49d4d1fdac7e516f64a7b53cd72393304d242a06a6def071f36d9d2cbf74863f"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "50b64f0f53cb1215c3f7f18c2f310be8e5daf5b83a922a5018672eea1e66fef2"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "cff1b0bb2921c6ec488106351652bcadd86de0c41ba55eb9b29b16160c7af533"
+      },
+      {
+        "name": "DriversApi-staging",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "ebe2605aef23a140c2782fa5200273b951bf0287a43e0c56dc1e56583ee92e35"
+      },
+      {
+        "name": "staging-cod-integration",
+        "statusCode": null,
+        "disabled": true,
+        "responseSha256": "3e3063a3a2714ae49a6c70354c08ce57e82dc7547893f5fb6c16156eaf90ec32"
+      }
+    ],
+    "baselineMatched": false,
+    "timeoutWorkerInvoked": false,
+    "humanRecordsUsed": false,
+    "providerMessagesSent": false
+  },
+  "smokeAfter": {
+    "checkedAt": "2026-10-17T01:38:32.062Z",
+    "scope": "EMPTY_OR_UNAUTHENTICATED_EARLY_RETURNS",
+    "cases": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "statusCode": 200,
+        "disabled": null,
+        "responseSha256": "8d36c1e4442c99cb5283b95901b2f5e271242605b2c9fa936e49cfae75215529"
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "expectedRejection": true,
+        "errorType": "Error",
+        "errorMessage": "Missing dispatchJobId in event"
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "statusCode": 400,
+        "disabled": null,
+        "responseSha256": "9f0eeb05da0de047887f078c756706d8889bf1f89aafb9cf0093c619ba37cfad"
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "statusCode": 500,
+        "disabled": null,
+        "responseSha256": "49d4d1fdac7e516f64a7b53cd72393304d242a06a6def071f36d9d2cbf74863f"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "50b64f0f53cb1215c3f7f18c2f310be8e5daf5b83a922a5018672eea1e66fef2"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "cff1b0bb2921c6ec488106351652bcadd86de0c41ba55eb9b29b16160c7af533"
+      },
+      {
+        "name": "DriversApi-staging",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "ebe2605aef23a140c2782fa5200273b951bf0287a43e0c56dc1e56583ee92e35"
+      },
+      {
+        "name": "staging-cod-integration",
+        "statusCode": null,
+        "disabled": true,
+        "responseSha256": "3e3063a3a2714ae49a6c70354c08ce57e82dc7547893f5fb6c16156eaf90ec32"
+      }
+    ],
+    "baselineMatched": true,
+    "timeoutWorkerInvoked": false,
+    "humanRecordsUsed": false,
+    "providerMessagesSent": false
+  },
+  "tests": {
+    "releaseBoundariesAndPublisher": 12,
+    "candidateAcceptRejectEntrypoints": 3,
+    "staff": 142,
+    "freshFullWalletRun": false,
+    "previousPreparationWalletTests": 643,
+    "flutterChanged": false
+  },
+  "baselineTestCorrections": [
+    "Existing StartWave rejects missing job selector as Lambda FunctionError, not a proxy 500.",
+    "Existing Reject returns proxy 500 for missing required parameters, not 400. Test expectations corrected before deployment; no product behavior changed to pass smoke."
+  ],
+  "remainingActivationDependencies": [
+    "Central dispatch profiles absent from live DELIVERY_OPERATIONS version 1; no test defaults inserted.",
+    "Timeout host requires separate IAM review for PlatformStaff reads and order updates; these permissions were not granted.",
+    "Live authorized staff decision executor, deletion/retention coordination, provider/identity/device verification and financial paths remain subject to staged verification."
+  ],
+  "infrastructureOwnership": "Only the narrow PinnedDispatchJobRead inline policy was added directly to the existing Drivers API role. Matching GetItem scope is in the local staging-only SAM condition; no whole-stack update was executed. Reconcile direct grant on next stack rollout without broadening access.",
+  "sourceSha256": {
+    "scripts/publish-dispatch-closed-staging.cjs": "4bba23d42a32f1ac2e9e9d5f020b0d57e0a43c2c8bffa9049b4614c11c2460ee",
+    "scripts/test-dispatch-closed-staging.cjs": "0c18ebe508182709469aa546d1fb2670efcfc856d8312b95b8a5fb8662b563ef",
+    "scripts/test/dispatch-closed-publication.test.cjs": "f6aec1df5458618e9d1873088cc15e23aa72c37f505e306943851b69fade8006",
+    "scripts/verify-dispatch-candidate-archives.py": "01e54bc6e1412666af6a03965d4270288e2d5f475f16556b7a9b735055071d62",
+    "../whizzDrivers-stg/backend/template.yaml": "6e1c80faf4e698b25ae173b2a31734dad184a83f4daa793cd5ce762cc6025148"
+  },
+  "finalPolicyAndScheduleVerification": {
+    "operatingPolicy": {
+      "exists": true,
+      "version": 1,
+      "hasDispatch": false
+    },
+    "timeoutSchedule": {
+      "arn": "arn:aws:events:us-east-1:699561669180:rule/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+      "state": "ENABLED",
+      "expression": "rate(1 minute)"
+    },
+    "activation": false
+  }
+}

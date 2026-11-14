@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_PINNED_LEGACY_PRODUCER_AND_ATOMIC_RESPONSES_VERIFIED_ISOLATED",
+  "published": false,
+  "publicationReady": false,
+  "financialActivation": "OFF_UNCHANGED",
+  "liveFlagsChanged": false,
+  "livePolicyChanged": false,
+  "humanDataChanged": false,
+  "scope": [
+    "Shared coordinator and Legacy offer formatter, no third dispatch engine",
+    "Durable Legacy preparation and READY/APPLIED transaction under worker lease",
+    "Fixed event IDs, stored recipient list and delivery acknowledgement retries",
+    "Atomic Legacy winner, job, order and driver assignment with existing reservation read fences",
+    "Legacy rejection advances shared coordinator and stores one response outbox event",
+    "Public response adapters forward selectors and bearer token, ignore claimed hold fields",
+    "Drivers API blocks old pre-hold/automatic-release flow for pinned cycles before money writes"
+  ],
+  "tests": {
+    "typescriptBuild": true,
+    "walletPassed": 543,
+    "accountDeletionPassed": 213,
+    "driverBackendPassed": 59,
+    "newWalletTests": 17,
+    "newDriverGuardTests": 1,
+    "generatedPolicyCheck": true,
+    "customerQuoteRuntimeCheck": true,
+    "offlineArtifactsBuilt": true,
+    "fourRepositoryWhitespaceChecks": true
+  },
+  "isolatedDynamoDB": {
+    "scope": "REAL_DYNAMODB_ISOLATED_LEGACY_WAVE_AND_RESPONSES",
+    "applicationTablesAccessed": false,
+    "published": false,
+    "realOffersSent": 0,
+    "selectionIdentityPriceAndSender": "SYNTHETIC_SERVER_DEPENDENCIES",
+    "humanFundsChanged": false,
+    "readyAndAppliedAtomicAndDeclinedRecipientResumed": true,
+    "lastDeclineOneTransition": true,
+    "assignmentUsesExistingReservationWithoutMoneyWrites": true,
+    "reservationReleaseRaceRollsBackAssignment": true,
+    "tableDeleted": true
+  },
+  "offlineRuntime": {
+    "schemaVersion": 1,
+    "mode": "OFF",
+    "executionReady": false,
+    "financialExecutorImplemented": true,
+    "creatorAdapterImplemented": true,
+    "candidateProviderImplemented": true,
+    "legacyExecutorImplemented": true,
+    "legacyResponsesImplemented": true,
+    "publicationReady": false,
+    "sha256": "e3c37610ad6282f50b3a373e58408f9a2bfc1e5995dc43d718bc142dd8856312",
+    "requiredLocalFiles": {
+      "WaveSystem_StartWave": [
+        "driver-selection.js",
+        "legacy-offer-contract.js"
+      ]
+    },
+    "legacyContractSha256": "5f4a6156196e0057f721db9fb7579da6e99e8f1b48666bbe9e44e27eb40536e6",
+    "selectionModuleSha256": "5ec27d40d5e9efd6b787d31b4bfbdd732d7b1c0735df4340e77b9289196469e2",
+    "destinations": [
+      "WaveSystem_CreateDispatchJob",
+      "WaveSystem_StartWave",
+      "WaveSystem_HandleWaveTimeout",
+      "WaveSystem_HandleDriverAccept",
+      "WaveSystem_HandleDriverReject"
+    ],
+    "blockers": [
+      "Legacy source price preparation, pre-hold orchestration and coordinated live entry-point activation",
+      "Response outbox integration, retention and financial deployment verification",
+      "Coordinated IAM and live-package verification",
+      "Central wave editor, recovery and full behavior compatibility"
+    ]
+  },
+  "fixedDriverTestLocation": {
+    "acknowledgedByUser": true,
+    "verifiedInSource": true,
+    "latitude": 31.913292,
+    "longitude": 44.476014,
+    "environmentTestFlagDefault": true,
+    "directConstantsAlsoPresent": true,
+    "changed": false,
+    "freshTimestampDoesNotProveRealGPS": true,
+    "realGPSVerificationRequiredBeforeActivation": true
+  },
+  "notComplete": [
+    "Authoritative Legacy source price units and full message preparation in live entry points",
+    "Coordinated pre-hold orchestration and unknown assignment-result recovery before release",
+    "Response outbox consumer, metrics/notification integration and actor retention/cleanup",
+    "All live execution wiring, IAM and package drift verification",
+    "Large ALL waves, central schema2 editor, recovery funding and performance",
+    "Real GPS, notification delivery, IQD UI and device acceptance"
+  ],
+  "verificationLimits": [
+    "Acceptance uses an existing reserved hold, not an atomic combined hold-creation plus assignment writer",
+    "No wallet/hold/ledger mutation by the new response adapter; isolated fixture setup seeded reservations",
+    "Race test synthetically changed hold status, not a real release-service integration",
+    "One disposable DynamoDB table only, no application tables accessed",
+    "Identity, selection, price preparation and sends were synthetic, not Cognito/Mapbox/Gateway validation",
+    "Outbox rows are durable PENDING records; existing deletion tests do not prove new-row cleanup",
+    "Response-only LEGACY_RESPONSES source gate is not enabled; old Drivers API remains blocked for pinned cycles"
+  ],
+  "sourceDigests": [
+    {
+      "path": "backend/wallet-service/src/dispatchLegacy.ts",
+      "sha256": "c09c5d3fa969e5cfe3a9fa83e524eb531875d37768043d487eba55cb87902513"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCoordinator.ts",
+      "sha256": "39e8783fe080017576b66832a097fcdb12198e5b18befd7c2a9842111ca6eb0e"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCoordinatorRuntime.ts",
+      "sha256": "b8ead71024a15c8d518d0d9bc0eac5747f25719b879470385724f85495a5a018"
+    },
+    {
+      "path": "lambda/WaveSystem_StartWave/index.js",
+      "sha256": "e5f81d53a4cf064ae5a80d8066d7e47ce5d1f78b0bacfac1a218d0159685fb93"
+    },
+    {
+      "path": "lambda/WaveSystem_StartWave/legacy-offer-contract.js",
+      "sha256": "5f4a6156196e0057f721db9fb7579da6e99e8f1b48666bbe9e44e27eb40536e6"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleDriverAccept/index.js",
+      "sha256": "716bbcfb38e42d48a3e881b7dd8e687992f2c108ed0874980b59782f3043d0d7"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleDriverReject/index.js",
+      "sha256": "2508536bdf1b9b36ac54fdb3af7b91b0d529d79fbb0e4ba11c074a6632b1792b"
+    },
+    {
+      "path": "backend/wallet-service/test/dispatch-legacy.test.cjs",
+      "sha256": "2b1efc26c3763d43fd6f12ba2dad5b0e6f64e66cb7f063b9bf308291c30365d9"
+    },
+    {
+      "path": "backend/wallet-service/test/dispatch-legacy-entrypoints.test.cjs",
+      "sha256": "97b23d2a635dc5dca5ef7c319e35879c94bef95f6bc7df4a66c7d46d9f85c5b4"
+    },
+    {
+      "path": "backend/wallet-service/test/helpers/dispatch-legacy-fixture.cjs",
+      "sha256": "a7b008770ccff35e99bf7fe01e367d867785ecb8df0dc6e2adb7b10ad9605345"
+    },
+    {
+      "path": "scripts/build-dispatch-coordinator-runtime.cjs",
+      "sha256": "8f3bd5acb48344fe1b165cd2436d3171215f14de96f5c316aee50d396265ae1e"
+    },
+    {
+      "path": "scripts/prepare-cod-staging-release.cjs",
+      "sha256": "75ca3e2de450be3c6a636109fcfebf172dcbc111beb1744c09dcccfcb47b29c7"
+    },
+    {
+      "path": "scripts/test-dispatch-cycle-staging.cjs",
+      "sha256": "fa9afab3e46a98c00510707168b14b04b0e8ccf4f74e0991fc6aaa838b5f0468"
+    },
+    {
+      "path": "scripts/test-dispatch-legacy-wave-staging.cjs",
+      "sha256": "9d30d4afa59a2ab6c03d282e1b64f60e2a8ea2a8cdfe7c3796402a35fd469deb"
+    },
+    {
+      "path": "../whizzDrivers-stg/backend/lambda_driver_api_v2.js",
+      "sha256": "f30e8fd438746e028ea173de48026190bee58240861c7f69bc87f9ba0cad9355"
+    },
+    {
+      "path": "../whizzDrivers-stg/backend/test/history-approval.test.js",
+      "sha256": "80358d684194821b7488bbb0baba52364a97429b2903659e2012cfb4077f8b90"
+    }
+  ]
+}

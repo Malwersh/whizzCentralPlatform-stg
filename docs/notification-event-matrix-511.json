@@ -1,0 +1,120 @@
+{
+  "batch": 511,
+  "status": "EVENT_SOURCE_MATRIX_GAPS_IDENTIFIED",
+  "events": [
+    {
+      "event": "ORDER_STATUS",
+      "recipient": "CUSTOMER",
+      "source": "backend/src/handlers/push-order-update.js",
+      "status": "IMPLEMENTED_TESTED",
+      "target": "order_update / order"
+    },
+    {
+      "event": "CUSTOMER_CANCEL",
+      "recipient": "MERCHANT",
+      "source": "backend/src/handlers/order-activity-stream.js",
+      "status": "IMPLEMENTED_TESTED",
+      "target": "order update and cancellation notice"
+    },
+    {
+      "event": "DRIVER_OFFER",
+      "recipient": "DRIVER",
+      "source": "backend/wallet-service/src/financialOfferNotification.ts",
+      "status": "IMPLEMENTED_TESTED",
+      "target": "authenticated offer hydration"
+    },
+    {
+      "event": "OFFER_CLOSED",
+      "recipient": "DRIVER",
+      "source": "backend/wallet-service/src/dispatchResponseIntegration.ts",
+      "status": "IMPLEMENTED_TESTED",
+      "target": "remove_offer"
+    },
+    {
+      "event": "TOPUP_REVIEW",
+      "recipient": "DRIVER",
+      "source": "backend/wallet-service/src/walletNotifications.ts",
+      "status": "IMPLEMENTED_TESTED",
+      "target": "open_wallet"
+    },
+    {
+      "event": "TRANSFER_COMPLETED",
+      "recipient": "WALLET_PARTIES",
+      "source": "backend/wallet-service/src/transferService.ts",
+      "status": "IMPLEMENTED_SOURCE",
+      "target": "open_wallet"
+    },
+    {
+      "event": "DRIVER_PAYOUT",
+      "recipient": "DRIVER",
+      "source": "backend/wallet-service/src/driverCashPayout.ts",
+      "status": "IMPLEMENTED_TESTED",
+      "target": "open_wallet"
+    },
+    {
+      "event": "SUPPORT_REPLY",
+      "recipient": "CUSTOMER",
+      "source": "backend/src/utils/customer-inbox.js",
+      "status": "IMPLEMENTED_TESTED",
+      "target": "open_support"
+    },
+    {
+      "event": "CAMPAIGN",
+      "recipient": "ELIGIBLE_CUSTOMER",
+      "source": "backend/src/handlers/campaign-push-worker.js",
+      "status": "IMPLEMENTED_TESTED",
+      "target": "campaign"
+    },
+    {
+      "event": "COMPLAINT_REQUEST_INFO",
+      "recipient": "CUSTOMER",
+      "source": "backend/staff-service/customer-order-complaints.js",
+      "status": "MISSING_ATOMIC_CUSTOMER_NOTICE",
+      "target": "complaint details"
+    },
+    {
+      "event": "COMPLAINT_DECISION_APPEAL_CLOSE",
+      "recipient": "CUSTOMER",
+      "source": "backend/staff-service/customer-order-complaints.js",
+      "status": "MISSING_ATOMIC_CUSTOMER_NOTICE",
+      "target": "complaint details"
+    },
+    {
+      "event": "RETURN_CUSTODY_AND_TREATMENT",
+      "recipient": "AFFECTED_DRIVER_MERCHANT",
+      "source": "backend/wallet-service/src/returnCustody.ts",
+      "status": "DEDICATED_NOTICE_NOT_PROVEN",
+      "target": "role-scoped case"
+    },
+    {
+      "event": "EXCEPTION_ENTITLEMENT_DECISION",
+      "recipient": "AFFECTED_PARTIES",
+      "source": "backend/wallet-service/src/exceptionFinancials.ts",
+      "status": "DEDICATED_NOTICE_NOT_PROVEN",
+      "target": "wallet or scoped case"
+    },
+    {
+      "event": "MERCHANT_PAYOUT",
+      "recipient": "MERCHANT_OWNER",
+      "source": "backend/wallet-service/src/merchantPayout.ts",
+      "status": "DEDICATED_NOTICE_NOT_PROVEN",
+      "target": "settlement details"
+    }
+  ],
+  "testsReused": "docs/notification-coverage-audit-510.json",
+  "testsPassed": 58,
+  "noBusinessWrites": true,
+  "deployedThisBatch": false,
+  "nextImplementation": {
+    "first": "Atomic privacy-safe customer complaint request-info/decision/appeal-resolution/closure notice",
+    "requirements": [
+      "Commit notice with case transition and idempotent receipt",
+      "Stable event ID; no duplicate record on replay",
+      "Authenticated complaint destination; no internal decision details in push",
+      "Revalidate recipient account before dispatch",
+      "Verify runtime role write permission before deployment",
+      "No old case replay or balance modification"
+    ]
+  },
+  "caution": "Source inspection alone does not prove runtime delivery; generic order push does not cover all case transitions"
+}

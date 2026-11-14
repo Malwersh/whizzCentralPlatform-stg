@@ -1,0 +1,11 @@
+"""Overlay the isolated preview path without rebuilding or altering existing financial quote logic."""
+import pathlib,zipfile,json,copy,io,subprocess,hashlib,base64
+p=pathlib.Path('/private/tmp/storefront-169');z=zipfile.ZipFile(p/'original.zip');s=z.read('index.js').decode();source=pathlib.Path('../wizzuser-stg/backend/src/functions/delivery-quotes/index.js').read_text();a=source.index("      if(input?.action==='storefront_preview'){");b=source.index('      quote = await service.create(input);',a);block=source[a:b].replace('createStagingStorefrontPreview(', 'storefrontRuntime.createStagingStorefrontPreview(').replace('createStagingDeliveryQuoteRateLimiter(', 'storefrontRuntime.createStagingDeliveryQuoteRateLimiter(')
+needle='      quote = await service.create(input);';assert s.count(needle)==1;s=s.replace(needle,"      const storefrontRuntime = input?.action==='storefront_preview' ? require('./storefront-runtime') : null;\n"+block+"      if(Buffer.byteLength(event.body)>2048)return reply(400,{success:false,code:'INVALID_QUOTE_REQUEST'});\n"+needle)
+needle='Buffer.byteLength(event.body) > 2048';assert s.count(needle)==1;s=s.replace(needle,'Buffer.byteLength(event.body) > 12000');s=s.replace('      INVALID_QUOTE_REQUEST: 400,','      INVALID_STOREFRONT_REQUEST: 400,\n      INVALID_QUOTE_REQUEST: 400,');(p/'index.fixed.js').write_text(s);subprocess.run(['node','--check',str(p/'index.fixed.js')],check=True);out=io.BytesIO()
+with zipfile.ZipFile(out,'w') as dest:
+ for item in z.infolist():dest.writestr(copy.copy(item),s.encode() if item.filename=='index.js' else z.read(item.filename))
+ dest.writestr('storefront-runtime.js',(p/'storefront-runtime.js').read_bytes())
+b=out.getvalue();check=zipfile.ZipFile(io.BytesIO(b));assert all(z.read(n)==check.read(n) for n in z.namelist() if n!='index.js');(p/'candidate.zip').write_bytes(b)
+receipt={'function':'WizzUser-DeliveryQuotes-staging','changedEntries':['index.js'],'addedEntries':['storefront-runtime.js'],'otherEntriesIdentical':True,'candidateCodeSha256':base64.b64encode(hashlib.sha256(b).digest()).decode(),'permissionPolicy':'StorefrontPreviewRead169','permissionDocument':'docs/storefront-preview-permissions-169.json','newFinancialWritePermissions':False}
+pathlib.Path('docs/storefront-preview-candidate-169.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps(receipt))

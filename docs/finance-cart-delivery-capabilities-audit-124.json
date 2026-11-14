@@ -1,0 +1,50 @@
+{
+  "part": 124,
+  "recordedAt": "2026-10-18T16:08:03.913563+00:00",
+  "status": "CART_INSTALLED_DELIVERY_POLICY_GAPS_DOCUMENTED",
+  "cart": {
+    "removedHardcodedDeliveryIqd": 10,
+    "showsGoodsSubtotalOnly": true,
+    "deliveryLabel": "يُحسب عند إتمام الطلب",
+    "checkoutButtonDoesNotClaimFinalTotal": true,
+    "analysisErrors": 0,
+    "analysisWarnings": 0,
+    "physicalInstallComplete": true,
+    "physicalLaunchSucceeded": true
+  },
+  "audit": {
+    "engineSupportsFixedAndZeroFee": true,
+    "localEngineChecks": {
+      "localEngineOnly": true,
+      "actualOrderOrSettlementTested": false,
+      "outputs": [
+        {
+          "configuredIqd": 0,
+          "calculatedIqd": 0
+        },
+        {
+          "configuredIqd": 1500,
+          "calculatedIqd": 1500
+        }
+      ]
+    },
+    "deliveryPricingRegressionTestsPassed": 17,
+    "platformCanConfigureBranchPricingRules": true,
+    "merchantSelfServiceDeliveryTariffEditorImplemented": false,
+    "merchantFreeDeliveryDiscountOptionExistsInUi": true,
+    "deliveryQuoteRuntimePassesDiscountNull": true,
+    "commercialOrderDiscountsRestrictedToGoods": true,
+    "freeDeliveryPromotionEndToEndVerified": false,
+    "deliverySubsidyMerchantSettlementFieldsImplemented": false
+  },
+  "currentOrderOrFinancialRowsChanged": false,
+  "remainingWork": [
+    "Merchant branch delivery modes and approved policy workflow",
+    "Delivery-target campaigns with source-funded merchant/platform defaults and explicit approved shared funding",
+    "Pin delivery subsidy and gross/customer fees into quote, commercial consent, atomic wallet/ledger, cancellation/refund and merchant settlements",
+    "Keep driver earning independent of customer delivery promotion",
+    "Update customer cart/checkout/order presentation with true server fees and delivery discounts",
+    "Verify fixed1500 and free merchant/platform/shared cases end to end before declaring available"
+  ],
+  "financialSemantics": "Delivery subsidy must have an explicit payer; do not zero driver earnings or silently charge the platform when a merchant creates the offer."
+}

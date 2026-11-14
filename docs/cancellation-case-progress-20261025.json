@@ -1,0 +1,62 @@
+{
+  "status": "PUBLISHED_BYTE_VERIFIED",
+  "hostingJob": "208",
+  "previousHostingJob": "207",
+  "changedFiles": [
+    "case-workflow.js",
+    "pages/order-exceptions.html"
+  ],
+  "allOtherHostedEntriesIdentical": true,
+  "businessMutations": false,
+  "caseOrder": "ORD1792911323338",
+  "fix": "Cancelled pre-pickup task is operationally complete and cancellation closure routes to compensation page, not the return-only closure action.",
+  "caseInspection": {
+    "orderNumber": "ORD1792911323338",
+    "orderStatus": "cancelled",
+    "caseVersion": 4,
+    "caseState": "CANCELLED",
+    "responsibility": "UNDETERMINED",
+    "findingId": null,
+    "financialClosed": false,
+    "financialClosure": null,
+    "driverPerformanceDecision": null,
+    "completionRate": 1,
+    "completion": {
+      "completed": 18,
+      "returned": 1,
+      "driverFailures": 0,
+      "sampleSize": 19,
+      "acceptedCommitments": 23,
+      "inProgress": 0,
+      "reviewExcluded": 4,
+      "noFaultExcluded": 0,
+      "windowComplete": true
+    },
+    "completionRateStatus": "PROVISIONAL",
+    "targetCommitment": [
+      {
+        "orderId": "36ed20c9-aab6-592b-8722-221834cd2724",
+        "offerId": "FINO:9fc6712e72f31b6adcf24102e1a87f2b5d47913c1561b7e1",
+        "attempt": 1,
+        "occurredAt": "2026-10-25T07:00:30.073Z",
+        "status": "REVIEW"
+      }
+    ],
+    "businessWrites": false
+  },
+  "caseBusinessMutationsByAgent": false,
+  "userChoice": "USER_PERFORMS_ADMIN_ACTIONS_WITH_GUIDANCE",
+  "expectedAfterOnlyTargetFailure": {
+    "fulfilled": 19,
+    "sampleSize": 20,
+    "completionRate": 0.95,
+    "remainingReviewExcluded": 3
+  },
+  "caseStillRequires": [
+    "Authentic recorded evidence",
+    "Responsibility finding",
+    "Explicit COUNT_FAILURE for attempt1",
+    "CLOSE via cancellation-compensation"
+  ],
+  "driverReadPolicyApproval": "User explicitly approved in latest message; publication separate from test-case actions"
+}

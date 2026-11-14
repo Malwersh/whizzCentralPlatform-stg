@@ -1,0 +1,88 @@
+{
+  "phase": 494,
+  "date": "2026-11-10",
+  "status": "PUBLISHED_STAGING_DEVICE_ACCEPTANCE_PENDING",
+  "scope": "Customer notification persistence and navigation; no pricing or financial ledger mutations",
+  "implemented": [
+    "Order status ingress and stream persist stable per-subject event before push; only user-app tokens selected",
+    "Campaign delivery writes stable per-recipient campaign record before dispatch",
+    "Existing customer notification API preserves order/campaign/support targets rather than forcing wallet",
+    "Client persists campaign/session identifiers, preserves local read state during merge, routes support to scoped conversation",
+    "Support background push payload preparation added to existing worker; producer integration pending runtime source verification",
+    "Verified published support runtime: customer agent reply outbox commits atomically with chat message and idempotent receipt; generic private push body",
+    "Inbox push records reference server source for read-state synchronization; support general and order conversations supported",
+    "Push-tap event wakes home navigation without polling; foreign-account taps rejected"
+  ],
+  "validation": {
+    "flutterTests": 25,
+    "backendTests": 38,
+    "typescriptBuild": "passed",
+    "deployed": true,
+    "physicalDevicePushAcceptance": false,
+    "totalPassed": 63,
+    "analysis": "No errors or warnings in targeted files",
+    "publishedPackages": [
+      {
+        "function": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+        "sha256": "yF7oor0TnRFjoZmyfCAgS1+ojV/5cOxWpGb9X7z1WMY=",
+        "status": "Successful",
+        "changedFiles": [
+          "src/utils/customer-inbox.js",
+          "src/handlers/push-order-update.js"
+        ]
+      },
+      {
+        "function": "wizzcentral-notifications-staging-pushAdminSendTest",
+        "sha256": "E8GjAlOmQT7ph1I67I8kvV/C0IthwnUpUHY5ZG6C7Xk=",
+        "status": "Successful",
+        "changedFiles": [
+          "src/utils/customer-inbox.js",
+          "src/handlers/campaign-push-worker.js"
+        ]
+      },
+      {
+        "function": "wizzcentral-websocket-staging-liveChatMessage",
+        "sha256": "AxLks3FPOH5JZr6pbkOPgMJ8eM44ubCki4oZruH8hSs=",
+        "status": "Successful",
+        "changedFiles": [
+          "src/handlers/websocket-connections.js",
+          "src/utils/customer-inbox.js"
+        ]
+      },
+      {
+        "function": "staging-wizz-wallet-service",
+        "sha256": "UVrPx6zJJaoZKR48jF9OyafD1elBIRvw8qozN1Rn3y4=",
+        "status": "Successful",
+        "changedFiles": [
+          "dist/customerNotifications.js"
+        ]
+      },
+      {
+        "function": "staging-wizz-wallet-notification-worker",
+        "sha256": "BzUeNlmELyuZnqCnfMNZzoEcnFLizsZypY0mrpn+IeA=",
+        "status": "Successful",
+        "changedFiles": [
+          "index.js"
+        ]
+      }
+    ],
+    "cloudReadSmoke": "200 empty inbox for isolated synthetic subject; driver denied 403; read only",
+    "workerStream": "Enabled",
+    "supportPutPermissionSimulation": "allowed for CN-prefixed record",
+    "iosRelease": {
+      "build": 448,
+      "buildSucceeded": true,
+      "installation": "Installed successfully on iMohammed"
+    }
+  },
+  "remaining": [
+    "Physical-device acceptance: send a real customer support message and agent reply, then verify foreground/background/cold-start delivery and target",
+    "Confirm new order and campaign notification history and read-state on a second device; pre-existing historical pushes are not fabricated or replayed"
+  ],
+  "preservation": {
+    "financialLedgerOrBalanceWrites": false,
+    "oldNotificationReplay": false,
+    "allUnrelatedDeployedArchiveEntriesPreserved": true,
+    "notificationRetentionDays": 30
+  }
+}

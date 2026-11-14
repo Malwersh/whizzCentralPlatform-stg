@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_LEGACY_PERIODIC_HOST_INTEGRATION_VERIFIED",
+  "published": false,
+  "liveFlagsChanged": false,
+  "liveIAMChanged": false,
+  "liveScheduleChanged": false,
+  "liveTimeoutChanged": false,
+  "humanDataChanged": false,
+  "newApplicationTables": false,
+  "newLambdaOrSchedule": false,
+  "flutterOrUIChanged": false,
+  "defaultMode": "OFF",
+  "scope": "Captured Legacy cycles only; no financial dispatch activation, money writers, performance v1.6 or device-location changes",
+  "reused": [
+    "Existing HandleWaveTimeout EventBridge rule",
+    "Existing Creator, StartWave, Accept/Reject and durable restart records",
+    "Existing coordinator, Legacy source and original socket/push transport",
+    "Existing Jobs table for cursor and lease"
+  ],
+  "cursor": {
+    "key": {
+      "orderId": "SYSTEM#DISPATCH_HOST",
+      "SK": "CURSOR#LEGACY"
+    },
+    "evaluatedRowsPerPage": 25,
+    "leaseMilliseconds": 60000,
+    "persistsEmptyFilteredPage": true,
+    "partialBudgetSavesLastProcessedItemKey": true,
+    "scanIsPermanentScalableSource": false
+  },
+  "timing": {
+    "liveStartTimeoutSeconds": 30,
+    "liveTimeoutWorkerSeconds": 30,
+    "proposedStagingWorkerSeconds": 60,
+    "proposalApplied": false,
+    "remainingBudgetFloorMilliseconds": 35000,
+    "newPerOfferSchedule": false,
+    "periodicLag": "One-minute polling plus scan backlog/provider/lease delays; not a precise per-offer timer"
+  },
+  "gates": [
+    "STAGE=staging",
+    "AWS_REGION=us-east-1",
+    "DISPATCH_HOST_ACCOUNT_ID=699561669180",
+    "DISPATCH_LEGACY_HOST_MODE=REQUIRED",
+    "DISPATCH_RESTART_START_MODE=REQUIRED",
+    "DISPATCH_CYCLE_MODE=LEGACY_RESPONSES",
+    "Exact configured EventBridge rule and scheduled-event/context checks"
+  ],
+  "liveResourceAudit": {
+    "timeout": {
+      "Name": "WaveSystem_HandleWaveTimeout",
+      "Role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "Runtime": "nodejs20.x",
+      "RevisionId": "1600f0db-fa96-4338-b1af-038d104f01d1",
+      "Timeout": 30,
+      "Stage": "staging",
+      "Jobs": "WizzDispatchJobs_staging",
+      "HostMode": null
+    },
+    "start": {
+      "Name": "WaveSystem_StartWave",
+      "Role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+      "Runtime": "nodejs20.x",
+      "RevisionId": "12586032-f355-49ee-b4ea-df658ba5a3b5",
+      "Timeout": 30,
+      "Stage": "staging",
+      "Jobs": "WizzDispatchJobs_staging",
+      "HostMode": null
+    },
+    "rule": {
+      "Name": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+      "Arn": "arn:aws:events:us-east-1:699561669180:rule/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+      "State": "ENABLED",
+      "ScheduleExpression": "rate(1 minute)"
+    },
+    "environmentSecretsReadOrPrinted": false,
+    "livePackageSourceCompared": false
+  },
+  "iam": {
+    "proposalOnly": true,
+    "granted": false,
+    "customPolicyPositiveResourceResults": [
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:Scan",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:Scan",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "decision": "implicitDeny",
+        "missingContext": []
+      }
+    ],
+    "customPolicyNegativeResourceResults": [
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+        "decision": "implicitDeny",
+        "missingContext": []
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+        "decision": "implicitDeny",
+        "missingContext": []
+      }
+    ],
+    "allFinalSimulationsHaveCompleteContext": true,
+    "simulationIsEffectiveRoleVerification": false,
+    "initialInputRejectionsResolved": "Policy documents split into equivalent sub-2000-character JSON strings and passed via structured CLI input; no grants to bypass errors"
+  },
+  "tests": {
+    "walletPassed": 640,
+    "newHostAndEntryPointTests": 15,
+    "typeScriptBuild": true,
+    "javascriptSyntax": true,
+    "yamlParsed": true,
+    "whitespaceChecks": true,
+    "overlayAndBundleBuild": true,
+    "unchangedFlutterBrowserStaffDeletionTestsRerun": false,
+    "isolatedDynamoDB": {
+      "scope": "REAL_DYNAMODB_ISOLATED_LEGACY_PERIODIC_HOST",
+      "applicationTablesAccessed": false,
+      "published": false,
+      "realCognitoCalls": 0,
+      "realNotifications": 0,
+      "humanMoneyChanged": false,
+      "partialBudgetPersistsOriginalLastProcessedKey": true,
+      "discoveryAndStoredCursorResumeStartOnce": true,
+      "wavesReachReviewWithoutCancellation": true,
+      "persistedCheckpointReleasedAtEndOfPass": true,
+      "noMoneyOrHoldWrites": true,
+      "tableDeleted": true
+    },
+    "realCognitoOrProviderOrDeviceWorkflow": false
+  },
+  "artifactManifest": {
+    "schemaVersion": 1,
+    "stage": "staging",
+    "mode": "OFF",
+    "publicationReady": false,
+    "overlayOnly": true,
+    "newSchedule": false,
+    "existingSchedule": "WaveSystem_HandleWaveTimeout periodic EventBridge rule; ARN must be verified before activation",
+    "cycleModeRequired": "LEGACY_RESPONSES",
+    "scope": "Captured Legacy only; FINANCIAL remains excluded",
+    "sourceSha256": {
+      "lambda/WaveSystem_CreateDispatchJob/index.js": "2dc922df51e2674ed474833cec1acc47c9652c0aa6170924e1f5e865a01b898f",
+      "lambda/WaveSystem_StartWave/index.js": "1b026ea4901a6eff28df20e66659337ce744adf5f6777cbfa0d459da07f5cde7",
+      "lambda/WaveSystem_HandleWaveTimeout/index.js": "5291a52ffb5063d7004534452250433924f6b9cf6608d0c519c25c8a6f91926a"
+    },
+    "checkpoint": "WizzDispatchJobs_staging / SYSTEM#DISPATCH_HOST / CURSOR#LEGACY",
+    "scanLimit": 25,
+    "requiredStagingTimeoutSeconds": 60,
+    "invokeBudgetFloorMs": 35000,
+    "coordinatorBundle": "c9d6aa1e346c1c6a758df55c28a9d371cd13579bb865de3ffe04a048b15ca8d4",
+    "blockers": [
+      "Fresh live-package comparison and precise overlay application",
+      "Role-specific IAM verification/grants and existing EventBridge rule binding",
+      "Coordinated StartWave, Timeout, Accept/Reject, push and source gates",
+      "Backlog/latency and actual provider/device verification before any activation"
+    ]
+  },
+  "sourceSha256": {
+    "backend/wallet-service/src/dispatchLegacyHost.ts": "f6158e76a571e6c72634ab92e2c0691c5754a6a2473c3465ed0b9e4cfe855329",
+    "backend/wallet-service/src/dispatchCoordinatorRuntime.ts": "4f902ee558d5e6515146c0f084113275ece18bf0faa0d2f4693373700cf7b959",
+    "backend/wallet-service/test/dispatch-legacy-host.test.cjs": "b81a3b4ee774a1fc6e8112ee102644966b612329e06974f6bc466f3d9e46c6fe",
+    "backend/wallet-service/test/dispatch-entrypoints.test.cjs": "44d037f7e7ca6172899ee6ebac2f5bb54935817f70298c55b2efbb3973cd60ad",
+    "lambda/WaveSystem_CreateDispatchJob/index.js": "2dc922df51e2674ed474833cec1acc47c9652c0aa6170924e1f5e865a01b898f",
+    "lambda/WaveSystem_StartWave/index.js": "1b026ea4901a6eff28df20e66659337ce744adf5f6777cbfa0d459da07f5cde7",
+    "lambda/WaveSystem_HandleWaveTimeout/index.js": "5291a52ffb5063d7004534452250433924f6b9cf6608d0c519c25c8a6f91926a",
+    "lambda/wave-system/template.yaml": "b5607081fb66673e437305beb4d0b4a3dfccc896c302531c1cf7affd47fdaaa2",
+    "scripts/build-dispatch-coordinator-runtime.cjs": "af188a4d5d44ee6099bbd9cffb64f996198bbd8629e8f3d01b758ee322a06a7f",
+    "scripts/build-dispatch-legacy-host-review.cjs": "cc3b9ec8668dd07f94d9dc7cd9897065c551830536b372976bc9f64fe3260cf7",
+    "scripts/test-dispatch-cycle-staging.cjs": "904bb4366adc1287082bcbbe429436d287670495fcace85035fe6c0d9e2d138b",
+    "scripts/test-dispatch-legacy-host-staging.cjs": "b097bc4bca7abfb0b6c12f3fb3e19cb7aba237d987274891697c4c3e062f7196"
+  },
+  "limitations": [
+    "Local source overlays only; live packages must be downloaded and reconciled before deployment",
+    "Role-specific effective IAM, provider credentials/ACK and actual device workflows still require verification",
+    "Backlog and latency must fit polling/cycle deadlines; bounded Scan is a Staging bridge",
+    "Worker timeout 60s is required in the proposed rollout and remains unapplied",
+    "Pending/uncertain acceptance blocks host action, never infers release or launches financial reassignment",
+    "Staff decision execution still requires constrained live wiring; this host resumes already committed restart commands",
+    "NEEDS_REVIEW monitoring/authorized resolution and operational alerts remain pending",
+    "Financial funding/returns/reassignment and unrelated remaining plan items are not enabled"
+  ],
+  "next": [
+    "Prepare coordinated deployment overlays from freshly reconciled live bundles with gates OFF",
+    "Verify effective role permissions and staff-decision invocation plus host schedule/timeout config",
+    "Run coordinated identity/provider/device, acceptance/deadline/lifecycle and load scenarios before limited activation"
+  ],
+  "docs": "finance-pricing-settlements-returns-unified-plan.md section 65"
+}

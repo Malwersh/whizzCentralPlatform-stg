@@ -535,13 +535,16 @@ class RegionsManager {
             console.log('📋 Loading all regions for dropdown...');
             const url = `${this._apiBase}/regions?limit=1000`;
             
-            let response = await fetch(url, { headers: { 'Content-Type': 'application/json' }});
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let response;
+            try{response = await fetch(url, { signal:controller.signal, headers: { 'Content-Type': 'application/json' }});}finally{clearTimeout(timer);}
             
             if (!response.ok) {
                 await this.maybeHandleAwsAuthError?.(response, url);
                 const idToken = (typeof sessionStorage !== 'undefined') ? sessionStorage.getItem('idToken') : null;
                 if (idToken) {
-                    response = await fetch(url, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` }});
+                    const retryController=new AbortController(),retryTimer=setTimeout(()=>retryController.abort(),20000);
+                    try{response = await fetch(url, { signal:retryController.signal, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` }});}finally{clearTimeout(retryTimer);}
                 }
             }
             
@@ -670,7 +673,9 @@ class RegionsManager {
                 : `${this._apiBase}/regions${params.toString() ? `?${params.toString()}` : ''}`;
             console.log('🔎 Fetching regions:', { url, pageMode: this.pageMode, token: this.tokenStack[this.serverPageIndex] || null });
             const t0 = performance.now();
-            let response = await fetch(url, { headers: { 'Content-Type': 'application/json' }});
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let response;
+            try{response = await fetch(url, { signal:controller.signal, headers: { 'Content-Type': 'application/json' }});}finally{clearTimeout(timer);}
             console.log('⏱️ Regions initial response status:', response.status, 'time(ms):', (performance.now()-t0).toFixed(0));
 
             if (!response.ok) {
@@ -679,7 +684,8 @@ class RegionsManager {
                 if (idToken) {
                     console.log('🔐 Retrying regions fetch with Authorization Bearer');
                     const t1 = performance.now();
-                    response = await fetch(url, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` }});
+                    const retryController=new AbortController(),retryTimer=setTimeout(()=>retryController.abort(),20000);
+                    try{response = await fetch(url, { signal:retryController.signal, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` }});}finally{clearTimeout(retryTimer);}
                     console.log('⏱️ Regions auth retry status:', response.status, 'time(ms):', (performance.now()-t1).toFixed(0));
                 }
             }
@@ -1401,20 +1407,25 @@ class RegionsManager {
     async saveRegionToBackend(region) {
         try {
             const url = `${this._apiBase}/regions`;
-            let response = await fetch(url, {
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let response;
+            try{response = await fetch(url, {
+                signal:controller.signal,
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(region)
-            });
+            });}finally{clearTimeout(timer);}
             if (!response.ok) {
                 await this.maybeHandleAwsAuthError(response, `${url} [POST]`);
                 const idToken = sessionStorage.getItem('idToken');
                 if (idToken) {
-                    response = await fetch(url, {
+                    const retryController=new AbortController(),retryTimer=setTimeout(()=>retryController.abort(),20000);
+                    try{response = await fetch(url, {
+                        signal:retryController.signal,
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${idToken}`, 'Content-Type': 'application/json' },
                         body: JSON.stringify(region)
-                    });
+                    });}finally{clearTimeout(retryTimer);}
                 }
             }
             const status = response.status;
@@ -1435,20 +1446,25 @@ class RegionsManager {
     async updateRegionInBackend(regionId, region) {
         try {
             const url = `${this._apiBase}/regions/${encodeURIComponent(regionId)}`;
-            let response = await fetch(url, {
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let response;
+            try{response = await fetch(url, {
+                signal:controller.signal,
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(region)
-            });
+            });}finally{clearTimeout(timer);}
             if (!response.ok) {
                 await this.maybeHandleAwsAuthError(response, `${url} [PUT]`);
                 const idToken = sessionStorage.getItem('idToken');
                 if (idToken) {
-                    response = await fetch(url, {
+                    const retryController=new AbortController(),retryTimer=setTimeout(()=>retryController.abort(),20000);
+                    try{response = await fetch(url, {
+                        signal:retryController.signal,
                         method: 'PUT',
                         headers: { 'Authorization': `Bearer ${idToken}`, 'Content-Type': 'application/json' },
                         body: JSON.stringify(region)
-                    });
+                    });}finally{clearTimeout(retryTimer);}
                 }
             }
             const status = response.status;
@@ -1490,12 +1506,15 @@ class RegionsManager {
         try {
             let url = `${this._apiBase}/regions/${regionId}/toggle`;
             console.log('📤 Calling:', url);
-            let resp = await fetch(url, { method: 'PATCH' });
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let resp;
+            try{resp = await fetch(url, { signal:controller.signal, method: 'PATCH' });}finally{clearTimeout(timer);}
             if (!resp.ok) {
                 await this.maybeHandleAwsAuthError(resp, url);
                 const idToken = sessionStorage.getItem('idToken');
                 if (idToken) {
-                    resp = await fetch(url, { method: 'PATCH', headers: { 'Authorization': `Bearer ${idToken}` }});
+                    const retryController=new AbortController(),retryTimer=setTimeout(()=>retryController.abort(),20000);
+                    try{resp = await fetch(url, { signal:retryController.signal, method: 'PATCH', headers: { 'Authorization': `Bearer ${idToken}` }});}finally{clearTimeout(retryTimer);}
                 }
             }
             if (!resp.ok) throw new Error(await resp.text());
@@ -1522,11 +1541,16 @@ class RegionsManager {
         if (!ok) return;
         try {
             let url = `${this._apiBase}/regions/${regionId}`;
-            let resp = await fetch(url, { method: 'DELETE' });
+            const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+            let resp;
+            try{resp = await fetch(url, { signal:controller.signal, method: 'DELETE' });}finally{clearTimeout(timer);}
             if (!resp.ok) {
                 await this.maybeHandleAwsAuthError(resp, `${url} [DELETE]`);
                 const idToken = sessionStorage.getItem('idToken');
-                if (idToken) resp = await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${idToken}` }});
+                if (idToken) {
+                    const retryController=new AbortController(),retryTimer=setTimeout(()=>retryController.abort(),20000);
+                    try{resp = await fetch(url, { signal:retryController.signal, method: 'DELETE', headers: { 'Authorization': `Bearer ${idToken}` }});}finally{clearTimeout(retryTimer);}
+                }
             }
             if (!resp.ok) throw new Error(await resp.text());
             // Remove from memory and refresh

@@ -1,0 +1,34 @@
+{
+  "part": 236,
+  "status": "PUBLISHED_STAGING_DISPATCH_POSITION_RACE_FIX",
+  "publishedThrough": 236,
+  "wholeSpecificationComplete": false,
+  "publication": "dispatch-position-publication-236.json",
+  "scope": "General staging dispatch, no account-specific preparation",
+  "implemented": [
+    "Only isolated position ConditionCheck conflicts permit fresh full-context preparation; maximum three attempts, same offer identity",
+    "All driver eligibility, branch, policy, order and deletion checks remain mandatory",
+    "START host delegates terminal review planning to existing TIMEOUT host instead of requiring new order-update permissions",
+    "All other ZIP files and Lambda configuration preserved"
+  ],
+  "tests": {
+    "walletSuite": 1206,
+    "additionalStoreClassificationRegression": 13,
+    "capturedStart": 36,
+    "capturedTimeout": 36,
+    "capturedFinancial": 26,
+    "additionalCapturedStoreRegressionEach": 13,
+    "failed": 0
+  },
+  "testOrder": {
+    "orderNumber": "ORD1792545370610",
+    "orderId": "bb728bfe-c2c4-5c95-8492-26ce81ee1ed1",
+    "initialIssue": "Position update raced offer transaction; first wave never offered",
+    "recovery": "Awaiting user normal administrative RETRY_SEARCH decision, no raw record reset"
+  },
+  "moneyOrOrderWritesByAgent": false,
+  "iamChanges": false,
+  "positiveDeviceTest": "PENDING_NORMAL_RETRY_SEARCH",
+  "sessionState": "USER_REQUESTED_REST",
+  "resumeNextAction": "Check whether user submitted normal administrative RETRY_SEARCH for ORD1792545370610; inspect dispatch and offer delivery, then continue new-policy exception report, owner readiness, authorization and custody closure test."
+}

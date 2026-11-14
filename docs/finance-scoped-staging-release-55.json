@@ -1,0 +1,1327 @@
+{
+  "schemaVersion": 1,
+  "part": 55,
+  "environment": "Staging",
+  "status": "COORDINATED_CLOSED_RELEASE_PUBLISHED_AND_VERIFIED",
+  "published": true,
+  "activated": false,
+  "preparedAtUtc": "2026-10-17T03:50:28.072343+00:00",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "IAMChanged": true,
+  "environmentChanged": false,
+  "cohortOnApplicationFunctionsConfigured": false,
+  "humanRowsRead": false,
+  "humanOrdersOrFinancialWrites": false,
+  "phoneBuildOrInstall": false,
+  "technicalApplicationRow": {
+    "table": "WizzOrders",
+    "purpose": "Bounded synthetic identity read and fence verification",
+    "createdAndDeleted": true,
+    "humanIdentity": false,
+    "fundsOrContacts": false
+  },
+  "functions": [
+    {
+      "name": "DriversApi-staging",
+      "codeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+      "revisionId": "db651fd8-d382-44e2-aeed-1df47ac66ac8",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+      "replacedFiles": [
+        "lambda_driver_api_v2.js",
+        "pinned-legacy-runtime.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+      "revisionId": "2123b860-d133-4bc5-9fc7-646d256e5231",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js",
+        "index.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "codeSha256": "2J7BvHTGk/Dnb3Va0Uu9QFdh751uxSkdiTxkL49gPcM=",
+      "revisionId": "173d51f6-0382-4136-bd42-ad0f80b2bb20",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "codeSha256": "s5VY//RJOiuDFnauWZCw5SHcMN9aTR+SkN3kj4uaz0w=",
+      "revisionId": "6230c48f-a1b9-4027-8999-d43542315213",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "l5vdj1VGicKqHlnrItafwmcnwZulHuwcGZjLq1GMJGs=",
+      "revisionId": "23339e62-5b30-46dd-a4aa-d6db092dcd21",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "yOpcsKF1Jh4QFfh8jC9XqDk8qEv+4S6E/bwJZxoPPDk=",
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js",
+        "financial-runtime.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "prefixPreservationProofs": [
+        {
+          "preservedMoneyPrefixSha256": "0a00917f7a35be7ce8c5a2cbbdec88857184ed5783ca6c7f86d2d1bceba20d3c",
+          "adapterFunctions": [
+            "configuration",
+            "clients",
+            "runFinancialWave",
+            "acceptFinancialOffer",
+            "authenticateFinancialDriver",
+            "completeFinancialCod",
+            "financialCodReturn",
+            "financialAssignmentTransition",
+            "exhaustFinancialSearch",
+            "expireFinancialWave",
+            "financialAcceptanceHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "4f3vFrGiDOaXr044Uq99hbIwm6IYTCAeEr2Hgucc0ag=",
+      "revisionId": "aa2278ba-a5c1-41a7-bf89-4880dc758eca",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "E4iRy4TrUBn++WygDOJMxymHy4vcvAi5WCKCDZ6zwMc=",
+      "replacedFiles": [
+        "dispatch-cycle-runtime.js",
+        "financial-runtime.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "prefixPreservationProofs": [
+        {
+          "preservedMoneyPrefixSha256": "0a00917f7a35be7ce8c5a2cbbdec88857184ed5783ca6c7f86d2d1bceba20d3c",
+          "adapterFunctions": [
+            "configuration",
+            "clients",
+            "runFinancialWave",
+            "acceptFinancialOffer",
+            "authenticateFinancialDriver",
+            "completeFinancialCod",
+            "financialCodReturn",
+            "financialAssignmentTransition",
+            "exhaustFinancialSearch",
+            "expireFinancialWave",
+            "financialAcceptanceHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WizzUser-CancelOrder-staging",
+      "codeSha256": "jc2KR/PWZnvhh7VRAzKFQcWh/h8zq1bVjwAChXRfUJQ=",
+      "revisionId": "2e19781e-f88e-401f-b343-bf39e82d45fd",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "jWNNTtGTOOhkxLgNMrk7zUz5+gs10jSkVP0f6sIm75M=",
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "sWBR+njla6Tb/z3O0tPTA6w17R9EL9VWgiQOePWLcOE=",
+      "revisionId": "5beacbdb-be3c-4b7d-bd87-40b311c9f90b",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "9K9V6WLpY3/D/GixykDPAzu2t5ZJRtUchidVhVqSMXU=",
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WizzUser-GetGuestOrders-staging",
+      "codeSha256": "R8APtYyaIsSZQcR4BrTMZMjfRUF0Do5jsnO4kyOoRIc=",
+      "revisionId": "f2f5ee83-aab8-4e8a-bd94-aca7013e22e6",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "YDQcJJMW5cdyxKV+l5FJlZCOnsCv0QeSpgEqqhi/l5U=",
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WizzUser-GetOrder-staging",
+      "codeSha256": "YpEsCBkJT7bxeQ/Z6WC0o1/ITPyB4fQLIBo3CJhCPwg=",
+      "revisionId": "628b2ea6-39ee-4feb-af35-c53a593d05d9",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "y2S/Xf4cXytSDgVBPp/k8KjUdvkyx0dOMLCVkmp2EkY=",
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "codeSha256": "svfJgDu1jMynFqJN0/kj4o8PVp795TjACAS0oWNJrqM=",
+      "revisionId": "ab385857-0b2f-4756-9160-eba3d3c20352",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "3zENjGYf7a0P55bDvrKM+qA22s9j42kgYxFuTwptOAM=",
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WizzUser-MerchantOrderStatusUpdate-staging",
+      "codeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+      "revisionId": "27d08964-68ca-45e1-aabd-b555d1bb4b92",
+      "changed": false,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+      "replacedFiles": [],
+      "addedFiles": [],
+      "prefixPreservationProofs": [
+        {
+          "alreadyExplicitPublicResponse": true,
+          "unchangedEntrySha256": "4c42b46bac91493177d5c4323a21bd768449665ac89d6d90df3060e503959b82"
+        }
+      ]
+    },
+    {
+      "name": "WizzUser-SearchOrderByNumber-staging",
+      "codeSha256": "kmYIVO5x5kSDOE8EavmGA8wgAU/hKYn8eYd10OKGQaQ=",
+      "revisionId": "e1e20a2f-f4c0-4280-b5a5-d720aefd4793",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "brkxLIkzWdxIoyyd5XWtHHeswRpHzhq/C88Yz/UDH3s=",
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WizzUser-UpdateOrderStatus-staging",
+      "codeSha256": "bPEHp0ymvlBcwCRn96rHo9ZvfoIFKTU9z026+1fY4+0=",
+      "revisionId": "26cca654-dced-4c4a-89e5-e1c8c5112a87",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "7BWYeeNfqyTw/crrbCJz+rbNNRx5SOlwb5G08LGHneY=",
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "Rw618DTegzVwUYoX/k9nKVxf3/wa9wVGXkR0SDdwl8M=",
+      "revisionId": "1fa5c5d0-920b-462c-9e7a-0864eebe879e",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "2ekUkswQHJdLcalPxbCHct8PPROgw/uE107rQZ3imnI=",
+      "replacedFiles": [
+        "merchant_order_handler.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "staging-cod-integration",
+      "codeSha256": "zJdHVmIdhjbrGc+Ub7VrTJDJUE+aMTAioje8xgjLSpY=",
+      "revisionId": "e7a7acdd-755b-44df-b555-8b3ac85ae6e8",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "/3REFzxqSsEgpx5vRdaYQcKyuQuaAiJf6jnhA+0/V0k=",
+      "replacedFiles": [
+        "dispatch-response-runtime.js",
+        "dispatch-review-host-runtime.js",
+        "index.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "prefixPreservationProofs": [
+        {
+          "preservedOutsideAdapterSha256": "ead644cdcd2d44d7ab23d1c5fa4ded61e9228448682e6f5f979d0e9d05af7671"
+        }
+      ]
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "WA/Hluge+mBHlh9SSZzV9FqAbzByy4rCPdIE/WRgIYU=",
+      "revisionId": "f09b8190-d470-4b2e-a66c-282c827c2670",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "HalqAFH3dXm7fw7KHEvB38diX645Ae+HPf5Sk8oDsg0=",
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "prefixPreservationProofs": [
+        {
+          "preservedMoneyPrefixSha256": "0a00917f7a35be7ce8c5a2cbbdec88857184ed5783ca6c7f86d2d1bceba20d3c",
+          "adapterFunctions": [
+            "configuration",
+            "clients",
+            "runFinancialWave",
+            "acceptFinancialOffer",
+            "authenticateFinancialDriver",
+            "completeFinancialCod",
+            "financialCodReturn",
+            "financialAssignmentTransition",
+            "exhaustFinancialSearch",
+            "expireFinancialWave",
+            "financialAcceptanceHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "rxC2dzs9CPvcn7h80TKomaN/s1B4QbRlpdSDK94gBic=",
+      "revisionId": "a970dfcb-ead8-4638-89a8-30cc5befc1fb",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "J73EsBUMjqDGSz412MGaU+S2VYwDJGdxt9u1VWbiKb4=",
+      "replacedFiles": [
+        "dispatch-reviews.js",
+        "index.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "codeSha256": "wXACKH/twuCjnyshTtEe7qSRmjdkT6n8eRB2KhdJqQE=",
+      "revisionId": "ab277cf5-9c8d-4e05-9e63-07df850a1b69",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "finance-rollout.js"
+      ],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "codeSha256": "CsZasWT83HOAFSZVKFVtmsHRtwSVnZ1thiW+sXgDd6M=",
+      "revisionId": "ffef2e83-14f0-4b30-8757-9288e04bc9b2",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+      "replacedFiles": [
+        "src/utils/pinned-wave-push-handler.js"
+      ],
+      "addedFiles": [
+        "src/utils/finance-rollout.js"
+      ],
+      "prefixPreservationProofs": []
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "krrvCqW+Xl3ADD9WHtAow1TpclzfwKzjgy6qqxhrRXE=",
+      "revisionId": "a4b4d6c3-8c4f-408c-aeaa-0cd376972696",
+      "changed": true,
+      "environmentPreserved": true,
+      "gatesClosed": true,
+      "baseCodeSha256": "blAgb1fOElFm+nHCTIH7ggEUOeI6tyH12G6b1tyLmK4=",
+      "replacedFiles": [
+        "functions/create-order/commercial-order-router.js",
+        "functions/create-order/commercial-runtime.js"
+      ],
+      "addedFiles": [],
+      "prefixPreservationProofs": [
+        {
+          "preservedLegacyEntrySha256": "ce27c821404d1a5ba4278cc6b50aabf20767c6c856c987eb7830b926eab695a5"
+        }
+      ]
+    }
+  ],
+  "infrastructure": {
+    "name": "staging-finance-rollout-access-55",
+    "arn": "arn:aws:cloudformation:us-east-1:699561669180:stack/staging-finance-rollout-access-55/4526b9f0-c9dc-11f1-bdda-0affccde4173",
+    "status": "CREATE_COMPLETE",
+    "resources": [
+      {
+        "logicalId": "CreateOrderRolloutFence",
+        "type": "AWS::IAM::Policy",
+        "status": "CREATE_COMPLETE"
+      },
+      {
+        "logicalId": "StaffReviewRolloutRead",
+        "type": "AWS::IAM::Policy",
+        "status": "CREATE_COMPLETE"
+      },
+      {
+        "logicalId": "WalletNoticeRolloutRead",
+        "type": "AWS::IAM::Policy",
+        "status": "CREATE_COMPLETE"
+      },
+      {
+        "logicalId": "WavePushRolloutRead",
+        "type": "AWS::IAM::Policy",
+        "status": "CREATE_COMPLETE"
+      }
+    ]
+  },
+  "configurationVerification": {
+    "checkedAt": "2026-10-17T03:47:24.387693+00:00",
+    "account": "699561669180",
+    "region": "us-east-1",
+    "stack": {
+      "name": "staging-finance-rollout-access-55",
+      "arn": "arn:aws:cloudformation:us-east-1:699561669180:stack/staging-finance-rollout-access-55/4526b9f0-c9dc-11f1-bdda-0affccde4173",
+      "status": "CREATE_COMPLETE",
+      "resources": [
+        {
+          "logicalId": "CreateOrderRolloutFence",
+          "type": "AWS::IAM::Policy",
+          "status": "CREATE_COMPLETE"
+        },
+        {
+          "logicalId": "StaffReviewRolloutRead",
+          "type": "AWS::IAM::Policy",
+          "status": "CREATE_COMPLETE"
+        },
+        {
+          "logicalId": "WalletNoticeRolloutRead",
+          "type": "AWS::IAM::Policy",
+          "status": "CREATE_COMPLETE"
+        },
+        {
+          "logicalId": "WavePushRolloutRead",
+          "type": "AWS::IAM::Policy",
+          "status": "CREATE_COMPLETE"
+        }
+      ]
+    },
+    "functions": [
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "sWBR+njla6Tb/z3O0tPTA6w17R9EL9VWgiQOePWLcOE=",
+        "revisionId": "5beacbdb-be3c-4b7d-bd87-40b311c9f90b"
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "krrvCqW+Xl3ADD9WHtAow1TpclzfwKzjgy6qqxhrRXE=",
+        "revisionId": "a4b4d6c3-8c4f-408c-aeaa-0cd376972696"
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+        "revisionId": "2123b860-d133-4bc5-9fc7-646d256e5231"
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "4f3vFrGiDOaXr044Uq99hbIwm6IYTCAeEr2Hgucc0ag=",
+        "revisionId": "aa2278ba-a5c1-41a7-bf89-4880dc758eca"
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "l5vdj1VGicKqHlnrItafwmcnwZulHuwcGZjLq1GMJGs=",
+        "revisionId": "23339e62-5b30-46dd-a4aa-d6db092dcd21"
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "2J7BvHTGk/Dnb3Va0Uu9QFdh751uxSkdiTxkL49gPcM=",
+        "revisionId": "173d51f6-0382-4136-bd42-ad0f80b2bb20"
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "s5VY//RJOiuDFnauWZCw5SHcMN9aTR+SkN3kj4uaz0w=",
+        "revisionId": "6230c48f-a1b9-4027-8999-d43542315213"
+      },
+      {
+        "name": "DriversApi-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+        "revisionId": "db651fd8-d382-44e2-aeed-1df47ac66ac8"
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "WA/Hluge+mBHlh9SSZzV9FqAbzByy4rCPdIE/WRgIYU=",
+        "revisionId": "f09b8190-d470-4b2e-a66c-282c827c2670"
+      },
+      {
+        "name": "staging-cod-integration",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "zJdHVmIdhjbrGc+Ub7VrTJDJUE+aMTAioje8xgjLSpY=",
+        "revisionId": "e7a7acdd-755b-44df-b555-8b3ac85ae6e8"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "rxC2dzs9CPvcn7h80TKomaN/s1B4QbRlpdSDK94gBic=",
+        "revisionId": "a970dfcb-ead8-4638-89a8-30cc5befc1fb"
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "wXACKH/twuCjnyshTtEe7qSRmjdkT6n8eRB2KhdJqQE=",
+        "revisionId": "ab277cf5-9c8d-4e05-9e63-07df850a1b69"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "CsZasWT83HOAFSZVKFVtmsHRtwSVnZ1thiW+sXgDd6M=",
+        "revisionId": "ffef2e83-14f0-4b30-8757-9288e04bc9b2"
+      },
+      {
+        "name": "WizzUser-CancelOrder-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "jc2KR/PWZnvhh7VRAzKFQcWh/h8zq1bVjwAChXRfUJQ=",
+        "revisionId": "2e19781e-f88e-401f-b343-bf39e82d45fd"
+      },
+      {
+        "name": "WizzUser-GetGuestOrders-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "R8APtYyaIsSZQcR4BrTMZMjfRUF0Do5jsnO4kyOoRIc=",
+        "revisionId": "f2f5ee83-aab8-4e8a-bd94-aca7013e22e6"
+      },
+      {
+        "name": "WizzUser-GetOrder-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "YpEsCBkJT7bxeQ/Z6WC0o1/ITPyB4fQLIBo3CJhCPwg=",
+        "revisionId": "628b2ea6-39ee-4feb-af35-c53a593d05d9"
+      },
+      {
+        "name": "WizzUser-GetUserOrders-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "svfJgDu1jMynFqJN0/kj4o8PVp795TjACAS0oWNJrqM=",
+        "revisionId": "ab385857-0b2f-4756-9160-eba3d3c20352"
+      },
+      {
+        "name": "WizzUser-MerchantOrderStatusUpdate-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+        "revisionId": "27d08964-68ca-45e1-aabd-b555d1bb4b92"
+      },
+      {
+        "name": "WizzUser-SearchOrderByNumber-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "kmYIVO5x5kSDOE8EavmGA8wgAU/hKYn8eYd10OKGQaQ=",
+        "revisionId": "e1e20a2f-f4c0-4280-b5a5-d720aefd4793"
+      },
+      {
+        "name": "WizzUser-UpdateOrderStatus-staging",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "bPEHp0ymvlBcwCRn96rHo9ZvfoIFKTU9z026+1fY4+0=",
+        "revisionId": "26cca654-dced-4c4a-89e5-e1c8c5112a87"
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "environmentUnchanged": true,
+        "scopeUnconfigured": true,
+        "codeSha256": "Rw618DTegzVwUYoX/k9nKVxf3/wa9wVGXkR0SDdwl8M=",
+        "revisionId": "1fa5c5d0-920b-462c-9e7a-0864eebe879e"
+      }
+    ],
+    "rules": [
+      {
+        "name": "staging-cod-lifecycle-CodIntegrationWorkerRetryInte-LlysduSg9yRo",
+        "state": "DISABLED"
+      },
+      {
+        "name": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+        "state": "ENABLED"
+      }
+    ],
+    "activated": false,
+    "environmentChanged": false
+  },
+  "archiveVerification": {
+    "archives": 21,
+    "unchangedEntriesVerified": 137860,
+    "publishedFinancialSDKCompatible": true,
+    "providerCalls": 0,
+    "awsMutations": 0,
+    "published": false,
+    "activated": false
+  },
+  "effectiveIAM": {
+    "schemaVersion": 1,
+    "part": 54,
+    "checkedAtUtc": "2026-10-17T03:39:41.698701+00:00",
+    "account": "699561669180",
+    "region": "us-east-1",
+    "readOnly": true,
+    "IAMChanged": false,
+    "proposedPoliciesIncluded": false,
+    "humanRowsRead": false,
+    "handlerInvocations": 0,
+    "attributes": [
+      "PK",
+      "SK",
+      "orderId",
+      "userSub",
+      "storeId",
+      "businessId",
+      "financeRollout",
+      "driverId",
+      "assignedDriverId"
+    ],
+    "functions": [
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+        "baseCodeSha256": "blAgb1fOElFm+nHCTIH7ggEUOeI6tyH12G6b1tyLmK4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+        "baseCodeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+        "baseCodeSha256": "E4iRy4TrUBn++WygDOJMxymHy4vcvAi5WCKCDZ6zwMc=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+        "baseCodeSha256": "yOpcsKF1Jh4QFfh8jC9XqDk8qEv+4S6E/bwJZxoPPDk=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+        "baseCodeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+        "baseCodeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "DriversApi-staging",
+        "role": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+        "baseCodeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+        "baseCodeSha256": "HalqAFH3dXm7fw7KHEvB38diX645Ae+HPf5Sk8oDsg0=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-cod-integration",
+        "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+        "baseCodeSha256": "/3REFzxqSsEgpx5vRdaYQcKyuQuaAiJf6jnhA+0/V0k=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+        "baseCodeSha256": "J73EsBUMjqDGSz412MGaU+S2VYwDJGdxt9u1VWbiKb4=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          },
+          {
+            "action": "dynamodb:ConditionCheckItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-wallet-servi-WalletNotificationWorkerR-65KXCbUPWrkw",
+        "baseCodeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "role": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "baseCodeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+        "checks": [
+          {
+            "action": "dynamodb:GetItem",
+            "decision": "allowed",
+            "missingContext": [],
+            "boundary": null
+          }
+        ]
+      }
+    ],
+    "reviewDependencyChecks": [
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:GetItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:Query",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:Scan",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "staging-Holds",
+        "action": "dynamodb:GetItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "staging-AccountDeletion",
+        "action": "dynamodb:GetItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "WizzDispatchJobs_staging",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "staging-Holds",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "allowed",
+        "missingContext": []
+      },
+      {
+        "table": "WhizzMerchants_Businesses",
+        "action": "dynamodb:ConditionCheckItem",
+        "decision": "allowed",
+        "missingContext": []
+      }
+    ],
+    "limitations": [
+      "IAM simulation is not an actual DynamoDB/Gateway transaction.",
+      "Existing policies, boundaries, resource policies and organizational controls require deployment-time reconciliation.",
+      "This checks new order identity reads/fences only, not provider/device/funding readiness or every existing operation."
+    ]
+  },
+  "actualRoleProbes": {
+    "account": "699561669180",
+    "region": "us-east-1",
+    "syntheticOrderId": "finance55-probe-df5c9dfcaf0649f699ffdfce22d35995",
+    "syntheticRowOnly": true,
+    "humanRowsRead": false,
+    "financialWrites": 0,
+    "providerCallsFromProbe": 0,
+    "liveGatesChanged": false,
+    "cohortOnApplicationFunctionsChanged": false,
+    "checks": [
+      {
+        "sourceFunction": "WizzUser-CreateOrder-staging",
+        "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+        "probeFunction": "finance55-scope-probe-writer-df5c9dfcaf06",
+        "ok": true,
+        "checks": {
+          "projectedIdentityRead": true,
+          "driverPairBound": true,
+          "realScopedConditionalTransaction": true,
+          "foreignOrderDeniedBeforeRead": true
+        },
+        "providerCalls": 0,
+        "financialWrites": 0
+      },
+      {
+        "sourceFunction": "staging-wizz-staff-service",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+        "probeFunction": "finance55-scope-probe-staff-df5c9dfcaf06",
+        "ok": true,
+        "checks": {
+          "projectedIdentityRead": true,
+          "driverPairBound": true,
+          "unapprovedProjectionDenied": true,
+          "realScopedConditionalTransaction": true,
+          "reviewReadsAndFences": true,
+          "foreignOrderDeniedBeforeRead": true
+        },
+        "providerCalls": 0,
+        "financialWrites": 0
+      },
+      {
+        "sourceFunction": "staging-wizz-wallet-notification-worker",
+        "role": "arn:aws:iam::699561669180:role/staging-wizz-wallet-servi-WalletNotificationWorkerR-65KXCbUPWrkw",
+        "probeFunction": "finance55-scope-probe-notice-df5c9dfcaf06",
+        "ok": true,
+        "checks": {
+          "projectedIdentityRead": true,
+          "driverPairBound": true,
+          "unapprovedProjectionDenied": true,
+          "foreignOrderDeniedBeforeRead": true
+        },
+        "providerCalls": 0,
+        "financialWrites": 0
+      },
+      {
+        "sourceFunction": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "role": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "probeFunction": "finance55-scope-probe-push-df5c9dfcaf06",
+        "ok": true,
+        "checks": {
+          "projectedIdentityRead": true,
+          "driverPairBound": true,
+          "unapprovedProjectionDenied": true,
+          "foreignOrderDeniedBeforeRead": true
+        },
+        "providerCalls": 0,
+        "financialWrites": 0
+      }
+    ],
+    "cleanup": {
+      "temporaryFunctionsDeleted": 4,
+      "syntheticRowDeleted": true,
+      "errors": []
+    },
+    "rowUnchangedByAllProbes": true
+  },
+  "closedDispatchSmoke": {
+    "checkedAt": "2026-10-17T03:45:52.048Z",
+    "scope": "EMPTY_OR_UNAUTHENTICATED_EARLY_RETURNS",
+    "cases": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "statusCode": 200,
+        "disabled": null,
+        "responseSha256": "8d36c1e4442c99cb5283b95901b2f5e271242605b2c9fa936e49cfae75215529"
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "expectedRejection": true,
+        "errorType": "Error",
+        "errorMessage": "Missing dispatchJobId in event"
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "statusCode": 400,
+        "disabled": null,
+        "responseSha256": "9f0eeb05da0de047887f078c756706d8889bf1f89aafb9cf0093c619ba37cfad"
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "statusCode": 500,
+        "disabled": null,
+        "responseSha256": "49d4d1fdac7e516f64a7b53cd72393304d242a06a6def071f36d9d2cbf74863f"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "50b64f0f53cb1215c3f7f18c2f310be8e5daf5b83a922a5018672eea1e66fef2"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "cff1b0bb2921c6ec488106351652bcadd86de0c41ba55eb9b29b16160c7af533"
+      },
+      {
+        "name": "DriversApi-staging",
+        "statusCode": 401,
+        "disabled": null,
+        "responseSha256": "ebe2605aef23a140c2782fa5200273b951bf0287a43e0c56dc1e56583ee92e35"
+      },
+      {
+        "name": "staging-cod-integration",
+        "statusCode": null,
+        "disabled": true,
+        "responseSha256": "3e3063a3a2714ae49a6c70354c08ce57e82dc7547893f5fb6c16156eaf90ec32"
+      }
+    ],
+    "baselineMatched": false,
+    "timeoutWorkerInvoked": false,
+    "humanRecordsUsed": false,
+    "providerMessagesSent": false
+  },
+  "closedFinancialSmoke": {
+    "cases": [
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "statusCode": 503,
+        "code": "QUOTES_NOT_ENABLED",
+        "verifiedClosed": true
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "statusCode": 409,
+        "code": "COMMERCIAL_NOT_ENABLED",
+        "verifiedClosed": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "statusCode": 409,
+        "code": "FINANCIAL_DISPATCH_DISABLED",
+        "verifiedClosed": true
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "statusCode": null,
+        "code": null,
+        "verifiedClosed": true
+      }
+    ],
+    "providerCalls": 0,
+    "applicationWrites": 0,
+    "gatesChanged": false
+  },
+  "gatewayClosedAuth": {
+    "scope": "REAL_COGNITO_GATEWAY_CLOSED_QUOTE_PREVIEW",
+    "messagesSent": false,
+    "applicationWrites": false,
+    "existingClientsChanged": false,
+    "results": [
+      {
+        "method": "GET",
+        "path": "/delivery-quotes",
+        "statusCode": 503,
+        "code": "QUOTES_NOT_ENABLED"
+      },
+      {
+        "method": "POST",
+        "path": "/delivery-quotes",
+        "statusCode": 503,
+        "code": "QUOTES_NOT_ENABLED"
+      },
+      {
+        "method": "POST",
+        "path": "/orders/commercial-preview",
+        "statusCode": 409,
+        "code": "COMMERCIAL_NOT_ENABLED"
+      }
+    ],
+    "allFixturesRemoved": true,
+    "disabledTokenRejected": true,
+    "cleanupErrors": []
+  },
+  "isolatedPublishedCodTest": {
+    "scope": "REAL_DYNAMODB_ISOLATED_SCOPED_COD_COMPLETION",
+    "applicationTablesAccessed": false,
+    "applicationGatesChanged": false,
+    "providerCalls": 0,
+    "scopedCompletionAllowedInDrain": true,
+    "concurrentRetryDoesNotDoubleSettle": true,
+    "discountFundingAndCommissionIncluded": true,
+    "newOffersBlockedInDrain": true,
+    "staleOrderFenceRejectsWholeMoneyTransaction": true,
+    "tableDeleted": true
+  },
+  "publishedFinancialSourceProof": {
+    "indexSha256": "53d5cc5d5436284b83b3980b1be109aec54e418030361333a441f87de017a0be",
+    "guardSha256": "51112c1a8afa3fe8ef4af602fbd3d44e55449e2a9606969c07da7f88c240ee88",
+    "downloadedZipMatchedPublishedCodeSha256": true
+  },
+  "readiness": {
+    "readOnly": true,
+    "secretValuesRead": false,
+    "humanDataRead": false,
+    "pricingPolicy": {
+      "valid": false,
+      "exists": false
+    },
+    "configuredSecretMetadata": [],
+    "writerIam": [
+      {
+        "action": "dynamodb:GetItem",
+        "table": "staging-MerchantPlatform",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "table": "staging-MerchantPlatform",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "table": "staging-PlatformStaff",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "table": "staging-PlatformStaff",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "table": "staging-Wallets",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "table": "staging-Holds",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "table": "staging-LedgerEntries",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "table": "staging-AuditLog",
+        "decision": "implicitDeny"
+      }
+    ],
+    "result": {
+      "scope": "METADATA_READINESS_ONLY",
+      "gatesClosed": true,
+      "configurationChecks": [
+        {
+          "id": "QUOTE_ROUTING_SECRET_CONFIGURED",
+          "passed": false
+        },
+        {
+          "id": "DRIVER_ROUTING_SECRET_CONFIGURED",
+          "passed": false
+        },
+        {
+          "id": "QUOTE_CUSTOMER_QUOTA_CONFIGURED",
+          "passed": true
+        },
+        {
+          "id": "DRIVER_OFFER_TTL_CONFIGURED",
+          "passed": true
+        },
+        {
+          "id": "DRIVER_POSITION_MAX_AGE_CONFIGURED",
+          "passed": true
+        },
+        {
+          "id": "REASSIGNMENT_WINDOW_CONFIGURED",
+          "passed": true
+        },
+        {
+          "id": "QUOTE_CLEANUP_ENABLED",
+          "passed": false
+        },
+        {
+          "id": "PUBLISHED_PRICING_POLICY_VALID",
+          "passed": false
+        },
+        {
+          "id": "COMMERCIAL_WRITER_IAM_READY",
+          "passed": false
+        },
+        {
+          "id": "ACCEPTED_APPROVED_AGREEMENT",
+          "passed": false
+        },
+        {
+          "id": "APPROVED_DISCOUNT_FUNDING",
+          "passed": false
+        },
+        {
+          "id": "PREASSIGNMENT_REJECTION_ATOMIC_RELEASE",
+          "passed": false
+        },
+        {
+          "id": "PUBLISHED_ROLES_END_TO_END_CANARY",
+          "passed": false
+        },
+        {
+          "id": "OPERATING_LIMITS_APPROVED",
+          "passed": true
+        },
+        {
+          "id": "ROLLBACK_VERIFIED",
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "QUOTE_ROUTING_SECRET_CONFIGURED",
+        "DRIVER_ROUTING_SECRET_CONFIGURED",
+        "QUOTE_CLEANUP_ENABLED",
+        "PUBLISHED_PRICING_POLICY_VALID",
+        "COMMERCIAL_WRITER_IAM_READY",
+        "ACCEPTED_APPROVED_AGREEMENT",
+        "APPROVED_DISCOUNT_FUNDING",
+        "PREASSIGNMENT_REJECTION_ATOMIC_RELEASE",
+        "PUBLISHED_ROLES_END_TO_END_CANARY",
+        "ROLLBACK_VERIFIED"
+      ],
+      "activationAuthorized": false
+    },
+    "note": "Evidence-only readiness keys are not proof that a feature is absent; actual full business-role canary, agreement/funding approvals, preassignment release and rollback acceptance remain pending."
+  },
+  "toolTestsPassed": 9,
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "535e6be012354b611903eaeba04d959b7be4259c574c8706f6c36c7eeb0d7b66",
+      "reason": "Part54 binds a Staging test confirmation to a preapproved request while retaining immutable pending replay and default UUID behavior; commercial approval flow is unchanged."
+    }
+  ],
+  "sourceSha256": {
+    "backend/finance-rollout-access.staging.json": "7b80372723bd83092ae04ef73e4f1fec7a9dce4c540c434986d47db7fb5bd8d0",
+    "scripts/prepare-finance-rollout-infrastructure-55.cjs": "6952cbeba9e5d0664e9e82d9f0ca1f8126a58ee6c9c85a79656fa195885559b4",
+    "scripts/publish-finance-scoped-staging-55.py": "fc4cc2c077d4585ae4aff5a917ae1168e8dba9982cf3db3ce397030b6cea2fb8",
+    "scripts/finance-rollout-iam-probe-55.cjs": "9497d050e8120f195c03fcf108e5d072a3c0580856ded5a69bfb6169cf60ce71",
+    "scripts/verify-finance-rollout-iam-staging-55.py": "6cd5a6972eae340a137a32bb8cd5c7f93aec760edd4c5feebfd2145ebd04ec21",
+    "scripts/test-finance-rollout-staging-55.cjs": "ef2e3d176accd690e0db1dd07792678d89ddab41c07ba87efd68a2e2083c245f",
+    "scripts/test-finance-closed-gateway-staging-55.py": "478910e0c3c0f0e6d670d31ed6fa8d87145ca54c742778b28793ca8a6db5249c",
+    "scripts/test-finance-closed-handlers-staging-55.cjs": "0f26c1686b0721f58082b35d5b84986d27b8f15aeea1f2f4ab67bd13e56ec90d",
+    "scripts/test/finance-release-55.test.cjs": "aa5f42714b46ff0320e694b907e3502f989ddb484cec9e45d46de5109645e675",
+    "scripts/audit-finance-transition-staging.py": "a7b0e5d0e0c6ce213848dd42368e26b376947238ff8a4f02d7d31fb7f0215d56"
+  },
+  "privatePublicationDirectory": "/private/tmp/finance55",
+  "rollbackPackagesDirectory": "/private/tmp/finance54-release5",
+  "remaining": [
+    "Configure reviewed server routing secret references without exposing credential values",
+    "Publish validated central pricing and quote-cleanup configuration",
+    "Review narrow commercial funding IAM and approved agreement/funding for the explicit cohort",
+    "Verify authenticated scoped Quote/order/accept/completion/cancellation/returns/research API canary and rollback before device trial",
+    "Build and install the explicitly scoped Checkout only after runtime acceptance; keep T6/T7 exit criteria"
+  ]
+}

@@ -3,13 +3,16 @@ import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from 
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { docClient, TABLES, GetCommand, TransactWriteCommand } from './db';
 import { WalletError } from './types';
+import {readWalletLimits} from './walletOperatingLimits';
 const s3 = new S3Client({});
 const bucket = process.env.FUNDING_RECEIPTS_BUCKET || '';
 const configKey = { idempotencyKey: 'CONFIG#FUNDING', sk: 'META' };
 export const fundingError = (message: string, code = 'INVALID_FUNDING_REQUEST', status = 400) => new WalletError(message, code, status);
 export async function getFundingConfig() {
  const { Item } = await docClient.send(new GetCommand({ TableName: TABLES.IDEMPOTENCY_KEYS, Key: configKey, ConsistentRead: true }));
- return Item?.config || { version: 0, manual: { enabled: false, phone: '07800868280', name: 'محمد علي دعاش', minimum: 25000 }, zaincash: { enabled: false }, card: { enabled: false } };
+ const config=Item?.config || { version: 0, manual: { enabled: false, phone: '07800868280', name: 'محمد علي دعاش', minimum: 25000 }, zaincash: { enabled: false }, card: { enabled: false } };
+ const limits=await readWalletLimits(docClient,TABLES.IDEMPOTENCY_KEYS);
+ return {...config,limitsVersion:limits.version,manual:{...config.manual,minimum:limits.manualMinimumIqd,maximum:limits.manualMaximumIqd}};
 }
 export async function saveFundingConfig(input: any, actor: string) {
  const previous = await getFundingConfig();
@@ -27,7 +30,17 @@ export async function saveFundingConfig(input: any, actor: string) {
 }
 export async function receiptUpload(driver: string, input: any) {
  if (!['image/jpeg','image/png'].includes(input.contentType) || !Number.isInteger(input.size) || input.size < 1 || input.size > 4 * 1024 * 1024) throw fundingError('الوصل يجب أن يكون صورة JPG أو PNG بحجم لا يتجاوز 4 ميجابايت');
- const key = `receipts/${driver}/${randomUUID()}.${input.contentType === 'image/png' ? 'png' : 'jpg'}`;
+ const walletId=`WALLET#DRIVER#${driver}`;
+ const {Item:wallet}=await docClient.send(new GetCommand({TableName:TABLES.WALLETS,Key:{walletId,sk:'META'},ConsistentRead:true}));
+ if(!wallet||wallet.status!=='ACTIVE'||wallet.deletionRequestId)throw fundingError('هذه المحفظة غير متاحة للشحن','ACCOUNT_CLOSING',409);
+ const operationId=randomUUID(),key = `receipts/${driver}/${operationId}.${input.contentType === 'image/png' ? 'png' : 'jpg'}`;
+ const deletionTable=process.env.ACCOUNT_DELETION_TABLE;
+ const operations:any[]=[{Update:{TableName:TABLES.WALLETS,Key:{walletId,sk:'META'},UpdateExpression:'SET #v = #v + :one',ConditionExpression:'#v = :v AND #s = :active AND attribute_not_exists(deletionRequestId)',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':wallet.version,':one':1,':active':'ACTIVE'}}}];
+ if(deletionTable){
+  if(deletionTable!=='staging-AccountDeletion'||process.env.ENVIRONMENT!=='staging')throw fundingError('إعداد التحقق غير صحيح','INVALID_LIFECYCLE_CONFIGURATION',503);
+  operations.push({ConditionCheck:{TableName:deletionTable,Key:{pk:`ACCOUNT_LIFECYCLE#DRIVER#${driver}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},{Put:{TableName:deletionTable,Item:{pk:`ACCOUNT_OPERATION#DRIVER#${driver}`,sk:`FUNDING_RECEIPT#${operationId}`,subjectId:driver,operationId,kind:'FUNDING_RECEIPT',assetKey:key,expiresAt:Math.floor(Date.now()/1000)+600},ConditionExpression:'attribute_not_exists(pk)'}});
+ }
+ await docClient.send(new TransactWriteCommand({TransactItems:operations}));
  const uploadUrl = await getSignedUrl(s3, new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: input.contentType, ContentLength: input.size, ServerSideEncryption:'AES256', IfNoneMatch:'*' }), { expiresIn: 300 });
  return { key, uploadUrl, contentType: input.contentType };
 }

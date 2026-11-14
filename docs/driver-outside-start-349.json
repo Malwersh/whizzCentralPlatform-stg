@@ -1,0 +1,24 @@
+{
+  "release": 349,
+  "date": "2026-10-29",
+  "scope": "DRIVER_GO_ONLINE_OUTSIDE_COVERAGE_UI",
+  "backendChanged": false,
+  "cause": "Map-load coverage notice and search-start rejection were separate UI paths; old start endpoint returns400 with a legacy Arabic message and no typed code.",
+  "changes": [
+    "One shared outside-service bottom sheet for map load and search start failures.",
+    "Fresh authenticated map/GPS coverage check before opening search time selection.",
+    "Explicit user action can reopen a previously dismissed notice; concurrent sheet opens are suppressed.",
+    "Legacy exact400 region-miss maps to OUTSIDE_SERVICE_AREA; authorization errors and permission to work in a different served area remain distinct.",
+    "Suppress assigned-region demand forecast after current point is confirmed outside coverage; show a current outside-service status instead.",
+    "Existing backend availability, vehicle, region and wallet checks remain authoritative; no searching state is set on a rejected attempt."
+  ],
+  "automatedTestsPassed": 12,
+  "build": "IOS_RELEASE349_PASSED_INSTALLED_ON_REAL_IPHONE",
+  "humanAcceptance": [
+    "Dismiss startup coverage notice, press Go: same styled city/country-only notice appears without black toast or search-time picker.",
+    "Change to a genuinely served position, press Go: fresh lookup permits the time picker without relying on old outside result.",
+    "Served but unauthorized work region, approval/auth/network failure: retain their specific failure instead of calling them outside coverage."
+  ],
+  "next": "Install Release349 on real driver iPhone; continue recorded genuine-offer realtime acceptance when in an eligible location.",
+  "driverCommit": "832a7f5"
+}

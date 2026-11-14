@@ -1,0 +1,40 @@
+{
+  "part": 241,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "yicMjZ70FqOhqQeTxa3R7HuMy1sHKYJSzW+I+Ssz43Q=",
+      "codeSha256": "RXnCXearO2n7uQrXTQW9IkGTAXRD6pxKu0uaVNVqLw0=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "leZSSuz/kJxgimaV2yMlvxmJw+KZzwC9k7/Wn5saDDk=",
+      "codeSha256": "MR8X/pdPz3QQsyqfq1CcoYQQLIgkqBqRSkNRmf5RTEo=",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialDecisionsByAgent": false,
+  "wholeSpecificationComplete": false,
+  "hosting": {
+    "baseJobId": "133",
+    "jobId": "134",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "pages/order-exceptions.html",
+      "order-exception-cases.js"
+    ],
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

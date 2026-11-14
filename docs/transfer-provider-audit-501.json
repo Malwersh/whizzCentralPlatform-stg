@@ -1,0 +1,35 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "scope": "Gateway administration and recovery audit",
+  "tests": 75,
+  "changes": [
+    "Trusted administrator snapshot and redacted reasons for settings, authentication test, live acceptance, pilot authorization and recovery decisions",
+    "Atomic staff authorization fence for manual provider recovery check",
+    "Explicit no-balance-effect records for inquiry request and provider-confirmed missing payment",
+    "Secret-free before/after configuration snapshots"
+  ],
+  "validation": {
+    "typescript": "PASS",
+    "targetedTests": "75 PASS",
+    "awsAccount": "699561669180"
+  },
+  "deployment": {
+    "function": "staging-wizz-wallet-service",
+    "codeSha256": "S5VtSDjxsVBC5wUeiZqyPRGfOQoSlz2zASDM87i6LxM=",
+    "state": "Active",
+    "lastUpdateStatus": "Successful",
+    "isolatedFiles": [
+      "dist/transferService.js",
+      "dist/transferService.js.map",
+      "dist/zaincashGateway.js"
+    ],
+    "otherArchiveEntriesPreserved": true,
+    "financialMutationsPerformed": false
+  },
+  "remaining": [
+    "Compare and isolate deployed wallet package changes",
+    "Publish narrow patch and verify deployed package",
+    "Audit other provider lifecycle events and cross-source audit reader"
+  ],
+  "financialMutationsPerformed": false
+}

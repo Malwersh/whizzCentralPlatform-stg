@@ -1,0 +1,2345 @@
+{
+  "auditDate": "2026-10-20",
+  "scope": "Unified finance plan through231; customer cancellation slice published; remaining OECSR actively under implementation",
+  "reviewOnly": false,
+  "newImplementationStarted": true,
+  "financialMutationsPerformed": false,
+  "freshLiveAudit": "finance-plan-live-audit-2026-10-20.json",
+  "currentDeviceEvidence": {
+    "customer": {
+      "build": 213,
+      "mode": "Release",
+      "record": "implementation-checkpoint-231.json",
+      "installed": true,
+      "launched": true
+    },
+    "driver": {
+      "build": 211,
+      "mode": "Release",
+      "installed": true,
+      "launchCheck": "verified on iMohammed after unlock",
+      "record": "implementation-checkpoint-230.json"
+    },
+    "merchant": {
+      "build": 214,
+      "mode": "Release",
+      "record": "implementation-checkpoint-221.json"
+    },
+    "merchantSimulator": {
+      "build": 217,
+      "mode": "Debug",
+      "record": "implementation-checkpoint-231.json",
+      "installed": true,
+      "launched": true
+    }
+  },
+  "workstreams": [
+    {
+      "id": "A01",
+      "name": "وحدة الدينار وتوزيع مبالغ الطلب والقيود المتوازنة",
+      "state": "APPLIED_ACTIVE",
+      "parts": "الأجزاء1–3،17،21،96–97،135–138،208",
+      "current": "مطبقة في المسار العام الجديد مع ثبات عقود الطلبات السابقة.",
+      "remaining": "مطابقة العقود الجديدة والحسابات مثبتة؛ لا يعاد احتساب التاريخ.",
+      "evidence": [
+        "full-cash-publication-208.json",
+        "full-cash-verification-208.json"
+      ]
+    },
+    {
+      "id": "A02",
+      "name": "عرض السعر والطريق والحد الأدنى والتقريب",
+      "state": "APPLIED_ACTIVE",
+      "parts": "الأجزاء3–17،56–63،87–88،123–124،158،169–179،208",
+      "current": "العرض الخادمي والطرق والتجديد والحدود منشورة ومفعلة؛ الفرع يحتاج اتفاقيته وأسعاره المعتمدة.",
+      "remaining": "لا تُفعّل أسعار أو اتفاقيات نيابة عن مطعم غير مجهز.",
+      "evidence": [
+        "full-cash-publication-208.json",
+        "finance-coordinated-pricing-readers-staging-63.json",
+        "implementation-checkpoint-222.json"
+      ]
+    },
+    {
+      "id": "A03",
+      "name": "الاتفاقيات التجارية والخصومات وتمويلها",
+      "state": "APPLIED_ACTIVE_ACCEPTANCE_MATRIX_OPEN",
+      "parts": "الأجزاء17،60–83،126–151،182–187،208",
+      "current": "نشر عام؛ الخصم حسب مموله ودعم التوصيل واللقطات محفوظة، وقبول المالك ضمن المسار القائم.",
+      "remaining": "اختبارات أجهزة بعد208 لكل تمويل: منصة/مطعم/مشترك، مجاني، ومساهمة منصة سالبة؛ نجاح خصم مطعم10٪ لا يثبت جميع هذه الحالات.",
+      "evidence": [
+        "finance-campaign-versioning-staging-62.json",
+        "store-delivery-agreement-publication-182.json",
+        "full-cash-publication-208.json",
+        "implementation-checkpoint-222.json"
+      ]
+    },
+    {
+      "id": "A04",
+      "name": "الموجات والعرض والقبول والرفض وإعادة البحث",
+      "state": "APPLIED_ACTIVE",
+      "parts": "الأجزاء14–20،24،33–57،90–95،140،147،152–166،188–192،208",
+      "current": "الحزم الحالية مطابقة، والتشغيل العام REQUIRED وعامل المهلة مفعّل كل دقيقة.",
+      "remaining": "الأداء المستخدم LEGACY_METRICS؛ الإنقاذ الممول وScore/Tiers ليسا ميزتين مكتملتين خلف مفتاح.",
+      "evidence": [
+        "full-cash-publication-208.json",
+        "finance-plan-live-audit-2026-10-20.json"
+      ]
+    },
+    {
+      "id": "A05",
+      "name": "التحصيل النقدي واحتفاظ السائق بكامل أجرته وإكراميته",
+      "state": "APPLIED_ACTIVE_REAL_ORDERS_VERIFIED",
+      "parts": "الأجزاء20–21،95–97،138،208",
+      "current": "المعادلة الجديدة مفعلة عمومًا؛ الاستحقاق والحجز والإكرامية والمحفظة لا تُحسب مرتين.",
+      "remaining": "إغلاق قبول الأجهزة لسيناريوهات الانقطاع والعودة وتنوع التمويل يحتاج مصفوفة مستقلة، وليس إعادة تهيئة حساب اختبار.",
+      "evidence": [
+        "full-cash-verification-208.json",
+        "completed-order-audit-211.json",
+        "merchant-account-live-read-212.json"
+      ]
+    },
+    {
+      "id": "A06",
+      "name": "إلغاء COD وفك الإسناد والعودة المؤكدة",
+      "state": "PUBLISHED_ACTIVE_HUMAN_ACCEPTANCE_OPEN",
+      "parts": "الأجزاء22–23،28،139،148،208",
+      "current": "أعلام الإلغاء/العودة في المضيفين المعنيين REQUIRED؛ العقود واختبارات الاستعادة موجودة.",
+      "remaining": "لم أجد دليل قبول هاتف كامل لعودة مؤكدة بعد الاستلام، ورفض عودة، وانقطاع أثناء الانتقال على النسخة العامة الأخيرة.",
+      "evidence": [
+        "finance-plan-live-audit-2026-10-20.json",
+        "full-cash-publication-208.json"
+      ]
+    },
+    {
+      "id": "A07",
+      "name": "تتبع الطلب وLive Activity",
+      "state": "APPLIED_ACTIVE_IOS_BEHAVIOR_CONFIRMED",
+      "parts": "الأجزاء98–100،193،202،210",
+      "current": "التحديث من الخادم والإنهاء والرابط مثبتة باختبارات/تأكيدات المستخدم؛ تصميم210 بُني وثُبّت وشُغّل.",
+      "remaining": "مراجعة شكل التصميم210 على شاشة القفل لطلب جديد ليست إثباتًا مسجلًا؛ قبول Android الخلفي بعد208 يبقى منفصلًا.",
+      "evidence": [
+        "live-activity-background-202.json",
+        "live-activity-design-210.json"
+      ]
+    },
+    {
+      "id": "A08",
+      "name": "استقبال المطعم والإشعارات والأصوات",
+      "state": "APPLIED_IOS_ANDROID_ACCEPTANCE_OPEN",
+      "parts": "الأجزاء24،39–42،98–100،154–155،157–168،202",
+      "current": "استقبال وحالات وأصوات وقنوات منشورة؛ نجاح دورة المستخدم إلى التاجر والسائق مؤكد في تجارب iPhone.",
+      "remaining": "لا يكفي ذلك لإعلان اكتمال Android بالخلفية/القفل أو كل أنواع إشعارات الموافقات وOTP.",
+      "evidence": [
+        "finance-uploaded-sounds-android-tracking-100.json",
+        "financial-host-publication-status-156.json"
+      ]
+    },
+    {
+      "id": "A09",
+      "name": "مستحقات المطعم وكشف القيود والتفاصيل والفلاتر",
+      "state": "APPLIED_ACTIVE_ZERO_NET_COVERAGE_FIXED",
+      "parts": "الأجزاء106–109،204–206،208،211–212،221",
+      "current": "مفعلة للمطعم والإدارة والطباعة؛ تشمل القيود المسجلة والطلبات المكتملة ذات الصافي الصفري المتحقق منها، دون إنشاء قيد أو صرف صفري وهمي. القراءة الحية221:7طلبات43575د.ع، دون مراجعات. العمولة محسوبة في الصافي أصلًا.",
+      "remaining": "الحركات غير المدعومة تعرض للمراجعة وتستبعد من المجاميع. السجل قراءة قوية متعددة العناصر وليس كشفًا مجمدًا؛ تجهيز الكشوف والصرف يبقى ضمن دورته المنفصلة. قائمة اختيار الطلبات القديمة تعتمد على القيود؛ تجميع الفترة216 يغطي صافي الصفر.",
+      "evidence": [
+        "merchant-account-publication-212.json",
+        "merchant-account-live-read-212.json",
+        "implementation-checkpoint-221.json",
+        "merchant-account-live-read-221.json"
+      ]
+    },
+    {
+      "id": "A10",
+      "name": "جدول التسوية الأسبوعي/14يومًا/الشهري والكشف الافتتاحي",
+      "state": "ACTIVE_MANUAL_BATCH_SCOPE",
+      "parts": "الأجزاء106–114،204–205،208",
+      "current": "الفترات والموافقات وإصدارات الجدول وموافقة المالك والكشوف المحفوظة موجودة ومنشورة.",
+      "remaining": "الإعداد الحالي يختار حتى10طلبات للكشف عبر الواجهة؛ لا دليل عامل إقفال وتجميع آلي لكل استحقاقات الفترة. يلزم استكمال التغطية وتجربة جدول فعلي وإقفال وافتتاحية ومنع تكرار.",
+      "evidence": [
+        "merchant-payout-verification-209.json",
+        "statement-details-publication-211.json"
+      ]
+    },
+    {
+      "id": "A11",
+      "name": "صرف المطعم النقدي وزين كاش والمطابقة",
+      "state": "PUBLISHED_ACTIVE_REAL_EXECUTION_NOT_VERIFIED",
+      "parts": "الجزء209 مع211–212",
+      "current": "منشور؛ اعتماد وتنفيذ ومطابقة المسؤول نفسه ضمن حده، وإقرار المالك مستقل. رسوم الحوالة لا تخفض حق المطعم، وPAID يحتاج قيدًا مثبتًا.",
+      "remaining": "لا يوجد في الأدلة تنفيذ صرف حقيقي أو وصول OTP وجهة زين كاش. قبول الدورة الفعلية يحتاج إجراءات المالك والمسؤول، ولا تُنفذ حوالة نيابة عنه أثناء المراجعة.",
+      "evidence": [
+        "merchant-payout-publication-209.json",
+        "merchant-payout-verification-209.json"
+      ]
+    },
+    {
+      "id": "A12",
+      "name": "تصدير الكشف",
+      "state": "ACTIVE_LIMITED_EXPORT",
+      "parts": "الجزء211",
+      "current": "CSV لكشف محفوظ والطباعة/حفظ PDF عبر المتصفح يعملان ضمن الحد الحالي، مع إعادة التحقق من الصلاحية.",
+      "remaining": "XLSX، PDF خادمي، تصدير كبير قابل للاستئناف، وتجربة التصدير من الهاتف ليست مكتملة بهذه الإضافة.",
+      "evidence": [
+        "statement-details-page-publication-211.json"
+      ]
+    },
+    {
+      "id": "A13",
+      "name": "المحافظ والتحويلات الداخلية وإعداداتها والمطابقة الأساسية",
+      "state": "PUBLISHED_ACTIVE_ACCEPTANCE_OPEN",
+      "parts": "الجزء207 وما سبقه؛209 للمنح المحددة",
+      "current": "الواجهة وأخطاء الحقول أصلحت؛ خدمات المحفظة والموظفين تعمل بوضع staging/DIRECT، ولا يفرض الوضع الحالي موظفًا ثانيًا.",
+      "remaining": "إكمال قبول التحويلات والحدود والاسترجاع والمطابقة بأدوار حقيقية؛ التحويل الداخلي ليس صرف مستحقات المطعم ولا قبض بطاقة.",
+      "evidence": [
+        "finance-operations-publication-207.json",
+        "finance-plan-live-audit-2026-10-20.json"
+      ]
+    },
+    {
+      "id": "A14",
+      "name": "تحويل موظف من جهاز المطعم",
+      "state": "LOCAL_NOT_PUBLISHED",
+      "parts": "خطة انتقال التاجر، العمل السابق75",
+      "current": "مصدر وخدمة وشاشة محلية موجودة. AWS يؤكد staging-merchant-device-transfers بحالة REVIEW_IN_PROGRESS، وطلب تغييرات غير منفذ.",
+      "remaining": "مراجعة المصدر والتبعيات والمنح والحدود والاختبارات ثم نشر متناسق؛ لا يكفي فتح القدرة أو تنفيذ طلب التغييرات القديم كما هو.",
+      "evidence": [
+        "merchant-wallet-infrastructure-adoption-75.json",
+        "finance-plan-live-audit-2026-10-20.json"
+      ]
+    },
+    {
+      "id": "A15",
+      "name": "قوالب المدير الشامل والمالي والتفويض والأجهزة",
+      "state": "PARTIAL_EXISTING_BASELINE_FUTURE_CAPABILITIES_CLOSED",
+      "parts": "خطة التاجر74–76؛المرحلة10 من الخطة الموحدة",
+      "current": "العضوية والجهاز والسحب والحراس الأساسية منشورة؛ صلاحيات موجودة لا تتوسع تلقائيًا بسبب لقب.",
+      "remaining": "الحزم الشاملة لا تعد مكتملة مع بقاء التحويل والتفويض والمنتجات/الاستيراد المتقدم. إكمال الموجود قبل فتح أدوار شاملة.",
+      "evidence": [
+        "merchant-onboarding-branches-staff-transition-plan.md"
+      ]
+    },
+    {
+      "id": "A16",
+      "name": "الاحتفاظ والحذف واستعادة المحاولات",
+      "state": "APPLIED_ACTIVE",
+      "parts": "الأجزاء25،39،61،108،111،209",
+      "current": "الحزم الحالية متطابقة؛ عوامل الحذف وتكاملCOD وإعادة المحاولة مفعلة، مع حماية مصادر المال والوجهات.",
+      "remaining": "يستمر شرط جرد الترحيل/التصريف قبل إزالة توافق أو سجل قديم؛ لا يستنتج خلو التاريخ من نجاح اختبار تركيبي.",
+      "evidence": [
+        "merchant-payout-publication-209.json",
+        "finance-plan-live-audit-2026-10-20.json"
+      ]
+    },
+    {
+      "id": "A17",
+      "name": "تنظيف التوافق والترحيل ومطابقة البنية",
+      "state": "CLOSURE_EVIDENCE_OPEN",
+      "parts": "T7 وسجل51 وما بعد208",
+      "current": "عقود V1/V2 محفوظة لتاريخها؛ نطاقات الاختبار القديمة لم تعد شرطًا لإنشاء طلب عام جديد.",
+      "remaining": "لا دليل إقفال شامل لكل طلب/مهمة/حجز قديم أو إدراج كل تعديلات النشر اليدوي في القوالب. يلزم جرد وتصريف وتوثيق؛ لا تُحذف القيود أو يعاد تسعيرها.",
+      "evidence": [
+        "finance-runtime-transition-51.md",
+        "full-cash-publication-208.json",
+        "implementation-checkpoint-222.json"
+      ]
+    },
+    {
+      "id": "A18",
+      "name": "قبض البطاقة وPrepaid",
+      "state": "DEFERRED_BY_USER_PROVIDER_CONTRACT",
+      "parts": "208.6 والمرحلة5",
+      "current": "الأساس الحسابي والحراس جاهزة بالقدر الموثق، وواجهة البطاقة غير متاحة بقرار المستخدم.",
+      "remaining": "لا بوابة قبض طلبات متعاقدة أو دورة Capture/Webhook/Refund مثبتة. sandbox للشحن لا يكفي. يظل التأجيل المعتمد، ولا يوصف الدفع الحقيقي مكتملًا.",
+      "evidence": [
+        "implementation-checkpoint-208.json"
+      ]
+    },
+    {
+      "id": "A19",
+      "name": "الصرف المصرفي للمطعم",
+      "state": "DEFERRED_BY_USER",
+      "parts": "7.3 والجزء209",
+      "current": "معطل بوسم قريبًا؛ النقد وزين كاش اليدوي هما الوسيلتان المعتمدتان.",
+      "remaining": "لا يفتح ضمن التصفية دون قرار وربط مزود معتمد.",
+      "evidence": [
+        "merchant-payout-publication-209.json"
+      ]
+    },
+    {
+      "id": "N01",
+      "name": "Refund/Dispute/Chargeback والتعويضات الشاملة",
+      "state": "PLAN_NOT_FULLY_IMPLEMENTED",
+      "parts": "6.4 والمرحلة7",
+      "current": "مطلوب في الخطة؛ عودة COD القائمة لا تنفذ ردًا للزبون أو أجر عودة تلقائيًا.",
+      "remaining": "أعمال جديدة لاحقة، وليست مجرد دالة مكتملة تنتظر تفعيلًا.",
+      "evidence": [
+        "finance-pricing-settlements-returns-unified-plan.md",
+        "backend/wallet-service/src/codReturn.ts"
+      ]
+    },
+    {
+      "id": "N02",
+      "name": "Pending/Withdrawable وسحب السائق المتكامل",
+      "state": "PLAN_NOT_FULLY_IMPLEMENTED",
+      "parts": "المرحلتان5و9",
+      "current": "المحفظة الحالية والتحويل الداخلي موجودان، وليسا دورة سحب وأهلية أرباح متكاملة.",
+      "remaining": "تنفيذ مستقل لاحق مع مصادر تمويل وأدلة صرف وحدود؛ لا يستنتج من رصيد المحفظة.",
+      "evidence": [
+        "finance-pricing-settlements-returns-unified-plan.md"
+      ]
+    },
+    {
+      "id": "N03",
+      "name": "Metrics الجديدة وScore/Tiers والإنقاذ الممول",
+      "state": "PLAN_NOT_IMPLEMENTED_AS_V16",
+      "parts": "ملحقv1.6 وv1.5.1",
+      "current": "التشغيل الحالي LEGACY_METRICS؛ المصدر يرفض تفعيل recovery الممول قبل وجود كاتبه.",
+      "remaining": "تعريف مصادر ومقاييس وتقييم العميل ومستويات وShadow واعتماد؛ ليست مفاتيح يمكن فتحها الآن.",
+      "evidence": [
+        "driver-performance-v1.6-gap-analysis-and-integration.md",
+        "backend/wallet-service/src/dispatchPolicy.ts"
+      ]
+    },
+    {
+      "id": "N04",
+      "name": "المنتجات والخيارات والمخزون والاستيراد والكتالوج المتقدم",
+      "state": "PLAN_PARTIALLY_IMPLEMENTED",
+      "parts": "المرحلة10 وخطة المنتجات",
+      "current": "منتجات وقائمة أساسية موجودة؛ ليست منظومة خيارات ومخزون واستيراد جماعي وكتالوج كاملة.",
+      "remaining": "استكمال الباقي لاحقًا وفق نطاقه، وعدم خلطه بمعلقات نشر دورةCOD.",
+      "evidence": [
+        "merchant-menu-products-images-audit-and-plan.md"
+      ]
+    }
+  ],
+  "partsTrace": [
+    {
+      "part": 1,
+      "title": "سجل التنفيذ — الجزء الأول: عقد المبالغ — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 2,
+      "title": "سجل التنفيذ — الجزء الثاني: توزيع مبالغ الطلب — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 3,
+      "title": "سجل التنفيذ — الجزء الثالث: محرك رسوم التوصيل وأجرة السائق — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 4,
+      "title": "سجل التنفيذ — الجزء الرابع: إدارة التسعير المركزية والمحاكاة — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 5,
+      "title": "سجل التنفيذ — الجزء الخامس محول الطريق الخادمي — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 6,
+      "title": "سجل التنفيذ — الجزء السادس ربط المناطق وH3 — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 7,
+      "title": "سجل التنفيذ — الجزء السابع قراءة اعتماد مزود الطريق — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 8,
+      "title": "سجل التنفيذ — الجزء الثامن ربط مراجع التسعير — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 9,
+      "title": "سجل التنفيذ — الجزء التاسع حفظ عرض رسم التوصيل — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 10,
+      "title": "سجل التنفيذ — الجزء العاشر استهلاك العرض مع الطلب — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 11,
+      "title": "سجل التنفيذ — الجزء الحادي عشر API العرض وشاشة التأكيد — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 12,
+      "title": "سجل التنفيذ — الجزء الثاني عشر تجهيز اعتماديات النشر ومطابقة الحزم — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 13,
+      "title": "سجل التنفيذ — الجزء الثالث عشر ضبط معدل طلبات تسعير التوصيل — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 14,
+      "title": "سجل التنفيذ — الجزء الرابع عشر أساس عقد عرض أجرة السائق — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 15,
+      "title": "سجل التنفيذ — الجزء الخامس عشر قارئ لقطة الطلب المالية لعرض السائق — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "delivery-quote-release-preflight-2026-10-15.json",
+        "finance-payments-audit-2026-10-15.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 16,
+      "title": "سجل التنفيذ — الجزء السادس عشر مصدر أسعار السلع من المنتجات القائمة — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 17,
+      "title": "سجل التنفيذ — الجزء السابع عشر حساب العمولة ورسوم الخدمة وحصص خصم السلع — 2026-10-15",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 18,
+      "title": "سجل التنفيذ — الجزء الثامن عشر حفظ عرض السائق واستعادة إقرار الكتابة — 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 19,
+      "title": "سجل التنفيذ — الجزء التاسع عشر مصادر عرض السائق وربطها بالحفظ — 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 20,
+      "title": "سجل التنفيذ — الجزء العشرون ربط الموجات وإرسال العرض والقبول والحجز الذري — 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-plan-live-audit-2026-10-20.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 21,
+      "title": "سجل التنفيذ — الجزء الحادي والعشرون إكمال COD والتسوية الذرية — 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 22,
+      "title": "سجل التنفيذ — الجزء الثاني والعشرون عودة COD وتأكيد الاستلام وفك الحجز — 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 23,
+      "title": "الجزء 23 — واجهات العودة والإلغاء قبل الاستلام وإعادة الإسناد والتحقق التركيبي، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-cod-lifecycle-staging-23.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 24,
+      "title": "الجزء 24 — ربط الأحداث بالعدادات وصندوق إشعارات السائق، محلي وغير مفعّل، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-cod-integration-review-24.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 25,
+      "title": "الجزء 25 — تكامل القبول والحذف والاحتفاظ والتحقق المنسق للمعاملات، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-cod-acceptance-retention-staging-25.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 26,
+      "title": "الجزء 26 — نشر عقود COD على Staging ببوابات مغلقة والتحقق من حدودها، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-cod-staging-release-26.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 27,
+      "title": "الجزء 27 — اعتماديات كاتب الطلب وقراءة التاجر وخصوصية الردود، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-cod-order-dependencies-staging-27.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 28,
+      "title": "الجزء 28 — تحصين مداخل الحالة المراجعة وتوحيد مآلات العودة، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-cod-legacy-fences-staging-28.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 29,
+      "title": "الجزء 29 — جاهزية التاجر وبنية عرض السعر المغلقة، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-cod-quote-readiness-staging-29.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 30,
+      "title": "تجهيز الجزء 30 — تدقيق الاعتماديات والتحقق المعزول لتمويل الخصم، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-commercial-writer-access-proposal-30.json",
+        "finance-commercial-readiness-funding-30.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 31,
+      "title": "الجزء 31 — الحدود المعتمدة وتعذر البحث دون إلغاء أو فك أموال، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-operating-limits-search-exhaustion-31.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 32,
+      "title": "إدارة حدود التشغيل من Settings — الجزء 32، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-delivery-operations-settings-staging-32.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 33,
+      "title": "عقد الموجات وتثبيت دورة البحث — الجزء 33، تنفيذ محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-cycle-foundation-33.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 34,
+      "title": "مطالبة انتقال مشتركة وحجز العامل — الجزء34، تنفيذ محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-transition-coordinator-34.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 35,
+      "title": "منفذ الموجة المالية القابل للاستئناف والقبول والرفض — الجزء35، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-financial-executor-35.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 36,
+      "title": "ربط منشئ المهمة واختيار المرشحين المشترك — الجزء36، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-creator-candidates-36.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 37,
+      "title": "محول الموجات القديمة والإسناد الذري بحجز قائم — الجزء37، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-legacy-adapter-37.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 38,
+      "title": "جسر قبول Legacy بنتيجة دائمة دون فك تلقائي — الجزء38، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-legacy-acceptance-bridge-38.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 39,
+      "title": "استهلاك أحداث رد السائق وإغلاق العروض والاحتفاظ — الجزء39، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-response-integration-retention-39.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 40,
+      "title": "استقبال سحب العرض في تطبيق السائق ومنع استعادته المتأخرة — الجزء40، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-driver-offer-closure-client-40.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 41,
+      "title": "مصدر عرض Legacy المثبت ووحدة الدينار والرسالة المحفوظة — الجزء41، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-legacy-source-message-41.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 42,
+      "title": "ربط ناقل العرض القائم وإقرارات القنوات واستقبال Push — الجزء42، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-legacy-transport-42.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 43,
+      "title": "واجهة مراجعة الإسناد وطلبات القرار المخوّل — الجزء43، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-review-requests-43.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 44,
+      "title": "منفّذ قرار الموظف والإلغاء الأولي بلا حجز وتكامل الاحتفاظ — الجزء44، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-review-executor-44.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 45,
+      "title": "عزل مفاتيح دورات البحث وحماية أدلة العروض — الجزء45، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-cycle-namespace-45.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 46,
+      "title": "إعادة بحث Legacy ذريًا وسجل البدء القابل للاستئناف — الجزء46، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-restart-durable-start-46.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 47,
+      "title": "ربط مضيف Legacy الدوري ونقاط الدخول والمهل — الجزء47، محلي 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-legacy-periodic-host-47.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 48,
+      "title": "تجهيز الحزم من المنشور ومراجعة الصلاحيات — الجزء48، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-coordinated-release-preparation-48.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 49,
+      "title": "نشر الربط المنسق ببوابات مغلقة وصلاحية قراءة السائق — الجزء49، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-closed-staging-release-49.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 50,
+      "title": "سياسة الموجات المركزية ومضيف القرار والحذف والتحقق المنسق — الجزء50، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-dispatch-policy-host-retention-staging-50.json",
+        "finance-dispatch-policy-transition-50.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 51,
+      "title": "69. سجل الانتقال ومطابقة الأجزاء المنجزة — الجزء51، 2026-10-16",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-transition-package-audit-51.json",
+        "finance-transition-live-audit-51.json",
+        "finance-transition-register-51.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 52,
+      "title": "70. دمج أهلية العروض المنشورة ومعاملة السعر وتجهيز المرشحين — الجزء52",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-transition-integration-52.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 53,
+      "title": "71. حارس نطاق التجربة وتثبيته الذري والتصريف — الجزء53",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-rollout-scope-53.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 54,
+      "title": "72. تجهيز الحزم المنسقة وصلاحيات العينة وتأكيد Checkout — الجزء54",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-scoped-release-preparation-54.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 55,
+      "title": "73. النشر المنسق المغلق والتحقق الفعلي — الجزء55",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-scoped-staging-release-55.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 56,
+      "title": "74. نشر إدارة التسعير القائمة وتجهيز سر الطريق — الجزء56",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-pricing-routing-staging-56.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 57,
+      "title": "75. ربط سر الطريق بالمضيفين الفعليين والتحقق — الجزء57",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-routing-binding-staging-57.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 58,
+      "title": "76. صلاحيات الكاتب ومقترح الأسعار والعمولات المرنة — الجزء58",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-commercial-pricing-proposal-58.json",
+        "finance-commercial-writer-and-proposal-58.json",
+        "finance-commercial-readiness-review-58.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 59,
+      "title": "77. اعتماد القيم وتنفيذ التقريب القابل للضبط — الجزء59",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-approved-rounding-local-59.json",
+        "finance-commercial-pricing-approval-59.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 60,
+      "title": "78. واجهات الاتفاقيات والعمولات والتمويل ونشرها المغلق — الجزء60",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-commercial-branch-picker-ui-60.json",
+        "finance-commercial-ui-staging-60.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 61,
+      "title": "79. تكامل الاتفاقيات والتمويل مع الحذف والاحتفاظ — الجزء61، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-commercial-retention-staging-61.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 62,
+      "title": "80. توحيد إصدارات الخصومات وكتّابها والنشر الفعلي — الجزء62، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-campaign-versioning-staging-62.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 63,
+      "title": "81. نشر قارئات التسعير والتمويل المنسقة وربط تأكيد المستخدم — الجزء63، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-coordinated-pricing-readers-staging-63.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 64,
+      "title": "82. تجهيز عينة فتوش وموافقاتها في الواجهات الحالية — الجزء64، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-approved-sample-workflow-staging-64.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 65,
+      "title": "83. قرار الإدارة المباشرة في نسخة Staging وإرجاء الاعتماد المستقل — الجزء65، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-direct-platform-workflow-staging-65.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 66,
+      "title": "84. إصلاح تحميل صفحة الموظفين بعد وضع الحفظ المباشر — الجزء66، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-staff-page-load-fix-staging-66.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 67,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 68,
+      "title": "85. اختيار فروع التسعير بالاسم — الجزء68، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-pricing-branch-selector-staging-68.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 69,
+      "title": "86. تصحيح مصدر فروع التسعير — الجزء69، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-pricing-branch-source-fix-69.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 70,
+      "title": "87. تصحيح مصادقة اتفاقية المالك على المحاكي — الجزء70، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-merchant-agreement-auth-fix-70.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 71,
+      "title": "88. تنسيق اتفاقية المالك وعرض الشروط بوضوح — الجزء71، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-merchant-agreement-presentation-71.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 72,
+      "title": "89. مرجع دعم قصير وفريد للاتفاقية — الجزء72، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-commercial-support-reference-72.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 73,
+      "title": "90. فحص تحديثات الزميل وتبسيط إعداد تمويل الخصومات — الجزء73، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-funding-picker-staging-73.json",
+        "finance-discount-coworker-review-73.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 74,
+      "title": "91. إصلاح قراءة خيارات التمويل عبر الخدمة المخولة — الجزء74، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-funding-options-reader-fix-74.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 75,
+      "title": "سياسة جلسة موظف المنصة — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-platform-session-policy-75.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 76,
+      "title": "تصحيح تمويل الخصومات والمشاركة المستقلة — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-discount-sharing-source-defaults-76.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 77,
+      "title": "توضيح بطاقة مشاركة الخصم — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-sharing-card-presentation-77.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 78,
+      "title": "بطاقات قابلة للطي وإشعارات مشاركة المالك — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-sharing-notifications-and-accordion-78.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 79,
+      "title": "تحقق إشعارات الهاتف وتصحيح التسجيل — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 80,
+      "title": "إشعار المنصة بالموافقة وتحديث الحالة — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-platform-approval-notifications-80.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 81,
+      "title": "جرس موافقات المشاركة وقائمة قابلة للإغلاق — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-platform-approval-notice-presentation-81.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 82,
+      "title": "توضيح رفض الموافقة على إصدار خصم قديم — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-sharing-stale-campaign-conflict-82.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 83,
+      "title": "تبسيط موافقة مشاركة الخصومات للمالك أو المدير — 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-owner-or-manager-sharing-83.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 84,
+      "title": "101. استئناف العينة المالية المنسقة — الجزء84، 2026-10-17",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-sample-readiness-resumed-84.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 85,
+      "title": "102. تحديد حسابي التجربة وتمويل محفظة السائق — الجزء85، 2026-10-17",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-selected-accounts-and-driver-funding-85.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 86,
+      "title": "103. بدء عينة طلب واحد بالأدوار الفعلية — الجزء86، 2026-10-17",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-one-order-canary-activation-86.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 87,
+      "title": "104. تجديد سعر التوصيل تلقائيًا وتشخيص فشل المراجعة — الجزء87، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-automatic-quote-refresh-87.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 88,
+      "title": "105. القائمة السفلية لتأكيد الإجمالي وتصحيح بطاقة المطعم — الجزء88، 2026-10-17",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-confirmation-sheet-and-merchant-card-88.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 89,
+      "title": "106. وصول الطلب إلى جاهز للاستلام وتمديد نافذة العينة — الجزء89، 2026-10-17",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-canary-admission-extension-89.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 90,
+      "title": "107. Part 90 — Driver search position freshness",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-canary-driver-position-90.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 91,
+      "title": "108. Part 91 — Replacement one-order canary",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-replacement-canary-91.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 92,
+      "title": "109. Part 92 — Complete driver offer display",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-driver-offer-display-92.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 93,
+      "title": "110. Part 93 — Financial wave continuation audit and repair",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-wave-continuation-93.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 94,
+      "title": "111. Part 94 — Authorized cancellation and fresh checkout",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-canary-cancellation-94.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 95,
+      "title": "112. Part 95 — Live four-wave progression and actual driver acceptance",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-live-four-waves-acceptance-95.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 96,
+      "title": "113. Part 96 — Actual COD settlement verified; display/payment projection fixed",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-live-settlement-and-wallet-history-96.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 97,
+      "title": "114. Part 97 — Resume pending COD integration",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-cod-integration-pricing-97.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 98,
+      "title": "115. Part 98 — Merchant reception and customer Live Activity",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "merchant-reception-live-activity-98.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 99,
+      "title": "116. Part 99 — Reception, notification sounds and arrival tracking — Staging deployed",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-reception-notification-staging-99.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 100,
+      "title": "117. Part 100 — Uploaded notification sounds and Android order tracking",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-uploaded-sounds-android-tracking-100.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 101,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 102,
+      "title": "finance-direct-virtual-test-credit-102",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-direct-virtual-test-credit-102.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 103,
+      "title": "118. Part 103 — Merchant-funded discount canary prepared",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "otp-delivery-diagnostic-103.json",
+        "finance-merchant-discount-canary-103.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 104,
+      "title": "119. Part 104 — Merchant business-list authentication import repaired",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-merchant-identity-import-104.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 105,
+      "title": "120. Part 105 — Discount/device test explicitly paused by user",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 106,
+      "title": "121. Part 106 — Verified merchant accrual and settlement-preview foundation",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-merchant-settlement-foundation-106.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 107,
+      "title": "122. Part 107 — Immutable saved settlement selections and exclusive payable membership",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-merchant-settlement-batches-107.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 108,
+      "title": "123. Part 108 — Preserve settlement statements during merchant branch deletion",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-merchant-settlement-retention-108.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 109,
+      "title": "124. Part 109 — Live platform finance authority and approved schedule read adapters",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-merchant-settlement-adapters-109.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 110,
+      "title": "125. Part 110 — Settlement schedule approval workflow and immutable version history",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-merchant-settlement-schedule-workflow-110.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 111,
+      "title": "126. Part 111 — Settlement schedule, consent and approval retention",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-merchant-settlement-schedule-retention-111.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 112,
+      "title": "127. Part 112 — Authenticated schedule routes and platform/merchant interfaces",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-merchant-settlement-admin-ui-112.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 113,
+      "title": "128. Part 113 — Reviewed staging publication, real transaction verification and financial-page access",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-merchant-settlement-staging-release-113.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 114,
+      "title": "129. Part 114 — Schedule administration enabled on staging",
+      "classification": "SUPERSEDED_LOCAL_STATUS_NOW_PUBLISHED",
+      "evidence": [
+        "finance-settlement-schedule-activation-114.json"
+      ],
+      "note": "استكملت ونشرت الأساسات عبر113–114 ثم204و208و209و211؛ تبقى حدود الكشوف وقبول الصرف الفعلي كما في A10/A11."
+    },
+    {
+      "part": 115,
+      "title": "130. Part 115 — New test account readiness",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-test-account-readiness-115.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 116,
+      "title": "131. Part 116 — Telegram fallback for customer, driver and merchant verification",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "otp-telegram-fallback-staging-116.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 117,
+      "title": "otp-telegram-delivery-diagnostic-117",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "otp-telegram-delivery-diagnostic-117.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 118,
+      "title": "132. Part118 — Resume authenticated Fattoush test after OTP recovery",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-resumed-authenticated-canary-118.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 119,
+      "title": "otp-customer-telegram-unavailable-119",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "otp-customer-telegram-unavailable-119.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 120,
+      "title": "133. Part120 — Switch test to Farouj City and customer7435",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-farouj-preset-publication-120.json",
+        "finance-farouj-readiness-120.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 121,
+      "title": "134. Part121 — Return to approved Fattoush with customer7435",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-fattoush-customer7435-canary-121.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 122,
+      "title": "135. Part122 — Physical customer8280 readiness, signing dependency confirmed",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-fattoush-ios-readiness-122.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 123,
+      "title": "136. Part123 — Quiet checkout renewal and expiry-safe confirmation",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-quiet-checkout-refresh-123.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 124,
+      "title": "137. Part124 — Cart correction and delivery tariff/promotion gap audit",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "finance-cart-delivery-capabilities-audit-124.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 125,
+      "title": "finance-delivery-funding-proposal-125",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "finance-delivery-funding-proposal-125.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 126,
+      "title": "138. Part126 — Delivery funding extension (approved scope; implementation started)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 127,
+      "title": "Part127 — Delivery policy content contract and stale-pin protection (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-policy-contract-127.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 128,
+      "title": "Part128 — Reuse commercial proposal/consent/approval workflow for delivery (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-commercial-workflow-128.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 129,
+      "title": "Part129 — User decision: staff sends; merchant acceptance activates (authoritative)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-two-step-activation-129.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 130,
+      "title": "Part130 — Promotion eligibility calculation reuses existing delivery engine (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-promotion-calculation-130.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 131,
+      "title": "Part131 — Consistent exact delivery-policy reader and authority fences (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-policy-reader-131.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 132,
+      "title": "Part132 — Delivery proposal notice and merchant review UI (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-notices-review-132.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 133,
+      "title": "Part133 — Delivery campaign allowance and usage reservation lifecycle (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-campaign-budget-133.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 134,
+      "title": "Part134 — Shared real platform cash reservation builder and transaction composition (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-platform-cash-reservation-134.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 135,
+      "title": "Part135 — Versioned delivery-funded order allocation (local pure contract)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-funded-allocation-135.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 136,
+      "title": "Part136 — Immutable delivery-funded order/offer/acceptance proofs (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-funded-offer-136.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 137,
+      "title": "Part137 — Terminal platform promotion cash-hold resolution planner (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-cash-resolution-137.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 138,
+      "title": "Part138 — Coordinated V2 COD completion transaction and accrual proof (local, opt-in only)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-v2-completion-accrual-138.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 139,
+      "title": "Part139 — Coordinated V2 cancellation, unassignment and clean-return release (local opt-in)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-v2-release-139.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 140,
+      "title": "Part140 — V2 wave issuance, atomic driver acceptance and redispatch (local opt-in)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-v2-driver-workflow-140.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 141,
+      "title": "Part141 — Trusted promotion selection and canonical order-admission composition (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "finance-delivery-order-admission-141.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 142,
+      "title": "Part142 — Customer Lambda dependency closure and authority packaging (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-runtime-validation-142.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 143,
+      "title": "Part143 — Actual customer handler and mobile delivery-promotion consent (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-customer-admission-validation-143.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 144,
+      "title": "Part144 — Driver mobile V2 offer and COD integration compatibility (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-downstream-validation-144.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 145,
+      "title": "Part145 — Mixed V1/V2 merchant settlement summaries and delivery support export (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-mixed-settlement-validation-145.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 146,
+      "title": "Part146 — Financial lifecycle host gates and platform delivery-policy editor (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-platform-runtime-validation-146.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 147,
+      "title": "Part147 — Funded pinned dispatch cycle, candidate selection and wave transitions (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-pinned-dispatch-validation-147.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 148,
+      "title": "Part148 — Pre-acceptance V2 timeout/rejection release, policy edit checks and release audit (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 149,
+      "title": "Part149 — Actual staging package/role inventory and simulated minimal IAM delta",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-live-access-validation-149.json",
+        "delivery-funding-permission-candidates-149.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 150,
+      "title": "Part 150 — Staging-based package overlays and notification access review",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-notification-permission-candidate-150.json",
+        "delivery-release-validation-150.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 151,
+      "title": "Part 151 — Exact release loading and fresh staging drift review",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-coordinated-release-151.json",
+        "delivery-release-validation-151.json",
+        "delivery-publication-receipt-151.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 152,
+      "title": "Part 152 — Shared bounded host for financial wave continuation (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-financial-host-validation-152.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 153,
+      "title": "Part 153 — Scoped hosted financial runtime and existing Lambda entry points (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-financial-runtime-validation-153.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 154,
+      "title": "Part 154 — Financial provider channel acknowledgements (local component)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-financial-channel-validation-154.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 155,
+      "title": "Part 155 — Guarded financial push receiver and driver reference hydration (local)",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "delivery-financial-notification-validation-155.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 156,
+      "title": "Part 156 — Actual host/API audit, isolated notification proof and exact release review",
+      "classification": "SOURCE_AND_HOSTS_PUBLISHED_GENERAL_MODE_ACTIVE",
+      "evidence": [
+        "financial-host-permission-candidates-156.json",
+        "financial-host-validation-156.json",
+        "financial-host-publication-receipt-156.json",
+        "financial-host-coordinated-release-156.json",
+        "financial-host-publication-status-156.json",
+        "financial-driver-source-validation-156.json"
+      ],
+      "note": "أوصاف local/opt-in في السجل تاريخية؛ نشر151/156 ثم208 العام تجاوزها، مع بقاء قبول السيناريوهات الموضح في A03/A06."
+    },
+    {
+      "part": 157,
+      "title": "Part157 — Physical-device builds and one-order test activation",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "financial-device-test-receipt-157.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 158,
+      "title": "checkout-quote-context-repair-158",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "checkout-quote-context-repair-158.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 159,
+      "title": "merchant-queue-composition-repair-159",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "merchant-queue-composition-repair-159.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 160,
+      "title": "dispatch-candidate-repair-160",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "dispatch-candidate-repair-160.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 161,
+      "title": "financial-device-retest-161",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "financial-device-retest-161.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 162,
+      "title": "dispatch-offer-fence-repair-162",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "dispatch-offer-fence-repair-162.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 163,
+      "title": "financial-device-retest-163",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "financial-device-retest-163.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 164,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 165,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 166,
+      "title": "dispatch-host-pagination-repair-166",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "dispatch-host-pagination-repair-166.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 167,
+      "title": "driver-offer-recipient-display-167",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "driver-offer-recipient-display-167.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 168,
+      "title": "cod-device-completion-168",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "cod-device-completion-168.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 169,
+      "title": "storefront-preview-publication-169",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "storefront-preview-publication-169.json",
+        "storefront-preview-permissions-169.json",
+        "storefront-preview-candidate-169.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 170,
+      "title": "storefront-facts-publication-170",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "storefront-facts-publication-170.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 171,
+      "title": "merchant-settings-package-repair-171",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "merchant-settings-package-repair-171.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 172,
+      "title": "address-save-limit-diagnosis-172",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "address-save-limit-diagnosis-172.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 173,
+      "title": "minimum-order-publication-173",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "minimum-order-publication-173.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 174,
+      "title": "store-information-sheet-174",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "store-information-sheet-174.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 175,
+      "title": "funded-delivery-scope-draft-175",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "funded-delivery-scope-draft-175.json",
+        "funded-delivery-resume-175.json",
+        "funded-delivery-test-draft-175.json",
+        "delivery-policy-management-activation-175.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 176,
+      "title": "delivery-policy-design-publication-176",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "delivery-policy-design-publication-176.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 177,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 178,
+      "title": "funded-delivery-scope-draft-178",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "funded-delivery-scope-draft-178.json",
+        "funded-delivery-activation-178.json",
+        "funded-delivery-policy-verified-178.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 179,
+      "title": "checkout-policy-candidate-179",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "checkout-policy-candidate-179.json",
+        "checkout-policy-publication-179.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 180,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 181,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 182,
+      "title": "store-delivery-agreement-candidates-182",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "store-delivery-agreement-candidates-182.json",
+        "store-delivery-agreement-design-publication-182.json",
+        "store-delivery-agreement-publication-182.json",
+        "store-delivery-agreement-device-readiness-182.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 183,
+      "title": "agreement-device-activation-183",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "agreement-device-activation-183.json",
+        "unused-cohort-terminal-audit-183.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 184,
+      "title": "agreement-commit-fix-184",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "agreement-commit-fix-184.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 185,
+      "title": "agreement-condition-fix-185",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "agreement-condition-fix-185.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 186,
+      "title": "agreement-device-activation-186",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "agreement-device-activation-186.json",
+        "unused-cohort-terminal-audit-186.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 187,
+      "title": "agreement-device-order-created-187",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "agreement-device-order-created-187.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 188,
+      "title": "dispatch-save-diagnostic-188",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "dispatch-save-diagnostic-188.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 189,
+      "title": "orders-page-publication-189",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "orders-page-publication-189.json",
+        "dispatch-review-visibility-189.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 190,
+      "title": "orders-page-publication-190",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "orders-page-publication-190.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 191,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 192,
+      "title": "financial-dispatch-recovery-192",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "financial-dispatch-recovery-192.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 193,
+      "title": "customer-tracking-live-activity-193",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "customer-tracking-live-activity-193.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 194,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 195,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 196,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 197,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 198,
+      "title": "financial-page-publication-198",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "financial-page-publication-198.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 199,
+      "title": "discount-tip-test-199",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "discount-tip-test-199.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 200,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 201,
+      "title": "لا سجل مستقل ظاهر في مراجع المراجعة",
+      "classification": "NO_INDEPENDENT_RECORD_FOUND",
+      "evidence": [],
+      "note": "فجوة توثيق في التسلسل، وليست دليلًا على ميزة ناقصة أو مكتملة."
+    },
+    {
+      "part": 202,
+      "title": "live-activity-background-202",
+      "classification": "HISTORICAL_SOURCE_ADOPTED_BY_LATER_RELEASE",
+      "evidence": [
+        "live-activity-background-202.json"
+      ],
+      "note": "الحالة القديمة وقت كتابتها لا تعني حالة التشغيل اليوم؛ راجع مجموعة الوظيفة وأدلة208–212."
+    },
+    {
+      "part": 203,
+      "title": "financial-order-review-203",
+      "classification": "HISTORICAL_TEST_OR_DIAGNOSTIC_RECORD",
+      "evidence": [
+        "financial-order-review-203.json"
+      ],
+      "note": "لا يعاد فتح نطاق تجربة قديم. تفعيل208 العام قائم؛ إقفال كل طلب قديم يحتاج جرده لا افتراض نهايته."
+    },
+    {
+      "part": 204,
+      "title": "متابعة الجزء 204 — إصلاح كشف المستحقات والجدولة واعتماد المسؤول نفسه",
+      "classification": "PUBLISHED_ACTIVE_WITH_FUNCTIONAL_SCOPE_LIMITS",
+      "evidence": [
+        "financial-admin-repair-204.json",
+        "financial-page-publication-204.json"
+      ],
+      "note": "كود التشغيل والمنشور مطابق في عينة التدقيق. لا يساوي نشره إقفال كل اختبارات البشر أو التغطية الشاملة."
+    },
+    {
+      "part": 205,
+      "title": "متابعة الجزء 205 — تمييز انتهاء مهلة جلسة التعديل",
+      "classification": "PUBLISHED_ACTIVE_WITH_FUNCTIONAL_SCOPE_LIMITS",
+      "evidence": [
+        "schedule-session-repair-205.json"
+      ],
+      "note": "كود التشغيل والمنشور مطابق في عينة التدقيق. لا يساوي نشره إقفال كل اختبارات البشر أو التغطية الشاملة."
+    },
+    {
+      "part": 206,
+      "title": "متابعة الجزء 206 — تبسيط عرض مستحقات المطعم",
+      "classification": "PUBLISHED_ACTIVE_WITH_FUNCTIONAL_SCOPE_LIMITS",
+      "evidence": [
+        "settlement-presentation-publication-206.json"
+      ],
+      "note": "كود التشغيل والمنشور مطابق في عينة التدقيق. لا يساوي نشره إقفال كل اختبارات البشر أو التغطية الشاملة."
+    },
+    {
+      "part": 207,
+      "title": "متابعة الجزء 207 — إصلاح أقسام المحافظ والتحويلات والمتابعة",
+      "classification": "PUBLISHED_ACTIVE_WITH_FUNCTIONAL_SCOPE_LIMITS",
+      "evidence": [
+        "finance-operations-publication-207.json"
+      ],
+      "note": "كود التشغيل والمنشور مطابق في عينة التدقيق. لا يساوي نشره إقفال كل اختبارات البشر أو التغطية الشاملة."
+    },
+    {
+      "part": 208,
+      "title": "متابعة الجزء 208 — احتفاظ السائق بكامل أجرته نقدًا وفصل المستحقات عن السيولة",
+      "classification": "PUBLISHED_ACTIVE_WITH_FUNCTIONAL_SCOPE_LIMITS",
+      "evidence": [
+        "full-cash-device-208.json",
+        "full-cash-page-publication-208.json",
+        "full-cash-publication-208.json",
+        "full-cash-verification-208.json"
+      ],
+      "note": "كود التشغيل والمنشور مطابق في عينة التدقيق. لا يساوي نشره إقفال كل اختبارات البشر أو التغطية الشاملة."
+    },
+    {
+      "part": 209,
+      "title": "الجزء 209 — طلب صرف مستحقات المطعم والتنفيذ اليدوي والمطابقة",
+      "classification": "PUBLISHED_ACTIVE_WITH_FUNCTIONAL_SCOPE_LIMITS",
+      "evidence": [
+        "implementation-checkpoint-209.json",
+        "merchant-payout-publication-209.json",
+        "merchant-payout-verification-209.json",
+        "merchant-payout-page-publication-209.json"
+      ],
+      "note": "كود التشغيل والمنشور مطابق في عينة التدقيق. لا يساوي نشره إقفال كل اختبارات البشر أو التغطية الشاملة."
+    },
+    {
+      "part": 210,
+      "title": "live-activity-design-210",
+      "classification": "IOS_RELEASE_INSTALLED_LAUNCH_VERIFIED",
+      "evidence": [
+        "live-activity-design-210.json"
+      ],
+      "note": "تصميم فقط؛ سلوكAPNs/الإنهاء/الرابط مثبت سابقًا، والمراجعة البصرية للنسخة210 على طلب لاحق مستقلة."
+    },
+    {
+      "part": 211,
+      "title": "الجزء211 — استئناف دورة الصرف وتفاصيل الكشف المحفوظ والتصدير المحدود",
+      "classification": "PUBLISHED_ACTIVE_WITH_FUNCTIONAL_SCOPE_LIMITS",
+      "evidence": [
+        "statement-details-page-publication-211.json",
+        "completed-order-audit-211.json",
+        "implementation-checkpoint-211.json",
+        "statement-details-publication-211.json"
+      ],
+      "note": "كود التشغيل والمنشور مطابق في عينة التدقيق. لا يساوي نشره إقفال كل اختبارات البشر أو التغطية الشاملة."
+    },
+    {
+      "part": 212,
+      "title": "الجزء212 — شفافية حساب المطعم والحركات المفصلة في التطبيق والمنصة",
+      "classification": "PUBLISHED_ACTIVE_WITH_FUNCTIONAL_SCOPE_LIMITS",
+      "evidence": [
+        "merchant-account-publication-212.json",
+        "implementation-checkpoint-212.json",
+        "merchant-account-page-publication-212.json",
+        "merchant-account-live-read-212.json"
+      ],
+      "note": "كود التشغيل والمنشور مطابق في عينة التدقيق. لا يساوي نشره إقفال كل اختبارات البشر أو التغطية الشاملة."
+    }
+  ],
+  "numberingGaps": [
+    67,
+    101,
+    164,
+    165,
+    177,
+    180,
+    181,
+    191,
+    194,
+    195,
+    196,
+    197,
+    200,
+    201
+  ],
+  "closureOrder": [
+    "Close current report coverage and document exact scope of212/211",
+    "Complete period-wide batch coverage and exercise saved schedule/opening/duplicate exclusions",
+    "Verify end-to-end manual cash payout and Zain destination OTP/receipt/reconciliation with owner/admin performing real actions",
+    "Review and finish local branch employee transfer before publishing its old change set",
+    "Complete COD return/cancellation/funding/timeout/device Android acceptance matrix",
+    "Reconcile old records and deployment templates before compatibility removal"
+  ],
+  "approvedExceptions": [
+    "Card capture deferred until a contracted provider",
+    "Bank payouts disabled by user decision"
+  ],
+  "futureNewScope": [
+    "Refund/disputes/Chargeback",
+    "Driver pending/withdrawable/withdrawal",
+    "v1.6 metrics/score/tiers/funded recovery",
+    "Advanced products/inventory/catalog/import"
+  ],
+  "interpretation": "212 is an execution serial, not212 independent completed features. A publication hash does not prove human money movement or all acceptance cases.",
+  "postReviewClosure": {
+    "part": 213,
+    "record": "implementation-checkpoint-213.json",
+    "allPriorScopeClosed": false,
+    "note": "Original review is retained as a historical baseline; closure213 deployed proof consistency and formerly local employee transfers. Other documented limitations remain open."
+  },
+  "periodSummaryPrintAddition": {
+    "part": 214,
+    "status": "PUBLISHED_ACTIVE_VERIFIED",
+    "checkpoint": "implementation-checkpoint-214.json",
+    "allPriorScopeClosed": false
+  },
+  "periodCollectionClosure": {
+    "part": 216,
+    "status": "PUBLISHED_ACTIVE_VERIFIED",
+    "checkpoint": "implementation-checkpoint-216.json",
+    "coverage": "All frozen payable sources including zero-net; strong period traversal and immutable linked child statements",
+    "historicalSourcesVerified": 7,
+    "historicalMerchantNetIqd": 43575,
+    "duplicatesAndResumptionTested": true,
+    "initiation": "Explicit finance-admin action; no automatic payout or approval",
+    "remaining": "Human cash/Zain payout acceptance and previously documented physical Android/compatibility/report requirements remain open"
+  },
+  "lifecycleClosure219": {
+    "status": "PUBLISHED_IMPLEMENTATION_VERIFIED_DEVICE_ACCEPTANCE_PENDING",
+    "checkpoint": "implementation-checkpoint-219.json",
+    "criticalActivationGapFixed": true,
+    "sourceAndLiveArtifactMatrix": 62,
+    "physicalDeviceAcceptanceStillOpen": true,
+    "cashPayout218Deferred": true
+  },
+  "returnLiveActivityClosure220": {
+    "status": "PUBLISHED_ACTIVE_CLIENT_INSTALLED_VERIFIED",
+    "record": "implementation-checkpoint-220.json",
+    "physicalNewOrderAcceptance": "Deferred by user while code review continues"
+  },
+  "latestCheckoutRepair": {
+    "part": 223,
+    "evidence": "implementation-checkpoint-223.json",
+    "actualLiveFinancialEnvironmentValidated": true,
+    "humanCreationAcceptancePending": true
+  },
+  "merchantSimulatorEvidence": {
+    "build": 216,
+    "mode": "Debug",
+    "record": "implementation-checkpoint-229.json"
+  },
+  "latestReturnAcceptance": {
+    "checkpoint": "implementation-checkpoint-228.json",
+    "ownerReceiptConfirmed": true,
+    "liveActivityEnded": true,
+    "holdReleasedIqd": 6250,
+    "driverSearchingVerified": true,
+    "visualHomeConfirmation": "User confirmed home screen and driver online",
+    "physicalReturnFlow": "accepted"
+  },
+  "latestCheckpoint": "implementation-checkpoint-235.json",
+  "orderExceptions": {
+    "specification": "specifications/ORDER_EXCEPTIONS_RESOLUTION_SPEC_AR.md",
+    "status": "PUBLISHED_POLICY_AND_RETURN_CASE_FOUNDATION",
+    "remaining": [
+      "Platform-configurable no-response policy and attempt snapshots/enforcement",
+      "Complete42-case entry/API/IAM evidence where currently UNKNOWN",
+      "Case administration, evidence, liability decisions and manual financial execution",
+      "Partial delivery/cash/refund/custody transfer/disposition and appeals/SLA"
+    ]
+  },
+  "orderExceptions230": {
+    "record": "implementation-checkpoint-230.json",
+    "policyControlsPublished": true,
+    "serverEnforcementPublished": true,
+    "driverInstalled": true,
+    "physicalAttemptTest": "NOT_RUN",
+    "financialWrites": false,
+    "driverLaunched": true
+  },
+  "orderExceptions231": {
+    "record": "implementation-checkpoint-231.json",
+    "published": true,
+    "preparedAndAssignedRequestResolution": "NEXT_SLICE_NOT_COMPLETE",
+    "positivePhysicalTest": "NOT_RUN",
+    "financialWritesByAgent": false
+  },
+  "orderExceptions232": {
+    "record": "implementation-checkpoint-232.json",
+    "published": true,
+    "hostingJobId": "129",
+    "monitorEnabled": true,
+    "merchantSimulatorBuild": 218,
+    "physicalPositiveTest": "NOT_RUN",
+    "wholeSpecificationComplete": false
+  },
+  "orderExceptions233": {
+    "record": "implementation-checkpoint-233.json",
+    "published": true,
+    "hostingJobId": "130",
+    "physicalPositiveTest": "NOT_RUN",
+    "wholeSpecificationComplete": false
+  },
+  "orderExceptions234": {
+    "record": "implementation-checkpoint-234.json",
+    "published": true,
+    "hostingJobId": "131",
+    "physicalPositiveTest": "NOT_RUN",
+    "wholeSpecificationComplete": false
+  },
+  "orderExceptions235": {
+    "record": "implementation-checkpoint-235.json",
+    "published": true,
+    "hostingJobId": "132",
+    "physicalPositiveTest": "NOT_RUN",
+    "wholeSpecificationComplete": false
+  }
+}

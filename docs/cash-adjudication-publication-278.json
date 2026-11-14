@@ -1,0 +1,65 @@
+{
+  "part": 278,
+  "status": "PUBLISHED_VERIFIED",
+  "scope": "staging",
+  "functions": [
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "baseCodeSha256": "Dc5ZdjEjKa3hxQsmQc4B1twbI5pUNB28QUfm68dzF98=",
+      "packageSha256": "04e504678d78abd3f8cf45981f32c01ee742c895b8e81a1907b1e5643e2da569",
+      "changedFiles": [
+        "customer-cash-runtime-266.js"
+      ],
+      "deployedCodeSha256": "BOUEZ414q9P4z0WYHzLAHudCyJW46BoZB7HlZD4tpWk=",
+      "allDeployedBytesVerified": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "rRJ02HAdYSutfgEEeUXce90esgVx2wTyz4GxkvPcxaE=",
+      "packageSha256": "0b26b020c47a2cc420e69a24f9e1e6908f47cb64a0aa0b7838792ca10501da73",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "deployedCodeSha256": "CyawIMR6LMQg5pok+eHmkI9Hy2Sgqgt4OHksoQUB2nM=",
+      "allDeployedBytesVerified": true
+    },
+    {
+      "label": "deletion",
+      "function": "staging-account-deletion-worker",
+      "baseCodeSha256": "XCfrUbuVOQ0DH9Rr7w/LcCwYU61Zl0CsnLRJbQ8NhBc=",
+      "packageSha256": "456963709aa1781481031f08fc4ae2d7b650c9cbe74c7eb9010565d39bfc7aeb",
+      "changedFiles": [
+        "customer-cash-retention.js"
+      ],
+      "deployedCodeSha256": "RWljcJqheBSBAx8I/Eri17ZQycvnTH65AQVl05v8eus=",
+      "allDeployedBytesVerified": true
+    },
+    {
+      "label": "expiry",
+      "function": "staging-account-deletion-financial-expiry",
+      "baseCodeSha256": "iFK+TO3bW1wGZStUAY4xxQwAS8zdBlF2HWjPGfH2k1c=",
+      "packageSha256": "1cc3934329d8c5cc1cae8b05a29985160debd465ef0183e373b839d895be840e",
+      "changedFiles": [
+        "customer-cash-retention.js"
+      ],
+      "deployedCodeSha256": "HMOTQynYxcwcrosFopmFFg3r1GXvAYPjc7g52JW+hA4=",
+      "allDeployedBytesVerified": true
+    }
+  ],
+  "iamOrConfigurationChanged": false,
+  "existingOrderOrFinancialRecordsModified": false,
+  "humanAcceptance": "PENDING",
+  "realCashMovedByAgent": false,
+  "hosting": {
+    "jobId": "156",
+    "baseJobId": "155",
+    "changedFiles": [
+      "customer-cash-review.js",
+      "pages/customer-cash-review.html"
+    ],
+    "unrelatedEntriesPreserved": true
+  },
+  "negativeSmokeStatus": 401
+}

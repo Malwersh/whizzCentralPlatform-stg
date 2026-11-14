@@ -1,0 +1,40 @@
+{
+  "backendBefore": "m2nfCOkGpN1FrkSinOSqxk24SD3poT5s+zYgmVpv918=",
+  "backendAfter": "Ra9+f6VRPuTv3X8raxtOAwa5sDSe4y/vQHfbVNne3Rc=",
+  "hostingBase": "200",
+  "hostingJob": "201",
+  "status": "PUBLISHED_VERIFIED",
+  "changedModules": [
+    "dist/index.js",
+    "dist/financialOwners.js"
+  ],
+  "unrelatedArtifactFilesPreserved": true,
+  "financialWrites": 0,
+  "topupVerified": {
+    "id": "TOPUP_1792886035358_bf49f696",
+    "amount": 25000,
+    "status": "APPROVED",
+    "matchingLedgerEntries": 2,
+    "transactionId": "txn_1792886825686_966572dc"
+  },
+  "checks": [
+    "TypeScript build",
+    "80-account browser picker test",
+    "Arabic digit phone search",
+    "role filter and stale selection clearing",
+    "merchant business name and customer aliases"
+  ],
+  "actualProfileRead": {
+    "driverRecords": 4,
+    "merchantRecords": 8,
+    "customerRecords": 3,
+    "merchantAndCustomerNamesResolved": true
+  },
+  "manualFundingAcceptance": {
+    "driverSubmittedReceipt": true,
+    "adminApproved": true,
+    "notificationReceived": "USER_CONFIRMED",
+    "twoMatchingLedgerEntriesVerified": true,
+    "doesNotProveDirectGatewayPayment": true
+  }
+}

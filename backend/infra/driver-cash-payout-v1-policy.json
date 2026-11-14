@@ -1,0 +1,11 @@
+{
+  "Version":"2012-10-17",
+  "Statement":[
+    {"Sid":"ReadDriverPayoutAndSharedCashbook","Effect":"Allow","Action":["dynamodb:GetItem","dynamodb:Query","dynamodb:ConditionCheckItem"],"Resource":"arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform","Condition":{"ForAllValues:StringLike":{"dynamodb:LeadingKeys":["DRIVER_PAYOUT#*","DRIVER_PAYOUT_DIRECTORY#GLOBAL","DRIVER_PAYOUT_PAID#DPO:*","DRIVER_PAYOUT_RETURN_REFERENCE#*","MERCHANT_CASHBOX#*","MERCHANT_CASHBOXES#GLOBAL"]}}},
+    {"Sid":"WriteOnlyDriverPayoutAndSharedCashbookEntries","Effect":"Allow","Action":["dynamodb:PutItem"],"Resource":"arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform","Condition":{"ForAllValues:StringLike":{"dynamodb:LeadingKeys":["DRIVER_PAYOUT#*","DRIVER_PAYOUT_DIRECTORY#GLOBAL","DRIVER_PAYOUT_PAID#DPO:*","DRIVER_PAYOUT_RETURN_REFERENCE#*","MERCHANT_CASHBOX#*"]}}},
+    {"Sid":"ReadDriverLedgerForSourceReconciliation","Effect":"Allow","Action":["dynamodb:GetItem","dynamodb:Query","dynamodb:ConditionCheckItem"],"Resource":"arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries","Condition":{"ForAllValues:StringLike":{"dynamodb:LeadingKeys":["WALLET#DRIVER#*"]}}},
+    {"Sid":"BatchReadApprovedSourceEvidence","Effect":"Allow","Action":"dynamodb:BatchGetItem","Resource":["arn:aws:dynamodb:us-east-1:699561669180:table/staging-TopupRequests","arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds"]},
+    {"Sid":"BatchReadOnlyGatewayPaymentSources","Effect":"Allow","Action":"dynamodb:BatchGetItem","Resource":"arn:aws:dynamodb:us-east-1:699561669180:table/staging-IdempotencyKeys","Condition":{"ForAllValues:StringLike":{"dynamodb:LeadingKeys":["ZC#PAYMENT#*"]}}},
+    {"Sid":"WriteDriverPayoutNoticesOnly","Effect":"Allow","Action":"dynamodb:PutItem","Resource":"arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletNotifications","Condition":{"ForAllValues:StringLike":{"dynamodb:LeadingKeys":["DRIVER_PAYOUT#*"]}}}
+  ]
+}

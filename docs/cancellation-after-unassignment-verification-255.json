@@ -1,0 +1,19 @@
+{
+  "part": 255,
+  "orderNumber": "ORD1792870714924",
+  "orderId": "f6b187f1-1046-5bb9-8ec1-472e777164f0",
+  "sourceTestsPassed": 24,
+  "capturedStaffRuntimeTestsPassed": 10,
+  "realSourcePlan": {
+    "reads": 3,
+    "plannedOperations": 3,
+    "journalLines": 0,
+    "mutationsExecuted": 0,
+    "authenticatedAdministrativeCancellation": false
+  },
+  "pendingCancellationCase": "OEX:b6c03ab6e9eafcc11d778f6978f4cc202bb28d2248b96168",
+  "humanAcceptance": "PENDING_ADMIN_CANCEL_RETRY_AND_MERCHANT_ASSESSMENT",
+  "merchantCompensationAmount": "AWAITING_USER",
+  "foodCustodyAndLoss": "AWAITING_USER_CONFIRMATION",
+  "agentDirectBusinessWrites": false
+}

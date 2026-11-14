@@ -1,0 +1,66 @@
+{
+  "part": 434,
+  "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED",
+  "scope": "Merchant cancellation notifications and event-driven card reconciliation",
+  "backend": [
+    "Committed exceptionCancellation changes forwarded through existing DynamoDB stream without creating a new mapping",
+    "Recipient resolved from a strongly consistent canonical order; no client-selected branch",
+    "FCM notification includes stable eventId and current case reference; stale requested references resolve to current final state",
+    "Branch-device filter preserved and missing branch-device-push dependency supplied in notification packages",
+    "Merchant order list hydrates cancellation metadata and timestamps with consistent base-table reads"
+  ],
+  "application": [
+    "Branch-scoped cancellation event refreshes order card and displays pending-review banner",
+    "Repeated event ID is ignored; cancellation does not trigger a new-order sound",
+    "Periodic order-data fetching removed from attention host, owner/employee order lists and realtime fallback; transport heartbeat and local reminder timers remain",
+    "One-time reconciliation on initial load, resume, reconnect and push/socket events; manual refresh retained",
+    "Cache detects cancellation changes even when order status/timestamp unchanged"
+  ],
+  "tests": {
+    "backend": 8,
+    "flutter": 5,
+    "simulatorBuild": 397,
+    "humanCancellationDuringPreparation": "PENDING"
+  },
+  "deployments": [
+    {
+      "function": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+      "baseSha": "WY1jaLYCo7Js1s39XsaSW2soz33HBhhmc6+1KtJnavE=",
+      "sha": "vUbbrs1r6Xh66Ds0dYFxbPyzHeXzqcwXXokA0lDs/qU=",
+      "configurationPreserved": true,
+      "deployedBytesVerified": true
+    },
+    {
+      "function": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+      "baseSha": "XXuF4FlEAzBvfmmpCkx3mPINRL854Z6LdnSk4WvbKUY=",
+      "sha": "hMvAxtkknthd7FhPKLx/ivzoEQcVF7tl1WTqtGXUB2k=",
+      "configurationPreserved": true,
+      "deployedBytesVerified": true
+    },
+    {
+      "function": "WaveSystem_CreateDispatchJob",
+      "baseSha": "GH3PhG+hmNT6hrBXXxIHmXwHPWqLZhRBfXIyH/ZNcCw=",
+      "sha": "Dpfz2q9BB34Zh1Aqu6PgP0FtTz4etMRsVdvIvgBmu8g=",
+      "configurationPreserved": true,
+      "deployedBytesVerified": true
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "baseSha": "EQoRm2HyX7na59edIM/EUIXapbfi1dYS1yfa5I+V8dU=",
+      "sha": "Kidbf2HL5sOXBCOzKNRSWKNc+EAoR1Auk8/Z5izqofw=",
+      "configurationPreserved": true,
+      "deployedBytesVerified": true
+    }
+  ],
+  "iamChanged": false,
+  "newInfrastructure": false,
+  "testFinancialWrites": false,
+  "native": {
+    "merchantSimulator": "iPhone 16",
+    "build": 397,
+    "installed": true
+  },
+  "limitations": [
+    "Real foreground/background push receipt and latency require a new genuine test order; provider ACK alone is not device-receipt proof."
+  ]
+}

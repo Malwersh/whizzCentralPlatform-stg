@@ -1,0 +1,25 @@
+{
+  "baseJobId": "84",
+  "jobId": "85",
+  "changedFiles": [
+    "delivery-pricing.js",
+    "pages/delivery-pricing.html"
+  ],
+  "sha256": "b7e3cddc6a4f2bdfd1fec2d25529d504de066664101872a2d4e2884996fdbb07",
+  "status": "SUCCEED",
+  "hostedFilesMatched": true,
+  "part": 69,
+  "date": "2026-10-17",
+  "cause": "Pricing selector used unused merchants HTTP endpoint; active Merchants source uses AWSUtils DynamoDB reader.",
+  "source": "Existing AWSUtils / WhizzMerchants_Businesses",
+  "applicationDataWrites": false,
+  "permissionsChanged": false,
+  "financialActivation": false,
+  "tests": {
+    "browserSearch": true,
+    "pagination": true,
+    "preserveOtherRules": true,
+    "loadFailure": true,
+    "realWrites": false
+  }
+}

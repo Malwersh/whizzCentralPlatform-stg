@@ -1,0 +1,95 @@
+{
+  "part": 150,
+  "reviewOnly": true,
+  "applied": false,
+  "roleArn": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+  "policyName": "DeliveryNotice150",
+  "policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "DeliveryNoticeMetadata150",
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:GetItem"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "DELIVERY_FUNDING#*"
+            ]
+          },
+          "ForAllValues:StringEquals": {
+            "dynamodb:Attributes": [
+              "pk",
+              "sk",
+              "ownerId",
+              "businessId",
+              "draftVersion",
+              "draftHash",
+              "eventId",
+              "status",
+              "createdAt",
+              "expiresAt",
+              "attempts",
+              "nextAttemptAt",
+              "leaseUntil",
+              "sentTokenHashes",
+              "id",
+              "kind",
+              "version",
+              "hash",
+              "businessIds",
+              "publishedVersion",
+              "subjectId",
+              "cognitoUserId",
+              "deletionRequestId",
+              "deletedAt",
+              "isDeleted",
+              "role",
+              "permissionSchema",
+              "grant"
+            ]
+          },
+          "Null": {
+            "dynamodb:LeadingKeys": "false",
+            "dynamodb:Attributes": "false"
+          }
+        }
+      }
+    ]
+  },
+  "functionsUsingRole": [
+    "wizzcentral-notifications-staging-liveActivityPushEnd",
+    "wizzcentral-notifications-staging-liveActivityPushUpdate",
+    "wizzcentral-notifications-staging-liveActivityRegister",
+    "wizzcentral-notifications-staging-pushAdminSendTest",
+    "wizzcentral-notifications-staging-pushSendMerchantOrder",
+    "wizzcentral-notifications-staging-pushSendMerchantOrderTokens",
+    "wizzcentral-notifications-staging-pushSendOrderUpdate",
+    "wizzcentral-notifications-staging-pushSendWaveOffer",
+    "wizzcentral-notifications-staging-pushSoundSettings",
+    "wizzcentral-notifications-staging-pushTokensRegister",
+    "wizzcentral-notifications-staging-pushTokensUnregister"
+  ],
+  "baselineRolePolicySnapshotSha256": "55a6f36b371297b78a74e9cef8f9b070ee7ca29f769f08689b130ac5330fcd15",
+  "simulations": [
+    {
+      "case": "baseline",
+      "decision": "implicitDeny",
+      "missingContext": []
+    },
+    {
+      "case": "candidate",
+      "decision": "allowed",
+      "missingContext": []
+    },
+    {
+      "case": "excluded_financial_fields",
+      "decision": "implicitDeny",
+      "missingContext": []
+    }
+  ],
+  "limitation": "Shared role: additional GetItem metadata permission affects all listed notification functions; no full policy/financial fields or wallet authority."
+}

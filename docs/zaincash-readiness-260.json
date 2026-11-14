@@ -1,0 +1,175 @@
+{
+  "package": "ZAINCASH_DRIVER_WALLET_READINESS_260",
+  "status": "CORE_IMPLEMENTED_STAGING_PUBLISHED_HUMAN_AND_PROVIDER_ACCEPTANCE_PENDING",
+  "scope": [
+    "DRIVER_WALLET_MANUAL_RECEIPT",
+    "DRIVER_WALLET_ZAINCASH_GATEWAY",
+    "CENTRAL_GATEWAY_SETTINGS",
+    "RECONCILIATION_AND_RECOVERY",
+    "ACCOUNT_LIFECYCLE_FENCES"
+  ],
+  "doesNotActivate": [
+    "CUSTOMER_PREPAID_PAYMENTS",
+    "QI_LIVE",
+    "MERCHANT_AUTOMATED_PAYOUTS",
+    "AUTOMATED_PROVIDER_REFUND_OR_CHARGEBACK_WRITEOFF"
+  ],
+  "current": {
+    "environment": "staging",
+    "gatewayMode": "UAT",
+    "uatCredentialsPrepared": true,
+    "oauthAuthenticationPassed": true,
+    "uatNewPaymentsEnabled": false,
+    "liveNewPaymentsEnabled": false,
+    "manualRecipientAndMinimumPreserved": true,
+    "agentCreatedPaymentSessions": 0,
+    "agentUploadedOrAttestedReceipt": false,
+    "agentCreditedWallets": false,
+    "configurationBootstrapActor": "REAL_AWS_SETUP_PRINCIPAL_RECORDED_IN_AUDIT"
+  },
+  "centralLocationArabic": "المحافظ والتسويات التشغيلية ← الإعدادات المالية ← بوابة زين كاش لشحن محفظة السائق",
+  "fieldsArabic": [
+    {
+      "field": "mode",
+      "label": "بيئة البوابة",
+      "effect": "UAT يكتب نجاحًا تجريبيًا منفصلًا؛ LIVE يضيف إلى المحفظة الفعلية بعد تحقق الخادم"
+    },
+    {
+      "field": "apiOrigin",
+      "label": "عنوان API الرسمي من الشركة",
+      "effect": "عنوان HTTPS رسمي ضمن نطاق زين كاش، دون مسار أو بيانات مستخدم؛ يُرفض عنوان الاختبار في LIVE"
+    },
+    {
+      "field": "checkoutHosts",
+      "label": "نطاقات صفحات الدفع الرسمية",
+      "effect": "لا يُفتح رابط دفع خارج النطاقات الموثقة"
+    },
+    {
+      "field": "clientId",
+      "label": "معرّف الربط لدى الشركة",
+      "effect": "لمصادقة الخادم؛ لا يُرسل إلى تطبيق السائق"
+    },
+    {
+      "field": "clientSecret",
+      "label": "سر مصادقة الخادم",
+      "effect": "يُحفظ في Secrets Manager ولا يُعاد إلى واجهة الإدارة"
+    },
+    {
+      "field": "apiKey",
+      "label": "مفتاح التحقق من توقيع إشعارات الشركة",
+      "effect": "مطلوب للتشغيل الفعلي، مستقل عن Client Secret"
+    },
+    {
+      "field": "minimum/maximum",
+      "label": "حدود مبلغ الشحن",
+      "effect": "أعداد صحيحة بين 25000 و500000 د.ع"
+    },
+    {
+      "field": "pilotDriverIds",
+      "label": "السائقون المسموح لهم بتجربة الدفع الفعلي",
+      "effect": "اختيار بالاسم والهاتف حتى خمسة حسابات؛ لا فتح عام قبل الإثبات"
+    },
+    {
+      "field": "enabled",
+      "label": "السماح بإنشاء دفعات جديدة",
+      "effect": "إيقافه يمنع دفعات جديدة ويحافظ على متابعة القديم وتسويته"
+    }
+  ],
+  "implemented": [
+    "Existing receipt flow retained; durable client retry survives restart and account changes",
+    "Manual replay checked before changed recipient configuration and returns current stored status; new retry reservations have no TTL",
+    "Both driver and finance manual funding histories expose scoped continuation cursors",
+    "Immutable server-side secret revisions; write-only fields; old in-flight sessions retain original configuration",
+    "UAT server-side credentials prepared from existing sandbox secret; authentication verified without creating a payment",
+    "OAuth/init/hosted checkout/inquiry integration; exact transaction/reference/amount/currency checks",
+    "Pinned account, amount, mode and request UUID in local draft before HTTP; no token or signed checkout URL persisted",
+    "No repeated provider init after uncertain outcome; one active request guard per driver; status/receipt/ledger revisions atomic",
+    "HS256 signature/time checks and provider inquiry before wallet credit; durable event receipts and permanent settlement guard",
+    "Canonical driver wallet and platform funding asset entries plus balanced audit journal and existing notification outbox in one transaction",
+    "UAT success never updates spendable wallets or real ledger; server proof recorded for launch gate",
+    "LIVE pilot restricted to chosen drivers; general activation requires successful UAT, signed settled live callback evidence and recorded company acceptance",
+    "Scheduled bounded reconciliation, durable cursor, review queue and authenticated operator inquiry/recovery",
+    "Documented no-payment resolution requires explicit company evidence and age threshold; late contradictory events enter review",
+    "Verified late success after a terminal provider state can settle once without clearing a newer active attempt",
+    "Verified credential rotation recovery on same origin and environment; existing balances and collateral preserved",
+    "Daily inquiry of settled LIVE transactions; later refund or contradictory status is financial review, never a duplicate credit or silent debit",
+    "Driver deletion evidence and atomic lock include pending gateway guard; finance retention includes owned gateway records",
+    "Wallet refresh on return/resume/push; real transaction history replaces nonfunctional monthly button; balance reference copy does not promise eligibility",
+    "iOS/Android return scheme and protected router route; neutral return page removes token query and never asserts payment success",
+    "Current deployed platform shell design and existing HTTP timeout fix preserved and reconciled into affected source files",
+    "Primary topup screen uses only the new ZainCash path for UAT and LIVE; legacy APIs/test history remain preserved; Qi sandbox remains independent"
+  ],
+  "operations": {
+    "schedule": "every 1 minute",
+    "pendingRecheckDelaySeconds": 600,
+    "settledLiveRecheckSeconds": 86400,
+    "maxConcurrentScheduledChecks": 3,
+    "queryPageLimit": 25,
+    "cursorPersisted": true,
+    "inquiryRateLimitPerSessionSeconds": 15,
+    "uncertainCreationReviewAfterSeconds": 600,
+    "unresolvedReviewAfterSeconds": 86400,
+    "absenceOfHistoryNeverProvesFailure": true
+  },
+  "runbookArabic": [
+    "للشحن بالوصل: السائق يحوّل فعليًا للحساب الظاهر ثم يرفع الوصل والمرجع. لا يضاف الرصيد قبل أن يطابق الموظف وصول التحويل ويعتمده.",
+    "لاختبار البوابة: سجّل دخولًا حديثًا للمنصة، وافتح الإعدادات المالية. بيانات UAT محفوظة والاتصال ناجح؛ فعّل استقبال دفعات الاختبار واحفظ. أدخل السائق بيانات زين كاش التجريبية الرسمية في صفحة الشركة فقط.",
+    "تحقق بعد نجاح UAT من حالة SUCCESS وسجل الاختبار، ومن ثبات الرصيد الحقيقي. يسجل الخادم إثبات UAT اللازم للتفعيل اللاحق.",
+    "عند استلام بيانات الشركة: أوقف استقبال الدفعات، واختر LIVE، وأدخل عنوان API والنطاقات وClient ID وClient Secret وAPI Key. احفظ ثم اختبر الاتصال؛ الاختبار لا ينشئ دفعًا.",
+    "سجّل رابط الإشعارات الظاهر في المنصة لدى الشركة واحصل على موافقتها لاستخدام الحساب لشحن المحافظ. اختر سائقي التجربة بأسمائهم ووثّق المرجع ثم اعتمد التجربة الفعلية.",
+    "فعّل استقبال الدفعات للتجربة المحددة فقط. أكمل دفعًا حقيقيًا من حساب التجربة وتحقق من إضافة الرصيد مرة واحدة ومن وصول الإشعار الموقّع ومطابقته.",
+    "وثّق قبول التشغيل. يمنع الخادم الاعتماد العام دون إثبات UAT وإشعار فعلي موقّع لعملية ناجحة. بعدها احفظ تفعيل الدفعات العام.",
+    "للحالات المعلقة استخدم مرشح المراجعة. استعلم عن العملية الأصلية أو أدخل Transaction ID من لوحة الشركة مع سبب المراجعة. لا تنشئ تحويلًا يدويًا بديلًا لنفس الدفع.",
+    "إغلاق إنشاء غير مؤكد بلا رقم عملية لا يتم بغياب الرد؛ يلزم مرجع شركة يؤكد عدم إنشاء أو تحصيل الدفع. الاسترجاع/تغير دفعة سبق شحنها يظل مراجعة مالية ولا يحسم الرصيد تلقائيًا."
+  ],
+  "verification": {
+    "nodeFundingGatewayManualSandboxPassed": 51,
+    "nodeAccountDeletionRegressionPassed": 30,
+    "pythonAuthorizerPassed": 16,
+    "flutterWalletFundingTransferPushPassed": 22,
+    "adminBrowserFixturePassed": true,
+    "templateWiringPassed": true,
+    "externalUnauthenticatedAndInvalidCallbackChecksPassed": true,
+    "uatOAuthOnlyPassed": true,
+    "humanCompletedUatPayment": false,
+    "humanRealManualTransferApproval": false,
+    "realProviderKeysAvailable": false,
+    "realProviderSignedCallbackAccepted": false
+  },
+  "simulator": {
+    "build": 264,
+    "device": "iPhone 16",
+    "installedAndLaunched": true,
+    "testLocationFlagsPreserved": true,
+    "returnSchemeRegistered": true,
+    "nativeProtectedReturnObserved": "SYSTEM_OPEN_PROMPT_AND_LOGIN_REQUIRED",
+    "actualAuthenticatedNativeWalletWalkthrough": false,
+    "androidManifestAndIosPlistValidated": true,
+    "androidNativeAcceptance": "DEFERRED_RELEASE_GATE_AFTER_OPERATIONAL_P0"
+  },
+  "remainingRequiredEvidence": [
+    "Human authenticated UAT checkout and isolated success",
+    "Human receipt transfer/approval with actual funds verification",
+    "Actual company LIVE credentials/endpoints and wallet-funding approval",
+    "Registered provider webhook and actual pilot success/callback",
+    "Native Android/iPhone release acceptance stays in R01 after operational work per user"
+  ],
+  "limitations": [
+    "A signed callback fixture and OAuth success do not prove a completed provider payment",
+    "Provider refund/reverse initiation and automated deduction/debt handling remain E02; this path detects and queues adverse funding outcomes for finance review",
+    "This package is not completion of all 61 main-plan items or F05 withdrawal eligibility"
+  ],
+  "evidence": [
+    "docs/zaincash-readiness-publication-260.json",
+    "docs/zaincash-readiness-verification-260.json",
+    "docs/zaincash-uat-bootstrap-260.json",
+    "backend/wallet-service/test/zaincash-gateway.test.cjs",
+    "../whizzDrivers-stg/frontend/test/zaincash_funding_test.dart"
+  ],
+  "providerReferences": [
+    "https://docs.zaincash.iq/",
+    "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-schedulev2.html",
+    "https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-api.html"
+  ],
+  "implementationFrozenAt": "2026-10-24T22:50:20.100855+00:00"
+}

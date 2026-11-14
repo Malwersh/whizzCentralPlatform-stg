@@ -1,0 +1,36 @@
+{
+  "status": "PROPOSAL_NOT_IMPLEMENTED",
+  "checkoutFinding": {
+    "serverError": "DISCOUNT_UNAVAILABLE",
+    "cause": "Legacy merchant campaign timestamps lack timezone and exceed millisecond precision",
+    "merchantDateSerialization": "Locally corrected to UTC millisecond timestamps; 3 model tests passed",
+    "existingCampaignRepair": "Not applied; original timezone must be established before migrating stored dates",
+    "deviceInstall": "Not performed for this model change"
+  },
+  "deliveryFunding": {
+    "merchantOrigin": "100 percent merchant by default",
+    "platformOrigin": "100 percent platform by default",
+    "shared": "Explicit versioned allocation agreed before activation",
+    "driverPay": "Independent of customer delivery charge",
+    "accounting": "Separate delivery subsidy shares; snapshot per order; reserve platform budget; capture once on completion and reverse original shares on refund",
+    "settlement": "Merchant-funded subsidy deducted once from payable, platform-funded portion recorded separately; no repeated charge at payout"
+  },
+  "example": {
+    "goods": 7000,
+    "commission": 700,
+    "serviceFee": 500,
+    "referenceDelivery": 2000,
+    "customerDelivery": 0,
+    "driverPay": 2000,
+    "customerTotal": 7500,
+    "merchantNet": {
+      "merchantFunded": 4300,
+      "platformFunded": 6300,
+      "sharedEqually": 5300
+    }
+  },
+  "limitations": [
+    "Delivery subsidy funding is not yet connected end to end",
+    "Local serialization fix does not repair existing stored campaigns"
+  ]
+}

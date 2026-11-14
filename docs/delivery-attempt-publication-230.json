@@ -1,0 +1,43 @@
+{
+  "part": 230,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "1ggZCJmeVHPwbRM4DBrTdCWWl9Mp56f3X0BuhJqsw+8=",
+      "codeSha256": "boud99LSHfmchGfk8PLdIqM54h03OhQ/7M+EqeGQdqs=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "baseCodeSha256": "c58hmjkHfoUiEKka6Dlqr2Hav9s/XhPN2oWYrLA6ys4=",
+      "codeSha256": "KlnKz21yZ9Tas6o7+skFk5PcfphEJtCW/fFHVRiv8qo=",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "financial-accept-client.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "SJTdjKl26oonl1TVAxy7Xx8ujJObbPux8hiBeBXhbSY=",
+      "codeSha256": "zuRqAqfh5FOANHiO+BoH5cvTFV85rReX7pLr8R/NYuU=",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "operational-settings.js",
+        "order-exception-settings.js",
+        "order-exception-settings-contract.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialWritesByAgent": false,
+  "scope": "STAGING_GENERAL_NEW_POLICY_ORDERS"
+}

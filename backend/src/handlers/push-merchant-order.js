@@ -40,6 +40,12 @@ function titleForAction(action) {
     case 'cancelled_by_store':
     case 'canceled_by_store':
       return 'تم إلغاء الطلب';
+    case 'customer_cancellation_requested':
+      return 'طلب الزبون إلغاء الطلب';
+    case 'order_cancellation_confirmed':
+      return 'تم تأكيد إلغاء الطلب';
+    case 'order_cancellation_updated':
+      return 'تحديث مراجعة الإلغاء';
     case 'order_status_update':
       return 'تحديث على طلب';
     default:
@@ -65,10 +71,12 @@ function bodyForAction({ action, orderNumber, businessName, customerName, totalA
     return extra.length ? `${base} - ${extra.join(' - ')}` : base;
   }
 
+  if(action==='customer_cancellation_requested')return `${base} — طلب إلغاء قيد المراجعة. افتح الطلب لمراجعته.`;
   return base;
 }
 
 exports.sendMerchantOrder = async (event) => {
+  if(event?.action==='commercial_notice'&&!event.httpMethod&&!event.requestContext)return require('../utils/commercial-sharing-push').send(event,{db:dynamodb,getMessaging,tokensTable:TOKENS_TABLE});
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -110,8 +118,12 @@ exports.sendMerchantOrder = async (event) => {
     );
 
     const items = tokensResp.Items || [];
-    const merchantItems = items.filter((it) => String(it?.app || '').toLowerCase() === 'merchant');
-    const tokens = Array.from(new Set(merchantItems.map((it) => it.token).filter(Boolean)));
+    const devicePolicy=require('../utils/branch-device-push');
+    const merchantItems=[];
+    for(const item of items.filter(it=>String(it?.app||'').toLowerCase()==='merchant')){
+      try{if(await devicePolicy.allowed(dynamodb,item))merchantItems.push(item);}catch(_){/* A device whose live authorization cannot be read receives nothing. */}
+    }
+    const tokens = Array.from(new Set(merchantItems.map((it) => it.branchDeviceId?it.fcmToken:it.token).filter(Boolean)));
 
     if (tokens.length === 0) {
       return ok({
@@ -137,6 +149,7 @@ exports.sendMerchantOrder = async (event) => {
       businessName,
       orderId,
       orderNumber,
+      eventId:body.eventId, status:body.status, cancellationState:body.cancellationState, cancellationVersion:body.cancellationVersion, cancellationRequestId:body.cancellationRequestId, caseId:body.caseId,
       updatedAt: body.updatedAt || new Date().toISOString(),
     });
 
@@ -173,14 +186,29 @@ exports.sendMerchantOrder = async (event) => {
       }
     };
 
-    const result = await messaging.sendEachForMulticast(multicastMessage);
+    const soundPolicy=await require('./notification-sound-policy').readPolicy(dynamodb);
+    const soundFor=require('./notification-sound-policy').soundFile;
+    const deviceTokens=new Set(merchantItems.filter(it=>it.branchDeviceId).map(it=>it.fcmToken));
+    const groups=[{tokens:tokens.filter(t=>!deviceTokens.has(t)),device:false},{tokens:tokens.filter(t=>deviceTokens.has(t)),device:true}];
+    const result={responses:[],successCount:0,failureCount:0};
+    const orderedTokens=[];
+    for(const group of groups){
+      if(!group.tokens.length)continue;
+      const byFile=new Map();
+      for(const token of group.tokens){const row=merchantItems.find(it=>(it.fcmToken??it.token)===token);const file=soundFor(soundPolicy,'merchantNewOrder',row?.soundEnabled!==false,row?.soundReady??[]);const key=file??'';if(!byFile.has(key))byFile.set(key,[]);byFile.get(key).push(token);}
+      for(const [file,chosen] of byFile){
+        const base=group.device?devicePolicy.deviceMessage(multicastMessage,chosen):{...multicastMessage,tokens:chosen};
+        const payload=require('../utils/notification-sound-message').applySound(base,file||null,'merchant_orders');
+        const sent=await messaging.sendEachForMulticast(payload);orderedTokens.push(...chosen);result.responses.push(...sent.responses);result.successCount+=sent.successCount;result.failureCount+=sent.failureCount;
+      }
+    }
 
     const failures = [];
     result.responses.forEach((r, i) => {
       if (!r.success) {
         const err = r.error;
         failures.push({
-          token: tokens[i],
+          token: orderedTokens[i],
           code: err?.code,
           errorInfoCode: err?.errorInfo?.code,
           errorInfoMessage: err?.errorInfo?.message,

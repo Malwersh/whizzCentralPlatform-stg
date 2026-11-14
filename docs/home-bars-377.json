@@ -1,0 +1,70 @@
+{
+  "part": 377,
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "environment": "staging",
+  "customerBuild": 322,
+  "backendTests": 27,
+  "flutterTests": 19,
+  "browserWidths": [
+    390,
+    1280
+  ],
+  "authoredContentChanged": false,
+  "description": "Three distinct strips: configurable filters, activities, activity-specific topics. Price median is derived from published menus and cached by menu version and selected price categories. No transactional pricing or authored content changed.",
+  "backendSha256": "oA6HT/BYkB3+GwiXeVFuL64IbwtauKmvm256yR4gcIc=",
+  "publicFeedVerified": true,
+  "menuPriceLookupVerified": true,
+  "menuPriceCanary": {
+    "business_1791634772438_p2hlg6w5qii": {
+      "basis": "PUBLISHED_MENU_BASE_PRICE_MEDIAN",
+      "sampleCount": 16,
+      "medianIqd": 9250,
+      "menuVersion": 1793350150680,
+      "asOf": "2026-11-02T15:08:18.474Z",
+      "expiresAt": "2026-11-02T16:08:18.474Z"
+    }
+  },
+  "hostingJob": "243",
+  "hostingHashes": {
+    "pages/home-layout.html": "48516d7593e3fbd79d69aac8ea4d2bc039aa2213b819355db8f9237c7f3e1a28",
+    "home-layout.js": "d94b7bc982a97c159e1332a5f55fadffde33214834e16c81383c385b0981d7f3"
+  },
+  "menuPriceCacheReuseVerified": true,
+  "initialLookupMissingBranchHandled": true,
+  "strips": {
+    "filters": "Independent grey chips with navy/white selection, configurable labels/order/enabled/thresholds",
+    "activities": "Only All and activity selectors; existing appearance retained",
+    "topics": "Only cuisine/brand selectors compatible with selected activity; circular image and caption"
+  },
+  "adminControls": {
+    "filters": "pages/home-layout.html → شريط الفلاتر",
+    "activitiesTopics": "pages/home-layout.html → شريطا الأنشطة والتصنيفات; separate editor groups",
+    "priceMainCategories": "تصنيفات الطعام والعلامات → ربط المطعم → أقسام الأصناف الرئيسية لمؤشر السعر"
+  },
+  "semantics": {
+    "combination": "Activity AND topic AND all selected filter conditions. Selecting a new activity clears topic but retains filters. All filter clears filters/sort only.",
+    "openNow": "Fresh canonical timezone-aware status polling isAvailableNow; no guessed open state from isActive alone",
+    "fastDelivery": "Canonical route arrivalMinutes.maximum includes preparation and road travel; missing estimate never classifies as fast",
+    "price": "Median positive base product prices in customer-visible published menu; optional category whitelist from merchant classification; at least 3 samples by default; promotions and extras excluded. Existing legacy-live-menu fallback is retained only for branches with no published menu, matching customer catalog policy.",
+    "bands": {
+      "economyMaxIqd": 7000,
+      "mediumMaxIqd": 15000,
+      "editable": true
+    },
+    "unknown": "Unknown/stale availability, ETA, prices or rating do not satisfy corresponding filter"
+  },
+  "priceIndex": {
+    "table": "staging-PlatformStaff",
+    "key": "HOME_MENU_PRICE / branchId",
+    "invalidation": "Published menu version and configured category selector hash; source version verified before cache read; legacy-live TTL 5 min, published TTL 1 hour",
+    "queries": "Only bounded requested merchants on explicit price filter. Published menu Query or existing legacy live-table Query; no full-table scan or per-screen recomputation of menu prices",
+    "newIamPermissions": false
+  },
+  "humanAcceptance": [
+    "Configure activities and topics separately, assign matching branches, publish home",
+    "Choose restaurant then pizza and offers; switch to store and verify topic resets",
+    "Set arrival threshold and compare against real destination-specific ETA",
+    "Choose a price tier and compare published menu index; change price-category whitelist and verify cache invalidates",
+    "Third strip renders when eligible topics have been configured and published; no invented taxonomy assignments"
+  ]
+}

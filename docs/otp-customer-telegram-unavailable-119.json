@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-10-18T15:10:41.856264+00:00",
+  "newestAttempts": [
+    {
+      "createdAt": "2026-10-18T15:08:24.574Z",
+      "status": "sent",
+      "isFinalStatus": false,
+      "lastChannel": "sms",
+      "channelFlow": [
+        {
+          "channel": "telegram",
+          "tried": true,
+          "success": false,
+          "error": "Telegram is not available for this number"
+        },
+        {
+          "channel": "sms",
+          "tried": true,
+          "success": true,
+          "error": null
+        }
+      ]
+    },
+    {
+      "createdAt": "2026-10-18T15:07:22.372Z",
+      "status": "sent",
+      "isFinalStatus": false,
+      "lastChannel": "sms",
+      "channelFlow": [
+        {
+          "channel": "telegram",
+          "tried": true,
+          "success": false,
+          "error": "Telegram is not available for this number"
+        },
+        {
+          "channel": "sms",
+          "tried": true,
+          "success": true,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "part": 119,
+  "status": "PROVIDER_TELEGRAM_NUMBER_UNAVAILABLE_SMS_UNCONFIRMED",
+  "phoneLastFour": "8280",
+  "customerFunctionCodeMatchesRelease116": true,
+  "customerRecentLambdaErrors": 0,
+  "attemptsCorrelatedToCustomerInvocations": true,
+  "newOtpSentByMaintenance": false,
+  "providerReportGeneratedAfterUserConfirmedPhone": true,
+  "rootCauseDetail": "Provider explicitly reports Telegram is not available for this number; this does not prove the recipient lacks a Telegram account.",
+  "earlierSamePhoneTelegramDeliveryObserved": true,
+  "next": "Provider must explain changed availability for the same number and investigate SMS delivery; do not infer an Android-specific defect or repeatedly request OTP."
+}

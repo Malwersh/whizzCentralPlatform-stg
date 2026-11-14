@@ -1,0 +1,44 @@
+{
+  "part": 262,
+  "status": "PASS",
+  "verifiedAt": "2026-10-21T22:15:11.562484+00:00",
+  "scope": "staging",
+  "services": [
+    {
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "FNfKSVDNq/hGl4H/twGcmjLRyVpVMkdsnA0Oxr7YBQ4=",
+      "changedBytesVerified": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "UNX3jERSmtPaIPgn+x1BrjO5j7jvpbk7SJr+er4N3Rg=",
+      "changedBytesVerified": true
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "jdqmRgOiGy2LyJ1ByshfxouOWQDxPfu4CI8d53Abkws=",
+      "changedBytesVerified": true
+    }
+  ],
+  "hostingJobId": "151",
+  "nativeBuild": 227,
+  "nativeInstalledAndLaunched": true,
+  "historicalCase": {
+    "number": "ORD1792545370610",
+    "version": 14,
+    "status": "RESOLVED",
+    "oldCaseNotBackfilled": true,
+    "compensationStatus": "PAID",
+    "compensationIqd": 6250,
+    "guaranteeStatus": "RELEASED"
+  },
+  "realNewOrderOrReceiptCreatedByAgent": false,
+  "realQuantityReceiptAcceptance": "PENDING_NEW_RETURN_CASE_TEST",
+  "employeeFeatureHumanTest": "DEFERRED_BY_USER",
+  "remaining243": [
+    "adjudicated custody remainder resolution",
+    "authorized safe disposition/transfer",
+    "linked appeals and disputes"
+  ],
+  "iamChanged": false
+}

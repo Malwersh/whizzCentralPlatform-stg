@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+  "scope": "First performance policy phase: verified displayed timeouts and explicit administrative completion impact",
+  "rulesVersion": "OBSERVED_DRIVER_PERFORMANCE_V2",
+  "implemented": [
+    "Acknowledged visible accept/reject controls while app foreground and route active",
+    "Server-time immutable separate DISPLAY_ACK record; original financial offer unchanged",
+    "Displayed expired offers count as nonacceptance; historical unconfirmed expiries remain excluded",
+    "COUNT_FAILURE / EXCUSED / PENDING_REVIEW per authenticated driver assignment attempt",
+    "Independent evidence, reason, case version, idempotency, supersession and immutable audit",
+    "No inference from compensation or lack of compensation; settled finance case may receive operational decision",
+    "Open appeals suspend adverse classification; completed delivery/confirmed return remains fulfilled",
+    "Driver-reported unassignment reason preserved readably for future events",
+    "V1 callers keep explicit-response denominator until opt-in rules=2",
+    "Arabic administration section and independent reason/evidence/draft protection"
+  ],
+  "verification": {
+    "sourceBackendChecks": 70,
+    "capturedCandidateChecks": 46,
+    "flutterChecks": 20,
+    "completeCasePageBrowser": "PASS",
+    "separateComponentBrowser": "PASS",
+    "legacyBrowserHarness": "Outdated235 fixture omitted required case-workflow mount; replaced with current complete-page harness",
+    "nativeBuild": "Release272",
+    "installed": true,
+    "publishedVerification": "PASS"
+  },
+  "writeScope": {
+    "driver": "New receipt metadata rows only, atomically bound to pending owned offer and account lifecycle",
+    "admin": "Explicit operational decisions and history in existing Holds cases plus AuditLog; no agent business action executed",
+    "financialChanges": false,
+    "hardEligibilityOrRankingChanged": false
+  },
+  "packages": "docs/driver-performance-packages-272.json",
+  "receiptRolePolicy": "docs/driver-offer-receipt-policy-272.json",
+  "functions": [
+    "DriversApi-staging",
+    "staging-driver-financial-accept",
+    "staging-wizz-staff-service"
+  ],
+  "hostingChanges": [
+    "order-exception-cases.js",
+    "driver-performance-case.js",
+    "case-workflow.js",
+    "pages/order-exceptions.html"
+  ],
+  "approval": {
+    "state": "EXPLICIT_USER_APPROVAL_RECEIVED",
+    "actionExecuted": true,
+    "priorAutomaticRejectionResolvedByUserApproval": true
+  },
+  "businessWritesByAgent": 0,
+  "humanAcceptance": "DEFERRED_BY_USER_ORDERED_NOT_PASSED",
+  "remainingPhases": [
+    "Real displayed-timeout and independent admin decision human tests",
+    "On-time metric based on original accepted target and delay exceptions",
+    "Verified quality incidents and driver rating review",
+    "Per-indicator event breakdown and appeals completion",
+    "Unified authoritative metrics for dispatch after policy validation; score/tiers remain deferred"
+  ],
+  "publication": "docs/driver-performance-publication-272.json",
+  "orderedAcceptanceTests": "docs/driver-performance-ordered-acceptance-tests.json"
+}

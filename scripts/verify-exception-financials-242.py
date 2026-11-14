@@ -1,0 +1,14 @@
+"""Read-only verification and invalid-token boundaries; no real financial decision."""
+import sys,json,pathlib,uuid
+sys.path.insert(0,'/private/tmp/full-cash-208');from aws_session import session
+r=pathlib.Path(__file__).resolve().parents[1];s=session();l=s.client('lambda');d=s.resource('dynamodb');oid='bb728bfe-c2c4-5c95-8492-26ce81ee1ed1'
+def read(table,key):return d.Table(table).get_item(Key=key,ConsistentRead=True).get('Item')
+checks=[]
+for action in ['APPROVE_EXCEPTION_ENTITLEMENTS','EXECUTE_EXCEPTION_ENTITLEMENTS','APPROVE_EXCEPTION_GUARANTEE','EXECUTE_EXCEPTION_GUARANTEE','CLOSE_EXCEPTION_FINANCIALS']:
+ body={'orderId':oid,'caseKey':'RETURN#1','caseId':'OEX:0c4ef91c4c72592a7bd9a4f297212e7fc40f73737e9d023e','expectedVersion':1,'action':action,'reason':'Unauthenticated boundary test; never a real approval','idempotencyKey':str(uuid.uuid4())}
+ out=l.invoke(FunctionName='staging-driver-financial-accept',Payload=json.dumps({'action':'exception_case_admin','body':body,'accessToken':'invalid-smoke-token'}).encode());result=json.loads(out['Payload'].read());assert not out.get('FunctionError'),result;assert result.get('statusCode')==401,result;checks.append({'action':action,'unauthenticatedStatus':401})
+pub=json.loads((r/'docs/exception-financial-publication-242.json').read_text());assert pub['status']=='PUBLISHED'
+for x in pub['functions']:
+ c=l.get_function_configuration(FunctionName=x['name']);assert c['CodeSha256']==x['codeSha256'] and c['LastUpdateStatus']=='Successful'
+o=read('WizzOrders',{'PK':'ORDER#'+oid,'SK':'META'});h=read('staging-Holds',{'orderId':oid,'sk':'HOLD'});ret=read('staging-Holds',{'orderId':oid,'sk':'RETURN#1'});assert o['status']=='returned' and o['returnStatus']=='REVIEW_REQUIRED';assert h['status']=='ACTIVE' and h['amount']==6250 and not h.get('returnFinancialVersion');assert ret['condition']=='DAMAGED' and ret['allItemsReceived'] is True;assert not ret.get('entitlementDecision') and not ret.get('guaranteeDecision') and not ret.get('entitlementsPosted');assert read('staging-Holds',{'orderId':oid,'sk':'EXCEPTION_ENTITLEMENTS'}) is None;assert read('staging-Holds',{'orderId':oid,'sk':'FINANCIAL_OUTCOME'}) is None
+record={'part':242,'status':'PASS','invalidTokenChecks':checks,'publishedHashesVerified':True,'realOrder':{'number':'ORD1792545370610','status':o['status'],'returnStatus':o['returnStatus'],'condition':ret['condition'],'holdStatus':h['status'],'holdAmountIqd':int(h['amount']),'financialDecisionOrPaymentPerformed':False},'merchantSimulatorBuildInstalled':223,'merchantLaunched':True,'wholeSpecificationComplete':False};(r/'docs/exception-financial-verification-242.json').write_text(json.dumps(record,indent=2)+'\n');print('PASS published hashes, five unauthorized boundaries, unchanged real guarantee and no entitlement posting.')

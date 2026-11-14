@@ -1,0 +1,55 @@
+{
+  "part": 412,
+  "date": "2026-11-03",
+  "status": "PUBLISHED_STAGING_SIMULATOR_VERIFIED",
+  "supersedes": "Carousel behaviour in part 411; existing activation and eligibility policy preserved",
+  "implementation": {
+    "motion": "Fast group entrance, brief focus, one 65% logo pulse, surrounding objects disappear, logo expands/fades into configurable two-line copy, reading hold, copy exit and fast group transition",
+    "scenes": "One platform scene first, then one scene per merchant with eligible offers; configured merchant order and scene pause supported",
+    "images": "Circular brand mark, rounded square published menu photos; selected, discount-scoped or menu selection; no unpublished product pictures",
+    "height": "128 logical pixels at normal text scale, previously 190; accessible text fits with bounded expansion",
+    "scroll": "Address/notifications outside scroll; advertising is a scroll sliver; first filter strip pins under address; activity/topics and content continue scrolling",
+    "control": "Independent header feed always returns fresh published settings, even if the slideshow is hidden by active filtering",
+    "configuration": "Home management, animated promotion header: title/subtitle, source/individual offer, colour, schedule and reading hold; per-brand scene title/subtitle, enabled state, order and optional product selection",
+    "publication": "Header-only publish retains other pending home/filter drafts",
+    "selection": "Display only; existing verified offer and benefit detail/checkout paths retained"
+  },
+  "validation": {
+    "backendTests": 41,
+    "flutterTests": 23,
+    "browserWidths": [
+      390,
+      1280
+    ],
+    "sceneModels": "Platform first, merchant grouping, copy overrides, pause and deduplicated photos",
+    "scrollTests": "Fixed address and pinned filters at 320/390 width while the advertisement scrolls out",
+    "accessibility": "Rail tested at text scales 1 and 2",
+    "liveRead": "Guest header feed returned an active merchant scene with logo and four published meal images",
+    "visual": "21-second simulator capture sampled across platform/logo/copy/merchant/photo phases",
+    "customerBuild": 375
+  },
+  "deployment": {
+    "lambda": "staging-wizz-staff-service",
+    "files": [
+      "home-promotion-settings.js",
+      "promotion-scenes.js",
+      "_discount_review/central-staff/index.js"
+    ],
+    "hostingJobs": [
+      "255",
+      "256",
+      "257"
+    ],
+    "configurationPreserved": true,
+    "newIam": false,
+    "financialWrites": false,
+    "contentWrites": false,
+    "hostingStatus": "SUCCEED_VERIFIED_BYTES"
+  },
+  "humanChecks": [
+    "Review motion pacing and text in the simulator",
+    "Scroll to confirm the first filters pin under address",
+    "Customize per-brand copy/products, save and publish header-only",
+    "Tap advertisement and inspect grouped offer screen"
+  ]
+}

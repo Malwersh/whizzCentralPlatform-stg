@@ -1,0 +1,29 @@
+{
+  "part": 235,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "baseCodeSha256": "iyPnHSRDvVMX8PQpBlqTvZRKAbE89nPXJ4JJ/XpLSo8=",
+      "codeSha256": "UzH4W0XtDG181ap+HNvzfW3FHj22etACW7gd2nUB8eE=",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "baseCodeSha256": "N26sCw4P+AsFwPBFoLF5SVsxtT9tzDZXIbOQrox0wxU=",
+      "codeSha256": "VeJLSF20XViwgeRcBhnRn172RfKxfsFpjn03LB3gCyM=",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreserved": true
+    }
+  ],
+  "financialWritesByAgent": false,
+  "scope": "STAGING_GENERAL_NEW_POLICY_ORDERS"
+}

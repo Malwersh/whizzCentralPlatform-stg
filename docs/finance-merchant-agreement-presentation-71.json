@@ -1,0 +1,26 @@
+{
+  "part": 71,
+  "date": "2026-10-17",
+  "change": "Merchant agreement presentation",
+  "testsPassed": 8,
+  "analysis": {
+    "errors": 0,
+    "warnings": 0,
+    "styleInfos": 4
+  },
+  "iosSimulator": {
+    "buildPassed": true,
+    "installed": true,
+    "launched": true,
+    "device": "iPhone 16 Pro"
+  },
+  "backendChanged": false,
+  "agreementTermsChanged": false,
+  "consentWritten": false,
+  "financialActivation": false,
+  "sourceSha256": {
+    "frontend/lib/screens/commercial_agreements_screen.dart": "aac9640f6da7472457ac31e4a19623cf4afe28b0651b1c3fd1817f765be3e1f3",
+    "frontend/lib/screens/account_settings_page.dart": "60896648388c9ca1a8f08ecd6f984bff116b8dc3c96bd215225c9cd07bcd89ce",
+    "frontend/test/commercial_agreements_test.dart": "0174687f562a0dfb7a678f955d9aa91406c5026b06e8ba6aa1a48aa31fa55347"
+  }
+}

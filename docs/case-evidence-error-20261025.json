@@ -1,0 +1,14 @@
+{
+  "status": "SAFE_DIAGNOSTICS_PUBLISHED",
+  "function": "staging-driver-financial-accept",
+  "hash": "RbunRxM6pQTMldiMJZgAsh+MbWnqgx8w/JnkCL3V6EM=",
+  "revision": "75959609-c425-48de-ac00-902319b0cd1d",
+  "configurationPreserved": true,
+  "changedEntries": [
+    "index.js",
+    "case-evidence-diagnostics-20261025.js"
+  ],
+  "businessWrites": false,
+  "logsContainNoTokensOrPayloads": true,
+  "caseEvidenceStillRequiresUserRetry": true
+}

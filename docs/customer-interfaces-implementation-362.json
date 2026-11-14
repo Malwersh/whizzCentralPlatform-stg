@@ -1,0 +1,61 @@
+{
+  "part": 362,
+  "status": "PUBLISHED_STAGING_VERIFIED_HUMAN_TEMPLATE_ACCEPTANCE_PENDING",
+  "features": [
+    "Single navigation for home/store/product; original home records untouched",
+    "Typed store/product templates with branch/type/cuisine/brand/customer-region targeting",
+    "Specificity then priority and stable ID tie-break",
+    "Independent template and section editor; pause/delete/reorder/duplicate/preview; atomic audited draft/publish/rollback",
+    "Vertical menu, horizontal promotions, configurable section titles/layouts/filters",
+    "Previous completed orders (latest 50), exact-branch last order and locally persisted recent observations isolated by account",
+    "Product similar/category/manual complementary/current-catalog recommendations",
+    "30-day completed item quantity snapshots in existing staff table; no per-screen order scans",
+    "Mandatory menu/description/choices protected; pricing and stock still authoritative"
+  ],
+  "tests": {
+    "node": 22,
+    "flutter": 33,
+    "chromeViewports": [
+      390,
+      1280
+    ],
+    "originalHomeEditorRegression": true,
+    "all280HostingFilesVerifiedBeforeOverlay": true
+  },
+  "deployment": {
+    "prepared": true,
+    "published": true,
+    "hostingJob": "236",
+    "publicationRecord": "docs/customer-interfaces-publication-362.json",
+    "approvedCatalogRead": {
+      "policyArn": "arn:aws:iam::699561669180:policy/CustomerInterfaceCatalogRead362",
+      "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "action": "dynamodb:Query",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Products/index/BusinessIdIndex",
+      "explicitUserApproval": true,
+      "form": "Managed policy attachment; inline policy aggregate size limit reached",
+      "additionalPermissions": false
+    },
+    "homePublishedContentChanged": false
+  },
+  "limitations": [
+    "Recent observations are device-local per account, not synchronized across devices",
+    "Personal order source is bounded to latest 50 completed orders returned by existing API",
+    "No synthetic popularity or personalized data; empty sections hidden",
+    "Templates not auto-authored or published on behalf of administrator"
+  ],
+  "humanChecks": [
+    "Create default store template and branch-specific override; publish then verify matching",
+    "Rename discount rail, move and pause optional sections; test rollback",
+    "Compare two customer accounts and guest; last order belongs to exact branch",
+    "Configure product choices and recommendations; verify mandatory selections and current price",
+    "Create another store type template and verify branch precedence"
+  ],
+  "native": {
+    "customerSimulator": "iPhone 16 Pro",
+    "build": 284,
+    "installedAndLaunched": true,
+    "analyzerErrors": 0,
+    "analyzerWarnings": 0
+  }
+}

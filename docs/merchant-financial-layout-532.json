@@ -1,0 +1,25 @@
+{
+  "status": "SIMULATOR_INSTALLED_AND_LAUNCHED",
+  "atUtc": "2026-11-12T00:39:52.176848+00:00",
+  "scope": [
+    "Merchant account",
+    "Saved statements",
+    "Payout requests",
+    "Device financial notice preference presentation"
+  ],
+  "changes": [
+    "Unified pale background, white rounded cards without heavy shadows, navy active tabs",
+    "All-period pending balance emphasized separately from chosen-period metrics",
+    "Full-width date selector and responsive equal-width metric cards",
+    "Hide technical MSB/MPO identifiers; keep external cash voucher as secondary text",
+    "Statement actions and payout receipt/review/cancel conditions preserved",
+    "Statement detail uses public order number when supplied, avoids raw database order IDs"
+  ],
+  "validation": {
+    "widgetTests": 18,
+    "analyze": "No issues found before final date-spacing refinement",
+    "simulatorBuild": "Passed"
+  },
+  "financialLogicChanged": false,
+  "moneyWritten": false
+}

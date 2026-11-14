@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "part": 58,
+  "environment": "Staging",
+  "status": "BASELINE_APPROVED_IMPLEMENTATION_IN_PROGRESS",
+  "activationAllowed": false,
+  "liveDataChanged": false,
+  "pricing": {
+    "customerDeliveryRules": null,
+    "driverEarningRules": null,
+    "coverageLimits": null,
+    "effectiveFrom": null,
+    "effectiveTo": null,
+    "requester": null,
+    "independentApprover": null
+  },
+  "commercialAgreement": {
+    "merchantId": null,
+    "branchId": null,
+    "commissionKind": null,
+    "commissionBasis": null,
+    "commissionValue": null,
+    "customerServiceFee": null,
+    "otherCharges": null,
+    "effectiveFrom": null,
+    "effectiveTo": null,
+    "ownerAcceptance": null,
+    "staffApproval": null
+  },
+  "discountFunding": {
+    "campaignId": null,
+    "campaignVersion": null,
+    "merchantShare": null,
+    "platformShare": null,
+    "maximumAuthorizedFunding": null,
+    "fundingSourceEvidence": null,
+    "approval": null
+  },
+  "testCohort": {
+    "branchId": null,
+    "customerSubjectId": null,
+    "driverSubjectId": null,
+    "checkoutRequestId": null
+  },
+  "existingContracts": {
+    "pricingEditor": "/staff/pricing",
+    "commercialReader": "backend/wallet-service/src/orderCommercialSource.ts",
+    "agreementVersion": "staging-MerchantPlatform COMMERCIAL_AGREEMENT#id / VERSION#version",
+    "ownerAcceptance": "staging-MerchantPlatform COMMERCIAL_AGREEMENT#id / ACCEPTANCE#version",
+    "staffApproval": "staging-PlatformStaff COMMERCIAL_AGREEMENT#id / APPROVAL#version",
+    "fundingApproval": "staging-PlatformStaff DISCOUNT_FUNDING#id / CURRENT"
+  },
+  "rules": [
+    "No missing input becomes zero commission, free service or unlimited funding.",
+    "Customer delivery fee and driver earning are independent rules; tip is added once.",
+    "A general onboarding agreement is not a commercial agreement.",
+    "No owner acceptance or employee approval may be created under an invented human identity.",
+    "Without a discount, the source skips discount-funding policy and reservation; this does not prove the funded-discount scenario.",
+    "Published pricing needs independent approval under the existing authenticated MFA flow."
+  ],
+  "proposalDocument": "docs/finance-commercial-pricing-proposal-58.md",
+  "calculatedModel": "docs/finance-commercial-pricing-proposal-58.json",
+  "writerAccessCompleted": true,
+  "wholeIqdRoundingImplementationRequired": "IMPLEMENTED_LOCALLY_PENDING_COORDINATED_PUBLICATION_AND_LIVE_VERIFICATION",
+  "approvalReference": "docs/finance-commercial-pricing-approval-59.json"
+}

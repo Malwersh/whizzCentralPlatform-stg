@@ -1,0 +1,215 @@
+{
+  "part": 84,
+  "readOnly": true,
+  "sample": "مطعم فتوش",
+  "firstOrderDiscount": "NONE",
+  "pricing": {
+    "valid": true,
+    "deliveryRules": 1,
+    "driverRules": 1,
+    "exists": true
+  },
+  "writerIam": [
+    {
+      "action": "dynamodb:GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "dynamodb:ConditionCheckItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "dynamodb:GetItem",
+      "table": "staging-PlatformStaff",
+      "decision": "allowed"
+    },
+    {
+      "action": "dynamodb:ConditionCheckItem",
+      "table": "staging-PlatformStaff",
+      "decision": "allowed"
+    },
+    {
+      "action": "dynamodb:UpdateItem",
+      "table": "staging-Wallets",
+      "decision": "allowed"
+    },
+    {
+      "action": "dynamodb:PutItem",
+      "table": "staging-Holds",
+      "decision": "allowed"
+    },
+    {
+      "action": "dynamodb:PutItem",
+      "table": "staging-LedgerEntries",
+      "decision": "allowed"
+    },
+    {
+      "action": "dynamodb:PutItem",
+      "table": "staging-AuditLog",
+      "decision": "allowed"
+    }
+  ],
+  "agreement": {
+    "pricingPublished": true,
+    "pricingVersion": 1,
+    "pricesMatchApprovedSample": true,
+    "agreementSaved": true,
+    "agreementMatchesApprovedSample": true,
+    "ownerConsentPresent": true,
+    "agreementPublished": true,
+    "agreementVersion": 1,
+    "acceptanceAndAuthorizationMatch": true,
+    "branchAgreementLinked": true,
+    "checkedAtUtc": "2026-10-17T20:27:05.656916+00:00",
+    "readOnly": true,
+    "part": 84
+  },
+  "coordinatedHosts": {
+    "part": 84,
+    "checkedAtUtc": "2026-10-17T20:27:19.428139Z",
+    "readOnly": true,
+    "functions": [
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "codeSha256": "5pDJICSVgutecvgZ5uZbVZsQ/Z50mSa1fQ+t3tz3Bd8=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {
+          "DELIVERY_QUOTES_ENABLED": "false"
+        }
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "codeSha256": "rEMwsHgz9R63poRQiOWB+mdvy9jzDfqJSuMGo0RTOCs=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "codeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "codeSha256": "jAFfmIRV4QIQ0mfzLGbN1yNGL+p21E6IMasAaf6WHbE=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "codeSha256": "5RgKB/JSaYnyzoockrYuxuq+JJnPZWb+ek81OFeVaIQ=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "codeSha256": "2J7BvHTGk/Dnb3Va0Uu9QFdh751uxSkdiTxkL49gPcM=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "codeSha256": "s5VY//RJOiuDFnauWZCw5SHcMN9aTR+SkN3kj4uaz0w=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "DriversApi-staging",
+        "codeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "codeSha256": "SuRGzgPZ8abGOKEzA7BrNoUz0b6wxqLtJSLZN0DN70s=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {
+          "FINANCIAL_COD_RETURNS_MODE": "OFF",
+          "FINANCIAL_DISPATCH_MODE": "OFF",
+          "FINANCIAL_COD_COMPLETION_MODE": "OFF",
+          "FINANCIAL_COD_ASSIGNMENTS_MODE": "OFF"
+        }
+      },
+      {
+        "name": "staging-cod-integration",
+        "codeSha256": "zJdHVmIdhjbrGc+Ub7VrTJDJUE+aMTAioje8xgjLSpY=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {
+          "FINANCIAL_COD_INTEGRATION_MODE": "OFF"
+        }
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "MvxmFaVIzG0XBOGGKLjUrb8nZwoJubeUD8IFtcmUTrM=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "codeSha256": "wXACKH/twuCjnyshTtEe7qSRmjdkT6n8eRB2KhdJqQE=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "codeSha256": "CsZasWT83HOAFSZVKFVtmsHRtwSVnZ1thiW+sXgDd6M=",
+        "scopeConfigured": false,
+        "scopeCount": 0,
+        "openAdmissions": 0,
+        "gates": {}
+      }
+    ],
+    "coordinatedScopeReady": false,
+    "scopeCheck": "FINANCE_ROLLOUT_NOT_CONFIGURED",
+    "noOpenAdmissions": true,
+    "activationPerformed": false
+  },
+  "readinessEvidence": {
+    "ACCEPTED_APPROVED_AGREEMENT": true,
+    "PREASSIGNMENT_REJECTION_ATOMIC_RELEASE": false,
+    "PUBLISHED_ROLES_END_TO_END_CANARY": false,
+    "ROLLBACK_VERIFIED": false,
+    "FINAL_PRICE_WALLET_PRECISION_VERIFIED": false
+  },
+  "note": "False means live-cohort evidence is outstanding, not missing implementation. Generic metadata audit does not infer human consent; selected-agreement audit supplies that evidence separately.",
+  "requiredInput": [
+    "Selected customer account",
+    "Selected driver account; second driver for reassignment case"
+  ],
+  "nextSteps": [
+    "Resolve selected account identities and branch/driver eligibility without impersonation",
+    "Prepare exact checkout/order IDs and scoped cohort across 13 hosts",
+    "Verify quote acceptance and canonical order write, then preassignment refusal release and retries",
+    "Complete no-discount COD delivery and verify balanced ledger/merchant/driver/platform amounts",
+    "Test merchant-funded, platform-funded, and consented shared discount separately",
+    "Verify cancellation/reassignment/return and rollback before broader activation"
+  ],
+  "applicationWrites": false,
+  "financialActivation": false
+}

@@ -1,0 +1,43 @@
+{
+  "part": 212,
+  "status": "PUBLISHED_ACTIVE_VERIFIED_APP_INSTALLED_LAUNCH_VERIFIED",
+  "scope": "Merchant/admin financial transparency from posted verified ledger movements",
+  "readOnly": true,
+  "noNewIamOrMoneyOrFlags": true,
+  "merchantAppBuild": 212,
+  "refresh": "On open, foreground, manual refresh, and every60seconds while visible",
+  "knownCoverage": "Posted merchant ledger movements; zero-net orders have no merchant ledger posting; unsupported entries visible as review, excluded from totals",
+  "evidence": [
+    "merchant-account-publication-212.json",
+    "merchant-account-page-publication-212.json",
+    "merchant-account-live-read-212.json"
+  ],
+  "tests": {
+    "walletService": 1067,
+    "merchantWidget": 6,
+    "merchantAnalyze": "No issues",
+    "newBrowserFlow": "PASS",
+    "liveReadVerifiedAccruals": 7,
+    "liveReadReviewEntries": 0,
+    "liveMerchantPendingIqd": 43575
+  },
+  "hostingJobId": "120",
+  "hostedBytesVerified": true,
+  "backendCodeSha256": "v98wRMARkpKuZXpdJNX2aEAaTWc/TFC37tcy7U/TkMA=",
+  "merchantApp": {
+    "bundleId": "com.whizz.merchants",
+    "build": 212,
+    "releaseBuild": "PASS",
+    "installedOn": "iMohammed",
+    "launchVerified": true,
+    "runningProcessObserved": true
+  },
+  "reconciliationReview": {
+    "date": "2026-10-20",
+    "record": "finance-plan-reconciliation-2026-10-20.json",
+    "liveEvidence": "finance-plan-live-audit-2026-10-20.json",
+    "policy": "Review and close previously worked scope before starting a new implementation part, per user instruction",
+    "currentReviewOnly": true,
+    "functionalImplementationChanged": false
+  }
+}

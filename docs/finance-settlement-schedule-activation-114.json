@@ -1,0 +1,33 @@
+{
+  "recordedAt": "2026-10-18T13:28:51.878479+00:00",
+  "functions": [
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "pf41wS1kwKFNe8Wy4SQ9cmpOATfVLC6zCqVhUaJmjbs=",
+      "revisionId": "ff21a4ab-a23f-461c-a7ce-a4f5b66b226c",
+      "scheduleAdminEnabled": true,
+      "otherEnvironmentPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "3/PEuRGa4WZjS5L4Lg9DA4mjvQtXdckwlhBJ1ytT7hM=",
+      "revisionId": "117904bb-252d-4013-b399-9ef907b92ed8",
+      "scheduleAdminEnabled": true,
+      "otherEnvironmentPreserved": true
+    }
+  ],
+  "applicationRowsWritten": false,
+  "payoutEnabled": false,
+  "invalidOwnerTokenRejected": true,
+  "merchantApp": {
+    "bundleId": "com.whizz.merchants",
+    "version": "1.0.0",
+    "build": "1",
+    "mode": "profile",
+    "executableSha256": "aeed0b8143dff286fbcfa47a59378353378cb517655b3430dc3cad8d0a6d539e",
+    "installedOn": "iMohammed",
+    "deviceId": "B8850CE6-BCC2-551D-B930-3E108456B23F",
+    "launchSucceeded": true,
+    "authenticatedOwnerInteraction": "NOT_TESTED_OTP_DEPENDENCY"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "part": 260,
+  "status": "PUBLISHED_VERIFIED",
+  "scope": "staging",
+  "function": "staging-driver-financial-accept",
+  "changedFiles": [
+    "order-exception-runtime-229.js"
+  ],
+  "baseCodeSha256": "LXLUcsFRnD20rXxqRrDTsIp5GChNA9NErv90msa8hfc=",
+  "codeSha256": "3TFDPWftvQVUnNk8ip+MsPS+r0nYPpchog6FMr/eBFY=",
+  "cause": "Closure helper still expected legacy CASH_DISBURSEMENT; registered company cash uses MERCHANT_DISBURSEMENT_CLEARING with cashLedgerJournalId",
+  "unrelatedZipEntriesAndConfigurationPreserved": true,
+  "iamChanged": false,
+  "realClosureExecuted": false,
+  "financialPostingPerformed": false,
+  "proofTestsPassed": 8,
+  "realCaseDryRun": "Old verifier rejects sealed paid proof; corrected verifier prepares RESOLVED with transaction blocked",
+  "transactionAccessChecks": 10,
+  "liveRuntimeBytesVerified": true,
+  "caseVersion": 13,
+  "caseStillAwaitingUserClosure": true,
+  "accessChecks": [
+    {
+      "table": "staging-PlatformStaff",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "WizzOrders",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-Holds",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-Holds",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-Holds",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-MerchantPlatform",
+      "action": "dynamodb:ConditionCheckItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-WalletLifecycle",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-Holds",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-Holds",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    },
+    {
+      "table": "staging-AuditLog",
+      "action": "dynamodb:PutItem",
+      "decision": "allowed"
+    }
+  ]
+}

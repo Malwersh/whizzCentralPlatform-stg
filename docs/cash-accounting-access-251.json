@@ -1,0 +1,206 @@
+{
+  "part": 251,
+  "status": "PASS",
+  "readOnlyLivePreflight": true,
+  "allMutationsInterceptedLocally": true,
+  "currentPayoutUnchanged": true,
+  "localScenario": {
+    "openingIqd": 10000,
+    "deliveryIqd": 6250,
+    "remainingIqd": 3750
+  },
+  "iamChanged": false,
+  "transactionCount": 3,
+  "permissionChecks": [
+    {
+      "action": "ConditionCheckItem",
+      "table": "staging-PlatformStaff",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "ConditionCheckItem",
+      "table": "staging-PlatformStaff",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "ConditionCheckItem",
+      "table": "staging-PlatformStaff",
+      "decision": "allowed"
+    },
+    {
+      "action": "ConditionCheckItem",
+      "table": "WhizzMerchants_Businesses",
+      "decision": "allowed"
+    },
+    {
+      "action": "ConditionCheckItem",
+      "table": "staging-AccountDeletion",
+      "decision": "allowed"
+    },
+    {
+      "action": "ConditionCheckItem",
+      "table": "staging-AccountDeletion",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "ConditionCheckItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "ConditionCheckItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "PutItem",
+      "table": "staging-AuditLog",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-PlatformStaff",
+      "decision": "allowed"
+    },
+    {
+      "action": "Scan",
+      "table": "staging-PlatformStaff",
+      "decision": "allowed"
+    },
+    {
+      "action": "Query",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "WhizzMerchants_Businesses",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-AccountDeletion",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-AccountDeletion",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    },
+    {
+      "action": "GetItem",
+      "table": "staging-MerchantPlatform",
+      "decision": "allowed"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+id,scenario,expectedOperation,expectedFinancial,execution,existingEvidence
+A01,المستخدم يلغي قبل قبول المطعم,إلغاء فوري,لا أجرة سائق ولا مطعم؛ لا COD,NOT_CLAIMED_END_TO_END,
+A02,المستخدم يلغي بعد القبول لكن قبل بدء التجهيز,إلغاء مجاني عند تأكيد عدم التجهيز,أي حجز سائق يُفك بعد تحقق عدم العهدة,NOT_CLAIMED_END_TO_END,
+A03,المستخدم يطلب الإلغاء بعد `PREPARING`,`CANCEL_REQUESTED`/قضية؛ مراجعة تكلفة تجهيز,حق المطعم بحسب السياسة؛ لا رسوم غير معلنة للمستخدم,NOT_CLAIMED_END_TO_END,
+A04,المطعم يرفض أو لا يرد,إلغاء دون تحميل المستخدم,لا تعويض عن طعام غير مُجهز,NOT_CLAIMED_END_TO_END,
+A05,نفاد صنف,عرض استبدال/إزالة بموافقة المستخدم وإعادة تسعير COD,عدم الاستجابة يؤدي لإلغاء أو مراجعة وفق سياسة واضحة,NOT_CLAIMED_END_TO_END,
+A06,المطعم يتأخر,إخطار وتحديث ETA/إلغاء إن انطبق,تعويض السائق إذا حضر وفق سياسة مستقلة,NOT_CLAIMED_END_TO_END,
+A07,المطعم يلغي بعد تجهيز وقبل pickup,إلغاء موثق بعد التحقق,تحديد مسؤولية المطعم، تعويض سائق استثنائي إن انطبق,NOT_CLAIMED_END_TO_END,
+A08,لا سائق/انتهت الموجات,إعادة بحث محدودة أو تدخل دعم، ثم فشل توصيل منظّم,تعويض مطعم عن المُجهز وفق الاتفاقية وعلى المنصة مبدئياً,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/financialSearch.ts
+A09,السائق يرفض العرض,متابعة نظام الموجات الحالي,دون مستحق/حجز مستمر,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/driverFinancialRuntime.ts
+A10,السائق ينسحب قبل pickup,إزالة الإسناد، فك الحجز، إعادة بحث,لا مستحق تلقائي؛ استثناء بشري,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/codReassignment.ts
+A11,المطعم مغلق عند وصول السائق,وثّق الوقت/الموقع واتصال الدعم,لا تحميل السائق، وتقييم تعويض حضوره,NOT_CLAIMED_END_TO_END,
+A12,طلب مكرر/خطأ تسعير,إلغاء أو تصحيح قبل التحضير,أي فرق COD بموافقة المستخدم وإخطار المطعم,NOT_CLAIMED_END_TO_END,
+B01,المستخدم لا يرد,تحقق وصول + محاولات اتصال + مهلة، ثم تصريح,إعادة/تصرف معتمد، أجرة أصلية مؤهلة إن استوفى المحاولة,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/codReturn.ts
+B02,غير موجود/عنوان غير صحيح,نفس التوثيق، عرض تعديل عنوان,لا استلام بلا نقد، ولا تغيير بلا تأكيد,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/codReturn.ts
+B03,العنوان الجديد داخل/خارج المنطقة,تحقق نطاق ووقت وتكلفة وتأكيد جميع الأطراف,لا تحميل رسوم إضافية بلا موافقة,NOT_CLAIMED_END_TO_END,
+B04,يرفض دون خطأ ظاهر,توثيق الرفض؛ إصدار قرار disposition,حقوق الأطراف حسب المسؤولية المثبتة,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/codReturn.ts
+B05,رفض بسبب أصناف خاطئة/ناقصة,قائمة أصناف/صور/إقرار المطعم إن أمكن,لا اتهام للسائق تلقائياً,NOT_CLAIMED_END_TO_END,
+B06,تلف/تسرب/فقد,تجميد مسار اعتيادي، توثيق أدلة السلامة,تحديد مصدر التلف ومسؤولية العهدة,NOT_CLAIMED_END_TO_END,
+B07,عطل مركبة/حادث,أولوية السلامة، نقل عهدة أو إرجاع,أجر السائق يراجع حسب العمل المنجز,NOT_CLAIMED_END_TO_END,
+B08,فقد اتصال السائق,حالة مراقبة + محاولات استرداد واتصال,لا إعادة إسناد وهمية مع بقاء الطعام لدى السائق,NOT_CLAIMED_END_TO_END,
+B09,طريق مغلق/ظرف أمني/طقس,إثبات ظرف استثنائي,لا عقوبة تلقائية للسائق,NOT_CLAIMED_END_TO_END,
+B10,المطعم يرفض المرتجع,قضية نزاع عهدة + دليل وصول/رفض,لا إغلاق صامت ولا حجز مفتوح بلا SLA,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/codReturn.ts
+B11,المطعم مغلق عند العودة,تصرف بديل بإذن، مع أدلة,لا تفرض انتظاراً غير منتهٍ,NOT_CLAIMED_END_TO_END,
+B12,تحويل لسائق آخر,تسليم عهدة مع توقيع/OTP لكل طرف,سجل المهمتين منفصلاً، لا صرف مزدوج,NOT_CLAIMED_END_TO_END,
+B13,تسليم جزء/إرجاع جزء,تطابق كميات، COD جديد مُعتمد,`PARTIALLY_DELIVERED` وتسوية الأصناف,NOT_CLAIMED_END_TO_END,
+B14,استلام كل الأصناف والنقد الكامل,`DELIVERED` مع إثبات نقد,المستحقات الاعتيادية,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/fullCashCompletion.ts
+B15,استلام كامل لكن دفع أقل,لا تعلن نجاحاً مالياً كاملاً,`RECONCILIATION_REQUIRED` أو تعديل مُعتمد قبل الإغلاق,NOT_CLAIMED_END_TO_END,
+B16,دفع أكثر من المطلوب,تسجيل الزيادة وإرجاع الفرق الموثق,يمنع الاحتفاظ بالزيادة,NOT_CLAIMED_END_TO_END,
+B17,قبض ثم رفض/أعاد,قضية Refund + Custody، لا تحويل إلى إلغاء قبل pickup,تأكيد من يحتفظ بالنقد وعمليات الرد,NOT_CLAIMED_END_TO_END,
+B18,ادعاء نجاح تسليم متناقض,كشف تضارب الأدلة/الأحداث,تعليق التسوية المعنية فقط وتحقيق,NOT_CLAIMED_END_TO_END,
+C01,صنف ناقص,claim item-level,تعويض قيمة الجزء المثبت، وتحديد الممول,NOT_CLAIMED_END_TO_END,
+C02,صنف خاطئ,claim item-level,استبدال/تعويض حسب الإمكانية,NOT_CLAIMED_END_TO_END,
+C03,تلوث أو جودة غير آمنة,أولوية سلامة + تحقيق,لا تلزم إعادة طعام غير آمن,NOT_CLAIMED_END_TO_END,
+C04,تأخير مفرط,تحقيق SLA/تعويض عند استحقاقه,يعتمد على الأدلة والسياسة,NOT_CLAIMED_END_TO_END,
+C05,المستخدم ينكر التسليم,مراجعة Proof of Delivery/COD,لا اتهام آلي للسائق,NOT_CLAIMED_END_TO_END,
+C06,نزاع نقد/باقٍ مستحق,مطابقة حركات نقدية,عدم إصدار Refund إلا عند ثبوت الدفع,NOT_CLAIMED_END_TO_END,
+C07,شكوى بعد ساعات,قضية مرتبطة بالطلب النهائي,لا تتغير حالة التسليم القديمة,NOT_CLAIMED_END_TO_END,
+C08,نزاع التعويض بعد قرار,استئناف مع الأدلة الجديدة,قيود عكس/تعديل لا حذف,NOT_CLAIMED_END_TO_END,
+C09,مرتجع كامل وسليم,إغلاق عهدة وتحرير ضمان مؤهل,لا يسقط حق المطعم إذا كان الطعام غير قابل للبيع,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/codReturn.ts
+C10,مرتجع ناقص/تالف,قضية أصناف ومسؤولية,تجميد المبلغ المختلف عليه فقط إن أمكن,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/codReturn.ts
+C11,رفض/تعذر العودة,إدارة استثناء وانتهاء عهدة بدليل,صلاحية إدارية محددة وتوقيت واضح,NOT_CLAIMED_END_TO_END,
+C12,فشل تسوية أو اتصال مالي,إعادة معالجة idempotent,دون إعادة فتح المهمة أو دفع مكرر,NOT_CLAIMED_END_TO_END,backend/wallet-service/src/codReturn.ts
+DOD01,إلغاء قبل القبول؛ دون نشر مستحقات أو حجز.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD02,إلغاء بعد قبول المطعم وقبل التحضير؛ دون رسوم للمستخدم.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD03,إلغاء بعد تحضير موثق؛ حق المطعم مستقل، ولا إنشاء تحصيل نقد وهمي.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD04,نفاد السائقين بعد الطعام المحضر؛ لم يبق الطلب في حالة بحث معلقة إلى ما لا نهاية.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD05,رفض السائق ثم قبول آخر؛ لا duplicate hold.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD06,فك إسناد قبل pickup؛ لا يلغي طلب المستخدم، ولا يخلق fare تلقائية.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD07,"بعد pickup ومحاولة صحيحة مع no-response ثم return كامل ودون COD؛ أصل أجرة السائق (2,750 د.ع في fixture)، أجرة العودة=0، تحرير الضمان، تعويض مطعم مستقل.",وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD08,تضرر صنف عند return؛ `DISPUTED`، حجز مبلغ معرض للمخاطر فقط، دون خصم تلقائي.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD09,إغلاق المطعم عند العودة؛ تصريح تصرف بديل، بقاء القضية مراقبة حتى إنهاء العهدة.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD10,نقل عهدة بين سائقين؛ إثبات طرفين ومهمتين بلا مستحق مكرر.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD11,طلب COD مُسلم مع النقد الكامل؛ postings صحيحة.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD12,تسليم جزئي؛ موافقة المستخدم، كميات وأسعار ورسوم متسقة، عودة/تصرف بالباقي.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD13,"دفع 25,000 ثم رد 25,000؛ لا يعلن Paid حتى إثبات refund.",وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD14,ادعاء دفع المستخدم بلا إثبات؛ مراجعة لا refund تلقائي.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD15,ضغط refund/return confirmation مرتين؛ أثر مالي واحد فقط.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD16,COD partial/overpay؛ لا full collection غير حقيقي.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD17,شكوى بعد التسليم؛ لا تعديل تاريخ Order delivered.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD18,استئناف قضية مصروفة؛ adjusting entries لا UPDATE.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD19,Cancellation وpickup متزامنان؛ حالة عهدة واحدة صحيحة.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD20,بيانات عميل/مطعم/سائق لا تُكشف عبر API لطرف غير مخول.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD21,ميزة العودة الإضافية disabled في جميع الحالات، ومرجعها محفوظ لو تغيرت مستقبلاً.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD22,الطلبات القديمة لا تتأثر بنشر policy v1.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD23,نقد محصل ثم انقطاع شبكة أثناء رد النقد؛ retry لا يكرر الرد.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD24,failure أثناء posting بعد قرار معتمد؛ reconciliation تستكمل فقط الآثار الناقصة.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,
+DOD25,reason اختاره السائق ضد المطعم أو العكس لا يساوي confirmed fault.,وفق المواصفة والاتفاقات المعتمدة,No duplicate/unproven financial effect,NOT_CLAIMED_END_TO_END,

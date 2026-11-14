@@ -1,0 +1,35 @@
+{
+  "part": 334,
+  "environment": "staging",
+  "scope": "Pricing administration workflow; no policy changes",
+  "behavior": [
+    "General base rules shown first; branch/area exceptions collapsed separately",
+    "Selecting a branch shows its exceptions and general reference rather than hiding general rules",
+    "Selected branch with no exception shows general reference, without claiming live effective-rule determination",
+    "Branch exception creation prefilled from a general rule for review only",
+    "GLOBAL scope always uses GLOBAL identifier; eliminates branch identifier mismatch",
+    "Common save step follows both rule lists; review action scrolls to save",
+    "All underlying branch/merchant/zone/city/governorate/global precedence preserved"
+  ],
+  "tests": [
+    "Browser desktop/mobile",
+    "General reference without branch exception",
+    "Branch override plus general reference",
+    "New branch template and GLOBAL scope consistency",
+    "Unchanged save payload and original edit indices",
+    "No horizontal overflow"
+  ],
+  "financialWrites": 0,
+  "pricesChanged": false,
+  "backendChanged": false,
+  "hosting": {
+    "jobId": "169",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "delivery-pricing.js",
+      "styles/pricing-layout.css"
+    ],
+    "baseJob": "168"
+  }
+}

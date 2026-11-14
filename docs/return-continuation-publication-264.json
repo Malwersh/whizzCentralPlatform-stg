@@ -1,0 +1,107 @@
+{
+  "part": 264,
+  "status": "PUBLISHED",
+  "scope": "staging",
+  "functions": [
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "changedFiles": [
+        "order-exception-runtime-229.js",
+        "return-continuation-runtime-264.js",
+        "index.js"
+      ],
+      "baseCodeSha256": "PtSnpiUzh8MS8tuhcor7X3FLdjNGYeT+j6miVLkjwSs=",
+      "packageSha256": "5c568c700fdfb78a3d419b37235cb6e0b3b4d453903103bfbfef60f87ed7ad7e",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "XFaMcA/ft4o9QZs3I1y24LO01FOQMQO/v+9g+H7XrX4=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "baseCodeSha256": "psg5jjK5RXaDv95ybo9czLRGm4JcuWEu2NJjfzGvRU4=",
+      "packageSha256": "94d3f341d694e69ee982cfda222c08f980bbd06e5b1942e7d485a11911e0934f",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "lNPzQdaU5p7pgs/aIiwI+YC70G5bGULn1IWhGRHgk08=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "merchant",
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "changedFiles": [
+        "order_returns.js",
+        "return_continuation_proxy.js"
+      ],
+      "baseCodeSha256": "FNfKSVDNq/hGl4H/twGcmjLRyVpVMkdsnA0Oxr7YBQ4=",
+      "packageSha256": "968a902f01553a8a361740a62cf0fcbaff1d73dba00d3e3c43f049e87eeb2abd",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "loqQLwFVOoo2F0CmLPD8uv8dc9ugDT48Q/BJ6H7rKr0=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "driver",
+      "function": "DriversApi-staging",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "financial-accept-client.js"
+      ],
+      "baseCodeSha256": "iHMWcMeABOPbJvbTTONSB3HjUIkpdg9Q2tb481axT+o=",
+      "packageSha256": "a2a6dcf6555f398f31ed59998ce518a58e397ca8f59f272327b540a30b8e82b2",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "oqbc9lVfOY8x7VmZjOUYpY45fKj1nycjJ7VAowuOgrI=",
+      "configurationPreserved": true
+    }
+  ],
+  "iamChanged": false,
+  "realOrderReceiptCustodyOrFinancialMutationByAgent": false,
+  "existingCasesMigrated": false,
+  "originalReceiptPreserved": true,
+  "nativeBuilds": {
+    "merchant": 228,
+    "driverSimulatorDebug": 214
+  },
+  "features": [
+    "authenticated supplemental receipt",
+    "registered staff custody transfer",
+    "witnessed disposal",
+    "evidence-backed missing quantity review",
+    "physical driver task completion",
+    "company custody register",
+    "pinned-window appeals",
+    "financial action fences during custody or appeal review"
+  ],
+  "negativeSmoke": [
+    {
+      "action": "return_case_driver",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    },
+    {
+      "action": "return_case_owner",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    },
+    {
+      "action": "exception_case_admin",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    }
+  ],
+  "hosting": {
+    "baseJobId": "152",
+    "jobId": "153",
+    "changedFiles": [
+      "case-workflow.js",
+      "case-continuation.js",
+      "order-exception-cases.js",
+      "pages/order-exceptions.html"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

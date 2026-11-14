@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "status": "USER_APPROVED_2026_10_16",
+  "environment": "staging",
+  "financialActivation": "OFF",
+  "quoteMaxPerCustomerPerMinute": 5,
+  "driverOfferTtlSeconds": 60,
+  "driverPositionMaxAgeSeconds": 120,
+  "reassignmentWindowSeconds": 300,
+  "maximumWaves": 4,
+  "exhaustion": {"orderCancellation": false, "releaseFunds": false, "reviewRequired": true},
+  "routingCredential": "PENDING_SECRET_MANAGER",
+  "globalRoutingQuota": "PENDING_CAPACITY_REVIEW"
+}

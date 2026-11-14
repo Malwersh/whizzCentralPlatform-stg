@@ -1,0 +1,14 @@
+{
+  "part": 211,
+  "baseJobId": "118",
+  "jobId": "119",
+  "changedFiles": [
+    "pages/finance.html",
+    "settlement-statements.js",
+    "settlement-statement-details.js"
+  ],
+  "otherFilesPreserved": true,
+  "status": "SUCCEED",
+  "sha256": "b5d8ed82857dab9acb131b254d531f65eeb2ff756d214b4885b6b27ee33e3bd4",
+  "hostedBytesVerified": true
+}

@@ -1,0 +1,75 @@
+{
+  "part": 156,
+  "applied": false,
+  "capturedFunctions": 6,
+  "capturedRoles": 6,
+  "api": {
+    "id": "6ogrj6so22",
+    "stage": "staging",
+    "deploymentId": "kkbpb1",
+    "relevantPaths": [
+      "/{proxy+}"
+    ]
+  },
+  "rules": [
+    {
+      "name": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+      "arn": "arn:aws:events:us-east-1:699561669180:rule/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+      "state": "ENABLED",
+      "schedule": "rate(1 minute)",
+      "targetCount": 1,
+      "timeoutTarget": true
+    }
+  ],
+  "targetedTestsPassed": 43,
+  "typescriptBuild": "PASS",
+  "handlerLoad": {
+    "part": 151,
+    "applied": false,
+    "handlers": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "DriversApi-staging",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "handlerLoaded": true,
+        "networkBlocked": true,
+        "invoked": false
+      }
+    ]
+  },
+  "permissionCandidates": {
+    "roles": 2,
+    "statements": 4,
+    "requiredDeniedCasesResolved": 6,
+    "applied": false
+  },
+  "permissionReviewLimit": "72 exploratory cases include unused Creator operations and negative-control financial reads. Only six source-required denied cases under the exact candidate policies are approved for proposal; no wallet/hold authority added."
+}

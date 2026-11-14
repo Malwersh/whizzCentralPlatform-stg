@@ -1,0 +1,159 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Staging merchant period collection metadata-only access delta 216",
+  "Resources": {
+    "ProducerPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "staging-merchant-period-collection-216-producer",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+              "Condition": {
+                "Null": {
+                  "dynamodb:LeadingKeys": "false"
+                },
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "MERCHANT_ACCRUAL#*"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+              "Condition": {
+                "Null": {
+                  "dynamodb:LeadingKeys": "false",
+                  "dynamodb:Attributes": "false"
+                },
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "MERCHANT_ACCRUAL#*"
+                  ]
+                },
+                "ForAllValues:StringEquals": {
+                  "dynamodb:Attributes": [
+                    "pk",
+                    "sk",
+                    "schemaVersion",
+                    "kind",
+                    "branchId",
+                    "orderId",
+                    "operationId",
+                    "deliveredAt",
+                    "merchantNetIqd",
+                    "financialSchemaVersion",
+                    "retentionClass",
+                    "digest",
+                    "revision",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "Roles": [
+          "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW"
+        ]
+      }
+    },
+    "StaffPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "staging-merchant-period-collection-216-staff",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:Query",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+              "Condition": {
+                "Null": {
+                  "dynamodb:LeadingKeys": "false"
+                },
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "MERCHANT_ACCRUAL#*",
+                    "MERCHANT_COLLECTION#*",
+                    "SYSTEM#MERCHANT_ACCRUAL_INDEX"
+                  ]
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:PutItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+              "Condition": {
+                "Null": {
+                  "dynamodb:LeadingKeys": "false"
+                },
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "MERCHANT_COLLECTION#*"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "Roles": [
+          "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx"
+        ]
+      }
+    },
+    "RetentionPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "staging-merchant-period-collection-216-retention",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:Query",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+              "Condition": {
+                "Null": {
+                  "dynamodb:LeadingKeys": "false"
+                },
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "MERCHANT_ACCRUAL#*",
+                    "MERCHANT_COLLECTION#*"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "Roles": [
+          "staging-account-deletion-WorkerRole-u5xpbVRU9G0Q"
+        ]
+      }
+    }
+  }
+}

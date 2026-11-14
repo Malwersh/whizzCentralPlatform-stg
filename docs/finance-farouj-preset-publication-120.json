@@ -1,0 +1,20 @@
+{
+  "part": 120,
+  "baseJobId": "101",
+  "changedFiles": [
+    "finance-sample.js",
+    "commercial-management.js",
+    "pages/merchants.html",
+    "pages/delivery-pricing.html",
+    "finance-sample-120.json"
+  ],
+  "unrelatedFilesPreserved": true,
+  "applicationRowsWritten": false,
+  "financialPolicyPublished": false,
+  "ownerConsentWritten": false,
+  "codeSha256": "e/LSW5bo2A+QkbGqVUPDgM2yEFPC9S2b8jsmfASWzpA=",
+  "jobId": "102",
+  "status": "SUCCEED",
+  "hostedFilesMatched": true,
+  "recordedAt": "2026-10-18T15:27:59.538981+00:00"
+}

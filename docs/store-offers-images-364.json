@@ -1,0 +1,29 @@
+{
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "part": 364,
+  "backendSha256": "kuatxGVmkEngKHrBN9QfxihwRktEgHjRxHhZiqRvPB8=",
+  "hostingJob": "240",
+  "customerBuild": 290,
+  "newPermissions": false,
+  "templateRecordsChanged": false,
+  "financialWrites": false,
+  "otherRuntimeAndHostingEntriesPreserved": true,
+  "offerState": "ready",
+  "guestOfferCount": 1,
+  "tests": {
+    "backend": 18,
+    "flutter": 8,
+    "browserWidths": [
+      390,
+      1280
+    ],
+    "gifOriginalBytesBrowser": true
+  },
+  "humanChecksPending": [
+    "Upload campaign artwork and select image-only in published template",
+    "Verify animated GIF on physical Android and iPhone"
+  ],
+  "customerInstalledOn": "iPhone 16 Pro simulator",
+  "imagePresentation": true,
+  "gifEditorPreservesOriginalBytes": true
+}

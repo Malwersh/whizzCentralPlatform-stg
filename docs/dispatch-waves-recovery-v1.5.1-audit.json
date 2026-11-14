@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "auditedAt": "2026-10-16T19:31:01.499883+00:00",
+  "scope": "STAGING_ONLY",
+  "productionAudited": false,
+  "applicationRecordsRead": false,
+  "humanLogsReturned": false,
+  "financialActivationChanged": false,
+  "runtimePublished": false,
+  "sourceAddendum": "finance-reference/unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+  "functions": [
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "j4mFcOGoAvR7YelKIATiT1NQQPNdHo+nshHEM06NeMQ=",
+      "revisionId": "52581dbc-cceb-4dd4-8b2e-9cf820bf19f4",
+      "handler": "index.handler",
+      "lastModified": "2026-10-16T18:44:46.000+0000",
+      "environment": {
+        "STAGE": "staging",
+        "DISPATCH_JOBS_TABLE": "WizzDispatchJobs_staging"
+      }
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "pnPzcRyT42pIfp9IiAVQF89CTcekqn1U9v9NOqojNNw=",
+      "revisionId": "12586032-f355-49ee-b4ea-df658ba5a3b5",
+      "handler": "index.handler",
+      "lastModified": "2026-10-16T19:10:51.000+0000",
+      "environment": {
+        "STAGE": "staging",
+        "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "300",
+        "WAVE_OFFERS_TABLE": "WaveOffers_staging",
+        "DISPATCH_JOBS_TABLE": "WizzDispatchJobs_staging",
+        "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120",
+        "FINANCIAL_OFFER_TTL_SECONDS": "60",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL"
+      }
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "4tDShfuMbqBWmZdirNkVKU1ik6FTPm+OnEweZs67nzY=",
+      "revisionId": "1600f0db-fa96-4338-b1af-038d104f01d1",
+      "handler": "index.handler",
+      "lastModified": "2026-10-16T19:11:12.000+0000",
+      "environment": {
+        "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120",
+        "FINANCIAL_OFFER_TTL_SECONDS": "60",
+        "MAX_WAVES": "5",
+        "STAGE": "staging",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+        "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "300",
+        "WAVE_OFFERS_TABLE": "WaveOffers_staging",
+        "DISPATCH_JOBS_TABLE": "WizzDispatchJobs_staging"
+      }
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "codeSha256": "x03EVm7XapRL1J9ah3Sdm4jUqAWVc6K3y3I6+x5Bgao=",
+      "revisionId": "34b12117-1397-4bbf-b68e-9733af4a51dc",
+      "handler": "index.handler",
+      "lastModified": "2026-10-16T17:14:34.000+0000",
+      "environment": {
+        "STAGE": "staging",
+        "WAVE_OFFERS_TABLE": "WaveOffers_staging",
+        "DISPATCH_JOBS_TABLE": "WizzDispatchJobs_staging"
+      }
+    },
+    {
+      "name": "DriversApi-staging",
+      "codeSha256": "s4IwbNr32JLKK2JQx5fxPTex6fVdNQf44N+mxKWajYY=",
+      "revisionId": "edc53f99-27b5-4b71-9c24-0be3fcbf198b",
+      "handler": "lambda_driver_api_v2.handler",
+      "lastModified": "2026-10-16T17:14:27.000+0000",
+      "environment": {
+        "DISPATCH_JOBS_TABLE": "WizzDispatchJobs_staging"
+      }
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "5TRPZhgEqkuDvdGrz3IrjvBLMtLcPLQLf5QCL9nnb/Q=",
+      "revisionId": "cb84d197-def7-4e65-ae52-3ac312d50ee1",
+      "handler": "index.financialAcceptanceHandler",
+      "lastModified": "2026-10-16T19:11:15.000+0000",
+      "environment": {
+        "FINANCIAL_COD_RETURNS_MODE": "OFF",
+        "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120",
+        "FINANCIAL_OFFER_TTL_SECONDS": "60",
+        "FINANCIAL_DISPATCH_MODE": "OFF",
+        "FINANCIAL_COD_COMPLETION_MODE": "OFF",
+        "FINANCIAL_COD_ASSIGNMENTS_MODE": "OFF",
+        "STAGE": "staging",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+        "FINANCIAL_REASSIGNMENT_WINDOW_SECONDS": "300"
+      }
+    },
+    {
+      "name": "WaveSystem_UpdateDriverMetrics",
+      "handler": "index.handler",
+      "codeSha256": "/Tx+zP8qJBuhoPIUGmx2vI1Bwwd0VVoMUb8T92Nnup8=",
+      "environment": {
+        "DRIVER_LIVE_STATE_TABLE": "WizzDriverLiveState_staging",
+        "STAGE": "staging",
+        "WINDOW_SIZE": "100",
+        "PERFORMANCE_METRICS_TABLE": "WizzDriverPerformanceMetrics_staging",
+        "WAVE_OFFERS_TABLE": "WaveOffers_staging"
+      },
+      "eventSources": [
+        {
+          "state": "Disabled",
+          "eventSourceARN": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging/stream/2026-01-02T06:19:13.779"
+        },
+        {
+          "state": "Disabled",
+          "eventSourceARN": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders/stream/2026-01-02T02:38:47.097"
+        }
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "codeSha256": "S3oriu+racxOeBAZnZYlmB9NlDUIGhS9pmDFEbfx/Aw=",
+      "sourceMatchesLive": true
+    }
+  ],
+  "sourceComparison": [
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "entry": "index.js",
+      "sourceMatchesLive": false,
+      "source": "lambda/WaveSystem_CreateDispatchJob/index.js"
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "entry": "index.js",
+      "sourceMatchesLive": true,
+      "source": "lambda/WaveSystem_StartWave/index.js"
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "entry": "index.js",
+      "sourceMatchesLive": true,
+      "source": "lambda/WaveSystem_HandleWaveTimeout/index.js"
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "entry": "index.js",
+      "sourceMatchesLive": true,
+      "source": "lambda/WaveSystem_HandleDriverAccept/index.js"
+    },
+    {
+      "name": "DriversApi-staging",
+      "entry": "lambda_driver_api_v2.js",
+      "sourceMatchesLive": true,
+      "source": "../whizzDrivers-stg/backend/lambda_driver_api_v2.js"
+    }
+  ],
+  "triggersAndProxy": {
+    "streamSources": [
+      {
+        "function": "WaveSystem_CreateDispatchJob",
+        "mappings": [
+          {
+            "state": "Enabled",
+            "source": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders/stream/2026-10-09T16:02:28.064",
+            "batchSize": 10
+          }
+        ]
+      },
+      {
+        "function": "WaveSystem_StartWave",
+        "mappings": []
+      }
+    ],
+    "driverProxy": [
+      {
+        "path": "/{proxy+}",
+        "method": "ANY",
+        "authorizationType": "NONE",
+        "uri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:699561669180:function:DriversApi-staging/invocations"
+      }
+    ]
+  },
+  "workerSchedule": [
+    {
+      "Name": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+      "ScheduleExpression": "rate(1 minute)",
+      "State": "ENABLED"
+    }
+  ],
+  "fifthWaveObservations": [
+    {
+      "function": "WaveSystem_HandleWaveTimeout",
+      "pattern": "Starting EMERGENCY WAVE",
+      "lookbackDays": 7,
+      "aggregateResults": [
+        [
+          {
+            "field": "matchedLines",
+            "value": "1"
+          }
+        ]
+      ],
+      "notProofOfOfferDeliveryOrAcceptance": true
+    },
+    {
+      "function": "WaveSystem_StartWave",
+      "pattern": "EMERGENCY WAVE: Selected ALL",
+      "lookbackDays": 7,
+      "aggregateResults": [
+        [
+          {
+            "field": "matchedLines",
+            "value": "1"
+          }
+        ]
+      ],
+      "notProofOfOfferDeliveryOrAcceptance": true
+    }
+  ],
+  "metricsTableSchema": {
+    "table": "WizzDriverPerformanceMetrics_staging",
+    "keySchema": [
+      {
+        "AttributeName": "PK",
+        "KeyType": "HASH"
+      },
+      {
+        "AttributeName": "SK",
+        "KeyType": "RANGE"
+      }
+    ]
+  },
+  "characterization": {
+    "scope": "LOCAL_EXISTING_SOURCE_CHARACTERIZATION",
+    "realWrites": false,
+    "fifthBranchReachableWhenInvoked": true,
+    "emptyFourthWaveExcludedByStuckFilter": true,
+    "concurrentTimeoutsInvokeSameNextWaveTwice": true,
+    "legacyTransitionIgnoresExpiredJobDeadline": true,
+    "localMetricsCountFailedDeliveryAsExpired": true,
+    "allRejectedPathStopsAtFour": true,
+    "allRejectedFourthWaveOmitsFinalAndExclusionFlags": true,
+    "notADeployedFix": true
+  },
+  "sourceDigests": [
+    {
+      "path": "lambda/WaveSystem_CreateDispatchJob/index.js",
+      "sha256": "5af703119fb74e3701b8caee51d76d1dc82c5d732140a9c4bcf70cb2e708c221"
+    },
+    {
+      "path": "lambda/WaveSystem_StartWave/index.js",
+      "sha256": "8c8bb9a3d97c1b183ea1516da816335d96ecc3656fa39122cd99e1516231ba75"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleWaveTimeout/index.js",
+      "sha256": "ed14a5fa49f932c41d2eb36809ad3305d427ade4956f498e963c06c1af3a62bc"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleDriverAccept/index.js",
+      "sha256": "9c2900bc2835cbd0d9622d021e06236b6f885b95b104d26bacece7587b2310bf"
+    },
+    {
+      "path": "lambda/WaveSystem_HandleDriverReject/index.js",
+      "sha256": "29b0d8a2f299ac7f7e229e7a86c014ed0e3188d8517add5450cec0e455b40bdb"
+    },
+    {
+      "path": "lambda/WaveSystem_UpdateDriverMetrics/index.js",
+      "sha256": "3eb8c5fd12ec8b9e1afbeb974efa76dd5efa0e3848a71084eee440afc5272a59"
+    },
+    {
+      "path": "backend/wallet-service/src/driverFinancialRuntime.ts",
+      "sha256": "33c0d09aca2e77826db9cb50a59f0eeb382e746bc9575213b0061380bd44e7b2"
+    },
+    {
+      "path": "backend/wallet-service/src/driverFinancialWave.ts",
+      "sha256": "bea5a54a90e617255b9694b4f2fe74ca5a8e22883628517eb42a706c7564636d"
+    },
+    {
+      "path": "backend/wallet-service/src/driverOfferAcceptance.ts",
+      "sha256": "518c4f2863dfcf51072465f9d284cea7dd0014cdcf089f1d56d204bdcec55e86"
+    },
+    {
+      "path": "backend/wallet-service/src/driverOfferContext.ts",
+      "sha256": "4b84ebc8815d06a84dabc3aaef93b489a5278aecb8d646275388d8b356f529af"
+    },
+    {
+      "path": "backend/wallet-service/src/financialSearch.ts",
+      "sha256": "dca8ce2a5d4ebd948bd2db73ac471cd17e342145b478d1625615c19082b854c0"
+    },
+    {
+      "path": "backend/wallet-service/src/deliveryOperations.ts",
+      "sha256": "b47ecc72eb838c290609d461fa717775df3237ee43bc657886663c3b2a41d871"
+    },
+    {
+      "path": "backend/wallet-service/src/orderAllocation.ts",
+      "sha256": "2f6d20eafa945b83570d5831476f938f34c87008597fce64b440d6b428ddf47d"
+    },
+    {
+      "path": "backend/wallet-service/src/codIntegration.ts",
+      "sha256": "057ba6e4621d438876f4f820094c6424523f8aec0d98b70c0868cd221254ada0"
+    },
+    {
+      "path": "../whizzDrivers-stg/backend/lambda_driver_api_v2.js",
+      "sha256": "5bb5530ba8eb58fb698a2ade72c3aaabac840f08e3d5a79c0b3c63ec1050a8ce"
+    }
+  ],
+  "timing": {
+    "measuredFullOrderDurations": false,
+    "oldOfferTtlSeconds": 90,
+    "workerScheduleSeconds": 60,
+    "creatorExpirySeconds": 900,
+    "financialOfferTtlSeconds": 60,
+    "financialReassignmentWindowSeconds": 300,
+    "financialInitialSearchInheritsCreatorExpiry": true,
+    "illustrations": [
+      {
+        "kind": "OFFLINE_ILLUSTRATION_NOT_MEASURED",
+        "waves": [
+          {
+            "wave": 1,
+            "offerAtMs": 0,
+            "expiresAtMs": 90000,
+            "observedAtMs": 120000,
+            "pollingDelayMs": 30000
+          },
+          {
+            "wave": 2,
+            "offerAtMs": 120000,
+            "expiresAtMs": 210000,
+            "observedAtMs": 240000,
+            "pollingDelayMs": 30000
+          },
+          {
+            "wave": 3,
+            "offerAtMs": 240000,
+            "expiresAtMs": 330000,
+            "observedAtMs": 360000,
+            "pollingDelayMs": 30000
+          },
+          {
+            "wave": 4,
+            "offerAtMs": 360000,
+            "expiresAtMs": 450000,
+            "observedAtMs": 480000,
+            "pollingDelayMs": 30000
+          }
+        ],
+        "completedWaves": 4,
+        "elapsedMs": 480000
+      },
+      {
+        "kind": "OFFLINE_ILLUSTRATION_NOT_MEASURED",
+        "waves": [
+          {
+            "wave": 1,
+            "offerAtMs": 2000,
+            "expiresAtMs": 62000,
+            "observedAtMs": 120000,
+            "pollingDelayMs": 58000
+          },
+          {
+            "wave": 2,
+            "offerAtMs": 122000,
+            "expiresAtMs": 182000,
+            "observedAtMs": 240000,
+            "pollingDelayMs": 58000
+          },
+          {
+            "wave": 3,
+            "offerAtMs": 242000,
+            "expiresAtMs": 302000,
+            "observedAtMs": 360000,
+            "pollingDelayMs": 58000
+          },
+          {
+            "wave": 4,
+            "offerAtMs": 362000,
+            "expiresAtMs": 422000,
+            "observedAtMs": 480000,
+            "pollingDelayMs": 58000
+          }
+        ],
+        "completedWaves": 4,
+        "elapsedMs": 478000
+      },
+      {
+        "kind": "OFFLINE_ILLUSTRATION_NOT_MEASURED",
+        "waves": [
+          {
+            "wave": 1,
+            "offerAtMs": 2000,
+            "expiresAtMs": 62000,
+            "observedAtMs": 120000,
+            "pollingDelayMs": 58000
+          },
+          {
+            "wave": 2,
+            "offerAtMs": 122000,
+            "expiresAtMs": 182000,
+            "observedAtMs": 240000,
+            "pollingDelayMs": 58000
+          },
+          {
+            "wave": 3,
+            "offerAtMs": 242000,
+            "expiresAtMs": 300000,
+            "observedAtMs": 300000,
+            "pollingDelayMs": 0
+          }
+        ],
+        "completedWaves": 3,
+        "elapsedMs": 298000
+      }
+    ]
+  },
+  "decisions": {
+    "noThirdDispatchEngine": true,
+    "extendExistingOperationsPolicy": true,
+    "pinPolicyAtSearchCycleCreation": true,
+    "reuseExistingJobsAndFinancialWriter": true,
+    "unifyRejectAndTimeoutTransition": true,
+    "recovery30kmAnd25PercentNotNewlyApproved": true,
+    "doNotChangeHumanDeadlines": true,
+    "doNotEnableMetricsStreamsBeforeUnification": true
+  },
+  "pending": [
+    "Single coordinator and atomic transition claim",
+    "Central full wave and recovery schema plus cycle snapshot",
+    "Canonical performance windows, key schema, units, delivery outcomes",
+    "Shared hard eligibility including vehicle/documents/COD",
+    "Road-based final ranking and maximum pickup ETA",
+    "Funded capped recovery phase in same search cycle",
+    "Operator cases and authorized recovery/cancellation handling",
+    "Live-role end-to-end and device verification before activation"
+  ],
+  "tests": {
+    "financialFocusedPass": 74,
+    "financialFocusedFail": 0,
+    "timingSimulationPass": 4,
+    "characterization": "7 observed properties; no real AWS calls"
+  }
+}

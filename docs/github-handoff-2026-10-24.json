@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-24",
+  "repository": "whizzCentralPlatform-stg",
+  "branch": "feature/malwersh/bootstrap",
+  "scope": "Four staging repositories only; no legacy non-stg worktree included",
+  "purpose": "جميع تحديثات الجلسة وتسليم ملف المنتجات والاستيراد للزميل",
+  "changes": [
+    "إدارة الطلبات من المنصة: إلغاء قبل الاستلام وفك الإسناد وإعادة البحث مع الحراس المالية القائمة.",
+    "إثبات تسليم المطعم للسائق ومنع الإلغاء المباشر بعد إثبات العهدة.",
+    "تقييم واعتماد وتنفيذ تعويض الإلغاء وإغلاقه، وربط المنح الشخصية الموجودة بتعويض الزبون دون رد نقد وهمي.",
+    "مصفوفة42سيناريو وسجل COD وخطة الاستكمال ونتائج الفحوص البشرية السابقة.",
+    "استعادة روابط إدارة الطلب وتعويض الإلغاء التي أسقطتها نشرات واجهة لاحقة مع حفظ التصميم.",
+    "إحالة كامل المنتجات/الإدخال اليدوي/CSV/Excel وملحقاته إلى الزميل؛ مستورد متكامل لم ينفذ بعد."
+  ],
+  "delegation": {
+    "status": "DELEGATED_TO_COLLEAGUE",
+    "scope": "منتج منفرد + CSV/Excel/XLSX مع كامل متعلقات القائمة/الصور/الخيارات/المخزون والفروع والطلبات",
+    "fullHandoff": "docs/merchant-products-import-colleague-handoff-2026-10-24.txt",
+    "masterPlan": "https://github.com/Malwersh/whizzCentralPlatform-stg/blob/feature/malwersh/bootstrap/docs/finance-pricing-settlements-returns-unified-plan.md",
+    "doNotRebuildExistingScopeOrOptionPricing": true,
+    "bulkImportNotClaimedComplete": true
+  },
+  "pull": [
+    "git fetch origin",
+    "git checkout feature/malwersh/bootstrap",
+    "git pull --ff-only origin feature/malwersh/bootstrap"
+  ],
+  "validation": {
+    "whizzCentralPlatform-stg": 368,
+    "merchant-node": 23,
+    "central-wallet": 50,
+    "whizzMerchants-stg-flutter": 17,
+    "whizzDrivers-stg-flutter": 20,
+    "wizzuser-stg-flutter": 25
+  },
+  "operationalNotes": [
+    "GitHub upload does not invoke Lambda deployment, grants, refunds, handovers, or settlements.",
+    "Preserve colleague branches; no force push or automatic merge to integration/staging-main.",
+    "COD-first launch and pending case acceptance remain as recorded in the main plan."
+  ],
+  "excludedLocalChanges": []
+}

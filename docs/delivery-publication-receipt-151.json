@@ -1,0 +1,214 @@
+{
+  "publication": {
+    "part": 151,
+    "manifestSha256": "8352e1d93c968a72bae5312d689ab4029f02dccef32bf81530d75ee83cdebd4d",
+    "permissions": [
+      {
+        "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+        "policyName": "DeliveryFunding149",
+        "status": "VERIFIED"
+      },
+      {
+        "role": "staging-merchant-response-99",
+        "policyName": "DeliveryFunding149",
+        "status": "VERIFIED"
+      },
+      {
+        "role": "Wizz-Merchants-staging-MerchantOrderFunctionRole-AZ12ipBY0zyt",
+        "policyName": "DeliveryFunding149",
+        "status": "VERIFIED"
+      },
+      {
+        "role": "WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+        "policyName": "DeliveryFunding149",
+        "status": "VERIFIED"
+      },
+      {
+        "role": "wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "policyName": "DeliveryNotice150",
+        "status": "VERIFIED"
+      }
+    ],
+    "functions": [
+      {
+        "name": "staging-driver-financial-accept",
+        "status": "VERIFIED",
+        "baseRevisionId": "7f63804d-6f8c-4f9c-9748-332ff384511c",
+        "baseCodeSha256": "t6IygAJq4HYpvXsyhFN+YDYIZ+4r+vs41SsgZCavXfs=",
+        "revisionId": "3333e0e0-6f3c-4176-9e47-566711bec36f",
+        "codeSha256": "q366ehuxv6jookgMb9ZtKW11mMwzlsZDT/gYa4D9q1g=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "status": "VERIFIED",
+        "baseRevisionId": "d13c1214-41fc-4bb4-b093-48df8ed1d0d1",
+        "baseCodeSha256": "DwqZGppZ20ajNgQ/nY42NPYQdDcWg+oQftW4NoRjfsQ=",
+        "revisionId": "788d68ee-ffcc-4042-bd81-5672187b78ca",
+        "codeSha256": "IOVIWe8AvSVOPj/0/03g7KUVOQ/vIaDyrus8yQtSwPU=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "staging-merchant-response-99",
+        "status": "VERIFIED",
+        "baseRevisionId": "5aaf16f2-b13d-4614-bddc-4ddc6130f0ec",
+        "baseCodeSha256": "DLSxSxT2gdZ3DBdvnyAhQxmBLNazhXHbaJku+jVZBXM=",
+        "revisionId": "b45e0cd9-2938-46c1-ad4d-b0329afdecd7",
+        "codeSha256": "4WLJ8SAzEjsuOXetOfd2kUeBfRlL1eTkY/4VxV0Sn0Q=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "status": "VERIFIED",
+        "baseRevisionId": "ef3953e9-8ee8-4211-92a2-77e2953d7ca7",
+        "baseCodeSha256": "4BrxC5Ko0gPd8dXN8sTVWxctebX4z+vZtIWynxjBcn4=",
+        "revisionId": "e2cbb091-3c53-4d8c-8ec6-0c3b7619c138",
+        "codeSha256": "LaQZDmaAyoiti9VpIPzGiUJDyXaznCWpg0K5L4JO1xM=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "status": "VERIFIED",
+        "baseRevisionId": "d757a3f9-1b78-43f5-a0f9-45393387c95a",
+        "baseCodeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+        "revisionId": "085f320d-f5cb-4a86-baf1-35cf1ec72b3b",
+        "codeSha256": "TGVWs/dMHlhPn72Pub/L4JMBzKKKPuMJPClwpOVQXpU=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "status": "VERIFIED",
+        "baseRevisionId": "70ded931-991b-4ec1-87a5-523e553d42fd",
+        "baseCodeSha256": "LL7g7l3aamaYw3URJHV7zgPDopeZahZs0OPTdKMWMcc=",
+        "revisionId": "f263632c-7914-411c-8763-52e1f4b5fcbe",
+        "codeSha256": "8S4yzYAYIb5x82nlKLrJH0uwddI5RfRCnlwrJN03MQY=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "status": "VERIFIED",
+        "baseRevisionId": "4a277f4c-2a3b-4ce3-8cbb-cd8d4e530255",
+        "baseCodeSha256": "DbcS4wGUw0RTd37Nwjzf9mda2p2zdnAMn+iTXZ6nEvw=",
+        "revisionId": "463ecd90-f037-4f52-80cd-c2553c42f916",
+        "codeSha256": "chG8kofrYBN7MwvqjV8k3Vr6Lu4vqCNQZkHYxQs1Efg=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "status": "VERIFIED",
+        "baseRevisionId": "a7ac1b6c-d4b6-42da-8a14-17e4d782483c",
+        "baseCodeSha256": "ZxUt0RUPXOcwYrKqitGsB47/QNCoJIMBQyJ8HrkFHe8=",
+        "revisionId": "67733f0c-0d34-442d-b855-406ed94a43b9",
+        "codeSha256": "TDaGiUGv2DJ2ypyq6lLJKij7s4F8aBO0SUzLB5Urs7k=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "status": "VERIFIED",
+        "baseRevisionId": "bc265906-dd1b-4f84-b6b1-9d4b9378a221",
+        "baseCodeSha256": "krOEuYD5MUHLD3djp+AtKPkLlSksVkOKHFkxhyQ9psw=",
+        "revisionId": "f69f0916-15a9-4acb-af3d-452b14bfd89b",
+        "codeSha256": "UCPes9MhMK884HdsOrXhYTt7Q5+jMPe0P6INWGSnbWc=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "status": "VERIFIED",
+        "baseRevisionId": "7f3d2824-c533-492e-a6c7-fc4c6cf6228d",
+        "baseCodeSha256": "Pbp9eKQhJog7KVMEqRKVD0G0w/acgF0CTYXkpz3FRFI=",
+        "revisionId": "468b5eb1-4464-42b6-b76e-c2d477edcaa9",
+        "codeSha256": "WY1jaLYCo7Js1s39XsaSW2soz33HBhhmc6+1KtJnavE=",
+        "environmentUnchanged": true
+      }
+    ],
+    "frontend": {
+      "jobId": "106",
+      "status": "SUCCEED",
+      "baseJobId": "105"
+    },
+    "environmentChanges": false,
+    "financialDataWrites": false,
+    "status": "VERIFIED"
+  },
+  "verification": {
+    "part": 151,
+    "deployed": true,
+    "functions": [
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "codeSha256": "TDaGiUGv2DJ2ypyq6lLJKij7s4F8aBO0SUzLB5Urs7k=",
+        "verified": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "UCPes9MhMK884HdsOrXhYTt7Q5+jMPe0P6INWGSnbWc=",
+        "verified": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "codeSha256": "q366ehuxv6jookgMb9ZtKW11mMwzlsZDT/gYa4D9q1g=",
+        "verified": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "codeSha256": "IOVIWe8AvSVOPj/0/03g7KUVOQ/vIaDyrus8yQtSwPU=",
+        "verified": true
+      },
+      {
+        "name": "staging-merchant-response-99",
+        "codeSha256": "4WLJ8SAzEjsuOXetOfd2kUeBfRlL1eTkY/4VxV0Sn0Q=",
+        "verified": true
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "codeSha256": "LaQZDmaAyoiti9VpIPzGiUJDyXaznCWpg0K5L4JO1xM=",
+        "verified": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "codeSha256": "TGVWs/dMHlhPn72Pub/L4JMBzKKKPuMJPClwpOVQXpU=",
+        "verified": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "codeSha256": "8S4yzYAYIb5x82nlKLrJH0uwddI5RfRCnlwrJN03MQY=",
+        "verified": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "codeSha256": "chG8kofrYBN7MwvqjV8k3Vr6Lu4vqCNQZkHYxQs1Efg=",
+        "verified": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "codeSha256": "WY1jaLYCo7Js1s39XsaSW2soz33HBhhmc6+1KtJnavE=",
+        "verified": true
+      }
+    ],
+    "permissionPoliciesVerified": 5,
+    "frontend": {
+      "jobId": "106",
+      "status": "SUCCEED",
+      "files": [
+        {
+          "path": "delivery-policy-form.js",
+          "sha256": "c9951ceb5e02567c442862ccaea8fc0e775175e72028f9974585393690a41d60",
+          "verified": true
+        },
+        {
+          "path": "delivery-policy-management.js",
+          "sha256": "f8197dd2c9a5b063c896e6e851175a9677e2d95280e1dfd92d7a7b0181443a12",
+          "verified": true
+        },
+        {
+          "path": "pages/merchants.html",
+          "sha256": "e7956141e243946cff5998c5024e1ffd3717848267cfb1ae5c12d210bd496e66",
+          "verified": true
+        }
+      ]
+    },
+    "environmentChanges": false,
+    "financialDataWrites": false,
+    "activation": "UNCHANGED; NOT ENABLED BY THIS RELEASE"
+  }
+}

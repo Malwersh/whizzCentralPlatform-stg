@@ -1,0 +1,44 @@
+{
+  "part": 238,
+  "status": "PUBLISHED_AND_ACTIVE",
+  "scope": "STAGING_GENERAL_RECORDED_FINANCIAL_INITIAL_RETRY",
+  "functions": [
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "baseCodeSha256": "5/0VGygEgQI0qNC+gveolAKfLuU+5g9jRRCE5OOa5Zg=",
+      "codeSha256": "DnM5sANK154okQeVQiXDfvVDyytnqtU/X/ievwdh8RE=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "dispatch-restart-funding-238.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreservedDuringCodeUpdate": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "baseCodeSha256": "9wYinZogEzo8ONqw4GY1O9apRG4dl8s8bKXMtxvF98k=",
+      "codeSha256": "157bwa375jnCXjdHtL651Jaqd78pZ5KY4JhgypdQ5Xg=",
+      "changedFiles": [
+        "index.js",
+        "dispatch-review-host-238.js"
+      ],
+      "otherZipEntriesIdentical": true,
+      "configurationPreservedDuringCodeUpdate": true
+    }
+  ],
+  "iamChanges": false,
+  "walletOrLedgerWritesByAgent": false,
+  "manualOrderReset": false,
+  "onlyEnvironmentChange": {
+    "function": "staging-cod-integration",
+    "key": "DISPATCH_REVIEW_EXECUTION_MODE",
+    "before": "OFF",
+    "after": "SAFE_FINANCIAL_INITIAL_RETRY"
+  },
+  "existingSchedulePreserved": true,
+  "tests": {
+    "wallet": 1209,
+    "capturedHosts": 20,
+    "failed": 0
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "status": "RELEASE_348_INSTALLED",
+  "atUtc": "2026-11-11T15:08:38.169525+00:00",
+  "cause": "ExpansionTile without its own PageStorageKey read the ancestor account ListView scroll offset (double) as expanded state (bool), rendering gray ErrorWidget in Release.",
+  "fix": "Branch-scoped PageStorageKey isolates correction expansion state from scroll state and other branches.",
+  "proof": "New widget test reproduced double is not subtype of bool before fix, then passed. Account and corrections suite: 8 passed.",
+  "build": "Merchant Release 348 built and installed on iMohammed; financial lock remains enabled",
+  "financialLogicChanged": false
+}

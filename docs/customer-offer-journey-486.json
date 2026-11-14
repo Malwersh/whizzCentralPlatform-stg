@@ -1,0 +1,24 @@
+{
+  "phase": 486,
+  "status": "release-438-installed-on-iMohammed-human-roundtrip-pending",
+  "changes": [
+    "Use deliveryBenefitId consistently in cart/checkout/final confirmation.",
+    "Restore automatic selection from account/basket/point-scoped pending state before displaying checkout invoice.",
+    "Observe late preparation and restore after address continuation.",
+    "Canonicalize pricing scope, excluding display metadata; preserve quantities/options/point/account checks.",
+    "Failed merchant or code replacement preserves previous selection; successful merchant replacement persists on return and explains replacement.",
+    "Context invalidation no longer marks automatic selection as user-dismissed."
+  ],
+  "verification": {
+    "flutter": 32,
+    "analyzer": "no errors/warnings; style infos remain",
+    "backend": "Relevant point-invoice and stacking tests passed in broader run; 3 existing commercial create integration fixtures failed with Unexpected staging-MerchantPlatform. No backend code changed.",
+    "backendRelevantPassed": 10
+  },
+  "manualRemaining": [
+    "Same real account cart benefit -> address -> payment -> return -> reopen",
+    "Successful and failed merchant replacement",
+    "Final cash order confirmation with retained benefit"
+  ],
+  "build": 438
+}

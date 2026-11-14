@@ -1,0 +1,17 @@
+{
+  "part": 90,
+  "status": "position_verified_search_window_expired",
+  "finding": "Online state remained true but locationUpdatedAt was older than 120 seconds. Exact financial wave persisted PREPARING before offer save.",
+  "change": "Driver search home refreshes authenticated /driver/update-location every 30 seconds while searching and foreground; refresh on resume; one request at a time; timer disposed. Existing home test coordinates preserved.",
+  "scope": "Same existing order only; no order acceptance, location fabrication, wallet credit or generic reconciliation invoked.",
+  "validation": "Targeted analyzer: no errors; existing warnings/info. Signed release iOS build succeeded and installed on physical test device. All 15 financial offer/closure tests passed using external-drive temporary directory.",
+  "remaining": "Existing review executor supports SAFE_LEGACY_RETRY only and explicitly blocks financial search retry. Do not reset job timestamps or manufacture a new assignment. Need supported financial retry implementation or human cancellation followed by a separately scoped replacement canary.",
+  "serverVerification": {
+    "positionFreshWithin120Seconds": true,
+    "online": true,
+    "walletAvailableIqd": 25000,
+    "walletLockedIqd": 0,
+    "testPositionChanged": false
+  },
+  "retry": "Read-only preflight initially passed. Execution preflight then refused before invoking StartWave because the existing search expired at 2026-10-17T21:59:01.136Z. Consistent reads confirmed wave PREPARING with no deliveries, currentWaveNumber 0, order ready_for_pickup, no financial acceptance."
+}

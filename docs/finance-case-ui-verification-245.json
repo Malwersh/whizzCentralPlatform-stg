@@ -1,0 +1,19 @@
+{
+  "part": 245,
+  "status": "PASS",
+  "serviceAndHostedAssetsVerified": true,
+  "noBusinessMutation": true,
+  "realTestOrder": {
+    "number": "ORD1792545370610",
+    "caseVersion": 13,
+    "fareIqd": 2750,
+    "fareStatus": "POSTED_ONCE",
+    "guaranteeIqd": 6250,
+    "guaranteeStatus": "RELEASED",
+    "merchantCompensationIqd": 6250,
+    "merchantCompensationStatus": "LOCKED_PENDING_SETTLEMENT",
+    "statementCreated": false,
+    "financialCaseClosed": false
+  },
+  "financialLogicAndIamUnchanged": true
+}

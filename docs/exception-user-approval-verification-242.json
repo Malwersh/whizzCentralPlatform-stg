@@ -1,0 +1,53 @@
+{
+  "checks": {
+    "immutableDecisionMatches": true,
+    "currentFindingMatches": true,
+    "approvedOnly": true,
+    "expectedAmounts": true,
+    "newAccountingModel": true,
+    "guaranteeUnchanged": true,
+    "caseEvidenceMatches": true
+  },
+  "caseVersion": "11",
+  "decision": {
+    "decisionId": "9e9bf847-13f6-48d2-8628-7014b7cbd845",
+    "state": "APPROVED",
+    "driverFareDecision": "FULL",
+    "driverFareIqd": "2750",
+    "merchantCompensationIqd": "6250",
+    "merchantFundingIqd": "0",
+    "platformFundingIqd": "9000",
+    "settlementModel": "EXCEPTION_ACCRUAL_GL_V1",
+    "attemptVerification": {
+      "reference": "مراجعة تجريبية لإفادتي السائق والمطعم المسجلتين للطلب ORD1792545370610",
+      "reviewedAt": "2026-10-21T16:48:44.595Z",
+      "source": "SUPPORT_VERIFIED_EVIDENCE",
+      "actorId": "f40834f8-4091-7054-0e20-dba35a2793ce"
+    },
+    "agreementReference": "اتفاق تجريبي قبل الإطلاق: تعويض المطعم بصافي استحقاقه الأصلي عن الأصناف المرتجعة التالفة.",
+    "reason": "- اعتماد تجريبي لأجرة السائق 2750 دينار وتعويض المطعم 6250 دينار بتمويل كامل من المنصة."
+  },
+  "evidence": [
+    {
+      "id": "732c0574-d7b5-4e4a-9de0-0679fec99b37",
+      "kind": "STAFF",
+      "party": "MERCHANT",
+      "caseIdMatches": true
+    },
+    {
+      "id": "e6e1d343-9b0c-48ed-b2a8-0cf79eac3ccd",
+      "kind": "STAFF",
+      "party": "DRIVER",
+      "caseIdMatches": true
+    }
+  ],
+  "finding": {
+    "decisionStatus": "CONFIRMED",
+    "allocations": [
+      {
+        "party": "CUSTOMER",
+        "basisPoints": "10000"
+      }
+    ]
+  }
+}

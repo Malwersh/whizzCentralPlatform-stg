@@ -1,0 +1,11 @@
+'use strict';
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const fs=require('node:fs'),assert=require('node:assert/strict');
+(async()=>{const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true,args:['--no-sandbox']});try{
+const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.addInitScript(()=>{const payload={token_use:'id',iss:'https://cognito-idp.us-east-1.amazonaws.com/test',aud:'client',exp:Math.floor(Date.now()/1000)+3600};localStorage.setItem('idToken','test.'+btoa(JSON.stringify(payload))+'.test');localStorage.setItem('accessToken','test-access');});
+let requests=0;
+await page.route('**/*',async route=>{const url=new URL(route.request().url());if(url.pathname.startsWith('/staff/')){requests++;assert.equal(route.request().headers().authorization,'Bearer test-access');return route.fulfill({json:url.pathname.endsWith('/history')?{versions:[]}:{current:null,draft:null,defaults:require('../backend/shared/merchant-legal-defaults-344.json'),canEdit:false,canPublish:false}});}
+const name=url.pathname.replace(/^\//,'');if(['pages/legal-documents.html','assets/js/auth-utils.js','customer-legal-settings-344.js'].includes(name))return route.fulfill({path:'frontend/'+name});if(name==='config.js')return route.fulfill({contentType:'application/javascript',body:"window.WIZZCENTRAL_CONFIG={COGNITO_REGION:'us-east-1',COGNITO_USER_POOL_ID:'test',COGNITO_CLIENT_ID:'client',STAFF_API_BASE_URL:'https://legal.test'};"});return route.fulfill({body:'',contentType:'application/javascript'});});
+await page.goto('https://legal.test/pages/legal-documents.html');await page.locator('#legal-app').filter({visible:true}).waitFor();await page.waitForFunction(()=>document.getElementById('legal-app').value.length>0);assert.equal(await page.evaluate(()=>typeof window.Auth.ensureSession),'function');assert(requests>=1);assert.deepEqual(errors,[]);assert(!(await page.locator('#legal-message').textContent()).includes('ensureSession'));console.log('PASS: actual HTML loads real session utilities and authenticated CMS data.');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});

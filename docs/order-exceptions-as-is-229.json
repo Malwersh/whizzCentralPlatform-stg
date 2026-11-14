@@ -1,0 +1,43 @@
+{
+  "status": "SOURCE_AND_CAPTURED_ENTRY_MAP_NOT_ALL_PATHS_LIVE_VERIFIED",
+  "customerCreation": {
+    "source": "wizzuser-stg/backend/src/functions/create-order/index.js",
+    "actualHandler": "functions/create-order/index.handler",
+    "actualEntry": "_discount_review/user-create-order/index.js",
+    "policyPin": "exceptionPolicy on new full-cash orders only"
+  },
+  "driverReturn": {
+    "source": "backend/wallet-service/src/codReturn.ts",
+    "actualFunction": "staging-driver-financial-accept",
+    "entry": "index.financialAcceptanceHandler",
+    "bridge": "order-exception-runtime-229.js",
+    "commands": [
+      "request_return",
+      "arrive_return",
+      "read_return",
+      "confirm_return"
+    ],
+    "writes": "existing RETURN#attempt row, order/hold/outcome/job/live and audit/outbox transactions"
+  },
+  "merchantReturn": {
+    "adapter": "whizzMerchants-stg/backend/functions/auth/order_returns.js",
+    "gateway": "GET/POST /auth/order-returns",
+    "scope": "access token + live owner + financial writer independent identity"
+  },
+  "prePickup": [
+    "backend/wallet-service/src/codReassignment.ts",
+    "backend/wallet-service/src/merchantPendingResponse.ts"
+  ],
+  "cashCompletion": "backend/wallet-service/src/fullCashCompletion.ts",
+  "dispatchExhaustion": "backend/wallet-service/src/financialSearch.ts",
+  "ledgerAndRelease": [
+    "backend/wallet-service/src/fullCashRelease.ts",
+    "backend/wallet-service/src/financialRelease.ts"
+  ],
+  "liveActivity": "backend/src/handlers/order-arrival-content.js",
+  "compatibilityRisks": [
+    "Legacy merchant cancellation endpoints need explicit actual-entry and IAM trace before declaring safe for new policy",
+    "Driver trip-history terminal mapping still needs separate returned/delivery-failed treatment",
+    "No complete case administration/decision execution path yet; new case must not be presented as resolved"
+  ]
+}

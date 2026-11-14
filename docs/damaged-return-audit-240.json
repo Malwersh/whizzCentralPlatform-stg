@@ -1,0 +1,47 @@
+{
+  "orderNumber": "ORD1792545370610",
+  "orderId": "bb728bfe-c2c4-5c95-8492-26ce81ee1ed1",
+  "source": "consistent DynamoDB reads on staging; canonical and deployed return path",
+  "observedAt": "2026-10-21T15:04:48.624805+00:00",
+  "returnStatus": "REVIEW_REQUIRED",
+  "orderStatus": "return_arrived",
+  "merchantReceipt": {
+    "allItemsReceived": true,
+    "condition": "DAMAGED",
+    "driverResponsibility": "REVIEW",
+    "confirmedAt": "2026-10-21T14:38:31.512Z",
+    "version": 5
+  },
+  "hold": {
+    "amountIqd": 6250,
+    "status": "ACTIVE",
+    "deductedAsPenalty": false
+  },
+  "driver": {
+    "currentOrderLinked": true,
+    "activeOrdersCount": 1,
+    "isActive": true,
+    "isSearching": false,
+    "status": "busy"
+  },
+  "financial": {
+    "outcome": null,
+    "driverOriginalFareBasisIqd": 2750,
+    "driverFareApproval": "NOT_APPROVED",
+    "driverFarePaid": false,
+    "returnExtraFareIqd": 0,
+    "merchantCompensation": "NOT_APPROVED",
+    "cashActuallyCollectedIqd": 0,
+    "customerRefundIqd": 0
+  },
+  "rootCause": "confirmReceipt only completes INTACT + allItemsReceived + driverResponsibility NONE. All damage/missing/review cases retain order, job and full hold. Staff evidence/responsibility recording exists but no implemented adjudication-to-custody-release/financial-resolution path. This is an incomplete execution branch, not stale UI alone.",
+  "policyGap": "All units received is custody evidence distinct from condition, resale safety and responsibility. Existing LOST_OR_DISPUTED conflates damage-only review with unresolved possession. Do not infer driver liability or silently clear hold.",
+  "nextRequiredImplementation": [
+    "Separate confirmed receipt/condition from custody and driver task completion",
+    "Authorized documented review for any justified disputed guarantee amount; release only via fenced audited financial action, never direct agent edit",
+    "Implement and test settlement approval/payment for original fare, restaurant compensation and payer independently; zero uncollected cash refund and zero extra return fare",
+    "Ensure terminal operational transition returns online driver home while unresolved financial case remains visible"
+  ],
+  "changedHistoricalOrder": false,
+  "liabilityDecisionByAgent": false
+}

@@ -1,0 +1,15 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),Module=require('node:module'),assert=require('node:assert/strict');
+const base='/private/tmp/lifecycle-219/live',name='order-receiver-regional-staging-unified-auth-v4-sam',file=path.join(base,name,'order_returns.js');
+const m=new Module(file,module);m.filename=file;m.paths=Module._nodeModulePaths(path.resolve('backend/wallet-service'));m._compile(fs.readFileSync(file,'utf8'),file);
+const before={...process.env},target='arn:aws:lambda:us-east-1:699561669180:function:staging-driver-financial-accept';
+(async()=>{for(const k of ['FINANCIAL_COD_RETURNS_MODE','FINANCIAL_COD_ASSIGNMENTS_MODE','FINANCIAL_ACCEPT_FUNCTION_ARN'])delete process.env[k];Object.assign(process.env,JSON.parse(fs.readFileSync(path.join(base,name+'.config.private.json'))).Environment.Variables);
+ let calls=[];const ctx={sub:'owner',db:{send:async c=>{assert.equal(c.constructor.name,'GetCommand');return {Item:{businessId:'branch',ownerId:'owner',cognitoUserId:'owner'}};}}},client={send:async c=>{calls.push(JSON.parse(Buffer.from(c.input.Payload)));assert.equal(c.input.FunctionName,target);return {Payload:Buffer.from(JSON.stringify({statusCode:200,result:{success:true,kind:'COD_RETURN',orderId:'order'}}))};}};
+ const read={path:'/auth/order-returns',httpMethod:'GET',headers:{Authorization:'Bearer SYNTHETIC_LOCAL_ONLY'},queryStringParameters:{businessId:'branch',orderId:'order',offerId:'offer',attempt:'1'}};
+ await assert.rejects(m.exports.route(ctx,read,null,client),/COD_RETURNS_DISABLED/);assert.equal(calls.length,0);
+ Object.assign(process.env,{FINANCIAL_COD_RETURNS_MODE:'REQUIRED',FINANCIAL_COD_ASSIGNMENTS_MODE:'REQUIRED',FINANCIAL_ACCEPT_FUNCTION_ARN:target});
+ await m.exports.route(ctx,read,null,client);const receipt={businessId:'branch',orderId:'order',offerId:'offer',attempt:1,returnId:'return',expectedVersion:2,allItemsReceived:true,condition:'INTACT',driverResponsibility:'NONE',cashCollected:false};await m.exports.route(ctx,{...read,httpMethod:'POST'},receipt,client);
+ await m.exports.route(ctx,{...read,path:'/auth/order-cancellation',httpMethod:'POST'},{businessId:'branch',orderId:'order',offerId:'offer',attempt:1,goodsRetainedByBranch:true,cashCollected:false},client);
+ assert.deepEqual(calls.map(x=>x.action),['read_return','confirm_return','cancel_before_pickup']);assert(calls.every(x=>x.accessToken==='SYNTHETIC_LOCAL_ONLY'&&x.body.branchId==='branch'&&!('amount' in x.body)));
+ await assert.rejects(m.exports.route({...ctx,sub:'employee'},read,null,client),/OWNER_REQUIRED/);await assert.rejects(m.exports.route(ctx,{...read,httpMethod:'POST'},{...receipt,amount:1},client),/INVALID_COD_RETURN/);assert.equal(calls.length,3);console.log('PASS exact deployed merchant return adapter: missing-env failure reproduced, required env restores scoped reads/receipt/cancel delegation, wrong owner and injected money rejected; no real invocation or writes.');
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>{process.env=before;});

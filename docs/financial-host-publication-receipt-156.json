@@ -1,0 +1,160 @@
+{
+  "publication": {
+    "part": 156,
+    "manifestSha256": "5bdd0cb1ba2acd79f01b18f0bec5752339e7979139b5d3e03a04b9b6965fe1b0",
+    "permissions": [
+      {
+        "role": "wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+        "policyName": "FinancialCycleCreator156",
+        "status": "VERIFIED"
+      },
+      {
+        "role": "wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "policyName": "FinancialPushValidation156",
+        "status": "VERIFIED"
+      }
+    ],
+    "functions": [
+      {
+        "name": "staging-driver-financial-accept",
+        "status": "VERIFIED",
+        "baseRevisionId": "3333e0e0-6f3c-4176-9e47-566711bec36f",
+        "baseCodeSha256": "q366ehuxv6jookgMb9ZtKW11mMwzlsZDT/gYa4D9q1g=",
+        "revisionId": "4629cb8c-9fd8-4134-99ac-879467042076",
+        "codeSha256": "hwPSaaFTNimXC52ZLRKEn1gP7sif0IbLltkjvYJpAI4=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "status": "VERIFIED",
+        "baseRevisionId": "6ff11bb9-8fda-4fed-8a66-4c84b3ab5d8e",
+        "baseCodeSha256": "xzfurAgrBRHxMFNYQoScEKd0mV+lugCDCLh5Jmi1i9Y=",
+        "revisionId": "68a5f07d-e67f-4ae2-9b04-95e093c8f7c8",
+        "codeSha256": "MCbtGIPJz5p8B2PGKw4OatWYP/0kxpKLfIRb68DR670=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "status": "VERIFIED",
+        "baseRevisionId": "c2a18f77-8811-4cd2-be5d-7a8abd1e1bdd",
+        "baseCodeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+        "revisionId": "2c6116c2-7936-4884-b524-e89cb2a84ea9",
+        "codeSha256": "EcOpHtbuFmFQEbgSy3cbISzEalMikuVjstufi/zuwDM=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "status": "VERIFIED",
+        "baseRevisionId": "f263632c-7914-411c-8763-52e1f4b5fcbe",
+        "baseCodeSha256": "8S4yzYAYIb5x82nlKLrJH0uwddI5RfRCnlwrJN03MQY=",
+        "revisionId": "2c5b011a-5e57-405b-87c2-d184d418d5f3",
+        "codeSha256": "TN5+prUg6KkEseCLAbKFdsd+jokdXI2uZo5yH8ZRJiw=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "status": "VERIFIED",
+        "baseRevisionId": "463ecd90-f037-4f52-80cd-c2553c42f916",
+        "baseCodeSha256": "chG8kofrYBN7MwvqjV8k3Vr6Lu4vqCNQZkHYxQs1Efg=",
+        "revisionId": "292d2aad-7ab6-42e6-8183-f6b08e87248a",
+        "codeSha256": "XJDX+KiPpnDAM7bW85hbENynWjnMjmv3qgc8ZbEES24=",
+        "environmentUnchanged": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "status": "VERIFIED",
+        "baseRevisionId": "085f320d-f5cb-4a86-baf1-35cf1ec72b3b",
+        "baseCodeSha256": "TGVWs/dMHlhPn72Pub/L4JMBzKKKPuMJPClwpOVQXpU=",
+        "revisionId": "9379e49b-e2cd-46ad-a366-2a887e1532a2",
+        "codeSha256": "EwycipiSn+M9yzkzFc9qFw1Cdfu9KVL+cJ7iLTxIxC4=",
+        "environmentUnchanged": true
+      }
+    ],
+    "status": "PUBLISHED_VERIFIED",
+    "environmentChanges": false,
+    "financialDataWrites": false,
+    "apiChanges": false,
+    "scheduleChanges": false
+  },
+  "independentVerification": {
+    "part": 156,
+    "at": "2026-10-18T21:46:07.986059+00:00",
+    "status": "VERIFIED",
+    "functions": [
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "codeSha256": "EwycipiSn+M9yzkzFc9qFw1Cdfu9KVL+cJ7iLTxIxC4=",
+        "revisionId": "9379e49b-e2cd-46ad-a366-2a887e1532a2",
+        "environmentUnchanged": true,
+        "verified": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "codeSha256": "TN5+prUg6KkEseCLAbKFdsd+jokdXI2uZo5yH8ZRJiw=",
+        "revisionId": "2c5b011a-5e57-405b-87c2-d184d418d5f3",
+        "environmentUnchanged": true,
+        "verified": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "codeSha256": "XJDX+KiPpnDAM7bW85hbENynWjnMjmv3qgc8ZbEES24=",
+        "revisionId": "292d2aad-7ab6-42e6-8183-f6b08e87248a",
+        "environmentUnchanged": true,
+        "verified": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "codeSha256": "hwPSaaFTNimXC52ZLRKEn1gP7sif0IbLltkjvYJpAI4=",
+        "revisionId": "4629cb8c-9fd8-4134-99ac-879467042076",
+        "environmentUnchanged": true,
+        "verified": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "codeSha256": "EcOpHtbuFmFQEbgSy3cbISzEalMikuVjstufi/zuwDM=",
+        "revisionId": "2c6116c2-7936-4884-b524-e89cb2a84ea9",
+        "environmentUnchanged": true,
+        "verified": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "codeSha256": "MCbtGIPJz5p8B2PGKw4OatWYP/0kxpKLfIRb68DR670=",
+        "revisionId": "68a5f07d-e67f-4ae2-9b04-95e093c8f7c8",
+        "environmentUnchanged": true,
+        "verified": true
+      }
+    ],
+    "permissionPoliciesVerified": 2,
+    "roles": [
+      {
+        "role": "drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+        "existingPoliciesPreserved": true
+      },
+      {
+        "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+        "existingPoliciesPreserved": true
+      },
+      {
+        "role": "wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+        "existingPoliciesPreserved": true
+      },
+      {
+        "role": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+        "existingPoliciesPreserved": true
+      },
+      {
+        "role": "wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+        "existingPoliciesPreserved": true
+      },
+      {
+        "role": "wizzcentral-notifications-staging-us-east-1-lambdaRole",
+        "existingPoliciesPreserved": true
+      }
+    ],
+    "apiAndScheduleUnchanged": true,
+    "environmentChanges": false,
+    "financialDataWrites": false,
+    "activation": "UNCHANGED; not enabled by this publication",
+    "handlerInvocations": 0
+  }
+}

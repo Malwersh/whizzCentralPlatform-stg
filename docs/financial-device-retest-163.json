@@ -1,0 +1,21 @@
+{
+  "part": 163,
+  "previousOrderCancelled": {
+    "cancelled": true,
+    "canonicalOrderPreserved": true,
+    "dispatchCancelled": true,
+    "walletWrites": 0,
+    "ledgerWrites": 0,
+    "operatorAuditRecorded": true
+  },
+  "previousScopeRetiredAfterTerminalAudit": true,
+  "historicalFinancialDrainScopesPreserved": true,
+  "newTestActive": true,
+  "verifiedHosts": 15,
+  "admitUntil": "2026-10-19T06:02:27.462Z",
+  "customerProfileBuildInstalled": true,
+  "newOrderNotSubmitted": true,
+  "iamChanges": false,
+  "balanceChanges": false,
+  "deployedDispatchFenceFixPart": 162
+}

@@ -1,0 +1,4 @@
+{
+  "indexName": "GSI_OrderNumber",
+  "partitionKey": "orderNumber"
+}

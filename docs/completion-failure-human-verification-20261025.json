@@ -1,0 +1,52 @@
+{
+  "orderNumber": "ORD1792911323338",
+  "orderStatus": "cancelled",
+  "caseVersion": 9,
+  "caseState": "CANCELLED",
+  "responsibility": "DRIVER",
+  "findingId": "f56feacd-0e0a-4cbd-b0ed-e8618d30aa80",
+  "financialClosed": true,
+  "financialClosure": {
+    "closedAt": "2026-10-25T07:58:31.371Z",
+    "reason": "تم انهاء النزاع"
+  },
+  "driverPerformanceDecision": {
+    "value": "COUNT_FAILURE",
+    "attempt": 1,
+    "decisionId": "a8658f48-b928-4d99-a439-19f3e7c645b3",
+    "financialPosting": false
+  },
+  "completionRate": 0.95,
+  "completion": {
+    "completed": 18,
+    "returned": 1,
+    "driverFailures": 1,
+    "sampleSize": 20,
+    "acceptedCommitments": 23,
+    "inProgress": 0,
+    "reviewExcluded": 3,
+    "noFaultExcluded": 0,
+    "windowComplete": true
+  },
+  "completionRateStatus": "PROVISIONAL",
+  "targetCommitment": [
+    {
+      "orderId": "36ed20c9-aab6-592b-8722-221834cd2724",
+      "offerId": "FINO:9fc6712e72f31b6adcf24102e1a87f2b5d47913c1561b7e1",
+      "attempt": 1,
+      "occurredAt": "2026-10-25T07:00:30.073Z",
+      "status": "DRIVER_FAILURE"
+    }
+  ],
+  "businessWrites": false,
+  "verifiedAt": "2026-10-25T14:59:31.167702+00:00",
+  "financialVerification": {
+    "originalZeroEntitlementOperationId": "EXF:abcfdbfc1d33999380ad5859f72c4449cfbe9fb57e788b9d",
+    "driverFareIqd": 0,
+    "merchantCompensationIqd": 0,
+    "orderHoldStatus": "NONE",
+    "walletFinancialStatus": "CANCELLED",
+    "agentBusinessWrites": 0
+  },
+  "status": "HUMAN_ACTIONS_CONFIRMED_BY_STRONG_READ"
+}

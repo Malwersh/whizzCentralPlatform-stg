@@ -1,0 +1,21 @@
+{
+  "part": 156,
+  "at": "2026-10-18T21:42:07.910694+00:00",
+  "authorization": "User explicitly approved the two-role permissions and six code packages in the reviewed manifest. Approval persists across SSO reauthentication.",
+  "manifestSha256": "5bdd0cb1ba2acd79f01b18f0bec5752339e7979139b5d3e03a04b9b6965fe1b0",
+  "published": true,
+  "iamApplied": true,
+  "preflightStatus": "PASS after SSO renewal; no drift",
+  "localChecks": {
+    "candidateHashesVerified": 6,
+    "changedJavaScriptSyntaxPassed": 10,
+    "publisherMutationApis": [
+      "iam.put_role_policy",
+      "lambda.update_function_code"
+    ],
+    "environmentAndFinancialDataWrites": false
+  },
+  "publicationStatus": "VERIFIED",
+  "receipt": "financial-host-publication-receipt-156.json",
+  "activation": "UNCHANGED; separate scoped device-test work remains"
+}

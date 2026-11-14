@@ -1,0 +1,29 @@
+{
+  "part": 256,
+  "status": "PUBLISHED",
+  "scope": "Readable payout report with primary voucher reference, human identities, owner receipt timestamp and optional technical appendix",
+  "businessDecisionsOrPaymentsByAgent": false,
+  "platformWalletFundingConditionAdded": false,
+  "companyCashAssetPostingAdded": false,
+  "iamChanged": false,
+  "function": {
+    "name": "staging-wizz-staff-service",
+    "baseCodeSha256": "g9wFYEzKW0hd59e1vrpsZ+b1vEilPh7NVV8rnHxuB8A=",
+    "codeSha256": "7f3dOfPq8erdxxjMD0pdqE7BLvmqgY74gw8bY7gFMPI=",
+    "changedFiles": [
+      "settlement-runtime.js"
+    ],
+    "unrelatedEntriesAndConfigurationPreserved": true
+  },
+  "hosting": {
+    "baseJobId": "143",
+    "jobId": "144",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-payout-print.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

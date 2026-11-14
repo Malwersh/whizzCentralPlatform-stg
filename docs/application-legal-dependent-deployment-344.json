@@ -1,0 +1,111 @@
+{
+  "part": 344,
+  "status": "DEPLOYED_STAGING_AFTER_OWNER_PUBLICATION",
+  "alreadyPublished": "ADMIN_CMS_222_AND_THREE_REGISTRATION_CONSUMERS_PUBLIC_READER",
+  "registrationConsumers": {
+    "phone": {
+      "functionName": "WizzUser-phone-auth-staging",
+      "baseCodeSha256": "X+CcCy4bWCgyHyJY0G2yh03l6LqzNb6tDoTunV46LNU=",
+      "roleArn": "arn:aws:iam::699561669180:role/staging-wizzuser-phone-auth-AuthRole-70Zo9Rq50Q7a",
+      "environmentAdditions": {
+        "LEGAL_SETTINGS_TABLE": "staging-PlatformStaff"
+      },
+      "additionalPolicy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringEquals": {
+                "dynamodb:LeadingKeys": [
+                  "OPERATIONAL_SETTINGS#CUSTOMER_LEGAL",
+                  "OPERATIONAL_SETTINGS#DRIVER_LEGAL",
+                  "OPERATIONAL_SETTINGS#MERCHANT_LEGAL"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "driver": {
+      "functionName": "DriversApi-staging",
+      "baseCodeSha256": "CsVJfP5ark7flwnjq4xDrOuLUhk4K3QyJtShnb9oWNs=",
+      "roleArn": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+      "environmentAdditions": {
+        "LEGAL_SETTINGS_TABLE": "staging-PlatformStaff"
+      },
+      "additionalPolicy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringEquals": {
+                "dynamodb:LeadingKeys": [
+                  "OPERATIONAL_SETTINGS#DRIVER_LEGAL"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "merchant": {
+      "functionName": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "baseCodeSha256": "9oCRMMMTUwuVI5uQveTOg/fjatqJikX8ZghQBYqbezU=",
+      "roleArn": "arn:aws:iam::699561669180:role/Wizz-Merchants-staging-UnifiedAuthFunctionRole-5TqBUPbFZ9wo",
+      "environmentAdditions": {
+        "LEGAL_SETTINGS_TABLE": "staging-PlatformStaff"
+      },
+      "additionalPolicy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringEquals": {
+                "dynamodb:LeadingKeys": [
+                  "OPERATIONAL_SETTINGS#MERCHANT_LEGAL"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "publicRoute": {
+    "apiId": "f44z33oz55",
+    "path": "/legal",
+    "method": "GET",
+    "integration": "WizzUser-phone-auth-staging",
+    "authorization": "NONE_PUBLIC_DOCUMENTS_ONLY",
+    "lambdaInvokeSourceArn": "arn:aws:execute-api:us-east-1:699561669180:f44z33oz55/staging/GET/legal"
+  },
+  "mustCheckBeforePublishing": [
+    "All three current documents exist with PUBLISHED status and valid digests, published by owner through CMS",
+    "Compare current code/config revisions; apply only legal deltas to captured live packages",
+    "Preserve customer review-phone adapter and driver finance config wrapper and other existing live code differences",
+    "Public reader must never route to OTP/config/secret/profile writes",
+    "Keep unrelated API resources, Lambda environment values, IAM statements and hosted assets unchanged"
+  ],
+  "humanApprovalNeeded": "Owner reviewed and published all three policy sets; confirmed revision1 via DynamoDB and HTTP.",
+  "humanAcceptance": "docs/application-legal-human-acceptance-344.csv",
+  "publicationEvidence": "docs/application-legal-consumers-publication-344.json"
+}

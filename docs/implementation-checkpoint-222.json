@@ -1,0 +1,82 @@
+{
+  "part": 222,
+  "status": "PUBLISHED_ACTIVE_CUSTOMER_212_INSTALLED_RUNNING",
+  "trigger": "Customer order commercial review failed; cart required second click, quantity taps unreliable and diagnostics visible",
+  "rootCause": {
+    "liveCode": "FINANCE_ROLLOUT_ADMISSION_CLOSED",
+    "entry": "functions/create-order/index.js delegates to _discount_review/user-create-order/index.js",
+    "detail": "Internal checkout bundle retained historical admission, quote commit and cash funding implementation despite general mode REQUIRED. Root files alone were inactive.",
+    "errorEvidence": "CloudWatch actual failures including 2026-10-20T19:10:32Z; private logs retained outside repository"
+  },
+  "repair": {
+    "backend": "Canonical general admission and full-cash quote commit plus promotion selection; inject canonical full-cash snapshot and funding commitment into existing commercial factory, preserve independent platform-benefit/discount/catalog modules. Helper SDK dependencies self-contained.",
+    "cartContinue": "Await/coalesce preview and proceed on first successful click; lock duplicate navigation; validate latest cart/address/branch after asynchronous response. Missing address/account proceeds to checkout to collect details, not a fabricated preview. Errors inline.",
+    "quantity": "44+ point controls, delta applied to current typed line, stable identity includes store/product/options/notes. Different configured lines remain separate; deletion identifies selected line.",
+    "persistence": "Snapshot account/data before I/O and serialize saves/removal; clear+immediate-add and rapid updates cannot overwrite latest basket. Loading cannot replace a newer in-memory revision.",
+    "data": "Keep real suggestions but cache their request per merchant, hide absent optional suggestions and all category/test diagnostics, filter unavailable products, remove fabricated merchant ID1, use actual cart merchant for navigation/pricing.",
+    "display": "Blue/yellow item cards, real unit and line prices, readable IQD without unnecessary decimal zeros, one goods subtotal, clearly estimated delivery, final service/discount/tip confirmed on server sheet.",
+    "pricingRequests": "250ms debounce for cart informational pricing only; local quantity changes immediately.",
+    "knownScope": "No new catalog-modifier pricing capability, card capture or merchant payout implemented; existing server unsupported-item guard remains authoritative."
+  },
+  "publication": "checkout-entry-publication-222.json",
+  "verification": {
+    "walletServiceCases": 1146,
+    "actualCapturedEntry": "Reproduces old403; five candidate cases: ordinary tip, platform delivery, merchant delivery/no tip, unrelated historical branch/customer, shared goods funding. Preview read-only; snapshot3 and GENERAL pin; no platform cash hold; replay no repeated mutation; missing auth401. Independent benefit/discount/catalog modules byte-equivalent.",
+    "currentCommercialFlutter": {
+      "passed": 38,
+      "skipped": 1,
+      "scope": "cart, storefront, commercial amounts/consent, quote refresh, discounts, tips, loading form"
+    },
+    "legacyQuoteOnlyFlutter": {
+      "passed": 22,
+      "flags": "COMMERCIAL_PRICING_ENABLED=false; validates quote-only historical contract without changing release flags"
+    },
+    "lastUiAfterFinalSourceEdits": {
+      "passed": 15,
+      "scope": "cart reliability8 and storefront7"
+    },
+    "analyzer": "No compilation errors or warnings in last targeted analysis; existing info/deprecation/style backlog remains",
+    "customerBuild": 212,
+    "releaseFlags": "Ordinary staging defaults; no scoped account/order build parameter",
+    "device": "iMohammed",
+    "installedBundle": "com.wiz.wizuserapp",
+    "installedAndRunning": true,
+    "processIdentifier": 62847,
+    "realCustomerOrderCreatedByAgent": false,
+    "realReturnTestPerformed": false,
+    "quoteServiceAudit": {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "P1NrPSxhuJ3N5uyrzeGu2RFuwuH+IAE94lglyXa8XNk=",
+      "result": "Actual root factory already delegates to canonical full-cash-rollout-208; general mode REQUIRED; no change needed"
+    }
+  },
+  "financialDataWrites": false,
+  "environmentOrIamChanges": false,
+  "testScopesAdded": false,
+  "mainPlanPreserved": "Physical COD return/Live Activity219–220 and human cash payout218 remain deferred until user resumes tests",
+  "reviewRecovery": "Wholesale cart replacement was rejected; preserved pre-edit cart snapshot and used bounded component/method changes. All pre-existing cart methods remain, including availability and optional suggestions.",
+  "sourceSha256": {
+    "wizzuser-stg/frontend/lib/screens/cart_screen.dart": "d32914b0346b2f37776315bc6805655a40753cbbeaa9c9fbd7f56d786457b839",
+    "wizzuser-stg/frontend/lib/widgets/basket_line_card.dart": "2323323fd7eaa4bb023a9e2fb4c1a40fe50a2b5f210b008cb7c34f264dbce12b",
+    "wizzuser-stg/frontend/lib/models/cart_model.dart": "b6b21a732b6bcf9bdd83b143770e5d2fcaa715a97fdf79962980a6af5da357aa",
+    "wizzuser-stg/frontend/lib/models/cart_item.dart": "b7d8203157fba34459fe110200dadc56d57d08a2f76c07896c26b04299266ced",
+    "wizzuser-stg/frontend/lib/providers/app_state_provider.dart": "de99b76fcae57e87684eb8e739f3ce879f340cfef488ca48fe591fd17880bdd5",
+    "wizzuser-stg/frontend/lib/screens/checkout_screen.dart": "5a0502c2b53f25976930ae1bf940288a319728c52e5822037db48de3fd6edc11",
+    "wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart": "0cf40dcf73033f23f6967d7b862d39c9281f6ba33778b0b7d5854dcd6dc534a6",
+    "wizzuser-stg/frontend/lib/widgets/storefront_value.dart": "a68c36aa689c990ed023c6dee44fb102fcd55bed9a5b4b9f51fed5f4814e6d59",
+    "wizzuser-stg/frontend/test/cart_reliability_test.dart": "8dcb01c84c09f95578a671778bec2bdb4d03de6e737fc7a49dcc573424d87204",
+    "backend/wallet-service/src/checkoutFinanceRuntime222.ts": "c38ee78ef9025f17df108c43fce901961203ac11aa00636f6239eddeac3af689",
+    "backend/shared/checkout-finance-runtime-222.js": "43c699712a46128497ef8f007599025c387108cccf43428fb7e25544f381632e",
+    "scripts/checkout-entry-adapter-222.cjs": "43bc7a8d6a7d10116518c93c370c74b28d8e8e121c2758dc5a0fc56248d2afc4",
+    "scripts/build-checkout-runtime-222.cjs": "93a4619a0d3fffb33f6bf11faea3ff738360d2bc206560f21524390596cfc9cb",
+    "scripts/test-checkout-entry-222.cjs": "eab25c614ac5dd652ce980415c850f970b42bf637de632627ec34d61ad7a12d6",
+    "scripts/publish-checkout-entry-222.py": "dcbfc8e3cebde3bb2777383d63e97641b18927d5a4ebd3066bf7407300e1b516"
+  },
+  "preEditCartSnapshotSha256": "d98020179ad503abc752b206c6bdea7b76a6ffb95ba8744ffe310aab1b816ad1",
+  "liveConfigurationFollowup": {
+    "part": 223,
+    "evidence": "implementation-checkpoint-223.json",
+    "userRetryAfter222Failed": true,
+    "correction": "Actual archive6 exceeded helper bound5. Fixed in223 with exact live environment regression; source-only fixture passes in222 did not prove live configuration compatibility."
+  }
+}

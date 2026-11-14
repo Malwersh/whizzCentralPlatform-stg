@@ -1,0 +1,34 @@
+{
+  "part": 413,
+  "date": "2026-11-03",
+  "status": "SIMULATOR_BUILD_376",
+  "change": {
+    "entranceMilliseconds": 1450,
+    "previousEntranceMilliseconds": 850,
+    "exitMilliseconds": 1300,
+    "previousExitMilliseconds": 700,
+    "readingDuration": "Preserved; configured intervalSeconds",
+    "reducedMotion": "Static copy phase adjusted to the new timeline"
+  },
+  "fattoushInvestigation": {
+    "branchId": "business_95ac73c9-feda-4207-9285-550aec61b94c",
+    "source": "Read-only WhizzMerchants_Discounts query and public header settings",
+    "discounts": [
+      {
+        "title": "خصم مفتش",
+        "validTo": "2026-10-24T16:02:47.089Z"
+      },
+      {
+        "title": "Yalla",
+        "validTo": "2026-10-29T23:51:08.779Z"
+      }
+    ],
+    "conclusion": "Both offers expired; no eligible merchant scene. Published menu products alone are decoration, not eligibility.",
+    "financialOrCampaignChanges": false
+  },
+  "control": {
+    "source": "both",
+    "selection": null,
+    "scenes": []
+  }
+}

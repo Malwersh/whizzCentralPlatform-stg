@@ -1,0 +1,72 @@
+{
+  "name": "staging-wizz-staff-service",
+  "beforeSha256": "CDTlRToZs2u2q06QXt/Dm+QjuinAMKlpGN5GBr7SMi4=",
+  "afterSha256": "FjXg7kX9yKFs7hSE8OoPCLKWvV2cH2fCC+DXPTVmxic=",
+  "changedFiles": [
+    "commercial-management.js",
+    "commercial-options.js"
+  ],
+  "accessStack": "staging-commercial-options-read-74",
+  "policyChecks": [
+    "projected_read_allowed",
+    "projected_read_allowed",
+    "all_fields_not_granted",
+    "foreign_attribute_not_granted",
+    "write_not_granted",
+    "ledger_not_granted"
+  ],
+  "browserRoleChanged": false,
+  "configurationPreserved": true,
+  "applicationDataWrites": false,
+  "realRoleReadProbe": {
+    "count": 2,
+    "merchant": 0,
+    "platform": 2
+  },
+  "probeDeleted": true,
+  "amplify": {
+    "baseJobId": "89",
+    "jobId": "90",
+    "changedFiles": [
+      "commercial-funding-picker.js",
+      "pages/merchants.html",
+      "pages/promotions.html"
+    ],
+    "codeSha256": "6e13bfee543f74dadf58bf1060ff8c29ee6d18f94ef547a4d76f90b340f21efd",
+    "status": "SUCCEED",
+    "hostedFilesMatched": true
+  },
+  "anonymousOptionsStatus": 401,
+  "part": 74,
+  "date": "2026-10-17",
+  "cause": "Browser identity default role has no Scan grant on discount tables; direct reads in UI were not validated with the actual browser role.",
+  "implementation": "Funding option reads now use authenticated /staff/commercial?businessId=...&view=funding-options with existing live staff and branch guards.",
+  "tests": {
+    "staffPassed": 184,
+    "fundingBrowser": {
+      "passed": true,
+      "realWrites": false,
+      "namedCampaigns": true,
+      "paginatedSource": true,
+      "branchIsolation": true,
+      "percentToExistingRational": true,
+      "versionRequired": true,
+      "namedPolicySelection": true,
+      "existingApiContract": true,
+      "loadFailureClosed": true,
+      "legacyRationalPreserved": true,
+      "stalePolicyBlocked": true
+    },
+    "reviewRetryBrowserPassed": true,
+    "samBasicPassed": true,
+    "syntaxAndWhitespacePassed": true
+  },
+  "financialActivation": false,
+  "humanCampaignOrPolicyWrites": false,
+  "phoneAppsChanged": false,
+  "sourceHashes": {
+    "backend/staff-service/commercial-options.js": "04938504dbc46ebc97c27694b25f33528ee44b171eddf54a8a2ffe8debec4e5e",
+    "backend/staff-service/commercial-management.js": "6073b07041bc82e055fc16ac85ed028279ed66534ea88ac1d58c04ef030996bb",
+    "frontend/commercial-funding-picker.js": "5528f0940c3a787edcef7264100c18134008f5940b632730a94ca44637ad6442"
+  }
+}

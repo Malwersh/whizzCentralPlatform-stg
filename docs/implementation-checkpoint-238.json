@@ -1,0 +1,28 @@
+{
+  "part": 238,
+  "status": "PUBLISHED_AND_ACTIVE_GENERAL_FINANCIAL_INITIAL_RETRY",
+  "publishedThrough": 238,
+  "wholeSpecificationComplete": false,
+  "publication": "dispatch-retry-general-publication-238.json",
+  "implemented": [
+    "Existing one-minute review worker processes staff-recorded initial financial retry decisions with current Cognito identity and source fences",
+    "Full-cash capability propagates through existing timeout host and durable restart consumer",
+    "Full-cash funding commitment retained and fenced, with or without delivery subsidy",
+    "Original price, tip, funding, prior cycle evidence and wallet/ledger balances preserved",
+    "No manual order reset or per-account preparation; no new IAM permissions or scheduler"
+  ],
+  "tests": {
+    "wallet": 1209,
+    "capturedHosts": 20,
+    "failed": 0
+  },
+  "onlyEnvironmentChange": {
+    "function": "staging-cod-integration",
+    "key": "DISPATCH_REVIEW_EXECUTION_MODE",
+    "before": "OFF",
+    "after": "SAFE_FINANCIAL_INITIAL_RETRY"
+  },
+  "positiveDeviceTest": "REAL_DRIVER_ACCEPTED_AFTER_READ_PERMISSION_FIX_239",
+  "walletOrLedgerWritesByAgent": false,
+  "positiveEvidence": "dispatch-retry-positive-239.json"
+}

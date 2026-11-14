@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadExistingStagingReturnRoutingCredential",
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "arn:aws:secretsmanager:us-east-1:699561669180:secret:staging/finance/mapbox/server-routing-IZJNcs"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "part": 247,
+  "status": "APPLIED_VERIFIED",
+  "cause": "Missing ConditionCheckItem permission on accepted financial offer during atomic statement freeze",
+  "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+  "policy": "CompletedOrderStatements204",
+  "updatedStatement": {
+    "Sid": "ReadProjectedWaveOffersstaging",
+    "Effect": "Allow",
+    "Action": [
+      "dynamodb:GetItem",
+      "dynamodb:ConditionCheckItem"
+    ],
+    "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+    "Condition": {
+      "Null": {
+        "dynamodb:Attributes": "false"
+      },
+      "ForAllValues:StringEquals": {
+        "dynamodb:Attributes": [
+          "orderId",
+          "SK",
+          "financialOffer",
+          "acceptedTerms",
+          "responseStatus",
+          "isWinner",
+          "waveNumber"
+        ]
+      },
+      "ForAllValues:StringLike": {
+        "dynamodb:LeadingKeys": [
+          "????????-????-????-????-????????????"
+        ]
+      }
+    }
+  },
+  "allOtherStatementsPreserved": true,
+  "newOfferWriteOrWalletPermissions": false,
+  "businessRecordsOrMoneyChanged": false,
+  "tests": {
+    "capturedTransactionOperations": 15,
+    "allOtherOperationsAlreadyAllowed": true,
+    "guardNowAllowed": true,
+    "offerPutUpdateDeleteStillDenied": true,
+    "unknownAttributesDenied": true
+  }
+}

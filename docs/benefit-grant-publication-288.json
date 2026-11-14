@@ -1,0 +1,19 @@
+{
+  "part": 288,
+  "status": "PUBLISHED_VERIFIED",
+  "baseJobId": "162",
+  "jobId": "163",
+  "changedFiles": [
+    "platform-benefits-admin.js",
+    "pages/promotions.html"
+  ],
+  "otherHostingEntriesPreserved": true,
+  "backendChanged": false,
+  "businessDataWritten": false,
+  "percentage": "handoff to existing protected percentage offer editor; no new benefit schema",
+  "browserChecks": "required grant reason, pending controls, success, inline API rejection, stable retry request IDs, benefit-form regression",
+  "sha256": {
+    "platform-benefits-admin.js": "5a3fabd42be57680fc9ff2d0918ee4fbdc076dbb8994d6fbb305010602e6a651",
+    "pages/promotions.html": "e57da64963983c11b6513988451e9447f92e1e12ce5d6cb8bebcd0794f7763be"
+  }
+}

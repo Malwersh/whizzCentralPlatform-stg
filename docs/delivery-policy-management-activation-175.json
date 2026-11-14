@@ -1,0 +1,13 @@
+{
+  "function": "staging-wizz-staff-service",
+  "changedEnvironmentKeys": [
+    "DELIVERY_FUNDING_MANAGEMENT_ENABLED"
+  ],
+  "managementEnabled": true,
+  "codeAndIamPreserved": true,
+  "otherEnvironmentKeysPreserved": true,
+  "policyCreated": false,
+  "ownerConsentRecorded": false,
+  "balancesChanged": false,
+  "freshOrderAdmissionEnabled": false
+}

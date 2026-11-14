@@ -1,0 +1,112 @@
+{
+  "part": 344,
+  "scope": "CUSTOMER_DRIVER_MERCHANT_POLICIES_AND_CENTRAL_CMS",
+  "status": "OWNER_PUBLISHED_THREE_ROLES_BACKENDS_AND_APPS_DEPLOYED_344_HUMAN_ACCEPTANCE_OPEN",
+  "userDirections": [
+    "No policy text or legal checkbox in checkout",
+    "Customer policies in حسابي; driver in المزيد; merchant in account settings and personal profile",
+    "Explicit unselected registration checkbox with clickable links",
+    "Distinct role-specific content",
+    "Readable formatted text with publication date, version, company logo and company name footer",
+    "All text and company footer editable in central platform"
+  ],
+  "research": "docs/application-legal-research-344.json",
+  "roles": {
+    "CUSTOMER": {
+      "pk": "OPERATIONAL_SETTINGS#CUSTOMER_LEGAL",
+      "navigation": "حسابي ← السياسات والشروط",
+      "consentStage": "PHONE_OTP_NEW_ACCOUNT_ENROLLMENT"
+    },
+    "DRIVER": {
+      "pk": "OPERATIONAL_SETTINGS#DRIVER_LEGAL",
+      "navigation": "المزيد ← سياسة الاستخدام / شروط الخدمة / الخصوصية / التعذر والعودة والسلامة",
+      "consentStage": "VERIFIED_DRIVER_PROFILE_SUBMISSION_FOR_REVIEW"
+    },
+    "MERCHANT": {
+      "pk": "OPERATIONAL_SETTINGS#MERCHANT_LEGAL",
+      "navigation": "بيانات الحساب / الملف الشخصي ← السياسات والشروط",
+      "consentStage": "PERSONAL_SIGNUP_AND_AUTHENTICATED_PERSON_PROFILE_CREATION",
+      "existingCommercialAgreements": "PRESERVED_SEPARATELY"
+    }
+  },
+  "documents": [
+    "USAGE",
+    "TERMS",
+    "PRIVACY",
+    "CANCELLATION"
+  ],
+  "cms": {
+    "url": "https://staging.d2vmebm1e1n95m.amplifyapp.com/pages/legal-documents.html",
+    "hostingJobId": "222",
+    "status": "OWNER_PUBLISHED_ALL_THREE_ROLE_POLICIES_REVISION_1",
+    "draftSaveDoesNotPublish": true,
+    "immutablePublishedHistory": true,
+    "pastVersionReader": true,
+    "scopeIsolation": true,
+    "mfaAndPermissions": "Existing global settings permissions and configured DIRECT or independent approval workflow",
+    "iamChangesExecuted": false,
+    "businessRecordsWrittenByAgent": 0
+  },
+  "consent": {
+    "serverVersionAndDigestFence": true,
+    "snapshotIncludesFullPublishedBundle": true,
+    "verifiedPrincipalBinding": true,
+    "stalePinRejectedBeforeCustomerOTPConsumption": true,
+    "staleUiUnchecksConsentAndReloadsText": true,
+    "oldConsentsNeverRewritten": true,
+    "noHistoricalAcceptanceFabricated": true,
+    "optionalDevicePermissionsSeparate": true
+  },
+  "nativeSources": {
+    "customer": "INSTALLED_LAUNCHED_IPHONE16PRO_SIMULATOR_344",
+    "driver": "INSTALLED_LAUNCHED_IMOHAMMED_RELEASE_344",
+    "merchant": "INSTALLED_LAUNCHED_IPHONE16_SIMULATOR_344"
+  },
+  "registrationBackends": "PUBLISHED_STAGING_VERSION_PINNED_CONSENT",
+  "publicReader": {
+    "endpoint": "GET /legal?audience=CUSTOMER|DRIVER|MERCHANT",
+    "status": "PUBLISHED_HTTP_200_ALL_THREE_ROLES_DIGESTS_VERIFIED",
+    "access": "Only published CURRENT document, no identity/token/OTP/profile operations"
+  },
+  "checks": {
+    "customerFlutterPassed": 44,
+    "customerFlutterSkipped": 1,
+    "driverFlutterPassed": 11,
+    "merchantFlutterPassed": 8,
+    "phoneNodePassed": 18,
+    "driverNodePassed": 11,
+    "merchantNodePassed": 10,
+    "adminNodePassed": 9,
+    "browserCasesPassed": 8,
+    "adminPackagedUnauthenticatedStatus": 401,
+    "liveHostingHashesVerified": true,
+    "dartErrors": 0,
+    "dartWarnings": 0,
+    "backendCombinedPassed": 48,
+    "realHtmlSessionBootstrapBrowserPassed": true,
+    "threeNativeIosBuildsSucceeded": true,
+    "liveRoleReadsVerified": 3,
+    "liveMissingMerchantConsentRejectedBeforeSignup": 409
+  },
+  "deploymentDependencies": [
+    "Completed: owner published three independent policy sets",
+    "Completed: validate CURRENT versions and canonical digests",
+    "Completed: scoped IAM/legal environment and version-pinned consumer packages preserving live adapters",
+    "Completed: public GET /legal and HTTP checks",
+    "Completed: install and launch all three iOS development builds; human acceptance remains queued"
+  ],
+  "stagingMutationBoundaries": {
+    "adminCodeAndHostingPublished": true,
+    "policyTextPublishedByAgent": false,
+    "financialDataWritten": false,
+    "newApiOrIamWrites": true,
+    "registrationFlowChangedLive": true
+  },
+  "remaining": [
+    "Current human acceptance queue after initial owner CMS publication",
+    "Human-readable public privacy/terms web pages required before store release",
+    "Legacy guest order proof and X-TEST-342 remain separate open work items"
+  ],
+  "publicPolicyWebUrl": "Human-readable public privacy/terms URL remains queued with the public reader and release requirements; CMS URL is admin-only.",
+  "consumerDeploymentEvidence": "docs/application-legal-consumers-publication-344.json"
+}

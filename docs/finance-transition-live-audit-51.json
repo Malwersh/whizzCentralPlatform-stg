@@ -1,0 +1,525 @@
+{
+  "schemaVersion": 1,
+  "checkedAtUtc": "2026-10-17T02:21:11.441927+00:00",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "readOnly": true,
+  "handlerInvocations": 0,
+  "humanRowsRead": false,
+  "activationPerformed": false,
+  "functions": [
+    {
+      "name": "DriversApi-staging",
+      "handler": "lambda_driver_api_v2.handler",
+      "codeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+      "revisionId": "1ab30819-e7a4-466a-b059-590733dbaf01",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "8GIq3Hgnyo1L/pSOdEQs7HlevaI0SFmm+kHUdPmrC1k=",
+        "evidence": "finance-dispatch-closed-staging-release-49.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "OrderService-staging",
+      "handler": "dist/index.handler",
+      "codeSha256": "uBS2OUvMAq7xd6FqGXvv06BA8YBd3CuEw048N7D3xM8=",
+      "revisionId": "83866d64-d05f-4621-9708-d2b3cebd1cd5",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "uBS2OUvMAq7xd6FqGXvv06BA8YBd3CuEw048N7D3xM8=",
+        "evidence": "finance-cod-legacy-fences-staging-28.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "handler": "index.handler",
+      "codeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+      "revisionId": "7f81c17d-8578-4055-a2da-cc875b44aff7",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "YoznzATPln4XMrVCCJr3yxQfJL86sgFB3UCYTuUlsGA=",
+        "evidence": "finance-dispatch-closed-staging-release-49.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "handler": "index.handler",
+      "codeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+      "revisionId": "8e7660ed-574e-43c5-8952-6f3c68f8be44",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "79MwR99PvCXC9bKU/ghIglNzbsu7B4gg0bK9GIoMwaU=",
+        "evidence": "finance-dispatch-closed-staging-release-49.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "handler": "index.handler",
+      "codeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+      "revisionId": "409b9744-7416-476e-9bfc-e1b88bf3220b",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "7CpabQAIM58s5Tr5ou98PfgDfIbESYud6wCDh9KiMd4=",
+        "evidence": "finance-dispatch-closed-staging-release-49.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "handler": "index.handler",
+      "codeSha256": "yOpcsKF1Jh4QFfh8jC9XqDk8qEv+4S6E/bwJZxoPPDk=",
+      "revisionId": "dcd72278-4bf8-4e66-88c4-ae6ff64339ab",
+      "timeoutSeconds": 60,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "yOpcsKF1Jh4QFfh8jC9XqDk8qEv+4S6E/bwJZxoPPDk=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "handler": "index.handler",
+      "codeSha256": "E4iRy4TrUBn++WygDOJMxymHy4vcvAi5WCKCDZ6zwMc=",
+      "revisionId": "ff32631b-bf2f-407f-87f2-3c5f48e2d61e",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "E4iRy4TrUBn++WygDOJMxymHy4vcvAi5WCKCDZ6zwMc=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WizzUser-CancelOrder-staging",
+      "handler": "functions/cancel-order/index.handler",
+      "codeSha256": "jWNNTtGTOOhkxLgNMrk7zUz5+gs10jSkVP0f6sIm75M=",
+      "revisionId": "c10b321c-62f4-42fe-b707-1432af9d0c44",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "jWNNTtGTOOhkxLgNMrk7zUz5+gs10jSkVP0f6sIm75M=",
+        "evidence": "finance-cod-legacy-fences-staging-28.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "handler": "functions/create-order/index.handler",
+      "codeSha256": "blAgb1fOElFm+nHCTIH7ggEUOeI6tyH12G6b1tyLmK4=",
+      "revisionId": "b4ea18be-73d0-41d0-bbd8-84dec9d9b421",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "T57c7nVFMBR8XyN2KlaLBkxBiFVRX7k2MvTh7N9Qklw=",
+        "evidence": "finance-cod-legacy-fences-staging-28.json"
+      },
+      "matchesRecordedPublication": false
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "handler": "index.handler",
+      "codeSha256": "9K9V6WLpY3/D/GixykDPAzu2t5ZJRtUchidVhVqSMXU=",
+      "revisionId": "e7e7ab15-a867-4737-a343-775c440ca391",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DELIVERY_QUOTES_ENABLED": "false",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL"
+      },
+      "expectedPublication": {
+        "codeSha256": "9K9V6WLpY3/D/GixykDPAzu2t5ZJRtUchidVhVqSMXU=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WizzUser-GetGuestOrders-staging",
+      "handler": "functions/get-guest-orders/index.handler",
+      "codeSha256": "YDQcJJMW5cdyxKV+l5FJlZCOnsCv0QeSpgEqqhi/l5U=",
+      "revisionId": "61d7bd57-01d7-4f85-b741-fda781311808",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "YDQcJJMW5cdyxKV+l5FJlZCOnsCv0QeSpgEqqhi/l5U=",
+        "evidence": "finance-cod-legacy-fences-staging-28.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WizzUser-GetOrder-staging",
+      "handler": "functions/get-order/index.handler",
+      "codeSha256": "y2S/Xf4cXytSDgVBPp/k8KjUdvkyx0dOMLCVkmp2EkY=",
+      "revisionId": "b2eb7571-15eb-41e4-bae2-e696829064bc",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "y2S/Xf4cXytSDgVBPp/k8KjUdvkyx0dOMLCVkmp2EkY=",
+        "evidence": "finance-operating-limits-search-exhaustion-31.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "handler": "functions/get-user-orders/index.handler",
+      "codeSha256": "3zENjGYf7a0P55bDvrKM+qA22s9j42kgYxFuTwptOAM=",
+      "revisionId": "c00d52f6-dedd-42fc-b7d5-1c7c351f1df1",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "3zENjGYf7a0P55bDvrKM+qA22s9j42kgYxFuTwptOAM=",
+        "evidence": "finance-operating-limits-search-exhaustion-31.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WizzUser-MerchantOrderStatusUpdate-staging",
+      "handler": "index.handler",
+      "codeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+      "revisionId": "27d08964-68ca-45e1-aabd-b555d1bb4b92",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+        "evidence": "finance-cod-legacy-fences-staging-28.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WizzUser-SearchOrderByNumber-staging",
+      "handler": "functions/search-order-by-number/index.handler",
+      "codeSha256": "brkxLIkzWdxIoyyd5XWtHHeswRpHzhq/C88Yz/UDH3s=",
+      "revisionId": "36e4e97d-1697-4f43-be35-f44f8ed964f2",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "brkxLIkzWdxIoyyd5XWtHHeswRpHzhq/C88Yz/UDH3s=",
+        "evidence": "finance-cod-order-dependencies-staging-27.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "WizzUser-UpdateOrderStatus-staging",
+      "handler": "functions/update-order-status/index.handler",
+      "codeSha256": "7BWYeeNfqyTw/crrbCJz+rbNNRx5SOlwb5G08LGHneY=",
+      "revisionId": "c07de4fa-85ba-4d8b-98de-2c613246bca4",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "7BWYeeNfqyTw/crrbCJz+rbNNRx5SOlwb5G08LGHneY=",
+        "evidence": "finance-cod-legacy-fences-staging-28.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "handler": "merchant_order_handler.handler",
+      "codeSha256": "2ekUkswQHJdLcalPxbCHct8PPROgw/uE107rQZ3imnI=",
+      "revisionId": "049e5683-6d8e-4753-8cc1-c21650a298c6",
+      "timeoutSeconds": 29,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "2ekUkswQHJdLcalPxbCHct8PPROgw/uE107rQZ3imnI=",
+        "evidence": "finance-operating-limits-search-exhaustion-31.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "handler": "unified_auth_handler.handler",
+      "codeSha256": "Usqglb8g4m0uL+bsQ1O5phsLxJsL00f9K+9He9M/+08=",
+      "revisionId": "8263ec44-fdf8-40d5-a3d2-d123d1e56a24",
+      "timeoutSeconds": 29,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "Usqglb8g4m0uL+bsQ1O5phsLxJsL00f9K+9He9M/+08=",
+        "evidence": "finance-cod-staging-release-26.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "handler": "financial-purge.handler",
+      "codeSha256": "x1ZbIOdmUkwg340dHN34TV0wDf4tEREzny+ucqHwp6Q=",
+      "revisionId": "6c96f160-81ff-4ef4-8cbd-4b1ae2088558",
+      "timeoutSeconds": 300,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "x1ZbIOdmUkwg340dHN34TV0wDf4tEREzny+ucqHwp6Q=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "handler": "index.handler",
+      "codeSha256": "UrVOYB0uaAgzIxbriZdqlvbJNa7OVJE3y7VWBgfEx4Q=",
+      "revisionId": "7911360a-e8dd-4d32-a5a0-33cd67a86eca",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "UrVOYB0uaAgzIxbriZdqlvbJNa7OVJE3y7VWBgfEx4Q=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "handler": "worker.handler",
+      "codeSha256": "pViy+z6n5rYCebxC/bTyGquGZXU/z5dJ3t0YYCb3Ufo=",
+      "revisionId": "2316280f-730d-41cf-8ff0-d2d2c7d1a8e6",
+      "timeoutSeconds": 300,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "pViy+z6n5rYCebxC/bTyGquGZXU/z5dJ3t0YYCb3Ufo=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "handler": "index.handler",
+      "codeSha256": "/3REFzxqSsEgpx5vRdaYQcKyuQuaAiJf6jnhA+0/V0k=",
+      "revisionId": "b79a0b4a-c242-4f89-9be1-e60fee31ae00",
+      "timeoutSeconds": 60,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "FINANCIAL_COD_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "/3REFzxqSsEgpx5vRdaYQcKyuQuaAiJf6jnhA+0/V0k=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "handler": "index.financialAcceptanceHandler",
+      "codeSha256": "HalqAFH3dXm7fw7KHEvB38diX645Ae+HPf5Sk8oDsg0=",
+      "revisionId": "a8ec9038-2f56-4823-acba-11875c2633ca",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "FINANCIAL_COD_RETURNS_MODE": "OFF",
+        "FINANCIAL_DISPATCH_MODE": "OFF",
+        "FINANCIAL_COD_COMPLETION_MODE": "OFF",
+        "FINANCIAL_COD_ASSIGNMENTS_MODE": "OFF",
+        "DELIVERY_OPERATIONS_MODE": "CENTRAL"
+      },
+      "expectedPublication": {
+        "codeSha256": "HalqAFH3dXm7fw7KHEvB38diX645Ae+HPf5Sk8oDsg0=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "handler": "index.handler",
+      "codeSha256": "J73EsBUMjqDGSz412MGaU+S2VYwDJGdxt9u1VWbiKb4=",
+      "revisionId": "f52dea21-e9aa-4dfc-bbc1-1c305599afe1",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "J73EsBUMjqDGSz412MGaU+S2VYwDJGdxt9u1VWbiKb4=",
+        "evidence": "finance-dispatch-policy-host-retention-staging-50.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-wizz-wallet-lifecycle",
+      "handler": "dist/index.walletLifecycleWorker",
+      "codeSha256": "0znf7xPjCv07ma7EDvpOwayttBs5F6qtweSo7MBFhJo=",
+      "revisionId": "b9051bc4-3427-4451-8950-ceab4b54f3fe",
+      "timeoutSeconds": 120,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "0znf7xPjCv07ma7EDvpOwayttBs5F6qtweSo7MBFhJo=",
+        "evidence": "finance-cod-staging-release-26.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "handler": "index.handler",
+      "codeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+      "revisionId": "ba936035-15b0-401d-bc05-aa818f2e1b02",
+      "timeoutSeconds": 60,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+        "evidence": "finance-cod-staging-release-26.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "staging-wizz-wallet-service",
+      "handler": "dist/index.handler",
+      "codeSha256": "0znf7xPjCv07ma7EDvpOwayttBs5F6qtweSo7MBFhJo=",
+      "revisionId": "5ce8d350-0eee-4d6f-ba09-50233ed9149a",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {},
+      "expectedPublication": {
+        "codeSha256": "0znf7xPjCv07ma7EDvpOwayttBs5F6qtweSo7MBFhJo=",
+        "evidence": "finance-cod-staging-release-26.json"
+      },
+      "matchesRecordedPublication": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "handler": "src/handlers/push-wave-offer.sendWaveOffer",
+      "codeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+      "revisionId": "bc223ea3-a194-452e-b241-357692a8c3b4",
+      "timeoutSeconds": 30,
+      "lastUpdateStatus": "Successful",
+      "gates": {
+        "DISPATCH_REVIEW_EXECUTION_MODE": "OFF",
+        "DISPATCH_REVIEW_MODE": "OFF",
+        "DISPATCH_RESPONSE_INTEGRATION_MODE": "OFF",
+        "DISPATCH_LEGACY_HOST_MODE": "OFF",
+        "DISPATCH_CYCLE_MODE": "OFF",
+        "PINNED_LEGACY_PUSH_MODE": "OFF",
+        "DISPATCH_RESTART_START_MODE": "OFF"
+      },
+      "expectedPublication": {
+        "codeSha256": "/rdDbJk6hF53WYei713wCdDmhdZegdlC0RlXL+ur1Qk=",
+        "evidence": "finance-dispatch-closed-staging-release-49.json"
+      },
+      "matchesRecordedPublication": true
+    }
+  ],
+  "rules": [
+    {
+      "name": "staging-cod-lifecycle-CodIntegrationWorkerRetryInte-LlysduSg9yRo",
+      "state": "DISABLED",
+      "schedule": "rate(1 minute)",
+      "targetArns": [
+        "arn:aws:lambda:us-east-1:699561669180:function:staging-cod-integration"
+      ]
+    },
+    {
+      "name": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM",
+      "state": "ENABLED",
+      "schedule": "rate(1 minute)",
+      "targetArns": [
+        "arn:aws:lambda:us-east-1:699561669180:function:WaveSystem_HandleWaveTimeout"
+      ]
+    }
+  ],
+  "centralPolicy": {
+    "version": 2,
+    "policyVersion": "dispatch-schema-v2-release50",
+    "dispatchSchemaVersion": 2,
+    "performanceMode": "LEGACY_METRICS",
+    "limits": {
+      "quoteMaxPerCustomerPerMinute": 5,
+      "driverOfferTtlSeconds": 60,
+      "driverPositionMaxAgeSeconds": 120,
+      "reassignmentWindowSeconds": 300,
+      "maximumWaves": 4
+    }
+  },
+  "limits": [
+    "Package equality does not prove runtime adoption or end-to-end correctness.",
+    "Missing gates do not imply activation; inspect source defaults.",
+    "Mobile installed builds, provider delivery, IAM and row coverage are not verified here.",
+    "Hash drift requires review; it is not automatically a regression."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "function": "WizzUser-CreateOrder-staging",
+  "status": "VERIFIED",
+  "oldCodeSha256": "TDaGiUGv2DJ2ypyq6lLJKij7s4F8aBO0SUzLB5Urs7k=",
+  "newCodeSha256": "WarcwJpXbYC0pqzDLnHCzVJ1XJoqG2imwGUWlgmZI4M=",
+  "environmentUnchanged": true,
+  "roleUnchanged": true,
+  "targetedTestsPassed": 22,
+  "deviceConfirmationPending": true
+}

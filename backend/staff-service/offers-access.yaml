@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Staging Promotions editor access for the existing staff service; no deletion access or customer/order mutations.
+Resources:
+  OfferEditorAccess:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: StagingPromotionsEditor
+      Roles:
+        - staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: dynamodb:UpdateItem
+            Resource:
+              - arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts
+              - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts
+          - Effect: Allow
+            Action: dynamodb:GetItem
+            Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Products
+          - Effect: Allow
+            Action: dynamodb:ConditionCheckItem
+            Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses

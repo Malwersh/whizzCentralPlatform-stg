@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-17",
+  "liveMetadata": [
+    {
+      "name": "order-receiver-regional-staging-discount-management-v1-sam",
+      "codeSha256": "rjMVz7XB3JmNid9qqM4kyFvULtryLVW3Kk95Ne0htQg=",
+      "sameAsCampaignRelease62": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "VEIPYkkYjsq++AOlyqVH3HekAMnGjVv5TLbboc3VUSY=",
+      "sameAsCampaignRelease62": false,
+      "sameAsCoordinatedReadersRelease63": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "CDTlRToZs2u2q06QXt/Dm+QjuinAMKlpGN5GBr7SMi4=",
+      "sameAsCampaignRelease62": false
+    }
+  ],
+  "remoteHeads": {
+    "whizzCentralPlatform-stg": "bc736440e6e64ff7bd8afa9ab833292f31a776d3",
+    "whizzMerchants-stg": "bcd65274219ca0f1dbea20cbb818cae46c9325f6",
+    "wizzuser-stg": "d702337a1978d745c9b59d73b5ceb6afece641e2",
+    "whizzDrivers-stg": "eaaed9a171d6049922055fa68cd717ae82808c58"
+  },
+  "reviewedDiscountCommits": [
+    "1a3d362",
+    "4028373",
+    "3612d6d",
+    "5ee2829"
+  ],
+  "reusedTables": [
+    "WhizzMerchants_Discounts",
+    "WizzCentral_Platform_Discounts"
+  ],
+  "worktreesChangedByGitReview": false,
+  "localSourceHashes": {
+    "merchantDiscountWriter": "8f581be7bd6397841c940903ea8afb10648c9604d77e3e8c467597a70182f3bd",
+    "customerDiscountEngine": "e18fc581d3624ddc97c34984d21157685e996b16dd82bcdad61a531989e120bd",
+    "customerDiscountModel": "6ae933327e8ffcedd50b09cb65461072336964a2a352719ed562c91a280c8dc7"
+  },
+  "preservedIntegration": {
+    "merchantReservedAttributeNames": true,
+    "customerLegacyAndCurrentFields": true,
+    "customerStoreModelMatchesCoworker": true
+  },
+  "scope": "Latest pushed branches and local integrated sources; no merge, push or coworker backend replacement performed."
+}

@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-25",
+  "repository": "whizzCentralPlatform-stg",
+  "branch": "feature/malwersh/bootstrap",
+  "scope": "Four staging repositories only; legacy non-stg worktrees preserved",
+  "changes": [
+    "Wallet funding and Zain Cash configuration, callback/inquiry reconciliation, pending-operation handling, monthly history and recipient selection.",
+    "Driver acceptance/completion/timing metrics, evidence-based decisions, rating chronology and quality/safety incident review and appeals.",
+    "Administrative cancellation, redispatch and pickup reports; independent responsibility, performance and financial closure; safe set-preserving evidence guards.",
+    "Actual bundled staff reader now returns original assignment attempts and prior performance decisions; performance section is immediately below case progress.",
+    "Master operational priorities, ordered acceptance tests, deployment receipts and the saved resume checkpoint."
+  ],
+  "handoff": "docs/github-handoff-2026-10-25.txt",
+  "delegatedProductWork": "DELEGATED_TO_COLLEAGUE",
+  "manualCurrentCase": "PENDING_USER_PERFORMANCE_DECISION_AND_FINANCIAL_CLOSURE",
+  "historicalDeploymentScripts": "REQUIRE_CAPTURED_PACKAGES_AND_EXACT_HASHES_NOT_GENERAL_DEPLOY_SCRIPTS",
+  "githubUploadDeploysServices": false,
+  "secretsAndBuildArtifactsIncluded": false,
+  "pull": [
+    "git fetch origin",
+    "git checkout feature/malwersh/bootstrap",
+    "git pull --ff-only origin feature/malwersh/bootstrap"
+  ],
+  "validation": {
+    "centralWalletTestsPassed": 129,
+    "staffAndAccountDeletionTestsPassed": 660,
+    "ratingApiTestsPassed": 33,
+    "driverBackendTestsPassed": 77,
+    "customerStorefrontTestsPassed": 6,
+    "driverFlutterTestsPassed": 79,
+    "customerFlutterTestsPassed": 50,
+    "merchantFlutterTestsPassed": 5,
+    "typescriptNoEmit": "PASS",
+    "browserChecks": [
+      "Performance section placement and explicit missing-attempt/permission states",
+      "Cancellation progress and correct financial closure route"
+    ],
+    "manualCurrentCase": "NOT_MARKED_PASSED"
+  }
+}

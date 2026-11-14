@@ -1,0 +1,102 @@
+{
+  "at": "2026-10-16T15:27:34.980Z",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "physicalTable": "staging-cod25-verification-0b38589725bf8abf",
+  "tableDeleted": true,
+  "result": {
+    "completion": {
+      "leaseLossBlocksArchive": true,
+      "resolvedExpiryAtomic": true,
+      "acceptanceOnce": true,
+      "completionOnce": true,
+      "metrics": "1/1",
+      "notice": "HELD",
+      "nonzeroDiscountIqd": 1000,
+      "commissionIqd": 500,
+      "driverTipIqd": 1000,
+      "archiveCount": 14,
+      "unpaidLiabilityBlocksPurge": true
+    },
+    "terminal": [
+      {
+        "mode": "cancel",
+        "acceptedCount": 1,
+        "completedCount": 0,
+        "releasedOnce": true,
+        "notice": "HELD"
+      },
+      {
+        "mode": "unassign",
+        "acceptedCount": 1,
+        "completedCount": 0,
+        "releasedOnce": true,
+        "notice": "HELD"
+      },
+      {
+        "mode": "return",
+        "acceptedCount": 1,
+        "completedCount": 0,
+        "releasedOnce": true,
+        "notice": "HELD",
+        "compensation": "PENDING_POLICY_REVIEW"
+      }
+    ]
+  },
+  "scope": "REAL_DYNAMODB_TRANSACTIONS_ISOLATED_TABLE_LOGICAL_TABLE_ADAPTER",
+  "excludes": [
+    "Gateway",
+    "Deployed Lambda runtime",
+    "IAM of production roles",
+    "Cognito authentication",
+    "FCM delivery",
+    "ByDue index/scheduler"
+  ],
+  "humanDataAccess": false,
+  "liveFeatureChanges": false,
+  "implementationStatus": "LOCAL_UNPUBLISHED",
+  "activation": "OFF",
+  "notificationDelivery": "HELD",
+  "scheduleEnabled": false,
+  "deploymentPerformed": false,
+  "retentionPolicyChanged": false,
+  "testRetentionYears": 7,
+  "testPolicy": "SYNTHETIC_POLICY_NO_LIVE_CHANGE",
+  "verificationNotes": [
+    "All logical application tables were translated into a single disposable DynamoDB table with no stream; no human table was read or mutated.",
+    "Cognito/acting identity and routing transport were injected from the existing test fixture.",
+    "The archive step used a synthetic worker lease; full deletion eligibility, OTP, S3 and Cognito deletion were not exercised.",
+    "A PAID payable status was simulated only in the disposable fixture to verify expiry; no payout implementation or authorization was added.",
+    "Unaccepted-offer privacy cleanup and notification-lease guards have local unit coverage, not live application/Gateway coverage."
+  ],
+  "checks": {
+    "walletNode": 457,
+    "accountDeletionNode": 212,
+    "driverBackendNode": 53,
+    "python": 21,
+    "typescriptBuild": true,
+    "walletSamBasic": true,
+    "deletionSamBasic": true,
+    "walletSamLint": "13 existing W3660 warnings; not clean",
+    "uiChangedInThisPart": false
+  },
+  "artifacts": {
+    "driverFinancialRuntime": {
+      "path": "/private/tmp/driver-financial-release25/financial-runtime.js",
+      "sha256": "0b081a59c203fee1a6a31a3c1d70e9ad01012688b0b0c82b299863e92dcb4b87",
+      "published": false
+    },
+    "codIntegrationWorker": {
+      "path": "/private/tmp/cod-integration-release25/index.js",
+      "sha256": "6f047ea9453a0a24ab7c49cf31841a1114963134decdb046b23294b19155d2b2",
+      "published": false
+    }
+  },
+  "remainingBeforeActivation": [
+    "Compare current deployed artifacts and CloudFormation ownership, keep all new financial gates OFF.",
+    "Deploy matching acceptance event, integration worker, notification sender and deletion/retention contracts together, with the Drivers API financial delegation preventing old completion counters.",
+    "Validate ByDue queue/index, schedule, actual Lambda role IAM, Gateway/Cognito and device behavior with non-human traffic before opening gates.",
+    "Provide authorized integration-review/replay workflow; do not manually replay money or overwrite a terminal outcome.",
+    "Approve compensation/return disputes and merchant payout/settlement contracts independently."
+  ]
+}

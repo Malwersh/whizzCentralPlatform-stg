@@ -1,0 +1,63 @@
+{
+  "scope": "staging",
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-wizz-wallet-service",
+      "previousHash": "Mj/bV77KvU+Tiq2cG1G2yb0zwUGpmLXXDHWyWhTDptY=",
+      "deployedHash": "auAD+EhKDLspzAiE2utQF587Oue/QOzlkCUIgo/hX6Q=",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "previousHash": "QAEmT4TLXgXXGoTNE59gh/Jh6p/d5uZocpaMRs/vypU=",
+      "deployedHash": "ikI+AjvtrcFrunPxGUGlY1rzD4ysON03dClHtovDXR4=",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "previousHash": "rCmx+CmegXJMAQ3XpULBULomfvfQMQKkP2wZm84ZOZA=",
+      "deployedHash": "RqYrCBBhRduVZeqYBXBWWcgHiIrSJmzcqi5tvmfPzU4=",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "previousHash": "Hv3AMHK52oFyJoSUixD3iRQsfT9utFQ5IS7nSy34eQY=",
+      "deployedHash": "gJimHEHfeY9/x8nUB4uNm8a8c7jCQK0ZBWixIN1B6vs=",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "previousHash": "3vaxUB8TNSiGmqrtVDx/uyBCfHO1xdaZ0ioNXI9os58=",
+      "deployedHash": "5IZi3lqWlvydsBR/LP7/hBjeNnI/RM41UJ2jf7atImM=",
+      "otherConfigurationPreserved": true
+    }
+  ],
+  "businessDataMutations": false,
+  "realPayoutExecuted": false,
+  "iam": {
+    "role": "staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+    "policyName": "DriverCashPayoutV1Staging",
+    "policySha256": "31ecfa87b098088f4d2fb063dfd7f5c7ab6f31ba60dc2812f329aa8b4e1faa0b",
+    "scope": "Only staging driver payout records, source proofs, shared cashbook and payout notices"
+  },
+  "hosting": {
+    "jobId": "215",
+    "changedFiles": [
+      "drivers.js",
+      "pages/drivers.html",
+      "finance-print-company.js",
+      "merchant-cashboxes.js",
+      "pages/finance.html",
+      "driver-cash-payouts.js"
+    ],
+    "unrelatedFilesPreserved": true,
+    "status": "SUCCEED",
+    "hostedBytesVerified": true
+  },
+  "invalidTokenSmoke": {
+    "statusCode": 401
+  },
+  "enabled": true,
+  "completedAt": "2026-10-28T02:07:47.980Z"
+}

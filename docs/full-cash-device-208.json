@@ -1,0 +1,21 @@
+{
+  "part": 208,
+  "device": "iMohammed",
+  "buildMode": "Release",
+  "customer": {
+    "bundleId": "com.wiz.wizuserapp",
+    "build": 208,
+    "installed": true,
+    "processObservedAfterLaunch": true,
+    "fixedCheckoutAttemptSelector": false
+  },
+  "driver": {
+    "bundleId": "com.wiz.wizdriverapp",
+    "build": 208,
+    "installed": true,
+    "processObservedAfterLaunch": true
+  },
+  "newOrderTest": "DEFERRED_BY_USER",
+  "liveActivityPhysicalNewOrderTest": "DEFERRED_BY_USER",
+  "cardPaymentsEnabled": false
+}

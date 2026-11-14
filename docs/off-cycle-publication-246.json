@@ -1,0 +1,36 @@
+{
+  "part": 246,
+  "status": "PUBLISHED",
+  "scope": "Explicit off-cycle selected accruals or date-range collection, server cutoff, reason, independent approval, same verified payout path",
+  "businessDecisionsOrPaymentsByAgent": false,
+  "walletOrLedgerExecutionChanged": false,
+  "iamChanged": false,
+  "function": {
+    "name": "staging-wizz-staff-service",
+    "baseCodeSha256": "guQwZ5DNiczFwIWw5hxYcsdsP+cQFTVIRjwdWD+pll4=",
+    "codeSha256": "onHxxwfbCsue5+MZ89z7NiGD4N88IBAXywLeFM6QHm8=",
+    "changedFiles": [
+      "settlement-runtime.js",
+      "settlement-evidence-fields.json"
+    ],
+    "unrelatedEntriesAndConfigurationPreserved": true
+  },
+  "hosting": {
+    "baseJobId": "138",
+    "jobId": "139",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-off-cycle.js",
+      "finance-period-label.js",
+      "merchant-period-collection.js",
+      "settlement-statements.js",
+      "settlement-orders.js",
+      "merchant-payout-print.js",
+      "settlement-statement-details.js",
+      "merchant-collection-print.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

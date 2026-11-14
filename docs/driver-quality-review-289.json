@@ -1,0 +1,48 @@
+{
+  "status": "ADMIN_WORKFLOW_PUBLISHED_STAGING_DRIVER_SELF_SERVICE_OPEN",
+  "scope": "STAFF_ORDER_LINKED_QUALITY_SAFETY_CASES",
+  "features": [
+    "Category and severity with urgent operational warning",
+    "Authenticated case owner and verified accepted assignment binding",
+    "Multiple independent incident IDs per order",
+    "References and statements recorded as received; not proof by label alone",
+    "Substantiated result requires two different source parties and selected stored evidence",
+    "Reasoned decisions, revision chain, immutable events, exact idempotency/version guards",
+    "Driver appeal recorded by staff and evidence-backed uphold/revision",
+    "Existing open-cases queue and order-management entry",
+    "Existing incident remains bound to original accepted driver after reassignment"
+  ],
+  "unchanged": [
+    "Wallet/ledger/order/account business state",
+    "Rating stars/average/count",
+    "Existing dispatch/eligibility policies"
+  ],
+  "newTables": false,
+  "newIam": false,
+  "businessMutationsByAgent": 0,
+  "tests": {
+    "sourceAndRegression": 35,
+    "capturedCandidate": 9,
+    "browser": "PASS_390px_AUTH_RETRY_EVIDENCE_DECISION"
+  },
+  "manualAcceptance": "DEFERRED_READY_NOT_PASSED",
+  "limits": [
+    "Creation requires a currently verifiable accepted assignment; creating a new case for an already released historical attempt is not implemented",
+    "Driver self-service incident list and direct appeal submission not implemented; staff records received driver appeal",
+    "No numerical quality score, penalty tier or automatic account suspension",
+    "Open nonfinancial-case retention during account deletion requires separate audit; do not claim completed",
+    "Urgent severity is a visible triage priority; automated emergency paging or escalation SLA is not implemented"
+  ],
+  "evidence": [
+    "backend/wallet-service/test/driver-quality-review.test.cjs",
+    "backend/staff-service/test/driver-quality-review-289.test.cjs",
+    "scripts/test-driver-quality-review-browser-289.cjs",
+    "docs/driver-quality-review-packages-289.json"
+  ],
+  "publication": "docs/driver-quality-review-publication-289.json",
+  "hostingJob": "207",
+  "authenticatedBoundary": {
+    "unauthenticatedStatus": 401,
+    "businessWrites": false
+  }
+}

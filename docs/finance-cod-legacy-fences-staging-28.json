@@ -1,0 +1,431 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "status": "REVIEWED_LEGACY_ORDER_FENCES_PUBLISHED_FINANCIAL_GATES_CLOSED",
+  "financialActivation": "OFF",
+  "environmentMutation": false,
+  "iamMutation": false,
+  "apiMutation": false,
+  "policySource": "backend/order-service/legacy-order-policy.js",
+  "policySha256": "f34ba1bcf704655211cd80cd56986b5644a2b3e57218a3a651a24746105811dd",
+  "functions": [
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "handler": "functions/get-user-orders/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "b5d4b2cf-7712-4ae9-8f9b-661cfe36071a",
+      "baseCodeSha256": "AlUq+jF5JALW+utxHsKDpz4j8qB2i7rtY/Xcy3ZI2xk=",
+      "baseSourceSha256": "89e715ca0907561cc35c5a251da7020c73d03f6e989367ddbbc3df5249113458",
+      "candidateSourceSha256": "97056d2f5a448888b7e379a02ceb8f4ff9dfe7596eadb2ca555dc0025b05f031",
+      "codeSha256": "yPzqyuOSAs1YP5gzdIwhvXjxaiOEX/KVBgZu896sHXI=",
+      "preservedFiles": 11374,
+      "replacedFiles": [
+        "functions/get-user-orders/index.js"
+      ],
+      "addedFiles": [
+        "functions/shared/legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "WizzUser-GetUserOrders-staging",
+        "codeSha256": "yPzqyuOSAs1YP5gzdIwhvXjxaiOEX/KVBgZu896sHXI=",
+        "revisionId": "71179dd5-72f7-4df9-a13d-8aa6dbdfeb48",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "handler": "functions/create-order/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "ba006c83-cd57-4685-829e-8a133d746f92",
+      "baseCodeSha256": "BH0BVDUwi8J8WASKlJtRyclEHvyNrYaFc5tLOGvLO7g=",
+      "baseSourceSha256": "f564fcb0fe92c2f20c9c559162e6082d21881c731a86a48f37e7c558554af791",
+      "candidateSourceSha256": "3243005ca6e3c2ac5eb744bd26edf6bff25f7d3f1ef47ccd2bf5020bceccde47",
+      "codeSha256": "T57c7nVFMBR8XyN2KlaLBkxBiFVRX7k2MvTh7N9Qklw=",
+      "preservedFiles": 11374,
+      "replacedFiles": [
+        "functions/create-order/commercial-runtime.js",
+        "functions/create-order/index.js"
+      ],
+      "addedFiles": [
+        "functions/shared/legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "WizzUser-CreateOrder-staging",
+        "codeSha256": "T57c7nVFMBR8XyN2KlaLBkxBiFVRX7k2MvTh7N9Qklw=",
+        "revisionId": "69e670a1-6d6e-4675-b071-7c2cb2fa5173",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-UpdateOrderStatus-staging",
+      "handler": "functions/update-order-status/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "96c1e964-d6d8-4a66-b6bd-88c92ba7f9b3",
+      "baseCodeSha256": "02CrjmSqe+YW2s4Cby2BEQDy/d4mjDGkI6cnj/PqzBY=",
+      "baseSourceSha256": "ba4db5c60863c9b64d1e95099ea26713b66cb8eff73f9fc563bd8c521149c921",
+      "candidateSourceSha256": "41d1d25b7a3db3306fa92e71157e45c5103d04f75266c9f41677f968aba06c89",
+      "codeSha256": "7BWYeeNfqyTw/crrbCJz+rbNNRx5SOlwb5G08LGHneY=",
+      "preservedFiles": 11374,
+      "replacedFiles": [
+        "functions/update-order-status/index.js"
+      ],
+      "addedFiles": [
+        "functions/shared/legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "WizzUser-UpdateOrderStatus-staging",
+        "codeSha256": "7BWYeeNfqyTw/crrbCJz+rbNNRx5SOlwb5G08LGHneY=",
+        "revisionId": "c07de4fa-85ba-4d8b-98de-2c613246bca4",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-CancelOrder-staging",
+      "handler": "functions/cancel-order/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "7785c094-faf8-485f-b38d-66c904918b0d",
+      "baseCodeSha256": "yTPaMjstfPIwTamMIbrlPExL+5/7MTyvogALu5hYWvE=",
+      "baseSourceSha256": "bdff593e18a9c3e647f7f3a7a86324bcf33ca5ed387739913ad6284f7403c2f5",
+      "candidateSourceSha256": "cd23a1e6f1a6e79fb7734396ee3e3658ffa198b3a2daa41963ee05f34bddc287",
+      "codeSha256": "jWNNTtGTOOhkxLgNMrk7zUz5+gs10jSkVP0f6sIm75M=",
+      "preservedFiles": 11374,
+      "replacedFiles": [
+        "functions/cancel-order/index.js"
+      ],
+      "addedFiles": [
+        "functions/shared/legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "WizzUser-CancelOrder-staging",
+        "codeSha256": "jWNNTtGTOOhkxLgNMrk7zUz5+gs10jSkVP0f6sIm75M=",
+        "revisionId": "c10b321c-62f4-42fe-b707-1432af9d0c44",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-GetGuestOrders-staging",
+      "handler": "functions/get-guest-orders/index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "bb57b0d1-13ba-4255-9268-73abf9739a3c",
+      "baseCodeSha256": "dF6H9D51uYMTdOw3V5+Ng9M6sUjAW25rQC8SbLJeqPE=",
+      "baseSourceSha256": "62c5e5406df8e4612b799f8c524fb1741c3781c312f7eb734aaa617c0904a83f",
+      "candidateSourceSha256": "4a78888889496a9760a306fb452a622d729cc256d2a32828546974a2d7a61557",
+      "codeSha256": "YDQcJJMW5cdyxKV+l5FJlZCOnsCv0QeSpgEqqhi/l5U=",
+      "preservedFiles": 11374,
+      "replacedFiles": [
+        "functions/get-guest-orders/index.js"
+      ],
+      "addedFiles": [
+        "functions/shared/legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "WizzUser-GetGuestOrders-staging",
+        "codeSha256": "YDQcJJMW5cdyxKV+l5FJlZCOnsCv0QeSpgEqqhi/l5U=",
+        "revisionId": "61d7bd57-01d7-4f85-b741-fda781311808",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WizzUser-MerchantOrderStatusUpdate-staging",
+      "handler": "index.handler",
+      "ownerStack": "WizzUser-backend-staging",
+      "baseRevisionId": "ccdbe798-57be-4af0-9ac1-edf56f89a6d1",
+      "baseCodeSha256": "FfbbsEq9a40nqlOaU0lFLuQQDTJ6DtLgO5yERQ3my0w=",
+      "baseSourceSha256": "2b987650429771819c538b3b8033830a74563a60770ca39d96a9245fd7f8b728",
+      "candidateSourceSha256": "4c42b46bac91493177d5c4323a21bd768449665ac89d6d90df3060e503959b82",
+      "codeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+      "preservedFiles": 0,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "WizzUser-MerchantOrderStatusUpdate-staging",
+        "codeSha256": "Xp2K4Yx/00Fm6YmBYuXb5ch0q3EUhMwiCUSESKQ8YAA=",
+        "revisionId": "27d08964-68ca-45e1-aabd-b555d1bb4b92",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "handler": "merchant_order_handler.handler",
+      "ownerStack": "Wizz-Merchants-staging",
+      "baseRevisionId": "529a4ed4-b35d-4c29-aaeb-984c5882a5f1",
+      "baseCodeSha256": "IYqNwRXXl33SmO9Al176QBoVkvt6tFJx8UQmcByvshk=",
+      "baseSourceSha256": "e99cea34179e9fb2a8706f093f637a4b02b8bdd5bda886e79a8a5cac7dce34af",
+      "candidateSourceSha256": "4ab9476dc9167fec37a8bef359e975fcc1776c9434bcfae67cfba7683dc4c3d0",
+      "codeSha256": "KgY7wRdCihCl8sIp+QvZF7b03hueo0ITDRMnWfwHsd0=",
+      "preservedFiles": 4251,
+      "replacedFiles": [
+        "merchant_order_handler.js",
+        "shared/merchant-lifecycle.js"
+      ],
+      "addedFiles": [
+        "shared/legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "codeSha256": "KgY7wRdCihCl8sIp+QvZF7b03hueo0ITDRMnWfwHsd0=",
+        "revisionId": "c2f69d8c-9f14-41cd-8288-d466354a1d74",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "OrderService-staging",
+      "handler": "dist/index.handler",
+      "ownerStack": "order-service-staging",
+      "baseRevisionId": "5abc2348-af36-4457-9c6b-f5df0bde2528",
+      "baseCodeSha256": "z8p//JzJuOs22pSnqlUK6tP8pqx+VeXpTFmoVkNYJjk=",
+      "baseSourceSha256": "9bfee9657d384fe27f1cc941e28e31f21143535c6052c8f9daf29bf36a41552b",
+      "candidateSourceSha256": "9bfee9657d384fe27f1cc941e28e31f21143535c6052c8f9daf29bf36a41552b",
+      "codeSha256": "uBS2OUvMAq7xd6FqGXvv06BA8YBd3CuEw048N7D3xM8=",
+      "preservedFiles": 7380,
+      "replacedFiles": [
+        "dist/driverUnassignmentService.js",
+        "dist/orderCancellationService.js"
+      ],
+      "addedFiles": [
+        "legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "OrderService-staging",
+        "codeSha256": "uBS2OUvMAq7xd6FqGXvv06BA8YBd3CuEw048N7D3xM8=",
+        "revisionId": "83866d64-d05f-4621-9708-d2b3cebd1cd5",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "DriversApi-staging",
+      "handler": "lambda_driver_api_v2.handler",
+      "ownerStack": "drivers-api-staging",
+      "baseRevisionId": "1bb1baae-13a4-4283-bc54-206af8a10893",
+      "baseCodeSha256": "Fayz8u5g6+J5VuW3tvVGJ1HaioQ0hmBm7vIwxUm8MNI=",
+      "baseSourceSha256": "27135d1945dd255a6bec5170a4aab3cef0de8705c8f66119db21c5af62c2cbb4",
+      "candidateSourceSha256": "5bb5530ba8eb58fb698a2ade72c3aaabac840f08e3d5a79c0b3c63ec1050a8ce",
+      "codeSha256": "s4IwbNr32JLKK2JQx5fxPTex6fVdNQf44N+mxKWajYY=",
+      "preservedFiles": 11431,
+      "replacedFiles": [
+        "lambda_driver_api_v2.js"
+      ],
+      "addedFiles": [
+        "legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "DriversApi-staging",
+        "codeSha256": "s4IwbNr32JLKK2JQx5fxPTex6fVdNQf44N+mxKWajYY=",
+        "revisionId": "edc53f99-27b5-4b71-9c24-0be3fcbf198b",
+        "environmentUnchanged": true
+      }
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "handler": "index.handler",
+      "ownerStack": "wavesystem-staging",
+      "baseRevisionId": "aea56824-2168-4e79-bc05-b52449901d79",
+      "baseCodeSha256": "WBVO3doNaDuxp44OS8UP4evxua22CxzyUiHK/DJViVo=",
+      "baseSourceSha256": "0088797a7ccb792060deb22297263c20018124a651b8f31fa7b3a5809b434a7c",
+      "candidateSourceSha256": "9c2900bc2835cbd0d9622d021e06236b6f885b95b104d26bacece7587b2310bf",
+      "codeSha256": "x03EVm7XapRL1J9ah3Sdm4jUqAWVc6K3y3I6+x5Bgao=",
+      "preservedFiles": 3603,
+      "replacedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "legacy-order-policy.js"
+      ],
+      "published": {
+        "name": "WaveSystem_HandleDriverAccept",
+        "codeSha256": "x03EVm7XapRL1J9ah3Sdm4jUqAWVc6K3y3I6+x5Bgao=",
+        "revisionId": "34b12117-1397-4bbf-b68e-9733af4a51dc",
+        "environmentUnchanged": true
+      }
+    }
+  ],
+  "verification": {
+    "local": {
+      "customerBackendTests": 24,
+      "merchantBackendTests": 193,
+      "driverBackendTests": 58,
+      "orderServiceTests": 15,
+      "quotedOrderHandlerTests": 16,
+      "liveDerivedGenericStatusHandlerTests": 2,
+      "liveDerivedDriverProgressTests": 5,
+      "orderServiceTypescriptBuild": "PASS",
+      "generatedPolicySync": "PASS"
+    },
+    "dynamoDb": {
+      "account": "699561669180",
+      "region": "us-east-1",
+      "scope": "REAL_DYNAMODB_CONDITIONS_DISPOSABLE_TABLE",
+      "applicationTablesAccessed": false,
+      "humanDataAccess": false,
+      "checks": [
+        "LEGACY_UNCHANGED",
+        "ALL_MARKERS_INCLUDING_NULL_BLOCK_LEGACY_WRITE",
+        "MERCHANT_PREPARATION_ALLOWED",
+        "CONCURRENT_ACCEPT_BLOCKS_STALE_MERCHANT_PREPARATION",
+        "ALL_FIVE_FINANCIAL_PROGRESS_STEPS",
+        "RETURN_BLOCKS_STALE_DRIVER_PROGRESS",
+        "ARCHIVED_OUTCOME_CANNOT_REOPEN",
+        "PROGRESS_VS_TERMINAL_CAS_ONE_WINNER",
+        "CUSTOMER_FILTERS_INCLUDE_RETURNED_AND_KEEP_UNKNOWN_AND_RETURNING_ACTIVE"
+      ],
+      "tableDeleted": true
+    },
+    "lambdaRuntime": {
+      "functionsVerified": 10,
+      "financialActivation": "OFF",
+      "environmentMutation": false,
+      "probes": [
+        {
+          "name": "WaveSystem_HandleDriverAccept",
+          "probe": "MISSING_FIELDS_NO_DATA_ACCESS",
+          "statusCode": 400
+        },
+        {
+          "name": "WizzUser-MerchantOrderStatusUpdate-staging",
+          "probe": "OPTIONS_NO_DATA_ACCESS",
+          "statusCode": 200
+        },
+        {
+          "name": "WizzUser-UpdateOrderStatus-staging",
+          "probe": "OPTIONS_NO_DATA_ACCESS",
+          "statusCode": 200
+        },
+        {
+          "name": "WizzUser-GetGuestOrders-staging",
+          "probe": "OPTIONS_NO_DATA_ACCESS",
+          "statusCode": 200
+        },
+        {
+          "name": "WizzUser-CreateOrder-staging",
+          "probe": "OPTIONS_NO_DATA_ACCESS",
+          "statusCode": 200
+        },
+        {
+          "name": "WizzUser-CancelOrder-staging",
+          "probe": "OPTIONS_NO_DATA_ACCESS",
+          "statusCode": 200
+        },
+        {
+          "name": "DriversApi-staging",
+          "probe": "ANONYMOUS_AUTH_REJECTION_NO_DATA_ACCESS",
+          "statusCode": 401
+        },
+        {
+          "name": "WizzUser-GetUserOrders-staging",
+          "probe": "OPTIONS_NO_DATA_ACCESS",
+          "statusCode": 200
+        },
+        {
+          "name": "OrderService-staging",
+          "probe": "OPTIONS_NO_DATA_ACCESS",
+          "statusCode": 200
+        },
+        {
+          "name": "order-receiver-merchant-orders-staging-v1",
+          "probe": "OPTIONS_NO_DATA_ACCESS",
+          "statusCode": 204
+        },
+        {
+          "name": "WizzUser-CreateOrder-staging",
+          "probe": "CLOSED_QUOTED_OR_PREVIEW_REQUEST",
+          "statusCode": 409
+        },
+        {
+          "name": "WizzUser-CreateOrder-staging",
+          "probe": "CLOSED_QUOTED_OR_PREVIEW_REQUEST",
+          "statusCode": 409
+        }
+      ],
+      "humanDataAccess": false,
+      "otpSent": false,
+      "pushSent": false
+    },
+    "closedGatesAndGateway": {
+      "closedFinancialFunctions": [
+        {
+          "name": "DriversApi-staging",
+          "modes": {},
+          "absentModesDefaultOff": true
+        },
+        {
+          "name": "WaveSystem_StartWave",
+          "modes": {},
+          "absentModesDefaultOff": true
+        },
+        {
+          "name": "WaveSystem_HandleWaveTimeout",
+          "modes": {},
+          "absentModesDefaultOff": true
+        },
+        {
+          "name": "staging-driver-financial-accept",
+          "modes": {
+            "FINANCIAL_COD_RETURNS_MODE": "OFF",
+            "FINANCIAL_DISPATCH_MODE": "OFF",
+            "FINANCIAL_COD_COMPLETION_MODE": "OFF",
+            "FINANCIAL_COD_ASSIGNMENTS_MODE": "OFF"
+          },
+          "absentModesDefaultOff": true
+        },
+        {
+          "name": "staging-cod-integration",
+          "modes": {
+            "FINANCIAL_COD_INTEGRATION_MODE": "OFF"
+          },
+          "absentModesDefaultOff": true
+        }
+      ],
+      "gatewayChecks": [
+        {
+          "method": "OPTIONS",
+          "url": "https://4jut6787c8.execute-api.us-east-1.amazonaws.com/staging/orders",
+          "statusCode": 200
+        },
+        {
+          "method": "POST",
+          "url": "https://4jut6787c8.execute-api.us-east-1.amazonaws.com/staging/orders",
+          "statusCode": 409
+        },
+        {
+          "method": "OPTIONS",
+          "url": "https://ie7z8r4wc0.execute-api.us-east-1.amazonaws.com/staging/merchant/orders/cod28-synthetic-probe",
+          "statusCode": 200
+        }
+      ],
+      "humanDataAccess": false,
+      "environmentOrApiMutation": false
+    }
+  },
+  "coverage": [
+    "Generic customer status writes: early financial rejection plus atomic financial-marker absence and existing revision CAS",
+    "Cancellation/unassignment service: current and archived markers rejected before wallet call and fenced in status update",
+    "Merchant ownership/device lifecycle: financial terminal/assignment/rollback writes rejected; valid preassignment preparation pins observed state and financial sources in same Update",
+    "Driver: five financial progress steps require accepted allocation, legal predecessor and no return/cancellation/outcome; status/orderStatus updated together",
+    "Driver legacy acceptance/completion/non-delivery/cancellation and legacy Wave acceptance guard archived as well as current financial markers",
+    "Customer active/terminal predicates and account/guest history filters include completed/returned and keep returning/return_arrived/unknown active",
+    "Merchant completed history includes returned"
+  ],
+  "limits": [
+    "Condition tests run in a disposable table with synthetic state; the terminal-vs-progress race is not an enabled money settlement transaction",
+    "Live Lambda probes exercise loading, missing-input/auth rejection and closed gates, not positive authenticated financial transactions under execution roles",
+    "No human orders/funds read or changed, no Cognito/OTP/FCM operations, no app build or installation",
+    "Only reviewed writers listed here were hardened; this is not a complete inventory of every WizzOrders writer",
+    "The secondary user merchant-status endpoint retains its historical ORDER#id sort-key layout; it was not migrated to canonical META in this batch",
+    "Current merchant ready/financial dispatch ready_for_pickup contract still needs alignment before activation",
+    "Rejecting/cancelling a commercial order before financial assignment needs an atomic funding-release workflow; legacy rejection intentionally cannot bypass it"
+  ],
+  "remainingBeforeActivation": [
+    "Prepare disabled Quote API/table, routing credential, quotas, quote deletion and protected commercial preview route",
+    "Review approved commercial agreements/funding source records and scoped commercial writer IAM",
+    "Align ready_for_pickup dispatch contract and preassignment commercial rejection/cancellation",
+    "Configure approved TTL/location freshness/reassignment windows; keep all modes OFF until coordinated canary",
+    "Run allowed-app Cognito + deployed-role order acceptance, completion, return, reassignment and integration tests, device behavior and rollback"
+  ],
+  "rollback": "Prior packages and private configurations retained under /private/tmp/cod28-audit; keep closed gates and security/retention fences. Reconcile source package references before any full parent-stack SAM deployment."
+}

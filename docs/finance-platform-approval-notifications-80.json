@@ -1,0 +1,108 @@
+{
+  "part": 80,
+  "date": "2026-10-17",
+  "backend": {
+    "function": "staging-wizz-staff-service",
+    "beforeSha256": "kpPeMRxhCXWJbUi8lvFycaRnDdM7h9M8RBNS2bkOtbo=",
+    "afterSha256": "eJT6zz01PpEwyCehgNhkk1Gqa+DAAZM9Trcblv7CMlU=",
+    "changedFiles": [
+      "commercial-management.js",
+      "commercial-owner.js",
+      "commercial-events.js"
+    ],
+    "configurationPreserved": true,
+    "anonymousRejected": true,
+    "invalidOwnerSessionRejected": true,
+    "readerProbe": {
+      "count": 2,
+      "confirmedYty": true,
+      "actualActorRoles": [
+        "OWNER"
+      ],
+      "namesAvailable": true,
+      "readOnly": true
+    },
+    "probeRemoved": true,
+    "financialGatesUnchanged": true
+  },
+  "frontend": {
+    "baseJobId": "95",
+    "jobId": "96",
+    "changedFiles": [
+      "commercial-management.js",
+      "commercial-platform-notices.js",
+      "pages/merchants.html",
+      "pages/finance.html",
+      "pages/delivery-pricing.html",
+      "pages/support.html",
+      "pages/drivers.html",
+      "pages/regions.html",
+      "pages/dashboard.html",
+      "pages/account-security.html",
+      "pages/promotions.html",
+      "pages/customers.html",
+      "pages/orders.html",
+      "pages/staff.html",
+      "pages/orders-management.html",
+      "pages/settings.html",
+      "pages/account-deletion-requests.html"
+    ],
+    "sha256": "95a5797f494b49ef5beace855479643c565341f5f1e5b3c9107041070c309648",
+    "pollIntervalMs": 2000,
+    "financialWrites": false,
+    "status": "SUCCEED",
+    "hostedBytesVerified": true
+  },
+  "checks": {
+    "staffTestsPassed": 202,
+    "liveReaderRoleProbe": {
+      "count": 2,
+      "confirmedYty": true,
+      "actualActorRoles": [
+        "OWNER"
+      ],
+      "namesAvailable": true,
+      "readOnly": true
+    },
+    "browser": {
+      "passed": true,
+      "automaticStateRefresh": true,
+      "unsavedFormPreserved": true,
+      "openCardPreserved": true,
+      "actualAcceptorShown": true,
+      "duplicateNoticeSuppressed": true,
+      "readStateScoped": true,
+      "revokedAccessCleared": true,
+      "eventReads": 4,
+      "realApplicationWrites": false
+    },
+    "existingSharingBrowser": {
+      "passed": true,
+      "sourceFundingAutomatic": true,
+      "sharingOnly": true,
+      "campaignDatesInherited": true,
+      "agreementIndependent": true,
+      "realWrites": false
+    }
+  },
+  "behavior": {
+    "activeTabPollMs": 2000,
+    "notificationSource": "existing transactional consent AUDIT plus actual consent record",
+    "durableHistoryDays": 7,
+    "maxDisplayedEvents": 50,
+    "readMarkers": "browser-local, employee-sub scoped",
+    "unsavedFormPreserved": true,
+    "openCardsPreserved": true,
+    "ownerSession": "valid verified access JWT plus live Cognito GetUser and verified phone; no separate five-minute login-age rejection",
+    "financialConsentStillExplicit": true
+  },
+  "limitations": [
+    "automatic updates are authenticated active-tab polling, not zero-latency websocket push",
+    "owner commercial acceptance only; manager acceptance/delegation is still not implemented",
+    "browser notification list is inside the open platform; no OS/browser push while closed",
+    "physical mobile acceptance was performed by the user, not by the agent; only read its records",
+    "a one-time refresh loads this UI release in already-open tabs"
+  ],
+  "financialGatesUnchanged": true,
+  "newHumanConsentSubmittedByAgent": false
+}

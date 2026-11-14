@@ -1,0 +1,20 @@
+{
+  "part": 237,
+  "status": "PUBLISHED",
+  "function": "staging-wizz-staff-service",
+  "baseCodeSha256": "VeJLSF20XViwgeRcBhnRn172RfKxfsFpjn03LB3gCyM=",
+  "codeSha256": "g1PYzyHiRh5sjO+qnd58eDrv83sRBYHoG7HaYXGF9Cg=",
+  "changedFiles": [
+    "_discount_review/central-staff/index.js"
+  ],
+  "otherZipEntriesIdentical": true,
+  "configurationPreserved": true,
+  "iamChanges": false,
+  "moneyOrOrderWritesByAgent": false,
+  "tests": {
+    "staff": 242,
+    "capturedReview": 17,
+    "executor": 24,
+    "digestCompatibility": "PASS"
+  }
+}

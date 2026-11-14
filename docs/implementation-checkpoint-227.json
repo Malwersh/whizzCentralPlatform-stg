@@ -1,0 +1,45 @@
+{
+  "part": 227,
+  "status": "DRIVER209_INSTALLED_LAUNCHED_FINANCIAL_RETURN_VERIFIED",
+  "finding": "Return confirmed and Live Activity ended; driver return screen had no terminal home action or background refresh",
+  "repair": [
+    "Poll server every15 seconds only while returning and foreground; refresh on resume",
+    "Show home action only after server returned; clear matching cache/provider only",
+    "Hide pending hold instruction on returned state"
+  ],
+  "tests": {
+    "driverReturnFlow": 5,
+    "failed": 0,
+    "cacheGuard": "Different active order preserved",
+    "liveReturnedOrderReadOnly": {
+      "status": "returned",
+      "returnStatus": "CONFIRMED",
+      "holdStatus": "RELEASED",
+      "holdReleasedIqd": 6250,
+      "driverAvailableBefore": 21250,
+      "driverAvailableAfter": 27500,
+      "driverLockedAfter": 0,
+      "journalOutcome": "RETURNED",
+      "journalBalanceTypes": [
+        "AVAILABLE",
+        "LOCKED"
+      ],
+      "fundingCommitmentStatus": "RELEASED",
+      "driverCompensationStatus": "PENDING_POLICY_REVIEW"
+    }
+  },
+  "financialWritesByAgent": false,
+  "nativeUserAcceptance": {
+    "merchantReceiptConfirmed": true,
+    "liveActivityDisappeared": true,
+    "driverUpdatedHomeAction": "implemented, tested, installed; user visual confirmation pending"
+  },
+  "application": {
+    "bundle": "com.wiz.wizdriverapp",
+    "build": 209,
+    "mode": "release",
+    "device": "iMohammed",
+    "installed": true,
+    "launched": true
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "part": 263,
+  "status": "PUBLISHED",
+  "scope": "staging",
+  "functions": [
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "baseCodeSha256": "UNX3jERSmtPaIPgn+x1BrjO5j7jvpbk7SJr+er4N3Rg=",
+      "packageSha256": "a6c8398e32b9457683bfde726e8f5cccb4469b825cb9612ed8d2637f31af454e",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "psg5jjK5RXaDv95ybo9czLRGm4JcuWEu2NJjfzGvRU4=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "changedFiles": [
+        "order-exception-runtime-229.js",
+        "return-item-plan-runtime-263.js",
+        "index.js"
+      ],
+      "baseCodeSha256": "jdqmRgOiGy2LyJ1ByshfxouOWQDxPfu4CI8d53Abkws=",
+      "packageSha256": "3ed4a7a6253387c312f2dba1728afb5f714b76334661e4fe8fa9a254b923c12b",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "PtSnpiUzh8MS8tuhcor7X3FLdjNGYeT+j6miVLkjwSs=",
+      "configurationPreserved": true
+    }
+  ],
+  "iamChanged": false,
+  "realOrderReceiptDecisionOrFinancialMutationByAgent": false,
+  "existingCasesMigrated": false,
+  "originalReceiptPreserved": true,
+  "physicalExecutionImplemented": false,
+  "invalidTokenSmoke": {
+    "statusCode": 401,
+    "code": "UNAUTHORIZED"
+  },
+  "hosting": {
+    "baseJobId": "151",
+    "jobId": "152",
+    "changedFiles": [
+      "case-workflow.js",
+      "order-exception-cases.js",
+      "pages/order-exceptions.html"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

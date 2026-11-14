@@ -1,0 +1,45 @@
+{
+  "batch": 542,
+  "status": "STAGING_DEPLOYED_TESTED",
+  "scope": "حماية شكاوى الزبون عند غياب سجل الطلب المرتبط",
+  "change": [
+    "ربط اكتشاف الشكوى بهوية الزبون الموثقة إضافة إلى رقم الطلب",
+    "تطبيق الفحص في أهلية الحذف وقبل تنظيف البيانات الشخصية",
+    "الشكوى المفتوحة تمنع الحذف والمغلقة تتطلب مراجعة الاحتفاظ القائمة؛ لم تحدد مدة جديدة"
+  ],
+  "validation": {
+    "testsPassed": 45,
+    "newTests": 3,
+    "coverage": [
+      "شكوى مفتوحة دون طلب",
+      "شكوى مغلقة دون طلب",
+      "عزل زبون آخر وعدم توسيع نطاق السائق"
+    ],
+    "packagedTestsPassed": 3,
+    "packagedTestsAreSubset": true
+  },
+  "mutations": {
+    "recordsDeleted": 0,
+    "financialWrites": 0,
+    "deploymentPerformed": true
+  },
+  "remaining": [
+    "حصر سجلات staging-WizzOfferJourney وحجوزات المزايا والتمييز بين الشخصية والدليل المالي",
+    "تدقيق صور الدعم وتبعيتها للشكاوى قبل أي تنظيف",
+    "مطابقة صلاحيات وحزمة النشر الحالية قبل نشر إصلاح 542"
+  ],
+  "knownCoverage": {
+    "complaints": "محمية بمراجعة الاحتفاظ",
+    "deliveryQuotes": "مسار تنظيف مستقل موجود؛ ليس إثباتا لتغطية كل نوايا الطلب",
+    "benefits": "تغطية الحذف غير مكتملة؛ لا حذف آلي مضاف"
+  },
+  "deployment": {
+    "function": "staging-account-deletion-worker",
+    "status": "Successful",
+    "codeSha256": "WVexsrwugSeVmGy3Or5hgdUiWoh4opTiwWvS2laonYY=",
+    "targetedPatchOnly": true,
+    "configurationUnchanged": true,
+    "accountDeletionInvoked": false,
+    "sourceDriftFound": "الحزمة المنشورة لم تتضمن استدعاء pendingCod في customer-evidence؛ أضيف فحص ما قبل الحذف مع الحفاظ على بقية الحزمة"
+  }
+}

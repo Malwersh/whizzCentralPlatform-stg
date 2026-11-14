@@ -1,0 +1,29 @@
+{
+  "part": 211,
+  "status": "PUBLISHED_ACTIVE_VERIFIED_APP_INSTALLED_LAUNCH_VERIFIED",
+  "scope": "Frozen statement detail in merchant/admin + bounded admin CSV and browser print/PDF",
+  "backendRoute": "GET /staff/settlement-schedules?view=payout-statement; existing verified owner bridge",
+  "merchantAppBuild": 211,
+  "merchantAppInstalled": true,
+  "deviceLaunch": "Verified on iMohammed after unlock; merchant211 process observed",
+  "accountingAudit": "7 verified unpaid orders, IQD43575 matches merchant locked wallet; no financial writes",
+  "tests": {
+    "wallet": 1065,
+    "merchantWidget": 5,
+    "browserWorkflows": 5,
+    "merchantAnalyze": "No issues"
+  },
+  "nextSteps": [
+    "Keep card/bank unavailable until provider contract; remaining XLSX/full-account large export is not implemented by this bounded slice"
+  ],
+  "noPayoutOtpOrFinancialMutation": true,
+  "backendCodeSha256": "Vh0c1o9RnJ5awni3mZGLCljdxzmFTe+xBtufyFa6dRY=",
+  "hostingJobId": "119",
+  "hostedBytesVerified": true,
+  "evidence": [
+    "completed-order-audit-211.json",
+    "statement-details-publication-211.json",
+    "statement-details-page-publication-211.json"
+  ],
+  "merchantAppLaunchVerified": true
+}

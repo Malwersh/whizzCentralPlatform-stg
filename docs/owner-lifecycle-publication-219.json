@@ -1,0 +1,37 @@
+{
+  "part": 219,
+  "status": "PUBLISHED_GENERAL_STAGING_ACTIVE",
+  "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+  "codeSha256Preserved": "BQRMMOsixRpSvGTpWKRUU2RlS6GqCMcwXcSV16q5N3A=",
+  "changedEnvironmentKeys": [
+    "FINANCIAL_COD_RETURNS_MODE",
+    "FINANCIAL_COD_ASSIGNMENTS_MODE",
+    "FINANCIAL_ACCEPT_FUNCTION_ARN"
+  ],
+  "otherEnvironmentPreserved": true,
+  "envBytesAfter": 3476,
+  "existingBoundedInvokePermissionVerified": true,
+  "permissionsChanged": false,
+  "codeChanged": false,
+  "apiAuthorizationChanged": false,
+  "financialMutationsPerformed": false,
+  "negativeGatewayAuthSmokes": [
+    {
+      "path": "/auth/order-returns",
+      "method": "GET",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "/auth/order-returns",
+      "method": "POST",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "/auth/order-cancellation",
+      "method": "POST",
+      "unauthenticatedStatus": 401
+    }
+  ],
+  "actualBundledAdapterTest": "Missing-config failure reproduced; corrected config passes owner-scoped delegation and rejects foreign owner/injected money",
+  "iac": "whizzMerchants-stg/backend/template.yaml: staging-only required gates"
+}

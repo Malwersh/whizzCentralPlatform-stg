@@ -1,0 +1,74 @@
+{
+  "part": 116,
+  "recordedAt": "2026-10-18T13:58:46.462960+00:00",
+  "functions": [
+    {
+      "name": "WizzUser-phone-auth-staging",
+      "codeSha256": "wAQZIHKEbE6XWlMIyANe2VKxLOw+kt8yL9wKJtPjs7A=",
+      "revisionId": "2a913318-afe3-4920-a2aa-4ed51b5f6316",
+      "changedEntry": "index.js",
+      "provider": "whatsapp-telegram-sms",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "WizzUser-phone-link-staging",
+      "codeSha256": "DhjjxAM/wry+/nQC3C9mwXB76mdymRJ1MjUu7s0aOBY=",
+      "revisionId": "706bdd20-0034-40a1-9ba8-eff3149d06b8",
+      "changedEntry": "index.js",
+      "provider": "whatsapp-telegram-sms",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "WhizzDrivers-phone-otp-staging",
+      "codeSha256": "+lbkpGCx9ktc6tNiENVja/sXjJinXMbj+9CBUWqPSEY=",
+      "revisionId": "bbdfdb9e-db16-4008-a377-8d6d60fefa20",
+      "changedEntry": "triggers.js",
+      "provider": "whatsapp-telegram-sms",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "WhizzDrivers-phone-registration-staging",
+      "codeSha256": "Ml3d9B9zyLymYNAw7TPRpfzCEwoBDY3Q5z/1Qko4czo=",
+      "revisionId": "09999bd1-c525-4aa0-8bb3-d113924ee856",
+      "changedEntry": "registration.js",
+      "provider": "whatsapp-telegram-sms",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "WhizzMerchants-otp-create-staging",
+      "codeSha256": "s7AhQxd3FHKXLhzIjsdirZKH2nnLhZPf0V71KC5uKB0=",
+      "revisionId": "87eaadb2-88f6-44e7-b596-118ac65b28ec",
+      "changedEntry": "create_auth_challenge.js",
+      "provider": "whatsapp-telegram-sms",
+      "otherConfigurationPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "PgZCyYMBdhHyd6dRT4n/+CCyx1Qz3jQONybz35uqTLY=",
+      "revisionId": "e5ff698a-c05e-4a6d-960c-76155d3adf8e",
+      "changedEntry": "profile_otp_provider.js",
+      "provider": "whatsapp-telegram-sms",
+      "otherConfigurationPreserved": true
+    }
+  ],
+  "messagesSentByMaintenance": 0,
+  "iamChanged": false,
+  "applicationDataChanged": false,
+  "actualDeliveryTested": false,
+  "environment": "staging",
+  "status": "PUBLISHED",
+  "routingOrder": [
+    "whatsapp",
+    "telegram",
+    "sms"
+  ],
+  "regressionTestsPassed": 35,
+  "mockedPayloadChecksPassed": 2,
+  "packageSyntaxChecksPassed": 6,
+  "unrelatedPackageEntriesPreserved": true,
+  "clientRebuildRequired": false,
+  "sources": [
+    "https://docs.otpiq.com/api-reference/messaging/post",
+    "https://docs.otpiq.com/api-reference/messaging/track"
+  ]
+}

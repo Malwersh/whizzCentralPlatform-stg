@@ -1,0 +1,22 @@
+{
+  "part": 211,
+  "function": "staging-wizz-staff-service",
+  "baseCodeSha256": "rnu3f8iwJwepjK9OA/slTuj61Aorgsenfp5XnzCkil4=",
+  "codeSha256": "Vh0c1o9RnJ5awni3mZGLCljdxzmFTe+xBtufyFa6dRY=",
+  "changedFiles": [
+    "settlement-runtime.js",
+    "merchant-payouts.js"
+  ],
+  "otherEntriesPreserved": true,
+  "status": "PUBLISHED_VERIFIED",
+  "moneyMutationRequested": false,
+  "iamOrEnvironmentChanged": false,
+  "priorVerifiedDeployments": [
+    {
+      "codeSha256": "rnu3f8iwJwepjK9OA/slTuj61Aorgsenfp5XnzCkil4=",
+      "status": "PUBLISHED_VERIFIED"
+    }
+  ],
+  "configurationPreserved": true,
+  "negativeAuthSmoke": 401
+}

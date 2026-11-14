@@ -1,0 +1,39 @@
+{
+  "status": "VERIFIED",
+  "functions": [
+    {
+      "name": "WaveSystem_StartWave",
+      "verified": true,
+      "codeSha256": "5W9LyXrvOQKi2Oyf/y5J1u9SJqLLWQjGSaVkwY5gJXg=",
+      "configurationUnchanged": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "verified": true,
+      "codeSha256": "ri7OxLBbWV++XtH2wvaFg7qxxuJ57whPRc6aCjeByLU=",
+      "configurationUnchanged": true
+    }
+  ],
+  "newIam": false,
+  "guardChecksRemoved": 0,
+  "targetedRegressionTestsPassed": 24,
+  "originalCheckoutMergedExpressionBytes": 2344,
+  "rootCause": "DISPATCH_FENCE_TOO_LARGE when composing checkout/order safety checks using verbose aliases",
+  "fullOriginalOrderFence": {
+    "fields": 106,
+    "mergedExpressionBytesAfterFix": 2760
+  },
+  "serviceRoleDiagnostic": {
+    "forcedFailure": true,
+    "noPermissionGapForOfferSave": true,
+    "originalHandlerRestored": true
+  },
+  "currentOrder": {
+    "status": "no_driver_available",
+    "reason": "PREPARATION_DEADLINE",
+    "offersCreated": 0,
+    "holdsCreated": 0,
+    "cancelledByThisRepair": false
+  },
+  "liveOfferDeliveryRetestPending": true
+}

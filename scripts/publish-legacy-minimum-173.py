@@ -1,0 +1,7 @@
+import pathlib,json,hashlib,base64,boto3
+from botocore.config import Config
+p=pathlib.Path('/private/tmp/minimum-173/WizzUser-CreateOrder-staging');doc=pathlib.Path('docs/minimum-order-publication-173.json');receipt=json.loads(doc.read_text());r=next(x for x in receipt['functions']if x['function']==p.name)
+l=boto3.Session(profile_name='Wizz_stg_UserApp',region_name='us-east-1').client('lambda',config=Config(read_timeout=120,connect_timeout=30));before=l.get_function_configuration(FunctionName=p.name);assert before['CodeSha256']==r['codeSha256'],'LIVE_DRIFT'
+b=(p/'legacy-candidate.zip').read_bytes();l.update_function_code(FunctionName=p.name,RevisionId=before['RevisionId'],ZipFile=b);l.get_waiter('function_updated_v2').wait(FunctionName=p.name,WaiterConfig={'Delay':2,'MaxAttempts':90});after=l.get_function_configuration(FunctionName=p.name);assert after['CodeSha256']==base64.b64encode(hashlib.sha256(b).digest()).decode()
+for k in ['Role','Environment','Timeout','Handler','Runtime','MemorySize','Architectures','Layers','VpcConfig']:assert before.get(k)==after.get(k),k
+r['codeSha256']=after['CodeSha256'];r['legacyMinimumGuardIncluded']=True;receipt['scope']='Optional branch minimum; shared informational preview/cart and both legacy and financial commercial order writers.';receipt['legacyMinimumTestsPassed']=3;doc.write_text(json.dumps(receipt,indent=2)+'\n');print('Legacy minimum guard published; configuration preserved.')

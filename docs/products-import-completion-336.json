@@ -1,0 +1,103 @@
+{
+  "release": 336,
+  "date": "2026-10-28T16:28:15.656085+00:00",
+  "status": "IMPLEMENTED_AND_DEPLOYED_STAGING_WITH_AUTOMATED_NATIVE_API_UAT",
+  "scope": [
+    "Bulk image selection, bounded decoding/compression, branch-owned upload and filename-to-row matching",
+    "CSV/XLSX column mapping with required/ignored fields and real default category selection",
+    "Optional whole-unit stock quantities, zero-stock sales block, unlimited mode and owner stock management",
+    "Atomic stock decrement composed with the new order and all quote/discount/financial conditions",
+    "Stock review after cancellation, return, expiry or administrative cancellation; consumed after delivery",
+    "Explicit publish/rollback and immutable catalog pricing with dynamic current availability",
+    "Staging API/IAM/runtime publication, inventory stream listener, encrypted retry-failure queue and CloudWatch failure metric alarm",
+    "Readable navy/white operational controls; registration-upload header cannot bypass product-image authentication"
+  ],
+  "operatorSteps": [
+    "افتح المنتجات وانشر القائمة الحالية مرة واحدة إن لم يسبق نشرها.",
+    "اختر استيراد المنتجات ثم CSV أو XLSX؛ يمكنك تنزيل القالب من الشاشة نفسها.",
+    "طابق أعمدة الاسم والسعر، وحدد عمود القسم أو قسمًا افتراضيًا من الأقسام المتاحة.",
+    "أرفق الصور المتعددة؛ يربط عمود اسم الصورة ملفًا مثل burger.jpg بالصورة المرفوعة بالاسم نفسه.",
+    "عمود الكمية اختياري. القيمة صفر تمنع البيع عند النفاد؛ العمود الفارغ يحافظ على الكمية الحالية ولا يحذفها.",
+    "افحص الملف، راجع الصفوف المرفوضة أو نزّل تقريرها، ثم اعتمد الصفوف المطلوبة. يمكن استئناف الدفعات دون تكرار.",
+    "انشر القائمة ليراها الزبائن؛ السعر والمحتوى يتغيران عند النشر، بينما توفر الكمية يُراجع مباشرة عند الطلب.",
+    "من المنتجات ← كميات المخزون يمكنك تعديل المتاح أو إيقاف تتبع الكمية.",
+    "بعد إلغاء الطلب راجع كمياته: أعد الصالح للبيع فقط، أو اعتمد أنه استُهلك/تلف. هذا القرار لا ينفذ تعويضًا أو قيدًا ماليًا."
+  ],
+  "quantitySemantics": {
+    "reservation": "Stock is decremented only in the same DynamoDB transaction that creates the actual order; invoice previews never decrement it.",
+    "cancellation": "No automatic restock of perishable goods based on missing preparation timestamps. Owner confirms usable stock or records consumption/damage; repeated decisions cannot credit it twice.",
+    "delivery": "Marks reservation consumed without subtracting stock again.",
+    "existingProducts": "Missing stock attribute means unlimited quantity, preserving existing behavior.",
+    "conflicts": "Compare-and-swap prevents stock edits/import previews from overwriting a concurrent sale. Duplicate product checks from discount and commercial pricing are coalesced before the stock update.",
+    "rollback": "Menu rollback never restores historical stock counts."
+  },
+  "bounds": {
+    "csvConvertedBytes": 262144,
+    "rowsPerFile": 500,
+    "xlsxInputBytes": 5242880,
+    "imagesPerSelection": 100,
+    "imagesBytesPerSelection": 41943040,
+    "inputImageBytes": 5242880,
+    "serverImageBytes": 3145728,
+    "maxImagePixels": 20000000,
+    "maxWholeUnitStock": 1000000,
+    "worksheet": "First workbook worksheet; formula-bearing workbooks rejected",
+    "maxBranchProductsPerPublication": 1000,
+    "maxScannedProductsPerPublication": 20000
+  },
+  "tests": {
+    "merchantBackend": {
+      "pass": 52,
+      "fail": 0
+    },
+    "pricingInventoryCashRuntime": {
+      "pass": 76,
+      "fail": 0
+    },
+    "customerBackend": {
+      "pass": 11,
+      "fail": 0
+    },
+    "merchantFlutter": {
+      "pass": 22,
+      "fail": 0
+    },
+    "currentCommercialCustomerFlutter": {
+      "pass": 24,
+      "fail": 0,
+      "skip": 1,
+      "skipReason": "Legacy-only behavior is excluded by enabled commercial pricing; separately verified below."
+    },
+    "legacyCustomerCompatibilityFlutter": {
+      "pass": 29,
+      "fail": 0,
+      "testOnlyFlags": {
+        "COMMERCIAL_PRICING_ENABLED": false
+      }
+    },
+    "analysis": "No errors or warnings in targeted analysis; informational style lints remain.",
+    "iosMerchantSimulatorBuild": "PASS: final normal application installed and launched after native API smoke harness was removed from the running app.",
+    "iosCustomerSimulatorRun": "PASS",
+    "isolatedRealDynamoDbUat": "PASS: mapping/images/import resume/publication/duplicate guards/concurrent last-piece/cancel restock/rollback, isolated tables deleted",
+    "nativeAuthenticatedApiUat": "PASS: uses signed-in simulator session without exporting tokens; temporary hidden branch and image deleted",
+    "publicReaderUat": "PASS: deployed customer Lambda returned all eight published products and correct images/categories",
+    "totalAutomatedPassed": 214
+  },
+  "evidence": [
+    "docs/products-336-isolated-staging-uat.json",
+    "docs/products-336-native-api-uat.json",
+    "docs/products-336-staging-publication.json",
+    "docs/products-336-cleanup.json"
+  ],
+  "businessDataSafety": {
+    "realOrdersCreated": false,
+    "realBalancesChanged": false,
+    "testBranchHiddenAndNonOrderable": true,
+    "temporaryTestDataDeleted": true
+  },
+  "humanAcceptance": "No human signature fabricated. Interactive user acceptance and Android/iOS release gates remain in the overall launch test plan; this part has automated API/native integration evidence.",
+  "productionDeploymentPerformed": false,
+  "stagingDeploymentPerformed": true,
+  "githubMainMerge": "Protected staging-main approval remains with reviewer; no bypass.",
+  "remainingImplementationInThisScope": []
+}

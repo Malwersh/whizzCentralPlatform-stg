@@ -1,0 +1,15 @@
+{
+  "batch": 558,
+  "status": "IMPLEMENTED_LOCAL_TESTED_NOT_DEPLOYED",
+  "scope": "Read and transaction-fence minimal terminal funding replay proofs; preserve existing reservation formats. No source compaction writer or deletion is enabled.",
+  "validation": {
+    "typescript": "passed",
+    "deliveryTestsPassed": 276,
+    "newReplayTestsPassed": 12,
+    "accountDeletionTestsPassed": 346
+  },
+  "testHarnessFix": "Added explicit fail-on-use mocks for unrelated complaint and cash payout runtime imports; lifecycle assertions unchanged.",
+  "financialWrites": 0,
+  "sourceDeletes": 0,
+  "next": "Implement independently verified closure and source/archive transaction fences before any source compaction; validate full lifecycle before deployment."
+}

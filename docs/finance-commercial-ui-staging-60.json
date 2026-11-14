@@ -1,0 +1,273 @@
+{
+  "part": 60,
+  "atUtc": "2026-10-17T04:58:06.267351+00:00",
+  "published": true,
+  "activationPerformed": false,
+  "commercialAdminEnabled": false,
+  "functions": [
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "/iwI3CZrvLRQXdBlzGyAQcIMjq2OEgjgLTHAyZS+zxc=",
+      "revisionId": "9a5ff05f-671d-49c1-9f1c-9ad12ecf0bb4",
+      "environmentPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "CknGNaBshIy96H+5Fjhpr7/3nwf42jitl69njZTDQiU=",
+      "revisionId": "609dbdca-33e2-4697-b1d1-72f7548d2681",
+      "environmentPreserved": true
+    }
+  ],
+  "closedOwnerHandlerVerified": true,
+  "gateway": {
+    "previousDeploymentId": "kvesq3",
+    "resourceId": "v8og2g",
+    "deploymentId": "kftli0"
+  },
+  "amplify": {
+    "appId": "d2vmebm1e1n95m",
+    "branch": "staging",
+    "jobId": "70",
+    "status": "SUCCEED"
+  },
+  "schemaVersion": 1,
+  "environment": "Staging",
+  "status": "CLOSED_UI_PUBLICATION_PENDING_RETENTION_CAMPAIGN_VERSIONING_AND_COORDINATED_FINANCIAL_CONSUMERS",
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "535e6be012354b611903eaeba04d959b7be4259c574c8706f6c36c7eeb0d7b66",
+      "reason": "Part54 binds a Staging test confirmation to a preapproved request while retaining immutable pending replay and default UUID behavior; commercial approval flow is unchanged."
+    },
+    {
+      "path": "backend/wallet-service/src/money.ts",
+      "beforeSha256": "a650a50ed22593f5cee9c88df9ab01869acff4a32c234fef5ade9497dd39e90e",
+      "afterSha256": "c02c3752fc00f6088cd529bf617b0506fa8be4458da3e1bdd47d029a13865165",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/deliveryPricing.ts",
+      "beforeSha256": "ee05af2c120e9052d25eeed4f898275ec5a734ac21be99f135e77d219535aab3",
+      "afterSha256": "154584f9ab57b2efc274bbdbe97e183c77b9c264cf3ea21da5ca7de745857da9",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialPricing.ts",
+      "beforeSha256": "7a2c30ee07aa06ce1e00808a7b279973d6f21b634f5a5884bc5d0ca56866d690",
+      "afterSha256": "f83727625f3bb1c77439a85fa2f87caee17546021f4f0ef38abeb773d8bdaaf1",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialSource.ts",
+      "beforeSha256": "4abde486156dd14be3c4812774113c299d56c9598e7320c1460c26036be220e8",
+      "afterSha256": "0b81190c88e902ee9613b7fa35889de0d20918a20724a9a01d3a8104f32bd875",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published."
+    }
+  ],
+  "sourceSha256": {
+    "backend/staff-service/commercial-management.js": "e707c8e696233f34aef1304f05651c03686eaddd2b17d535e14783b713054365",
+    "backend/staff-service/commercial-owner.js": "9eee9124afa0ecf4f8687d3df7d943b1e3446f88b24e1569546895501409dd95",
+    "backend/staff-service/catalog.js": "3ddb4fbdca56ee62ea9c27dd107abe7c1ba01fbda53f3c09efae09517296221f",
+    "backend/staff-service/index.js": "8d7824a7856d065c679e0974a4270ed4b1bbfdf9de280ac534bd95a7dc299dbc",
+    "backend/staff-service/template.yaml": "3115712173845c723508c31f702459f7b455dc31d222669c4964d024335db328",
+    "backend/staff-service/test/commercial-management.test.cjs": "1a0afc26e7022f63d6814f5e14daa02294e33a8ee771dbb80c03387cdaf5b702",
+    "backend/staff-service/test/commercial-owner.test.cjs": "8f28b05ff1dd81824f73809f23880d2db7a173923c79deff53bc4029aa9c5b58",
+    "scripts/sync-delivery-pricing-runtime.cjs": "301cad8307e6257b6f99d291fdcb9dff967bf999947c2e745e8f7a757fc13411",
+    "scripts/sync-delivery-quote-order-runtime.cjs": "adf2e4826080ba84d29ded9c620f8c264773f47e7d594e7bd42d82a9035dc425",
+    "scripts/test-commercial-management-staging-60.cjs": "20f22b26122caecddc3b4576a357afc88ad1b046ee99d72a9770accdce1e5f6f",
+    "scripts/test-commercial-management-browser.cjs": "162dc3f8f58275d1b82dd811d8bebd32a81257641893a411a17523d4f5b98dea",
+    "scripts/capture-commercial-ui-staging-60.py": "968793d8993abdfc6dccd3208d95b39e4e97ae016885d86c999df89ab880264c",
+    "scripts/prepare-commercial-ui-release-60.py": "751143128c314d1ccccd6b4d5bbb6f6950f82999e896d042d24edb61c0fd4760",
+    "scripts/publish-commercial-ui-staging-60.py": "8fa39f3e609dae157e25259d5956d1332a556fca1cd42ba619dd4b5161195024",
+    "scripts/verify-commercial-ui-staging-60.py": "328d964236f7ce0b77bcf36ad2ec0784252ff212e4b006eb75d5b9dcbae2fe0d",
+    "backend/wallet-service/src/orderCommercialPricing.ts": "f83727625f3bb1c77439a85fa2f87caee17546021f4f0ef38abeb773d8bdaaf1",
+    "backend/wallet-service/src/orderCommercialSource.ts": "0b81190c88e902ee9613b7fa35889de0d20918a20724a9a01d3a8104f32bd875",
+    "backend/wallet-service/test/order-commercial-source.test.cjs": "59dd30600627cba7e1f309acf554f83944e1657320e3f7888d03a47b51b69f91",
+    "frontend/commercial-management.js": "41ae2ae99db4f25621d59d1ef122ea63f0ba50c342c9b56c388236a5a8791841",
+    "frontend/merchants.js": "19c477c7f1972b5b3c97dcff35b79ea50f4ffd8b80c0ff4e071b136a304c55eb",
+    "frontend/assets/js/rbac.js": "fcd1d7e251391ef5d52d775094c9913e78c07583e5df11913b4131d88b574617",
+    "frontend/pages/merchants.html": "2c0c38ff671204b7b262258779e30f115bf5fc8c6e50a50b07f006b840e7006e",
+    "frontend/pages/promotions.html": "e2d4c4e73f982518652bdda67bcf8fb9ad86e31b1da2534fddc4b356d20bc7cc",
+    "../whizzMerchants-stg/backend/functions/auth/commercial_agreements.js": "fccd8a00bcad0b421619158e65c6912bbea2b4dd8483053724944d7158fbfc15",
+    "../whizzMerchants-stg/backend/functions/auth/unified_auth_handler.js": "dbf762aab0cac7387ecf84f84a3e55314b1b4510ffb7db37a81295adb40f2393",
+    "../whizzMerchants-stg/backend/functions/auth/person_onboarding.js": "570012f386a4a6a2d99826f7efc950a67a7959c8bc1457020214d7a6863a9199",
+    "../whizzMerchants-stg/backend/template.yaml": "a08748a18c4edca0d28c5fbf13f5c82a7caac03973708fb6a8cfc67f302a207a",
+    "../whizzMerchants-stg/frontend/lib/screens/commercial_agreements_screen.dart": "722a74219aeadbde3501e5619e5a8aac6839d599bc7e52a329c8d4c00a624c82",
+    "../whizzMerchants-stg/frontend/lib/screens/account_settings_page.dart": "c18eab63712a541a19c69faaf2f9be7fd9aebee15646c758cbe2b5301c89d8f7",
+    "../whizzMerchants-stg/frontend/lib/services/person_onboarding_service.dart": "78b586224b27f3800c829532432469c076d8764e94794d4a8b004682487577d6",
+    "../whizzMerchants-stg/frontend/test/commercial_agreements_test.dart": "d5abafdf829feb7605f03180a5ca36656c5bdf6714233dc07ee726c995f821a7",
+    "../wizzuser-stg/backend/src/functions/create-order/quote-runtime/orderCommercialSource.js": "324f8e84db69958c86704be859ea03adadbfcbfe400f2d1cab0aa3da222c6cf1",
+    "../wizzuser-stg/backend/src/functions/create-order/quote-runtime/orderCommercialPricing.js": "15e5bf659cc3fb5ccbf73840eefe883ba6799ec698c038c3e097423cd17a93e0",
+    "scripts/finalize-commercial-ui-release-60.py": "356f6b97c527cf3feeeee7dbe4d666e4ee1fd25ecc869b916ab89f0426f0f609",
+    "../whizzMerchants-stg/backend/test/commercial-agreements.test.cjs": "fa3fe63267a37d3a9962aa1140ce1609df1047e1a81d9e3e37090b9a76cfb4d9"
+  },
+  "packages": {
+    "staff": {
+      "codeSha256": "/iwI3CZrvLRQXdBlzGyAQcIMjq2OEgjgLTHAyZS+zxc=",
+      "changedFiles": [
+        "catalog.js",
+        "commercial-management.js",
+        "commercial-owner.js",
+        "index.js",
+        "pricing-runtime/deliveryPricing.js",
+        "pricing-runtime/deliveryQuoteRecord.js",
+        "pricing-runtime/money.js",
+        "pricing-runtime/orderAllocation.js",
+        "pricing-runtime/orderCommercialPricing.js"
+      ],
+      "preservedFiles": 4511
+    },
+    "merchant": {
+      "codeSha256": "CknGNaBshIy96H+5Fjhpr7/3nwf42jitl69njZTDQiU=",
+      "changedFiles": [
+        "commercial_agreements.js",
+        "person_onboarding.js",
+        "unified_auth_handler.js"
+      ],
+      "preservedFiles": 5995
+    },
+    "frontend": {
+      "codeSha256": "iYTL9dn9IgpfB6PIBgRQY7sPoH2BJ6Blrc+nF9Ee5VM=",
+      "changedFiles": [
+        "assets/js/rbac.js",
+        "commercial-management.js",
+        "delivery-pricing.js",
+        "merchants.js",
+        "pages/merchants.html",
+        "pages/promotions.html"
+      ],
+      "preservedFiles": 178
+    }
+  },
+  "tests": {
+    "walletPassed": 680,
+    "staffPassed": 158,
+    "userCommercialPassed": 17,
+    "flutterPassed": 182,
+    "newFlutterConsentTests": 4,
+    "browserAgreementAndFunding": true,
+    "rbacPassed": 2,
+    "approvedPricingExamplesPassed": 2,
+    "typeScriptBuild": true,
+    "flutterAnalyzeNewScreenAndService": "NO_ISSUES",
+    "iosReleaseUnsignedBuild": true,
+    "phoneInstalled": false,
+    "isolatedDynamoDb": {
+      "part": 60,
+      "isolatedTable": "staging-commercial-contract-test-60-3cc5df09-25a9-410f-ac16-950fd36270bd",
+      "applicationTableWrites": 0,
+      "humanWrites": 0,
+      "financialWrites": 0,
+      "idempotentDraft": true,
+      "concurrentApprovalOnce": true,
+      "canonicalPublication": true,
+      "concurrentOwnershipFence": true,
+      "atomicCampaignPolicyBinding": true,
+      "ownerReadProjection": true,
+      "tableDeleted": true
+    },
+    "merchantProxyPassed": 3
+  },
+  "liveVerification": {
+    "part": 60,
+    "functionsMatched": 2,
+    "hostedFilesMatched": 6,
+    "anonymousRequests": [
+      {
+        "method": "GET",
+        "status": 401
+      },
+      {
+        "method": "POST",
+        "status": 401
+      },
+      {
+        "method": "GET",
+        "status": 401
+      }
+    ],
+    "gatewayAuthAndIntegrationMatched": true,
+    "closedOwnerHandlerVerified": true,
+    "commercialAdminEnabled": false,
+    "activationPerformed": false,
+    "applicationDataWrites": 0,
+    "iamChanges": 0
+  },
+  "iamChanges": 0,
+  "humanDataWrites": 0,
+  "operationalTableWrites": 0,
+  "financialWrites": 0,
+  "policyInitialization": false,
+  "financialConsumerChangesPublished": false,
+  "readinessBlockers": [
+    "Commercial deletion/financial retention for shared agreement records, immutable consent/disclosures and policies before enabling writes",
+    "Explicit campaign version adoption and all existing writer concurrency/version fences",
+    "Narrow production-role IAM grants and owner Lambda invocation grant under infrastructure ownership",
+    "Coordinated deployment of Part59 rounding and schema-2 agreement reader to all financial hosts",
+    "Authenticated independent human owner/staff Gateway checks and funded financial canary before execution activation"
+  ],
+  "infrastructureNotes": [
+    "Merchant Gateway path is represented in the SAM source; reconcile direct resource ownership and whole-stack drift before full stack deployment",
+    "No new commercial IAM permissions granted in this publication",
+    "COMMERCIAL_ADMIN_ENABLED remains absent/false in both published hosts; 503 closed owner handler verified"
+  ],
+  "frontendBase": {
+    "jobId": "69",
+    "codeSha256": "SEvwEMp4gKoC3d3jwxknrPP6oYMVJXmQ5O8mfskExGQ=",
+    "origin": "VERIFIED_PRIOR_PUBLICATION_ARCHIVE"
+  },
+  "rollbackDirectory": "/private/tmp/finance60",
+  "limits": [
+    "UI/admin deployment does not activate money, initialize approved prices or create a real agreement or policy",
+    "Synthetic DynamoDB test uses an isolated mapped table and does not prove application-role IAM or human authentication",
+    "No cumulative campaign spending budget or payout functionality is implemented by this policy form",
+    "Merchant iOS screen built unsigned and has not been installed",
+    "The deployed owner route is closed; employee and owner complete workflow through Gateway still awaits the above dependencies"
+  ],
+  "finalReviewCorrections": [
+    {
+      "name": "staging-wizz-staff-service",
+      "beforeCodeSha256": "Pk27zOkKjUDk1R+OFapvw7ab4JNPxShgQ8HIT9jdXqA=",
+      "changedFile": "commercial-management.js",
+      "environmentPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "beforeCodeSha256": "bVcu70udrKNrLCu0fLn668EI5JYLaF7ie2zgvNDb/D8=",
+      "changedFile": "commercial_agreements.js",
+      "environmentPreserved": true
+    }
+  ],
+  "financialHostAudit": {
+    "functionsChecked": 28,
+    "hashDrift": [],
+    "activationPerformed": false,
+    "readOnly": true,
+    "evidenceSha256": "8629d7c855fb0e9f6db8bfecb2558b0255f742241f5ea26ecbd0518af7445590"
+  }
+}

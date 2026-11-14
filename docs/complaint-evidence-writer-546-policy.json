@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadComplaintSourceAndProof",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": [
+        "arn:aws:s3:::wizzcentral-websocket-sta-supportattachmentsbucket-menmovqpzidh/support-images/*",
+        "arn:aws:s3:::wizzcentral-websocket-sta-supportattachmentsbucket-menmovqpzidh/complaint-evidence/*"
+      ]
+    },
+    {
+      "Sid": "WriteImmutableComplaintProof",
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::wizzcentral-websocket-sta-supportattachmentsbucket-menmovqpzidh/complaint-evidence/*"
+    },
+    {
+      "Sid": "PinComplaintAttachmentMetadata",
+      "Effect": "Allow",
+      "Action": "dynamodb:PutItem",
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/support-attachments-staging"
+    }
+  ]
+}

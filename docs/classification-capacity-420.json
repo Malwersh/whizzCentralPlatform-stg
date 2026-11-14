@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-04",
+  "cause": "Persisted catalogue has 100 cuisines at version 9; validator rejected row 101 with generic Invalid catalog",
+  "change": "Allow 500 per classification type with explicit limit error; retain 350KB record guard and all reference/authorization checks",
+  "tests": 7,
+  "browserWidths": [
+    390,
+    1280
+  ],
+  "deployment": "staging only; no catalogue data mutations"
+}

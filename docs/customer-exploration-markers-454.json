@@ -1,0 +1,6 @@
+{
+  "phase": 454,
+  "change": "Restore circular merchant photo markers with white rim, subtle shadow and appropriate restaurant/cafe/store fallback icon; image cache and mounted lifecycle guard; no polling",
+  "validation": "Analyze clean; 4 exploration tests passed; Release 414 built",
+  "device": "iMohammed installation requested"
+}

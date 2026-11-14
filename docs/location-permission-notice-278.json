@@ -1,0 +1,27 @@
+{
+  "status": "RELEASE278_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_DEFERRED",
+  "scope": "Replace static more-orders card with actual OS location-permission notice",
+  "implemented": [
+    "Read location service enabled state and Geolocator permission from device",
+    "Hide when service enabled and permission always",
+    "Show distinct disabled service/denied/foreground-only/unknown-check states",
+    "Tap opens OS location or application settings as appropriate; no automatic permission request",
+    "Refresh on app resume and after settings action; mounted/generation guards",
+    "Unknown/check/open failures remain retryable without false success",
+    "No claim of extra offers or dispatch preference; no availability or test-coordinate changes"
+  ],
+  "verification": {
+    "flutterChecks": 52,
+    "permissionWidgetChecks": 10,
+    "analysis": "NO_ISSUES",
+    "narrowLargeText": "PASS_IN_SCROLLABLE_HOME_LAYOUT",
+    "releaseBuild": "PASS"
+  },
+  "humanAcceptance": "DEFERRED_NOT_PASSED",
+  "nativeBackgroundGPSValidated": false,
+  "backendChanged": false,
+  "newPermissionsDeclared": false,
+  "businessWritesByAgent": 0,
+  "installed": true,
+  "launched": true
+}

@@ -1,0 +1,39 @@
+{
+  "part": 264,
+  "status": "PUBLISHED_STAGING",
+  "wholeSpecificationComplete": false,
+  "hostingJobId": "153",
+  "tests": {
+    "wallet": 1335,
+    "staff": 244,
+    "merchantBackend": 208,
+    "driverBackend": 32,
+    "candidateRuntime": 23,
+    "proxies": 2,
+    "merchantFlutter": 13,
+    "driverFlutter": 12,
+    "browser": "PASS"
+  },
+  "nativeBuilds": {
+    "merchant": 228,
+    "driverSimulatorDebug": 214
+  },
+  "nativeInstalledAndLaunched": true,
+  "iamChanged": false,
+  "realFinancialOrCustodyAttestationsByAgent": false,
+  "originalReceiptsPreserved": true,
+  "historicalCaseVersion": 14,
+  "historicalCaseStatus": "RESOLVED",
+  "merchantEmployeeHumanTest": "DEFERRED_BY_USER",
+  "humanNewCustodyAcceptance": "NOT_PERFORMED",
+  "next": [
+    "alternative custody before first merchant receipt without fabricating an owner receipt",
+    "42-scenario phase244 coverage audit",
+    "cash refunds and post-payment adjustments remain distinct from existing payout replay"
+  ],
+  "references": [
+    "return-continuation-264.md",
+    "return-continuation-publication-264.json",
+    "return-continuation-verification-264.json"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "part": 321,
+  "status": "ACTIVE_VERIFIED",
+  "environment": "staging",
+  "priorPolicyVersion": 1,
+  "policyVersion": 2,
+  "generalDeliveryRule": "APPROVED_BASELINE_GLOBAL_DELIVERY",
+  "generalDriverRule": "APPROVED_BASELINE_GLOBAL_DRIVER",
+  "coveredRegions": [
+    {
+      "regionId": "Rmi38n0z7vltsb",
+      "name": "ناحية الرضوية",
+      "parentId": "Rmhvbdpawvszni",
+      "hasIndex": true
+    },
+    {
+      "regionId": "Rmhvg3ylfp911f",
+      "name": "ناحية القادسية",
+      "parentId": "Rmhvc7snfyul1f",
+      "hasIndex": true
+    },
+    {
+      "regionId": "Rmi3vdfc4tnef5",
+      "name": "ناحية الشبكة",
+      "parentId": "Rmhvbdpawvszni",
+      "hasIndex": true
+    },
+    {
+      "regionId": "Rmi9vc5mk2m1zj",
+      "name": "ناحية العباسية",
+      "parentId": "Rmi8d5ai1x2kvz",
+      "hasIndex": true
+    },
+    {
+      "regionId": "Rmiaf8e07pwbcz",
+      "name": "ناحية الحرية",
+      "parentId": "Rmi8d5ai1x2kvz",
+      "hasIndex": true
+    },
+    {
+      "regionId": "Rmi39f418ox1p2",
+      "name": "ناحية الحيدرية",
+      "parentId": "Rmhvbdpawvszni",
+      "hasIndex": true
+    },
+    {
+      "regionId": "Rmhvcpnn3iy5f1",
+      "name": "مركز المناذرة",
+      "parentId": "Rmhvc7snfyul1f",
+      "hasIndex": true
+    },
+    {
+      "regionId": "Rmhveqa2vrrj13",
+      "name": "ناحية الحيرة",
+      "parentId": "Rmhvc7snfyul1f",
+      "hasIndex": true
+    }
+  ],
+  "existingBranchOverridesUnchanged": true,
+  "pricingSchemaChanged": false,
+  "commercialAgreementsChanged": false,
+  "ordersOrWalletsModified": false,
+  "immutableVersionAndAuditWritten": true,
+  "actorKind": "AWS_DEPLOYMENT_PRINCIPAL",
+  "staffApprovalImpersonated": false,
+  "deploymentId": "416427dd-aa98-4e2f-abea-14b2610cc023",
+  "activatedAt": "2026-10-23T13:07:12.174Z",
+  "valuesSha256": "a9d8541b36c9aa8d7e2cf13c251bf9bb14b2a573333413b3aab9256f44cdc88b",
+  "futureBranches": "Automatically use general tariff when eligible and within one of the approved covered regions. No branch-specific rule required.",
+  "futureServiceRegions": "Enable/index verified coverage and include the region in the general delivery rule through central pricing; no code change.",
+  "rollback": "Do not remove the general driver rule while related offers/orders are in flight. Stop new admissions if needed; publish a new validated policy version retaining compatible driver rules and immutable order evidence."
+}

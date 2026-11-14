@@ -1,0 +1,16 @@
+{
+  "part": 242,
+  "fix": "approval-limit-message",
+  "status": "PUBLISHED",
+  "financialMutation": false,
+  "hosting": {
+    "baseJobId": "135",
+    "jobId": "136",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "order-exception-cases.js"
+    ],
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

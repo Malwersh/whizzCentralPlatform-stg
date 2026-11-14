@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+'use strict';
+// Every logical item is routed into one disposable stream-free synthetic table.
+// Cognito and provider callbacks are mocks; no application table is addressed.
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const wr=require('node:module').createRequire(require.resolve('../backend/wallet-service/package.json'));
+const {CreateTableCommand,DeleteTableCommand,waitUntilTableExists,waitUntilTableNotExists}=wr('@aws-sdk/client-dynamodb');
+const {TransactWriteCommand}=wr('@aws-sdk/lib-dynamodb');
+const {STSClient,GetCallerIdentityCommand}=require('@aws-sdk/client-sts');
+const {physical,low,adapter}=require('./test-dispatch-cycle-staging.cjs');
+const {fixture}=require('../backend/wallet-service/test/helpers/dispatch-review-executor-fixture.cjs');
+const {createStagingDispatchReviewExecutor}=require('../backend/wallet-service/dist/dispatchReviewExecutor');
+const {createStagingDispatchRestartStart}=require('../backend/wallet-service/dist/dispatchRestartStart');
+const {createStagingLegacyWaveExecutor}=require('../backend/wallet-service/dist/dispatchLegacy');
+const {createStagingLegacyOfferSource}=require('../backend/wallet-service/dist/dispatchLegacySource');
+(async()=>{
+ assert.equal((await new STSClient({region:'us-east-1'}).send(new GetCallerIdentityCommand({}))).Account,'699561669180');let created=false;
+ const report={scope:'REAL_DYNAMODB_ISOLATED_LEGACY_RESTART_AND_DURABLE_START',applicationTablesAccessed:false,published:false,realCognitoCalls:0,realNotifications:0,humanMoneyChanged:false};
+ try{
+  await low.send(new CreateTableCommand({TableName:physical,BillingMode:'PAY_PER_REQUEST',AttributeDefinitions:[{AttributeName:'_testPk',AttributeType:'S'},{AttributeName:'_testSk',AttributeType:'S'}],KeySchema:[{AttributeName:'_testPk',KeyType:'HASH'},{AttributeName:'_testSk',KeyType:'RANGE'}]}));created=true;await waitUntilTableExists({client:low,maxWaitTime:60,minDelay:1,maxDelay:2},{TableName:physical});
+  async function scenario(scope){const f=await fixture('RETRY_SEARCH'),a=adapter(scope);for(const [k,r]of f.rows)await a.seed(k.split('|')[0],r);const e=createStagingDispatchReviewExecutor({db:a.db,cognito:f.cognito,now:()=>f.time,mode:'SAFE_LEGACY_RETRY'});return {f,a,execute:()=>e.process(f.decision().caseId)};}
+  const x=await scenario('restart'),balances=await x.a.rows('staging-Wallets'),before=await x.a.get('WizzDispatchJobs_staging',{orderId:'order1',SK:'METADATA'});const replies=await Promise.all([x.execute(),x.execute()]);assert(replies.every(r=>r.resultCode==='SEARCH_RESTART_QUEUED'));assert.equal(replies[0].assignmentId,replies[1].assignmentId);assert.equal((await x.execute()).replayed,true);
+  const rows=await x.a.rows('WizzDispatchJobs_staging'),queue=rows.find(r=>r.kind==='DISPATCH_RESTART_START'),history=rows.filter(r=>r.kind==='DISPATCH_CYCLE_HISTORY');assert.equal(history.length,1);assert.deepEqual(history[0].source.dispatchCycle,before.dispatchCycle);assert.equal((await x.a.get('WizzOrders',{PK:'ORDER#order1',SK:'META'})).deliveryJobId,replies[0].assignmentId);assert.equal(rows.find(r=>r.SK==='METADATA').dispatchTransition,undefined);assert.equal((await x.a.rows('staging-PlatformStaff')).filter(r=>r.action==='DISPATCH_REVIEW_DECISION_EXECUTED').length,1);report.concurrentRestartOneCycleHistoryReceiptAndStart=true;
+  const source=createStagingLegacyOfferSource({db:x.a.db,now:()=>x.f.time}),sent=[];const runner=createStagingLegacyWaveExecutor({db:x.a.db,now:()=>x.f.time,selectDrivers:async()=>['driver1','driver2'],prepareOffer:source.prepare,message:source.message,sendOffer:async(id,message)=>sent.push({id,message})});let calls=0;
+  const worker=createStagingDispatchRestartStart({db:x.a.db,now:()=>x.f.time,mode:'REQUIRED',start:async s=>{calls++;await runner.run({orderId:s.orderId,assignmentId:s.assignmentId,owner:'waveworker',leaseSeconds:10});throw Error('simulated lost invoke ACK');}});
+  let cursor;for(let page=0;page<30;page++){const r=await worker.run('startworker',cursor);assert.equal(r.failed,0);cursor=r.nextCursor;if(!cursor)break;}assert.equal(cursor,null);assert.equal((await x.a.get('WizzDispatchJobs_staging',{orderId:'order1',SK:queue.SK})).state,'STARTED');report.boundedScanContinuationStartsPendingRow=true;
+assert.equal((await worker.process('order1',queue.restartId,'startworker')).replayed,true);assert.equal(calls,1);assert.equal(sent.length,2);assert.equal((await x.a.rows('WaveOffers_staging')).length,2);assert((await x.a.rows('WaveOffers_staging')).every(r=>r.SK.startsWith('CYCLE#')));report.pendingStartSurvivesGapAndLostInvokeAck=true;
+  assert.deepEqual(await x.a.rows('staging-Wallets'),balances);assert.equal((await x.a.rows('staging-LedgerEntries')).length,0);assert.equal((await x.a.rows('staging-Holds')).length,0);report.noWalletLedgerOrHoldMutation=true;
+  for(const kind of ['policy','hold']){const y=await scenario('race-'+kind),send=y.a.db.send;let raced=false;y.a.db.send=async c=>{if(!raced&&c.input.TransactItems?.some(o=>o.Put?.Item.kind==='DISPATCH_RESTART_START')){raced=true;if(kind==='policy'){const pk={pk:'OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS',sk:'CURRENT'},p=await y.a.get('staging-PlatformStaff',pk);await send(new TransactWriteCommand({TransactItems:[{Put:{TableName:'staging-PlatformStaff',Item:{...p,version:p.version+1}}}]}));}else await send(new TransactWriteCommand({TransactItems:[{Put:{TableName:'staging-Holds',Item:{orderId:'order1',sk:'HOLD',status:'ACTIVE'}}}]}));}return send(c);};await assert.rejects(y.execute());assert.equal((await y.a.rows('WizzDispatchJobs_staging')).filter(r=>['DISPATCH_RESTART_START','DISPATCH_CYCLE_HISTORY'].includes(r.kind)).length,0);assert.equal((await y.a.get('staging-PlatformStaff',{pk:y.f.decision().pk,sk:'DECISION'})).status,'PENDING_EXECUTION');}report.policyAndReservationRacesRollBackAllRestartWrites=true;
+  const z=await scenario('deletion'),zr=await z.execute();await z.a.seed('staging-AccountDeletion',{pk:'BUSINESS_LIFECYCLE#MERCHANT#branch1',sk:'META'});let invoked=0;const zw=createStagingDispatchRestartStart({db:z.a.db,now:()=>z.f.time,mode:'REQUIRED',start:async()=>{invoked++;}});assert.equal((await zw.process('order1',zr.restartId,'worker')).state,'SUPPRESSED_DELETION');assert.equal(invoked,0);report.deletionSuppressesPendingStart=true;
+ }finally{if(created){await low.send(new DeleteTableCommand({TableName:physical}));await waitUntilTableNotExists({client:low,maxWaitTime:60,minDelay:1,maxDelay:2},{TableName:physical});report.tableDeleted=true;}fs.writeFileSync('/private/tmp/dispatch46-restart-result.json',JSON.stringify(report,null,2)+'\n');}
+ console.log(JSON.stringify(report));
+})().catch(e=>{console.error(e.stack);process.exitCode=1;});

@@ -1,0 +1,23 @@
+{
+  "part": 92,
+  "status": "published_and_installed",
+  "rootCause": "Financial DTO omitted operational item/store display and driver parser explicitly constructed empty items and generic restaurant. Details also divided already normalized item price by 1000.",
+  "changes": [
+    "Strong canonical order read projects and fences saved item/store display in the existing atomic send guard.",
+    "Allowlisted display includes restaurant name/address/image, item name/image/quantity/unit-price with explicit IQD scale, saved notes/modifier names; excludes customer identity.",
+    "Financial digest, compensation, hold and acceptance terms unchanged.",
+    "Driver parser retains display in cached financial payload; quantities sum pieces.",
+    "Price display uses normalized IQD exactly once; missing display says unavailable rather than zero items.",
+    "Show COD collection and wallet hold before acceptance. Countdown ring derives from server-issued duration and never resets an expired offer to 90 seconds."
+  ],
+  "validation": {
+    "typescriptBuild": "passed",
+    "serverTests": 51,
+    "flutterTests": 9,
+    "liveBundleOverlaySample": "2 pieces, unit price 3500 IQD, customer identity excluded",
+    "signedIosBuild": "passed",
+    "deviceInstall": "passed",
+    "deviceLaunch": "Blocked by iOS Locked; user must unlock and open app. Installation succeeded."
+  },
+  "runtimeLimit": "Existing already-delivered offer payloads are not retroactively rewritten. New offers include display. No order or wallet data changed."
+}

@@ -1,0 +1,16 @@
+{
+  "feature": "realtimeTokenRenewal444",
+  "date": "2026-11-05",
+  "status": "CUSTOMER_RELEASE407_INSTALLED_LAUNCHED_VISIBLE_SIMULATION_DELIVERING",
+  "rootCause": "Authenticated order WebSocket reused cached ID token without asking SessionService to refresh the access/ID pair. Reopening app could replay expired identity scope.",
+  "fix": "Await existing SessionService.getToken before reading current subject and ID token. Failed refresh never falls back to an authenticated guest connection. Existing server ownership/expiry fences unchanged.",
+  "verification": {
+    "flutterTests": 6,
+    "analyzer": "No errors",
+    "iosBuild": 407,
+    "runtime": "After new build and reopening tracking, first four simulated movement events acknowledged by one current authorized customer connection."
+  },
+  "orderId": "02e63a23-d3f5-5da7-801a-c401e903ebbf",
+  "scope": "No server changes, no financial writes or saved GPS mutations",
+  "limitations": "Regression tests cover identity/model/map; actual refresh proven by renewed runtime connection and delivered events, not a new isolated refresh-service test."
+}

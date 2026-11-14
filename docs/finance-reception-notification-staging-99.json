@@ -1,0 +1,209 @@
+{
+  "part": 99,
+  "status": "STAGING_DEPLOYED_PHYSICAL_LIVE_ACTIVITY_VERIFICATION_DEFERRED",
+  "publication": {
+    "functions": [
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "codeSha256": "ZxUt0RUPXOcwYrKqitGsB47/QNCoJIMBQyJ8HrkFHe8=",
+        "state": "Active"
+      },
+      {
+        "name": "WizzUser-GetOrder-staging",
+        "codeSha256": "gjunCv9GWvzCVibV2bcwG8CJR0LdUJXoLLhbquDQMnc=",
+        "state": "Active"
+      },
+      {
+        "name": "WizzUser-GetUserOrders-staging",
+        "codeSha256": "zcQTnKKkBEKs3Pd3TI4UAgMqDbNd7p9O+wFt+RbbgGM=",
+        "state": "Active"
+      },
+      {
+        "name": "order-receiver-business-staging-status-v1-sam",
+        "codeSha256": "rGnplTLgeZsGjnsiZjhhO5nd1SEB9C3ku+nyNo6G3gI=",
+        "state": "Active"
+      },
+      {
+        "name": "order-receiver-merchant-orders-staging-v1",
+        "codeSha256": "G/vbRFoZ+wZzw5eCGECZG0S3BGejocjDPNAuij4F53Y=",
+        "state": "Active"
+      },
+      {
+        "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+        "codeSha256": "jO2BYE6VlfMAsvK6tw192KUtmzzlBR0zsCxcuQjjrYI=",
+        "state": "Active"
+      },
+      {
+        "name": "staging-account-deletion-financial-expiry",
+        "codeSha256": "Fo5T2pdaICnYjuYQyxOPRhai3g8yHxNeJjeGO/CuO8g=",
+        "state": "Active"
+      },
+      {
+        "name": "staging-account-deletion-worker",
+        "codeSha256": "YY6EAmw2v7Rc1btEyAgO/035ZTMdgn3d9X1PSXS3KYU=",
+        "state": "Active"
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "codeSha256": "t6IygAJq4HYpvXsyhFN+YDYIZ+4r+vs41SsgZCavXfs=",
+        "state": "Active"
+      },
+      {
+        "name": "staging-merchant-response-99",
+        "codeSha256": "DLSxSxT2gdZ3DBdvnyAhQxmBLNazhXHbaJku+jVZBXM=",
+        "state": "Active"
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "Mv9/dXIDrxqzlMnC24tYNuhsOAutLsZkfEkirUxNFLY=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-liveActivityPushEnd",
+        "codeSha256": "ubq193oFGn/kQ5Q7hmfGW+pYMV+DoW3VsYXFt4IL6CY=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-liveActivityPushUpdate",
+        "codeSha256": "dxPW3NDEvDKGlasw9ff4zjtMw9eFerjzZYAskzo7plg=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-liveActivityRegister",
+        "codeSha256": "eRgRow31xNP7x0At0uKcY9hZvl4ZfIiNao0UgaZ02Ko=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "codeSha256": "L1NmTh8ZwN3T4lsFH2eppvEWkaMkURZevqtfeCt+dO4=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+        "codeSha256": "b6L7ZVCUNLWovkgg1WbhiXWd+J6zVjteIMCYbuK+o9U=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "codeSha256": "d8LpPwvHObHWppe4ggLxBBnipu/CaXLqD4qDjAKJfao=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSoundSettings",
+        "codeSha256": "Np1GRGngdpRFEhZcoiAR3O3e5Y6f3q69bu66SV9/zXI=",
+        "state": "Active"
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushTokensRegister",
+        "codeSha256": "Np1GRGngdpRFEhZcoiAR3O3e5Y6f3q69bu66SV9/zXI=",
+        "state": "Active"
+      }
+    ]
+  },
+  "rolloutAgreement": {
+    "functions": 15,
+    "scopeDigest": "90b1401aa33eedf210b2ca7027e015d27ccdd5cbc1663d12671816726cf88e17",
+    "scopeAgreement": true,
+    "activationAuthorized": false
+  },
+  "existingScopeDigestPreserved": true,
+  "newFinancialAdmission": false,
+  "platformUI": {
+    "staffApi": true,
+    "jobId": "99",
+    "baseJobId": "98",
+    "url": "https://staging.d2vmebm1e1n95m.amplifyapp.com/pages/notification-sounds.html",
+    "status": "SUCCEED",
+    "hostedFilesMatched": true
+  },
+  "workerVerification": {
+    "staging-merchant-response-99": {
+      "state": "Active",
+      "lastUpdateStatus": "Successful"
+    },
+    "wizzcentral-notifications-staging-pushSoundSettings": {
+      "state": "Active",
+      "lastUpdateStatus": "Successful"
+    },
+    "streamState": "Enabled",
+    "scheduleState": "ENABLED",
+    "/push/sounds": 401,
+    "/live-activity/register": 403,
+    "httpSoundAnonymous": 401,
+    "workerErrors": [],
+    "workerScheduledInvocations": 1
+  },
+  "stagingWorkerTest": {
+    "testRunId": "reception99-3470145851f5",
+    "financialWrites": false,
+    "statuses": {
+      "auto": "confirmed",
+      "expire": "expired"
+    },
+    "pauseResumed": true,
+    "preparationIncludedInEta": true,
+    "passed": true,
+    "cleanup": [
+      {
+        "table": "staging-WalletLifecycle",
+        "removed": true
+      },
+      {
+        "table": "WhizzMerchants_Businesses",
+        "removed": true
+      },
+      {
+        "table": "WizzOrders",
+        "removed": true
+      },
+      {
+        "table": "staging-WalletLifecycle",
+        "removed": true
+      },
+      {
+        "table": "WhizzMerchants_Businesses",
+        "removed": true
+      },
+      {
+        "table": "WizzOrders",
+        "removed": true
+      },
+      {
+        "table": "staging-WalletLifecycle",
+        "removed": true
+      },
+      {
+        "table": "WhizzMerchants_Businesses",
+        "removed": true
+      }
+    ]
+  },
+  "tests": {
+    "assignedEtaIncludingOldContextAndRace": 16,
+    "retention": 25,
+    "soundPolicyAndSilentPayload": 2,
+    "scopeAgreement": 3,
+    "merchantPolicyAndConfiguration": 7,
+    "merchantResponseAndPause": 10,
+    "merchantWidgets": 7,
+    "customerArrivalWidgets": 3,
+    "browser": "PASS: previews, selection, minutes to seconds, stale write and responsive layout"
+  },
+  "devices": {
+    "merchant": "Signed build and in-place install succeeded on connected iPhone",
+    "driver": "Signed build and in-place install succeeded on connected iPhone",
+    "customerPhysicalLiveActivity": "Deferred: team account unavailable and extension development profile missing. User approved scoped automatic provisioning; attempt failed on Apple account authentication. No colleague credentials requested.",
+    "customerSimulator": "Enabled build installed in place and launched on iPhone 16 Pro simulator; process remains active. Existing pricing/quote flags retained; completed checkout pin removed."
+  },
+  "remaining": [
+    "Physical iPhone background Live Activity verification after Apple team provisioning access is available. Colleague account currently unavailable; user is not asked to share or access its password or verification code."
+  ],
+  "soundCatalog": [
+    "merchant_bell",
+    "driver_offer",
+    "online_chime",
+    "soft_chime",
+    "silent"
+  ],
+  "posIntegration": "DEFERRED_AS_REQUESTED"
+}

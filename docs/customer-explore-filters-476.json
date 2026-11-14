@@ -1,0 +1,40 @@
+{
+  "phase": 476,
+  "date": "2026-11-09",
+  "scope": "Customer Explore filters and shared home configuration",
+  "implemented": [
+    "Pass current account/destination scoped published HomeLayout from home to Explore",
+    "Use published HomeFilters and HomeNavigation for filter labels, thresholds, activity and cuisine/brand matching",
+    "Use fresh server isAvailableNow with availabilityCheckedAt for open filter, including working-hours decision",
+    "Require actual review count for rating filter",
+    "Prepare fee/ETA/menu-price facts on demand without adding periodic requests; preserve visible results until filter preparation completes",
+    "Compose search, activity, topic and other filters; toggle to clear and reset all",
+    "Nearest sorting uses distance to selected delivery point, with stable ID tie-break and unavailable coordinates last",
+    "Fence asynchronous results on destination change/dispose; share result list between cards and map markers"
+  ],
+  "validation": {
+    "testsPassed": 22,
+    "suites": [
+      "exploration_453_test.dart",
+      "exploration_filters_476_test.dart",
+      "home_filters_377_test.dart",
+      "home_navigation_376_test.dart",
+      "discovery_filters_422_test.dart"
+    ],
+    "analyzer": "No errors or warnings in touched screens/tests; existing style infos remain"
+  },
+  "pendingHumanChecks": [
+    "Open Explore on a real device and compare logo pins with list for each configured filter",
+    "Verify open and closed examples against Baghdad working hours",
+    "Verify price tiers with a merchant having sufficient published main-item samples",
+    "Change destination/account during filter preparation and confirm old results do not apply"
+  ],
+  "limits": [
+    "Explore operates on the same region-authorized merchant catalog currently loaded by home",
+    "Nearest ordering is geographic distance to the delivery point, not driving-route distance"
+  ],
+  "build": {
+    "iosSimulator": 428,
+    "status": "built-installed-launched"
+  }
+}

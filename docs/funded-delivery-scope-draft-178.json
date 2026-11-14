@@ -1,0 +1,11 @@
+{
+  "preparedOnly": true,
+  "hostsAgree": 15,
+  "historicalScopesPreserved": true,
+  "previousDeliveredScopeDraining": true,
+  "newOrderAbsent": true,
+  "scopeCount": 4,
+  "maxEnvironmentBytes": 3832,
+  "overLimitFunctions": [],
+  "activated": false
+}

@@ -1,0 +1,21 @@
+{
+  "batch": 560,
+  "status": "IMPLEMENTED_LOCAL_TESTED_NOT_DEPLOYED",
+  "scope": "Read-only strongly consistent order and paginated order hold assessment; reports unpaid/invalid merchant liabilities, pending compensation, open/correction cases, documented holds and incomplete evidence. Produces exact row conditions but grants no closure authority.",
+  "tests": {
+    "accountDeletionPassed": 375,
+    "newTests": 16
+  },
+  "remainingBlockers": [
+    "Verify settlement journal and associated monetary evidence, including merchant payout journal when payable is paid",
+    "Add shared case lifecycle transaction fence: Query alone cannot prevent a newly opened case",
+    "Integrate only after complete proof and transaction size validation; usage lifecycle remains separate"
+  ],
+  "effects": {
+    "writes": 0,
+    "deletes": 0,
+    "balanceChanges": 0,
+    "runtimeIntegrated": false
+  },
+  "next": "Implement journal verification and a shared case lifecycle fence before enabling source compaction."
+}

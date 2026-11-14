@@ -1,0 +1,33 @@
+{
+  "part": 82,
+  "date": "2026-10-17",
+  "publication": {
+    "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+    "changedFile": "commercial_agreements.js",
+    "beforeSha256": "Dhzkc3T3Q8SQQsmG8X4zQ8ytNEesE9N2Nir/AKhOI88=",
+    "afterSha256": "NnZX5ZO0qkQgkF8ruvL8dt9GkCSQ2gtSeAekgjFecMg=",
+    "otherFilesPreserved": true,
+    "configurationPreserved": true,
+    "anonymousRejected": true,
+    "campaignsOrDraftsChanged": false,
+    "ownerConsentSubmitted": false,
+    "phoneBuildChanged": false
+  },
+  "diagnosis": {
+    "campaignLabel": "حملة تجريبية",
+    "sharingDraftVersion": 1,
+    "pinnedCampaignVersion": 3,
+    "currentCampaignVersion": 4,
+    "ownerConsentFound": false
+  },
+  "fix": "Map campaign version/date conflicts to existing FUNDING_TERMS_CHANGED client message, preserving rejection and 409 status",
+  "checks": {
+    "proxyUnitTestsPassed": 5,
+    "bundledProxyConflictMappingPassed": true,
+    "anonymousRuntimeRejected": true
+  },
+  "noCampaignOrDraftRebase": true,
+  "noConsentSubmitted": true,
+  "financialWritersUnchanged": true,
+  "nextHumanStep": "Review current campaign, save renewed sharing draft in central platform, then actual owner accepts new terms"
+}

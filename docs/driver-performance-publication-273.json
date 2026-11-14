@@ -1,0 +1,34 @@
+{
+  "status": "PUBLISHED_STAGING_INSTALLED_MANUAL_ACCEPTANCE_DEFERRED",
+  "scope": "Original timing per assignment, first server observation, own performance detail and thirty-day acceptance activity",
+  "functions": [
+    {
+      "function": "staging-driver-financial-accept",
+      "hash": "jXVI7KaMKeI+GMdTL1twyqmBDbhmI7SgqRC6Sv89KQQ=",
+      "revision": "defd1282-72d1-4b60-87c6-d87464239391",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "DriversApi-staging",
+      "hash": "PnEYJQVLtKzTdffA6hFOb9R7BLl9HebY1ekDbj6lqJ4=",
+      "revision": "7574cc0a-bf88-4c78-aed6-11591b9290c5",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    }
+  ],
+  "newPermissions": false,
+  "financialCalculationChanged": false,
+  "businessWritesByAgent": 0,
+  "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "completedAtUTC": "2026-10-25T04:19:09.109193+00:00",
+  "native": {
+    "build": 273,
+    "mode": "Release",
+    "installed": true,
+    "launched": true,
+    "device": "B8850CE6-BCC2-551D-B930-3E108456B23F",
+    "uninstall": false
+  },
+  "unauthenticatedRouteCheck": "GET rules=3 returned401"
+}

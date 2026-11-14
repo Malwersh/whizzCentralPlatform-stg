@@ -105,7 +105,7 @@ async function loadDashboardStats() {
         const element = document.getElementById(id);
         if (element) {
             element.textContent = value === null ? '—' : value.toLocaleString();
-            element.title = value === null ? 'Data unavailable or not yet configured' : '';
+            element.title = value === null ? "البيانات غير متاحة أو لم تُهيّأ بعد." : '';
         }
     }
     showDashboardDataSourceIndicator(results.some(r => r.status === 'rejected') ? 'failed' : 'real');
@@ -232,7 +232,7 @@ function updateDashboardUI(stats) {
     // Update revenue count
     const revenueEl = document.getElementById('revenueCount');
     if (revenueEl) {
-        revenueEl.textContent = `$${stats.revenueCount.toLocaleString('en-US', { 
+        revenueEl.textContent = `$${stats.revenueCount.toLocaleString("ar-IQ", {
             minimumFractionDigits: 2, 
             maximumFractionDigits: 2 
         })}`;
@@ -272,22 +272,22 @@ function showDashboardDataSourceIndicator(sourceType) {
         case 'real':
             indicator.classList.add('real');
             icon.className = 'indicator-icon fas fa-check-circle';
-            text.textContent = 'Live Data';
-            details.textContent = 'Displaying real-time data from AWS DynamoDB';
+            text.textContent = "بيانات فعلية";
+            details.textContent = "عرض البيانات الفعلية والمحدّثة من النظام.";
             break;
             
         case 'demo':
             indicator.classList.add('demo');
             icon.className = 'indicator-icon fas fa-exclamation-triangle';
-            text.textContent = 'Demo Data';
+            text.textContent = "بيانات تجريبية";
             details.textContent = 'AWS credentials unavailable. Showing realistic demo data including 3 customers.';
             break;
             
         case 'failed':
             indicator.classList.add('failed');
             icon.className = 'indicator-icon fas fa-times-circle';
-            text.textContent = 'Data Unavailable';
-            details.textContent = 'Some data could not be loaded. Unavailable values are shown as —; retry or sign in again.';
+            text.textContent = "البيانات غير متاحة";
+            details.textContent = "تعذّر تحميل بعض البيانات. تظهر القيم غير المتاحة بالرمز —. أعد المحاولة أو سجّل الدخول مجددًا.";
             break;
             
         default:
@@ -382,7 +382,7 @@ function updateChartsOnResize() {
 // Update time display
 function updateTime() {
     const now = new Date();
-    const timeString = now.toLocaleTimeString('en-US', {
+    const timeString = now.toLocaleTimeString("ar-IQ", {
         hour12: true,
         hour: 'numeric',
         minute: '2-digit'

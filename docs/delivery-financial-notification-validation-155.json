@@ -1,0 +1,59 @@
+{
+  "part": 155,
+  "localOnly": true,
+  "deployed": false,
+  "typescriptBuild": "PASS",
+  "backendTargetedTestsPassed": 40,
+  "flutterTestsPassed": 4,
+  "bundleManifest": {
+    "part": 155,
+    "localOnly": true,
+    "deployed": false,
+    "bundles": [
+      {
+        "file": "financial-offer-notification-runtime.js",
+        "sha256": "740b592f9983477f0dcc75f2822c965bb934a56d7bf4085d392b0360b8de4f00",
+        "exportsVerified": [
+          "createStagingFinancialPushHandler"
+        ]
+      },
+      {
+        "file": "dispatch-cycle-runtime.js",
+        "sha256": "ece52b610797e4b08cfc4efb63f65c344b56dfbcac10fe4dbe29cf1d239f4255",
+        "exportsVerified": [
+          "runHostedFinancialWave",
+          "runHostedFinancialTick"
+        ]
+      },
+      {
+        "file": "financial-runtime.js",
+        "sha256": "7601ac711153a36216bd1764c3555038192211ebf497d1feee13abe5e34e57ad",
+        "exportsVerified": [
+          "financialAcceptanceHandler",
+          "readFinancialOffer"
+        ]
+      }
+    ]
+  },
+  "flutterAnalysis": {
+    "errors": 0,
+    "nonErrorIssuesReported": 319,
+    "note": "Targeted analysis includes existing large home/push files; lint findings remain, not a clean lint claim."
+  },
+  "implemented": [
+    "Shared original offer proof for sender, receiver and authenticated hydration",
+    "Guarded financial notification receiver with exact stored acknowledgement digest, driver lifecycle and rollout scope",
+    "Existing token pagination, strong token hydration, provider sounds and per-group final authorization reused",
+    "Reference-only financial push with no prices or customer data",
+    "Fixed financial service read_offer action and authenticated driver API route",
+    "Flutter foreground/background/tap reference storage and authenticated full offer hydration",
+    "Session/account/expiry/digest response validation and retry reference retention",
+    "Hosted financial runner bound to durable dual-channel sender and existing socket/push transports"
+  ],
+  "remaining": [
+    "Read-only actual role/API routing and exact deployment package review",
+    "Coordinated server and driver build publication",
+    "Nonexpired explicitly scoped admission and real-device end-to-end verification",
+    "Post-delivery original-share refund/partial-return implementation"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "part": 252,
+  "scope": "Complete active administrative custodian selection",
+  "cause": [
+    "Only first scanned staff page was loaded; matching employees on later pages were omitted until manual pagination",
+    "Assignment list incorrectly required finance.request, hiding active administrative employees with other roles"
+  ],
+  "change": [
+    "Automatically collect all staff pages, including empty filtered pages, deduplicate by employeeId and sort displayed names",
+    "Include active canonical EMPLOYEE profile rows with valid version/identity, exclude aliases, suspended and deleted profiles",
+    "Validate custody eligibility independently of finance execution authority on creation, opening, handover and later posting",
+    "Keep verified sessions, finance request/approve permissions, cap, custody controls and independent review unchanged"
+  ],
+  "liveReadOnlyVerification": {
+    "activeAdministrativeEmployees": 5,
+    "staffScanPages": 3,
+    "writes": 0
+  },
+  "tests": {
+    "wallet": 1264,
+    "focused": 27,
+    "bundledRuntime": 27,
+    "browser": "PASS, empty first page and 3-page automatic collection plus complete cash workflow"
+  },
+  "iamChanged": false,
+  "businessWrites": false,
+  "currentPayout": "Existing 6250 PROCESSING; not executed by agent",
+  "references": [
+    "custodians-access-252.json",
+    "custodians-publication-252.json"
+  ]
+}

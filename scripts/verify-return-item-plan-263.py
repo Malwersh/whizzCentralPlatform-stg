@@ -1,0 +1,14 @@
+"""Read-only deployment and closed-case verification for custody-plan metadata."""
+import sys,pathlib,json,urllib.request,zipfile,io,datetime
+sys.path.insert(0,'/private/tmp/full-cash-208');from aws_session import session
+r=pathlib.Path(__file__).resolve().parents[1];p=pathlib.Path('/private/tmp/return-item-plan-263');s=session();l=s.client('lambda');pub=json.loads((r/'docs/return-item-plan-publication-263.json').read_text());assert pub['status']=='PUBLISHED';checked=[]
+for f in pub['functions']:
+ v=l.get_function(FunctionName=f['function']);assert v['Configuration']['CodeSha256']==f['deployedCodeSha256'],f['function'];live=zipfile.ZipFile(io.BytesIO(urllib.request.urlopen(v['Code']['Location'],timeout=90).read()));candidate=zipfile.ZipFile(p/(f['label']+'-candidate.zip'));base=zipfile.ZipFile(p/(f['label']+'-base.zip'))
+ assert live.namelist()==candidate.namelist()
+ for name in live.namelist():assert live.read(name)==candidate.read(name),(f['function'],name)
+ for name in base.namelist():
+  if name not in f['changedFiles']:assert live.read(name)==base.read(name),(f['function'],name)
+ checked.append({'function':f['function'],'codeSha256':v['Configuration']['CodeSha256'],'allDeployedBytesVerified':True,'unrelatedEntriesPreserved':True})
+for name in pub['hosting']['changedFiles']:assert urllib.request.urlopen('https://staging.d2vmebm1e1n95m.amplifyapp.com/'+name+'?verify=263',timeout=30).read()==(r/'frontend'/name).read_bytes()
+d=s.resource('dynamodb');oid='bb728bfe-c2c4-5c95-8492-26ce81ee1ed1';row=d.Table('staging-Holds').get_item(Key={'orderId':oid,'sk':'RETURN#1'},ConsistentRead=True)['Item'];assert row['version']==14 and row['exceptionResolution']['status']=='RESOLVED'and not row.get('itemManifest')and not row.get('itemReceipt')and not row.get('itemCustodyPlan');payable=d.Table('staging-Holds').get_item(Key={'orderId':oid,'sk':'MERCHANT_PAYABLE'},ConsistentRead=True)['Item'];hold=d.Table('staging-Holds').get_item(Key={'orderId':oid,'sk':'HOLD'},ConsistentRead=True)['Item'];assert payable['status']=='PAID'and payable['amount']==6250 and hold['status']=='RELEASED'
+record={'part':263,'status':'PASS','verifiedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'scope':'staging','services':checked,'hostingJobId':pub['hosting']['jobId'],'historicalCase':{'number':'ORD1792545370610','version':14,'status':'RESOLVED','oldCaseNotBackfilled':True,'compensationStatus':'PAID','compensationIqd':6250,'guaranteeStatus':'RELEASED'},'realNewOrderReceiptOrCustodyPlanCreatedByAgent':False,'humanNewPlanAcceptance':'PENDING_NEW_PARTIAL_RETURN_CASE','employeeFeatureHumanTest':'DEFERRED_BY_USER','physicalExecutionImplemented':False,'iamChanged':False};(r/'docs/return-item-plan-verification-263.json').write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n');print('PASS deployed bytes and hosting verified; closed case remains 14 RESOLVED, payout PAID and guarantee RELEASED.')

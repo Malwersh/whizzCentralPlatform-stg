@@ -1,0 +1,3 @@
+import sys,os,subprocess,pathlib
+sys.path.insert(0,'/private/tmp/full-cash-208');from aws_session import session
+s=session();cfg=s.client('lambda').get_function_configuration(FunctionName='staging-wizz-staff-service');c=s.get_credentials().get_frozen_credentials();env=os.environ.copy();env.update(cfg.get('Environment',{}).get('Variables',{}));env.update(AWS_ACCESS_KEY_ID=c.access_key,AWS_SECRET_ACCESS_KEY=c.secret_key,AWS_SESSION_TOKEN=c.token or '',AWS_REGION='us-east-1');subprocess.run(['node','scripts/verify-custodians-252.cjs'],cwd=pathlib.Path(__file__).resolve().parents[1],env=env,check=True)

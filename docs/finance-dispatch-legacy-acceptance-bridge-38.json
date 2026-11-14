@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_DURABLE_LEGACY_ACCEPTANCE_BRIDGE_VERIFIED_ISOLATED",
+  "published": false,
+  "publicationReady": false,
+  "liveFlagsChanged": false,
+  "livePolicyChanged": false,
+  "humanDataChanged": false,
+  "financialActivation": "OFF_UNCHANGED",
+  "scope": [
+    "Existing HoldService reservation and existing Legacy assignment writer, no new wallet writer",
+    "Durable server-derived attempt identity with reservation tag and strong proof reads",
+    "ASSIGNED attempt and owned receipt in the assignment winner transaction",
+    "Unknown responses stay pending; expired or conflicting attempts require review with no automatic release",
+    "Driver API acceptance token and rejection token forwarding; default old-wrapper block remains",
+    "Offline driver bridge and coordinator bundle manifests remain OFF"
+  ],
+  "tests": {
+    "typescriptBuild": true,
+    "walletPassed": 556,
+    "driverBackendPassed": 61,
+    "accountDeletionPassed": 213,
+    "newWalletTests": 13,
+    "newDriverTests": 2,
+    "generatedPolicyCheck": true,
+    "legacyPolicyCheck": true,
+    "customerQuoteRuntimeCheck": true,
+    "offlineArtifactsBuilt": true,
+    "fourRepositoryWhitespaceChecks": true
+  },
+  "isolatedDynamoDB": {
+    "scope": "REAL_DYNAMODB_ISOLATED_LEGACY_ACCEPTANCE_BRIDGE",
+    "applicationTablesAccessed": false,
+    "published": false,
+    "reservationService": "SYNTHETIC_ADAPTER_NOT_LIVE_WALLET_API",
+    "identity": "SYNTHETIC",
+    "humanFundsChanged": false,
+    "reservationLostReplyRecoveredWithoutSecondReservation": true,
+    "assignmentAndReceiptAtomicAfterLostReply": true,
+    "unknownReservationRetriesSameAttempt": true,
+    "falseEnvelopeRejectedAndExpiredReservationPreservedForReview": true,
+    "tableDeleted": true
+  },
+  "bundleManifests": {
+    "driver": {
+      "schemaVersion": 1,
+      "mode": "OFF",
+      "publicationReady": false,
+      "destination": "STAGING_DRIVER_API",
+      "file": "pinned-legacy-runtime.js",
+      "sha256": "a73438ec191ef0763c79eee5982d02a2f72ccbf330f420093bd58b1ff092f4f5",
+      "requiredAssignmentRuntime": "dispatch-cycle-runtime.js with atomic DISPATCH_ACCEPTANCE marker",
+      "requiredTarget": "arn:aws:lambda:us-east-1:699561669180:function:WaveSystem_HandleDriverAccept",
+      "blockers": [
+        "Coordinated driver API and assignment Lambda bundles, live IAM and table verification",
+        "Reservation service identity/metadata and lost-response integration test",
+        "Pending/review UI, response outbox delivery and retention",
+        "Authoritative legacy units and message preparation; central policy rollout"
+      ]
+    },
+    "coordinator": {
+      "schemaVersion": 1,
+      "mode": "OFF",
+      "executionReady": false,
+      "financialExecutorImplemented": true,
+      "creatorAdapterImplemented": true,
+      "candidateProviderImplemented": true,
+      "legacyExecutorImplemented": true,
+      "legacyResponsesImplemented": true,
+      "legacyAcceptanceBridgeImplemented": true,
+      "publicationReady": false,
+      "sha256": "10322acf21f8c88b5661be61979b6fe4cab0d297ae2edc7afc0d536e9d2180b1",
+      "requiredLocalFiles": {
+        "WaveSystem_StartWave": [
+          "driver-selection.js",
+          "legacy-offer-contract.js"
+        ]
+      },
+      "legacyContractSha256": "5f4a6156196e0057f721db9fb7579da6e99e8f1b48666bbe9e44e27eb40536e6",
+      "selectionModuleSha256": "5ec27d40d5e9efd6b787d31b4bfbdd732d7b1c0735df4340e77b9289196469e2",
+      "destinations": [
+        "WaveSystem_CreateDispatchJob",
+        "WaveSystem_StartWave",
+        "WaveSystem_HandleWaveTimeout",
+        "WaveSystem_HandleDriverAccept",
+        "WaveSystem_HandleDriverReject"
+      ],
+      "blockers": [
+        "Legacy source price preparation, reservation bridge integration verification and coordinated live entry-point activation",
+        "Response outbox integration, retention and financial deployment verification",
+        "Coordinated IAM and live-package verification",
+        "Central wave editor, recovery and full behavior compatibility"
+      ]
+    }
+  },
+  "limitations": [
+    "Reservation and assignment are two stages, not one atomic hold+assignment transaction",
+    "Actual HoldService invocation, service authentication, Cognito and Lambda/Gateway/IAM remain untested for this bridge",
+    "Synthetic reservation dependency writes only to an isolated disposable table; no live wallet or ledger API called",
+    "Review state is durable evidence, not a completed operational review/release workflow",
+    "Response outbox and acceptance attempt retention/deletion, pending/review UI and notifications remain publication blockers",
+    "Legacy source units/message preparation and larger ALL groups remain incomplete",
+    "First assignment only; reassignment requires its existing financial attempt contract",
+    "Driver fixed test location unchanged; no actual GPS or phone/push tests",
+    "v1.6 events, Score and Tiers remain incomplete and inactive"
+  ],
+  "nextIntegratedRelease": "Complete shared dispatch source/entrypoints and response outbox/retention, operational review UI, route/commercial prerequisites, then coordinated IAM/package/device verification before activation",
+  "remainingPlanPackages": 14,
+  "roadmap": "finance-pricing-settlements-returns-unified-plan.md section 56",
+  "sourceSha256": {
+    "backend/wallet-service/src/dispatchLegacyBridge.ts": "e92e7beb4f1b4340b4078eebeef5b31e5fe5b858cdcec9c67b537487c0a9b148",
+    "backend/wallet-service/src/dispatchLegacyBridgeRuntime.ts": "c8e4e63270e51864174f915079426438eb2c164f0dcb6c5cae11f00328b8126e",
+    "backend/wallet-service/src/dispatchLegacy.ts": "73df840341a424214a015ff93a0918062b61120e2589da2281fd7bfdf2deb683",
+    "backend/wallet-service/src/dispatchCoordinatorRuntime.ts": "d2e93d5f10119322e1e0b0d1ea61f816883de4537bfaa25cef3e126cd6e493a7",
+    "backend/wallet-service/test/dispatch-legacy-bridge.test.cjs": "e3c9ae28798eb190816f3f768f7ceb527640dd40637fdcbe5de26dced4035eaa",
+    "lambda/WaveSystem_HandleDriverAccept/index.js": "3a8415e71feb7f18ae2c2ed67a3d42687c07f8c1bff238f783bb8b5f4cc83723",
+    "scripts/build-pinned-legacy-runtime.cjs": "ae4c7136ec0a122bbde4fffec213f519c4330944f6fa7ef09badf0fc073223ce",
+    "scripts/build-dispatch-coordinator-runtime.cjs": "ca8de9457b9452230ae3c12b76fb11d27aed3d419e8f1f85f67053972032fd7b",
+    "scripts/test-dispatch-legacy-bridge-staging.cjs": "401baf42952d8a86e1e7e392868f48e9f48c60182b35f52687333fcf4b38bbb2",
+    "scripts/test-dispatch-cycle-staging.cjs": "d4900e1982894008ac5be62b1cdb23946f348f01a610ec1013871e96303eeaa3",
+    "../whizzDrivers-stg/backend/lambda_driver_api_v2.js": "4f5a7f030524b384bbc130b695adc949373b83eb1e0fe9a144ab2ca4c501fe6e",
+    "../whizzDrivers-stg/backend/test/history-approval.test.js": "2e7015864c1cddebf2224604c314f181cf17d196100cb7c99a53625589108fbf"
+  }
+}

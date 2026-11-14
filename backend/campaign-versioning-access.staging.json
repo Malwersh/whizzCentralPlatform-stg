@@ -1,0 +1,163 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Campaign-version writers on existing Staging roles and prevent browser bypass; no finance gates changed.",
+  "Parameters": {
+    "BrowserWritesClosed": {
+      "Type": "String",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Default": "true"
+    }
+  },
+  "Conditions": {
+    "StagingOnly": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "699561669180"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        }
+      ]
+    },
+    "BrowserCutover": {
+      "Fn::And": [
+        {
+          "Condition": "StagingOnly"
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "BrowserWritesClosed"
+            },
+            "true"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "StaffCampaignWriter": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Condition": "StagingOnly",
+      "Properties": {
+        "ManagedPolicyName": "StaffCampaignWriter62",
+        "Roles": [
+          "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx"
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Regions"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:ConditionCheckItem"
+              ],
+              "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+              "Condition": {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    "ACCOUNT_LIFECYCLE#MERCHANT#*",
+                    "BUSINESS_LIFECYCLE#MERCHANT#*"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "BrowserCampaignWrites": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Condition": "BrowserCutover",
+      "Properties": {
+        "ManagedPolicyName": "BrowserCampaignWrites62",
+        "Roles": [
+          "whizz-centralplatform-staging-admin-data",
+          "whizz-centralplatform-staging-auth",
+          "whizz-centralplatform-staging-unauth"
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Deny",
+              "Action": [
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PartiQLInsert",
+                "dynamodb:PartiQLUpdate",
+                "dynamodb:PartiQLDelete"
+              ],
+              "Resource": [
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+                "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "MerchantDiscountIdentity": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Condition": "StagingOnly",
+      "Properties": {
+        "ManagedPolicyName": "MerchantDiscountIdentity62",
+        "Roles": [
+          "Wizz-Merchants-staging-DiscountManagementFunctionRo-yyqcChSn9i6f"
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "cognito-idp:AdminGetUser"
+              ],
+              "Resource": "arn:aws:cognito-idp:us-east-1:699561669180:userpool/us-east-1_gtCR3ndzT"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

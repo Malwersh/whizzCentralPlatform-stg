@@ -1,0 +1,42 @@
+{
+  "status": "PUBLISHED_STAGING_RELEASE290_INSTALLED_LAUNCHED",
+  "functions": [
+    {
+      "function": "staging-driver-financial-accept",
+      "hash": "jCy9jntFdawFdPu6heDDXCp1fVSwSoBFe3OmlPWhtLM=",
+      "revision": "1bbef4f1-272a-43a2-9552-3ff8d2b7d7ab",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "staging-account-deletion-requests",
+      "hash": "gVa1f4Z9+BowcxT8xGMiUpfzDj+mRrPtVSomQ3BEmoI=",
+      "revision": "31793537-2ec8-40ba-b83d-de813fd02d2b",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "staging-account-deletion-worker",
+      "hash": "siEjcL6JyhluClm5PiDBpsBWYbH7CPwvVYaRKjm+Sw4=",
+      "revision": "58ed6b5c-b9c3-4924-a5eb-bdeaf9df0bec",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "DriversApi-staging",
+      "hash": "7I5awRbziBe+xZ2c/O4MTVGpiAPSSkyjHbr5jwaAXNs=",
+      "revision": "909ec4b0-e979-41c1-93a5-1a06d5072e64",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    }
+  ],
+  "driverApiPublished": true,
+  "driverReleaseInstalled": true,
+  "iamChanges": true,
+  "financialCalculationChanged": false,
+  "businessWritesByAgent": 0,
+  "driverReadPermission": "EXPLICIT_USER_APPROVED_APPLIED_VERIFIED",
+  "humanAcceptance": "DEFERRED_READY_NOT_PASSED",
+  "iamPolicy": "DriverQualityCaseRead290",
+  "driverReleaseBuild": 290
+}

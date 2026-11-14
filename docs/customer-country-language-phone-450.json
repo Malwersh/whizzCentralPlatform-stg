@@ -1,0 +1,86 @@
+{
+  "phase": 450,
+  "date": "2026-11-05",
+  "status": "implemented; 40 automated tests passed; Release411 installed and launched on iMohammed 2026-11-07; human acceptance pending",
+  "scope": "Customer My Account language/country and customer phone-number entry/display audit",
+  "country": {
+    "serviceCountry": "IQ",
+    "display": "العراق",
+    "regionSource": "BrowsingLocationService owner-scoped selection.regionName",
+    "change": "Existing AddressGateScreen(showBackButton:true) using actual GPS/search/active region/pin flow",
+    "noWritesOnView": true,
+    "removed": "Simulated delays, foreign-country choices, false save success and expansion promises"
+  },
+  "language": {
+    "locale": "ar_IQ",
+    "available": [
+      "ar"
+    ],
+    "removed": "English/Kurdish choices that saved a preference without translating the application",
+    "deferred": "Complete English/Kurdish localization and persistent locale switch after all relevant screens are translated"
+  },
+  "phoneContract": {
+    "source": "frontend/lib/utils/iraqi_phone.dart",
+    "entryWidget": "frontend/lib/widgets/iraqi_mobile_field.dart",
+    "storedForm": "+9647XXXXXXXXX",
+    "accepted": [
+      "07XXXXXXXXX",
+      "7XXXXXXXXX",
+      "+9647XXXXXXXXX",
+      "009647XXXXXXXXX",
+      "9647XXXXXXXXX",
+      "Arabic/Persian digits",
+      "spaces, parentheses and hyphens",
+      "optional national zero after Iraqi country prefix"
+    ],
+    "rejected": [
+      "foreign customer numbers",
+      "letters",
+      "wrong length; excess digits are not truncated"
+    ],
+    "display": "Known local Iraqi mobile values normalized; unknown/foreign/masked contacts preserved, never assigned invented Iraqi code",
+    "legacyValidation": "ValidationHelper delegates to same registration contract instead of obsolete operator-prefix allowlists"
+  },
+  "auditedActivePaths": [
+    "Registration/login OTP",
+    "VerifiedPhoneScreen send and PhoneLinkService boundary",
+    "Checkout recipient field, validation and continue-to-payment canonicalization",
+    "My Account phone display",
+    "CheckoutDeliverySummary phone display",
+    "Saved address phone display",
+    "Wallet transfer recipient entry/lookup; existing feature gate unchanged",
+    "Tracking customer phone and tel link",
+    "Wallet topup customer phone: removed fabricated masked default"
+  ],
+  "compatibilityPaths": [
+    "IraqiPhoneInput and PhoneInputField delegate to shared widget",
+    "IraqiPhoneDisplay no duplicate +964",
+    "Legacy AddAddressBottomSheet validates optional phone and canonicalizes on save",
+    "Legacy PaymentScreen phone builder delegates; did not enable card payments",
+    "Unreferenced OrderConfirmationScreen uses shared field and no hardcoded sample phone"
+  ],
+  "addressFlow": "Current AddAddressScreen/CheckoutAddressEditor save region, coordinates, neighborhood and landmark; recipient phone belongs to checkout contact step. Did not add a redundant address phone requirement.",
+  "automated": {
+    "flutterTests": 40,
+    "log": "/private/tmp/account450/tests-regression.log",
+    "newFocusedTests": 5,
+    "analyzer": "No errors/warnings in expanded touched-file analysis; new shared components analysis clean",
+    "negativeAuthOrFinancialActions": "None; no OTP messages, orders, payments, wallet writes or profile migrations sent"
+  },
+  "build": {
+    "number": 411,
+    "mode": "Release",
+    "environment": "staging using existing defines",
+    "bundle": "com.wiz.wizuserapp",
+    "artifact": "frontend/build/ios/iphoneos/Runner.app",
+    "finalBuildLog": "/private/tmp/account450/build411-final.log",
+    "install": "Installed and launched successfully on iMohammed B8850CE6-BCC2-551D-B930-3E108456B23F on 2026-11-07"
+  },
+  "humanAcceptancePending": [
+    "Verify phone field readable RTL/+964 in login, account verification and delivery step",
+    "Use real region chooser from Account > Country and region; verify home sees same selection",
+    "Verify canonical phone survives OTP and checkout end-to-end without creating a duplicate identity",
+    "Android device acceptance remains deferred in main plan"
+  ],
+  "next": "Wallet capability wording and support navigation, followed by account deletion credential/receipt isolation audit"
+}
