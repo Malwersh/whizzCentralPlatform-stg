@@ -22,6 +22,18 @@ function check(table,k,row){
  return {ConditionCheck:{TableName:table,Key:k,ConditionExpression:condition,ExpressionAttributeNames:n,ExpressionAttributeValues:v}};
 }
 const put=(row,old)=>({Put:{TableName:P,Item:row,...(old?{ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':old.version}}:{ConditionExpression:'attribute_not_exists(pk)'})}});
+async function ownershipRevision(db,branchId){
+ const Key={pk:'MERCHANT_PAYOUT#OWNERSHIP_REVISION#'+branchId,sk:'META'};
+ const previous=await get(db,P,Key);
+ if(previous&&(!Number.isSafeInteger(previous.revision)||previous.revision<1||previous.revision>=Number.MAX_SAFE_INTEGER)){
+  fail('CORRECTION_OWNERSHIP_REVISION_INVALID');
+ }
+ return {Put:{
+  TableName:P,Item:{...Key,revision:(previous?.revision??0)+1},
+  ConditionExpression:previous?'revision=:revision':'attribute_not_exists(pk)',
+  ...(previous?{ExpressionAttributeValues:{':revision':previous.revision}}:{}),
+ }};
+}
 function sealed(row){const {digest,...v}=row||{};return typeof digest==='string'&&digest===hash(v);}
 function position(row,branch,owner){
  if(!row)return {...key(branch,'POSITION'),kind:'MERCHANT_CORRECTION_POSITION',branchId:branch,ownerId:owner,creditIqd:0,debtIqd:0,creditPaidIqd:0,debtRecoveredIqd:0,version:0};
@@ -70,7 +82,7 @@ async function route(ctx,principal,method,input){
   const fresh=await access(true,true,0);if(fresh.actor!==a.actor||hash(fresh.guards)!==hash(a.guards))fail('CORRECTION_AUTHORIZATION_CHANGED');
   const result=await require('./merchant-correction-cases')({db:ctx.caseDb||db,input,branch,ownerId:a.b.ownerId,actorId:a.actor,at,hash,check,put,fail});
   const event={...eventKey,kind:'MERCHANT_CORRECTION_EVENT',ownerId:a.b.ownerId,actorId:a.actor,requestDigest:digest,receipt:result.receipt,createdAt:at};
-  await db.send(new TransactWriteCommand({TransactItems:[...fresh.guards,...result.ops,put(event),{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:'CORRECTION_CASE#'+input.requestId,logId:input.requestId,actorId:a.actor,action:input.action,branchId:branch,orderId:input.orderId,caseId:input.caseId,reason:input.reason.trim(),createdAt:at,financialPosting:false},ConditionExpression:'attribute_not_exists(sk)'}}]}));return result.receipt;
+  await db.send(new TransactWriteCommand({TransactItems:[...fresh.guards,await ownershipRevision(db,branch),...result.ops,put(event),{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:'CORRECTION_CASE#'+input.requestId,logId:input.requestId,actorId:a.actor,action:input.action,branchId:branch,orderId:input.orderId,caseId:input.caseId,reason:input.reason.trim(),createdAt:at,financialPosting:false},ConditionExpression:'attribute_not_exists(sk)'}}]}));return result.receipt;
  }
  if(input.action==='SET_CORRECTION_POLICY'){
   if(Object.keys(input).some(k=>!['action','branchId','requestId','baseVersion','recoveryMode','reason'].includes(k))||!Number.isSafeInteger(input.baseVersion)||!['OFFSET_NEXT_SETTLEMENT','MANUAL_COLLECTION'].includes(input.recoveryMode)||!text(input.reason,5,1000))fail('CORRECTION_INVALID_REQUEST',400);
@@ -78,7 +90,7 @@ async function route(ctx,principal,method,input){
   const fresh=await access(true,true,0);if(fresh.actor!==a.actor||hash(fresh.guards)!==hash(a.guards))fail('CORRECTION_AUTHORIZATION_CHANGED');
   const policy={...policyKey,kind:'MERCHANT_CORRECTION_POLICY',version:input.baseVersion+1,recoveryMode:input.recoveryMode,applyCredits:true,updatedAt:at,updatedBy:a.actor,reason:input.reason.trim()};const receipt={policy:{version:policy.version,recoveryMode:policy.recoveryMode,applyCredits:true,persisted:true}};
   const audit={datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:'CORRECTION_POLICY#'+input.requestId,logId:input.requestId,actorId:a.actor,action:input.action,createdAt:at,reason:input.reason.trim(),before:oldPolicy||null,after:policy};
-  await db.send(new TransactWriteCommand({TransactItems:[...fresh.guards,put(policy,oldPolicy),put({...eventKey,kind:'MERCHANT_CORRECTION_EVENT',ownerId:a.b.ownerId,actorId:a.actor,requestDigest:digest,receipt,createdAt:at}),{Put:{TableName:'staging-AuditLog',Item:audit,ConditionExpression:'attribute_not_exists(sk)'}}]}));return receipt;
+  await db.send(new TransactWriteCommand({TransactItems:[...fresh.guards,await ownershipRevision(db,branch),put(policy,oldPolicy),put({...eventKey,kind:'MERCHANT_CORRECTION_EVENT',ownerId:a.b.ownerId,actorId:a.actor,requestDigest:digest,receipt,createdAt:at}),{Put:{TableName:'staging-AuditLog',Item:audit,ConditionExpression:'attribute_not_exists(sk)'}}]}));return receipt;
  }
  let row,old,ops=[],approve=false,amount=0;
  async function proof(orderId){
@@ -112,7 +124,7 @@ async function route(ctx,principal,method,input){
  const receipt={correction:present(row),operationalWalletChanged:false,payoutPerformed:false};
  ops.push(put({...eventKey,kind:'MERCHANT_CORRECTION_EVENT',ownerId:a.b.ownerId,actorId:a.actor,requestDigest:digest,receipt,createdAt:at}));
  ops.push({Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:'CORRECTION#'+input.requestId,logId:input.requestId,actorId:a.actor,action:input.action,branchId:branch,correctionId:row.correctionId,amountIqd:row.amountIqd,reason:input.reason.trim(),createdAt:at},ConditionExpression:'attribute_not_exists(sk)'}});
- try{await db.send(new TransactWriteCommand({TransactItems:[...fresh.guards,...ops]}));}catch(e){const saved=await get(db,P,eventKey);if(saved?.requestDigest===digest&&saved.actorId===a.actor&&saved.ownerId===a.b.ownerId)return {...saved.receipt,replayed:true};if(e.name==='TransactionCanceledException')fail('CORRECTION_STATE_CHANGED');throw e;}
+ try{await db.send(new TransactWriteCommand({TransactItems:[...fresh.guards,await ownershipRevision(db,branch),...ops]}));}catch(e){const saved=await get(db,P,eventKey);if(saved?.requestDigest===digest&&saved.actorId===a.actor&&saved.ownerId===a.b.ownerId)return {...saved.receipt,replayed:true};if(e.name==='TransactionCanceledException')fail('CORRECTION_STATE_CHANGED');throw e;}
  return receipt;
 }
 module.exports={matches,route};

@@ -155,6 +155,12 @@ Resources:
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
                 - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzDrivers_staging
             - Effect: Allow
+              Action: dynamodb:UpdateItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
+              Condition:
+                ForAllValues:StringEquals:
+                  dynamodb:Attributes: [businessId, ownerId, cognitoUserId, orderIntakeDeletionRequestId, orderIntakeTransferExpiresAt]
+            - Effect: Allow
               Action: dynamodb:GetItem
               Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
               Condition:

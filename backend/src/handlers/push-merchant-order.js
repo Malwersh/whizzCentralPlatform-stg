@@ -77,6 +77,9 @@ function bodyForAction({ action, orderNumber, businessName, customerName, totalA
 
 exports.sendMerchantOrder = async (event) => {
   if(event?.action==='commercial_notice'&&!event.httpMethod&&!event.requestContext)return require('../utils/commercial-sharing-push').send(event,{db:dynamodb,getMessaging,tokensTable:TOKENS_TABLE});
+  if(event?.action==='ownership_invitation'&&!event.httpMethod&&!event.requestContext&&process.env.STAGE==='staging'){
+    return require('../utils/ownership-invitation-push').send(event,{db:dynamodb,getMessaging,tokensTable:TOKENS_TABLE});
+  }
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }

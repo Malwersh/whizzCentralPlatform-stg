@@ -9,8 +9,8 @@ import {
 import { DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, QueryCommand } from './db';
 
-const WEBSOCKET_CONNECTIONS_TABLE = process.env.WEBSOCKET_CONNECTIONS_TABLE || 'WizzUser_websocket_connections_staging';
-const WEBSOCKET_ENDPOINT = process.env.WEBSOCKET_ENDPOINT || 'https://igcrhwc84c.execute-api.us-east-1.amazonaws.com/staging';
+import { runtimeTargets } from './runtimeTargets';
+const {table: WEBSOCKET_CONNECTIONS_TABLE, endpoint: WEBSOCKET_ENDPOINT} = runtimeTargets();
 
 interface WebSocketConnection {
   connectionId: string;

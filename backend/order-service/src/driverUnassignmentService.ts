@@ -20,9 +20,10 @@ import {
 } from './types';
 import { getCurrentTimestamp } from './utils';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { runtimeTargets } from './runtimeTargets';
 
 const lambdaClient = new LambdaClient({ region: process.env.AWS_REGION || 'us-east-1' });
-const CREATE_DISPATCH_JOB_LAMBDA = process.env.CREATE_DISPATCH_JOB_LAMBDA || 'WaveSystem_CreateDispatchJob';
+const {dispatch: CREATE_DISPATCH_JOB_LAMBDA} = runtimeTargets();
 
 export class DriverUnassignmentService {
   private walletClient: WalletServiceClient;

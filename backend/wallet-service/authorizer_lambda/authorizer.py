@@ -9,6 +9,9 @@ import boto3
 from jwt import PyJWKClient
 from typing import Dict, Any
 from staff_policy import access as staff_access
+from identity_config import validate_identity_config
+
+validate_identity_config(os.environ)
 
 # Cognito configuration
 DRIVER_USER_POOL_ID = os.environ['DRIVER_USER_POOL_ID']

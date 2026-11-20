@@ -57,13 +57,37 @@ async function route(ctx,actor,method,path,input={}){
  const tx=[ctx.guard(actor),{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#MERCHANT#'+draft.subjectId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}];
  let business;
  if(status==='APPROVED'){
+  tx.push(
+   {ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'SUBJECT#MERCHANT#'+draft.subjectId,sk:'ACTIVE#ACCOUNT#'+draft.subjectId},ConditionExpression:'attribute_not_exists(pk)'}},
+   {ConditionCheck:{TableName:TABLE,Key:{pk:'ORGANIZATION#'+draft.organizationId,sk:'OWNERSHIP_TRANSFER'},ConditionExpression:'attribute_not_exists(pk) OR expiresAt<=:now OR #status IN (:cancelled,:completed,:rejected)',ExpressionAttributeNames:{'#status':'status'},ExpressionAttributeValues:{':now':Date.parse(now),':cancelled':'CANCELLED',':completed':'COMPLETED',':rejected':'REJECTED'}}},
+  );
   const profile=await get(TABLE,{pk:draft.pk,sk:'PROFILE'});if(!profile||!draft.submission?.agreement?.version)throw fail('PROFILE_OR_AGREEMENT_UNAVAILABLE');
   const typePolicy=await get(ctx.table,{pk:SETTINGS,sk:'VERSION#'+draft.configVersion});
   const typeLabel=typePolicy?.values?.types?.find(t=>t.id===draft.businessTypeId);
   const businessId=ctx.newBusinessId?ctx.newBusinessId():'business_'+randomUUID();next.businessId=businessId;
   business={businessId,branchId:businessId,organizationId:draft.organizationId,brandId:draft.brandId,businessName:draft.name,name:draft.name,description:draft.description||'',...(typeLabel?{businessTypeLabelAr:typeLabel.labelAr,businessTypeLabelEn:typeLabel.labelEn}:{}),businessTypeId:draft.businessTypeId,businessType:draft.businessTypeId==='MARKET'?'grocery':draft.model==='FOOD'?'restaurant':'store',businessModel:draft.model,ownerId:draft.subjectId,cognitoUserId:draft.subjectId,ownerName:profile.name,phoneNumber:draft.contactPhone,...(profile.email?{email:profile.email}:{}),address:{fullAddress:draft.address,latitude:draft.latitude,longitude:draft.longitude,country:draft.regionNames?.[0]||'',city:draft.regionNames?.[1]||'',district:draft.regionNames?.[2]||'',region:draft.regionNames?.[3]||''},regionId:draft.regionId,regionPath:draft.regionPath,openingHours:draft.openingHours,status:'approved',reviewStatus:'APPROVED',isActive:false,operatingStatus:'OFFLINE',onboardingDraftId:draft.draftId,onboardingSchemaVersion:2,onboardingComplete:false,onboardingConfigVersion:draft.configVersion,registrationCertificateAssetId:draft.registrationCertificateAssetId||null,businessPhotoAssetId:draft.businessPhotoAssetId||null,createdAt:now,updatedAt:now,version:1};
   tx.push({Put:{TableName:BUSINESSES,Item:business,ConditionExpression:'attribute_not_exists(businessId)'}});
-  for(const [kind,id,name] of [['ORGANIZATION',draft.organizationId,draft.name],['BRAND',draft.brandId,draft.name]]){const key={pk:draft.pk,sk:kind+'#'+id};if(!await get(TABLE,key))tx.push({Put:{TableName:TABLE,Item:{...key,subjectId:draft.subjectId,organizationId:draft.organizationId,...(kind==='BRAND'?{brandId:draft.brandId}:{}),name,version:1,createdAt:now},ConditionExpression:'attribute_not_exists(pk)'}});}
+  for(const [kind,id] of [['ORGANIZATION',draft.organizationId],['BRAND',draft.brandId]]){
+   const key={pk:draft.pk,sk:kind+'#'+id};
+   const existing=await get(TABLE,key);
+   if(!existing){
+    tx.push({Put:{TableName:TABLE,Item:{...key,subjectId:draft.subjectId,organizationId:draft.organizationId,
+     ...(kind==='BRAND'?{brandId:draft.brandId}:{}),name:draft.name,version:1,createdAt:now},
+     ConditionExpression:'attribute_not_exists(pk)'}});
+    continue;
+   }
+   if(existing.subjectId!==draft.subjectId||existing.organizationId!==draft.organizationId||
+      !Number.isSafeInteger(existing.version)||existing.version<1)throw fail('VERSION_OR_STATE_CONFLICT',409);
+   const properties={
+    TableName:TABLE,Key:key,ConditionExpression:'subjectId=:owner AND organizationId=:organization AND #v=:version',
+    ExpressionAttributeNames:{'#v':'version'},
+    ExpressionAttributeValues:{':owner':draft.subjectId,':organization':draft.organizationId,':version':existing.version},
+   };
+   if(kind==='ORGANIZATION'){
+    const {Key:_,...guard}=properties;
+    tx.push({Put:{...guard,Item:{...existing,...key,updatedAt:now,version:existing.version+1}}});
+   }else tx.push({ConditionCheck:properties});
+  }
  }
  tx.push({Put:{TableName:TABLE,Item:next,ConditionExpression:'#v=:v AND #s=:submitted',ExpressionAttributeNames:{'#v':'version','#s':'reviewStatus'},ExpressionAttributeValues:{':v':draft.version,':submitted':'SUBMITTED'}}},{Put:{TableName:TABLE,Item:{...queue,status,...review,...(business?{businessId:business.businessId}:{})},ConditionExpression:'#s=:submitted',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':submitted':'SUBMITTED'}}},ctx.audit(actor.employeeId,'MERCHANT_APPLICATION_'+status,{requestId:queue.requestId,draftVersion:draft.version},{requestId:queue.requestId,status,reason:review.reason,businessId:business?.businessId||null},randomUUID()));
  await write(tx);return {status,...(business?{businessId:business.businessId}:{})};

@@ -51,6 +51,7 @@ test('approval atomically records credit, ledger, status, retry key and daily li
  docClient.send=async command=>{
   if(command.constructor.name==='TransactWriteCommand'){tx=command.input;return {};}
   const key=command.input.Key;
+  if(key?.topupId || key?.walletId) assert.equal(command.input.ConsistentRead,true);
   if(key?.topupId)return {Item:{...request,topupId:'topup',walletId:'WALLET#DRIVER#driver-id',createdById:'driver-id',status:'PENDING'}};
   if(key?.walletId)return {Item:{walletId:key.walletId,availableBalance:0,version:1,status:'ACTIVE'}};
   return {};

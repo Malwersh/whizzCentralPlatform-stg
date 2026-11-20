@@ -5,3 +5,14 @@ test('Dynamo store refuses an unscoped/non-staging table',()=>assert.throws(()=>
 test('verified proof consumption and durable request are atomic',async()=>{const f=setup(),s=f.make({table:'staging-Deletion'});await s.createVerified(r,{challengeId:'challenge',fingerprint:'bound'});assert.equal(f.calls.length,1);const tx=f.calls[0].input.TransactItems;assert.equal(tx.length,3);assert.equal(tx[0].Update.ExpressionAttributeValues[':purpose'],'account-deletion');assert.equal(tx[0].Update.ExpressionAttributeValues[':subject'],'subject');assert.equal(tx[1].Put.Item.subjectId,'subject');assert.equal(tx[2].Put.ConditionExpression,'attribute_not_exists(pk)');});
 test('proof for another scope cannot persist a request',async()=>{const f=setup();await assert.rejects(f.make({table:'staging-Deletion'}).createVerified(r,{challengeId:'challenge',fingerprint:'different'}),/INVALID_VERIFICATION/);assert.equal(f.calls.length,0);});
 test('state changes require the previously read version',async()=>{const f=setup();await f.make({table:'staging-Deletion'}).update(r,{status:'PROCESSING'});assert.equal(f.calls[0].input.ExpressionAttributeValues[':old'],1);assert.equal(f.calls[0].input.Item.version,2);});
+
+test('verified merchant deletion persists the order pause in the same transaction',async()=>{
+ const f=setup(),store=f.make({table:'staging-Deletion',clock:()=>100});
+ await store.createVerified({...r,actorType:'MERCHANT'},{challengeId:'challenge',fingerprint:'bound'},['one','two','one']);
+ const tx=f.calls[0].input.TransactItems;
+ assert.equal(tx.length,5);
+ assert.deepEqual(Array.from(tx.slice(3),item=>item.Update.Key.businessId),['one','two']);
+ assert.equal(tx[3].Update.ExpressionAttributeValues[':request'],'id');
+ assert.match(tx[3].Update.UpdateExpression,/orderIntakeDeletionRequestId/);
+ assert.match(tx[3].Update.ConditionExpression,/ownerId=:owner/);
+});

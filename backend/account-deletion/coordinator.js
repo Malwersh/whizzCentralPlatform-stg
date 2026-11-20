@@ -17,7 +17,9 @@ function coordinator({store,adapters,settings,verifyDeletionChallenge,clock=()=>
   const proof=await verifyDeletionChallenge(actor,{...input,scope,fingerprint});
   const config=await settings(actor.type),time=clock();
   const record={requestId:input.requestId,actorType:actor.type,subjectId:actor.sub,scope,fingerprint,status:decision(issues,config),blockers:issues,policyVersion:config.retentionPolicyVersion||null,requiredSteps:adapter.requiredSteps(scope),version:1,createdAt:time,updatedAt:time};
-  return receipt(await store.createVerified(record,proof));
+  const affectedBranches=actor.type!=='MERCHANT'?[]:scope.kind==='BUSINESS'?[scope.id]:
+   scope.kind==='ACCOUNT'?(evidence.ownedBusinesses||[]).filter(Boolean):[];
+  return receipt(await store.createVerified(record,proof,affectedBranches));
  }
  async function refresh(actor,id){
   const r=await store.get(actor,id);if(!r)throw error('REQUEST_NOT_FOUND');

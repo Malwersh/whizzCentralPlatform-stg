@@ -8,7 +8,7 @@ import {
   AuthFlowType,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { createHmac } from 'crypto';
-import { ServiceTokenInfo } from './types';
+import { serviceCredentials } from './serviceCredentials';
 
 export class CognitoService {
   private client: CognitoIdentityProviderClient;
@@ -47,16 +47,7 @@ export class CognitoService {
 
     console.log('🔄 Fetching new Service Token from Cognito...');
 
-    const clientId = process.env.SERVICE_COGNITO_CLIENT_ID;
-    const clientSecret = process.env.SERVICE_COGNITO_CLIENT_SECRET;
-    const username = process.env.SERVICE_USERNAME || 'order-service-dev';
-    const password = process.env.SERVICE_PASSWORD;
-
-    if (!clientId || !password) {
-      throw new Error(
-        'Missing Cognito Service Pool credentials: SERVICE_COGNITO_CLIENT_ID or SERVICE_PASSWORD'
-      );
-    }
+    const {clientId, clientSecret, username, password} = serviceCredentials();
 
     try {
       const authParameters: Record<string, string> = {

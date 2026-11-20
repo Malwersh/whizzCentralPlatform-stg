@@ -39,7 +39,7 @@ export async function readStagingCommercialAgreement(db:Pick<DynamoDBDocumentCli
   const branch=await get('WhizzMerchants_Businesses',{businessId:branchId});
   const merchantId=validId(branch.organizationId),ownerId=validId(branch.ownerId);
   if(branch.businessId!==branchId||branch.cognitoUserId!==ownerId||branch.isActive!==true||branch.status!=='approved'||
-   branch.deletionRequestId!=null||branch.platformSuspended===true||branch.ordersBlocked===true||
+   branch.deletionRequestId!=null||branch.orderIntakeDeletionRequestId!=null||(branch.orderIntakeTransferExpiresAt!==undefined&&!(Number.isSafeInteger(branch.orderIntakeTransferExpiresAt)&&branch.orderIntakeTransferExpiresAt<=Date.now()))||branch.platformSuspended===true||branch.ordersBlocked===true||
    (branch.onboardingSchemaVersion!==undefined&&(branch.onboardingComplete!==true||branch.acceptingOrders!==true)))return fail();
   const orgKey={pk:'PERSON#'+ownerId,sk:'ORGANIZATION#'+merchantId};
   const org=await get(platform,orgKey);if(org.organizationId!==merchantId||org.subjectId!==ownerId||org.deletionRequestId!=null)return fail();

@@ -1,8 +1,9 @@
+import {walletNotificationTable} from './walletBindings';
 import { TopupRequest } from './types';
 export function walletNotification(topup: TopupRequest, status: 'APPROVED' | 'REJECTED', timestamp: string) {
  const eventId = `${topup.topupId}#${status}`;
  return { Put: {
-  TableName: process.env.WALLET_NOTIFICATIONS_TABLE!,
+  TableName: walletNotificationTable()!,
   Item: { eventId, driverId:topup.driverId, topupId:topup.topupId, amount:topup.amount, type:status==='APPROVED'?'wallet_topup_approved':'wallet_topup_rejected',
    title:status==='APPROVED'?'تم شحن محفظتك':'لم يُعتمد طلب الشحن',
    body:status==='APPROVED'?`أُضيف ${topup.amount.toLocaleString('en-US')} دينار إلى محفظتك.`:'افتح طلب الشحن للاطلاع على سبب الرفض.',

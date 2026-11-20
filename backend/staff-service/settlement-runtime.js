@@ -4198,11 +4198,17 @@ function createMerchantPayoutService(options) {
   async function write(branchId, action, a, operations, amount4 = 0) {
     const after = await context2(branchId, action, amount4);
     if (!equal(authoritySnapshot(a), authoritySnapshot(after))) return fail20("PAYOUT_AUTHORIZATION_CHANGED");
-    if (operations.length + after.guards.length > 100 || Buffer.byteLength(JSON.stringify(operations)) > 25e5) return fail20("PAYOUT_LIMIT_EXCEEDED");
+    if (branchId !== "COMPANY_CASHBOOK") {
+      const revisionKey = { pk: "MERCHANT_PAYOUT#OWNERSHIP_REVISION#" + branchId, sk: "META" };
+      const prior = await get(revisionKey);
+      if (prior && (!Number.isSafeInteger(prior.revision) || prior.revision < 1 || prior.revision >= Number.MAX_SAFE_INTEGER)) return fail20("PAYOUT_OWNERSHIP_REVISION_INVALID");
+      operations.push(put3(P3, { ...revisionKey, revision: (prior?.revision ?? 0) + 1 }, prior ?? void 0));
+    }
     if (after.merchantStaff && after.merchantIdentity) {
       const at = new Date(now()).toISOString();
       operations.push(put3(P3, { pk: "BRANCH#" + branchId, sk: "STAFF_AUDIT#SETTLEMENT#" + at + "#" + quoteHash(operations).slice(0, 40), kind: "MERCHANT_STAFF_SETTLEMENT_ACTION", businessId: branchId, ownerId: after.ownerId, actorId: after.actorId, actorName: after.merchantIdentity.name, roleName: after.merchantIdentity.roleLabel, roleId: after.merchantIdentity.role, membershipVersion: after.merchantIdentity.membershipVersion, policyVersion: after.merchantIdentity.policyVersion, deviceId: after.merchantIdentity.deviceId, action: operations.find((o) => o.Put?.Item?.kind === "MERCHANT_PAYOUT_EVENT")?.Put.Item.action || operations.find((o) => o.Put?.TableName === "staging-AuditLog")?.Put.Item.action || "PAYOUT_" + action, createdAt: at, result: "SUCCEEDED" }));
     }
+    if (operations.length + after.guards.length > 100 || Buffer.byteLength(JSON.stringify(operations)) > 25e5) return fail20("PAYOUT_LIMIT_EXCEEDED");
     await db.send(new import_lib_dynamodb11.TransactWriteCommand({ TransactItems: cashAccountingDeduplicate([...after.guards, ...operations]), ClientRequestToken: quoteHash(operations).slice(0, 36) }));
   }
   const audit = (branchId, payoutId, actorId, action, requestId) => put3("staging-AuditLog", { datePartition: "date#" + new Date(now()).toISOString().slice(0, 10).replace(/-/g, ""), sk: "PAYOUT#" + payoutId + "#" + requestId, action: "MERCHANT_PAYOUT_" + action, branchId, payoutId, actorId, createdAt: new Date(now()).toISOString() });

@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
-function fixture({owner='sub',conflict=false,member=false,balance=0,topupStatus}={}){const classes={};for(const n of ['GetCommand','ScanCommand'])classes[n]=class{constructor(input){this.name=n;this.input=input;}};const module={exports:{}},calls=[];vm.runInNewContext(fs.readFileSync(__dirname+'/../merchant-evidence.js','utf8'),{module,require:n=>n==='./cod-retention'?require('./cod-loader.cjs')(classes):n==='./policy'?require('../policy'):classes});const db={send:async c=>{const i=c.input;calls.push(i.TableName);if(c.name==='ScanCommand'&&i.TableName==='staging-TopupRequests')return {Items:topupStatus?[{topupId:'topup',walletId:'WALLET#MERCHANT#restaurant',status:topupStatus}]:[]};if(c.name==='ScanCommand')return {Items:i.TableName==='WhizzMerchants_Businesses'?[{businessId:'restaurant',ownerId:owner,cognitoUserId:conflict?'other':owner}]:[]};if(i.TableName==='staging-IdempotencyKeys')return {Item:member?{enabled:true,memberId:'sub',ownerId:owner,version:1}:undefined};return {Item:{walletId:'WALLET#MERCHANT#restaurant',ownerType:'MERCHANT',ownerId:'restaurant',currency:'IQD',version:1,availableBalance:balance,lockedBalance:0}};}};return {calls,read:scope=>module.exports.merchantEvidence({db})({type:'MERCHANT',sub:'sub'},scope)};}
+function fixture({owner='sub',conflict=false,member=false,balance=0,topupStatus,orderStatus}={}){const classes={};for(const n of ['GetCommand','ScanCommand'])classes[n]=class{constructor(input){this.name=n;this.input=input;}};const module={exports:{}},calls=[];vm.runInNewContext(fs.readFileSync(__dirname+'/../merchant-evidence.js','utf8'),{module,require:n=>n==='./cod-retention'?require('./cod-loader.cjs')(classes):n==='./policy'?require('../policy'):classes});const db={send:async c=>{const i=c.input;calls.push(i.TableName);if(c.name==='ScanCommand'&&i.TableName==='WizzOrders')return {Items:orderStatus?[{orderId:'order',storeId:'restaurant',status:orderStatus}]:[]};if(c.name==='ScanCommand'&&i.TableName==='staging-TopupRequests')return {Items:topupStatus?[{topupId:'topup',walletId:'WALLET#MERCHANT#restaurant',status:topupStatus}]:[]};if(c.name==='ScanCommand')return {Items:i.TableName==='WhizzMerchants_Businesses'?[{businessId:'restaurant',ownerId:owner,cognitoUserId:conflict?'other':owner}]:[]};if(i.TableName==='staging-IdempotencyKeys')return {Item:member?{enabled:true,memberId:'sub',ownerId:owner,version:1}:undefined};return {Item:{walletId:'WALLET#MERCHANT#restaurant',ownerType:'MERCHANT',ownerId:'restaurant',currency:'IQD',version:1,availableBalance:balance,lockedBalance:0}};}};return {calls,read:(scope,options)=>module.exports.merchantEvidence({db})({type:'MERCHANT',sub:'sub'},scope,options)};}
 test('owner account closure lists owned businesses before any cleanup',async()=>{const f=fixture(),r=await f.read({kind:'ACCOUNT',id:'sub'});assert.equal(r.ownedBusinesses[0],'restaurant');assert.equal(f.calls.length,1);});
 test('financial employee cannot close restaurant',async()=>await assert.rejects(fixture({owner:'owner',member:true}).read({kind:'BUSINESS',id:'restaurant'}),/OWNER_REQUIRED/));
 test('membership removal does not inspect or settle the restaurant wallet',async()=>{const f=fixture({owner:'owner',member:true}),r=await f.read({kind:'MEMBERSHIP',id:'restaurant'});assert.equal(r.wallets.length,0);assert.equal(f.calls.includes('staging-Wallets'),false);});
@@ -9,3 +9,25 @@ test('conflicting ownership fails closed',async()=>await assert.rejects(fixture(
 
 test("pending restaurant funding blocks closure",async()=>assert.equal((await fixture({topupStatus:"PENDING_APPROVAL"}).read({kind:"BUSINESS",id:"restaurant"})).pendingPayments.length,1));
 test("terminal restaurant funding does not block closure",async()=>assert.equal((await fixture({topupStatus:"APPROVED"}).read({kind:"BUSINESS",id:"restaurant"})).pendingPayments.length,0));
+
+test('personal eligibility previews financial blockers for owned businesses',async()=>{
+ const result=await fixture({balance:5000,topupStatus:'PENDING_APPROVAL'}).read({kind:'ACCOUNT',id:'sub'},{preview:true});
+ assert.equal(result.businesses.length,1);
+ const [business]=result.businesses;
+ assert.equal(business.businessId,'restaurant');
+ assert.ok(business.blockers.some(issue=>issue.code==='PENDING_PAYMENTS'));
+ assert.ok(business.blockers.some(issue=>issue.code==='REFUND_REQUIRED'&&issue.amount===5000));
+});
+
+test('personal eligibility does not preview a business managed through membership',async()=>{
+ const f=fixture({owner:'other',member:true,balance:5000});
+ const result=await f.read({kind:'ACCOUNT',id:'sub'},{preview:true});
+ assert.equal(result.ownedBusinesses.length,0);
+ assert.equal(f.calls.includes('staging-Wallets'),false);
+});
+
+test('expired orders are terminal while accepted orders still prevent closure',async()=>{
+ const scope={kind:'BUSINESS',id:'restaurant'};
+ assert.equal((await fixture({orderStatus:'expired'}).read(scope)).activeOrders.length,0);
+ assert.equal((await fixture({orderStatus:'accepted'}).read(scope)).activeOrders.length,1);
+});

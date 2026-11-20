@@ -89,8 +89,14 @@ export function createMerchantPayoutService(options:{db:Pick<DynamoDBDocumentCli
  const authoritySnapshot=(a:Row)=>a.merchantStaff?{...a,guards:a.guards.map((g:Row)=>{const c=g.ConditionCheck;if(!c?.ExpressionAttributeValues)return g;return {ConditionCheck:{...c,ExpressionAttributeValues:Object.fromEntries(Object.entries(c.ExpressionAttributeValues).map(([k,v])=>[k,k===':now'||/^:g[0-9]+x[0-9]+_now$/.test(k)?'FRESH_EXPIRY_CHECK':v]))}};})}:a;
  async function write(branchId:string,action:'OWNER'|'STAFF'|'APPROVE',a:Awaited<ReturnType<typeof context>>,operations:Row[],amount=0){
   const after=await context(branchId,action,amount);if(!equal(authoritySnapshot(a),authoritySnapshot(after)))return fail('PAYOUT_AUTHORIZATION_CHANGED');
-  if(operations.length+after.guards.length>100||Buffer.byteLength(JSON.stringify(operations))>2500000)return fail('PAYOUT_LIMIT_EXCEEDED');
+  if(branchId!=='COMPANY_CASHBOOK'){
+   const revisionKey={pk:'MERCHANT_PAYOUT#OWNERSHIP_REVISION#'+branchId,sk:'META'};
+   const prior=await get(revisionKey);
+   if(prior&&(!Number.isSafeInteger(prior.revision)||prior.revision<1||prior.revision>=Number.MAX_SAFE_INTEGER))return fail('PAYOUT_OWNERSHIP_REVISION_INVALID');
+   operations.push(put(P,{...revisionKey,revision:(prior?.revision??0)+1},prior??undefined));
+  }
   if(after.merchantStaff&&after.merchantIdentity){const at=new Date(now()).toISOString();operations.push(put(P,{pk:'BRANCH#'+branchId,sk:'STAFF_AUDIT#SETTLEMENT#'+at+'#'+quoteHash(operations).slice(0,40),kind:'MERCHANT_STAFF_SETTLEMENT_ACTION',businessId:branchId,ownerId:after.ownerId,actorId:after.actorId,actorName:after.merchantIdentity.name,roleName:after.merchantIdentity.roleLabel,roleId:after.merchantIdentity.role,membershipVersion:after.merchantIdentity.membershipVersion,policyVersion:after.merchantIdentity.policyVersion,deviceId:after.merchantIdentity.deviceId,action:operations.find(o=>o.Put?.Item?.kind==='MERCHANT_PAYOUT_EVENT')?.Put.Item.action||operations.find(o=>o.Put?.TableName==='staging-AuditLog')?.Put.Item.action||'PAYOUT_'+action,createdAt:at,result:'SUCCEEDED'}));}
+  if(operations.length+after.guards.length>100||Buffer.byteLength(JSON.stringify(operations))>2500000)return fail('PAYOUT_LIMIT_EXCEEDED');
   await db.send(new TransactWriteCommand({TransactItems:cashAccountingDeduplicate([...after.guards,...operations]) as any,ClientRequestToken:quoteHash(operations).slice(0,36)}));
  }
  const audit=(branchId:string,payoutId:string,actorId:string,action:string,requestId:string)=>put('staging-AuditLog',{datePartition:'date#'+new Date(now()).toISOString().slice(0,10).replace(/-/g,''),sk:'PAYOUT#'+payoutId+'#'+requestId,action:'MERCHANT_PAYOUT_'+action,branchId,payoutId,actorId,createdAt:new Date(now()).toISOString()});

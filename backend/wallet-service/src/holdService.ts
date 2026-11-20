@@ -1,4 +1,5 @@
 import {lifecycleJob,lifecycleCompletion} from './lifecycleJob';
+import { walletOrderTable } from './walletBindings';
 import { docClient, TABLES, GetCommand, QueryCommand, ScanCommand, TransactWriteCommand } from './db';
 import {
   Hold,
@@ -51,6 +52,7 @@ export class HoldService {
 
     // Validate
     validateAmount(amount);
+    const ordersTable = walletOrderTable();
     
     const prior = await docClient.send(new GetCommand({TableName:TABLES.HOLDS,Key:{orderId,sk:'HOLD'},ConsistentRead:true}));
     if(prior.Item?.financialSchemaVersion!==undefined)throw new InvalidHoldStateError('FINANCIAL_HOLD_REQUIRES_ORDER_SETTLEMENT');
@@ -137,7 +139,7 @@ export class HoldService {
         new TransactWriteCommand({
           TransactItems: [
             ...lifecycleJob(hold),
-            {ConditionCheck:{TableName:process.env.ORDERS_TABLE || 'WizzOrders',Key:{PK:'ORDER#'+orderId,SK:'META'},
+            {ConditionCheck:{TableName:ordersTable,Key:{PK:'ORDER#'+orderId,SK:'META'},
               ConditionExpression:'attribute_not_exists(financialSnapshot) AND attribute_not_exists(financialAcceptance) AND attribute_not_exists(financialOutcome) AND attribute_not_exists(codFinancialEvidence)'}},
             // Create hold - Allow if no hold exists OR previous hold is RELEASED
             {

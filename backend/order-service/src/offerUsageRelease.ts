@@ -1,6 +1,8 @@
 import {GetCommand} from '@aws-sdk/lib-dynamodb';
 type Row=Record<string,any>;
-const JOURNEY='staging-WizzOfferJourney';
+import {orderBindings} from './orderBindings';
+const {tables}=orderBindings();
+const JOURNEY=tables.OFFER_JOURNEY_TABLE;
 const fail=():never=>{throw Object.assign(Error('OFFER_USAGE_REVIEW_REQUIRED'),{code:'OFFER_USAGE_REVIEW_REQUIRED',statusCode:409});};
 const positive=(v:any)=>Number.isSafeInteger(v)&&v>0;
 const id=(v:any)=>typeof v==='string'&&v.length>0&&v.length<=150;
@@ -34,7 +36,7 @@ export async function prepareOfferUsageRelease(db:{send:(command:any)=>Promise<a
  if(proof.campaign){
   const c=proof.campaign,snapshot=order.offerSnapshot;
   if(!id(c.id)||!['MERCHANT','PLATFORM'].includes(c.source)||snapshot?.discountId!==c.id||snapshot?.source!==c.source)fail();
-  const table=c.source==='MERCHANT'?'WhizzMerchants_Discounts':'WizzCentral_Platform_Discounts',key={discountId:c.id};
+  const table=c.source==='MERCHANT'?tables.MERCHANT_DISCOUNTS_TABLE:tables.PLATFORM_DISCOUNTS_TABLE,key={discountId:c.id};
   const row=await read(table,key);
   if(!row)operations.push({ConditionCheck:{TableName:table,Key:key,ConditionExpression:'attribute_not_exists(discountId)'}});
   else {

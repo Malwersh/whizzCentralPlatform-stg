@@ -4,6 +4,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { CognitoService } from './cognitoService';
+import { walletTarget } from './walletTarget';
 import { ReleaseHoldRequest, ReleaseHoldResponse, HoldReleaseError } from './types';
 
 export class WalletServiceClient {
@@ -13,9 +14,7 @@ export class WalletServiceClient {
 
   constructor(cognitoService: CognitoService) {
     this.cognitoService = cognitoService;
-    this.walletServiceUrl =
-      process.env.WALLET_SERVICE_URL ||
-      'https://er7d8mkxi5.execute-api.us-east-1.amazonaws.com/dev';
+    this.walletServiceUrl = walletTarget();
 
     this.axiosInstance = axios.create({
       baseURL: this.walletServiceUrl,

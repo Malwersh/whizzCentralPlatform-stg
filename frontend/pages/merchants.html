@@ -821,6 +821,21 @@
         /* Keep minimal overrides only when needed */
         .status-badge { white-space: nowrap; }
     </style>
+    <style id="merchant-transfer-review-styles">
+        #merchant-transfer-queue { list-style: none; margin: 0 0 1rem; padding: 0; }
+        .merchant-transfer-queue-row, .merchant-transfer-card {
+            border: 1px solid #dbe3ef;
+            border-radius: 14px;
+            background: #f8fafd;
+            padding: .9rem 1.15rem;
+            margin-block: .65rem;
+        }
+        .merchant-transfer-queue-row { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
+        .merchant-transfer-card :is(h3,h4,p,ol) { margin-block: .35rem .6rem; }
+        .merchant-transfer-card li { margin-block: .35rem; }
+        #merchant-transfer-result { display: grid; gap: .15rem; margin-block: .9rem; }
+        #merchant-transfer-reject { margin-block-start: .8rem; }
+    </style>
 </head>
 
 <body class="wizz-shell" data-page="merchants">
@@ -889,6 +904,33 @@
               <button id="merchant-applications-reload" type="button">تحديث الطلبات</button>
               <p id="merchant-applications-message" role="status"></p>
               <div id="merchant-applications-list"></div>
+            </details>
+            <details id="merchant-ownership-transfer-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
+              <summary>طلبات نقل ملكية الأنشطة</summary>
+              <button id="merchant-transfer-queue-refresh" type="button" class="btn-secondary">تحديث الطلبات</button>
+              <p id="merchant-transfer-queue-message" role="status" aria-live="polite"></p>
+              <ul id="merchant-transfer-queue" aria-label="طلبات نقل الملكية النشطة"></ul>
+              <button id="merchant-transfer-queue-more" type="button" class="btn-secondary" hidden>عرض المزيد</button>
+              <details>
+                <summary>البحث برقم مرجع</summary>
+              <form id="merchant-transfer-lookup">
+                <label for="merchant-transfer-reference">مرجع طلب النقل</label>
+                <input id="merchant-transfer-reference" maxlength="165" required dir="ltr"
+                       autocomplete="off" spellcheck="false" aria-describedby="merchant-transfer-reference-help">
+                <p id="merchant-transfer-reference-help">الصق المرجع كاملًا من زر «نسخ مرجع الطلب للإدارة» في تطبيق المطعم بعد قبول المالك الجديد.</p>
+                <button type="submit">عرض الطلب</button>
+              </form>
+              </details>
+              <p id="merchant-transfer-message" role="status" aria-live="polite"></p>
+              <div id="merchant-transfer-result"></div>
+              <button type="button" id="merchant-transfer-preflight" class="btn-primary" hidden>فحص موانع الاعتماد</button>
+              <div id="merchant-transfer-blockers" aria-live="polite"></div>
+              <form id="merchant-transfer-reject" hidden>
+                <label>سبب القرار <textarea id="merchant-transfer-reason" minlength="5" maxlength="500" required></textarea></label>
+                <button type="submit" value="reject" class="btn-secondary">رفض طلب النقل</button>
+                <button id="merchant-transfer-settlement" type="submit" value="approve-settlement" class="btn-primary" hidden>اعتماد وجهة التسويات</button>
+                <button id="merchant-transfer-approve" type="submit" value="approve" class="btn-primary" hidden>اعتماد نقل الملكية</button>
+              </form>
             </details>
             <details id="merchant-changes-section" dir="rtl" style="background:white;padding:20px;margin-bottom:20px;border-radius:16px">
               <summary>طلبات تعديل الاسم والموقع</summary>
@@ -1227,7 +1269,7 @@
         </script>
 
         <script src="../merchant-changes.js?v=20261023-feedback"></script>
-        <script src="../merchant-applications.js?v=20261014"></script>
+        <script src="../merchant-applications.js?v=20261119-transfer-roles"></script>
         <script src="../merchant-types.js?v=20261014"></script>
         <script src="../merchant-staff-policy.js?v=259"></script>
         <!-- Page-specific scripts -->

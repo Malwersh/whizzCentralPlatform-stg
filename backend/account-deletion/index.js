@@ -10,7 +10,7 @@ const {deletionVerification}=require('./deletion-verification');
 const {coordinator}=require('./coordinator');
 const {dynamoStore}=require('./store');
 const {retentionSettings}=require('./settings');
-const {receipt,error,target}=require('./policy');
+const {blockers,receipt,error,target}=require('./policy');
 const {receiptAccess}=require('./receipt-access');
 const db=DynamoDBDocumentClient.from(new DynamoDBClient({}),{marshallOptions:{removeUndefinedValues:true}});
 const table=process.env.DELETION_TABLE,auth=accountAuth({allowedTypes:['CUSTOMER','DRIVER','MERCHANT']}),store=dynamoStore({table,db});
@@ -32,7 +32,10 @@ exports.handler=async event=>{
   const scoped=input=>target(actor,actor.type==='MERCHANT'?(input||{kind:'ACCOUNT'}):{kind:'ACCOUNT'});
   const readScope=scoped({kind:event.queryStringParameters?.scope||'ACCOUNT',businessId:event.queryStringParameters?.businessId});
   if(method==='GET'&&path==='/deletion/status')return reply(200,await status(actor,readScope));
-  if(method==='GET'&&path==='/deletion/eligibility'){const e=await evidenceByType[actor.type](actor,readScope);return reply(200,{wallets:e.wallets,activeOrders:e.activeOrders,activeHolds:e.activeHolds,pendingTransfers:e.pendingTransfers,pendingPayments:e.pendingPayments||[],policyVersion:(await settings(actor.type)).retentionPolicyVersion,executionReady:executionTypes.has(actor.type)});}
+  if(method==='GET'&&path==='/deletion/eligibility'){
+   const e=await evidenceByType[actor.type](actor,readScope,{preview:true});
+   const merchantPreview=actor.type==='MERCHANT'?{blockers:blockers(actor,readScope,e),businesses:e.businesses||[]}:{};
+   return reply(200,{...merchantPreview,wallets:e.wallets,activeOrders:e.activeOrders,activeHolds:e.activeHolds,pendingTransfers:e.pendingTransfers,pendingPayments:e.pendingPayments||[],policyVersion:(await settings(actor.type)).retentionPolicyVersion,executionReady:executionTypes.has(actor.type)});}
   let body;try{body=JSON.parse(event.body||'{}');if(!body||Array.isArray(body)||typeof body!=='object')throw Error();}catch(_){return reply(400,{code:'INVALID_BODY',message:'بيانات الطلب غير صحيحة'});}
   if(method==='POST'&&path==='/deletion/send'){
    const input={...body,scope:scoped(body.scope)},challenge=await verification.send(actor,input);

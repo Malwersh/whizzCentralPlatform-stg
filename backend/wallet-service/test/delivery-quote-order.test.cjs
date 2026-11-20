@@ -135,3 +135,18 @@ test('order committed before merchant closes remains a valid pending order', asy
  assert.equal(f.orders.size,1);
  assert.equal([...f.orders.values()][0].status,'pending');
 });
+
+test('a deletion request submitted after quote preparation stops order creation',async()=>{
+ const f=await setup(),prepared=await f.prepare();
+ f.beforeTransaction=()=>{f.branch.orderIntakeDeletionRequestId='verified-deletion';};
+ await reject(prepared.commit(f.order(prepared)),'QUOTE_INVALIDATED');
+ assert.equal(f.orders.size,0);
+ assert.equal([...f.saved.values()][0].consumption,undefined);
+});
+
+test('a pending ownership transfer prevents a previously issued quote from creating an order',async()=>{
+ const f=await setup(),prepared=await f.prepare();
+ f.beforeTransaction=()=>{f.branch.orderIntakeTransferExpiresAt=at+60000;};
+ await reject(prepared.commit(f.order(prepared)),'QUOTE_INVALIDATED');
+ assert.equal(f.orders.size,0);
+});

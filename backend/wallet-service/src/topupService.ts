@@ -243,6 +243,7 @@ export class TopupService {
       new GetCommand({
         TableName: TABLES.TOPUP_REQUESTS,
         Key: { topupId, sk: 'META' },
+        ConsistentRead: true,
       })
     );
 
@@ -283,6 +284,7 @@ export class TopupService {
       new GetCommand({
         TableName: TABLES.WALLETS,
         Key: { walletId: topup.walletId, sk: 'META' },
+        ConsistentRead: true,
       })
     );
 
@@ -301,6 +303,7 @@ export class TopupService {
       new GetCommand({
         TableName: TABLES.WALLETS,
         Key: { walletId: platformWalletId, sk: 'META' },
+        ConsistentRead: true,
       })
     );
 
@@ -530,6 +533,7 @@ export class TopupService {
       new GetCommand({
         TableName: TABLES.TOPUP_REQUESTS,
         Key: { topupId, sk: 'META' },
+        ConsistentRead: true,
       })
     );
 

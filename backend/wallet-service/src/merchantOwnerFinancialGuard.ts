@@ -3,6 +3,7 @@ import {CognitoIdentityProviderClient,GetUserCommand} from '@aws-sdk/client-cogn
 import {GetCommand} from '@aws-sdk/lib-dynamodb';
 import {MobileAccount} from './transferIdentity';
 import {fundingError} from './fundingService';
+import {merchantFinancialBindings} from './walletBindings';
 type Row=Record<string,any>;
 const hash=(v:string)=>createHash('sha256').update(v).digest('hex');
 const fail=():never=>{throw fundingError('افتح القسم المالي برمز تحقق المالك أولًا','PAYOUT_FINANCIAL_UNLOCK_REQUIRED',403);};
@@ -16,15 +17,16 @@ export async function merchantOwnerFinancialGuard(a:MobileAccount,headers:Row,op
  const cognito=options.cognito??new CognitoIdentityProviderClient({region:process.env.AWS_REGION});let attrs:Row;
  try{const live=await cognito.send(new GetUserCommand({AccessToken:credential}));attrs=Object.fromEntries((live.UserAttributes||[]).map((x:Row)=>[x.Name,x.Value]));}catch{return fail();}
  if(attrs.sub!==a.principalId||attrs.phone_number_verified!=='true'||!/^\+9647\d{9}$/.test(attrs.phone_number||''))return fail();
+ const bindings=merchantFinancialBindings();
  const db=options.db,get=async(table:string,key:Row,projection?:string)=>(await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true,...(projection?{ProjectionExpression:projection}:{})}))).Item;
- const branchTable=process.env.MERCHANTS_TABLE||'WhizzMerchants_Businesses',b=await get(branchTable,{businessId:a.ownerId});
+ const branchTable=bindings.merchants,b=await get(branchTable,{businessId:a.ownerId});
  if(!b||b.businessId!==a.ownerId||b.ownerId!==a.principalId||b.cognitoUserId!==a.principalId||b.status!=='approved'||b.deletionRequestId!=null||b.deletedAt!=null||b.isDeleted===true)return fail();
- const guards:any[]=[],deletion=process.env.ACCOUNT_DELETION_TABLE||'staging-AccountDeletion';
+ const guards:any[]=[],deletion=bindings.deletion;
  for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+a.ownerId,'ACCOUNT_LIFECYCLE#MERCHANT#'+a.principalId]){
   const key={pk,sk:'META'};if(await get(deletion,key,'pk,sk'))return fail();
   guards.push({ConditionCheck:{TableName:deletion,Key:key,ConditionExpression:'attribute_not_exists(pk)'}});
  }
- const key={pk:'MERCHANT_FINANCIAL_SESSION#'+hash(JSON.stringify([a.principalId,a.ownerId,access.deviceId])),sk:'SESSION'},table='staging-MerchantPlatform',row=await get(table,key);
+ const key={pk:'MERCHANT_FINANCIAL_SESSION#'+hash(JSON.stringify([a.principalId,a.ownerId,access.deviceId])),sk:'SESSION'},table=bindings.sessions,row=await get(table,key);
  const fingerprint=hash(JSON.stringify([a.principalId,attrs.phone_number,b.ownerId,b.version??null,b.status]));
  const at=Math.floor((options.now??Date.now)()/1000),tokenHash=hash(access.token);
  if(!row||row.kind!=='MERCHANT_FINANCIAL_SESSION'||!Number.isSafeInteger(row.version)||row.version<1||!Number.isSafeInteger(row.expiresAt)||row.expiresAt<=at||row.fingerprint!==fingerprint||typeof row.tokenHash!=='string'||row.tokenHash.length!==tokenHash.length||!timingSafeEqual(Buffer.from(tokenHash),Buffer.from(row.tokenHash)))return fail();

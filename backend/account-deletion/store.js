@@ -8,15 +8,24 @@ function dynamoStore({table=process.env.DELETION_TABLE,db=DynamoDBDocumentClient
  if(!table||!table.startsWith('staging-'))throw error('INVALID_STAGING_TABLE');
  const actor=r=>({type:r.actorType,sub:r.subjectId});
  async function get(a,id){return (await db.send(new GetCommand({TableName:table,Key:key(a,id),ConsistentRead:true}))).Item;}
- async function createVerified(r,proof){
+ async function createVerified(r,proof,affectedBranches=[]){
   if(!proof?.challengeId||!proof?.fingerprint)throw error('INVALID_VERIFICATION');
   if(proof.fingerprint!==r.fingerprint)throw error('INVALID_VERIFICATION');
   const time=clock(),a=actor(r),item={...key(a,r.requestId),...r,verification:{method:'PHONE_OTP',challengeId:proof.challengeId,verifiedAt:time}};
+  const branchIds=[...new Set(affectedBranches)];
+  if(branchIds.length>97)throw error('DELETION_SCOPE_EXCEEDS_TRANSACTION_LIMIT');
+  const pauseOrders=branchIds.map(businessId=>({Update:{
+   TableName:'WhizzMerchants_Businesses',Key:{businessId},
+   UpdateExpression:'SET orderIntakeDeletionRequestId=:request',
+   ConditionExpression:'(ownerId=:owner OR attribute_not_exists(ownerId)) AND (cognitoUserId=:owner OR attribute_not_exists(cognitoUserId)) AND (ownerId=:owner OR cognitoUserId=:owner) AND (attribute_not_exists(orderIntakeTransferExpiresAt) OR orderIntakeTransferExpiresAt<=:now)'+(r.scope.kind==='ACCOUNT'?' AND attribute_not_exists(orderIntakeDeletionRequestId)':''),
+   ExpressionAttributeValues:{':request':r.requestId,':owner':r.subjectId,':now':time*1000},
+  }}));
   // The OTP and request share a transaction. A crash cannot consume a proof without a receipt.
   await db.send(new TransactWriteCommand({TransactItems:[
    {Update:{TableName:table,Key:{pk:`CHALLENGE#${proof.challengeId}`,sk:'META'},UpdateExpression:'SET used = :yes',ConditionExpression:'purpose = :purpose AND subjectId = :subject AND actorType = :type AND fingerprint = :fp AND used = :no AND verifiedAt >= :recent AND expiresAt > :now',ExpressionAttributeValues:{':yes':true,':no':false,':purpose':'account-deletion',':subject':a.sub,':type':a.type,':fp':r.fingerprint,':recent':time-120,':now':time}}},
    {Put:{TableName:table,Item:item,ConditionExpression:'attribute_not_exists(pk)'}},
-   {Put:{TableName:table,Item:{pk:item.pk,sk:`ACTIVE#${r.scope.kind}#${r.scope.id}`,requestId:r.requestId},ConditionExpression:'attribute_not_exists(pk)'}}
+   {Put:{TableName:table,Item:{pk:item.pk,sk:`ACTIVE#${r.scope.kind}#${r.scope.id}`,requestId:r.requestId},ConditionExpression:'attribute_not_exists(pk)'}},
+   ...pauseOrders
   ]}));return item;
  }
  async function update(r,patch){
