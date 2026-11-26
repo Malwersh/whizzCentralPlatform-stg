@@ -1,0 +1,21 @@
+{
+  "part": 225,
+  "status": "PUBLISHED_DEVICE_ACCEPTANCE_PENDING",
+  "function": "staging-driver-financial-accept",
+  "baseCodeSha256": "sg6uaNxfM52IrZXvkoUst/vin+O/LACm746wsid2FS8=",
+  "codeSha256": "zgj7XzkHZZ5/HvgGpGUFa696rTpQYB1q9GX/evj2vzM=",
+  "changedFiles": [
+    "index.js"
+  ],
+  "repair": "Initialize existing order rollout DRAIN before return/reassignment identity membership check; all authentication and financial checks preserved",
+  "configurationAndIamPreserved": true,
+  "otherZipEntriesIdentical": true,
+  "financialDataWrites": false,
+  "clientUpdateRequired": false,
+  "verification": {
+    "capturedOldRuntime": "reproduced FINANCE_ROLLOUT_OUT_OF_SCOPE for actual new general order",
+    "candidate": "builds return transaction using live data; transaction intercepted locally, no real mutation",
+    "roleSimulation": "all proposed transaction operations allowed",
+    "positiveAuthenticatedApiAcceptance": "pending user retry"
+  }
+}

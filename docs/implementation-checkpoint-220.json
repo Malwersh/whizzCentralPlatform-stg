@@ -1,0 +1,47 @@
+{
+  "part": 220,
+  "status": "PUBLISHED_ACTIVE_CLIENT_INSTALLED_VERIFIED",
+  "objective": "Correct normal customer tracking and Live Activity throughout COD return lifecycle",
+  "generalOrderCreation": "Normal eligible customer/merchant orders use the general released path; no per-order internal preparation performed or required for proposed phone acceptance",
+  "userSteering": "Continue code review before creating a new physical test order",
+  "behavior": {
+    "returning": "Live card shows driver returning to merchant; removes all previous customer ETA timestamps",
+    "return_arrived": "Live card waits for merchant receipt; no customer arrival clock",
+    "review_required": "Same order status with changed returnStatus is forwarded by stream; card remains active with receipt-review text",
+    "returned": "Merchant confirmation triggers canonical end; app recognizes returned as terminal and archives it instead of mapping it to pending",
+    "tap": "Existing tracking deep-link preserved"
+  },
+  "publication": "return-live-publication-220.json",
+  "verification": {
+    "serverTests": 16,
+    "userTargetedFlutterTests": 10,
+    "flutterAnalyzer": "No compile errors; pre-existing informational/warning backlog remains",
+    "releaseBuild": 211,
+    "physicalReturnOrderTestPerformed": false
+  },
+  "financialDataWrites": false,
+  "apnsTestPushRequested": false,
+  "sourceSha256": {
+    "backend/src/handlers/order-arrival-content.js": "2b94da05b1cf1ff6c45eb04ba88d49b258bdb56f95bfefe1f5abffc0c9cc280d",
+    "backend/src/handlers/order-activity-stream.js": "f4923e7688ab5572400bdf152386858f437a5401ae1912a56d9100ed9be66d7b",
+    "backend/test/return-live-activity-220.test.cjs": "acd6ec52b515a6863fe99ff79cb30bf97cfce021e2bb1578025e02b1a43df827",
+    "backend/test/order-activity-stream.test.cjs": "2cb8268eea9cd67f9444964031c9dc4ad8d2031a4aa002ac8f10a5dcb33557b0",
+    "scripts/publish-return-live-220.py": "62daa20ffe4096cbb397cf1600bb393cc67a9ba1ea8c0bc32e6961dee0d2f077"
+  },
+  "device": {
+    "customerBuild": 211,
+    "bundleId": "com.wiz.wizuserapp",
+    "installedOn": "iMohammed",
+    "launched": true
+  },
+  "clientSourceSha256": {
+    "lib/models/order_model.dart": "675e14b855424cef7492f52e70f0d536b955d521c7feaa4f2f64f1d3ebf37575",
+    "lib/services/live_activity_service.dart": "0079a06f78506499faf5ddc0ce2f1bf4e7c69a5a76abbd1d6d011dac4fb3479d",
+    "lib/services/order_service_v2.dart": "8a6d0274e10ff08c69931f71ecbefcbb5addb82f1c97d9d2ad4040c416a36008",
+    "lib/widgets/order_arrival_card.dart": "d7915d85fd42f8896ed7130d4d486a53a007dac05f08102e8be6623c55d13845",
+    "lib/screens/order_tracking_screen.dart": "bc37fd9da9f03d3003572dea1c9eab85d8990239d3934fb79736726e4dee820e",
+    "lib/screens/orders_screen.dart": "be4b7a0a049ec210ab0de755220ffdad5d3d8852ca6aa7cf6210208aae990b36",
+    "ios/LiveActivityExtension/WizUserLiveActivity.swift": "9c42e7e1335377b2e45c17cfe100d49ae7f7ef6e8e842f5d7715d15d4ee45206",
+    "test/return_live_activity_test.dart": "78f8627819effbbf1b5519af63b3756e05563aa92c8a92d04763ee823a4f52b9"
+  }
+}

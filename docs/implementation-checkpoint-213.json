@@ -1,0 +1,135 @@
+{
+  "part": 213,
+  "status": "PARTIAL_CLOSURE_TWO_DEPLOYED_SLICES",
+  "date": "2026-10-20",
+  "scope": "Closure of previously worked scope, before unrelated new plan features",
+  "closedImplementationSlices": [
+    {
+      "name": "Verified PAID status on all statement and payout lists/details",
+      "status": "PUBLISHED_ACTIVE",
+      "backendCodeSha256": "YXq5m5YRHO48KdsfQfW40g2NJ+FdtMg+QnkUjJy7l74=",
+      "evidence": "finance-closure-publication-213.json",
+      "behavior": "A paid claim alone cannot mark a statement or payout as paid: immutable saved statement, sealed journal, full per-order payable lines, owner, amount, digest and paidAt must agree."
+    },
+    {
+      "name": "Previously local employee device transfers",
+      "status": "PUBLISHED_ACTIVE",
+      "evidence": "device-transfer-closure-213.json",
+      "routes": 8,
+      "cloudFormation": "CREATE_COMPLETE",
+      "humanGrantsChanged": false,
+      "realTransferAcceptanceComplete": false
+    }
+  ],
+  "tests": {
+    "walletService": {
+      "pass": 1067,
+      "fail": 0
+    },
+    "targetedProductionAdapters": {
+      "pass": 10,
+      "fail": 0,
+      "corruptProofCases": 6,
+      "assertNoRepairOrMoneyWrites": true
+    },
+    "authorizer": {
+      "pass": 15,
+      "fail": 0
+    },
+    "nativeEmployeeTransfer": {
+      "pass": 7,
+      "fail": 0
+    },
+    "liveIamBoundaries": 7,
+    "liveGatewayNegativeAuthRoutes": 8,
+    "runtimeSync": "PASS"
+  },
+  "liveAccountRead": {
+    "verifiedOrders": 7,
+    "reviewEntries": 0,
+    "pendingIqd": 43575,
+    "walletVersion": 8,
+    "morePages": false,
+    "walletMutationPerformed": false,
+    "snapshotOnly": true
+  },
+  "sourceHashes": {
+    "backend/wallet-service/src/merchantPayout.ts": "d74439cb4d1f66410e6d0f61bbabf6643eff9549824be2d29000c9c9adcf0463",
+    "backend/wallet-service/src/merchantStatementsAdmin.ts": "084a5ef8e8618636827b8c87fe69bac44980648ddfcbbb9529b90be6e08c4b71",
+    "backend/staff-service/settlement-runtime.js": "2be4dd3a2d7495c7809bfd4ecaef575ba8afa5590b964b3b40c14300cfe2b5bc",
+    "backend/wallet-service/authorizer_lambda/authorizer.py": "e5dcdc95b9e4fd9cefc764e28259bbfacf44fbcea090d69acf9321d87b452b03",
+    "backend/wallet-service/build/device-transfers/index.js": "78d9b53ca8069eca98e1932a0f9ad868f4ae34f4ad397289ab0b1730da000400"
+  },
+  "notPerformed": {
+    "financialTransfers": true,
+    "otpSend": true,
+    "humanPermissionGrant": true,
+    "historicalLedgerRewriteOrDeletion": true
+  },
+  "userDeferred": [
+    "Card capture: no contracted PSP",
+    "Merchant bank payouts"
+  ],
+  "androidDeviceAvailability": {
+    "answer": "Not available now",
+    "source": "User reply during closure213",
+    "physicalAcceptanceComplete": false
+  },
+  "openItems": [
+    {
+      "id": "A09",
+      "state": "IMPLEMENTATION_OPEN",
+      "item": "Complete financial account discovery including zero-net completed orders and unsupported movements; current report remains explicitly scoped to posted ledger pages."
+    },
+    {
+      "id": "A10",
+      "state": "IMPLEMENTATION_OPEN",
+      "item": "Whole-period aggregation and resumable closure beyond existing explicit selection limits; opening/period schedule acceptance with the owner remains open."
+    },
+    {
+      "id": "A11",
+      "state": "HUMAN_EXECUTION_ACCEPTANCE_OPEN",
+      "item": "Actual manual cash/Zain payout, destination OTP, owner receipt and final reconciliation have not been performed by the agent."
+    },
+    {
+      "id": "A14",
+      "state": "PUBLISHED_ACTIVE_ACCEPTANCE_OPEN",
+      "item": "Device transfer runtime and exact routes are now deployed; real authorized employee/OTP/transfer acceptance remains open, with no automatic human grants."
+    },
+    {
+      "id": "A03/A05/A06",
+      "state": "DEVICE_ACCEPTANCE_MATRIX_OPEN",
+      "item": "Funding variants, free delivery, signed negative platform contribution, COD return/cancellation and interruption scenarios need complete device acceptance evidence."
+    },
+    {
+      "id": "A07/A08",
+      "state": "ANDROID_PHYSICAL_ACCEPTANCE_UNAVAILABLE",
+      "item": "User confirmed Android device is not available; physical lock-screen/background tests remain unverified."
+    },
+    {
+      "id": "A12",
+      "state": "EXPORT_SCOPE_OPEN",
+      "item": "Existing CSV/print applies to a bounded saved statement; mobile export, larger resumable exports and server PDF/XLSX remain incomplete."
+    },
+    {
+      "id": "A13",
+      "state": "HUMAN_ROLE_ACCEPTANCE_OPEN",
+      "item": "Internal wallet transfers and limits require real-role acceptance; no financial transfer was performed during this closure."
+    },
+    {
+      "id": "A15",
+      "state": "PARTIAL_EXISTING_BASELINE",
+      "item": "Comprehensive roles/delegation and future capabilities remain governed by explicit permission grants; no broad human grant was added."
+    },
+    {
+      "id": "A17",
+      "state": "INVENTORY_AND_IAC_CLOSURE_OPEN",
+      "item": "Historical jobs/holds/contracts and all prior manual infrastructure overlays still need complete migration inventory; no historical data was deleted."
+    }
+  ],
+  "allPriorScopeClosed": false,
+  "nextImplementationFocus": [
+    "A09 complete account coverage",
+    "A10 whole-period aggregation/resumption"
+  ]
+}

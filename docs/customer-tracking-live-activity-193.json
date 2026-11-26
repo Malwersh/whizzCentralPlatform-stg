@@ -1,0 +1,50 @@
+{
+  "part": 193,
+  "status": "STAGING_PUBLISHED_CUSTOMER_SIMULATOR_UPDATED",
+  "customerStatusFix": "Historical driver search failure cannot override an assigned driver in API, customer model or ActivityKit content",
+  "trackingRefresh": "No overlapping polls, refresh on foreground resume, cancellation of subscriptions on dispose",
+  "frontendTestsPassed": 7,
+  "customerViewTestsPassed": 3,
+  "liveActivityAccessAndContentTestsPassed": 6,
+  "iosSimulatorBuildPassed": true,
+  "extensionBundled": true,
+  "liveActivityEnabledInInstalledBuild": true,
+  "backendLiveUpdatesMode": "REQUIRED (verified, unchanged)",
+  "physicalLiveActivityVerification": "Deferred: historical Apple signing and extension provisioning access unresolved; no claim of physical/background device verification",
+  "customerFunctions": [
+    {
+      "name": "WizzUser-GetOrder-staging",
+      "onlyCustomerViewChanged": true,
+      "configurationPreserved": true,
+      "codeSha256": "UkADeW1zoHOiNgjKLqcQHvyaINybjBYIUvXqVr3kB7s="
+    },
+    {
+      "name": "WizzUser-GetUserOrders-staging",
+      "onlyCustomerViewChanged": true,
+      "configurationPreserved": true,
+      "codeSha256": "tV5eYUtmxBDQEct+xeuiGm5yVUkDNpP2peo67QiFgi4="
+    }
+  ],
+  "activityFunctions": [
+    {
+      "name": "wizzcentral-notifications-staging-pushSendOrderUpdate",
+      "onlyArrivalContentChanged": true,
+      "configurationPreserved": true,
+      "codeSha256": "n900Tm0fUkLpPH/6lGALn/c7l2NoPP8lyhQxIl1nSK8="
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushUpdate",
+      "onlyArrivalContentChanged": true,
+      "configurationPreserved": true,
+      "codeSha256": "DSAoohwFgf5mlQu3OQejRIfCnLc7Q3XQtH4w6eyUyrE="
+    },
+    {
+      "name": "wizzcentral-notifications-staging-liveActivityPushEnd",
+      "onlyArrivalContentChanged": true,
+      "configurationPreserved": true,
+      "codeSha256": "s4F/2CHdd0mNXQJc8rdJrFyeHklDh15+lKcpshdLjiw="
+    }
+  ],
+  "financialDataWrites": 0,
+  "newIamPermissions": false
+}

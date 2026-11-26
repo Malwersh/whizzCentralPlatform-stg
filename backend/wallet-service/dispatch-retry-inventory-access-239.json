@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadPriorOfferInventoryForFinancialRetry",
+      "Effect": "Allow",
+      "Action": "dynamodb:Query",
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "????????-????-????-????-????????????"
+          ]
+        }
+      }
+    }
+  ]
+}

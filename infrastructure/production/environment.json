@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "accountId": "746727375268",
+  "region": "us-east-1",
+  "environment": "production",
+  "namePrefix": "wizz-production",
+  "awsProfile": "Wizz_prod_UserApp",
+  "adminEmail": "moh.al.daash@gmail.com",
+  "dataInitialization": "EMPTY_WITH_REVIEWED_REFERENCE_CONFIGURATION",
+  "copyTestData": false,
+  "copySessions": false,
+  "stacks": [
+    {
+      "name": "wizz-production-foundation",
+      "template": "foundation.template.json",
+      "status": "DEPLOYED_VERIFIED"
+    },
+    {
+      "name": "wizz-production-storage-core",
+      "template": "storage-core.template.json",
+      "status": "DEPLOYED_VERIFIED"
+    },
+    {
+      "name": "wizz-production-storage-dispatch",
+      "template": "storage-dispatch.template.json",
+      "status": "DEPLOYED_VERIFIED_EMPTY"
+    },
+    {
+      "name": "wizz-production-notification-registry",
+      "template": "notification-registry.template.json",
+      "status": "DEPLOYED_ACTIVE_AUTHENTICATED_DEVICE_ACCEPTANCE_PENDING"
+    },
+    {
+      "name": "wizz-production-order-financial",
+      "template": "order-financial-runtime.template.json",
+      "status": "PREPARED_ACTIVATION_PENDING",
+      "deployedOperatingMode": "OFF"
+    },
+    {
+      "name": "wizz-production-identity-admin",
+      "template": "identity-admin.template.json",
+      "status": "DEPLOYED_VERIFIED"
+    },
+    {
+      "name": "wizz-production-storage-catalog",
+      "template": "storage-catalog.template.json",
+      "status": "DEPLOYED_VERIFIED"
+    },
+    {
+      "name": "wizz-production-storage-auth",
+      "template": "storage-auth.template.json",
+      "status": "DEPLOYED_VERIFIED"
+    },
+    {
+      "name": "wizz-production-identity-phone",
+      "template": "identity-phone.template.json",
+      "status": "DEPLOYED_VERIFIED"
+    },
+    {
+      "name": "wizz-production-phone-triggers",
+      "template": "phone-triggers.template.json",
+      "status": "DEPLOYED_CUSTOMER_OTP_ENABLED"
+    },
+    {
+      "name": "wizz-production-artifacts",
+      "template": "artifacts.template.json",
+      "status": "DEPLOYED_VERIFIED"
+    },
+    {
+      "name": "wizz-production-customer-enrollment",
+      "template": "customer-enrollment.template.json",
+      "status": "DEPLOYED_DEVICE_REGISTRATION_AND_SIGN_IN_VERIFIED"
+    },
+    {
+      "name": "wizz-production-customer-storefront",
+      "template": "customer-storefront.template.json",
+      "status": "DEPLOYED_HTTP_SMOKE_VERIFIED"
+    },
+    {
+      "name": "wizz-production-driver-wallet",
+      "template": "driver-wallet.template.json",
+      "status": "DEPLOYED_VERIFIED_DISABLED"
+    },
+    {
+      "name": "wizz-production-driver-enrollment",
+      "template": "driver-enrollment.template.json",
+      "status": "DEPLOYED_VERIFIED_OTP_DISABLED"
+    },
+    {
+      "name": "wizz-production-driver-documents",
+      "template": "driver-documents.template.json",
+      "status": "DEPLOYED_VERIFIED_EMPTY_PRIVATE"
+    },
+    {
+      "name": "wizz-production-driver-profile",
+      "template": "driver-profile-api.template.json",
+      "status": "DEPLOYED_VERIFIED_DISABLED"
+    },
+    {
+      "name": "wizz-production-driver-review",
+      "template": "driver-review-api.template.json",
+      "status": "DEPLOYED_VERIFIED_READ_ONLY"
+    },
+    {
+      "name": "wizz-production-admin-session",
+      "template": "admin-session-api.template.json",
+      "status": "DEPLOYED_VERIFIED_OWNER_ACTIVE"
+    },
+    {
+      "name": "wizz-production-admin-hosting",
+      "template": "admin-hosting.template.json",
+      "status": "ROLLBACK_COMPLETE_SUPERSEDED_BY_AMPLIFY"
+    },
+    {
+      "name": "wizz-production-admin-amplify",
+      "template": "admin-amplify.template.json",
+      "status": "DEPLOYED_VERIFIED_BOOTSTRAP_ONLY"
+    },
+    {
+      "name": "wizz-production-merchant-profile",
+      "template": "merchant-profile-api.template.json",
+      "status": "DEPLOYED_VERIFIED_DISABLED"
+    }
+  ],
+  "applicationDeploymentStatus": "NOT_PREPARED",
+  "providers": {
+    "sms": "PRODUCTION_CONFIGURATION_REQUIRED",
+    "maps": "PRODUCTION_CONFIGURATION_REQUIRED",
+    "push": "PRODUCTION_CONFIGURATION_REQUIRED",
+    "zaincash": "PRODUCTION_CONFIGURATION_REQUIRED"
+  },
+  "productionPhoneLoginActivated": false,
+  "productionPhoneLoginByApplication": {"customer": true, "driver": false, "merchant": false},
+  "adminHosting": {
+    "provider": "AMPLIFY",
+    "appId": "dy2cvcjvju3cf",
+    "branch": "production",
+    "url": "https://production.dy2cvcjvju3cf.amplifyapp.com",
+    "operationalServicesActivated": false
+  }
+}

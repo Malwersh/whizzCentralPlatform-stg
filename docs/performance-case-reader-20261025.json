@@ -1,0 +1,18 @@
+{
+  "status": "PUBLISHED_BYTE_VERIFIED",
+  "function": "staging-wizz-staff-service",
+  "hash": "D+gg5t6um/MWyWjfnzy6i+e7+RjTBJRW/fsh0LMqg6A=",
+  "changedEntries": [
+    "_discount_review/central-staff/index.js"
+  ],
+  "configPreserved": true,
+  "allOtherEntriesIdentical": true,
+  "businessWrites": 0,
+  "capturedActualModuleTests": 3,
+  "fix": "Actual bundled case reader now returns original assignment archives, prior performance decisions and performance events.",
+  "liveOrderReadOnlyCheck": {
+    "originalAssignmentsReturned": 1,
+    "caseVersion": 7,
+    "writesSent": 0
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "part": 223,
+  "status": "PUBLISHED_ACTIVE_ACTUAL_ENVIRONMENT_REGRESSION_PASSED",
+  "trigger": "User reports the same customer invoice-review failure after222",
+  "observedLiveError": "FINANCE_ROLLOUT_NOT_CONFIGURED",
+  "rootCause": "Actual live compressed configuration contains6 historical scopes; canonical helper222 retained bound5. Existing deployed quote/archive reader supports8. Tests222 used a synthetic one-scope environment and missed this mismatch.",
+  "correction": "Set canonical archival reader bound8, matching already deployed contract, preserve exact scope validation/hash/stage/account/driver pins and general release gates. No historical scope created, removed, edited or freshly admitted by this change.",
+  "publication": "checkout-history-publication-223.json",
+  "verification": {
+    "exactLiveConfig": "Captured old helper reproduces503 using unchanged Lambda environment with runtime-injected AWS_REGION; corrected helper validates same6 scopes and admits unrelated synthetic normal branch/customer under existing general release; negative hash/region/stage and general-OFF scope restrictions retained. No I/O.",
+    "actualCapturedCheckoutEntry": "Five complete local preview/commit/replay cases rerun with exact captured live financial environment instead of synthetic rollout config. All passed.",
+    "rolloutUnitCases": 21,
+    "walletSuiteCases": 1146,
+    "typescriptBuild": "Passed",
+    "sourceSynchronization": "Generated central runtime consumers and customer quote-runtime financeRollout match canonical8; sync checks passed. No other live function updated.",
+    "publisherGuard": "Publisher222 now runs the actual-entry cases with the captured deployment environment as a precondition.",
+    "realCustomerOrderPerformedByAgent": false,
+    "positiveAuthenticatedLiveHttpAcceptance": "Pending user retry; no customer credentials extracted or fabricated."
+  },
+  "financialDataWrites": false,
+  "environmentAndIamChanged": false,
+  "customerBuild": 212,
+  "clientUpdateRequired": false,
+  "supersedes": "222 live-configuration compatibility claim; preserves its cart, UI and full-cash entry repair",
+  "sourceSha256": {
+    "backend/wallet-service/src/financeRollout.ts": "ecc0aa67e9cd07bd0c53b9727233e711f104e8903f3cdd2011e73448966cc6e3",
+    "backend/shared/checkout-finance-runtime-222.js": "e9556ccba66635cf058cc99f4e98bb4541571033f4478e58d779279f7343d9ff",
+    "backend/wallet-service/test/finance-rollout.test.cjs": "c1f50bb7a54564805284c77070e46860e7ac4d1965fbac88becfe2f467130bea",
+    "scripts/test-checkout-live-environment-223.cjs": "6c3f105aeccf79d3fa9b729a8154634c46e6cd0d5866c2f4faecdad0c7967823",
+    "scripts/test-checkout-entry-222.cjs": "7e60ecac1adfa0a54c3b62295e5686c9a8b9f1e8c1fdb3d0c355704d108677e2",
+    "scripts/publish-checkout-history-223.py": "7ad180853cbb5f1780162843146aedab2ad4ece3e27247293e1e87e3bca8f945",
+    "scripts/publish-checkout-entry-222.py": "2f7facfa40a4333931f681c7fde79f0625a26b73639c343bf3ed5b7f2d8e3678"
+  }
+}

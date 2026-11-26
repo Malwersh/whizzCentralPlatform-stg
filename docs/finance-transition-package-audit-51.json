@@ -1,0 +1,62 @@
+{
+  "readOnly": true,
+  "activationPerformed": false,
+  "packages": [
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "codeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+      "sourceSha256": "85644a37bd9064803977571eb0101c78eec9953a64729819f184f662ebde0bbb",
+      "sourceMarkers": {
+        "dispatch_offer_closed": false,
+        "DISPATCH_RESPONSE_NOTIFICATIONS_MODE": false,
+        "codNoticeAllowed": true,
+        "DELIVERY_QUOTE_MODE": false,
+        "COMMERCIAL_PRICING_MODE": false,
+        "commercial-order-router": false,
+        "legacy-order-policy": false
+      },
+      "relevantModes": {
+        "DISPATCH_RESPONSE_NOTIFICATIONS_MODE": "ABSENT_DEFAULT_REQUIRES_SOURCE_CHECK",
+        "FINANCIAL_COD_NOTIFICATIONS_MODE": "ABSENT_DEFAULT_REQUIRES_SOURCE_CHECK",
+        "DELIVERY_QUOTE_MODE": "ABSENT_DEFAULT_REQUIRES_SOURCE_CHECK",
+        "COMMERCIAL_PRICING_MODE": "ABSENT_DEFAULT_REQUIRES_SOURCE_CHECK"
+      },
+      "localNotificationWorkerMatches": false
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "blAgb1fOElFm+nHCTIH7ggEUOeI6tyH12G6b1tyLmK4=",
+      "sourceSha256": "ce27c821404d1a5ba4278cc6b50aabf20767c6c856c987eb7830b926eab695a5",
+      "sourceMarkers": {
+        "dispatch_offer_closed": false,
+        "DISPATCH_RESPONSE_NOTIFICATIONS_MODE": false,
+        "codNoticeAllowed": false,
+        "DELIVERY_QUOTE_MODE": false,
+        "COMMERCIAL_PRICING_MODE": false,
+        "commercial-order-router": true,
+        "legacy-order-policy": true
+      },
+      "relevantModes": {
+        "DISPATCH_RESPONSE_NOTIFICATIONS_MODE": "ABSENT_DEFAULT_REQUIRES_SOURCE_CHECK",
+        "FINANCIAL_COD_NOTIFICATIONS_MODE": "ABSENT_DEFAULT_REQUIRES_SOURCE_CHECK",
+        "DELIVERY_QUOTE_MODE": "ABSENT_DEFAULT_REQUIRES_SOURCE_CHECK",
+        "COMMERCIAL_PRICING_MODE": "ABSENT_DEFAULT_REQUIRES_SOURCE_CHECK"
+      },
+      "localNotificationWorkerMatches": null,
+      "comparisonToPart28PrimarySource": {
+        "recordedSourceSha256": "3243005ca6e3c2ac5eb744bd26edf6bff25f7d3f1ef47ccd2bf5020bceccde47",
+        "sourceUnchanged": false,
+        "diffLines": 286,
+        "observedChanges": [
+          "Live source resolves identity and discounts through shared/offer-context instead of the prior inline discount/JWT decoding path.",
+          "Live default delivery fee now uses nullish coalescing, preserving explicit zero.",
+          "Commercial router and legacy status-policy references are still present."
+        ],
+        "requiresMergeReviewBeforeActivation": true
+      }
+    }
+  ],
+  "limits": [
+    "Marker presence is wiring evidence only; it does not establish complete behavioral coverage."
+  ]
+}

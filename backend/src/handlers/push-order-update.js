@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, QueryCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, QueryCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
 
 const { getMessaging } = require('../utils/firebase');
 const { ok, badRequest, unauthorized, serverError, corsHeaders } = require('../utils/http');
@@ -62,6 +62,32 @@ function statusBody({ orderNumber, businessName }) {
 }
 
 exports.sendOrderUpdate = async (event) => {
+  // IAM-only asynchronous invocation; public HTTP envelopes cannot select this path.
+  if (event.source === 'wizz.order-activity-stream' && event.schemaVersion === 1 &&
+      typeof event.orderId === 'string' && !event.httpMethod && !event.requestContext) {
+    const {Item: order} = await dynamodb.send(new GetCommand({
+      TableName: 'WizzOrders', Key: {PK:'ORDER#'+event.orderId, SK:'META'}, ConsistentRead:true,
+    }));
+    if (!order || order.orderId !== event.orderId || order.isDeleted || order.deletedAt || order.deletionRequestId) return {skipped:true};
+    const inbox = require('../utils/customer-inbox');
+    const recipient = await inbox.subject(dynamodb, order.userId || order.customerId, order.userSub);
+    if (recipient) await inbox.record(dynamodb, {
+      subjectId:recipient,eventKey:`${order.orderId}:${order.status}:${order.updatedAt || order.createdAt}`,
+      type:'order_update',title:statusTitle(order.status),body:statusBody({orderNumber:order.orderNumber || order.orderId,businessName:order.businessName}),
+      orderId:order.orderId,orderNumber:order.orderNumber || order.orderId,
+    });
+    if(event.cancellationChange){
+      const notice=await require('./order-cancellation-notice').send(order,event.cancellationChange,
+        async body=>{const [push,socket]=await Promise.all([require('./push-merchant-order').sendMerchantOrder({headers:{'x-internal-key':INTERNAL_API_KEY},body:JSON.stringify(body)}),require('./merchant-cancellation-socket-437').send(dynamodb,body)]);console.log(JSON.stringify({metric:'MerchantCancellationSocket',orderId:body.orderId,...socket}));return push;});
+      console.log(JSON.stringify({metric:'MerchantCancellationDelivery',orderId:order.orderId,...notice}));
+    }
+    const result = await require('./live-activity-push').pushForOrder(order.orderId,
+      require('./order-arrival-content').content(order),
+      require('./live-activity-order-access').terminal(order.status)?'end':'update');
+    console.log(JSON.stringify({metric:'OrderActivityDelivery',orderId:order.orderId,status:order.status,tokensAttempted:result.tokensAttempted,results:result.results}));
+    if (result.results.some(r=>!r.success && r.error!==410)) throw Error('ORDER_ACTIVITY_DELIVERY_RETRY');
+    return result;
+  }
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -86,28 +112,63 @@ exports.sendOrderUpdate = async (event) => {
     if (!userId) return badRequest('Missing userId');
     if (!orderId) return badRequest('Missing orderId');
 
+    // Background Live Activity updates must not depend on an FCM token or an
+    // open app. Use the committed order, never the notification hint's status.
+    if (process.env.ORDER_LIVE_ACTIVITY_UPDATES === 'REQUIRED') {
+      try {
+        const {Item: order} = await dynamodb.send(new GetCommand({
+          TableName: 'WizzOrders', Key: {PK: 'ORDER#'+orderId, SK: 'META'}, ConsistentRead: true,
+        }));
+        if (order && order.orderId === orderId && order.isDeleted !== true && !order.deletedAt && !order.deletionRequestId) {
+          const {content}=require('./order-arrival-content');
+          const {terminal}=require('./live-activity-order-access');
+          await require('./live-activity-push').pushForOrder(orderId,content(order),terminal(order.status)?'end':'update');
+        }
+      } catch (_) {
+        // Preserve the existing FCM path. A dedicated metric exposes failures.
+        console.warn(JSON.stringify({metric:'LiveActivityOrderUpdateFailed',count:1}));
+      }
+    }
+
+    const canonical=(await dynamodb.send(new GetCommand({TableName:'WizzOrders',Key:{PK:'ORDER#'+orderId,SK:'META'},ConsistentRead:true}))).Item;
+    const owner=canonical?.userId??canonical?.customerId;
+    const tracking=canonical&&owner===userId&&!canonical.isDeleted&&!canonical.deletedAt&&!canonical.deletionRequestId?{...require('./order-arrival-content').content(canonical),orderId,updatedAt:canonical.updatedAt??canonical.createdAt}:null;
+    const customerPreferences = require('./customer-notification-preferences-448');
+    const alertsEnabled = customerPreferences.allowed(await customerPreferences.read(dynamodb, userId), 'order');
+    const inbox = require('../utils/customer-inbox');
+    const inboxSubject = tracking ? await inbox.subject(dynamodb, userId, canonical.userSub) : null;
+    const eventId = inboxSubject ? await inbox.record(dynamodb, {
+      subjectId: inboxSubject, eventKey: `${orderId}:${canonical.status}:${canonical.updatedAt || canonical.createdAt}`,
+      type: 'order_update', title: statusTitle(canonical.status),
+      body: statusBody({orderNumber: canonical.orderNumber || orderNumber || orderId, businessName: canonical.businessName || businessName}),
+      orderId, orderNumber: canonical.orderNumber || orderNumber || orderId,
+    }) : null;
     const tokensResp = await dynamodb.send(
       new QueryCommand({
         TableName: TOKENS_TABLE,
         IndexName: 'SubjectIdIndex',
         KeyConditionExpression: 'subjectId = :sid',
-        ExpressionAttributeValues: { ':sid': userId }
+        ExpressionAttributeValues: { ':sid': inboxSubject || userId }
       })
     );
 
-    const tokens = Array.from(new Set((tokensResp.Items || []).map((it) => it.token).filter(Boolean)));
+    const tokens = Array.from(new Set((tokensResp.Items || []).filter(it => it.app === 'user').map((it) => it.token).filter(Boolean)));
 
     if (tokens.length === 0) {
       return ok({ success: false, error: 'No tokens registered for userId', userId, tokensCount: 0 });
     }
 
-    const title = statusTitle(status);
+    const title = statusTitle(canonical?.status || status);
     const bodyText = statusBody({
       orderNumber: orderNumber || orderId,
       businessName: businessName || ''
     });
 
     const data = toStringMap({
+      title,
+      body: bodyText,
+      eventId,
+      subjectId: inboxSubject || userId,
       type: 'order_update',
       action: 'order_status_update',
       userId,
@@ -151,14 +212,20 @@ exports.sendOrderUpdate = async (event) => {
       }
     };
 
-    const result = await messaging.sendEachForMulticast(multicastMessage);
+    const androidTokens=new Set((tokensResp.Items||[]).filter(it=>it.app==='user'&&it.platform==='android'&&it.orderTrackingVersion===1).map(it=>it.token));
+    const ordered=[],result={responses:[],successCount:0,failureCount:0};
+    for(const android of [false,true]){const selected=tokens.filter(t=>androidTokens.has(t)===android);if(!selected.length)continue;let message={...multicastMessage,tokens:selected};
+      if(android&&tracking){message={tokens:selected,data:toStringMap({...data,tracking}),android:{collapseKey:collapseId,priority:'high',ttl:3600000}};}
+      if(!alertsEnabled) message=customerPreferences.withoutAlert(message);
+      const sent=await messaging.sendEachForMulticast(message);ordered.push(...selected);result.responses.push(...sent.responses);result.successCount+=sent.successCount;result.failureCount+=sent.failureCount;
+    }
 
     const failures = [];
     result.responses.forEach((r, i) => {
       if (!r.success) {
         const err = r.error;
         failures.push({
-          token: tokens[i],
+          token: ordered[i],
           code: err?.code,
           errorInfoCode: err?.errorInfo?.code,
           errorInfoMessage: err?.errorInfo?.message,

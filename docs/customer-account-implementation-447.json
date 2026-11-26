@@ -1,0 +1,41 @@
+{
+  "id": 447,
+  "status": "in_progress",
+  "plan": "main-plan-all-apps-priority-review-2026-10-24.json#customerAccountImplementation447",
+  "completed": [
+    "Staging profile reader validates Cognito access token, owner, lifecycle and conflicting binding",
+    "No full event or token logging in profile reader",
+    "Returns saved preference fields with profile",
+    "Frontend fresh access tokens, request timeout and response account check",
+    "Account screen clears profile across identity change and reloads after personal/phone edit without polling",
+    "Successful personal name update synchronizes session name",
+    "Visible retry for profile load failure"
+  ],
+  "validation": {
+    "backendTests": 9,
+    "frontendRegressionTests": 20,
+    "analyzer": "No issues in changed account/service files",
+    "liveAnonymousRead": 401,
+    "liveInvalidTokenRead": 401
+  },
+  "deployment": {
+    "function": "WizzUser-GetUserProfile-staging",
+    "script": "backend/scripts/publish-account-profile-447.py",
+    "codeSha256": "HcDIlsnfQhCIJsr4SGVRedy/5kdVkYJ8ZjJ2c2U673o=",
+    "iamChanges": false,
+    "tableMutations": false
+  },
+  "pending": [
+    "Authenticated owner live/device check",
+    "Install updated customer app",
+    "Real notification preference persistence and delivery enforcement",
+    "Replace country simulation and misleading language behavior",
+    "Wallet wording, guest navigation and scoped support entry",
+    "Full non-destructive regression listed in main plan"
+  ],
+  "notes": [
+    "Existing uncommitted application work preserved",
+    "No financial records or customer profiles changed by verification",
+    "Frontend changes are local; no claim of device installation"
+  ]
+}

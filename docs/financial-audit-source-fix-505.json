@@ -1,0 +1,16 @@
+{
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED",
+  "problem": "Shared audit table operational events incorrectly shown as wallet/payment records",
+  "changes": [
+    "Financial action family allowlist excludes cancellation/SLA and merchant response events",
+    "Legacy references merged from existing order/payout/transaction fields without inventing missing values",
+    "Missing before/after/reference fields displayed as undocumented instead of null",
+    "Arabic labels for common financial actions"
+  ],
+  "tests": 14,
+  "historicalRecordsModified": false,
+  "financialMutationsPerformed": false,
+  "remaining": "Financial families outside the explicit classifier must be reviewed and added before inclusion; no claim of accounting completeness",
+  "hostingJob": "263",
+  "codeSha256": "WeX9yO4FV8NYDg2uVAQpXTTqZv1HYiA4KKwhTfYQE1E="
+}

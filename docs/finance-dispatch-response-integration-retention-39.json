@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_RESPONSE_QUEUE_CONSUMER_NOTICES_RETENTION_VERIFIED_ISOLATED",
+  "published": false,
+  "publicationReady": false,
+  "liveIAMChanged": false,
+  "liveFlagsChanged": false,
+  "livePolicyChanged": false,
+  "humanDataChanged": false,
+  "financialActivation": "OFF_UNCHANGED",
+  "notificationDelivery": "HELD",
+  "dispatchIntegrationMode": "OFF",
+  "performanceEffects": "NONE_NO_V16_SCORE_OR_TIER_IMPLEMENTATION",
+  "scope": [
+    "Existing response writer atomically adds existing Lifecycle ByDue queue row and job outbox evidence",
+    "Internal existing scheduled integration worker, independent gate, verified source response and branch/actor checks",
+    "Other-offer closure plus deterministic notice atomic, final event/queue acknowledgement resumable",
+    "Reuse existing notification sender with separate gate, live identity/deletion and expiry checks",
+    "Existing deletion eligibility, retention archive and purge extended to completed response/attempt proof and pinned Legacy receipt"
+  ],
+  "tests": {
+    "typescriptBuild": true,
+    "walletPassed": 568,
+    "accountDeletionPassed": 217,
+    "pythonPassed": 21,
+    "newWalletTests": 12,
+    "newDeletionTests": 4,
+    "codStandaloneSamBasic": true,
+    "codStandaloneSamLint": true,
+    "mainWalletLintRerun": false,
+    "templateParse": true,
+    "generatedPolicyCheck": true,
+    "legacyPolicyCheck": true,
+    "customerQuoteRuntimeCheck": true,
+    "offlineBundlesBuilt": true,
+    "whitespaceChecks": true
+  },
+  "isolatedDynamoDB": {
+    "scope": "REAL_DYNAMODB_ISOLATED_DISPATCH_RESPONSE_AND_RETENTION",
+    "applicationTablesAccessed": false,
+    "published": false,
+    "realMessagesSent": 0,
+    "humanFundsChanged": false,
+    "queryAdapter": "LOGICAL_QUERY_EMULATED_AS_SCOPED_SCAN_NOT_LIVE_GSI_PROOF",
+    "closureAndNoticeAtomicAndRetryDoesNotDuplicate": true,
+    "responseAndIntegrationQueueWrittenInSameRealTransaction": true,
+    "declineAcknowledgedWithoutClosingOtherOffers": true,
+    "recipientDeletionSuppressesNotice": true,
+    "terminalProofArchivedUnderLeaseWithoutDiscardingReceipt": true,
+    "noLedgerOrPerformanceWrites": true,
+    "tableDeleted": true
+  },
+  "bundles": {
+    "integration": {
+      "schemaVersion": 1,
+      "stage": "staging",
+      "account": "699561669180",
+      "region": "us-east-1",
+      "functionName": "staging-cod-integration",
+      "handler": "index.handler",
+      "artifact": "index.js",
+      "sha256": "7500ae35c3b30f496f79832b9b69330346f6964cf8817ba8516672314bb2999f",
+      "activation": "OFF",
+      "notificationDelivery": "HELD",
+      "scheduleEnabled": false,
+      "requiresCoordinatedDeployment": true,
+      "dispatchResponseMode": "OFF",
+      "dispatchResponseNoticeDelivery": "HELD",
+      "dispatchResponseQueue": "DISPATCH_RESPONSE_INTEGRATION",
+      "sourceQueue": {
+        "table": "staging-WalletLifecycle",
+        "index": "ByDue",
+        "partition": "COD_INTEGRATION"
+      },
+      "effects": [
+        "Atomic COD counters and audit; pinned Legacy response acknowledgements and other-offer closure notices; independent mode gates"
+      ],
+      "excludedEffects": [
+        "Wallet or ledger mutation",
+        "Hold release/capture",
+        "Driver dispatch/live-pointer changes",
+        "Customer/merchant order status push",
+        "Cancellation penalties or compensation payment"
+      ],
+      "requiredDeploymentOrder": [
+        "Review current function packages and CloudFormation ownership",
+        "Deploy/test Drivers API financial delegation before activation so legacy completion counters cannot also execute",
+        "Deploy/test notification worker with live identity/deletion read policy and mode OFF",
+        "Deploy financial writer event schema with financial flow gates OFF",
+        "Deploy integration worker with mode OFF and schedule disabled",
+        "Verify IAM, non-empty synthetic transactions, lifecycle deletion and Gateway/device behavior before coordinated activation"
+      ],
+      "blockers": [
+        "No activation approval or complete live verification",
+        "Coordinated unpublished acceptance/deletion/retention contract must ship together",
+        "Dispatch integration read/write policy on existing Jobs/Offers/Notifications/Lifecycle and notification client integration remain unverified",
+        "Incomplete historic counters keep rate unavailable",
+        "No automatic backfill of pre-schema events"
+      ]
+    },
+    "coordinator": {
+      "schemaVersion": 1,
+      "mode": "OFF",
+      "executionReady": false,
+      "financialExecutorImplemented": true,
+      "creatorAdapterImplemented": true,
+      "candidateProviderImplemented": true,
+      "legacyExecutorImplemented": true,
+      "legacyResponsesImplemented": true,
+      "legacyAcceptanceBridgeImplemented": true,
+      "responseIntegrationImplemented": true,
+      "publicationReady": false,
+      "sha256": "9240a2efb8daeed6beff27f7c22ed27379382fa27310b56bc140b3b5f0beb434",
+      "requiredLocalFiles": {
+        "WaveSystem_StartWave": [
+          "driver-selection.js",
+          "legacy-offer-contract.js"
+        ]
+      },
+      "legacyContractSha256": "5f4a6156196e0057f721db9fb7579da6e99e8f1b48666bbe9e44e27eb40536e6",
+      "selectionModuleSha256": "5ec27d40d5e9efd6b787d31b4bfbdd732d7b1c0735df4340e77b9289196469e2",
+      "destinations": [
+        "WaveSystem_CreateDispatchJob",
+        "WaveSystem_StartWave",
+        "WaveSystem_HandleWaveTimeout",
+        "WaveSystem_HandleDriverAccept",
+        "WaveSystem_HandleDriverReject"
+      ],
+      "blockers": [
+        "Legacy source price preparation, reservation bridge integration verification and coordinated live entry-point activation",
+        "Response outbox queue/IAM, retention and live verification; client notification integration",
+        "Coordinated IAM and live-package verification",
+        "Central wave editor, recovery and full behavior compatibility"
+      ]
+    },
+    "driver": {
+      "schemaVersion": 1,
+      "mode": "OFF",
+      "publicationReady": false,
+      "destination": "STAGING_DRIVER_API",
+      "file": "pinned-legacy-runtime.js",
+      "sha256": "5726d082c9a1c96214b00ddba96e82af4a0aa48b927e5e27ae011c51f0652806",
+      "requiredAssignmentRuntime": "dispatch-cycle-runtime.js with atomic DISPATCH_ACCEPTANCE marker",
+      "requiredTarget": "arn:aws:lambda:us-east-1:699561669180:function:WaveSystem_HandleDriverAccept",
+      "blockers": [
+        "Coordinated driver API and assignment Lambda bundles, live IAM and table verification",
+        "Reservation service identity/metadata and lost-response integration test",
+        "Pending/review UI; response outbox delivery/client behavior and retention live verification",
+        "Authoritative legacy units and message preparation; central policy rollout"
+      ]
+    }
+  },
+  "limitations": [
+    "No actual application tables or resources changed; no FCM, WebSocket, OTP, Cognito, Gateway or live IAM test",
+    "Push offer removal is not yet integrated and device verified; existing WebSocket type support alone is insufficient",
+    "No new performance counters, v1.6 windows, Score/Tiers or changes to ranking",
+    "No automatic backfill for prior events without new queue schema",
+    "Full METADATA/intents/waves and all unaccepted Legacy offer cleanup/retention remain incomplete",
+    "Deletion evidence uses bounded strong scans; larger-source coverage/indexing remains required",
+    "No implicit timeout fund release, financial compensation or cancellation",
+    "New response source and queue writer, consumer, notification worker, retention and scoped IAM require coordinated deployment",
+    "All source table query tests use scoped Scan emulation in one disposable table, not actual ByDue/offer-index behavior",
+    "Retention policy years unchanged; active holds and unresolved integration/review/retention hold block cleanup"
+  ],
+  "next": "Integrate push closure and resync in the driver client; authoritative Legacy price/message source; operational review UI; then live package/IAM and end-to-end verification before limited activation",
+  "sourceSha256": {
+    "backend/wallet-service/src/dispatchResponseEvent.ts": "a6fd989416a2035f125a8ef46aabffcd41c0d1cf5a2f79757f997da7774d9f3f",
+    "backend/wallet-service/src/dispatchResponseIntegration.ts": "eaad80c261128a3a1b84687185c8144b845a7199b22dba5bd0dcd8338be6d931",
+    "backend/wallet-service/src/dispatchLegacy.ts": "7ed977240bb1aec50789b6eab4cdbedc576e9027d586fbbc427f8059977d8032",
+    "backend/wallet-service/src/codIntegrationRuntime.ts": "782c6984c8d9d6fda2da70e8eeb6649973dc5ef26f20bd0b32cc5bd668dfc64b",
+    "backend/wallet-service/notification-worker/index.js": "77e7f2b78f793df1a3b57a62deb6259967f465f1ba948ba3b3fc7d842318d3c5",
+    "backend/wallet-service/cod-lifecycle.staging.json": "e40621fd66a1da9f71e87f1e987f077b07982c2d602a32f197fbaed2c9ba33e2",
+    "backend/wallet-service/template.yaml": "2027786677a4bbfb0d74f4f8435e12f73ffd0780f0449ded144e130290b99d54",
+    "backend/wallet-service/test/dispatch-response-integration.test.cjs": "deb6ec6d9e3d8bd02cbc5555ba27c2e480ca2a15050755295d621bcbd608f5b9",
+    "backend/wallet-service/test/cod-integration.test.cjs": "b8b732447cfadbe7b1ab33e71c73840c5504c735c2c0cd3fb44f655d1cc13cc0",
+    "backend/wallet-service/test/notification-worker.test.cjs": "b69c381d69459af657068ea44dd28d8125e2833b1777eda4d0d056f273ec56ef",
+    "backend/account-deletion/cod-retention.js": "5cef2e3df278b04061143eb7c6cb241074ccaa294c4a6dd464798572d6aec41f",
+    "backend/account-deletion/customer-cleanup.js": "374e8763835ad2c3245b6008e077fc476d33feb3b9eacb7a93a3a01b51db24ba",
+    "backend/account-deletion/financial-purge.js": "20d3264bf009146cc92ee026b44cb72439761d74d6deb81ecad9befc2065d778",
+    "backend/account-deletion/template.yaml": "5c7438c61ab2f8534940c7ba433b35c9bc4058ef78286fd753bb84d18896ba9f",
+    "backend/account-deletion/test/cod-retention.test.cjs": "4b6a45cfd13e5876db93cd684ec1f36e876c968c23964767dd64cea47312e71c",
+    "lambda/wave-system/template.yaml": "304b213731d0474d923755078243ca8a478763808da0aa19d629360d45328dec",
+    "scripts/build-cod-integration-runtime.cjs": "64722d9d8c02b2f99895d45b8d3822ac995e07df0d3450831f5954b5465d378a",
+    "scripts/build-dispatch-coordinator-runtime.cjs": "b18b431abd55b646cfd765edf55c3b13f7913c18963f6b6be915d8da93543fca",
+    "scripts/build-pinned-legacy-runtime.cjs": "9f9fe30dfbe206ff1cb0772b8db0ead3f01eba0189e3167db5512739be6a9b45",
+    "scripts/test-dispatch-cycle-staging.cjs": "f015f050368a2678ddaf0565f5690f9e4c647e60ccda4e2126ae48ce720c98c5",
+    "scripts/test-dispatch-response-staging.cjs": "1e8c3537cd71dc0608288b94ce6b092684ef44aa0278fc41953d6679c6ce966f"
+  }
+}

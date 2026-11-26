@@ -1,0 +1,31 @@
+{
+  "currentActivityRead": [
+    {
+      "state": "CURRENT",
+      "readyCount": 1
+    },
+    {
+      "state": "CURRENT",
+      "readyCount": 0
+    },
+    {
+      "state": "CURRENT",
+      "readyCount": 0
+    },
+    {
+      "state": "CURRENT",
+      "readyCount": 0
+    },
+    {
+      "state": "CURRENT",
+      "readyCount": 0
+    }
+  ],
+  "roleBackedPublicMapRead": {
+    "status": 200,
+    "centralPolicyVersion": 1,
+    "servicePhone": "+9647831367435",
+    "hotLegacyCountDisabled": true
+  },
+  "noBusinessDataMutated": true
+}

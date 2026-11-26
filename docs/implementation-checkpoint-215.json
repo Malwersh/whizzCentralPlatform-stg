@@ -1,0 +1,65 @@
+{
+  "part": 215,
+  "status": "PUBLISHED_ACTIVE_VERIFIED",
+  "companyName": "شركة الانطلاق الخاطف",
+  "logo": "Original supplied Wizz wordmark copied without modification",
+  "printTypes": [
+    "Period account summary",
+    "Immutable saved statement",
+    "Payout and settlement signature sheet"
+  ],
+  "operatorFields": {
+    "name": "Required user-entered print text, maximum120 characters",
+    "jobTitle": "Required user-entered print text, maximum120 characters",
+    "mutatesFinancialActor": false,
+    "persistedAsAuthorizationOrPaymentProof": false
+  },
+  "signatureBlocks": [
+    "Company authorized representative",
+    "Company stamp",
+    "Store representative name/title/signature"
+  ],
+  "issueDate": "Server-generated ISO timestamp, rendered Asia/Baghdad; no user-entered issue date",
+  "payoutPrintVerification": [
+    "Live authenticated payout -> immutable approved statement -> live payout re-read",
+    "Branch, payout ID, batch ID, digest, amount, order uniqueness and net sum",
+    "Same payout reference and consistent PAID state",
+    "No print after status changes or missing server time",
+    "PAID remains backed by existing sealed per-order proofs"
+  ],
+  "publication": {
+    "backend": "company-print-backend-publication-215.json",
+    "frontend": "company-print-page-publication-215.json",
+    "hostingJobId": "123",
+    "backendCodeSha256": "Sg87Pn0908Z7ki4Jwh2Ivff22T1uRa31eGt0EbLctP4=",
+    "hostedBytesVerified": true
+  },
+  "tests": {
+    "servicePass": 1067,
+    "serviceFail": 0,
+    "companyPayoutPrint": "PASS, including all three print types, blank operator, invalid binding/status, revocation, duplicate orders, XSS-safe free text and A4 PDF",
+    "periodRegression": "PASS",
+    "savedStatementRegression": "PASS",
+    "payoutActionsRegression": "PASS",
+    "visualPreviewInspected": true,
+    "testFinancialData": "Synthetic only, preview artifacts are not actual payment receipts"
+  },
+  "sourceSha256": {
+    "frontend/assets/brand/wizz-wordmark-blue.png": "e93686fe99bd64fd86e36d36cb28add6814cdcd68eefbe9a7b6985b9ba96ff1c",
+    "frontend/finance-print-company.js": "6b94b4a0c16abaf1b0acefc3ff9226c0ff6136a688d623008a60aef4cdeb1ba0",
+    "frontend/merchant-payout-print.js": "58a2b2fb0f4587cff49d0a5e80da7dedfb97c7520bbd2a4ea8766e0312204cf0",
+    "frontend/merchant-period-print.js": "f92a304488df555b5bc0bb2cdc73c80a29c9034d0e3441335c97a71b986aac7d",
+    "frontend/settlement-statement-details.js": "ff3ef62250eb2311e3df7eaa1e211a5ad3224f894f3d3d50b2f59b5dd5dfa40f",
+    "frontend/merchant-payouts.js": "8047faa55e566e0a3b4d08e6c0dfad90753a2f0cc8711a08cfb0cbd8ed5d769a",
+    "frontend/settlement-statements.js": "cc63b24707a221766d6a7865a87dcfd68382e9d5846416c99808344b3b41be51",
+    "frontend/settlement-orders.js": "ce77ddf9696ae38888004620b937d539ab9b7ef548bb1070fcbe8dfb21c6f11d",
+    "frontend/pages/finance.html": "2100a39baa40ef36c8e270f7f88375b45014e44f037d26f30b064aad6863d708",
+    "backend/wallet-service/src/merchantPayout.ts": "2662c5d929adf23a378db4d7a89e0281a06d892804a58deffbab1869052a548b",
+    "backend/staff-service/settlement-runtime.js": "fffe49f7bddf353eed5c3e5c7f4df23d06612fee36638f74a44f76dd64a9b633"
+  },
+  "noFinancialMutationsOrOtp": true,
+  "iamAndEnvironmentPreserved": true,
+  "newStorageOrHumanGrants": false,
+  "existingStatementScopeLimit": "Printed payout sheet covers the saved selected statement. It does not certify whole-period aggregation; closure213/214 limitations remain open.",
+  "previousCheckpoint": "implementation-checkpoint-214.json"
+}

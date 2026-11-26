@@ -1,0 +1,34 @@
+{
+  "part": 98,
+  "status": "SUPERSEDED_BY_DEPLOYED_PART_99",
+  "githubReview": {
+    "userBranch": "feature/ghaythalijarad/bootstrap",
+    "userCommit": "89bb6204c7e8792930b5b8d041992d33d322f16d",
+    "platformCommit": "f80f49a54fb2fb56abbb6945c3f690b350037804",
+    "result": "Native ActivityKit extension, Flutter channels and token registration/push handlers exist; selective integration preserves colleague code and host iOS 15 support."
+  },
+  "liveReadOnlyFindings": {
+    "pushSendOrderUpdateReferencesLiveActivity": false,
+    "registerRoleOrderAndProfileReadAndConditionCheck": "implicitDeny",
+    "publicRegistrationOwnershipChecks": "missing in captured deployment; corrected locally"
+  },
+  "verification": {
+    "iosSimulatorBuild": "PASS; Runner.app/PlugIns/WizUserLiveActivityExtension.appex exists",
+    "merchantResponseAndResumeTests": 10,
+    "configurationAndPolicyTests": 7,
+    "liveActivityOwnershipAndRetentionTests": 29,
+    "merchantAttentionWidgetTests": 1,
+    "customerArrivalWidgetTests": 3,
+    "typescriptCompile": "PASS"
+  },
+  "gates": {
+    "ORDER_LIVE_ACTIVITY_ENABLED": "false by default",
+    "ORDER_LIVE_ACTIVITY_UPDATES": "not activated",
+    "MERCHANT_RESPONSE_MODE": "new paths require REQUIRED; not activated by this work"
+  },
+  "remaining": [
+    "Physical Live Activity verification awaits Apple team signing access. See Part 99 for deployed components and device evidence."
+  ],
+  "financialSafety": "No wallet funding, ledger correction, new live order, financial integration retry, IAM mutation or Lambda publication performed during this local implementation phase.",
+  "followUp": "finance-reception-notification-staging-99.json"
+}

@@ -1,0 +1,29 @@
+{
+  "feature": "trackingSimulation439",
+  "date": "2026-11-05",
+  "status": "OFFLINE_SIMULATION_VERIFIED_DRIVER404_INSTALLED_LAUNCHED",
+  "tests": {
+    "driver": 4,
+    "customer": 4,
+    "backend": 6
+  },
+  "validated": [
+    "Driver GPS stream movement, throttling, stationary heartbeat and cancellation of publication after delivery",
+    "Native AppleSettings explicitly enable background updates and prevent automatic GPS pause",
+    "Customer marker interpolates between simulated points, ignores foreign driver and older sample, clears after delivery",
+    "Worker simulated canonical-read flow discovers owner connection and carries road route; no publication before pickup or after terminal status; cancellation during route resolution prevents delivery",
+    "Staging fixed driver override avoids physical GPS and permission lookup; existing identity/nonproduction guards verified"
+  ],
+  "correction": "Build404 uses config/staging-test-driver.json. Trip tracking now respects same scoped staging fixed-location mode as home/search; no American physical GPS published for the Iraqi trial account.",
+  "testPosition": {
+    "latitude": 31.913292,
+    "longitude": 44.476014,
+    "driverId": "34d8e408-1021-7076-6055-7325644f97cb"
+  },
+  "limits": [
+    "Tests use injected GPS streams, maps and cloud clients; not a network end-to-end moving order test",
+    "No actual locked-iPhone background delivery claimed; static test profile is intentionally stationary",
+    "Real background GPS cannot be proven solely by unit tests; keep physical moving/locked-screen test pending"
+  ],
+  "dataSafety": "No synthetic live orders, production GPS writes, offers, wallet or settlement changes. No new backend deployment needed for test additions."
+}

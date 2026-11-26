@@ -1,0 +1,15 @@
+{
+  "part": 183,
+  "capturedAt": "2026-10-19T15:32:32.819596+00:00",
+  "retiredScopeId": "fattoush-funded-178",
+  "expiredAt": "2026-10-19T15:06:01.455Z",
+  "orderId": "4b17bc64-7d96-510b-832d-714ef37933fa",
+  "orderAbsent": true,
+  "cashHoldsAbsent": true,
+  "campaignReservationAbsent": true,
+  "dispatchJobAbsent": true,
+  "retirementAuthorizedOnlyForThisUnadmittedScope": true,
+  "admittedHistoricalScopesMustRemain": true,
+  "freshAttemptPrepared": true,
+  "activated": false
+}

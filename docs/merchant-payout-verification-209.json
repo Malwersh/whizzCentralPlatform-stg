@@ -1,0 +1,74 @@
+{
+  "part": 209,
+  "status": "VERIFIED",
+  "functions": [
+    {
+      "name": "staging-wizz-staff-service",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true
+    },
+    {
+      "name": "staging-wizz-wallet-service",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true
+    },
+    {
+      "name": "staging-wizz-wallet-lifecycle",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true
+    }
+  ],
+  "policiesMatch": true,
+  "negativeAuthSmokes": [
+    {
+      "function": "staging-wizz-staff-service",
+      "expected": 401,
+      "actual": 401,
+      "tokenOrOrderOrPayoutIdSupplied": false
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "expected": 401,
+      "actual": 401,
+      "tokenOrOrderOrPayoutIdSupplied": false
+    }
+  ],
+  "methods": [
+    "CASH",
+    "ZAIN_CASH"
+  ],
+  "manualExternalExecutionOnly": true,
+  "bankEnabled": false,
+  "existingApprovalLimitsPreserved": true,
+  "secondFinanceEmployeeRequired": false,
+  "ownerReceiptAndFinalReconciliationRequired": true,
+  "payoutOrOtpRequested": false,
+  "moneyMoved": false
+}

@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-11",
+  "batch": 513,
+  "repository": "whizzCentralPlatform-stg",
+  "status": "REVIEW_HANDOFF",
+  "integrationBranch": "integration/team-sync-20261030",
+  "reviewBranch": "feature/malwersh/bootstrap",
+  "targetBranch": "staging-main",
+  "changes": [
+    "ضبط الواجهات والتصنيفات وإصلاح التحديثات والإلغاء والإشعارات",
+    "التحويل وبوابة الشحن وسجل التدقيق والمطابقة المالية",
+    "إشعارات قرار الشكوى الذرية والتحقق من صاحبها قبل الإرسال",
+    "الخطة الرئيسية وحالة النشر والاختبارات المؤجلة"
+  ],
+  "pullBeforeApproval": [
+    "git fetch origin",
+    "git switch integration/team-sync-20261030",
+    "git pull --ff-only origin integration/team-sync-20261030"
+  ],
+  "pullAfterApprovalAndMerge": [
+    "git fetch origin",
+    "git switch staging-main",
+    "git pull --ff-only origin staging-main"
+  ],
+  "notes": [
+    "Includes application source, design widgets, assets and tests; secrets, local credentials and build artifacts are excluded.",
+    "Do not merge review/app-updates-20261106 wholesale: support changes were selectively adapted in batch462; held pricing/auth/native differences remain held.",
+    "Cloud deployment and live table data are separate from Git. Existing rollout records in docs identify published staging services.",
+    "No new real financial transactions were performed for this handoff.",
+    "Protected staging-main awaits required colleague review. No force push, branch deletion or approval bypass."
+  ],
+  "verification": {
+    "customerFlutter": 131,
+    "driverFlutter": 40,
+    "merchantFlutter": 44,
+    "customerNode": 90,
+    "centralNode": 164,
+    "customerIosReleaseBuild": 450,
+    "realDeviceInstall": false,
+    "realDeviceComplaintPushTap": "pending; phone unavailable",
+    "complaintScreenAndService": 6
+  },
+  "setup": [
+    "Run flutter pub get inside frontend before building.",
+    "Merchant frontend declares .env as an asset: create it locally from frontend/.env.example; never commit keys.",
+    "Android Maps uses the existing app-specific key/signing restrictions; register the SHA-1 of the actual build certificate when needed."
+  ]
+}

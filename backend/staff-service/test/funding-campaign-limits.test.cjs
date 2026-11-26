@@ -1,0 +1,5 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),{validate}=require('../funding-campaign-limits');
+const row={type:'fixedAmount',value:500,usage_limit:100,perCustomerLimit:1};
+test('shared funding requires a global limit independently of the per-customer allowance',()=>{assert.equal(validate(row,'MERCHANT').totalUseLimit,100);for(const total of [null,undefined,0,-1,1.5,'100'])assert.throws(()=>validate({...row,usage_limit:total},'MERCHANT'),/FUNDING_TOTAL_USAGE_LIMIT_REQUIRED/);assert.throws(()=>validate({...row,usage_limit:null,perCustomerLimit:1},'MERCHANT'),/TOTAL_USAGE/);});
+test('percentage shared campaigns require a positive whole-IQD cap; customer limits remain optional',()=>{assert.equal(validate({...row,perCustomerLimit:null},'MERCHANT').perCustomerLimit,null);assert.throws(()=>validate({...row,perCustomerLimit:0},'MERCHANT'),/CUSTOMER_USAGE/);assert.throws(()=>validate({...row,type:'percentage',value:10},'MERCHANT'),/DISCOUNT_CAP/);assert.equal(validate({...row,type:'percentage',value:10,maxDiscountAmount:1000},'MERCHANT').maximumDiscountIqd,1000);});

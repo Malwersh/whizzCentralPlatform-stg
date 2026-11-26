@@ -1,0 +1,46 @@
+{
+  "release": 347,
+  "scope": "DRIVER_MAP_OUTSIDE_COVERAGE_UX_AND_ACTIVE_IOS_HANDSHAKE_WIRING",
+  "serverChanged": false,
+  "evidence": {
+    "liveReadOnlyProbe": {
+      "latitude": 41.8781,
+      "longitude": -87.6298,
+      "statusCode": 404,
+      "error": "Region not found for coordinates"
+    },
+    "cause": "MapDataService discarded the typed coverage error and home displayed the generic internet failure",
+    "coveredReadOnlyProbe": {
+      "latitude": 31.9220376,
+      "longitude": 44.4600432,
+      "statusCode": 200,
+      "success": true,
+      "region": "Al-Manathirah Center",
+      "storeCount": 5
+    }
+  },
+  "behavior": [
+    "only authoritative region-miss response maps to outside coverage; generic404/5xx are server errors",
+    "distinct session, network, server and GPS messages",
+    "bottom sheet uses current request coordinates and optional native localized city/state/country",
+    "place label failure does not change coverage; coordinates remain visible",
+    "gold button with navy text; no gold text on white",
+    "clear stale store markers and stop store status polling outside coverage",
+    "same existing region polygons determine coverage; no country hard-code or relaxed driver eligibility"
+  ],
+  "additionalCorrection": "NativeWebSocketPlugin used on iOS is compiled in AppDelegate.swift, not the duplicate NativeWebSocket.swift file. Applied Authorization header forwarding to the registered implementation. This corrects the native wiring gap left in346. Real offer acceptance remains queued.",
+  "tests": {
+    "newCoverageTests": 3,
+    "humanAcceptance": "PENDING_REAL_DEVICE_OUTSIDE_AND_INSIDE_COVERAGE; no simulated delivery or financial mutation",
+    "targetedRegressionTestsPassed": 9,
+    "analysis": "No Dart errors in changed home/map files; pre-existing warnings remain"
+  },
+  "buildStatus": {
+    "ios": "FINAL_RELEASE347_BUILT_AND_INSTALLED_ON_REAL_IPHONE",
+    "android": "DEBUG_APK_BUILD_PASSED_AFTER_TEMP_ARTIFACT_RELOCATION"
+  },
+  "next": "Install347 on real iPhone; verify outside-service notice, then continue realtime genuine-offer acceptance before M05",
+  "deviceLaunch": "Install passed; auto launch denied because phone locked. User can open app after unlocking.",
+  "driverCommit": "d58afca",
+  "installation": "Transient Apple delta-manifest error resolved by retry; final installation succeeded; app data preserved."
+}

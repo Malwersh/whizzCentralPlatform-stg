@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-23",
+  "policy": "Colleague work is the baseline; preserve compatible local discounts and Arabic UI.",
+  "colleagueHeads": {
+    "central": "831c65b",
+    "customer": "41390e0",
+    "merchant": "060494b",
+    "driver": "0c1cd1b"
+  },
+  "conflictsResolved": [
+    "central benefit administration: retained colleague form redesign, feedback, request timeout and retry identity",
+    "customer checkout: retained colleague benefit selector and merchant picker, existing scoped pending offers, item promotions and delivery benefit composition",
+    "customer order service: retained existing composition parameters and error messages; omitted absent IDs",
+    "customer tests: retained both sets of assertions",
+    "merchant editor: retained colleague Arabic reusable fields and existing photo support and financial policy guard"
+  ],
+  "verification": {
+    "centralDispatch": {
+      "passed": 17,
+      "failed": 0
+    },
+    "driverBackend": {
+      "passed": 37,
+      "failed": 0
+    },
+    "customerFlutter": {
+      "passed": 29,
+      "skipped": 1,
+      "failed": 0
+    },
+    "merchantFlutter": {
+      "passed": 6,
+      "failed": 0
+    },
+    "driverFlutter": {
+      "passed": 24,
+      "failed": 0
+    },
+    "benefitBrowserScenarios": 2,
+    "runtimeSyncChecks": 3,
+    "protectedSettlementFiles": 156,
+    "benefitLifecycleAdapters": 4,
+    "flutterAnalysis": "No errors in all three apps; existing warnings and informational lints remain."
+  },
+  "compatibilityFix": "Transparent Material ancestor inside driver cash review panels; preserves colleague visuals and financial logic.",
+  "awsChanged": false,
+  "deploymentPerformed": false,
+  "githubPushPerformed": false
+}

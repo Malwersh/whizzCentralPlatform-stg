@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-29",
+  "item": "A10",
+  "status": "AUDITED_GAP_CONFIRMED_NOT_IMPLEMENTED",
+  "testsPassed": 67,
+  "testSuites": [
+    "merchant-payout-209",
+    "merchant-settlement-batch",
+    "merchant-settlement-preview",
+    "return-continuation-264"
+  ],
+  "liveParity": {
+    "merchant-payouts.js": {
+      "exactMatch": true,
+      "sha256": "c3d558a7701939db0d0a464ed9ea8a7efd28298bae12e63c350cec4e421cfd62"
+    },
+    "settlement-runtime.js": {
+      "exactMatch": false,
+      "sha256": "b94074ed6c1088f8a6b2fca13c58cb7ca6f62dfc06c5b1cf5d5965453600802c"
+    }
+  },
+  "livePayoutFunctionParity": [
+    {
+      "function": "createMerchantPayoutService",
+      "normalizedMatch": true
+    },
+    {
+      "function": "verifyMerchantPayoutJournal",
+      "normalizedMatch": true
+    },
+    {
+      "function": "readMerchantStatementPayment",
+      "normalizedMatch": true
+    }
+  ],
+  "limits": [
+    "Full settlement runtime is not byte-equal: deployed runtime contains later delivery/cancellation and retry overlays. It must not be replaced with local artifact.",
+    "Only payout router and the three normalized payout/proof function bodies were matched in this audit; no full deployed settlement certification.",
+    "No financial data or AWS configuration was changed."
+  ],
+  "existing": [
+    "Positive payout amount required.",
+    "Per-batch payout claim and per-order paid proof prevent duplicate payout.",
+    "Saved settlement headers and lines are append-only.",
+    "Appeal review cannot falsely close with no financial change if original finding/entitlements changed.",
+    "Company accounting documents are not a substitute for branch-bound post-payout correction and settlement recovery."
+  ],
+  "missing": [
+    "Immutable correction linked to original order, case, paid payout and proof.",
+    "Approved merchant receivable/carry-forward ledger outside nonnegative operational wallet.",
+    "Subsequent-cycle application with agreement/authorization, reservation and concurrent-payout guards.",
+    "Credit adjustment payable that can be settled without paying original entitlement again.",
+    "Admin review, merchant statement visibility and explicit unresolved correction state."
+  ],
+  "launchImplementationSequence": [
+    {
+      "id": "A10.1",
+      "task": "Approve correction basis and funding/responsibility using authenticated review and original paid proof."
+    },
+    {
+      "id": "A10.2",
+      "task": "Post separate balanced immutable journal, positive adjustment payable or merchant receivable; never rewrite paid record or subtract operational wallet below zero."
+    },
+    {
+      "id": "A10.3",
+      "task": "Apply approved recoverable amount to future eligible settlements per agreement; carry remaining debt, never create negative payout."
+    },
+    {
+      "id": "A10.4",
+      "task": "Admin and merchant UI show original paid amount, later correction, recovered amount and remaining debt."
+    },
+    {
+      "id": "A10.5",
+      "task": "Test retries, concurrent corrections/payouts, multi-branch isolation, authorization changes, reversal and exactly-once recovery."
+    }
+  ],
+  "humanAcceptance": [
+    "Paid settlement then merchant credit correction, paid once in later cycle.",
+    "Paid settlement then debit larger than next settlement; zero payout and residual debt shown.",
+    "Retry or simultaneous approval does not duplicate correction/recovery.",
+    "Appeal requiring financial change stays unresolved until linked correction posts."
+  ]
+}

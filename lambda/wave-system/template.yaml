@@ -36,6 +36,12 @@ Globals:
       Variables:
         STAGE: !Ref Environment
 
+Conditions:
+  IsPinnedDispatchStaging: !And
+    - !Equals [!Ref Environment, staging]
+    - !Equals [!Ref AWS::Region, us-east-1]
+    - !Equals [!Ref AWS::AccountId, '699561669180']
+
 Resources:
   DispatchJobsTable:
     Type: AWS::DynamoDB::Table
@@ -102,6 +108,15 @@ Resources:
       Handler: index.handler
       Environment:
         Variables:
+          DISPATCH_LEGACY_HOST_MODE: 'OFF'
+          DISPATCH_RESTART_START_MODE: 'OFF'
+          DISPATCH_HOST_ACCOUNT_ID: '699561669180'
+          DISPATCH_HOST_RULE_ARN: ''
+          DELIVERY_OPERATIONS_MODE: 'CENTRAL'
+          FINANCIAL_DISPATCH_MODE: 'OFF'
+          FINANCIAL_OFFER_TTL_SECONDS: '60'
+          FINANCIAL_POSITION_MAX_AGE_SECONDS: '120'
+          FINANCIAL_REASSIGNMENT_WINDOW_SECONDS: '300'
           DRIVERS_TABLE:
             Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriversTableName
           DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
@@ -182,10 +197,20 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: WaveSystem_HandleWaveTimeout
+      Timeout: !If [IsPinnedDispatchStaging, 60, 30]
       CodeUri: ../WaveSystem_HandleWaveTimeout/
       Handler: index.handler
       Environment:
         Variables:
+          DISPATCH_LEGACY_HOST_MODE: 'OFF'
+          DISPATCH_RESTART_START_MODE: 'OFF'
+          DISPATCH_HOST_ACCOUNT_ID: '699561669180'
+          DISPATCH_HOST_RULE_ARN: 'arn:aws:events:us-east-1:699561669180:rule/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1R1fpHnuzYeM'
+          DELIVERY_OPERATIONS_MODE: 'CENTRAL'
+          FINANCIAL_DISPATCH_MODE: 'OFF'
+          FINANCIAL_OFFER_TTL_SECONDS: '60'
+          FINANCIAL_POSITION_MAX_AGE_SECONDS: '120'
+          FINANCIAL_REASSIGNMENT_WINDOW_SECONDS: '300'
           DISPATCH_JOBS_TABLE: !Ref DispatchJobsTable
           WAVE_OFFERS_TABLE: !Ref WaveOffersTable
           START_WAVE_LAMBDA: !Ref WaveSystemStartWaveFunction
@@ -193,6 +218,60 @@ Resources:
             Fn::ImportValue: !Sub WizzUser-backend-${Environment}-WebSocketUrl
           MAX_WAVES: '5'
       Policies:
+        - !If
+          - IsPinnedDispatchStaging
+          - Statement:
+              - Effect: Allow
+                Action:
+                - dynamodb:GetItem
+                - dynamodb:ConditionCheckItem
+                Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses
+                - arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion
+              - Effect: Allow
+                Action: dynamodb:Query
+                Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging
+              - Effect: Allow
+                Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging
+              - Effect: Allow
+                Action: dynamodb:UpdateItem
+                Resource:
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders
+                - arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging
+              - Effect: Allow
+                Action:
+                - dynamodb:GetItem
+                - dynamodb:ConditionCheckItem
+                Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff
+                Condition:
+                  ForAllValues:StringLike:
+                    dynamodb:LeadingKeys:
+                    - DISPATCH_REVIEW#*
+                    - OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS
+              - Effect: Allow
+                Action: dynamodb:Scan
+                Resource: arn:aws:dynamodb:us-east-1:699561669180:table/WizzDispatchJobs_staging
+                Condition:
+                  StringEquals:
+                    dynamodb:Select: SPECIFIC_ATTRIBUTES
+                  ForAllValues:StringEquals:
+                    dynamodb:Attributes:
+                    - orderId
+                    - SK
+                    - kind
+                    - state
+                    - status
+                    - dispatchCycle
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: arn:aws:lambda:us-east-1:699561669180:function:WaveSystem_StartWave
+          - !Ref AWS::NoValue
         - DynamoDBCrudPolicy:
             TableName: !Ref DispatchJobsTable
         - DynamoDBCrudPolicy:
@@ -231,6 +310,16 @@ Resources:
           WEBSOCKET_API_ENDPOINT:
             Fn::ImportValue: !Sub WizzUser-backend-${Environment}-WebSocketUrl
       Policies:
+        - !If
+          - IsPinnedDispatchStaging
+          - Statement:
+              Effect: Allow
+              Action: dynamodb:PutItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['DR:*:EVENT']
+          - !Ref AWS::NoValue
         - DynamoDBReadPolicy:
             TableName:
               Fn::ImportValue: !Sub Drivers-Tables-${Environment}-DriversTableName
@@ -269,6 +358,16 @@ Resources:
           ORDERS_TABLE:
             Fn::ImportValue: !Sub WizzOrders-Table-${Environment}-TableName
       Policies:
+        - !If
+          - IsPinnedDispatchStaging
+          - Statement:
+              Effect: Allow
+              Action: dynamodb:PutItem
+              Resource: arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle
+              Condition:
+                ForAllValues:StringLike:
+                  dynamodb:LeadingKeys: ['DR:*:EVENT']
+          - !Ref AWS::NoValue
         - DynamoDBCrudPolicy:
             TableName: !Ref DispatchJobsTable
         - DynamoDBCrudPolicy:

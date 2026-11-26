@@ -1,0 +1,132 @@
+{
+  "phase": 461,
+  "status": "AUDIT_ONLY_NO_INTEGRATION",
+  "date": "2026-11-08",
+  "scope": "Compare actively routed support implementations with frozen colleague review/app-updates-20261106; existing implementation remains authoritative.",
+  "matrix": [
+    {
+      "area": "Customer",
+      "active": "frontend/lib/screens/customer_support_chat_screen.dart -> services/customer_support_chat.dart",
+      "present": [
+        "Authenticated order complaint chat",
+        "Server handshake before connected",
+        "Correlated ACK and retry retaining clientMessageId",
+        "Session scoped history pagination and request correlation",
+        "Session restore and generation guards"
+      ],
+      "gaps": [
+        "Image attachment currently rendered as descriptive text only; no private image send/view UI",
+        "Composer draft not persisted",
+        "General account support entry absent in reviewed account screen"
+      ],
+      "adapt": [
+        "Private attachment picker/viewer using existing complaint identity and session",
+        "Owner and endpoint scoped secure session/draft persistence"
+      ],
+      "preserve": [
+        "Complaint orderId and fixedSessionId binding",
+        "Existing SessionService and account UI"
+      ]
+    },
+    {
+      "area": "Driver",
+      "active": "frontend/lib/features/more/screens/live_chat_screen.dart -> services/authenticated_support_chat.dart",
+      "present": [
+        "Existing authenticated driver identity",
+        "Server handshake",
+        "ACK correlated retry",
+        "Paginated history",
+        "Session closure and generation guards"
+      ],
+      "gaps": [
+        "No attachment flow in active service/UI",
+        "Draft lost when screen disposed",
+        "Session storage key owner scoped but not endpoint scoped"
+      ],
+      "adapt": [
+        "Private images",
+        "Secure owner/endpoint scoped draft and session storage",
+        "Review sign-out invalidation independently"
+      ],
+      "preserve": [
+        "DriverAuthHelper",
+        "Operational DRIVER_WS_URL and offers connection",
+        "Current More/performance/wallet/navigation"
+      ]
+    },
+    {
+      "area": "Merchant",
+      "active": "frontend/lib/screens/support_chat_screen.dart -> services/support_chat_service.dart singleton; floating widget uses same",
+      "present": [
+        "Topic selection",
+        "Text optimistic UI",
+        "WhizzMe then human escalation",
+        "In-process conversation reuse"
+      ],
+      "gaps": [
+        "Image upload points to http://localhost:3000/support/upload-image at line352",
+        "Human connection marks connected before server acknowledgement at line850+",
+        "Human connect sends caller metadata without authenticated token in this service",
+        "No clientMessageId/ACK or history pagination handling in active service",
+        "Singleton lifecycle requires identity/branch change isolation"
+      ],
+      "adapt": [
+        "Chat-only authenticated transport using existing valid auth provider",
+        "Server acknowledged idempotent send and paginated history",
+        "Private authenticated image flow",
+        "Identity and branch lifecycle isolation"
+      ],
+      "preserve": [
+        "Existing branch authorization",
+        "General authentication and all financial flows"
+      ]
+    },
+    {
+      "area": "Central",
+      "present": [
+        "Support frontend already includes private attachment preview module",
+        "Prior runtime evidence documents verified JWT role/expiry/ownership checks"
+      ],
+      "gaps": [
+        "Checked-in handlers and deployed runtime have multiple paths; cannot replace a handler based only on filename",
+        "Current live runtime and attachment routes not reverified in this offline audit"
+      ],
+      "adapt": [
+        "Only missing receipt/attachment contract changes after mapping actual gateway functions"
+      ],
+      "preserve": [
+        "Existing complaint/order scope",
+        "Existing auth and audit",
+        "All pricing/ledger/settlement flows"
+      ]
+    }
+  ],
+  "validation": {
+    "currentTestsPassed": 28,
+    "customer": 8,
+    "driver": 8,
+    "merchantCategoryUiOnly": 10,
+    "centralWebsocketAuth": 2,
+    "colleagueIsolatedTestsPreviouslyPassed": 231,
+    "limitations": [
+      "No live chat exchange or attachment upload performed",
+      "No proposed integration tested because none implemented",
+      "Passing source tests does not prove current staging route compatibility",
+      "Server rejection of unauthenticated legacy merchant connection is not proof of unauthorized access"
+    ]
+  },
+  "exclude": [
+    "Global driver websocket endpoint replacement",
+    "Customer pricing and wallet transfer changes",
+    "Global merchant authentication rewrite",
+    "Native signing, release, theme and app-name changes",
+    "Merchant statement export channel mismatch"
+  ],
+  "recommendedOrder": [
+    "Map active deployed support gateway/functions and existing attachment/receipt contracts",
+    "Fix merchant chat adapter first without replacing general authentication",
+    "Add private attachment UI and isolated drafts to existing customer/driver services",
+    "Run integration tests across owner changes, reconnect, lost ACK, image authorization and support staff reply"
+  ],
+  "changes": "Documentation only; no source integration, merge, deployment or business data mutation."
+}

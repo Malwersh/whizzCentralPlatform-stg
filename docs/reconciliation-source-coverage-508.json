@@ -1,0 +1,41 @@
+{
+  "batch": 508,
+  "status": "PUBLISHED_STAGING",
+  "scope": "Read-only reconciliation source coverage and bounded requests",
+  "walletFunction": "staging-wizz-wallet-service",
+  "walletSha": "99uEDv0jzjak4M60foF6qqgCItqsOJk6b8yryTYFLC0=",
+  "hostingJob": "266",
+  "tests": {
+    "passed": 57,
+    "failed": 0,
+    "includes": [
+      "complete reads",
+      "unavailable ledger",
+      "size limit",
+      "unavailable payout proof",
+      "late response after deadline",
+      "ledger effects",
+      "full cash reconciliation",
+      "company accounts"
+    ]
+  },
+  "changes": [
+    "Report per-source completion status",
+    "Abort reads at shared 20-second deadline",
+    "Never certify reconciliation using partial sources",
+    "Arabic incomplete-source explanation in finance page"
+  ],
+  "preserved": [
+    "Pricing",
+    "Balances",
+    "Reconciliation formulas",
+    "IAM and environment configuration",
+    "Unrelated deployed artifacts"
+  ],
+  "limitations": [
+    "Bounded scan, not an atomic snapshot",
+    "Does not certify actual financial balances",
+    "Human read-only review remains open"
+  ],
+  "financialMutationsPerformed": false
+}

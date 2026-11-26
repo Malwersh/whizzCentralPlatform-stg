@@ -1,0 +1,175 @@
+{
+  "status": "RELEASE276_INSTALLED_LAUNCHED_UNSUPPORTED_FEATURES_OPEN",
+  "build": 276,
+  "scope": "Source-based functional audit of all More entries and their directly invoked services; not live authentication or mutation tests",
+  "items": [
+    {
+      "id": "wallet",
+      "label": "المحفظة",
+      "state": "CONNECTED",
+      "source": "WalletHomeScreen + wallet providers",
+      "finding": "المحفظة الحقيقية بما فيها التعبئة والكشف؛ بوابة الدفع الفعلي تبقى خاضعة لشروطها واختبارها، لا ادعاء LIVE جديد."
+    },
+    {
+      "id": "earnings",
+      "label": "الأرباح",
+      "state": "FIXED_CONNECTED",
+      "source": "main.dart EarningsScreen / earnings_service.dart TripsService",
+      "finding": "أُصلح رابط المزيد من EarningsTab ذي القوائم الثابتة إلى نفس EarningsScreen المستخدم في التبويب الرئيسي."
+    },
+    {
+      "id": "performance",
+      "label": "أدائي",
+      "state": "CONNECTED_PHASES_OPEN",
+      "source": "driver_performance_screen.dart + rules=3",
+      "finding": "القبول والإكمال والوقت والنشاط موصولة؛ مراجعة الجودة والتقييم واستثناءات التأخير والاعتراض لم تكتمل."
+    },
+    {
+      "id": "profile",
+      "label": "معلومات الحساب",
+      "state": "PARTIAL",
+      "source": "DriverService AWS /driver/me + account_details_screen.dart",
+      "finding": "قراءة الملف وتعديل حقول مدعومة وحذف الحساب حقيقية. profilePhoto ترسله الخدمة لكن الحقل غير موجود في allowlist الحالية للخادم؛ يلزم معالجة وعدم اعتبار كل حقول التحرير مكتملة."
+    },
+    {
+      "id": "vehicle",
+      "label": "معلومات المركبة",
+      "state": "PARTIAL_READ_CONNECTED",
+      "source": "VehicleInfoScreen + getDriverProfile",
+      "finding": "يقرأ الملف الحقيقي؛ عند غياب التفاصيل ينشئ حقول سنة0 وتأمينfalse افتراضية، لا يثبت التأمين أو تفاصيل المركبة أو اعتمادها. الإكمال مطلوب مع بند المركبة/الوثائق/المنطقة."
+    },
+    {
+      "id": "support",
+      "label": "محادثات الدعم",
+      "state": "CONNECTED",
+      "source": "LiveChatScreen + AuthenticatedSupportChat",
+      "finding": "الدعم المصادق والجلسة والإقرار وإعادة المحاولة محفوظة؛ لم ترسل رسالة فعلية أثناء التدقيق."
+    },
+    {
+      "id": "paymentMethods",
+      "label": "طرق الدفع",
+      "state": "DISABLED_UNIMPLEMENTED",
+      "source": "payment_methods_screen.dart + DriverService._baseUrl",
+      "finding": "حسابات زين كاش وبنك بغداد ثابتة وهمية، وعمليات الحفظ تحاول عنوان your-backend-url.com. مسار مختلف عن تعبئة المحفظة الحقيقية."
+    },
+    {
+      "id": "instantPay",
+      "label": "الدفع الفوري",
+      "state": "DISABLED_UNIMPLEMENTED",
+      "source": "MoreTab callback",
+      "finding": "رسالة تجريبية فقط، وليس صرف مستحقات."
+    },
+    {
+      "id": "deliveryEquipment",
+      "label": "معدات التوصيل",
+      "state": "DISABLED_UNIMPLEMENTED",
+      "source": "DeliveryEquipmentService._baseUrl",
+      "finding": "الخدمة تتصل بعنوان your-backend-url.com، ولا يثبت تكامل AWS."
+    },
+    {
+      "id": "phoneNumber",
+      "label": "تغيير رقم الهاتف",
+      "state": "DISABLED_UNIMPLEMENTED",
+      "source": "DriverService.updatePhoneNumber",
+      "finding": "رقم الملف المعروض حقيقي؛ التغيير في المزيد يذهب لخادم placeholder ولا يطبق تحقق OTP وربط الهوية."
+    },
+    {
+      "id": "safetyToolkit",
+      "label": "أدوات السلامة",
+      "state": "DISABLED_UNIMPLEMENTED",
+      "source": "MoreTab._showSafetyDialog",
+      "finding": "أزرار الاتصال ومشاركة الموقع والبلاغ تعرض SnackBar فقط، وبعض الرسائل تدعي نجاحًا دون عملية."
+    },
+    {
+      "id": "emergencyContacts",
+      "label": "جهات الطوارئ",
+      "state": "DISABLED_UNIMPLEMENTED",
+      "source": "DriverService emergency methods",
+      "finding": "قراءة وحفظ/تعديل/حذف تحاول عنوان placeholder؛ لا نعتبر القائمة الفارغة إثبات عدم وجود جهات."
+    },
+    {
+      "id": "identityVerification",
+      "label": "التحقق من الهوية في المزيد",
+      "state": "DISABLED_PARTIAL_LEGACY_SUBMIT",
+      "source": "IdentityVerificationScreen / DriverService.submitIdentityVerification",
+      "finding": "قراءة الملف حقيقية لكن الإرسال يرسل مسارات ملفات الجهاز بدل محتواها إلى خادم placeholder. لا يحكم هذا على مسار التسجيل/رفع الوثائق الآخر في التطبيق."
+    },
+    {
+      "id": "settings",
+      "label": "إعدادات التطبيق القديمة",
+      "state": "DISABLED_UNIMPLEMENTED",
+      "source": "app_settings_screen.dart",
+      "finding": "مفاتيح إشعارات وموقع ولغة تغيّر setState فقط، وتغيير كلمة المرور و2FA تجريبيان؛ لا تحفظ تفضيلًا ولا تغير صلاحيات النظام."
+    },
+    {
+      "id": "termsOfService",
+      "label": "شروط الخدمة",
+      "state": "DISABLED_PLACEHOLDER_CONTENT",
+      "source": "MoreTab._showTermsDialog",
+      "finding": "نص Here would be؛ يلزم نص معتمد قبل الإطلاق، ولم يُنشأ نص قانوني خلال التدقيق."
+    },
+    {
+      "id": "privacyPolicy",
+      "label": "سياسة الخصوصية",
+      "state": "DISABLED_PLACEHOLDER_CONTENT",
+      "source": "MoreTab._showPrivacyDialog",
+      "finding": "محتوى تجريبي غير معتمد."
+    },
+    {
+      "id": "occupationalAccidentPolicy",
+      "label": "سياسة الحوادث",
+      "state": "DISABLED_PLACEHOLDER_CONTENT",
+      "source": "MoreTab._showAccidentPolicyDialog",
+      "finding": "محتوى تجريبي؛ لا يثبت وجود تغطية أو اتفاق تأمين."
+    },
+    {
+      "id": "wizzOff",
+      "label": "إيقاف التوفر من المزيد",
+      "state": "DISABLED_EMPTY_CALLBACK",
+      "source": "main.dart onDashStatusChanged:(status){}",
+      "finding": "المسار الحالي بلا إجراء حقيقي ويعرض رسالة نجاح؛ تعطّل مع توجيه السائق للإيقاف من الشاشة الرئيسية."
+    },
+    {
+      "id": "password",
+      "label": "تغيير كلمة المرور من الحساب",
+      "state": "UNAVAILABLE_NOTICE_NO_NETWORK",
+      "source": "AccountDetailsScreen._showChangePasswordDialog",
+      "finding": "أُزيل نموذج الحفظ التجريبي؛ تعرض رسالة عدم إتاحة دون طلب إلى خادم placeholder. حذف الحساب الحقيقي محفوظ."
+    },
+    {
+      "id": "about",
+      "label": "حول التطبيق",
+      "state": "FIXED_STATIC_INFO",
+      "source": "MoreTab._showAboutDialog",
+      "finding": "حُذفت بيانات build2024.12.15 وتذييل الشركة/السنة الثابتة؛ لا تُعرض نسخة أو معلومات غير مأخوذة من مصدرها."
+    },
+    {
+      "id": "signoutDeletion",
+      "label": "الخروج وحذف الحساب",
+      "state": "CONNECTED_SOURCE_AUDIT",
+      "source": "MoreTab._signOut + DeleteAccountScreen",
+      "finding": "مسارات الهوية والحذف الحالية محفوظة؛ لم تنفذ عملية خروج أو حذف أثناء التدقيق."
+    },
+    {
+      "id": "developerPreviews",
+      "label": "عروض التصميم والشعار",
+      "state": "DEBUG_ONLY",
+      "source": "kDebugMode",
+      "finding": "غير ظاهرة في نسخة Release."
+    }
+  ],
+  "verification": {
+    "flutterChecks": 39,
+    "earningsRoute": "same EarningsScreen as primary tab",
+    "unsupportedClicks": "null onTap; tested across unsupported entries",
+    "liveBusinessMutations": 0,
+    "analysis": "NO_ISSUES_MORE_PAGE",
+    "nativeBuild": "Release276_PASS"
+  },
+  "manualAcceptance": "DEFERRED_NOT_PASSED",
+  "remainingWorkRequired": true,
+  "completionRule": "Disabling an unsupported option does not complete its implementation or launch acceptance. Partially connected account/vehicle pages remain open.",
+  "installed": true,
+  "launched": true,
+  "updatedAtUTC": "2026-10-25T04:55:17.905268+00:00"
+}

@@ -1,0 +1,43 @@
+{
+  "part": 95,
+  "status": "driver_accepted_hold_verified_delivery_pending",
+  "userConfirmed": "Fourth-wave offer arrived on phone and was accepted by human driver.",
+  "actualWaves": [
+    {
+      "wave": 1,
+      "recipients": 1,
+      "delivered": 1,
+      "state": "EXPIRED"
+    },
+    {
+      "wave": 2,
+      "recipients": 0,
+      "state": "EXPIRED"
+    },
+    {
+      "wave": 3,
+      "recipients": 0,
+      "state": "EXPIRED"
+    },
+    {
+      "wave": 4,
+      "recipients": 1,
+      "delivered": 1,
+      "response": "financial_accepted"
+    }
+  ],
+  "acceptanceVerification": {
+    "canonicalOrderStatus": "assigned",
+    "dispatchJobStatus": "assigned",
+    "financialAcceptancePersisted": true,
+    "canonicalHoldMatches": true,
+    "holdStatus": "ACTIVE",
+    "heldIqd": 7500,
+    "walletAvailableIqd": 17500,
+    "walletLockedIqd": 7500,
+    "walletVersion": 5,
+    "customerTotalIqd": 9500
+  },
+  "merchantSimulator": "Rebuilt, installed and launched existing normalized-IQD card fix on iPhone 16 Pro after screenshot showed old amounts. Visual launch reached existing signed-in business list; user must open branch to see card.",
+  "remaining": "Human pickup and delivery via apps; verify successful settlement/ledger and financial integration only afterwards. No delivery, cash collection or settlement claimed."
+}

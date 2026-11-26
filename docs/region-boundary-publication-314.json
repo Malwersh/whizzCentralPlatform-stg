@@ -1,0 +1,25 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "name": "WizzUser-FindRegionByCoordinates-staging",
+  "beforeHash": "8+P13Sq+P4auWFuskZ+h4Gc45YR/IfTo0M5xmy+n59w=",
+  "hash": "nCbeU7mJRe08J0gnH+5cShfJRvUQgTeyHpISPyQFzoQ=",
+  "changedFiles": [
+    "lambdas/find-region-by-coordinates.js"
+  ],
+  "otherEntriesPreserved": true,
+  "iamUnchanged": true,
+  "environmentUnchanged": true,
+  "boundarySmoke": {
+    "status": 200,
+    "regionId": "Rmhvcpnn3iy5f1",
+    "geometryType": "Polygon"
+  },
+  "businessDataMutated": false,
+  "customerBuild": 314,
+  "customerSimulator": "iPhone 16 Pro",
+  "installedAndLaunched": true,
+  "flutterTests": 15,
+  "backendTests": 12,
+  "analyzer": "No issues found",
+  "humanNativeGestureAcceptance": "PENDING_USER_TEST"
+}

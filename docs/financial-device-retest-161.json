@@ -1,0 +1,18 @@
+{
+  "cancelled": true,
+  "canonicalOrderPreserved": true,
+  "dispatchCancelled": true,
+  "walletWrites": 0,
+  "ledgerWrites": 0,
+  "operatorAuditRecorded": true,
+  "part": 161,
+  "customerProfileBuildInstalled": true,
+  "customerLaunchedOnIMohammed": true,
+  "dispatchCandidateFixPart": 160,
+  "newOrderNotSubmitted": true,
+  "newTestScopeActive": true,
+  "verifiedHosts": 15,
+  "admitUntil": "2026-10-19T05:42:17.145Z",
+  "historicalOrderSelectorsPreserved": true,
+  "iamChanges": false
+}

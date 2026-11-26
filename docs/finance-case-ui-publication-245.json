@@ -1,0 +1,36 @@
+{
+  "part": 245,
+  "status": "PUBLISHED",
+  "scope": "Case progress, contextual action reasons and feedback, finance account/statements/payout navigation, print dialog",
+  "businessDecisionsOrPaymentsByAgent": false,
+  "financialExecutionCodeChanged": false,
+  "iamChanged": false,
+  "function": {
+    "name": "staging-wizz-staff-service",
+    "baseCodeSha256": "lVGEudxAHN/goPJ0fMMh3xZggIMRGHZhUym6Kuc8iDE=",
+    "codeSha256": "guQwZ5DNiczFwIWw5hxYcsdsP+cQFTVIRjwdWD+pll4=",
+    "changedFiles": [
+      "order-exception-cases.js"
+    ],
+    "unrelatedEntriesAndConfigurationPreserved": true
+  },
+  "hosting": {
+    "baseJobId": "137",
+    "jobId": "138",
+    "changedFiles": [
+      "pages/order-exceptions.html",
+      "case-workflow.js",
+      "order-exception-cases.js",
+      "styles/finance-workflow.css",
+      "pages/finance.html",
+      "finance-workspace.js",
+      "settlement-orders.js",
+      "merchant-financial-account.js",
+      "merchant-period-collection.js",
+      "settlement-statements.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

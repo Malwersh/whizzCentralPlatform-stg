@@ -1,0 +1,257 @@
+{
+  "part": 86,
+  "environment": "Staging",
+  "canary": {
+    "part": 86,
+    "orderCount": 1,
+    "customerCount": 1,
+    "driverCount": 1,
+    "branchCount": 1,
+    "admitUntil": "2026-10-17T21:41:08.751Z",
+    "codeChanged": false,
+    "applicationOrdersCreated": false,
+    "scopeAgreementValidated": true,
+    "functions": [
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "5pDJICSVgutecvgZ5uZbVZsQ/Z50mSa1fQ+t3tz3Bd8=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "rEMwsHgz9R63poRQiOWB+mdvy9jzDfqJSuMGo0RTOCs=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_CreateDispatchJob",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "jAFfmIRV4QIQ0mfzLGbN1yNGL+p21E6IMasAaf6WHbE=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleWaveTimeout",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "5RgKB/JSaYnyzoockrYuxuq+JJnPZWb+ek81OFeVaIQ=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverAccept",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "2J7BvHTGk/Dnb3Va0Uu9QFdh751uxSkdiTxkL49gPcM=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_HandleDriverReject",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "s5VY//RJOiuDFnauWZCw5SHcMN9aTR+SkN3kj4uaz0w=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256",
+          "ENVIRONMENT"
+        ],
+        "codeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "SuRGzgPZ8abGOKEzA7BrNoUz0b6wxqLtJSLZN0DN70s=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "zJdHVmIdhjbrGc+Ub7VrTJDJUE+aMTAioje8xgjLSpY=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256",
+          "ENVIRONMENT"
+        ],
+        "codeSha256": "MvxmFaVIzG0XBOGGKLjUrb8nZwoJubeUD8IFtcmUTrM=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256",
+          "ENVIRONMENT"
+        ],
+        "codeSha256": "wXACKH/twuCjnyshTtEe7qSRmjdkT6n8eRB2KhdJqQE=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "phase": "SCOPE_ONLY",
+        "changedEnvironmentKeys": [
+          "FINANCE_ROLLOUT_CONFIG",
+          "FINANCE_ROLLOUT_SHA256"
+        ],
+        "codeSha256": "CsZasWT83HOAFSZVKFVtmsHRtwSVnZ1thiW+sXgDd6M=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "staging-driver-financial-accept",
+        "phase": "BOUNDED_CANARY_GATE",
+        "changedEnvironmentKeys": [
+          "FINANCIAL_DISPATCH_MODE",
+          "FINANCIAL_COD_COMPLETION_MODE",
+          "FINANCIAL_COD_ASSIGNMENTS_MODE",
+          "FINANCIAL_COD_RETURNS_MODE"
+        ],
+        "codeSha256": "SuRGzgPZ8abGOKEzA7BrNoUz0b6wxqLtJSLZN0DN70s=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "DriversApi-staging",
+        "phase": "BOUNDED_CANARY_GATE",
+        "changedEnvironmentKeys": [
+          "FINANCIAL_ACCEPT_FUNCTION_ARN",
+          "FINANCIAL_DISPATCH_MODE",
+          "FINANCIAL_COD_COMPLETION_MODE",
+          "FINANCIAL_COD_ASSIGNMENTS_MODE",
+          "FINANCIAL_COD_RETURNS_MODE"
+        ],
+        "codeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "staging-wizz-wallet-notification-worker",
+        "phase": "BOUNDED_CANARY_GATE",
+        "changedEnvironmentKeys": [
+          "FINANCIAL_COD_NOTIFICATIONS_MODE"
+        ],
+        "codeSha256": "wXACKH/twuCjnyshTtEe7qSRmjdkT6n8eRB2KhdJqQE=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "staging-cod-integration",
+        "phase": "BOUNDED_CANARY_GATE",
+        "changedEnvironmentKeys": [
+          "FINANCIAL_COD_INTEGRATION_MODE",
+          "DISPATCH_RESPONSE_INTEGRATION_MODE"
+        ],
+        "codeSha256": "zJdHVmIdhjbrGc+Ub7VrTJDJUE+aMTAioje8xgjLSpY=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "phase": "BOUNDED_CANARY_GATE",
+        "changedEnvironmentKeys": [
+          "FINANCIAL_DISPATCH_MODE"
+        ],
+        "codeSha256": "jAFfmIRV4QIQ0mfzLGbN1yNGL+p21E6IMasAaf6WHbE=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "phase": "BOUNDED_CANARY_GATE",
+        "changedEnvironmentKeys": [
+          "DELIVERY_QUOTE_MODE",
+          "COMMERCIAL_PRICING_MODE"
+        ],
+        "codeSha256": "rEMwsHgz9R63poRQiOWB+mdvy9jzDfqJSuMGo0RTOCs=",
+        "otherConfigurationPreserved": true
+      },
+      {
+        "name": "WizzUser-DeliveryQuotes-staging",
+        "phase": "BOUNDED_CANARY_GATE",
+        "changedEnvironmentKeys": [
+          "DELIVERY_QUOTES_ENABLED"
+        ],
+        "codeSha256": "5pDJICSVgutecvgZ5uZbVZsQ/Z50mSa1fQ+t3tz3Bd8=",
+        "otherConfigurationPreserved": true
+      }
+    ],
+    "activationComplete": true,
+    "integrationScheduleEnabled": true,
+    "anonymousQuoteRejected": true,
+    "financialScope": "ONE_EXACT_ORDER_ONLY",
+    "scheduledIntegrationEnabled": true
+  },
+  "driverApp": {
+    "releaseBuilt": true,
+    "installedOnPhysicalPhone": true,
+    "launched": true,
+    "bundleId": "com.wiz.wizdriverapp"
+  },
+  "scopeIsolationChecks": {
+    "testsPassed": 18,
+    "foreignQueuedEventCannotBeModified": true,
+    "deployedIntegrationRuntimeMatchesPart55": true
+  },
+  "observation": {
+    "checkedAtUtc": "2026-10-17T20:58:38.045653+00:00",
+    "readOnly": true,
+    "orderExists": false,
+    "driverWallet": {
+      "availableBalance": 25000,
+      "lockedBalance": 0,
+      "version": 4,
+      "status": "ACTIVE"
+    }
+  },
+  "approvalReview": {
+    "manualGenericIntegrationInvocation": "REJECTED_BEFORE_EXECUTION",
+    "reason": "Generic scheduled event could process unrelated pending records; no manual invocation performed",
+    "alternative": "Exact-order read-only observation; local scope isolation tests and recorded deployed code hash checked"
+  },
+  "nextHumanStep": "Review one 3500-IQD Fattoush item, COD, no discount/modifiers; report server total before confirming order",
+  "fullDeliverySettlementVerified": false,
+  "rollback": "Do not remove rollout configuration or disable draining processors while a test order or hold is nonterminal. Close new admission with DRAIN, preserve scope membership and recorded snapshots, reconcile terminal state before restoring gates."
+}

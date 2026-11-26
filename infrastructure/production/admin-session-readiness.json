@@ -1,0 +1,37 @@
+{
+  "accountId": "746727375268",
+  "date": "2026-11-16",
+  "status": "DEPLOYED_VERIFIED_OWNER_ACTIVE",
+  "adminPoolId": "us-east-1_njh6vaNWj",
+  "adminClientId": "7924qedsr5m1j1bvc3c7va8egk",
+  "routes": [
+    "GET /staff/me",
+    "POST /staff/enrollment/finish"
+  ],
+  "tests": {
+    "runtime": 18,
+    "infrastructure": 2,
+    "total": 20
+  },
+  "controls": [
+    "Cryptographically verified own admin access tokens",
+    "Live enabled confirmed identity and software MFA for active staff",
+    "Current scoped staff record and minimum auth time",
+    "Invited staff receive no operational permissions",
+    "Conditional atomic activation and historical audit",
+    "No finance, document, user invitation or role assignment permissions"
+  ],
+  "deployed": true,
+  "adminUsersCreated": true,
+  "testDataCopied": false,
+  "remaining": [],
+  "deploymentEvidence": "docs/production-admin-session-deployment-2026-11-16.json",
+  "mfaEvidence": "docs/production-admin-mfa-deployment-2026-11-16.json",
+  "softwareMfaSupported": true,
+  "operationalMfaRequired": true,
+  "packagedInvalidTokenStatus": 401,
+  "adminEmail": "moh.al.daash@gmail.com",
+  "humanMfaCompleted": true,
+  "authenticatedEndToEndVerified": true,
+  "activationEvidence": "docs/production-admin-owner-activation-2026-11-16.json"
+}

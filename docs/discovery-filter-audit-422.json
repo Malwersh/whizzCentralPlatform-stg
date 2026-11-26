@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-04",
+  "build": 382,
+  "findings": [
+    "Published activity rows use legacy restaurant/store/grocery selectors while some topic parentActivities use canonical IDs; normalize matching without altering stored configuration",
+    "Explicit businessTypeId takes precedence over conflicting legacy businessType",
+    "First-strip filters intersect activity and classification; changing activity clears topic; clicking selected choice resets that strip"
+  ],
+  "changes": [
+    "180ms selection and incoming-result transitions with reduced-motion support",
+    "Outgoing result content removed immediately; no stale tappable cards",
+    "Compact topic strip and animated height changes"
+  ],
+  "validation": {
+    "tests": 24,
+    "cases": [
+      "canonical-vs-legacy activity",
+      "topic parent aliases and unrestricted topics",
+      "activity+cuisine+rating intersection",
+      "no name-inferred classifications",
+      "result replacement and reduced motion",
+      "menu classification focus",
+      "pinned filters and header scroll"
+    ]
+  },
+  "manualFollowUp": [
+    "Test rapid taps between Restaurants and Stores on device",
+    "Combine offers/openNow/price/rating and reset; verify published targeting per account and region"
+  ]
+}

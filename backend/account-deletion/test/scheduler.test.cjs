@@ -1,0 +1,23 @@
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),{createHash}=require('node:crypto');
+function load(){const module={exports:{}},classes={};for(const n of ['GetCommand','PutCommand','ScanCommand','UpdateCommand'])classes[n]=class{constructor(input){this.kind=n;this.input=input;}};vm.runInNewContext(fs.readFileSync(__dirname+'/../scheduler.js','utf8'),{module,Date,Set,require:n=>n==='node:crypto'?require(n):n==='./policy'?require('../policy'):classes});return module.exports;}
+function row(type='CUSTOMER',n=1){const requestId=`11111111-1111-4111-8111-${String(n).padStart(12,'0')}`,sub='subject'+n,scope={kind:'ACCOUNT',id:sub,type};return {pk:`SUBJECT#${type}#${sub}`,sk:'REQUEST#'+requestId,requestId,subjectId:sub,actorType:type,scope,status:'READY',fingerprint:createHash('sha256').update(JSON.stringify([type,sub,scope,requestId])).digest('hex'),verification:{method:'PHONE_OTP',challengeId:'22222222-2222-4222-8222-222222222222',verifiedAt:1}};}
+test('automatic execution requires atomically verified request and matching actor/scope fingerprint',()=>{const {eligible}=load(),r=row();assert.equal(eligible(r,new Set(['CUSTOMER'])),true);assert.equal(eligible({...r,verification:undefined},new Set(['CUSTOMER'])),false);assert.equal(eligible({...r,subjectId:'other'},new Set(['CUSTOMER'])),false);assert.equal(eligible(r,new Set(['DRIVER'])),false);assert.equal(eligible({...r,status:'COMPLETED'},new Set(['CUSTOMER'])),false);});
+test('sweep covers all enabled apps and resumes after last attempted item without skipping page tail',async()=>{const {runDeletionSweep}=load(),rows=[row('CUSTOMER',1),row('DRIVER',2),row('MERCHANT',3)],processed=[],writes=[];const db={send:async c=>c.kind==='GetCommand'?{}:c.kind==='ScanCommand'?{Items:rows}:void writes.push(c.input.Item)};const r=await runDeletionSweep({db,table:'staging-AccountDeletion',enabledTypes:['CUSTOMER','DRIVER','MERCHANT'],maxRequests:2,processRequest:async x=>processed.push(x.actorType)});assert.equal(r.processed,2);assert.deepEqual(processed,['CUSTOMER','DRIVER']);assert.equal(writes[0].cursor.sk,rows[1].sk);});
+test('leased requests are skipped and a failed request cannot stop another app',async()=>{const {runDeletionSweep}=load(),a=row('CUSTOMER',1),b=row('DRIVER',2),c=row('MERCHANT',3);a.leaseUntil=Date.now()/1000+100;const processed=[],errors=[];const db={send:async x=>x.kind==='GetCommand'?{}:x.kind==='ScanCommand'?{Items:[a,b,c]}:{}};const r=await runDeletionSweep({db,table:'staging-AccountDeletion',enabledTypes:['CUSTOMER','DRIVER','MERCHANT'],processRequest:async x=>{if(x.actorType==='DRIVER')throw Error('network');processed.push(x.actorType);},onError:x=>errors.push(x)});assert.equal(r.skipped,1);assert.equal(r.failed,1);assert.deepEqual(processed,['MERCHANT']);assert.equal(errors[0].code,'Error');assert.equal(Object.keys(errors[0]).includes('message'),false);});
+
+test('DynamoDB map field order cannot invalidate a verified deletion scope',()=>{const r=row();r.scope={type:r.scope.type,id:r.scope.id,kind:r.scope.kind};assert.equal(load().eligible(r,new Set(['CUSTOMER'])),true);});
+
+test('merchant production sweeps use a separate cursor and lease',async()=>{
+ const {runDeletionSweep}=load(),processed=[],calls=[];
+ const db={send:async command=>{
+  calls.push(command);
+  return command.kind==='ScanCommand'?{Items:[row('DRIVER',1),row('MERCHANT',2)]}:{};
+ }};
+ const result=await runDeletionSweep({db,table:'wizz-production-AccountDeletion',environment:'production',
+  enabledTypes:['MERCHANT'],processRequest:async request=>processed.push(request.actorType)});
+ assert.equal(result.processed,1);
+ assert.deepEqual(processed,['MERCHANT']);
+ assert.equal(calls.filter(command=>command.kind==='UpdateCommand').length,2);
+ assert.ok(calls.filter(command=>command.kind!=='ScanCommand').every(command=>
+  (command.input.Key||command.input.Item).pk==='SCHEDULER#MERCHANT'));
+});

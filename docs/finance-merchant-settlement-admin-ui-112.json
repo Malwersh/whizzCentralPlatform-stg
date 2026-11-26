@@ -1,0 +1,76 @@
+{
+  "part": 112,
+  "status": "LOCAL_TESTED_NOT_DEPLOYED",
+  "recordedAt": "2026-10-18T05:29:02.671315+00:00",
+  "implemented": [
+    "Authenticated /staff/settlement-schedules GET/POST behind a separate closed activation gate",
+    "Merchant live access-token/Cognito verification for settlement_schedule_owner; owner identity never accepted from request body",
+    "Fixed-target merchant proxy and authenticated GET/POST API Gateway route in local template",
+    "Platform Merchants section: select branch, show current/history/pending status, propose schedule bound to active agreement and approve another employee proposal",
+    "Merchant account-settings screen: show current/pending policy, explicit bottom-sheet consent with Baghdad dates and exact proposal digest",
+    "Same proposal UUID on ambiguous platform retry; no consent sent when bottom sheet is dismissed",
+    "Reproducible server runtime bundle including existing authorization/workflow modules; external AWS SDK only"
+  ],
+  "verification": {
+    "typescriptBuildPassed": true,
+    "runtimeBundleParityPassed": true,
+    "staffRoutesAuthAndHandlerTestsPassed": 36,
+    "merchantProxyTestsPassed": 7,
+    "flutterWidgetTestsPassed": 3,
+    "totalAutomatedTestsPassed": 46,
+    "flutterAnalyze": "No issues found for new screen and onboarding service",
+    "browser": {
+      "passed": true,
+      "stableRetry": true,
+      "baghdadDates": true,
+      "readOnly": true,
+      "closedGate": true,
+      "selfApproval": true,
+      "safeText": true
+    },
+    "samTemplatesParsedWithJsYaml": true,
+    "realApiOrPhoneTestPerformed": false
+  },
+  "activation": {
+    "setting": "SETTLEMENT_SCHEDULE_ADMIN_ENABLED",
+    "localTemplatesDefault": "false",
+    "remoteFlagChanged": false,
+    "deployed": false
+  },
+  "walletOrLedgerChanged": false,
+  "iamGrantChanged": false,
+  "remaining": [
+    "Scoped deployment/IAM inventory and real staging transaction verification before activation",
+    "Install app build and authenticated owner/admin integration after OTP service recovery",
+    "New proposal push/outbox notification not added in this slice; owner opens schedule from account settings",
+    "Eventual approved settlement archive purge remains held"
+  ],
+  "sourceSha256": {
+    "backend/staff-service/settlement-schedules.js": "dbfa7a583ba47b56d72874c9c84ba1a823788672323fb294490983857da8ec5b",
+    "backend/staff-service/settlement-runtime.js": "8431c67aa1092efb3c344354cbe6663c3ded9d415197d9d0548493e50065f087",
+    "backend/staff-service/index.js": "3a600c2087a6efa98306f03f1c283761f11ff93960f1d05b860767a4f84a9602",
+    "backend/staff-service/commercial-owner.js": "75ba087231688bfc08f623c3ee992313eb76f1e6ea000943e28e9305d8e1ba41",
+    "backend/staff-service/template.yaml": "aa0cd5c9b92e3d544ca269c71bc5025e1ccfafa328b503422bbb0f441a5edeac",
+    "backend/wallet-service/src/merchantSettlementAdminRuntime.ts": "20783572c96acb36438bd2c25972e24c053cbf619e915436783680969efc5f3f",
+    "frontend/settlement-schedules.js": "0e4fafe917baf667cebd86aabf311ddb9671d87108b0dd85cbea2ec3c833488b",
+    "frontend/pages/merchants.html": "59fe785eb103491c9dc112b5eaaeda0decc1e23da48011da3d48297e481d1a17",
+    "scripts/build-settlement-runtime-112.cjs": "403d7a8bc0b1457b64623568f33b2c732343a68feeee84140b0d5578d12f4bc8",
+    "scripts/test-settlement-schedules-browser-112.cjs": "be2516699902a5b6fba4562319170aa98e12c905919c7ab62fccea79b04271a7",
+    "backend/staff-service/test/settlement-schedules.test.cjs": "10d6dcffd28d88132b44ed7ce4cd13aa216dcc9545ed28cf0028b056b1c19e0f",
+    "backend/staff-service/test/commercial-owner.test.cjs": "d43d1200699f6519be4e3277c59733177ee2a3d23319b31031a36a7b1cb0ef6f",
+    "../whizzMerchants-stg/backend/functions/auth/settlement_schedules.js": "6a5bf4f84cc363beb62445b348296321ca03bae805b0280689e8554ed148cff8",
+    "../whizzMerchants-stg/backend/functions/auth/unified_auth_handler.js": "48104c2c84360f3a515f97fea959ac1caa2953531c10d8d0b04d1f61bd9e1f56",
+    "../whizzMerchants-stg/backend/functions/auth/person_onboarding.js": "a18d78c02ed7f96ca2d5985e1790ee6963d5985368dcaf4491bdf8b8c6d83a6f",
+    "../whizzMerchants-stg/backend/template.yaml": "c6d182397d8123da6607f4ae49a8057f4a2f9af48d04176b41a8261de3b622c5",
+    "../whizzMerchants-stg/frontend/lib/screens/settlement_schedules_screen.dart": "468405a00062a6a75717783421c3400016d1ae10ccd706b14ccda8fa01a2e5bf",
+    "../whizzMerchants-stg/frontend/lib/screens/account_settings_page.dart": "d82ff6df52388e1d84b7641ce79c799a13e3ef55b9e270f69185b16d0c626c21",
+    "../whizzMerchants-stg/frontend/lib/services/person_onboarding_service.dart": "393fa40f474cdd7ff279b516e05a810e86b5c99c5f2e9a7a444857613607db0d",
+    "../whizzMerchants-stg/frontend/test/settlement_schedules_screen_test.dart": "5f44401d0fd8eb6092314f003e8b4bd21f15f428359afe87a1fa8ce172174659"
+  },
+  "pausedTest": "Part103 remains paused pending OTP restoration",
+  "continuedBy": {
+    "part": 113,
+    "evidence": "finance-merchant-settlement-staging-release-113.json",
+    "scope": "Published bounded code/API/website; creation still closed and phone test pending"
+  }
+}

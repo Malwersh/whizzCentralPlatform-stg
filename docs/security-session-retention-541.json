@@ -1,0 +1,42 @@
+{
+  "batch": 541,
+  "status": "STAGING_DEPLOYED_DRY_RUN_COMPLETE_NO_ELIGIBLE_RECORDS",
+  "scope": "انتهاء جلسات وتحديات المالك وعداد OTP وفق ttl المحفوظ لكل سجل دون تفعيل TTL عام",
+  "safety": [
+    "قائمة سماح للمفتاح والنوع والشكل؛ لا محفظة ولا صرف ولا دفتر",
+    "يجب انقضاء ttl وكذلك expiresAt للجلسات والتحديات",
+    "منع حذف المحجوز قانونيًا أو للاحتفاظ",
+    "حذف مشروط بالإصدار والوقت والنوع لمنع سباق تجديد الجلسة",
+    "فحص محدود الصفحات والعمل وقابل للاستئناف؛ لا يعيد أسرار السجلات",
+    "مسار Lambda داخلي بعملية صريحة؛ لا يشغل مسار حذف الحسابات",
+    "dryRun افتراضي؛ التنفيذ يتطلب MERCHANT_SECURITY_RETENTION_ENABLED=true ولم يُفعّل"
+  ],
+  "validation": {
+    "sourceTestsPassed": 20,
+    "packagedTestsPassed": 7,
+    "packagedTestsAreSubset": true
+  },
+  "deployment": {
+    "status": "Successful",
+    "hash": "nXbgnLjFrV+qayBeYPC8lopjqA5tUCLZRxfYltU3H/g=",
+    "environmentUnchanged": true,
+    "executionEnabled": false
+  },
+  "recordsDeleted": 0,
+  "accountDeletionInvoked": false,
+  "financialMutationsPerformed": false,
+  "dryRun": {
+    "pages": 9,
+    "examined": 806,
+    "candidates": 0,
+    "deleted": 0,
+    "calls": 3,
+    "complete": true,
+    "dryRun": true
+  },
+  "remaining": [
+    "لا توجد سجلات مؤهلة للحذف وفق الساعة الفعلية وttl المحفوظ وقت الفحص؛ يظل التنفيذ مغلقًا",
+    "تقييم الحاجة لجدولة هذا التنظيف مستقبلًا دون تفعيل TTL العام",
+    "استكمال جرد كيانات الحذف الأخرى ضمن X02"
+  ]
+}

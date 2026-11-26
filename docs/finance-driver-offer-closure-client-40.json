@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_DRIVER_CLOSURE_CLIENT_INTEGRATION_VERIFIED",
+  "published": false,
+  "installedOnPhone": false,
+  "liveFlagsChanged": false,
+  "liveIAMChanged": false,
+  "humanDataChanged": false,
+  "AWSResourcesCreated": false,
+  "newServerApi": false,
+  "newScreen": false,
+  "backendChanged": false,
+  "notificationDelivery": "HELD_UNCHANGED",
+  "reused": [
+    "Existing driver Home offer list and accept/reject UI",
+    "Existing Firebase foreground/background/tap handlers",
+    "Existing WebSocket offer_taken route",
+    "Existing SharedPreferences device storage"
+  ],
+  "localStorage": {
+    "keyPrefix": "dispatchOfferClosure.v1.",
+    "scope": [
+      "recipientSubjectId",
+      "offerId",
+      "orderId",
+      "cycleId"
+    ],
+    "data": [
+      "identifiers",
+      "receivedAt"
+    ],
+    "cleanupHoursOnRead": 24,
+    "cleanupOnSignOut": true,
+    "financialEvidence": false,
+    "notAPricingOrDispatchTimer": true
+  },
+  "behavior": [
+    "Closure cannot be stashed or restored as a new offer",
+    "Stored old closure payload is discarded on consume",
+    "Push and WebSocket feed one closure inbox and Home invalidation",
+    "Late positive delivery consults persisted closures before display or submission",
+    "A known different cycle is preserved; a missing cycle fails closed",
+    "Session changes fence asynchronous reads and acceptance responses",
+    "Resume and existing local expiry timer reapply persisted invalidations without a new network poll",
+    "Cached positive offer needs matching signed-in recipient and actual future expiry; no fabricated 45-second extension",
+    "Existing same-offer updates do not replay new-offer sound"
+  ],
+  "tests": {
+    "flutterPassed": 38,
+    "newTests": 13,
+    "newFilesAnalyzeClean": true,
+    "broaderAnalyzeErrors": 0,
+    "broaderAnalyzeExistingUnusedWarnings": 9,
+    "broaderAnalyzeHasStyleNotes": true,
+    "iosReleaseNoCodesign": true,
+    "androidBuild": false,
+    "realDeviceNotificationTest": false,
+    "backendTestsRerun": false,
+    "DynamoDBTestRerun": false,
+    "whitespaceChecks": true
+  },
+  "limitations": [
+    "No server API or database changes, cloud enablement or real push/websocket delivery test",
+    "Device build was not installed, signed or opened on iMohammed",
+    "Full authenticated server list reconciliation and recovery of completely missed offers are still pending",
+    "No financial authorization or reservation safety relies on local preferences; server transaction remains authoritative",
+    "Background/cold-start behavior, current Lambda packages/IAM and complete source/message integration still need coordinated device verification",
+    "No performance metrics/Score/Tiers or fixed test GPS changes",
+    "Preference cleanup is opportunistic on read/signout, not an always-running TTL or a server retention policy"
+  ],
+  "next": [
+    "Authoritative Legacy offer source, prices/units and complete message/cycle identity",
+    "Operational review UI for search exhaustion and acceptance pending",
+    "Coordinated IAM, live-package, route/provider and actual device verification before activation"
+  ],
+  "sourceSha256": {
+    "../whizzDrivers-stg/frontend/lib/services/offer_closure_inbox.dart": "5525a4c991371eecb1438db9ddadf2c458cf79a6c8cf84a2587f0a714c53b1e5",
+    "../whizzDrivers-stg/frontend/lib/services/push_notifications_service.dart": "f4fb3f5f3034fcdbb38969e6290132b2461b9614e16aba75f507a38a8007ecd4",
+    "../whizzDrivers-stg/frontend/lib/services/websocket_service.dart": "0db76b70331aea6ac7c443db9134cb81640ccc89fba3a00141c2f1e9b81d619e",
+    "../whizzDrivers-stg/frontend/lib/models/wave_offer.dart": "afa3a659db92582f828e4a5b9309b391d500c6aaf17880f85e9b378ccf94a805",
+    "../whizzDrivers-stg/frontend/lib/features/home/spark_home_simple_arabic.dart": "b47381c1e5ce8c9a96c07b1a6a5b1fe973ace1cb6ed7c104655ce800dc0d63f3",
+    "../whizzDrivers-stg/frontend/test/services/offer_closure_inbox_test.dart": "c3475b0b1a215fbff4358a514a8c8dcfbc6daf365c1004f6c588f0cd027f5eb9"
+  },
+  "docs": "finance-pricing-settlements-returns-unified-plan.md section 58"
+}

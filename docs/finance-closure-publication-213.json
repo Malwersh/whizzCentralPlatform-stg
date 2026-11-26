@@ -1,0 +1,15 @@
+{
+  "part": 213,
+  "function": "staging-wizz-staff-service",
+  "baseCodeSha256": "v98wRMARkpKuZXpdJNX2aEAaTWc/TFC37tcy7U/TkMA=",
+  "codeSha256": "YXq5m5YRHO48KdsfQfW40g2NJ+FdtMg+QnkUjJy7l74=",
+  "changedFiles": [
+    "settlement-runtime.js"
+  ],
+  "otherEntriesPreserved": true,
+  "status": "PUBLISHED_VERIFIED",
+  "moneyMutationRequested": false,
+  "iamOrEnvironmentChanged": false,
+  "configurationPreserved": true,
+  "negativeAuthSmoke": 401
+}

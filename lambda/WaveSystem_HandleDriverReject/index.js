@@ -24,9 +24,10 @@ const {
 } = require('@aws-sdk/lib-dynamodb');
 const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');
 
-const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+const {driverRequestContext,driverLifecycleClient}=require('./driver-lifecycle');
+const dynamodb = driverLifecycleClient(DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true },
-});
+}));
 const lambda = new LambdaClient({});
 
 function requireNonEmptyEnv(name) {
@@ -53,12 +54,15 @@ function extractWaveNumberFromOfferId(offerId) {
   return null;
 }
 
-exports.handler = async (event) => {
-  console.log('📥 HandleDriverReject Event:', JSON.stringify(event, null, 2));
+exports.handler = event => driverRequestContext.run({}, () => handleRequest(event));
+const handleRequest = async (event) => {
+  console.log('Driver rejection request received');
   
   try {
     // استخراج البيانات من Event
     const { driverId, orderId, offerId, rejectionReason } = parseEvent(event);
+    if (DRIVER_LIVE_STATE_TABLE !== 'WizzDriverLiveState_staging') throw new Error('STAGING_DRIVER_TABLE_REQUIRED');
+    driverRequestContext.getStore().sub = driverId;
     
     if (!driverId || !orderId || !offerId) {
       throw new Error('Missing required parameters: driverId, orderId, or offerId');
@@ -66,6 +70,23 @@ exports.handler = async (event) => {
     
     console.log(`🚫 Driver ${driverId} rejected order ${orderId}. Reason: ${rejectionReason || 'none'}`);
     
+    // Financial requests must use the authenticated financial decline transaction.
+    const sourceOrder=await dynamodb.send(new GetCommand({TableName:'WizzOrders',Key:{PK:'ORDER#'+orderId,SK:'META'},ConsistentRead:true,ProjectionExpression:'financialSnapshot,commercialPricing,financialAcceptance,financialOutcome,codFinancialEvidence'}));
+    if(!sourceOrder.Item||['financialSnapshot','commercialPricing','financialAcceptance','financialOutcome','codFinancialEvidence'].some(k=>Object.prototype.hasOwnProperty.call(sourceOrder.Item,k)))return {statusCode:409,body:JSON.stringify({success:false,code:'FINANCIAL_DECLINE_REQUIRED'})};
+    // Pinned cycles must never enter legacy decline/metrics writes. The new
+    // decline adapter is not enabled by the planning-only coordinator mode.
+    const cycleJob=await dynamodb.send(new GetCommand({TableName:DISPATCH_JOBS_TABLE,Key:{orderId,SK:'METADATA'},ConsistentRead:true}));
+    if(cycleJob.Item && Object.prototype.hasOwnProperty.call(cycleJob.Item,'dispatchCycle')) {
+      if(process.env.DISPATCH_CYCLE_MODE==='LEGACY_RESPONSES'){
+        const token=String(event.headers?.Authorization??event.headers?.authorization??'').replace(/^Bearer /i,'');
+        const result=await require('./dispatch-cycle-runtime').respondPinnedLegacyOffer('DECLINE',{orderId,offerId,waveNumber:extractWaveNumberFromOfferId(offerId)},token);
+        return {statusCode:200,body:JSON.stringify(result)};
+      }
+      return {statusCode:409,body:JSON.stringify({success:false,code:'UNIFIED_DECLINE_NOT_READY'})};
+    }
+
+    if(!cycleJob.Item)return {statusCode:409,body:JSON.stringify({success:false,code:'DISPATCH_JOB_REQUIRED'})};
+
     // Step 1: تحديث WaveOffer status → rejected
     const waveNumber = extractWaveNumberFromOfferId(offerId) || 1;
     await updateWaveOfferStatus(offerId, orderId, driverId, waveNumber, rejectionReason);
@@ -374,6 +395,9 @@ async function triggerNextWave(orderId) {
     throw new Error(`DispatchJob not found for order ${orderId}`);
   }
   
+  if(Object.prototype.hasOwnProperty.call(jobResult.Item,'dispatchCycle')) {
+    return require('./dispatch-cycle-runtime').coordinateUnifiedDispatch({orderId,assignmentId:jobResult.Item.dispatchJobId,source:'DECLINE'});
+  }
   const currentWave = jobResult.Item.currentWaveNumber || 1;
   const maxWaves = jobResult.Item.maxWaves || 3;
   const nextWave = currentWave + 1;

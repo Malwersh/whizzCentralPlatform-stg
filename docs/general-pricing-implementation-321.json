@@ -1,0 +1,75 @@
+{
+  "part": 321,
+  "status": "IMPLEMENTED_AND_ACTIVE_ON_STAGING",
+  "customerIntegrationBase": "35c5a99",
+  "centralIntegrationBase": "c2b3bd4",
+  "generalRuleBehavior": "All eligible current/future branches inside explicitly approved covered regions use GLOBAL pricing; explicit branch/merchant/zone overrides retain precedence. No new branch-specific code or default commercial commission.",
+  "customerBaseline": {
+    "baseIqd": 1000,
+    "perActualRoadKmIqd": 500,
+    "minimumIqd": 2000,
+    "maximumIqd": 6000,
+    "maximumRoadMeters": 10000,
+    "maximumDrivingSeconds": 1800,
+    "roundingIqd": 250,
+    "roundingMode": "HALF_AWAY_FROM_ZERO"
+  },
+  "driverBaseline": {
+    "baseIqd": 1000,
+    "perDeliveryKmIqd": 400,
+    "perPickupKmIqdAfterFirstKm": 250,
+    "minimumIqd": 1500,
+    "maximumIqd": 8000,
+    "roundingIqd": 250,
+    "roundingMode": "HALF_AWAY_FROM_ZERO"
+  },
+  "connectedChanges": [
+    "CURRENT pricing policy version2, general customer and driver rules, immutable version and audit; original branch rules untouched",
+    "Existing central pricing page: current active rules take precedence over closed/stale drafts, direct save and current simulation, obsolete Fattoush bootstrap tool removed",
+    "Existing storefront_route action recovered into source and client fallback wired to it; same saved-address ownership and own branch GPS/active polygon checks; no pricing dependency",
+    "Malformed prep/minimum cannot hide valid route; absent prep yields no invented full arrival ETA",
+    "Route cache is separate from prices; owner/address/revision/region/branch and expiry checked before accepting asynchronous results",
+    "Saved order lineId/itemId/selectedOptions now read correctly; preserves distinct configured items and round-trip identity"
+  ],
+  "unchangedFinancialBehavior": [
+    "Agreement before eligible promotion; distinct funding components",
+    "Driver entitlement and tip independent from customer delivery discounts",
+    "Normal platform baseline gap remains platform liability through existing full-cash settlement",
+    "No merchant agreement, acceptance, commission or service terms invented or copied",
+    "Old accepted offers/orders and completed settlement evidence unchanged"
+  ],
+  "checks": {
+    "financialAndRoutingNodeTests": 118,
+    "staffPricingTests": 11,
+    "packagedActualRouteRuntimeTests": 4,
+    "centralBrowserFlows": 2,
+    "flutterTests": 13,
+    "typescriptBuild": "PASS",
+    "runtimeSync": "PASS",
+    "publishedEngineCases": 32,
+    "liveConsumersVerified": 14,
+    "flutterAnalyzer": "No errors or warnings; existing brace-style informational findings"
+  },
+  "publication": {
+    "code": "docs/general-pricing-code-publication-321.json",
+    "policy": "docs/general-pricing-activation-321.json",
+    "verification": "docs/general-pricing-verification-321.json"
+  },
+  "customerNative": {
+    "buildNumber": 234,
+    "mode": "profile",
+    "build": "PASS",
+    "installed": false,
+    "reason": "All paired physical devices unavailable; existing applications not removed",
+    "artifact": "../wizzuser-stg/frontend/build/ios/iphoneos/Runner.app"
+  },
+  "remainingExternalReadiness": {
+    "branch": "business_1791634772438_p2hlg6w5qii",
+    "name": "فروج المدينة",
+    "generalPricing": "APPLIES",
+    "orderCreation": "Requires actual organization and commercial agreement/version with genuine merchant acceptance and staff approval through existing workflow. User technical rollout does not fabricate counterparty consent."
+  },
+  "humanEndToEndAcceptance": "Pending human order after completing real branch commercial readiness. No automatic financial order tests performed.",
+  "newServiceRegion": "Enable and index active coverage, include region in general rule in central pricing; no code change. A new branch inside existing approved zones needs no pricing edit.",
+  "github": "Source and handoff publication on feature/malwersh/bootstrap; no main/integration merge."
+}

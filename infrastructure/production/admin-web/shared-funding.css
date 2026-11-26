@@ -1,0 +1,14 @@
+.funding-filters { margin-block: 1rem; }
+.funding-filters label, #funding-editor label { display: grid; gap: .3rem; min-width: 0; }
+.funding-filters .campaign-actions { margin-block-start: .8rem; }
+.funding-filters select, #funding-editor select, #funding-editor input, #funding-editor textarea { width: 100%; min-width: 0; }
+#funding-editor {
+  width: min(680px,calc(100% - 24px)); max-height: calc(100dvh - 24px);
+  padding: clamp(14px,3vw,24px); color: #092c63; border: 1px solid #d8e1ee; border-radius: 16px;
+}
+#funding-editor::backdrop { background: #06255085; }
+#funding-editor .campaign-grid, #funding-editor .campaign-actions { margin-block: .8rem; }
+#funding-editor-branches-more { margin-block-end: .7rem; }
+#funding-status:empty, #funding-editor-status:empty, #funding-offer-terms:empty { display: none; }
+.funding-ready { background: #e4f6eb; color: #166b43; }
+.funding-card-branch { color: #47658b; }

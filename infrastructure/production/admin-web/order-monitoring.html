@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>متابعة الطلبات — منصة الإدارة</title>
+  <link rel="stylesheet" href="/portal.css">
+  <link rel="stylesheet" href="/order-monitoring.css">
+  <script src="/config.js" defer></script>
+  <script src="/assets/js/auth-utils.js" defer></script>
+  <script src="/order-monitoring.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><h1>متابعة الطلبات</h1></header>
+    <section id="dispatch-followup" aria-labelledby="dispatch-followup-title" class="monitor-panel monitor-followup">
+      <div class="monitor-followup-header">
+        <h2 id="dispatch-followup-title">حالات الإسناد المتعثرة</h2>
+        <button type="button" id="followup-refresh" class="monitor-secondary">تحديث الحالات</button>
+      </div>
+      <p id="followup-status" role="status"></p>
+      <ul id="followup-list" class="monitor-list"></ul>
+      <button type="button" id="followup-more" class="monitor-secondary" hidden>تحميل حالات أخرى</button>
+      <details id="followup-policy" hidden>
+        <summary>مهل المراجعة والتصعيد</summary>
+        <div id="followup-policy-content"></div>
+        <p id="followup-policy-status" role="status"></p>
+      </details>
+    </section>
+    <form id="order-search" class="monitor-panel monitor-controls">
+      <label>رقم الطلب<input name="order" dir="ltr" type="search" maxlength="150" required></label>
+      <button>عرض الطلب</button>
+    </form>
+    <p id="order-status" role="status"></p>
+    <div class="monitor-layout">
+      <section aria-labelledby="orders-title" class="monitor-panel">
+        <h2 id="orders-title">طلبات الفرع</h2>
+        <form id="branch-search" class="monitor-controls">
+          <label>المطعم أو الفرع<select id="branch-selector" required disabled><option value="">اختر الفرع</option></select></label>
+          <button id="branch-submit" disabled>عرض الطلبات</button>
+        </form>
+        <button id="more-branches" type="button" class="monitor-secondary" hidden>تحميل فروع أخرى</button>
+        <p id="branch-status" role="status"></p>
+        <ul id="order-list" class="monitor-list"></ul>
+        <button id="more-orders" type="button" class="monitor-secondary" hidden>تحميل طلبات أقدم</button>
+      </section>
+      <section id="order-detail" class="monitor-panel" aria-label="تفاصيل الطلب" tabindex="-1">
+        <h2>تفاصيل الطلب</h2>
+        <p>اختر طلبًا أو ابحث برقمه لعرض حالته وسجل الإسناد والقضايا المرتبطة به.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

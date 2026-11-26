@@ -1,0 +1,27 @@
+{
+  "id": 429,
+  "status": "implemented_customer_app",
+  "changes": [
+    "Continue to payment validates and persists delivery details through the existing idempotent address service; no separate address approval button",
+    "Missing fields, coverage checks or failed persistence keep the user on the delivery step",
+    "Compact payment address uses area, neighborhood and landmark; recipient details remain in editing step",
+    "Restaurant and item quantity merged into invoice header",
+    "Offers collapsed into one compact entry; cash payment shown in one row",
+    "Driver instructions and tip grouped under optional extra options"
+  ],
+  "safety": [
+    "No change to invoice calculation, discount eligibility, reservation or confirmation policy",
+    "Repeated continue cannot duplicate the in-flight address write",
+    "Child disposal after accepted address does not prevent the parent continuation"
+  ],
+  "verification": {
+    "passedTests": 34,
+    "release": 392,
+    "humanCheckout": "pending current basket trial"
+  },
+  "files": [
+    "lib/screens/checkout_screen.dart",
+    "lib/widgets/checkout_address_editor.dart",
+    "lib/widgets/checkout_delivery_summary.dart"
+  ]
+}

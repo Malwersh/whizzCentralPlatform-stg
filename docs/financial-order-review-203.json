@@ -1,0 +1,29 @@
+{
+  "part": 203,
+  "orderNumber": "ORD1792441226655",
+  "orderId": "17f87a39-0edf-57c8-8971-c2d6d7dd42aa",
+  "status": "delivered",
+  "verifiedLedgerEntries": 5,
+  "journalNetIqd": 0,
+  "acceptedAllocationMatchesCompletion": true,
+  "customerTotalIqd": "11950",
+  "driverTotalIqd": "3250",
+  "driverTipIqd": "500",
+  "driverCashRetainedIqd": "2000",
+  "driverWalletCreditIqd": "1250",
+  "driverHoldSettledIqd": "9950",
+  "merchantPayableIqd": "7875",
+  "merchantPayableStatus": "LOCKED_PENDING_SETTLEMENT",
+  "merchantCommissionIqd": "1575",
+  "commissionBasis": "GOODS_GROSS",
+  "merchantGoodsDiscountIqd": 1050,
+  "platformNetContributionIqd": "825",
+  "scheduleCount": 0,
+  "findings": [
+    "Lifecycle GET route authorizationType NONE causes missing staff context and handler refusal",
+    "Schedule workflow wrongly requires UUID v4 for Cognito employee subjects",
+    "Finance page lacks completed-order settlement statement/batch controls"
+  ],
+  "dataWrites": false,
+  "authorizationGrantsChanged": false
+}

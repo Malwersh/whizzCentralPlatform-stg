@@ -1,0 +1,52 @@
+{
+  "part": 256,
+  "status": "REVIEWED_AND_IMPROVED",
+  "sourcePdf": "User-provided كشف صرف وتسوية مستحقات متجر.pdf",
+  "originalPages": 2,
+  "currentPayoutStatus": "PAID",
+  "amountIqd": 6250,
+  "originalReferenceAndDigestMatchLive": true,
+  "findings": [
+    "Original payment amount, beneficiary, cashbox, paid status, voucher and internal references match saved evidence",
+    "Missing prominent report reference despite existing valid CPV cash voucher",
+    "Internal order UUID instead of public ORD number; staff UUID instead of name",
+    "Owner receipt timestamp omitted; compensation accrual time misleadingly labeled delivery",
+    "Payment table split across pages; zero/absent summary rows and technical hashes crowded the report",
+    "Browser local print header and about:blank footer duplicated application metadata"
+  ],
+  "implemented": [
+    "Cash voucher is the clear stable primary reference of the cash payout report; no fictitious independent sequence",
+    "Explicit cash voucher versus external transfer labeling, LTR code isolation",
+    "Human executor/reconciler names, public order number, owner receipt and reconciliation timestamps",
+    "Verified historical source balances 10000 before / 3750 after cash delivery",
+    "One A4 page for the current one-order payout; metadata grouped and signatures intact",
+    "Optional separately paginated technical audit appendix; UUIDs and digest retained in system",
+    "Print dialog hint disables browser generated headers/footers"
+  ],
+  "referenceMeaning": {
+    "CPV": "Cash Payment Voucher / سند صرف نقدي",
+    "date": "20261021 from payout creation date in Baghdad",
+    "suffix": "Existing server-generated payout-specific identification component; preserved, not a transfer number",
+    "reportReferencePolicy": "Cash payout report uses the same immutable voucher reference; issue time identifies this copy"
+  },
+  "technicalReferences": {
+    "MPO": "Payout request key",
+    "MSB": "Saved settlement statement key",
+    "businessId": "Merchant/branch internal key",
+    "orderUuid": "Internal order identity, now ORD number in default output",
+    "staffUuid": "Employee identity, now a name in default output",
+    "digest": "Saved settlement SHA-256 integrity fingerprint"
+  },
+  "newPdf": "backend/.tmp/order-exceptions-work/report-256/كشف صرف وتسوية مستحقات متجر — محسن.pdf",
+  "tests": {
+    "wallet": 1264,
+    "focused": 23,
+    "bundledRuntime": 23,
+    "browserPrint": "PASS",
+    "actualDataPreview": "PASS",
+    "singlePagePdfKitAssertion": "PASS",
+    "existingReadIam": "PASS"
+  },
+  "financialWritesByAgent": false,
+  "iamChanged": false
+}

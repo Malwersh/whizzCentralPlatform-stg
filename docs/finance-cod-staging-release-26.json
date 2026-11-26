@@ -1,0 +1,483 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "status": "PUBLISHED_CLOSED_GATES_NOT_ACTIVATED",
+  "financialModes": "OFF",
+  "integrationSchedule": "DISABLED",
+  "codNoticeDelivery": "HELD",
+  "existingFunctionEnvironmentsChanged": false,
+  "existingDeletionExpiryEnabledPreserved": true,
+  "infrastructure": {
+    "stack": "staging-cod-lifecycle",
+    "status": "CREATE_COMPLETE",
+    "addedResources": 23,
+    "updatedOrDeletedExistingResources": 0,
+    "sourceTemplate": "backend/wallet-service/cod-lifecycle.staging.json",
+    "existingCodeUpdates": 12,
+    "newFunctions": 2,
+    "discardedUnexecutedMainStackChangeSets": [
+      "staging-wizz-wallet-service",
+      "staging-account-deletion",
+      "order-service-staging",
+      "wavesystem-staging",
+      "drivers-api-staging",
+      "Wizz-Merchants-staging"
+    ],
+    "fullParentStackDeploymentRequiresCodeUriAndStagePointerReconciliation": true
+  },
+  "functions": [
+    {
+      "name": "DriversApi-staging",
+      "revisionId": "1bb1baae-13a4-4283-bc54-206af8a10893",
+      "codeSha256": "Fayz8u5g6+J5VuW3tvVGJ1HaioQ0hmBm7vIwxUm8MNI=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "T/xQDTCihV5zUfKIEu6eQfTQSw5vN94Tg7J3hEmJYDY=",
+      "ownerStack": "drivers-api-staging",
+      "changedFiles": [
+        "lambda_driver_api_v2.js"
+      ],
+      "addedFiles": [
+        "financial-accept-client.js",
+        "financial-order-view.js"
+      ]
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "revisionId": "9c206e46-519c-472a-bd19-29a165979582",
+      "codeSha256": "sgXLQYWI7ALk+krIXcCem6+IuI5Mdvj82v0K0UzQBn4=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "oSlh/kBSkKdMSdAjZyjmJEb8c5IkpqTUNMU1qtSkwhI=",
+      "ownerStack": "wavesystem-staging",
+      "changedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "financial-runtime.js"
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "revisionId": "63f3c99e-0808-4c25-923d-01e4aeba86ad",
+      "codeSha256": "Ah9XoW37BiWewAm6lysIe+nVhnY2IC08eKJUT6j42FY=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "s1/QlTthhu0S9ozbBKGPjLIQQ49/ZmD6gH8lnGGE+MU=",
+      "ownerStack": "wavesystem-staging",
+      "changedFiles": [
+        "index.js"
+      ],
+      "addedFiles": [
+        "financial-runtime.js"
+      ]
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "revisionId": "aea56824-2168-4e79-bc05-b52449901d79",
+      "codeSha256": "WBVO3doNaDuxp44OS8UP4evxua22CxzyUiHK/DJViVo=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "UGSODckrpujjup/JMQ0DSN2EBCkRpQT2XuCBbibV+tM=",
+      "ownerStack": "wavesystem-staging",
+      "changedFiles": [
+        "index.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "revisionId": "ba936035-15b0-401d-bc05-aa818f2e1b02",
+      "codeSha256": "uOWLHdfLrlIIjRNXjPdmuW/fAsO2l2j142GcJDMoXjg=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "IihIxnLsP/9YlKbCZ/DRnzkijb4wfohrFlpfiRclF1Q=",
+      "ownerStack": "staging-wizz-wallet-service",
+      "changedFiles": [
+        "index.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "staging-wizz-wallet-service",
+      "revisionId": "5ce8d350-0eee-4d6f-ba09-50233ed9149a",
+      "codeSha256": "0znf7xPjCv07ma7EDvpOwayttBs5F6qtweSo7MBFhJo=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "rif0xQqAexpstPV0so41XYBGopYeIDtgcT0XGCpFbxg=",
+      "ownerStack": "staging-wizz-wallet-service",
+      "changedFiles": [
+        "dist/holdService.js",
+        "dist/walletLifecycle.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "staging-wizz-wallet-lifecycle",
+      "revisionId": "b9051bc4-3427-4451-8950-ceab4b54f3fe",
+      "codeSha256": "0znf7xPjCv07ma7EDvpOwayttBs5F6qtweSo7MBFhJo=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "rif0xQqAexpstPV0so41XYBGopYeIDtgcT0XGCpFbxg=",
+      "ownerStack": "staging-wizz-wallet-service",
+      "changedFiles": [
+        "dist/holdService.js",
+        "dist/walletLifecycle.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "OrderService-staging",
+      "revisionId": "5abc2348-af36-4457-9c6b-f5df0bde2528",
+      "codeSha256": "z8p//JzJuOs22pSnqlUK6tP8pqx+VeXpTFmoVkNYJjk=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "TtcplqmWUZZ23XbPI83O4G22tAtcvRGN7FSaiYiLHYQ=",
+      "ownerStack": "order-service-staging",
+      "changedFiles": [
+        "dist/orderCancellationService.js",
+        "dist/driverUnassignmentService.js"
+      ],
+      "addedFiles": []
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "revisionId": "f028bb78-b935-4ff8-a3e6-46ce5d0998e2",
+      "codeSha256": "cb3QA9ObHmaPc3b6oTMH93NRryKOkvlrnbCuCN0uT8M=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "pcgYqge4nOcegryMsbnqkoxV43CJ07tWW8YW6E4fUyM=",
+      "ownerStack": "staging-account-deletion",
+      "changedFiles": [
+        "customer-evidence.js",
+        "driver-evidence.js",
+        "merchant-evidence.js"
+      ],
+      "addedFiles": [
+        "cod-retention.js"
+      ]
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "revisionId": "11d8d656-0604-4dd7-b00a-768f5ff9a204",
+      "codeSha256": "oBAW+hk9Yc787BETzjPjWyPG5Y/6iyC3UYo2ST1Df0s=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "MFxp2hO2tl4ubZH7vCRMKzlxTAFUd0WFRIcl3BtGD0o=",
+      "ownerStack": "staging-account-deletion",
+      "changedFiles": [
+        "worker.js",
+        "customer-cleanup.js",
+        "driver-cleanup.js",
+        "merchant-cleanup.js"
+      ],
+      "addedFiles": [
+        "cod-retention.js",
+        "customer-delivery-quotes.js"
+      ]
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "revisionId": "e6d63560-985d-4ad2-89d5-c1961a98ebc8",
+      "codeSha256": "WwxZ3ZrUkYiumesKWNvWkg3NxZJigzehsjgYvTCPAho=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "pcgYqge4nOcegryMsbnqkoxV43CJ07tWW8YW6E4fUyM=",
+      "ownerStack": "staging-account-deletion",
+      "changedFiles": [
+        "financial-purge.js"
+      ],
+      "addedFiles": [
+        "cod-retention.js"
+      ]
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "revisionId": "8263ec44-fdf8-40d5-a3d2-d123d1e56a24",
+      "codeSha256": "Usqglb8g4m0uL+bsQ1O5phsLxJsL00f9K+9He9M/+08=",
+      "newFunction": false,
+      "closed": true,
+      "baseCodeSha256": "BAU/npIEcl+UeFiinHGaYTTIag2g+xoDkI5zdj3g89A=",
+      "ownerStack": "Wizz-Merchants-staging",
+      "changedFiles": [
+        "unified_auth_handler.js",
+        "person_onboarding.js"
+      ],
+      "addedFiles": [
+        "order_returns.js"
+      ]
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "revisionId": "6ab218c4-85e5-4570-903c-88b6536e9f9c",
+      "codeSha256": "Dc7KCOOLyTbFpGKfCNHsJRTwXSNovovNNniV7WQ8ntU=",
+      "newFunction": true,
+      "closed": true,
+      "baseCodeSha256": null,
+      "ownerStack": "staging-cod-lifecycle",
+      "changedFiles": [],
+      "addedFiles": []
+    },
+    {
+      "name": "staging-cod-integration",
+      "revisionId": "92547ff0-aaca-4410-9c39-35a693d8ddbd",
+      "codeSha256": "SKhfwDJtS/3TWYy0vlDbnu1Wd3Z7CbEpyhJhskbUuSw=",
+      "newFunction": true,
+      "closed": true,
+      "baseCodeSha256": null,
+      "ownerStack": "staging-cod-lifecycle",
+      "changedFiles": [],
+      "addedFiles": []
+    }
+  ],
+  "merchantApi": {
+    "oldDeployment": "1m9mvw",
+    "newDeployment": "kvesq3",
+    "existingPathsUnchanged": 65,
+    "newPaths": [
+      "/auth/order-cancellation",
+      "/auth/order-returns"
+    ],
+    "temporaryStageRemoved": true,
+    "stageSettingsOtherwiseUnchanged": true
+  },
+  "gatewayProbes": [
+    {
+      "method": "GET",
+      "url": "https://ie7z8r4wc0.execute-api.us-east-1.amazonaws.com/staging/auth/order-returns",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "url": "https://ie7z8r4wc0.execute-api.us-east-1.amazonaws.com/staging/auth/order-returns",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "url": "https://ie7z8r4wc0.execute-api.us-east-1.amazonaws.com/staging/auth/order-cancellation",
+      "status": 401
+    },
+    {
+      "method": "OPTIONS",
+      "url": "https://ie7z8r4wc0.execute-api.us-east-1.amazonaws.com/staging/auth/order-returns",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "https://ie7z8r4wc0.execute-api.us-east-1.amazonaws.com/staging/auth/order-cancellation",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://ie7z8r4wc0.execute-api.us-east-1.amazonaws.com/staging/auth/person-registration",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://6ogrj6so22.execute-api.us-east-1.amazonaws.com/staging/driver/accept-wave-offer",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "url": "https://6ogrj6so22.execute-api.us-east-1.amazonaws.com/staging/driver/orders/cod26-probe/request-return",
+      "status": 401
+    },
+    {
+      "method": "POST",
+      "url": "https://6ogrj6so22.execute-api.us-east-1.amazonaws.com/staging/driver/orders/cod26-probe/financial-unassign",
+      "status": 401
+    }
+  ],
+  "iamSimulations": [
+    {
+      "function": "staging-cod-integration",
+      "action": "dynamodb:Query",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle/index/ByDue",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-cod-integration",
+      "action": "dynamodb:UpdateItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-cod-integration",
+      "action": "dynamodb:UpdateItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+      "decision": "implicitDeny"
+    },
+    {
+      "function": "staging-cod-integration",
+      "action": "dynamodb:PutItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+      "decision": "implicitDeny"
+    },
+    {
+      "function": "staging-cod-integration",
+      "action": "dynamodb:DeleteItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle",
+      "decision": "implicitDeny"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "action": "dynamodb:UpdateItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "action": "dynamodb:PutItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+      "decision": "implicitDeny"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "action": "dynamodb:PutItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+      "decision": "implicitDeny"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "action": "dynamodb:UpdateItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "decision": "implicitDeny"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "action": "dynamodb:GetItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "decision": "allowed"
+    },
+    {
+      "function": "DriversApi-staging",
+      "action": "lambda:InvokeFunction",
+      "resource": "arn:aws:lambda:us-east-1:699561669180:function:staging-driver-financial-accept",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-account-deletion-requests",
+      "action": "dynamodb:Scan",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-account-deletion-worker",
+      "action": "dynamodb:ConditionCheckItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletLifecycle",
+      "decision": "allowed"
+    },
+    {
+      "function": "staging-account-deletion-financial-expiry",
+      "action": "dynamodb:DeleteItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WaveOffers_staging",
+      "decision": "allowed"
+    }
+  ],
+  "identityVerification": {
+    "scope": "REAL_COGNITO_AND_GATEWAY_CLOSED_GATES",
+    "smsSent": false,
+    "humanDataAccess": false,
+    "existingAppClientsChanged": false,
+    "results": [
+      {
+        "kind": "DRIVER",
+        "liveFinancialIdentityVerified": true,
+        "gatewayResult": "AUTHENTICATED_GATEWAY_FINANCIAL_GATE_CLOSED",
+        "disabledTokenRejected": true
+      },
+      {
+        "kind": "MERCHANT_OWNER",
+        "liveFinancialIdentityVerified": true,
+        "gatewayResult": "NON_APPLICATION_CLIENT_REJECTED",
+        "disabledTokenRejected": true
+      }
+    ],
+    "allFixturesRemoved": true,
+    "cleanupErrors": []
+  },
+  "isolatedDynamoDbVerification": {
+    "at": "2026-10-16T16:25:40.443Z",
+    "account": "699561669180",
+    "region": "us-east-1",
+    "physicalTable": "staging-cod25-verification-12e82f6b51d364e9",
+    "tableDeleted": true,
+    "result": {
+      "completion": {
+        "leaseLossBlocksArchive": true,
+        "resolvedExpiryAtomic": true,
+        "acceptanceOnce": true,
+        "completionOnce": true,
+        "metrics": "1/1",
+        "notice": "HELD",
+        "nonzeroDiscountIqd": 1000,
+        "commissionIqd": 500,
+        "driverTipIqd": 1000,
+        "archiveCount": 14,
+        "unpaidLiabilityBlocksPurge": true
+      },
+      "terminal": [
+        {
+          "mode": "cancel",
+          "acceptedCount": 1,
+          "completedCount": 0,
+          "releasedOnce": true,
+          "notice": "HELD"
+        },
+        {
+          "mode": "unassign",
+          "acceptedCount": 1,
+          "completedCount": 0,
+          "releasedOnce": true,
+          "notice": "HELD"
+        },
+        {
+          "mode": "return",
+          "acceptedCount": 1,
+          "completedCount": 0,
+          "releasedOnce": true,
+          "notice": "HELD",
+          "compensation": "PENDING_POLICY_REVIEW"
+        }
+      ]
+    },
+    "scope": "REAL_DYNAMODB_TRANSACTIONS_ISOLATED_TABLE_LOGICAL_TABLE_ADAPTER",
+    "excludes": [
+      "Gateway",
+      "Deployed Lambda runtime",
+      "IAM of production roles",
+      "Cognito authentication",
+      "FCM delivery",
+      "ByDue index/scheduler"
+    ],
+    "humanDataAccess": false,
+    "liveFeatureChanges": false
+  },
+  "fixes": [
+    "Legacy hold rejects financialAcceptance, financialOutcome and codFinancialEvidence markers after archival",
+    "Financial allocation evidence remains in private deletion archive; later party archival reuses verified private archive rather than exposing evidence on WizzOrders"
+  ],
+  "localVerification": {
+    "walletTests": 457,
+    "deletionTests": 213,
+    "merchantBackendTests": 190,
+    "pythonTests": 21,
+    "driverBackendPriorUnchangedTests": 53,
+    "typescriptBuild": "PASS",
+    "dedicatedStackSamLint": "PASS",
+    "mainWalletSamLint": "13 existing W3660 warnings remain"
+  },
+  "limits": [
+    "No enabled financial Lambda transaction flow under its own execution roles was tested",
+    "Merchant synthetic administrator client was correctly rejected by normal application-client binding; no positive normal-app owner transaction tested",
+    "DynamoDB financial test uses an isolated temporary table and injected identity/routing; separate Cognito/Gateway tests do not make it a single end-to-end flow",
+    "No human orders, funds or grants changed; no OTP or FCM sent; no existing Cognito app client changed",
+    "Customer commercial-pricing writer/quote and merchant order-reader dependencies were not published in this batch",
+    "Operational TTL, position age and reassignment settings remain UNCONFIGURED; no values invented",
+    "Normal application, device, dispatch timer, routing and push canary verification remain before activation",
+    "Review/replay UI, compensation/disputes, merchant payout and other plan packages remain"
+  ],
+  "rollback": "Retain closed gates and financial fencing; use reviewed prior packages and original merchant deployment pointer 1m9mvw only after dependency review. Do not blindly redeploy parent SAM stacks or remove COD retention fences."
+}

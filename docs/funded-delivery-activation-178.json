@@ -1,0 +1,94 @@
+{
+  "status": "ACTIVE_ONE_NEW_FUNDED_ORDER",
+  "functions": [
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "verified": true
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "verified": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "verified": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "verified": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "verified": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "verified": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "verified": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "verified": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "verified": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "verified": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "verified": true
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "verified": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "verified": true
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "verified": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "verified": true
+    }
+  ],
+  "scopeId": "fattoush-funded-178",
+  "admitUntil": "2026-10-19T15:06:01.455Z",
+  "orderId": "4b17bc64-7d96-510b-832d-714ef37933fa",
+  "policyId": "DLV-1e6705f4-9570-4df9-83cd-23204c9a18ef",
+  "hostsVerified": 15,
+  "historicalScopeMembershipsPreserved": true,
+  "previousDeliveredScopeDraining": true,
+  "codeAndIamPreserved": true,
+  "changedEnvironmentKeys": [
+    "FINANCE_ROLLOUT_CONFIG",
+    "FINANCE_ROLLOUT_SHA256"
+  ],
+  "unusedEnvironmentKeysRemoved": {
+    "order-receiver-merchant-orders-staging-v1": [
+      "BUSINESS_PHOTOS_BUCKET",
+      "SNS_APNS_ARN",
+      "SNS_FCM_ARN"
+    ]
+  },
+  "environmentKeyAuditCodeSha256": "LaQZDmaAyoiti9VpIPzGiUJDyXaznCWpg0K5L4JO1xM=",
+  "walletWrites": 0,
+  "orderCreated": false,
+  "independentHostVerificationCount": 15,
+  "customerProfileBuildPassed": true,
+  "customerPhysicalDeviceInstalled": true,
+  "customerPhysicalDeviceLaunched": true,
+  "driverWalletAvailableIqd": 60000,
+  "driverWalletLockedIqd": 0,
+  "customerReviewPending": true
+}

@@ -1,0 +1,26 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "name": "WizzUser-CreateAddress-staging",
+  "beforeHash": "nI7Uxuds7bTgA4a+t+MWmMaj2JTGGpzD29knhcOeXRQ=",
+  "hash": "3A/tDzFK2fvHJne8hCCSnforsZGrj8lBak+dyStuL/I=",
+  "changedFiles": [
+    "functions/create-address/index.js",
+    "functions/create-address/idempotency-315.js"
+  ],
+  "otherEntriesPreserved": true,
+  "iamUnchanged": true,
+  "environmentUnchanged": true,
+  "unauthenticatedStatus": 401,
+  "businessDataMutated": false,
+  "existingAddressesDeleted": false,
+  "customerBuild": 315,
+  "installedAndLaunched": true,
+  "simulator": "iPhone 16 Pro",
+  "tests": {
+    "backend": 16,
+    "flutter": 21,
+    "analyzerErrors": 0,
+    "analyzerWarnings": 0
+  },
+  "humanCapacityFlowAcceptance": "PENDING_USER_TEST"
+}

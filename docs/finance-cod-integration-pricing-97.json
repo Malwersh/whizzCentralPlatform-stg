@@ -1,0 +1,31 @@
+{
+  "part": 97,
+  "status": "exact_canary_acceptance_and_completion_integrated_verified",
+  "rootCause": "Live integration bundle rejected accepted driver finalRounding policy with PricingError INVALID_PRICING",
+  "published": true,
+  "environmentPreserved": true,
+  "walletLedgerChanges": false,
+  "testsPassed": 41,
+  "liveIntegrationVerified": true,
+  "acceptanceIntegratedAt": "2026-10-18T00:35:27.792Z",
+  "acceptanceCount": 1,
+  "completionIntegratedAt": "2026-10-18T00:38:27.672Z",
+  "completionCount": 1,
+  "walletsAndLedgerUnchanged": {
+    "DRIVER": true,
+    "MERCHANT": true,
+    "PLATFORM": true
+  },
+  "driverAvailableIqd": 17500,
+  "driverLockedIqd": 0,
+  "noticeCreated": true,
+  "noticeDeliveryStatus": "HELD",
+  "merchantCommercialPayoutComplete": false,
+  "functions": [
+    {
+      "name": "staging-cod-integration",
+      "codeSha256": "DwqZGppZ20ajNgQ/nY42NPYQdDcWg+oQftW4NoRjfsQ="
+    }
+  ],
+  "hashEvidence": "Recorded published candidate archives, corroborated against live capture at Part118"
+}

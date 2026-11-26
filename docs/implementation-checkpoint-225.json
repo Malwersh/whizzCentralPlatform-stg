@@ -1,0 +1,17 @@
+{
+  "part": 225,
+  "status": "PUBLISHED_DEVICE_ACCEPTANCE_PENDING",
+  "finding": "New general order return failed because rollout.subject was called before rollout.order registered saved GENERAL membership",
+  "repair": "Initialize DRAIN order validation before return/reassignment service; preserve original authentication and hold guards",
+  "realOrderMutatedByAgent": false,
+  "financialWrites": false,
+  "tests": {
+    "lifecycleAndRuntime": 67,
+    "failed": 0,
+    "capturedArtifactRealData": "Old rejection reproduced; candidate generates RETURNING transaction locally only",
+    "iamSimulation": "all11 proposed operations allowed"
+  },
+  "acceptance": "User retry pending; no app update needed",
+  "publication": "general-return-publication-225.json",
+  "codeSha256": "zgj7XzkHZZ5/HvgGpGUFa696rTpQYB1q9GX/evj2vzM="
+}

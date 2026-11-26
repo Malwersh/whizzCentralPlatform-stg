@@ -1,0 +1,29 @@
+{
+  "part": 210,
+  "scope": "Live Activity visual design only",
+  "status": "RELEASE_INSTALLED_LAUNCH_VERIFIED",
+  "build": 210,
+  "logoOriginalBytesPreserved": true,
+  "layout": "Arabic RTL, white card, actual merchant and order number, real ETA range or waiting/stale text, blue/yellow milestones",
+  "unchangedContracts": [
+    "OrderLiveActivityAttributes ContentState",
+    "APNs update/end backend",
+    "wizuser://orders/{orderId}"
+  ],
+  "validation": {
+    "releaseBuild": "PASS",
+    "projectPlist": "PASS",
+    "embeddedExtensionAssetCatalog": "PRESENT",
+    "sourceSHA256": "6b49a652b506d7002e2f91655b0885459095432e79ca9f576abb8a75a7c16d1a"
+  },
+  "device": "iMohammed",
+  "resume": "Payout cycle 209 checkpoint preserved; no payout or financial changes",
+  "installation": {
+    "bundleId": "com.wiz.wizuserapp",
+    "build": 210,
+    "installSucceeded": true,
+    "launchSucceeded": true,
+    "processObserved": true,
+    "visualLockScreenVerification": "Pending next user order; no synthetic order created"
+  }
+}

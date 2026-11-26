@@ -1,0 +1,33 @@
+{
+  "businessActionsExecuted": false,
+  "iamChanges": false,
+  "functions": {
+    "staff": {
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "fhkTRSLiw7z0qda09VLlA4gVqZH91qe9esbNDyCAITs=",
+      "codeSha256": "JjtxIlNuQZ3aYPhkPmxQfzjuBOIBpH6xBm1s3UlRu5I=",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "pickup-issue-workflow-runtime.js"
+      ]
+    },
+    "driver": {
+      "function": "DriversApi-staging",
+      "baseCodeSha256": "yuB12ZPbNGQEqLiRHTjvzPhWQaFL1aO3Z4erLxd+3AY=",
+      "codeSha256": "YnSIzfgrCYQphIhgxEQoLyHEET/c4YHnL/Nfg+9kLoU=",
+      "changedFiles": [
+        "driver-pickup-issues.js"
+      ]
+    }
+  },
+  "status": "PUBLISHED_VERIFIED",
+  "baseHostingJobId": "191",
+  "hostingJobId": "192",
+  "frontendChangedFiles": [
+    "pickup-issues.js",
+    "pages/pickup-issues.html",
+    "order-management.js",
+    "pages/orders.html"
+  ],
+  "hostedBytesMatched": true
+}

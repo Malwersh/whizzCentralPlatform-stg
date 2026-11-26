@@ -1,0 +1,43 @@
+{
+  "functions": [
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "codeSha256": "IHjkWcQBAu3FNIIe22hnNEqhbM1RKMVhlS+gn+KpeK8=",
+      "configurationPreserved": true,
+      "legacyMinimumGuardIncluded": true
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "pwPWDIuNO9H6uqKFMJijqFnyLESRG5hWEZsM45dvZNA=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-business-staging-status-v1-sam",
+      "codeSha256": "YQFYB796anSY0nWnSOCM2nQJM8bg9B6me96jDmVdXKg=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "1zshQg6c673nik72Aqdh7IjUgxlmOJpelm5Hh2g4Vnk=",
+      "configurationPreserved": true
+    }
+  ],
+  "iamChanged": false,
+  "branchValuesChanged": false,
+  "balancesChanged": false,
+  "serverTestsPassed": 23,
+  "packagedCommercialCheckPassed": true,
+  "customerTestsPassed": 4,
+  "customerPhysicalDeviceInstalledAndLaunched": true,
+  "merchantSimulatorInstalledAndLaunched": true,
+  "ownerVisualConfirmationPending": true,
+  "scope": "Optional branch minimum; shared informational preview/cart and both legacy and financial commercial order writers.",
+  "legacyMinimumTestsPassed": 3,
+  "customerVisualCheck": "Pending owner configuration and visual confirmation; no minimum value was changed by this release.",
+  "unauthenticatedSmokeChecks": {
+    "WizzUser-DeliveryQuotes-staging": 401,
+    "WizzUser-CreateOrder-staging": 400,
+    "order-receiver-business-staging-status-v1-sam": 401,
+    "order-receiver-regional-staging-unified-auth-v4-sam": 401
+  }
+}

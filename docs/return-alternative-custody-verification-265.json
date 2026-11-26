@@ -1,0 +1,40 @@
+{
+  "part": 265,
+  "status": "PASS",
+  "verifiedAt": "2026-10-22T00:48:22.209732+00:00",
+  "scope": "staging",
+  "services": [
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "amQuEAzGzE+OVa/wXIcAnW/wurSxndQyh6FwKq27gFk=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "KpFkBFvZQ57h1W8QRrTQ1EkVv4Y3mWkl8AfhPm014Uk=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    }
+  ],
+  "hostingJobId": "154",
+  "historicalCase": {
+    "number": "ORD1792545370610",
+    "version": 14,
+    "status": "RESOLVED",
+    "oldCaseNotBackfilled": true,
+    "compensationStatus": "PAID",
+    "compensationIqd": 6250,
+    "guaranteeStatus": "RELEASED"
+  },
+  "realNewOrderReceiptOrCustodyPlanCreatedByAgent": false,
+  "humanCustodyExecutionAcceptance": "PENDING_NEW_PARTIAL_RETURN_CASE",
+  "employeeFeatureHumanTest": "DEFERRED_BY_USER",
+  "physicalExecutionImplemented": true,
+  "nativeBuilds": {
+    "merchant": 229,
+    "driverSimulatorDebug": 215
+  },
+  "nativeInstalledAndLaunched": true,
+  "iamChanged": false
+}

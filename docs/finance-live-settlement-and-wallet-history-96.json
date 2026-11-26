@@ -1,0 +1,34 @@
+{
+  "part": 96,
+  "status": "core_settlement_and_event_integration_verified",
+  "actualSettlement": {
+    "orderStatus": "delivered",
+    "cashCollectedIqd": 9500,
+    "driverCashEarningRetainedIqd": 2000,
+    "driverAvailableIqd": 17500,
+    "driverLockedIqd": 0,
+    "driverHoldCapturedIqd": 7500,
+    "merchantPayableLockedIqd": 6300,
+    "platformNetContributionIqd": 1200,
+    "journalSumIqd": 0,
+    "financialOutcomeKind": "COD_COMPLETION_JOURNAL",
+    "merchantSettlementStatus": "LOCKED_PENDING_SETTLEMENT"
+  },
+  "uiFix": "The two HOLD_CREATED entries were the AVAILABLE debit and LOCKED credit of one balanced hold. Hide only the explicit locked-credit mirror; label driver COD_COMPLETED locked debit as HOLD_CAPTURED. Preserve all backend ledger rows. Show 1 kind / 2 pieces on delivery.",
+  "paymentFix": "Future verified COD completion atomically projects paymentStatus=captured, payment index bucket and codCollectedAt. Published narrow financial-accept overlay. Current exact order projection repaired from immutable completion journal with actual IAM audit, no new money/ledger operation.",
+  "validation": {
+    "backendTests": 28,
+    "flutterTests": 3,
+    "typescriptBuild": "passed",
+    "driverIosBuild": "passed",
+    "driverInstalled": true,
+    "driverLaunch": "Transport connection timed out; user must open the installed app."
+  },
+  "integration": "Resolved in Part 97: deployed integration bundle rejected finalRounding with INVALID_PRICING. Current COD integration dependency published with existing dispatch/rollout modules and configuration preserved. Scheduled acceptance integrated at 2026-10-18T00:35:27.792Z and completion at 2026-10-18T00:38:27.672Z. Exactly one financial acceptance/completion counted; held notice created; all three wallets and order ledger rows unchanged.",
+  "approvalBlock": "User explicitly approved exact queue permission. Applied and read back CodIntegrationWorkerRolePolicy0 with only DISPATCH_RESPONSE_INTEGRATION added to the existing ByDue Query leading-key condition. All other statements preserved; no wallet/ledger permission added. Unrelated queue remains denied.",
+  "remaining": [
+    "Merchant commercial payout/withdrawal workflow is separate and remains pending.",
+    "Notice delivery remains HELD; no general push activation.",
+    "Keep draining finance processors/scopes available for existing merchant payable; full plan is not complete."
+  ]
+}

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>محادثات الدعم — ويز</title>
+  <link rel="stylesheet" href="/portal.css">
+  <link rel="stylesheet" href="/support.css">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script defer src="/support-config.js"></script>
+  <script defer src="/support-attachments.js"></script>
+  <script defer src="/support.js"></script>
+</head>
+<body>
+<main class="support-page">
+  <header><h1>محادثات الدعم</h1><button id="support-refresh" type="button">تحديث المحادثات</button></header>
+  <p id="support-status" role="status">جارٍ الاتصال بالدعم…</p>
+  <div class="support-workspace" id="support-workspace" hidden>
+    <section aria-labelledby="support-inbox-heading">
+      <h2 id="support-inbox-heading">الواردة</h2>
+      <label for="support-filter">التطبيق</label>
+      <select id="support-filter">
+        <option value="">كل التطبيقات</option>
+        <option value="customer">الزبون</option>
+        <option value="merchant">المطعم</option>
+        <option value="driver">السائق</option>
+      </select>
+      <ul id="support-sessions"></ul>
+      <p id="support-empty">لا توجد محادثات.</p>
+    </section>
+    <section aria-labelledby="support-title">
+      <header>
+        <div><h2 id="support-title" tabindex="-1">اختر محادثة</h2><p id="support-context"></p></div>
+        <button id="support-close" type="button" hidden>إغلاق المحادثة</button>
+      </header>
+      <button id="support-older" type="button" hidden>تحميل الرسائل الأقدم</button>
+      <div class="support-thread" id="support-thread" hidden>
+        <ol id="support-messages" aria-label="رسائل المحادثة" aria-live="polite"></ol>
+      </div>
+      <form id="support-reply" hidden>
+        <label for="support-text">الرد</label>
+        <textarea id="support-text" rows="3" maxlength="4000" required></textarea>
+        <button id="support-send">إرسال</button>
+      </form>
+      <p id="support-feedback" role="status"></p>
+    </section>
+  </div>
+  <dialog id="support-close-dialog" aria-labelledby="support-close-heading">
+    <form method="dialog">
+      <h2 id="support-close-heading">إغلاق المحادثة؟</h2>
+      <p>سيظهر للمستخدم أن فريق الدعم أغلق المحادثة.</p>
+      <button value="cancel" autofocus>تراجع</button>
+      <button value="close">تأكيد الإغلاق</button>
+    </form>
+  </dialog>
+</main>
+</body>
+</html>

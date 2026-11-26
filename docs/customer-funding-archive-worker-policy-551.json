@@ -1,0 +1,61 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CustomerFundingArchiveRead551",
+      "Effect": "Allow",
+      "Action": "dynamodb:GetItem",
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "DELIVERY_RESERVATION#*",
+            "DELIVERY_USAGE#*"
+          ]
+        },
+        "ForAllValues:StringEquals": {
+          "dynamodb:Attributes": [
+            "pk",
+            "sk",
+            "schemaVersion",
+            "version",
+            "customerId",
+            "orderId",
+            "policyPin",
+            "allocation",
+            "requestDigest",
+            "status",
+            "createdAt",
+            "settledAt",
+            "reservedUses",
+            "completedUses",
+            "digest",
+            "legalHold",
+            "retentionHold"
+          ]
+        },
+        "Null": {
+          "dynamodb:Attributes": "false",
+          "dynamodb:LeadingKeys": "false"
+        }
+      }
+    },
+    {
+      "Sid": "CustomerFundingArchiveFence551",
+      "Effect": "Allow",
+      "Action": "dynamodb:ConditionCheckItem",
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "DELIVERY_RESERVATION#*",
+            "DELIVERY_USAGE#*"
+          ]
+        },
+        "Null": {
+          "dynamodb:LeadingKeys": "false"
+        }
+      }
+    }
+  ]
+}

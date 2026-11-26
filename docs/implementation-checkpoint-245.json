@@ -1,0 +1,29 @@
+{
+  "part": 245,
+  "status": "PUBLISHED_AND_VERIFIED",
+  "scope": "Connected case and finance presentation, contextual reasons and completed/remaining stages",
+  "publication": "finance-case-ui-publication-245.json",
+  "verification": "finance-case-ui-verification-245.json",
+  "changes": [
+    "Case progress from persisted receipt, current finding, fare posting, guarantee release/settlement, actual merchant payment and closure",
+    "Separate local reasons/messages for evidence, responsibility, entitlements, guarantee, operations, notes and closure",
+    "Current responsibility shown separately from a collapsed replacement editor",
+    "Financial evidence selection in the entitlements section; completed editors/actions hidden; independent immutable approvals and execution preserved",
+    "Keep detail and show fresh server result after action; draft preservation; human Arabic history and expandable references",
+    "Branch-specific finance link, read-only statement pointer and account/statements/payout navigation",
+    "Account defaults to all movements; primary metrics and expandable complete breakdown; print operator fields in dialog",
+    "Original finance authorization container preserved; navigation does not write or authorize payment"
+  ],
+  "tests": {
+    "staffAndCaseService": 246,
+    "browserSuites": 7,
+    "desktopAndMobile": true,
+    "financialWritesInBrowserFixturesOnly": true
+  },
+  "nativeRebuildRequired": false,
+  "financialExecutionCodeChanged": false,
+  "iamChanged": false,
+  "pendingTest": "Add existing merchant compensation 6250 IQD to a saved statement and test cash payout/receipt/reconciliation, then close case",
+  "wholeSpecificationComplete": false,
+  "hostingJob": 138
+}

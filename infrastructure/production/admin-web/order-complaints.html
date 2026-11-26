@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>شكاوى الطلبات — إدارة ويز</title>
+  <link rel="stylesheet" href="/portal.css">
+  <link rel="stylesheet" href="/order-complaints.css">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script src="/order-complaints.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><h1>شكاوى الطلبات</h1><button id="complaints-refresh" type="button">تحديث القائمة</button></header>
+    <div class="complaints-workspace">
+      <section class="complaints-panel" aria-labelledby="complaints-inbox">
+        <h2 id="complaints-inbox">قائمة الشكاوى</h2>
+        <form id="complaints-search" class="complaints-fields">
+          <label>رقم الطلب<input name="order" dir="ltr" maxlength="150" required></label>
+          <button type="submit" class="secondary">فتح الطلب</button>
+        </form>
+        <label>حالة القائمة<select id="complaints-state"><option value="open">قيد المراجعة</option><option value="closed">مغلقة</option></select></label>
+        <p id="complaints-list-status" role="status"></p>
+        <ul id="complaints-list" class="complaints-list"></ul>
+        <button id="complaints-more" type="button" class="secondary" hidden>تحميل المزيد</button>
+      </section>
+      <section class="complaints-panel" aria-label="تفاصيل الشكوى">
+        <p id="complaints-detail-status" role="status"></p>
+        <div id="complaints-detail"><h2>تفاصيل الشكوى</h2><p>اختر شكوى من القائمة لعرض تفاصيلها ومراجعتها.</p></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "accountId": "746727375268",
+  "region": "us-east-1",
+  "identities": {
+    "driver": {"poolId": "us-east-1_5sUT54eCB", "poolName": "wizz-production-driver", "clientId": "59to4hbat3lv2fvosa49afu0gi", "clientName": "wizz-production-driver-app"},
+    "admin": {"poolId": "us-east-1_njh6vaNWj", "poolName": "wizz-production-admin", "clientId": "7924qedsr5m1j1bvc3c7va8egk", "clientName": "wizz-production-admin-web"},
+    "customer": {"poolId": "us-east-1_rNtNKVsVf", "poolName": "wizz-production-customer", "clientId": "3e8p0ouglrprpd0a3pc91du0hg", "clientName": "wizz-production-customer-app"},
+    "merchant": {"poolId": "us-east-1_2sKZ4fGbZ", "poolName": "wizz-production-merchant", "clientId": "5l8ng11uudg146crop63926svq", "clientName": "wizz-production-merchant-app"}
+  }
+}

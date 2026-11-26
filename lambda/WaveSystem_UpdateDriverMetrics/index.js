@@ -30,11 +30,29 @@ const WAVE_OFFERS_TABLE = process.env.WAVE_OFFERS_TABLE || 'WaveOffers';
 const DRIVER_LIVE_STATE_TABLE = process.env.DRIVER_LIVE_STATE_TABLE || 'WizzDriverLiveState';
 const WINDOW_SIZE = parseInt(process.env.WINDOW_SIZE || '100');
 
+async function driverFencedWrite(driverId, operation) {
+  if (PERFORMANCE_METRICS_TABLE !== 'WizzDriverPerformanceMetrics_staging' || DRIVER_LIVE_STATE_TABLE !== 'WizzDriverLiveState_staging') throw new Error('STAGING_DRIVER_TABLE_REQUIRED');
+  const key = {pk: 'ACCOUNT_LIFECYCLE#DRIVER#' + driverId, sk: 'META'};
+  try {
+    return await dynamodb.transactWrite({TransactItems: [
+      {ConditionCheck: {TableName: 'staging-AccountDeletion', Key: key, ConditionExpression: 'attribute_not_exists(pk)'}},
+      operation,
+    ]}).promise();
+  } catch (error) {
+    if (error.code !== 'TransactionCanceledException' && error.name !== 'TransactionCanceledException') throw error;
+    const marker = await dynamodb.get({TableName: 'staging-AccountDeletion', Key: key, ConsistentRead: true}).promise();
+    if (!marker.Item || marker.Item.subjectId !== driverId) throw error;
+    // Late stream records for a closing account are acknowledged, not retried
+    // indefinitely and not permitted to recreate location or metrics records.
+    return {accountClosing: true};
+  }
+}
+
 // =====================================
 // Main Handler
 // =====================================
 exports.handler = async (event) => {
-  console.log('📊 UpdateDriverMetrics triggered:', JSON.stringify(event, null, 2));
+  console.log('Driver metrics batch received', {count: event.Records?.length});
 
   try {
     for (const record of event.Records) {
@@ -288,14 +306,14 @@ async function getDriverMetrics(driverId) {
 // =====================================
 async function saveDriverMetrics(metrics) {
   
-  await dynamodb.put({
+  await driverFencedWrite(metrics.driverId, {Put: {
     TableName: PERFORMANCE_METRICS_TABLE,
     Item: {
       PK: metrics.driverId,
       SK: 'METRICS',
       ...metrics
     }
-  }).promise();
+  }});
 }
 
 // =====================================
@@ -401,7 +419,7 @@ function calculateWindowStats(offers) {
 async function syncSnapshotToLiveState(driverId, metrics) {
   
   try {
-    await dynamodb.update({
+    await driverFencedWrite(driverId, {Update: {
       TableName: DRIVER_LIVE_STATE_TABLE,
       Key: { driverId: driverId },
       UpdateExpression: `
@@ -418,7 +436,7 @@ async function syncSnapshotToLiveState(driverId, metrics) {
         ':totalOffersWindow': metrics.windowOffersCount,
         ':now': new Date().toISOString()
       }
-    }).promise();
+    }});
     
     console.log(`🔄 Synced snapshot to LiveState for ${driverId}`);
     

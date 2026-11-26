@@ -1,0 +1,861 @@
+{
+  "part": 62,
+  "environment": "Staging",
+  "userDate": "2026-10-17",
+  "implementation": "One campaign content-version contract integrated into existing owner, branch-device staff, platform promotions and atomic order reservation paths",
+  "allApplicationDataDeclaredTestByUser": true,
+  "applicationDataReset": false,
+  "activationPerformed": false,
+  "publication": {
+    "part": 62,
+    "environment": "Staging",
+    "atUtc": "2026-10-17T06:26:16.993966+00:00",
+    "stackName": "staging-campaign-versioning-access-62",
+    "functions": [
+      {
+        "name": "staging-wizz-staff-service",
+        "codeSha256": "0AV8UFWgl2ABzoLJuI/cM0HFKvglWpkenoM5O9WXT44=",
+        "revisionId": "202cc5de-a57c-462c-9539-81bb50d159f1",
+        "environmentPreserved": true
+      },
+      {
+        "name": "order-receiver-regional-staging-discount-management-v1-sam",
+        "codeSha256": "rjMVz7XB3JmNid9qqM4kyFvULtryLVW3Kk95Ne0htQg=",
+        "revisionId": "9a9b920b-d6bc-4a11-8c93-c4bca1fbd4ca",
+        "environmentPreserved": true
+      },
+      {
+        "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+        "codeSha256": "PRSRWAtinVIJZWetbL/1To/cI1plC6YmxQDbV9CsCoE=",
+        "revisionId": "195c7813-962d-4b41-b6c0-2c1d3239da39",
+        "environmentPreserved": true
+      },
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "codeSha256": "Fe8bM+DAXAGaY4eDx9nIjo3p72YloswTiboIU+yXtO4=",
+        "revisionId": "f0b90682-fc52-4225-af60-342fbbc9aa27",
+        "environmentPreserved": true
+      }
+    ],
+    "activationPerformed": false,
+    "customPolicyChecks": [
+      {
+        "action": "dynamodb:BatchWriteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:BatchWriteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:PartiQLDelete",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:PartiQLDelete",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:PartiQLInsert",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:PartiQLInsert",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:PartiQLUpdate",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:PartiQLUpdate",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "explicitDeny"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+        "decision": "implicitDeny"
+      }
+    ],
+    "baselineBrowserReads": {
+      "arn:aws:iam::699561669180:role/whizz-centralplatform-staging-admin-data": [
+        {
+          "action": "dynamodb:GetItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:GetItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "allowed"
+        },
+        {
+          "action": "dynamodb:Scan",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:Scan",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "allowed"
+        }
+      ],
+      "arn:aws:iam::699561669180:role/whizz-centralplatform-staging-auth": [
+        {
+          "action": "dynamodb:GetItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:GetItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:Scan",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:Scan",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "implicitDeny"
+        }
+      ],
+      "arn:aws:iam::699561669180:role/whizz-centralplatform-staging-unauth": [
+        {
+          "action": "dynamodb:GetItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:GetItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:Scan",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "implicitDeny"
+        },
+        {
+          "action": "dynamodb:Scan",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "implicitDeny"
+        }
+      ]
+    },
+    "accessChangeSet": "arn:aws:cloudformation:us-east-1:699561669180:changeSet/campaign62-CREATE/00c521f1-bd76-4bb6-959d-ff64f6a3aa18",
+    "accessPrepared": true,
+    "effectiveWriterChecks": [
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+        "decision": "allowed"
+      }
+    ],
+    "amplify": {
+      "appId": "d2vmebm1e1n95m",
+      "branch": "staging",
+      "jobId": "73",
+      "status": "SUCCEED"
+    },
+    "browserCutoverChangeSet": "arn:aws:cloudformation:us-east-1:699561669180:changeSet/campaign62-UPDATE/4a0b9b30-201b-48f6-889a-bb50797f19e0",
+    "browserWritesClosed": true,
+    "effectiveBrowserChecks": {
+      "arn:aws:iam::699561669180:role/whizz-centralplatform-staging-admin-data": [
+        {
+          "action": "dynamodb:BatchWriteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:BatchWriteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:DeleteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:DeleteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLDelete",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLDelete",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLInsert",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLInsert",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLUpdate",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLUpdate",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        }
+      ],
+      "arn:aws:iam::699561669180:role/whizz-centralplatform-staging-auth": [
+        {
+          "action": "dynamodb:BatchWriteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:BatchWriteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:DeleteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:DeleteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLDelete",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLDelete",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLInsert",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLInsert",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLUpdate",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLUpdate",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        }
+      ],
+      "arn:aws:iam::699561669180:role/whizz-centralplatform-staging-unauth": [
+        {
+          "action": "dynamodb:BatchWriteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:BatchWriteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:DeleteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:DeleteItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLDelete",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLDelete",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLInsert",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLInsert",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLUpdate",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PartiQLUpdate",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:PutItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Discounts",
+          "decision": "explicitDeny"
+        },
+        {
+          "action": "dynamodb:UpdateItem",
+          "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_Platform_Discounts",
+          "decision": "explicitDeny"
+        }
+      ]
+    },
+    "browserReadsPreserved": true,
+    "anonymousPromotionsRejected": true,
+    "verifiedAtUtc": "2026-10-17T06:33:43.362526+00:00"
+  },
+  "packages": {
+    "staff": {
+      "codeSha256": "0AV8UFWgl2ABzoLJuI/cM0HFKvglWpkenoM5O9WXT44=",
+      "changedFiles": [
+        "campaign-version.js",
+        "index.js",
+        "promotions.js"
+      ],
+      "preservedFiles": 4519
+    },
+    "auth": {
+      "codeSha256": "PRSRWAtinVIJZWetbL/1To/cI1plC6YmxQDbV9CsCoE=",
+      "changedFiles": [
+        "branch_device_discounts.js",
+        "shared/campaign-version.js"
+      ],
+      "preservedFiles": 5997
+    },
+    "discount": {
+      "codeSha256": "rjMVz7XB3JmNid9qqM4kyFvULtryLVW3Kk95Ne0htQg=",
+      "changedFiles": [
+        "discount_management_handler.js",
+        "shared/campaign-version.js",
+        "shared/merchant-lifecycle.js"
+      ],
+      "preservedFiles": 4418
+    },
+    "writer": {
+      "codeSha256": "Fe8bM+DAXAGaY4eDx9nIjo3p72YloswTiboIU+yXtO4=",
+      "changedFiles": [
+        "functions/shared/campaign-version.js",
+        "functions/shared/discount-reservation.js"
+      ],
+      "preservedFiles": 11046
+    },
+    "frontend": {
+      "codeSha256": "cmQNTs3GEYNiLlM6HaOFh7x126Hw2CiLK3n/kJ7WVlA=",
+      "changedFiles": [
+        "data-service.js",
+        "pages/promotions.html",
+        "simplified-campaign-manager.js"
+      ],
+      "preservedFiles": 182
+    }
+  },
+  "base": {
+    "staff": {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "IpaBI86d1iVC1la4D/TgCQaWrUqMTKLdmzNds6mMjkQ=",
+      "revisionId": "df830554-7b42-45e3-8057-6858a4158376",
+      "handler": "index.handler",
+      "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "relevantFiles": [
+        "offer-eligibility.js",
+        "commercial-management.js",
+        "commercial-owner.js"
+      ]
+    },
+    "auth": {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "CknGNaBshIy96H+5Fjhpr7/3nwf42jitl69njZTDQiU=",
+      "revisionId": "609dbdca-33e2-4697-b1d1-72f7548d2681",
+      "handler": "unified_auth_handler.handler",
+      "role": "arn:aws:iam::699561669180:role/Wizz-Merchants-staging-UnifiedAuthFunctionRole-5TqBUPbFZ9wo",
+      "relevantFiles": [
+        "shared/merchant-lifecycle.js",
+        "branch_device_discounts.js",
+        "commercial_agreements.js"
+      ]
+    },
+    "discount": {
+      "name": "order-receiver-regional-staging-discount-management-v1-sam",
+      "codeSha256": "7LXJcH4GFjXoDvt+/6cVu2yHaL9sjwgjJWaVg77clwk=",
+      "revisionId": "bf6d4b01-ac0e-4bab-b3b9-d4c6b1855b7b",
+      "handler": "discount_management_handler.handler",
+      "role": "arn:aws:iam::699561669180:role/Wizz-Merchants-staging-DiscountManagementFunctionRo-yyqcChSn9i6f",
+      "relevantFiles": [
+        "discount_management_handler.js",
+        "shared/merchant-lifecycle.js"
+      ]
+    },
+    "writer": {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "krrvCqW+Xl3ADD9WHtAow1TpclzfwKzjgy6qqxhrRXE=",
+      "revisionId": "a4b4d6c3-8c4f-408c-aeaa-0cd376972696",
+      "handler": "functions/create-order/index.handler",
+      "role": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+      "relevantFiles": [
+        "functions/get-store-discounts/index.js",
+        "functions/create-order/commercial-order-router.js",
+        "functions/create-order/commercial-runtime.js",
+        "functions/shared/discount-engine.js",
+        "functions/shared/discount-reservation.js",
+        "functions/shared/discount-preview.js",
+        "functions/shared/discount-list.js",
+        "functions/shared/offer-eligibility.js"
+      ]
+    },
+    "frontend": {
+      "jobId": "72",
+      "codeSha256": "0k5RQGyA3KbG9cVQZeL6Zdbv0bLZwRgtRksreeNfOk8=",
+      "origin": "KNOWN_PUBLISHED_JOB72_ARCHIVE_WITH_HTTP_BYTE_CHECKS"
+    }
+  },
+  "verification": {
+    "nodeSuites": {
+      "central": {
+        "tests": 413,
+        "pass": 413,
+        "fail": 0
+      },
+      "merchant": {
+        "tests": 201,
+        "pass": 201,
+        "fail": 0
+      },
+      "customer": {
+        "tests": 39,
+        "pass": 39,
+        "fail": 0
+      },
+      "wallet": {
+        "tests": 680,
+        "pass": 680,
+        "fail": 0
+      }
+    },
+    "nodeTestsTotal": 1333,
+    "walletTypeScriptBuild": true,
+    "merchantFlutterTests": 184,
+    "merchantModelFocusedTestsAfterCleanup": 2,
+    "merchantAnalysisErrors": 0,
+    "merchantAnalysisWarnings": 0,
+    "existingMerchantAnalysisInfoNotes": 9,
+    "merchantIosSignedReleaseBuild": true,
+    "merchantBuildInstalledThisPart": false,
+    "chrome": {
+      "browserChecks": 4,
+      "noDirectDatabaseWrites": true,
+      "retryBodyAndBaseVersionStable": true,
+      "sessionChangeDiscarded": true
+    },
+    "isolatedDynamoDb": {
+      "part": 62,
+      "applicationTableWrites": 0,
+      "applicationBalanceWrites": 0,
+      "humanWrites": 0,
+      "platformCreateOnce": true,
+      "staleFundingRejected": true,
+      "concurrentFundingInvalidatesReservation": true,
+      "pausePreservesApprovedVersion": true,
+      "concurrentUsePreserved": true,
+      "ownerUsesExistingGuardedTransaction": true,
+      "staleOwnerFormRejected": true,
+      "ownerControllerAndRetiredStandaloneCounter": true,
+      "deviceSharesMonotonicVersion": true,
+      "platformSharesMerchantVersion": true,
+      "usageOnceWithoutVersionBump": true,
+      "explicitLegacyAdoption": true,
+      "tableDeleted": true
+    },
+    "liveRuntimeSmoke": {
+      "staff": {
+        "anonymousStatusCode": 401,
+        "functionError": false
+      },
+      "discount": {
+        "anonymousStatusCode": 401,
+        "functionError": false
+      },
+      "auth": {
+        "anonymousStatusCode": 401,
+        "functionError": false
+      },
+      "commercialAdminRemainsClosed": true,
+      "merchantPhoneIdentityPermission": "allowed",
+      "promotionsPreflight": {
+        "statusCode": 200,
+        "allowOrigin": "https://staging.d2vmebm1e1n95m.amplifyapp.com",
+        "allowMethods": "GET,POST,OPTIONS"
+      }
+    }
+  },
+  "campaignAdoption": {
+    "systemActor": "SYSTEM_RELEASE_62",
+    "tables": [
+      "WhizzMerchants_Discounts",
+      "WizzCentral_Platform_Discounts"
+    ],
+    "inventoryRecords": 9,
+    "adoptedRows": 9,
+    "contentVersion": 1,
+    "campaignFieldsWritten": [
+      "version"
+    ],
+    "sourceContentPreserved": true,
+    "usageCountersPreserved": true,
+    "statusPreserved": true,
+    "fundingAssigned": false,
+    "applicationBalanceWrites": 0,
+    "auditAction": "CAMPAIGN_VERSION_ADOPTED",
+    "verifiedAtUtc": "2026-10-17T06:34:06.253Z"
+  },
+  "reviewedSourceRevisions": [
+    {
+      "path": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "beforeSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "afterSha256": "29ab287dc9f90f9415fbb555b4edc8ba42cca24e90db4f227a0a2deb2c3c3310",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "beforeSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "afterSha256": "867ec845200a4214ac0838b0f4344f26098b3beb598dc0d5340d1f721921a811",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "beforeSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "afterSha256": "4c90853592f5d821f521437c875aada8fdd383f1c3f4c42d38e68dabf240240a",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "backend/staff-service/dispatch-reviews.js",
+      "beforeSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "afterSha256": "02eaacf7f3559a7810aa2b9fdd3d00d472955443bbda78ade132e15fc5a43967",
+      "reason": "Part53 adds scoped transport/list filtering, canonical order ID export and actionable scope denials while retaining Part52 atomic quote composition."
+    },
+    {
+      "path": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "beforeSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "afterSha256": "535e6be012354b611903eaeba04d959b7be4259c574c8706f6c36c7eeb0d7b66",
+      "reason": "Part54 binds a Staging test confirmation to a preapproved request while retaining immutable pending replay and default UUID behavior; commercial approval flow is unchanged."
+    },
+    {
+      "path": "backend/wallet-service/src/money.ts",
+      "beforeSha256": "a650a50ed22593f5cee9c88df9ab01869acff4a32c234fef5ade9497dd39e90e",
+      "afterSha256": "c02c3752fc00f6088cd529bf617b0506fa8be4458da3e1bdd47d029a13865165",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/deliveryPricing.ts",
+      "beforeSha256": "ee05af2c120e9052d25eeed4f898275ec5a734ac21be99f135e77d219535aab3",
+      "afterSha256": "154584f9ab57b2efc274bbdbe97e183c77b9c264cf3ea21da5ca7de745857da9",
+      "reason": "Part59 implements optional explicit final whole-IQD rounding in existing Money, delivery/driver pricing, merchant charges and schema-2 discount funding; legacy contracts and saved snapshots are preserved. Local implementation only, not a live publication."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialPricing.ts",
+      "beforeSha256": "7a2c30ee07aa06ce1e00808a7b279973d6f21b634f5a5884bc5d0ca56866d690",
+      "afterSha256": "f83727625f3bb1c77439a85fa2f87caee17546021f4f0ef38abeb773d8bdaaf1",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published."
+    },
+    {
+      "path": "backend/wallet-service/src/orderCommercialSource.ts",
+      "beforeSha256": "4abde486156dd14be3c4812774113c299d56c9598e7320c1460c26036be220e8",
+      "afterSha256": "0b81190c88e902ee9613b7fa35889de0d20918a20724a9a01d3a8104f32bd875",
+      "reason": "Part60 reuses the commercial charge validator and adds schema-2 consent-bound funding policy snapshots to the existing reader; legacy schema-1 is unchanged. Financial consumer changes are local, not deployed; only closed UI/admin hosts are published."
+    }
+  ],
+  "relatedSourceHashes": {
+    "backend/src/utils/campaign-version.js": "bb96c1cb71e6cd2acf5519a91f2656b75d9744fa9e11c585372e4ea3f1ca3c43",
+    "backend/staff-service/promotions.js": "b2ab6de7aa30497be584ecb98f65fca62f3d6350aed541d193a5f6f1b7aec158",
+    "../whizzMerchants-stg/backend/functions/shared/merchant-lifecycle.js": "58825422af67793c96c46fa91d8a04b96bfb46a7a4bd475d7c752090b69d18fb",
+    "../whizzMerchants-stg/backend/functions/discounts/discount_management_handler.js": "8f581be7bd6397841c940903ea8afb10648c9604d77e3e8c467597a70182f3bd",
+    "../whizzMerchants-stg/backend/functions/auth/branch_device_discounts.js": "6de2bc056871de7d244a984d89cf3d644597c6ef6b1df04a7c5f8c611411a7b3",
+    "../wizzuser-stg/backend/src/functions/shared/discount-reservation.js": "a327b366a24ebc437c34a37f7f7e751834cf48641583355435e1120cbea55e61",
+    "frontend/data-service.js": "cff7b6f177f729a6cfa772abbdd29146a297404d1610c2840be81eb6947fd5be",
+    "frontend/simplified-campaign-manager.js": "dec8eb43d88c6d43e78e96ceff44f1dd3bd783807bf0f5ff0a339b1eaeb887a9",
+    "frontend/pages/promotions.html": "6acc298038e68711648d553ba5d89e05687675340d2e15eaae9eabd9705a326f",
+    "backend/staff-service/index.js": "6907aa1a471d12655632da3d0a02a95950242b718de1ce2b4dba2d87c83b5256",
+    "../whizzMerchants-stg/frontend/lib/models/discount.dart": "c84d84096ca6d7359da66656441901cdf394b006084d190a6956ed8628c567e9",
+    "../whizzMerchants-stg/frontend/lib/services/api_service.dart": "d2e84ae64aee02ed8b858afa4cb37753b1298267571c2ef306d7e011387ad162",
+    "../whizzMerchants-stg/frontend/lib/screens/discount_management_page.dart": "c73c954b3cb671e170180874197245d15a1633c578cc5036358ac6f69098b0c9"
+  },
+  "tablesReused": [
+    "WhizzMerchants_Discounts",
+    "WizzCentral_Platform_Discounts",
+    "staging-PlatformStaff",
+    "staging-MerchantPlatform",
+    "WhizzMerchants_Businesses",
+    "staging-AccountDeletion",
+    "WizzCentral_Regions"
+  ],
+  "newApplicationTables": 0,
+  "coworkerIntegration": {
+    "branchAudit": "discounts-colleague-branch-audit-2026-10-17.json",
+    "merchantDiscountReservedWordFixRetained": true,
+    "customerOrderWriterIndexPreservedByteForByte": true,
+    "publishedCodSettlementAndDiscountComputationPreserved": true,
+    "gitMergeOrPushPerformed": false
+  },
+  "versionRules": [
+    "New campaigns start at explicit version 1; legacy missing versions are adopted under full source CAS.",
+    "Terms changes increment content version and remove previous funding-policy binding.",
+    "Usage counters and activation/pause metadata do not increment content version.",
+    "All writes fence the source including absent version/funding/hold fields and preserve concurrent usage.",
+    "Owner selects a verified explicit branch and new app carries base revision.",
+    "Platform writes use authenticated staff permissions, scope, audit and stable request ID; no cross-table fallback.",
+    "Standalone owner usage increment is retired; redemption remains inside the existing order transaction.",
+    "Order reservation pins version and funding binding, including absence, without changing content version."
+  ],
+  "infrastructureOwnership": {
+    "stackName": "staging-campaign-versioning-access-62",
+    "resourceTypes": [
+      "AWS::IAM::ManagedPolicy"
+    ],
+    "managedPolicies": 3,
+    "fullSamStackUpdatePerformed": false,
+    "browserRolesProtected": 3,
+    "browserWriteDenyChecks": 42,
+    "browserReadPermissionsPreserved": true
+  },
+  "rollback": "Original live packages and frontend job72 archive retained privately under /private/tmp/finance62. Use a compatible rollback preserving version/funding fences, browser direct-write denial and existing financial gates; do not erase adopted versions or restore blind writers.",
+  "remainingIntegration": [
+    "Coordinated financial consumer publication of Part59 rounding and Part60 consent-bound schema v2.",
+    "Authenticated commercial admin permission setup, owner acceptance and independent staff approval.",
+    "Coordinated scoped financial canary, apps integration and activation verification."
+  ],
+  "limitations": [
+    "Positive identity, MFA and staff/owner flow was tested in-process with actual disposable DynamoDB transactions, not human end-to-end Gateway login.",
+    "No customer order, COD settlement, ledger, wallet balance, owner consent or funding approval was created by this part.",
+    "Nine existing test campaigns received version metadata and corresponding system audit only.",
+    "Merchant app signed iOS build succeeded; no physical device or simulator was installed in this part.",
+    "Unused old browser writer assets may remain; IAM denies their writes to the two authoritative campaign tables.",
+    "Separate legacy campaign example configuration targets WizzCentral_Campaigns, not either authoritative discount table; it was not deployed.",
+    "Financial activation and commercial administration gates remain unchanged and closed."
+  ],
+  "postPublicationMetadataAudit": {
+    "checkedAtUtc": "2026-10-17T06:35:36.419051+00:00",
+    "functions": 29,
+    "hashDrift": [],
+    "activationPerformed": false,
+    "centralPolicy": {
+      "version": 2,
+      "policyVersion": "dispatch-schema-v2-release50",
+      "dispatchSchemaVersion": 2,
+      "performanceMode": "LEGACY_METRICS",
+      "limits": {
+        "quoteMaxPerCustomerPerMinute": 5,
+        "driverOfferTtlSeconds": 60,
+        "driverPositionMaxAgeSeconds": 120,
+        "reassignmentWindowSeconds": 300,
+        "maximumWaves": 4
+      }
+    }
+  }
+}

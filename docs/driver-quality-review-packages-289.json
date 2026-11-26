@@ -1,0 +1,41 @@
+{
+  "status": "PREPARED_NOT_PUBLISHED",
+  "functions": [
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "before": "QtUuvAcxSiiRk/GtBOaySto7v/Mz9onj4rg8Zemx1hw=",
+      "revision": "7f748abd-f7c9-418d-a442-07374bc3ba6d",
+      "candidate": "pe0M7TNrH5VsHfyTjkADaM4SJJjoAt7UAfHW5v+7bho=",
+      "changedFiles": [
+        "order-exception-runtime-229.js",
+        "driver-quality-review-runtime-289.js",
+        "index.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "before": "sp3w74AsBFxzke7DF6YVn57Rde8/cjjuqXFLe9Q3eoI=",
+      "revision": "2f5a66c4-2f10-45ec-818a-144c8e1aa06d",
+      "candidate": "5XbruVnuRJJpBkn/QCqJfP5V6nl05IejilOz90nCVH4=",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "allOtherEntriesIdentical": true
+    }
+  ],
+  "newIam": false,
+  "newTables": false,
+  "financialCalculationsChanged": false,
+  "webBeforeJob": "206",
+  "webChanges": [
+    "driver-quality-review.js",
+    "pages/driver-quality-review.html",
+    "order-management.js",
+    "order-exception-cases.js",
+    "pages/orders.html",
+    "pages/order-exceptions.html"
+  ]
+}

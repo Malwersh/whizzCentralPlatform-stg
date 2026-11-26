@@ -1,0 +1,64 @@
+{
+  "phase": 281,
+  "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+  "scope": "Last100 valid driver customer ratings in performance V4. Existing all-time profile average and V1/V2/V3 retained.",
+  "windowPolicy": {
+    "size": 100,
+    "sort": "Canonical original server rating timestamp plus orderId deterministic tie-breaker, newest first",
+    "eligibility": "Verified own delivered-order rating, verified current case/event/decision; pending review, open appeal and exclusion removed from denominator; refill from older valid records",
+    "integrity": "Strong rating/order/case/event reads; aggregate before/after epoch fence; changed epoch produces no score",
+    "coverage": "Sparse index read compared with all-time aggregate count. Incomplete index, read bounds or unverified records explicitly PROVISIONAL. Unavailable source never falls back to old all-time score or invented zero.",
+    "bounds": "2000 index keys,20pages,8seconds; bounded large history remains explicitly provisional",
+    "sourceValuesPreserved": true,
+    "moneyAndAutomaticEligibilityUnchanged": true
+  },
+  "implementation": {
+    "newIndex": "DriverRatingChronology281",
+    "projection": "KEYS_ONLY",
+    "derivedKeys": [
+      "driverRatingKey",
+      "driverRatingSort"
+    ],
+    "metadataPreparation": "Conditional additions only, with original rating and delivered-order guards; no star/comment/aggregate/profile rewrite. Preview scanned0 and changed0 rows.",
+    "schemaPreview": "Table not replaced. Only direct change is table index metadata; validated existing-ARN dependent reevaluations, no Code/environment/primary-key/name changes.",
+    "driverReadPermission": "GetItem on whizz-order-ratings-staging; Query on this index only. No write permission.",
+    "client": "Release281 built, installed and launched; all-time More header and V4 last100 indicator explicitly distinguished."
+  },
+  "tests": {
+    "capturedRuntimeAndMigration": 87,
+    "flutterPerformanceAndMore": 21,
+    "changeSetGuard": "Real preview validated; rejects replacement, function-code changes and unrelated resources",
+    "metadataPreview": "0 rows; 0 writes"
+  },
+  "publication": {
+    "executed": true,
+    "status": "PUBLISHED_STAGING",
+    "requiredApproval": "Execute prepared non-replacing index change set, add read-only DriverRatingWindow281 policy, conditionally prepare derived keys, publish two staging Lambda packages and install Release281.",
+    "policy": "docs/driver-rating-window-policy-281.json",
+    "changeSet": "docs/driver-rating-window-changeset-281.json",
+    "packages": "docs/driver-rating-window-packages-281.json",
+    "liveUnchanged": "281; central hosting206 unchanged",
+    "onlyCloudWriteSoFar": "Explicitly approved limited read policy, metadata preparation, index change set and two Lambda packages",
+    "businessOrFinancialWrites": 0,
+    "explicitApproval": {
+      "authorized": true,
+      "userReply": "نعم اوافق",
+      "scope": "Execute prepared281 index change set with existing ARN dependency reevaluations and no table replacement; limited GetItem/Query driver role policy; conditional derived chronology metadata; two staging services; install Release281 preserving session",
+      "recordedAt": "2026-10-25T05:55:49.021428+00:00"
+    },
+    "previousAutoReviewRejection": "Automatic approval review rejected metadata writes, CloudFormation index execution, IAM extension and service deployment because this new infrastructure and permission scope lacks explicit user approval.",
+    "approvalResolved": true,
+    "evidence": "docs/driver-rating-window-publication-281.json"
+  },
+  "manualAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "remaining": [
+    "Independent evidenced safety/quality incidents with owner, decision and appeal",
+    "Vehicle approval, document expiry and permitted work area",
+    "Ordered human tests and Android/iPhone launch gates"
+  ],
+  "references": [
+    "https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-dynamodb-table.html",
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html"
+  ],
+  "colleagueProductImportUntouched": true
+}

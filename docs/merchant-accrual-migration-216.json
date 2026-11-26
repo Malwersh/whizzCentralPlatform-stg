@@ -1,0 +1,20 @@
+{
+  "part": 216,
+  "mode": "METADATA_BACKFILL",
+  "pages": 1,
+  "sourceCount": 7,
+  "verified": 7,
+  "alreadyIndexed": 0,
+  "appended": 7,
+  "zeroNetCount": 0,
+  "branches": {
+    "business_95ac73c9-feda-4207-9285-550aec61b94c": {
+      "count": 7,
+      "netIqd": 43575
+    }
+  },
+  "moneyWrites": false,
+  "errors": [],
+  "sourceInventory": "6eeb714c6e44e3dec6d26227256e0401933c42fb26692ed9db08ed00ba6af5f0",
+  "coverageCertified": true
+}

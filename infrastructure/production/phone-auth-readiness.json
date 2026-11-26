@@ -1,0 +1,106 @@
+{
+  "accountId": "746727375268",
+  "status": "CUSTOMER_OTP_ENABLED_DEVICE_ACCEPTANCE_PENDING",
+  "recordsCopied": 0,
+  "secretsCopied": false,
+  "provider": "OTPIQ",
+  "providerConfigurationStatus": "PRODUCTION_KEYS_PRESENT_PROVIDER_DELIVERY_CONFIRMED",
+  "applications": {
+    "customer": {
+      "status": "ENROLLMENT_AND_CHALLENGE_ENABLED_DEVICE_ACCEPTANCE_PENDING",
+      "productionApiBaseUrl": "https://41zvbbtw6e.execute-api.us-east-1.amazonaws.com/production",
+      "sources": [
+        {
+          "path": "wizzuser-stg/backend/phone-auth/index.js",
+          "sha256": "2a59c95be249dc21c6d76302dca0026818311e7b5359238ac39aee6a8268c04c"
+        },
+        {
+          "path": "wizzuser-stg/backend/phone-auth/triggers.js",
+          "sha256": "3aec13896ce2988181acc72b3d2fbcf8f5a33e535d43e48d3387e7c0962cbdfe"
+        }
+      ]
+    },
+    "driver": {
+      "status": "ENROLLMENT_AND_CHALLENGE_DEPLOYED_ACTIVATION_PENDING",
+      "productionApiBaseUrl": "https://w99egtarjj.execute-api.us-east-1.amazonaws.com/production",
+      "profileAcceptanceBlocker": "The production derived work-region table is empty.",
+      "sources": [
+        {
+          "path": "whizzDrivers-stg/backend/phone-auth/registration.js",
+          "sha256": "f5f76a67f7663a2e236580b4b8fb71ac271ce0a6b1e6f44edb30eb77c3dc4218"
+        },
+        {
+          "path": "whizzDrivers-stg/backend/phone-auth/triggers.js",
+          "sha256": "b5fd3d7b7013db26eb0ee67224003a060f678ac56927c27a328e141f9776dffb"
+        }
+      ]
+    },
+    "merchant": {
+      "status": "ENROLLMENT_AND_CHALLENGE_DEPLOYED_ACTIVATION_PENDING",
+      "productionApiBaseUrl": "https://1sn78mol4f.execute-api.us-east-1.amazonaws.com/production",
+      "sources": [
+        {
+          "path": "whizzMerchants-stg/backend/functions/auth-otp/create_auth_challenge.js",
+          "sha256": "f62c81239b0c97b12548bafb5443263417425d73b5a015f11e368df1bc9d921a"
+        },
+        {
+          "path": "whizzMerchants-stg/backend/functions/auth-otp/verify_auth_challenge.js",
+          "sha256": "41ec86241968518a3558b526ee81accb81529f97d7bc218efe4a406e246a3d04"
+        },
+        {
+          "path": "whizzMerchants-stg/backend/functions/auth-otp/define_auth_challenge.js",
+          "sha256": "6dada26439d92e732b7727e05fb26840f0b2c188b84b8bddde174b5be5f3c1c0"
+        }
+      ],
+      "reviewFindings": [
+        {
+          "status": "REMEDIATED_IN_NEW_PRODUCTION_RUNTIME_ONLY",
+          "source": "backend/functions/auth-otp/create_auth_challenge.js",
+          "finding": "Verification code embedded in challengeMetadata; production must use an opaque challenge reference with server-side expiry and attempt limits."
+        }
+      ],
+      "productionRuntime": [
+        {
+          "path": "phone-auth/merchant-challenge.js",
+          "sha256": "93ffbdcec1573418eeca0e256fde9b6380a933a579834faf98126802fa709fbc"
+        },
+        {
+          "path": "phone-auth/index.js",
+          "sha256": "5912f1746e9892a27e0e1579e44f3601c6b98c9c3bc9817108521ae7338bd493"
+        }
+      ]
+    }
+  },
+  "requirements": [
+    "Explicit production pool IDs and client IDs; no source defaults",
+    "Per-application permissions on production resources only",
+    "Production OTP provider credential and fresh per-application HMAC key stored privately",
+    "Rate limits, expiry, single-use proofs and retry limits verified before endpoint activation",
+    "Account lifecycle and current legal policy checks wired before registration",
+    "No test bypass or static verification code",
+    "Merchant challenge retry metadata and expiry require security review before reuse",
+    "Registration and wallet creation dependencies resolved before exposure"
+  ],
+  "validation": {
+    "productionInfrastructureTests": 17,
+    "existingCustomerPhoneAuthTests": 21,
+    "liveProductionOtpTested": false,
+    "customerDeviceRegistrationAndSignInVerified": true,
+    "merchantRuntimeTests": 14,
+    "productionRuntimeAndBundleTests": 17,
+    "deployedDisabledInvocationChecksPassed": 3,
+    "directProviderDeliveryConfirmed": true
+  },
+  "activationGates": [
+    "Configure production provider credentials securely in per-application Secrets Manager secrets",
+    "Complete registration endpoints, account lifecycle, legal policy and wallet enrollment dependencies",
+    "Verify production OTP send/verify/expiry/replay/error scenarios before linking mobile apps",
+    "Review regional Lambda concurrency quota of 10 before launch"
+  ],
+  "poolInfrastructureStatus": "DEPLOYED_VERIFIED",
+  "poolVerificationReport": "docs/production-identity-phone-verification-2026-11-15.json",
+  "otpEnabled": false,
+  "otpEnabledByApplication": {"customer": true, "driver": false, "merchant": false},
+  "attachmentVerificationReport": "docs/production-phone-trigger-attachment-verification-2026-11-15.json",
+  "providerEvidence": "docs/production-phone-provider-readiness-2026-11-17.json"
+}

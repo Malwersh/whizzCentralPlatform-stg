@@ -1,0 +1,68 @@
+{
+  "batch": 536,
+  "status": "STAGING_DEPLOYED_VERIFIED",
+  "scope": "إشعار انتهاء مهمة إرجاع الأصناف مع بقاء المراجعة المالية مستقلة",
+  "behavior": {
+    "recipient": "السائق صاحب المحاولة الموثقة",
+    "creation": "ضمن معاملة إنهاء مهمة الإرجاع نفسها في المسارات الثلاثة، دون كتابة إشعار منفصلة",
+    "duplicateProtection": "معرف ثابت للطلب والمرتجع ومحاولة الإسناد؛ لا ينشأ عند فشل المعاملة أو استلام جزئي",
+    "copy": "تم توثيق تسليم الأصناف وانتهت مهمة الإرجاع. الضمان والمستحقات تخضع لمراجعة مستقلة؛ لا يعني هذا الإشعار تحرير الضمان أو صرف تعويض.",
+    "navigation": "سجل الإشعارات؛ لا يعيد تنشيط العرض أو يفتح المحفظة تلقائيًا",
+    "retrieval": "يبقى في سجل إشعارات السائق المخدوم من الخادم حتى عند فشل الدفع"
+  },
+  "safety": [
+    "فحص نطاق staging والطلب والسائق المعتمد قبل الإرسال",
+    "فحص حذف الحساب وهوية السائق قبل كل إرسال",
+    "لا مبلغ وهمي ولا بيانات عرض منتهٍ في الحمولة",
+    "لا تعديل لحساب التسعير أو الضمان أو التعويض"
+  ],
+  "validation": {
+    "backendTestsPassed": 52,
+    "packagedWorkerTestsPassed": 18,
+    "packagedWorkerTestsAreSubset": true,
+    "driverFlutterTestsPassed": 2,
+    "typescriptBuild": "Passed"
+  },
+  "financialMutationsPerformed": false,
+  "newIamPermissions": false,
+  "deployment": {
+    "producerFlag": "RETURN_TASK_NOTIFICATIONS_MODE=REQUIRED",
+    "table": "staging-WalletNotifications",
+    "functions": [
+      "staging-wizz-wallet-notification-worker",
+      "staging-driver-financial-accept",
+      "staging-wizz-staff-service"
+    ],
+    "method": "Targeted patch of live bundles, preserving current code and environment with revision checks",
+    "verification": [
+      {
+        "function": "staging-driver-financial-accept",
+        "status": "Successful",
+        "hash": "yOycJXlyUF7OuIYj/W6CRvxZH/kHHJTz/d/w6V4cjcE=",
+        "producerMode": "REQUIRED",
+        "table": "staging-WalletNotifications",
+        "merchantNotices": null
+      },
+      {
+        "function": "staging-wizz-staff-service",
+        "status": "Successful",
+        "hash": "Cmgbms1ACNPsmYLP5UnfmeRrN8cTTRfXPTdtGxGb6CQ=",
+        "producerMode": "REQUIRED",
+        "table": "staging-WalletNotifications",
+        "merchantNotices": "true"
+      },
+      {
+        "function": "staging-wizz-wallet-notification-worker",
+        "status": "Successful",
+        "hash": "kQJl2a2P4lRLHQGu+ZF/qMYYhh4Nqk/VBld5AHa93kU=",
+        "producerMode": null,
+        "table": "staging-WalletNotifications",
+        "merchantNotices": null
+      }
+    ]
+  },
+  "remaining": [
+    "اختبار وصول الإشعار على الجهاز عند مرتجع فعلي مُصرح به في staging",
+    "البند التالي: إشعارات قرارات الضمان والمستحقات مع الفصل بين اعتماد القرار وتنفيذه المالي"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+  "beforeSha256": "PRSRWAtinVIJZWetbL/1To/cI1plC6YmxQDbV9CsCoE=",
+  "afterSha256": "F0SVnn/0znHBaMSlYMvfEiQr1hk3MKEOKLWLwj2sPhk=",
+  "changedFiles": [
+    "commercial_agreements.js"
+  ],
+  "configurationPreserved": true,
+  "applicationDataWrites": false,
+  "part": 70,
+  "date": "2026-10-17",
+  "cause": "Gateway ID token was forwarded to owner access-token verifier; legacy getValidAccessToken also returns ID token.",
+  "fix": "Preserve Gateway Authorization ID token; send true access token in Access-Token header, independently verified by existing owner service.",
+  "tests": {
+    "merchantProxy": 4,
+    "flutter": 7,
+    "flutterAnalysis": "No issues found",
+    "iosSimulatorBuild": true
+  },
+  "ownerConsentWritten": false,
+  "financialActivation": false,
+  "simulator": {
+    "device": "iPhone 16 Pro",
+    "installed": true,
+    "launched": true,
+    "humanReadConfirmed": false
+  }
+}

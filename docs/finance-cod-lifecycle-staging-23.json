@@ -1,0 +1,42 @@
+{
+  "at": "2026-10-16T13:59:52.925Z",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "results": [
+    {
+      "mode": "return",
+      "passed": true,
+      "syntheticOnly": true,
+      "authentication": "INJECTED_FIXTURE_NOT_COGNITO",
+      "sharedWalletAccess": false,
+      "cleanedRecords": 18
+    },
+    {
+      "mode": "cancel",
+      "passed": true,
+      "syntheticOnly": true,
+      "authentication": "INJECTED_FIXTURE_NOT_COGNITO",
+      "sharedWalletAccess": false,
+      "cleanedRecords": 15
+    },
+    {
+      "mode": "unassign",
+      "passed": true,
+      "syntheticOnly": true,
+      "authentication": "INJECTED_FIXTURE_NOT_COGNITO",
+      "sharedWalletAccess": false,
+      "cleanedRecords": 14
+    }
+  ],
+  "scope": "REAL_DYNAMODB_ONLY_NOT_GATEWAY_OR_LIVE_AUTH",
+  "runtimeBundleSha256": "176bf62cc65b284a8e78823e3e7a08e515d29e2341b413dc7b13fe8ef636b193",
+  "deploymentPerformed": false,
+  "featureActivation": "OFF",
+  "limitations": [
+    "Injected synthetic authentication, not Cognito or Gateway",
+    "No shared/platform wallet access; promotion funding F=0 only",
+    "No live dispatch invocation or real driver replacement",
+    "No human orders, messages, OTP or device installation",
+    "Final timeout-worker redispatch change verified locally only"
+  ]
+}

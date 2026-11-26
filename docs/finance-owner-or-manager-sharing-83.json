@@ -1,0 +1,115 @@
+{
+  "part": 83,
+  "rule": "One explicit consent by either authenticated owner or active assigned manager; never two required",
+  "serverTests": 451,
+  "walletTests": 685,
+  "flutterTests": 19,
+  "managerFocusedTests": 6,
+  "dynamo": {
+    "passed": true,
+    "realDynamoTransactions": true,
+    "threeBranchesOnePlatformCampaign": true,
+    "managerPublishedWithActualSigner": true,
+    "ownerOrAssignedManagerConsent": true,
+    "concurrentConsentStable": true,
+    "stableRetry": true,
+    "campaignUnmodified": true,
+    "revocationAbortsEntireSave": true,
+    "table": "staging-manager-sharing-test-1792268442219-23170d32-e785-4525-8498-0e9304065880",
+    "isolatedTableDeleted": true
+  },
+  "backend": {
+    "part": 83,
+    "functions": [
+      {
+        "name": "WizzUser-CreateOrder-staging",
+        "beforeSha256": "aEFx02PvDldFT0wBEikvdCiEHgdOH9yueh0QNB4pEwE=",
+        "afterSha256": "rEMwsHgz9R63poRQiOWB+mdvy9jzDfqJSuMGo0RTOCs=",
+        "changedFiles": [
+          "functions/create-order/commercial-runtime.js",
+          "functions/create-order/quote-runtime/orderCommercialSource.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-account-deletion-worker",
+        "beforeSha256": "PzfmqeylCVRy9hs2avKCE1oStezzz44rvx8dvsee7bs=",
+        "afterSha256": "Mt38vnWHD50/CPrFU3ZyIzbQTo83/OfSL4qz7J340ac=",
+        "changedFiles": [
+          "commercial-retention.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-account-deletion-financial-expiry",
+        "beforeSha256": "cd5KpeeNCCJp1/gyzo9sMclyAIwYLiWKar2c1lsEIAg=",
+        "afterSha256": "QPfl1RYiKJqQE+NgghDehFnxUzS8hD4JrxPZVG2YVUs=",
+        "changedFiles": [
+          "commercial-retention.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "beforeSha256": "0k6c7SDw0OXjj4WuCCPd6o+jZvKXIrR9k4J228qI3CU=",
+        "afterSha256": "3PxIYNSg9KpORI8G127r2EiuME03ddP0KjTC1yoJwc4=",
+        "changedFiles": [
+          "src/utils/commercial-sharing-push.js"
+        ],
+        "configurationPreserved": true
+      },
+      {
+        "name": "staging-wizz-staff-service",
+        "beforeSha256": "eJT6zz01PpEwyCehgNhkk1Gqa+DAAZM9Trcblv7CMlU=",
+        "afterSha256": "MvxmFaVIzG0XBOGGKLjUrb8nZwoJubeUD8IFtcmUTrM=",
+        "changedFiles": [
+          "commercial-management.js",
+          "commercial-party.js",
+          "commercial-events.js"
+        ],
+        "configurationPreserved": true
+      }
+    ],
+    "financialGatesUnchanged": true,
+    "actualHumanConsentSubmitted": false,
+    "noticeReadPolicyUpdated": true,
+    "runtimeAuthGuardsPassed": true,
+    "noticeReadPolicyIncludesKeyAttributes": true
+  },
+  "frontend": {
+    "baseJobId": "97",
+    "jobId": "98",
+    "changedFiles": [
+      "commercial-management.js",
+      "pages/merchants.html",
+      "pages/promotions.html"
+    ],
+    "sha256": "9ef6c438ef18c8ef93e3913bfcb024661b555317f5689ea12bf6d51f597bcbe6",
+    "presentationOnly": true,
+    "applicationDataWrites": false,
+    "status": "SUCCEED",
+    "hostedBytesVerified": true
+  },
+  "ios": {
+    "releaseBuild": true,
+    "installed": true,
+    "launch": "blocked-device-locked"
+  },
+  "limitations": [
+    "No human manager consent submitted by tooling",
+    "No new physical manager notification receipt claimed",
+    "Future funding quotes require the accepting manager membership to remain valid; pinned orders are unchanged"
+  ],
+  "actualRoleReadOnlyProbe": {
+    "staff": {
+      "role": "MANAGER",
+      "readOnlyGuardsPassed": true
+    },
+    "push": {
+      "assignedManagerFound": true,
+      "scopedReadsPassed": true,
+      "notificationsSent": 0
+    },
+    "temporaryProbesRemoved": true
+  }
+}

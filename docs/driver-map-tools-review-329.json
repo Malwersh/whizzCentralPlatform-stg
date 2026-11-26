@@ -1,0 +1,124 @@
+{
+  "part": 329,
+  "status": "PUBLISHED_STAGING_INSTALLED_AND_LAUNCHED",
+  "requestedByUser": true,
+  "phoneProvided": "07831367435",
+  "phoneStoredInternational": "+9647831367435",
+  "centralSettings": {
+    "path": "pages/settings.html#driver-map-settings",
+    "partition": "OPERATIONAL_SETTINGS#DRIVER_MAP_TOOLS",
+    "table": "staging-PlatformStaff",
+    "editable": [
+      "customerServicePhone",
+      "heatEnabled",
+      "busyMinimumReady",
+      "refreshSeconds"
+    ],
+    "existingSettingsRbacAuditAndReviewReused": true
+  },
+  "driverUi": [
+    "More destination stays alive with stable route ID; bottom button moved to top-right navy home icon",
+    "Top-left store search filters nearby markers and focuses selected store; clear restores map",
+    "Physical right map tool column tracks bottom sheet when space permits",
+    "Current pickup activity legend and configurable enable toggle",
+    "Seven-day forecast overview and daily hourly charts using existing forecast snapshots",
+    "Service phone from central settings and authenticated support chat/report",
+    "Recenter map on driver location"
+  ],
+  "activity": {
+    "source": "GSI_StoreStatus candidates then strongly consistent order reads",
+    "onlyStatus": "ready_for_pickup",
+    "excludes": [
+      "cancelled",
+      "conflicting status",
+      "assigned driver",
+      "pickup/handover",
+      "pending financial acceptance or collateral",
+      "return cases",
+      "financial outcomes"
+    ],
+    "approvedWorkAreaEnforced": true,
+    "noOrderIdsOrCustomerDetailsReturned": true,
+    "unknownReadsNotReportedAsZero": true,
+    "expiredActivityHidden": true,
+    "normalDispatchRulesUnchanged": true,
+    "hardcodedOldHotScoreCountRemovedFromMapData": true
+  },
+  "forecast": {
+    "reusesExistingDemandSnapshots": true,
+    "testDataExplicitlyLabelled": true,
+    "noInventedIncentives": true
+  },
+  "verification": {
+    "flutterRegressionPassed": 25,
+    "keyboardFocusedTestsPassed": 6,
+    "activityBackendPassed": 6,
+    "settingsBackendAndWorkflowPassed": 21,
+    "scopedIamCasesPassed": 6,
+    "actualPackagesPassed": true,
+    "settingsBrowserPassed": true,
+    "signedIosRelease": 329
+  },
+  "humanChecksPending": [
+    "Inspect map controls and sheet movement on device",
+    "Search a store and clear the filter",
+    "Enable pickup layer with actual ready unassigned order; assign/cancel and observe refresh",
+    "Inspect weekly forecasts and their data labels",
+    "Tap service number to open dialer; verify support chat entry",
+    "Change service phone/heat policy through authorized central settings account and observe next map refresh"
+  ],
+  "noActualOrdersFinancialBalancesOrDispatchPolicyMutated": true,
+  "productsImportDelegatedToColleagueUnchanged": true,
+  "hostingJob": "216",
+  "iosDevice": {
+    "release": 329,
+    "signed": true,
+    "installed": true,
+    "launched": true,
+    "device": "iMohammed iPhone 17 Pro Max",
+    "existingDataPreserved": true
+  },
+  "liveReadOnlyEvidence": "docs/driver-map-tools-live-readonly-329.json",
+  "liveReadOnlyResult": {
+    "centralPolicyReadThroughLambda": true,
+    "readyCountsInFiveDisplayedStores": [
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "noMutations": true
+  },
+  "iconRefinement330": {
+    "background": "WHITE",
+    "softSurroundingShadow": true,
+    "circleDiameter": 52,
+    "iconSize": 30,
+    "semanticColors": {
+      "home": "NAVY",
+      "search": "BLUE",
+      "pickupActivity": "ORANGE",
+      "forecast": "PURPLE",
+      "support": "TEAL",
+      "recenter": "BLUE"
+    },
+    "release": 330,
+    "signedInstalledLaunched": true,
+    "analysis": "NO_ISSUES",
+    "backendChanges": false
+  },
+  "storePhotoMarkers331": {
+    "status": "SIGNED_RELEASE_331_INSTALLED_AND_LAUNCHED",
+    "circularCoverPhoto": true,
+    "categoryIconFallbackForMissingOrFailedImage": true,
+    "firstMapRenderWaitsForImages": false,
+    "parallelPhotoLoads": 4,
+    "bitmapCacheLimit": 100,
+    "imageRetryCooldownSeconds": 120,
+    "imageTimeoutSeconds": 6,
+    "liveImageUrlsChecked": 5,
+    "liveImageResponsesAll200": true,
+    "backendChanges": false
+  }
+}

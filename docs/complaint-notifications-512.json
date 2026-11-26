@@ -1,0 +1,53 @@
+{
+  "batch": 512,
+  "status": "SERVER_PUBLISHED_CLIENT_RELEASE_450_BUILT_DEVICE_ACCEPTANCE_PENDING",
+  "implemented": [
+    "Staff request-info, decision, appeal resolution and closure create a stable customer notice in the same transaction",
+    "Replay returns saved receipt without new notice",
+    "Generic private push body; no internal findings or remedy promises",
+    "Worker verifies complaint customer/session and deletion barrier before dispatch",
+    "Customer push tap and inbox navigation open CustomerOrderComplaintScreen"
+  ],
+  "tests": {
+    "backendPassed": 30,
+    "flutterPassed": 5,
+    "analysis": "22 info-level lint findings in existing push service; no clean lint claim",
+    "flutterRoutingAndPersistencePassed": 6,
+    "complaintScreenAndService": "passed; see handoff verification"
+  },
+  "policy": "docs/complaint-notification-read-512-policy.json",
+  "requiredRole": "staging-wizz-wallet-servi-WalletNotificationWorkerR-65KXCbUPWrkw",
+  "policyPurpose": "GetItem only for projected complaint ownership fields; no writes",
+  "published": true,
+  "financialMutations": 0,
+  "remaining": [
+    "Install Release450 when iMohammed is available",
+    "Human push-tap acceptance: request information, decision, appeal resolution and closure"
+  ],
+  "publication": [
+    {
+      "function": "staging-wizz-wallet-notification-worker",
+      "sha256": "gEhioDlibsi0u8zxZ9aHqsWCZX8B8ccMKAxudrfto1w=",
+      "status": "Successful"
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "sha256": "vOuXOqUum1vTaUfq1rmk93/rCh3Q/gw39e63ildtmSY=",
+      "status": "Successful"
+    }
+  ],
+  "iam": {
+    "approved": true,
+    "policy": "CustomerComplaintNoticeRead512",
+    "allowedProjectionTest": true,
+    "extraAmountFieldDenied": true
+  },
+  "customerBuild": {
+    "platform": "ios",
+    "mode": "release",
+    "buildNumber": 450,
+    "signedBuildPassed": true,
+    "installed": false,
+    "reason": "iMohammed unavailable when checked"
+  }
+}

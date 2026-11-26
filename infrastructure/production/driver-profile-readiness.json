@@ -1,0 +1,84 @@
+{
+  "accountId": "746727375268",
+  "status": "DEPLOYED_VERIFIED_DISABLED",
+  "sourceEvidence": [
+    {
+      "module": "registration-regions.js",
+      "sourceSha256": "aa8a918dc3c009e379a5b3d868fbc56fa9f4d2a4eb34c09c02f133545e8c4b02",
+      "productionSha256": "aa8a918dc3c009e379a5b3d868fbc56fa9f4d2a4eb34c09c02f133545e8c4b02",
+      "adaptation": "UNCHANGED"
+    },
+    {
+      "module": "driver-vehicles-308.js",
+      "sourceSha256": "e76756ac28af1191c33c728907c99db8ab78e53d68837fc63afd6c86fb59502e",
+      "productionSha256": "e76756ac28af1191c33c728907c99db8ab78e53d68837fc63afd6c86fb59502e",
+      "adaptation": "UNCHANGED"
+    },
+    {
+      "module": "driver_eligibility.js",
+      "sourceSha256": "31eb55ba70abed1edf07e9a714287bb8271d8ed487daea45d2054f8d1ee34324",
+      "productionSha256": "31eb55ba70abed1edf07e9a714287bb8271d8ed487daea45d2054f8d1ee34324",
+      "adaptation": "UNCHANGED"
+    },
+    {
+      "module": "driver-lifecycle.js",
+      "sourceSha256": "04497857457a85acbee390fbad76a77ebc6d90ba0927574d9bbe73869883efb0",
+      "productionSha256": "4889664419f37e2c8fa57ac796291d1aee03ff8b36b58662790cd8b28a8dbc9a",
+      "adaptation": "Production lifecycle table only"
+    },
+    {
+      "module": "customer-legal-contract-344.js",
+      "sourceSha256": "164bbf30fa5b5f5f39f1df5f5f9d764e2511163dea73b946d3b8053c21198eab",
+      "productionSha256": "164bbf30fa5b5f5f39f1df5f5f9d764e2511163dea73b946d3b8053c21198eab",
+      "adaptation": "UNCHANGED"
+    },
+    {
+      "module": "customer-legal-defaults-344.json",
+      "sourceSha256": "fece7ce4ef9f73c0f765691c4fb73a5b31c82a22543eba949badaf11695714da",
+      "productionSha256": "fece7ce4ef9f73c0f765691c4fb73a5b31c82a22543eba949badaf11695714da",
+      "adaptation": "UNCHANGED"
+    },
+    {
+      "module": "driver-legal-defaults-344.json",
+      "sourceSha256": "d0b4697295021b43d28cc2d533f883b4f7f90b2c741e0b04d530fbbe59ceb760",
+      "productionSha256": "d0b4697295021b43d28cc2d533f883b4f7f90b2c741e0b04d530fbbe59ceb760",
+      "adaptation": "UNCHANGED"
+    },
+    {
+      "module": "merchant-legal-defaults-344.json",
+      "sourceSha256": "42ff386c863d6dc44972cfdbd388386bec4daa250e1b68e852e9511407635f5f",
+      "productionSha256": "42ff386c863d6dc44972cfdbd388386bec4daa250e1b68e852e9511407635f5f",
+      "adaptation": "UNCHANGED"
+    }
+  ],
+  "dataCopied": false,
+  "activationRequirements": [
+    "Production published legal documents",
+    "Reviewed production regions and effective region projection",
+    "Administrative document/vehicle/region approval APIs",
+    "Full upload/profile/approval lifecycle acceptance"
+  ],
+  "sourceApiSha256": "cf5d15944c4f8e464f522b32d0af4d698f764b688090836d852c0797577cc736",
+  "tests": {
+    "productionRules": 4,
+    "sourceRegression": 20,
+    "packagingAndStorage": 2,
+    "profileApiAndInfrastructure": 13
+  },
+  "bindings": {
+    "poolId": "us-east-1_5sUT54eCB",
+    "driversTable": "wizz-production-Drivers",
+    "deletionTable": "wizz-production-AccountDeletion",
+    "documentBucket": "wizz-production-driver-documents-746727375268-us-east-1",
+    "legalSettingsTable": "wizz-production-PlatformStaff"
+  },
+  "requiredIntegrationChecks": [
+    "Authorizer accepts only own production driver pool; request body cannot choose driver identity",
+    "Registration submits for review only; never grants document or vehicle approval",
+    "Upload and deletion fence remains atomic; versioned document cleanup must enumerate object versions",
+    "No verbose profile/document content in production logs",
+    "Empty production regions and unpublished legal policies fail closed; no test data copied"
+  ],
+  "deploymentEvidence": "docs/production-driver-profile-deployment-2026-11-16.json",
+  "liveAuthenticatedCycleTested": false
+}

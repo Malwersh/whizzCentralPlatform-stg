@@ -1,0 +1,78 @@
+{
+  "accountId": "746727375268",
+  "status": "DEPENDENCY_REVIEW_NOT_DEPLOYED",
+  "source": "whizzMerchants-stg/backend/functions/auth/person_onboarding.js",
+  "sourceSha256": "53b70ddfe0d46085bbfabc354c76375eb9bc42aef96859a194a8dc97fe4b924f",
+  "findings": [
+    {
+      "code": "PUBLIC_SIGNUP_VS_CLOSED_POOL",
+      "detail": "Source registration calls SignUp; production pool disables public self-signup. Adapt verified enrollment without enabling unrestricted self-signup."
+    },
+    {
+      "code": "PERSON_AND_BRANCH_SEPARATE",
+      "detail": "Merchant person profile does not create a merchant wallet; branch enrollment and owner authorization must precede branch-wallet creation."
+    },
+    {
+      "code": "EXPLICIT_PRODUCTION_TABLES_REQUIRED",
+      "detail": "Source person_onboarding uses fixed MerchantPlatform and AccountDeletion table names; production package must parameterize verified production bindings."
+    }
+  ],
+  "activationRequirements": [
+    "Production legal documents and pinned consent",
+    "Verified phone identity enrollment compatible with closed production pool",
+    "Scoped branch registration, ownership and wallet service",
+    "Retry, isolation and lifecycle integration tests"
+  ],
+  "productionActive": false,
+  "personalProfile": {
+    "status": "DEPLOYED_VERIFIED_DISABLED",
+    "stack": "wizz-production-merchant-profile",
+    "testsPassed": 31,
+    "anonymousGetStatus": 401,
+    "anonymousPostStatus": 401,
+    "evidence": "docs/production-merchant-profile-deployment-2026-11-17.json",
+    "activation": false,
+    "next": "Closed-pool verified merchant phone enrollment and authenticated registration acceptance before enabling."
+  },
+  "phoneEnrollment": {
+    "status": "DEPLOYED_DISABLED_VERIFIED",
+    "source": "infrastructure/production/phone-auth/merchant-enrollment.cjs",
+    "newCoreTestsPassed": 11,
+    "phoneSuiteTestsPassed": 62,
+    "implemented": [
+      "Iraqi phone normalization",
+      "OTP purpose/pool/phone/active-session binding",
+      "expiry and attempt limits",
+      "atomic consumption contract before identity provisioning",
+      "published merchant legal consent requirement",
+      "no branch approval or wallet creation",
+      "Atomic phone/IP/global send budgets and active challenge replacement adapter",
+      "Atomic legal revision check and OTP consumption adapter",
+      "Cognito existing confirmed identity preservation and privately scoped pending identity recovery",
+      "Single-use expiring login proof with account lifecycle fence",
+      "HTTP runtime with exact production account, function, pool, client, table and secret guards before SDK initialization",
+      "Actionable legal revision conflict response and strict current legal row binding",
+      "Deterministic enrollment artifact with packaged disabled-path validation"
+    ],
+    "remaining": [
+      "Package proof support in merchant Cognito trigger and provision required scoped permissions",
+      "Deploy disabled enrollment API and verify deployed artifact isolation",
+      "Test complete phone verification, authenticated personal profile and retries before activation"
+    ],
+    "liveApplicationVerificationTested": false,
+    "adapterTestsPassed": 10,
+    "runtimeTestsPassed": 8,
+    "artifactSha256": "ad75a8642b9136208cd8ba4bc5e43b128ebf845a6cc4d5921c40983d69105637",
+    "packagedDisabledRuntimeVerified": true,
+    "phoneSuite": 65,
+    "proofTriggerIntegrationTests": 3,
+    "triggerArtifactSha256": "1036ce3a320437050c01d2dd63fd14612e2bafe271e5f30b69f6ecd51aff059e",
+    "proofTriggerStatus": "DEPLOYED_DISABLED_VERIFIED",
+    "lastLocalVerification": "2026-11-17",
+    "productionActivated": false,
+    "liveOtpRegistrationTested": false,
+    "apiUrl": "https://1sn78mol4f.execute-api.us-east-1.amazonaws.com/production",
+    "deploymentEvidence": "docs/production-merchant-enrollment-deployment-2026-11-17.json",
+    "next": "Connect production merchant client to enrollment, then verify full OTP/custom-auth/profile flow before activation."
+  }
+}

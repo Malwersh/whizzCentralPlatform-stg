@@ -1,0 +1,42 @@
+.monitor-layout { display:grid; grid-template-columns:minmax(245px, .8fr) minmax(0, 1.5fr); gap:18px; align-items:start }
+.monitor-panel { min-width:0; padding:18px; border:1px solid #d9e2ef; border-radius:16px; background:#fff }
+.monitor-panel h2,.monitor-panel h3 { margin-block:0 12px }
+.monitor-controls { display:flex; flex-wrap:wrap; gap:10px; align-items:end }
+.monitor-controls label { flex:1 1 175px; display:grid; gap:6px; min-width:0 }
+.monitor-controls input,.monitor-controls select { box-sizing:border-box; min-width:0; width:100% }
+.monitor-panel [role=status]:empty,#order-status:empty { display:none }
+.monitor-secondary { margin-block-start:10px; border:1px solid #c6d4e6; background:#fff; color:#102e5b }
+.monitor-list,.monitor-links { padding:0; list-style:none; display:grid; gap:8px }
+.monitor-list button { width:100%; background:#f6f8fc; color:#102e5b; border:1px solid #d9e2ef; text-align:start; display:grid; gap:4px }
+.monitor-list button[aria-current=true] { border-color:#244778; background:#eaf1fc }
+.monitor-facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; padding:12px; border-radius:12px; background:#f4f7fc }
+.monitor-facts dt { color:#526780 }
+.monitor-facts dd { margin:0; overflow-wrap:anywhere }
+.monitor-links { display:flex; flex-wrap:wrap; gap:8px }
+.monitor-links a { display:block; padding:8px 12px; border:1px solid #d9e2ef; border-radius:10px }
+.monitor-events,.monitor-waves { padding-inline-start:20px }
+.monitor-events li,.monitor-waves li { margin-block:8px }
+.monitor-waves span,.monitor-events time { display:block; color:#526780 }
+.monitor-panel section + section { border-block-start:1px solid #d9e2ef; padding-block-start:16px }
+@media(max-width:1020px) { .monitor-layout { grid-template-columns:minmax(0,1fr) } }
+
+.monitor-assignment-form { display:grid; gap:10px; margin-block:12px; max-width:580px }
+.monitor-assignment-form p { margin:0 }
+.monitor-assignment-form label { display:grid; gap:6px }
+.monitor-assignment-form textarea { width:100%; box-sizing:border-box; resize:vertical; font:inherit }
+.monitor-assignment-form .monitor-confirmation { display:flex; align-items:flex-start; gap:10px }
+.monitor-assignment-form button { justify-self:start }
+
+.monitor-followup { margin-block-end:18px }
+.monitor-followup-header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px }
+.monitor-followup-header h2,.monitor-followup-header button { margin:0 }
+.monitor-followup-list-item { min-width:0; border:1px solid #d9e2ef; border-radius:12px; padding:12px }
+.monitor-followup-list-item[data-urgency="escalated"] { border-inline-start:4px solid #a34012 }
+.monitor-followup-list-item h3 { margin-block:0 4px }
+.monitor-followup-list-item p { margin-block:4px; overflow-wrap:anywhere }
+.monitor-followup-actions { display:flex; flex-wrap:wrap; gap:8px }
+.monitor-followup-actions button { width:auto; margin:0 }
+.monitor-followup-list-item summary,#followup-policy summary { cursor:pointer; color:#123561; padding-block:8px }
+.monitor-followup-meta { font-size:.9rem; color:#526780 }
+#followup-policy:not([hidden]) { border-block-start:1px solid #d9e2ef; margin-block-start:12px }
+#followup-policy label { max-width:370px }

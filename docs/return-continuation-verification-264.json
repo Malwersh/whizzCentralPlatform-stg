@@ -1,0 +1,52 @@
+{
+  "part": 264,
+  "status": "PASS",
+  "verifiedAt": "2026-10-22T00:35:59.874208+00:00",
+  "scope": "staging",
+  "services": [
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "XFaMcA/ft4o9QZs3I1y24LO01FOQMQO/v+9g+H7XrX4=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "lNPzQdaU5p7pgs/aIiwI+YC70G5bGULn1IWhGRHgk08=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "loqQLwFVOoo2F0CmLPD8uv8dc9ugDT48Q/BJ6H7rKr0=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "DriversApi-staging",
+      "codeSha256": "oqbc9lVfOY8x7VmZjOUYpY45fKj1nycjJ7VAowuOgrI=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    }
+  ],
+  "hostingJobId": "153",
+  "historicalCase": {
+    "number": "ORD1792545370610",
+    "version": 14,
+    "status": "RESOLVED",
+    "oldCaseNotBackfilled": true,
+    "compensationStatus": "PAID",
+    "compensationIqd": 6250,
+    "guaranteeStatus": "RELEASED"
+  },
+  "realNewOrderReceiptOrCustodyPlanCreatedByAgent": false,
+  "humanCustodyExecutionAcceptance": "PENDING_NEW_PARTIAL_RETURN_CASE",
+  "employeeFeatureHumanTest": "DEFERRED_BY_USER",
+  "physicalExecutionImplemented": true,
+  "nativeBuilds": {
+    "merchant": 228,
+    "driverSimulatorDebug": 214
+  },
+  "nativeInstalledAndLaunched": true,
+  "iamChanged": false
+}

@@ -1,0 +1,127 @@
+{
+  "checkedAt": "2026-10-24T20:53:02.281671+00:00",
+  "orderNumber": "ORD1792870714924",
+  "order": {
+    "status": "cancelled",
+    "financialOutcome": "CAN:3c6d6205af89fc57d03a845dab5dcf924bf70810956831bb",
+    "holdAmount": "0",
+    "holdStatus": "NONE",
+    "driverId": null
+  },
+  "records": [
+    {
+      "sk": "ASSIGNMENT_RELEASE#1",
+      "state": null,
+      "version": null,
+      "status": null,
+      "outcome": "UNASSIGNED",
+      "settlementStatus": null,
+      "decision": null,
+      "cancellationCompensationDecision": null,
+      "entitlementsPosted": null,
+      "financialClosure": null,
+      "amount": null,
+      "journalLines": [
+        {
+          "delta": "12500",
+          "walletId": "WALLET#DRIVER#34d8e408-1021-7076-6055-7325644f97cb",
+          "unit": "IQD_WHOLE",
+          "balanceAfter": "31000",
+          "balanceType": "AVAILABLE",
+          "balanceBefore": "18500"
+        },
+        {
+          "delta": "-12500",
+          "walletId": "WALLET#DRIVER#34d8e408-1021-7076-6055-7325644f97cb",
+          "unit": "IQD_WHOLE",
+          "balanceAfter": "0",
+          "balanceType": "LOCKED",
+          "balanceBefore": "12500"
+        }
+      ]
+    },
+    {
+      "sk": "CASE_DECISION#OEX:b6c03ab6e9eafcc11d778f6978f4cc202bb28d2248b96168#27b0d8ef-4f57-4178-a220-064fc6d5c59f",
+      "state": null,
+      "version": null,
+      "status": null,
+      "outcome": null,
+      "settlementStatus": null,
+      "decision": null,
+      "cancellationCompensationDecision": null,
+      "entitlementsPosted": null,
+      "financialClosure": null,
+      "amount": null,
+      "journalLines": null
+    },
+    {
+      "sk": "CUSTOMER_CANCELLATION",
+      "state": "CANCELLED",
+      "version": "2",
+      "status": null,
+      "outcome": null,
+      "settlementStatus": "REVIEW",
+      "decision": {
+        "reason": "لا ختبار تعويضض المطعم",
+        "expectedVersion": "1",
+        "actorId": "f40834f8-4091-7054-0e20-dba35a2793ce",
+        "at": "2026-10-24T20:52:37.288Z",
+        "decisionId": "27b0d8ef-4f57-4178-a220-064fc6d5c59f"
+      },
+      "cancellationCompensationDecision": null,
+      "entitlementsPosted": null,
+      "financialClosure": null,
+      "amount": null,
+      "journalLines": null
+    },
+    {
+      "sk": "FINANCIAL_OUTCOME",
+      "state": null,
+      "version": null,
+      "status": null,
+      "outcome": "CANCELLED",
+      "settlementStatus": null,
+      "decision": null,
+      "cancellationCompensationDecision": null,
+      "entitlementsPosted": null,
+      "financialClosure": null,
+      "amount": null,
+      "journalLines": []
+    },
+    {
+      "sk": "FULL_CASH_FUNDING_COMMITMENT",
+      "state": null,
+      "version": null,
+      "status": "RELEASED",
+      "outcome": null,
+      "settlementStatus": null,
+      "decision": null,
+      "cancellationCompensationDecision": null,
+      "entitlementsPosted": null,
+      "financialClosure": null,
+      "amount": null,
+      "journalLines": null
+    },
+    {
+      "sk": "HOLD",
+      "state": null,
+      "version": null,
+      "status": "RELEASED",
+      "outcome": null,
+      "settlementStatus": null,
+      "decision": null,
+      "cancellationCompensationDecision": null,
+      "entitlementsPosted": null,
+      "financialClosure": null,
+      "amount": "12500",
+      "journalLines": null
+    }
+  ],
+  "driver": {
+    "status": "offline",
+    "isSearching": false,
+    "currentOrderId": null,
+    "activeOrdersCount": "0"
+  },
+  "agentDirectBusinessWrites": false
+}

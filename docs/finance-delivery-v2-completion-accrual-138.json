@@ -1,0 +1,12 @@
+{
+  "status": "LOCAL_OPT_IN_COD_WRITER_AND_ACCRUAL_IMPLEMENTED_NOT_DEPLOYED",
+  "existingWriter": "backend/wallet-service/src/codCompletion.ts",
+  "internalCapability": "enableDeliveryFunding defaults false; no live caller enables it",
+  "atomic": ["original funding proof", "cash holds", "campaign budget and usage", "driver/merchant/platform wallets", "balanced ledger", "merchant payable", "terminal order", "dispatch/live state", "audit/outbox"],
+  "versions": {"outcome": 2, "merchantPayableFinancialSchema": 3, "accrual": 2},
+  "verification": {"typescriptCompile": "PASS", "runtimeSync": "PASS", "newV2CompletionTests": 8, "targetedTestsPassed": 55, "realDynamoDBTested": false},
+  "mixedV1V2AccrualSummarySupported": false,
+  "remaining": ["V2 cancellation/return/refund", "V2 live issuance/acceptance", "trusted quote and order admission", "multi-version reporting/integration", "UI and scoped deployment verification"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

@@ -1,0 +1,5 @@
+const fs=require('fs'),ts=require('../backend/wallet-service/node_modules/typescript'),path=require('path');
+const live=process.argv[2],s=fs.readFileSync(live,'utf8'),source=fs.readFileSync(path.join(__dirname,'../frontend/drivers.js'),'utf8'),a=ts.createSourceFile(live,s,99,true),b=ts.createSourceFile('source',source,99,true);
+const wanted=new Set(['renderDriversTable','processDriversItems','filterDrivers','toggleDriverStatus','handleEditDriver']),decl=new Map(),edits=[];
+function collect(n){if(ts.isFunctionDeclaration(n)&&wanted.has(n.name?.text))decl.set(n.name.text,n.getText(b));ts.forEachChild(n,collect);}collect(b);
+function visit(n){if(ts.isFunctionDeclaration(n)&&wanted.has(n.name?.text)){edits.push([n.getStart(a),n.end,decl.get(n.name.text)]);return;}ts.forEachChild(n,visit);}visit(a);if(edits.length!==wanted.size||edits.some(e=>!e[2]))throw Error('UI source/hosting shape mismatch');let out=s;for(const[x,y,z]of edits.sort((a,b)=>b[0]-a[0]))out=out.slice(0,x)+z+out.slice(y);fs.writeFileSync(live,out);

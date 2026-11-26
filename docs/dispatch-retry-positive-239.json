@@ -1,0 +1,15 @@
+{
+  "part": 239,
+  "orderId": "bb728bfe-c2c4-5c95-8492-26ce81ee1ed1",
+  "orderNumber": "ORD1792545370610",
+  "requestId": "614e4574-84f4-4020-a020-4d4ada6502e2",
+  "decisionStatus": "EXECUTED",
+  "resultCode": "SEARCH_RESTART_QUEUED",
+  "driverOfferAccepted": true,
+  "orderStatus": "assigned",
+  "jobStatus": "assigned",
+  "holdStatus": "ACTIVE",
+  "holdAmount": "6250",
+  "manualOrderReset": false,
+  "agentAcceptedForDriver": false
+}

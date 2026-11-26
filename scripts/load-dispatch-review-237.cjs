@@ -1,0 +1,6 @@
+'use strict';
+// Offline-only extraction of the actual embedded module, never deployed.
+const fs=require('fs'),Module=require('module'),path=require('path'),ts=require('../backend/wallet-service/node_modules/typescript');
+function load(file){const s=fs.readFileSync(file,'utf8'),ast=ts.createSourceFile('runtime.js',s,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);let found;function walk(n){if(ts.isVariableDeclaration(n)&&n.name.getText(ast)==='require_dispatch_reviews')found=n;ts.forEachChild(n,walk);}walk(ast);if(!found)throw Error('MODULE_MISSING');const id=path.resolve('backend/staff-service/dispatch-reviews.js'),m=new Module(id,module);m.filename=id;m.paths=Module._nodeModulePaths(path.dirname(id));m._compile('const __name=x=>x;const __commonJS=obj=>{let m;return()=>{if(!m){m={exports:{}};Object.values(obj)[0](m.exports,m);}return m.exports;}};const require_dist_cjs60=()=>require("@aws-sdk/lib-dynamodb"),require_catalog=()=>require("./catalog");\nvar '+found.getText(ast)+';\nmodule.exports=require_dispatch_reviews();',id);return m.exports;}
+module.exports=load;
+if(process.env.DISPATCH_REVIEW_CANDIDATE_237){const id=require.resolve('../backend/staff-service/dispatch-reviews');require(id);require.cache[id].exports=load(process.env.DISPATCH_REVIEW_CANDIDATE_237);}

@@ -1,0 +1,17 @@
+{
+  "part": 184,
+  "status": "PUBLISHED_VERIFIED",
+  "function": "WizzUser-CreateOrder-staging",
+  "codeSha256": "TW/qZs+viMqMhMU6M6BF/w+cK+LdsCYs2NOmRggT3cY=",
+  "publishedAt": "2026-10-19T16:37:52.287366+00:00",
+  "onlyChangedFile": "functions/create-order/commercial-runtime.js",
+  "correction": "derive bundled authenticated customer binding from existing reservation check",
+  "configurationPreserved": true,
+  "iamChanged": false,
+  "financialDataWrites": 0,
+  "originalCrashReproduced": true,
+  "packagedPredicateTestPassed": true,
+  "overlayTestsPassed": 4,
+  "handlerTestsPassed": 6,
+  "deviceRetryPending": true
+}

@@ -1,0 +1,52 @@
+{
+  "batch": 537,
+  "status": "STAGING_DEPLOYED_APP_CHANGES_TESTED",
+  "scope": "إشعارات قرارات الضمان والمستحقات وفصل الاعتماد عن التنفيذ المالي",
+  "behavior": [
+    "إنشاء الإشعار ضمن المعاملة نفسها فقط؛ لا نجاح عند فشلها ولا تكرار عند إعادة المحاولة",
+    "قرارات الضمان للسائق فقط؛ قرارات المستحقات للسائق وللمالك صاحب الفرع",
+    "إشعار المالك عام دون مبالغ أو أسباب مالية؛ يتطلب جهاز المالك المفعل وملكية الفرع",
+    "توجيه السائق للمحفظة والمالك لقسمه المالي المحمي، دون إعادة فتح عرض منتهٍ"
+  ],
+  "validation": {
+    "backendTestsPassed": 51,
+    "packagedWorkerTestsPassed": 19,
+    "packagedWorkerTestsAreSubset": true,
+    "merchantFlutterTestsPassed": 8,
+    "driverFlutterTestsPassed": 3,
+    "typescriptBuild": "Passed"
+  },
+  "deployment": [
+    {
+      "function": "staging-wizz-wallet-notification-worker",
+      "status": "Successful",
+      "hash": "Eql1D1+qxXaF/PxeO2PgNRa9IW84mRPZ/f1xwDFFb2Y=",
+      "exceptionMode": null,
+      "returnMode": null,
+      "merchantPayoutNotifications": null
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "status": "Successful",
+      "hash": "qaFP/JOCO7WnQSr9W57rq5oZWlOlm3eKUvTosi4rA1E=",
+      "exceptionMode": "REQUIRED",
+      "returnMode": "REQUIRED",
+      "merchantPayoutNotifications": null
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "status": "Successful",
+      "hash": "Cmgbms1ACNPsmYLP5UnfmeRrN8cTTRfXPTdtGxGb6CQ=",
+      "exceptionMode": null,
+      "returnMode": "REQUIRED",
+      "merchantPayoutNotifications": "true"
+    }
+  ],
+  "financialMutationsPerformed": false,
+  "newIamPermissions": false,
+  "remaining": [
+    "تثبيت تحديث التطبيقين لتفعيل توجيه نوع الإشعار الجديد بعد النقر",
+    "اختبار وصول وفتح إشعار على الجهاز خلال قرار مالي مصرح به؛ لا ننشئ صرفًا لغرض الاختبار"
+  ],
+  "next": "مراجعة مصفوفة الإشعارات المالية المكتملة والمتبقية في الخطة قبل الانتقال للبند التشغيلي التالي"
+}

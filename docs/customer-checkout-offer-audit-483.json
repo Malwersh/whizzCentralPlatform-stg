@@ -1,0 +1,35 @@
+{
+  "phase": 483,
+  "date": "2026-11-09",
+  "status": "implemented-local-verification",
+  "scope": "Customer checkout offer eligibility and automatic delivery entitlement in basket",
+  "audit": {
+    "server": [
+      "discount-list uses authenticated offer-context and offer-eligibility before exposing customer-scoped offers",
+      "platform-benefits feed checks publication/status/start/end/grants/revocation/remaining/branch/region/customer",
+      "apply and final order revalidate catalog, funding, usage and stacking; previews do not redeem"
+    ],
+    "clientFixes": [
+      "filter expired/future/wrong branch merchant list and account-change response",
+      "hide ineligible/expired/exhausted/wrong branch platform benefits in checkout picker",
+      "automatic delivery entitlement chosen only after lower server point invoice; exact owner/cart/branch/point fencing",
+      "explicit pending selections preserved; automatic removal remembered for same basket scope",
+      "single short reduced-motion-aware celebration with server-confirmed before/after totals",
+      "cart fee and total re-read selected invoice together"
+    ]
+  },
+  "automaticScope": "Platform delivery entitlements only; ordinary promo codes and merchant offers retain explicit existing flows. Existing automatic item offer flow preserved. No new stacking policy.",
+  "verification": {
+    "flutterOfferTests": 31,
+    "pointInvoiceTestsAdditional": 8,
+    "backendTests": 24,
+    "manualPending": [
+      "Eligible delivery benefit with current real account and basket",
+      "Cart to address to payment keeps same entitlement and correct total",
+      "Changing quantities/address invalidates automatic selection",
+      "Removing/replacing benefit and final order submission",
+      "Visual celebration and reduced motion on actual device"
+    ]
+  },
+  "deployment": "Customer iOS simulator build 435 installed and launched. No server change or financial mutation."
+}

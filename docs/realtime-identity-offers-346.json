@@ -1,0 +1,199 @@
+{
+  "release": 346,
+  "environment": "staging",
+  "status": "PUBLISHED_STAGING_346_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+  "scope": [
+    "customer realtime identity and private subscriptions",
+    "driver realtime identity, offer delivery and foreground card",
+    "merchant order cue and account device unregistration"
+  ],
+  "fixes": [
+    "RS256 verified pool/client identities before connection writes",
+    "driver Authorization handshake header on native iOS and Dart sockets",
+    "scope marker on actual manager DynamoDB client",
+    "own order/user topics and immutable owner transaction fences",
+    "no client-driven websocket status/hold mutation",
+    "old unverified sockets cannot receive private order payloads or financial offers",
+    "independent canonical push hydration and foreground event inbox per owner/offer/cycle",
+    "retry hydration only until original offer expiry; preserve closure and account epoch",
+    "merchant cue coalesces same order and marks history only after actual successful playback",
+    "merchant native AVAudioPlayer with configured sound and volume",
+    "unregister pins subject and app atomically and apps unregister before sign-out",
+    "removed hard-coded test driver and mock token fallback from active reconnect/search path",
+    "removed raw handshake event/query logging and driver message-content logging; JWT sent in Authorization header only"
+  ],
+  "automatedTests": {
+    "realtimeAndMerchantScope": 32,
+    "financialDeliveryAndPush": 14,
+    "tokenUnregister": 3,
+    "driverReferenceInboxClosureAudio": 23,
+    "merchantCueHistoryCadence": 6
+  },
+  "builds": {
+    "customer": "iOS simulator debug346",
+    "merchant": "iOS simulator debug346",
+    "driver": "iOS release346"
+  },
+  "deploymentSafety": {
+    "baselinePackagesCaptured": true,
+    "unrelatedZipEntriesPreserved": true,
+    "initialAutoReviewDenied": "IAM policy replacement risk; read-only inspection proved RealtimeScope346 absent on all six roles; subsequent create-only policy addition aborts if present and preserves every existing policy",
+    "businessFinancialMutations": false
+  },
+  "humanAcceptance": [
+    {
+      "id": "RT346-01",
+      "test": "Foreground driver: genuine new offer notification immediately hydrates card, exact owner/deadline/prices and one audible cue",
+      "status": "PENDING_REAL_DEVICE"
+    },
+    {
+      "id": "RT346-02",
+      "test": "Driver background/locked: OS notification sound; open hydrates only live offer, no resurrection after closure or expiry",
+      "status": "PENDING_REAL_DEVICE"
+    },
+    {
+      "id": "RT346-03",
+      "test": "Network interruption/reconnect, multiple offer references, account switch and no cross-account cards",
+      "status": "PENDING"
+    },
+    {
+      "id": "RT346-04",
+      "test": "Merchant foreground genuine order: one cue across push/socket/poll; failed cue can retry; mute respected",
+      "status": "PENDING_REAL_DEVICE"
+    },
+    {
+      "id": "RT346-05",
+      "test": "Merchant background/locked notification and branch isolation; resume list refreshes correctly",
+      "status": "PENDING_REAL_DEVICE"
+    },
+    {
+      "id": "RT346-06",
+      "test": "Customer own-order state and driver tracking updates through acceptance/pickup/delivery; other account cannot subscribe",
+      "status": "PENDING_END_TO_END"
+    },
+    {
+      "id": "RT346-07",
+      "test": "Android device notifications, background restrictions and audible cues for driver and merchant",
+      "status": "PENDING_ANDROID_DEVICE"
+    }
+  ],
+  "nextPlanStep": "Finish recorded realtime acceptance before branch device/PIN M05; never treat provider ACK or simulator build as device receipt proof.",
+  "publication": {
+    "functions": [
+      {
+        "name": "WizzUser-WebSocketConnect-staging",
+        "codeHash": "Wj904ezOSC8Yhi83sNi1USDsIhxNO+EXftHDEYHETEM=",
+        "published": true,
+        "changedEntries": [
+          "universal_websocket_manager.js",
+          "functions/websocket-connect/index.js",
+          "merchant-realtime-scope-345.js",
+          "realtime-identity-scope-346.js"
+        ],
+        "unrelatedEntriesPreserved": true,
+        "handshakeLoggingSanitized": true
+      },
+      {
+        "name": "WizzUser-WebSocketDefault-staging",
+        "codeHash": "VL4D6mZu7WL2wdNbGBZWhUyksnQcP4lrVd8Qv7RY/WE=",
+        "published": true,
+        "changedEntries": [
+          "functions/websocket-default/index.js",
+          "merchant-realtime-scope-345.js",
+          "realtime-identity-scope-346.js"
+        ],
+        "unrelatedEntriesPreserved": true,
+        "handshakeLoggingSanitized": false
+      },
+      {
+        "name": "WizzUser-WebSocketHeartbeat-staging",
+        "codeHash": "8I6Tjv8dJZZ8Tw5GIUoQUFcPLNhcCVLaSGd5/AXHcFA=",
+        "published": true,
+        "changedEntries": [
+          "functions/websocket-heartbeat/index.js",
+          "realtime-identity-scope-346.js",
+          "merchant-realtime-scope-345.js"
+        ],
+        "unrelatedEntriesPreserved": true,
+        "handshakeLoggingSanitized": false
+      },
+      {
+        "name": "WizzUser-WebSocketSendUpdate-staging",
+        "codeHash": "hDf5L3/H39sfDurMuARV2DXsE+q3NZXlr32V6arNFpQ=",
+        "published": true,
+        "changedEntries": [
+          "functions/websocket-send-update/index.js",
+          "realtime-identity-scope-346.js",
+          "merchant-realtime-scope-345.js",
+          "private-order-delivery-346.js"
+        ],
+        "unrelatedEntriesPreserved": true,
+        "handshakeLoggingSanitized": false
+      },
+      {
+        "name": "WaveSystem_StartWave",
+        "codeHash": "YK8dET1Unr+fVw/IUYMHulQSAm2AbhtUihUe0wCyo7U=",
+        "published": true,
+        "changedEntries": [
+          "admin-retry-runtime-298.js",
+          "financial-delivery-runtime-346.js"
+        ],
+        "unrelatedEntriesPreserved": true,
+        "handshakeLoggingSanitized": false
+      },
+      {
+        "name": "wizzcentral-notifications-staging-pushTokensUnregister",
+        "codeHash": "t9Gsw9DebCD99YFKdpxr6g6ftLfqqsO/0U6n6CsSOzs=",
+        "published": true,
+        "changedEntries": [
+          "src/handlers/push-tokens.js"
+        ],
+        "unrelatedEntriesPreserved": true,
+        "handshakeLoggingSanitized": false
+      }
+    ],
+    "safeDenialProbes": [
+      {
+        "function": "WizzUser-WebSocketConnect-staging",
+        "expected": 401,
+        "actual": 401,
+        "noBusinessMutation": true
+      },
+      {
+        "function": "WizzUser-WebSocketConnect-staging",
+        "expected": 401,
+        "actual": 401,
+        "noBusinessMutation": true
+      },
+      {
+        "function": "WizzUser-WebSocketDefault-staging",
+        "expected": 401,
+        "actual": 401,
+        "noBusinessMutation": true
+      },
+      {
+        "function": "WizzUser-WebSocketHeartbeat-staging",
+        "expected": 401,
+        "actual": 401,
+        "noBusinessMutation": true
+      }
+    ],
+    "positiveAuthenticatedDeviceConnection": "PENDING: merchant is at branch chooser and driver offer search has not been started in this audit",
+    "recentScopedPermissionOrRuntimeErrors": [],
+    "providerDeliveryNotHumanReceipt": true
+  },
+  "installed": {
+    "customer": "346 on iPhone16Pro simulator; home visually checked",
+    "merchant": "346 on iPhone16 simulator; branch picker visually checked",
+    "driver": "Final Release346 installed and launched on real iMohammed; foreground/background delivery acceptance pending real order"
+  },
+  "localCommits": {
+    "customer": "09a0647",
+    "driver": "b92d72f",
+    "merchant": "f41616a"
+  },
+  "nativeBridgeWiringCorrection347": {
+    "evidence": "docs/driver-map-coverage-347.json",
+    "note": "346 forwarded headers only in duplicate NativeWebSocket.swift not compiled by Xcode.347 forwards Authorization in the registered AppDelegate.swift NativeWebSocketPlugin and sanitizes its receive log. Genuine driver offer/connection acceptance remains pending."
+  }
+}

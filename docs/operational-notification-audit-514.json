@@ -1,0 +1,68 @@
+{
+  "batch": 514,
+  "status": "SOURCE_AUDIT_COMPLETE_IMPLEMENTATION_PENDING",
+  "scope": "إشعارات الإرجاع والتعويض وتسويات المطعم",
+  "financialMutations": 0,
+  "deployedChanges": false,
+  "findings": [
+    {
+      "event": "CLEAN_RETURN_CONFIRMED",
+      "status": "EXISTING",
+      "source": "backend/wallet-service/src/codReturn.ts → codIntegration.ts",
+      "recipient": "DRIVER",
+      "meaning": "اكتملت عودة الأصناف والمعالجة المالية؛ أجرة العودة مستقلة وقيد المراجعة عند انطباقها."
+    },
+    {
+      "event": "RETURN_CUSTODY_COMPLETED_REVIEW_REQUIRED",
+      "status": "MISSING_DEDICATED_NOTICE",
+      "source": "backend/wallet-service/src/returnCustody.ts; codReturn.ts; returnContinuation.ts",
+      "meaning": "استلام الأصناف وإنهاء المهمة لا يعني تحرير الضمان أو صرف التعويض.",
+      "destinationRequired": "تفاصيل الحالة أو الرحلة، دون إعادة تنشيط العرض المنتهي."
+    },
+    {
+      "event": "EXCEPTION_ENTITLEMENTS_AND_GUARANTEE_DECISIONS",
+      "status": "MISSING_DEDICATED_NOTICE",
+      "source": "backend/wallet-service/src/exceptionFinancials.ts; returnGuaranteeReview.ts",
+      "meaning": "فصل اعتماد القرار عن تنفيذه المالي؛ إظهار ما يخص المستلم فقط."
+    },
+    {
+      "event": "MERCHANT_PAYOUT_TRANSITIONS",
+      "status": "MISSING_PRODUCER_AND_SPECIFIC_ROUTE",
+      "source": "backend/wallet-service/src/merchantPayout.ts",
+      "meaning": "فصل انتظار تأكيد الاستلام عن الصرف المثبت؛ التسوية بالمقاصة لا توصف كتسليم نقدي.",
+      "clientGaps": [
+        "صندوق إشعارات المطعم محلي ومعزول بالحساب والفرع، ولا يوفر استعادة مالية من الخادم.",
+        "النقر على إشعار الدفع يفتح المحفظة عمومًا؛ لا توجد وجهة محددة بمعرف الصرف.",
+        "حمولة العامل الحالية تحتاج ربط الفرع ومعرف الصرف والتحقق من المستلم."
+      ]
+    }
+  ],
+  "nextImplementation": {
+    "first": "MERCHANT_PAYOUT_NOTIFICATIONS",
+    "requirements": [
+      "تعريف عقد الإشعار وهوية المستلم والفرع ووجهة تفاصيل الصرف أولًا.",
+      "حفظ الإشعار مع انتقال الحالة في المعاملة نفسها، بمعرف ثابت يمنع التكرار.",
+      "التحقق من ملكية الفرع والحساب وحواجز الحذف قبل الإرسال والقراءة.",
+      "إتاحة استرجاع الإشعار الموثق بعد انقطاع الاتصال، لا الاكتفاء بالدفع أو التخزين المحلي.",
+      "اختبارات إعادة المحاولة وتبديل الحساب والفرع والصلاحيات والحالة المالية."
+    ],
+    "followedBy": [
+      "RETURN_CUSTODY_REVIEW_NOTICES",
+      "EXCEPTION_FINANCIAL_DECISION_NOTICES"
+    ]
+  },
+  "validation": {
+    "existingCompiledBackendTests": {
+      "returnCustodyExceptionFinancialsMerchantPayout": 35,
+      "codIntegration": 17
+    },
+    "totalPassed": 52,
+    "failed": 0,
+    "limitation": "اختبارات المسارات الموجودة؛ لا تثبت وجود الإشعارات الناقصة أو نجاح وصولها على الأجهزة."
+  },
+  "customerRelease450": {
+    "installed": true,
+    "launched": true,
+    "complaintPushTapAcceptance": "PENDING"
+  }
+}

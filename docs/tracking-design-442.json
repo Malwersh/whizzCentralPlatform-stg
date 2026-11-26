@@ -1,0 +1,23 @@
+{
+  "feature": "trackingDesign442",
+  "date": "2026-11-05",
+  "status": "CUSTOMER_RELEASE405_INSTALLED_LAUNCHED",
+  "changes": [
+    "Camera follows received driver location at zoom17 tilt45 north-up; manual map touch suspends following; recenter resumes it",
+    "Google normal road map and available building rendering; no guarantee of 3D building coverage in Iraq",
+    "Delivered state replaced duplicate timeline and old success panel with compact success hero and clear rating/home/support actions",
+    "Arabic vehicle type, omit pending/unknown registration placeholders",
+    "Rating screen soft background, navy typography, gold stars and submit action, separate merchant and driver scores; existing owner checks and save semantics preserved"
+  ],
+  "validation": {
+    "flutterTests": 17,
+    "cases": "Marker movement regression, rating identity/save/read-only/error behavior, narrow RTL rating layout at text scale1 and2, tracking progress layout",
+    "analyzer": "No errors; existing tracking-screen warnings/style infos remain",
+    "iosBuild": "Release405 successful; installed and launched iMohammed"
+  },
+  "limits": [
+    "Native perspective and follow camera require visual confirmation on next active trip; latest order already delivered",
+    "No new synthetic GPS or financial mutations in this design step"
+  ],
+  "source": "https://developers.google.com/maps/documentation/android-sdk/views?hl=en"
+}

@@ -1,0 +1,29 @@
+{
+  "status": "LOCAL_SETTLEMENT_SERVER_AND_UI_INTEGRATION_TESTED_NOT_DEPLOYED",
+  "serverFlag": "MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED",
+  "clientFlag": "MERCHANT_FINANCIAL_LOCK_ENABLED",
+  "enabled": false,
+  "published": false,
+  "tests": {
+    "serverSessionAccessOwnerSchedules": 26,
+    "merchantProxyAndEmployeeTransport": 5,
+    "flutterGatePayoutSchedulesEmployee": 17,
+    "totalPassed": 48,
+    "flutterAnalysis": "No issues found"
+  },
+  "completed": [
+    "ربط التحقق بهوية Cognito الحية ورقم الهاتف الموثق وملكية الفرع وحواجز الحذف.",
+    "ربط جلسة مالية بمسار تسويات المالك؛ حراس الجلسة داخل معاملات الكتابة المالية.",
+    "نقل رمز الجلسة في ترويسة، ومنع تمريره عبر query أو body المالي.",
+    "شاشة تحقق للمالك أمام شاشات الصرف وجدول التسويات، مع استمرار مسار موظف الفرع بجلسته وصلاحياته الحالية.",
+    "مسح الجلسة والبيانات المعروضة عند الخلفية وتبديل الحساب أو الفرع، ومحاولة إبطال الجلسة بالخادم دون تعطيل القفل المحلي عند انقطاع الشبكة.",
+    "طلب القفل المتأخر لا يستطيع إبطال جلسة مالية أحدث."
+  ],
+  "remainingBeforeActivation": [
+    "مسار المحفظة والتحويلات القديم في wallet-service مستقل عن settlement-schedules؛ يجب ربط حماية الخادم والواجهة به قبل التفعيل.",
+    "حصر جميع شاشات وتقارير البيانات المالية الأخرى، بما فيها أي مبالغ معروضة خارج صفحات التسويات.",
+    "إعداد تفويض الأجهزة لاستلام التنبيهات المالية وصندوق إشعارات مصفى بالصلاحيات.",
+    "مراجعة صلاحيات الخدمات الحالية، النشر المتوافق للخادم والتطبيق ثم اختبار OTP عمليًا."
+  ],
+  "financialMutations": 0
+}

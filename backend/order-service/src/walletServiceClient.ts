@@ -4,6 +4,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { CognitoService } from './cognitoService';
+import { walletTarget } from './walletTarget';
 import { ReleaseHoldRequest, ReleaseHoldResponse, HoldReleaseError } from './types';
 
 export class WalletServiceClient {
@@ -13,9 +14,7 @@ export class WalletServiceClient {
 
   constructor(cognitoService: CognitoService) {
     this.cognitoService = cognitoService;
-    this.walletServiceUrl =
-      process.env.WALLET_SERVICE_URL ||
-      'https://er7d8mkxi5.execute-api.us-east-1.amazonaws.com/dev';
+    this.walletServiceUrl = walletTarget();
 
     this.axiosInstance = axios.create({
       baseURL: this.walletServiceUrl,
@@ -76,13 +75,7 @@ export class WalletServiceClient {
       if (statusCode === 404) {
         throw new HoldReleaseError(`Hold not found: ${holdId}`);
       } else if (statusCode === 400) {
-        // Hold already released or invalid state
-        console.log('⚠️ Hold already released or invalid state - treating as success');
-        return {
-          success: true,
-          holdId,
-          message: 'Hold already released or not found',
-        };
+        throw new HoldReleaseError(`Hold release was not confirmed: ${errorMessage}`);
       } else if (statusCode === 401 || statusCode === 403) {
         // Authentication/Authorization error
         this.cognitoService.clearCache(); // Clear cached token

@@ -1,0 +1,31 @@
+{
+  "part": 224,
+  "status": "PUBLISHED_READ_ONLY_REAL_DATA_REHEARSAL_PASSED",
+  "function": "WizzUser-CreateOrder-staging",
+  "baseCodeSha256": "wBtwlCa3zQHgEXlrEUF8fdY+KZVzkCVuUyi34clNNzI=",
+  "codeSha256": "qEmCU76qsx5uuP8hD01OkWOHKj/nMOOuxIvi/gNYtaM=",
+  "changedFiles": [
+    "_discount_review/user-create-order/index.js",
+    "checkout-finance-runtime-222.js"
+  ],
+  "repair": [
+    "Use existing authorized lifecycle ConditionCheck instead of denied GetItem",
+    "Use canonical delivery-funded allocation supporting current agreement schema2"
+  ],
+  "configurationAndIamPreserved": true,
+  "otherZipEntriesIdentical": true,
+  "financialDataWrites": false,
+  "clientUpdateRequired": false,
+  "verification": {
+    "savedQuoteAndLiveDataPreview": 200,
+    "roleSimulatedReads": 45,
+    "goodsIqd": 7000,
+    "deliveryIqd": 1500,
+    "serviceIqd": 500,
+    "tipIqd": 500,
+    "totalIqd": 9500,
+    "identity": "offline only; no real authenticated positive HTTP acceptance claimed",
+    "quoteClock": "saved creation time for unmodified saved quote",
+    "physicalAcceptance": "pending user retry"
+  }
+}

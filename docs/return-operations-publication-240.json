@@ -1,0 +1,84 @@
+{
+  "part": 240,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "label": "financial",
+      "baseCodeSha256": "bDyvkcv95g2rAm803Ib/O/1jE+cPdGEXCOUVwSH0lxk=",
+      "candidateSha256": "ca270c8d9ef416a3a1a90793c5add1ec7b8ccb5b07298252cd6f88f92b33e374",
+      "changedFiles": [
+        "index.js",
+        "order-exception-runtime-229.js"
+      ],
+      "unrelatedEntriesIdentical": true,
+      "codeSha256": "yicMjZ70FqOhqQeTxa3R7HuMy1sHKYJSzW+I+Ssz43Q=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "label": "staff",
+      "baseCodeSha256": "g1PYzyHiRh5sjO+qnd58eDrv83sRBYHoG7HaYXGF9Cg=",
+      "candidateSha256": "95e6524aecff909c608a6695db2325bf1989c3e299cf00bd93bfd69f9b1a0c39",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "order-exception-cases.js",
+        "return-operations-settings.js",
+        "return-operations-contract.js"
+      ],
+      "unrelatedEntriesIdentical": true,
+      "codeSha256": "leZSSuz/kJxgimaV2yMlvxmJw+KZzwC9k7/Wn5saDDk=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "label": "merchant",
+      "baseCodeSha256": "87j0Lf2u90En53kcXSSdeJxv/qblQoUNW7wAozKReRQ=",
+      "candidateSha256": "eed90e08e831d3df884ba23ffc3d77d78fdc86642bd662f1126bf7245de71f09",
+      "changedFiles": [
+        "order_returns.js"
+      ],
+      "unrelatedEntriesIdentical": true,
+      "codeSha256": "7tkOCOgx09+IS6I//D1314/chmQr1mLxEmv3JF3nHwk=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "label": "driver",
+      "baseCodeSha256": "KlnKz21yZ9Tas6o7+skFk5PcfphEJtCW/fFHVRiv8qo=",
+      "candidateSha256": "88731670c78004e3db26f6d34ce3520771e3508929760f50dad6f8f356b14fea",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "financial-accept-client.js"
+      ],
+      "unrelatedEntriesIdentical": true,
+      "codeSha256": "iHMWcMeABOPbJvbTTONSB3HjUIkpdg9Q2tb481axT+o=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-order-exception-sla-232",
+      "label": "sla",
+      "baseCodeSha256": "+EwsLJdwM9YCDxa7M/NaNUj73xacoKSV5MHRM5lMyIw=",
+      "candidateSha256": "b0ab4c271abb59bd26af48dc6edaafa65808b9ad7eb134aca8f94b3518c10ce2",
+      "changedFiles": [
+        "index.js"
+      ],
+      "unrelatedEntriesIdentical": true,
+      "codeSha256": "sKtMJxq7Wb0mr0jcbtqvplgIua1+sTSsqPlLNRjBDOI=",
+      "configurationPreserved": true
+    }
+  ],
+  "financialWritesByAgent": false,
+  "hosting": {
+    "baseJobId": "132",
+    "jobId": "133",
+    "changedFiles": [
+      "pages/order-exceptions.html",
+      "order-exception-cases.js",
+      "return-operations-settings.js"
+    ],
+    "otherFilesPreserved": true,
+    "status": "SUCCEED",
+    "hostedBytesVerified": true
+  }
+}

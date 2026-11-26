@@ -1,0 +1,56 @@
+{
+  "part": 360,
+  "scope": "Driver cash payout audit projections and authenticated actor snapshot",
+  "status": "PUBLISHED_STAGING_SHA_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+  "findings": [
+    "Existing payout audit records actor ID/event/amount without historical actor profile or explicit before/after payout and wallet state",
+    "Runtime driverName describes beneficiary; it must not be mistaken for administering staff name"
+  ],
+  "changes": [
+    "Capture trusted staff name/roles/version/scope from current authorized staff profile and retain its existing atomic authority guard",
+    "Capture authenticated driver identity from server-read driver profile; no supplied audit actor accepted from mobile body",
+    "Project payout status/version/amount and available/locked/payout-reserved wallet state before/after each transition",
+    "Reference actual cash/return journal, cashbox code, voucher and immutable wallet ledger keys",
+    "Request, cancellation, delivery, receipt and paid reconciliation audits remain in original transaction with conditional immutable audit Put",
+    "No extra database reads: reuse existing validated wallet/profile reads and journal operations",
+    "Preserve full wallet balances on nonmonetary transitions and release reservation only in existing completion/cancellation paths",
+    "Signed reference/reason material redacted in audit projection; no historic profile backfill"
+  ],
+  "verification": {
+    "relatedTestsPassed": 53,
+    "failed": 0,
+    "typescript": "PASS",
+    "actualRuntimeHookAndSdkBridge": "PASS with synthetic staff and driver identities; production function/bridge extracted from patched bundle",
+    "specificCases": [
+      "Reservation audit shows available debit and locked credit; replay creates no new audit",
+      "Delivery retains locked funds and cites actual cash journal/voucher",
+      "Staff name snapshot remains unchanged after profile rename",
+      "Receipt records driver identity; reconciliation records locked debit without second available credit",
+      "Cancellation restores reserved available amount and records reason without cashbox movement",
+      "Injected audit identity is rejected before write",
+      "Concurrent wallet conflict cannot leave a payout or audit behind",
+      "Existing lost-response, cash shortage, non-receipt/return, eligibility and authority tests stay green"
+    ]
+  },
+  "publication": {
+    "function": "staging-driver-financial-accept",
+    "files": [
+      "driver-cash-payout-runtime-v1.js",
+      "driver-payout-audit-360.js"
+    ],
+    "allOtherEntriesPreserved": true,
+    "environmentAndIamUnchanged": true
+  },
+  "financialMutationsExecuted": 0,
+  "historicalAuditRowsModified": 0,
+  "nativeBuildRequired": false,
+  "scopeLimits": [
+    "Dedicated staff audit page still reads STAFF_AUDIT_ONLY",
+    "Transfers, provider payment audits and cross-source reader remain separate follow-up",
+    "Synthetic tests do not certify real cash receipt; ordered human acceptance remains pending"
+  ],
+  "humanAcceptance": [
+    "Future authorized payout: compare request reserve, approve, cash delivery, driver receipt, reconcile and audit links",
+    "Future authorized cancellation/non-receipt case: compare retained/released collateral and cash journal; no new cash operations just for publication"
+  ]
+}

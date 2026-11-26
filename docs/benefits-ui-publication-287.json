@@ -1,0 +1,19 @@
+{
+  "part": 287,
+  "status": "PUBLISHED_VERIFIED",
+  "baseJobId": "161",
+  "jobId": "162",
+  "changedFiles": [
+    "platform-benefits-admin.js",
+    "pages/promotions.html"
+  ],
+  "otherHostingEntriesPreserved": true,
+  "backendChanged": false,
+  "businessDataWritten": false,
+  "percentage": "handoff to existing protected percentage offer editor; no new benefit schema",
+  "browserChecks": "fixed-benefit payload, conditional fields, direct-target validation, draft reset, percentage editor handoff, responsive 390/768/1440px",
+  "sha256": {
+    "platform-benefits-admin.js": "3d6db32fa5818be9b3d439c3f5ffe9e161a1c6aacd3f26131cc6c3c47129b380",
+    "pages/promotions.html": "e4b70062658171e23d0da1da1d9c38d6e4063d507016e5adcb92245c66cda907"
+  }
+}

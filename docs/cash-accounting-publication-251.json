@@ -1,0 +1,33 @@
+{
+  "part": 251,
+  "status": "PUBLISHED",
+  "scope": "Company cash opening, dual approval, receipts, expenses, transfers, counts, custody, reversals and atomic merchant cash asset posting",
+  "businessDecisionsOrPaymentsByAgent": false,
+  "platformWalletFundingConditionAdded": false,
+  "companyCashAssetPostingAdded": true,
+  "iamChanged": false,
+  "function": {
+    "name": "staging-wizz-staff-service",
+    "baseCodeSha256": "zJVefqKCRekK9bjsJbZeDOT7CFr70Nmk4fDmqXf0hEg=",
+    "codeSha256": "J0esXnyiVwUNCvgnXqrBXVdBqMmNgFy7CWUf34OeVhI=",
+    "changedFiles": [
+      "settlement-runtime.js",
+      "merchant-payouts.js"
+    ],
+    "unrelatedEntriesAndConfigurationPreserved": true
+  },
+  "hosting": {
+    "baseJobId": "140",
+    "jobId": "141",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-cashboxes.js",
+      "merchant-payouts.js",
+      "finance-workspace.js",
+      "styles/finance-workflow.css"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

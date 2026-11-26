@@ -1,0 +1,73 @@
+{
+  "batch": 551,
+  "status": "PUBLISHED_STAGING_ENABLED_AUTOMATED_VERIFIED_SOURCE_RETENTION_LIFECYCLE_OPEN",
+  "testsPassed": 333,
+  "liveReadOnlyValidation": {
+    "records": 28,
+    "valid": 28,
+    "errors": 0
+  },
+  "implementation": [
+    "Validate customer ownership, funding digest, terminal state, funding allocation conservation, configured financial retention years.",
+    "Validate all source records before first archive write. Atomic archive put with request lease, account deletion lock, source version/digest/state checks.",
+    "No original source, wallet, usage counter or financial allocation is changed.",
+    "Archive payload excludes direct customer identity; source key is hashed. Replays reuse original retention clock and reject conflicting archives.",
+    "Feature is now enabled for both staging deletion services. Pending reservations and documented holds remain blocking; terminal records require full verification."
+  ],
+  "limitations": [
+    "Original source records remain intact for settlement replay. Their expiration/anonymization remains a separate open retention lifecycle; no claim of complete account erasure.",
+    "No real deletion request or archive transaction executed."
+  ],
+  "requiredIam": [
+    "Approved projected GetItem and worker-only ConditionCheckItem published with key-prefix and non-null context restrictions."
+  ],
+  "evidenceFiles": [
+    "docs/customer-funding-archive-requests-policy-551.json",
+    "docs/customer-funding-archive-worker-policy-551.json"
+  ],
+  "next": "Design source-record retention/expiry without breaking settlement replay, with holds and archived evidence checks; complete human acceptance later per plan.",
+  "approval": "Explicit user approval of scoped GetItem for both deletion roles, ConditionCheckItem for worker and staging archive rollout.",
+  "publishedVerification": {
+    "requests": {
+      "codeSha256": "zVyCSAM1JsT0lJdzDQIiHBZRRZQ+TnZZ73Rw57dacKE=",
+      "state": "Active",
+      "archiveEnabled": "true",
+      "unrelatedFilesByteIdentical": true,
+      "testsPassed": 46
+    },
+    "worker": {
+      "codeSha256": "rlWKGDNkjKIzRrzG7KIjbOlmyuvj/cNyTCtYHzbza7I=",
+      "state": "Active",
+      "archiveEnabled": "true",
+      "unrelatedFilesByteIdentical": true,
+      "testsPassed": 59
+    }
+  },
+  "iamVerification": {
+    "requests": {
+      "allowed": "allowed",
+      "noProjection": "implicitDeny",
+      "foreignPrefix": "implicitDeny",
+      "extraAttribute": "implicitDeny"
+    },
+    "worker": {
+      "allowed": "allowed",
+      "noProjection": "implicitDeny",
+      "foreignPrefix": "implicitDeny",
+      "extraAttribute": "implicitDeny"
+    }
+  },
+  "preRolloutRequestCheck": {
+    "counts": {
+      "CUSTOMER:COMPLETED": 2,
+      "MERCHANT:COMPLETED": 3,
+      "MERCHANT:PENDING_SETTLEMENT": 1,
+      "DRIVER:COMPLETED": 1
+    },
+    "nonterminalCustomerRequests": 0,
+    "recordsMutated": 0
+  },
+  "financialWrites": 0,
+  "actualArchiveTransactions": 0,
+  "actualAccountDeletions": 0
+}

@@ -1,0 +1,53 @@
+{
+  "phase": 279,
+  "scope": "Evidence-backed original timing exception review only",
+  "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+  "reviewModel": {
+    "binding": "Original order, driver, offer, attempt and fixed timing fingerprint",
+    "owner": "Opening authenticated global employee recorded on case",
+    "evidence": "Received allegations with reference and reason; two distinct source parties required for adverse decision",
+    "decisions": [
+      "EXCUSED",
+      "COUNT_LATE",
+      "PENDING_REVIEW"
+    ],
+    "appeals": "Staff records received driver objection; open appeal excludes metric impact; upheld or revised with preserved history",
+    "replay": "Immutable event receipt and per-request UUID; expected version plus atomic source, staff and deletion guards",
+    "noMoney": true,
+    "noAutomaticEligibilityPenalty": true
+  },
+  "entry": "Orders > Manage delivered order > Review timing; open reviews also in order exception queue",
+  "tests": {
+    "source": 24,
+    "capturedRuntime": 49,
+    "actualSharedFactoryWrapper": 9,
+    "driverReader": 40,
+    "flutterPerformance": 13,
+    "browser": "Authenticated Arabic evidence/decision, retry UUID, attempt binding, narrow layout",
+    "typescript": "PASS",
+    "staffProjection": 1
+  },
+  "driverRelease": 279,
+  "manualAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "remaining": [
+    "Quality and rating moderation, exclusion and appeal integration with colleague ratings aggregate transactions",
+    "Vehicle approval, document validity and allowed region eligibility",
+    "Manual ordered performance acceptance and final Android/iPhone launch gates"
+  ],
+  "notClaimed": [
+    "Quality score",
+    "Reward tiers",
+    "Dispatch ranking changes",
+    "Independent GPS proof",
+    "Whole D10 completed"
+  ],
+  "publicationEvidence": "docs/driver-timing-review-publication-279.json",
+  "device": {
+    "release": 279,
+    "installed": true,
+    "launched": true,
+    "sessionPreserved": true,
+    "testLocationUnchanged": true,
+    "hardwareUAT": "DEFERRED"
+  }
+}

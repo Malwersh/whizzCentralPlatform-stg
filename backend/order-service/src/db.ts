@@ -18,18 +18,8 @@ export const docClient = DynamoDBDocumentClient.from(client, {
   },
 });
 
-// Resolve table names robustly, treating 'null', 'undefined' and empty strings as unset
-function resolveTableName(envValue: string | undefined, fallback: string): string {
-  const raw = (envValue || '').trim();
-  if (!raw) return fallback;
-  const lowered = raw.toLowerCase();
-  if (lowered === 'null' || lowered === 'undefined') return fallback;
-  return raw;
-}
-
-export const TABLES = {
-  ORDERS: resolveTableName(process.env.ORDERS_TABLE, 'WizzOrders'),
-};
+import {orderBindings} from './orderBindings';
+export const TABLES = { ORDERS: orderBindings().tables.ORDERS_TABLE };
 
 // Startup diagnostics to help trace environment issues
 console.log('🗄️ OrderService DynamoDB config:', {

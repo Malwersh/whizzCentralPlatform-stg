@@ -1,0 +1,90 @@
+{
+  "part": 73,
+  "date": "2026-10-17",
+  "environment": "Staging",
+  "implementation": "Named campaign/policy selection and explicit funding percentages using existing writers and data tables",
+  "publications": [
+    {
+      "baseJobId": "86",
+      "jobId": "87",
+      "changedFiles": [
+        "commercial-management.js",
+        "commercial-funding-picker.js",
+        "pages/merchants.html",
+        "pages/promotions.html"
+      ],
+      "codeSha256": "f046f49811cb632ec74c65f55090f4688345a427f879e10e845368de906eda71",
+      "backendChanged": false,
+      "iamChanged": false,
+      "applicationDataWrites": false,
+      "status": "SUCCEED",
+      "hostedFilesMatched": true
+    },
+    {
+      "baseJobId": "87",
+      "jobId": "88",
+      "changedFiles": [
+        "commercial-funding-picker.js"
+      ],
+      "codeSha256": "4c875a15f4fa3ef6c65bb211b7fb8dfc6bfb136e4ba86f32629511632b641203",
+      "backendChanged": false,
+      "iamChanged": false,
+      "applicationDataWrites": false,
+      "status": "SUCCEED",
+      "hostedFilesMatched": true
+    },
+    {
+      "baseJobId": "88",
+      "jobId": "89",
+      "changedFiles": [
+        "commercial-funding-picker.js"
+      ],
+      "codeSha256": "442b65754bfe6a06ecd8d6e5e332336a9d0a8c190ec0ab8c1622581334843f15",
+      "backendChanged": false,
+      "iamChanged": false,
+      "applicationDataWrites": false,
+      "status": "SUCCEED",
+      "hostedFilesMatched": true
+    }
+  ],
+  "verification": {
+    "fundingBrowser": {
+      "passed": true,
+      "realWrites": false,
+      "namedCampaigns": true,
+      "paginatedSource": true,
+      "branchIsolation": true,
+      "percentToExistingRational": true,
+      "versionRequired": true,
+      "namedPolicySelection": true,
+      "existingApiContract": true,
+      "loadFailureClosed": true,
+      "legacyRationalPreserved": true,
+      "stalePolicyBlocked": true
+    },
+    "directWorkflowBrowser": {
+      "directSaveAndNoApprovalUi": true,
+      "pricingPreparedWithoutWrite": true,
+      "explicitSaveUsesExistingApi": true,
+      "savedDraftNotOverwritten": true,
+      "readOnlyHidden": true,
+      "agreementPrefilled": true,
+      "foreignBranchBlocked": true,
+      "noOwnerOrApprovalFabricated": true,
+      "realWrites": false
+    },
+    "reviewWorkflowBrowserPassed": true,
+    "branchPickerBrowserPassed": true,
+    "syntaxAndWhitespacePassed": true
+  },
+  "backendChanged": false,
+  "iamChanged": false,
+  "humanPolicyOrAgreementWrites": false,
+  "financialActivation": false,
+  "phoneAppsChanged": false,
+  "sourceHashes": {
+    "commercial-management.js": "946a4ecf8a655ac721c72bfc9c39a6200c897c38c29c7e5756631c8939e0a4b3",
+    "commercial-funding-picker.js": "bf15ebffabe55ffb5ce179a86f3d51c9664f26190fa73be4860ea4e6d0454193"
+  },
+  "review": "finance-discount-coworker-review-73.json"
+}

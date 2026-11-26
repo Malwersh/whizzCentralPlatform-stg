@@ -1,0 +1,114 @@
+{
+  "part": 327,
+  "status": "IMPLEMENTED_PUBLISHED_POLICY_ACTIVE",
+  "scope": "General cash policy for current and future branches using the existing commercial checkout. Existing accepted agreements and orders are not rewritten.",
+  "policy": {
+    "status": "ACTIVE_VERIFIED",
+    "version": 1,
+    "values": {
+      "schemaVersion": 1,
+      "enabled": true,
+      "incrementIqd": 250,
+      "mode": "UP",
+      "minimumServiceFeeIqd": 250,
+      "minimumConflict": "NEXT_COLLECTIBLE_TOTAL"
+    },
+    "updatedAt": "2026-10-23T16:07:19.570Z",
+    "financialOrderOrWalletWrites": 0,
+    "configurationWrites": 3
+  },
+  "hosting": {
+    "jobId": "167",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "cash-rounding.js",
+      "company-accounts.js",
+      "pages/financial-management.html"
+    ],
+    "baseJob": "166"
+  },
+  "services": [
+    {
+      "function": "staging-driver-financial-accept",
+      "beforeSha": "ERMb+QR9TUlgRLS1P1NnuxuZJcjElxPBHRTQzkCI2nY=",
+      "afterSha": "Ud4HtS22jh+/zJ6R+po+zpyLcrqgZZS1Tuat+er2zv4=",
+      "status": "Successful"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "beforeSha": "lDP5ijE+1u7kcHlvT3BffVN5vDpzaAGwtQjPABxAnQQ=",
+      "afterSha": "ijuLdQkj5gPfacFAW5nDHAHu7JbmmJU2ckx2Qg04nbA=",
+      "status": "Successful"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "beforeSha": "6UT1Gt8qFUepB5EXFh1Q0LCSkV8mYnY5qnzkncZdb0E=",
+      "afterSha": "EeW/syel8gQmgeQz+VzwLrfj/6dh1Nmi6eazUsW+2U4=",
+      "status": "Successful",
+      "cashPolicyMode": "REQUIRED"
+    }
+  ],
+  "calculation": {
+    "basis": "Entire invoice after discounts, delivery, base service and tip. One total rounding; signed difference changes platform service only.",
+    "minimum": "Effective cash service fee >=250 IQD. If requested rounded total violates this, use the first collectible total meeting the minimum, preserve requested total and explicit override reason.",
+    "nonCash": "Pure calculator bypasses cash rounding. No payment gateway has been enabled.",
+    "disabled": "Explicitly disabled cash policy retains exact totals. Missing required policy blocks checkout.",
+    "exampleIqd": {
+      "goods": 12000,
+      "delivery": 2250,
+      "baseService": 300,
+      "before": 14550,
+      "adjustment": 200,
+      "effectiveService": 500,
+      "customerTotal": 14750
+    }
+  },
+  "audit": {
+    "evidence": [
+      "baseServiceFee",
+      "adjustment (signed)",
+      "serviceFee",
+      "customerTotalBefore",
+      "requestedCustomerTotal",
+      "customerTotal",
+      "policy version/digest/immutable values",
+      "minimumOverride/reason",
+      "evidence digest"
+    ],
+    "storedIn": [
+      "commercial order calculation and commercialPricing.cashRounding",
+      "atomically committed FULL_CASH_FUNDING_COMMITMENT",
+      "completion accounting journal",
+      "company reporting journal details"
+    ],
+    "posting": "Base fee credited to SERVICE_FEE_REVENUE. Positive difference credited and negative difference debited to CASH_ROUNDING_SERVICE_ADJUSTMENT. No double posting of effective service.",
+    "customerView": "Only effective service and final invoice; no rounding settlement line or internal evidence.",
+    "invariants": [
+      "merchant commission and payable unchanged",
+      "driver entitlement and tip unchanged",
+      "conservation and debit=credit",
+      "policy changes invalidate customer consent",
+      "retries preserve exactly one order/benefit reservation/journal"
+    ]
+  },
+  "validation": {
+    "financialTestsPassed": 161,
+    "actualPatchedDriverHostCompletionTestsPassed": 9,
+    "flutterCommercialTestsPassed": 26,
+    "flutterLegacyTestsPassed": 29,
+    "browser": "Desktop/mobile policy simulation, minimum override, direct save, history and stale-result clearing passed using local fixtures.",
+    "analyzer": "No errors or warnings; existing informational style/deprecation findings remain.",
+    "native": {
+      "buildNumber": 237,
+      "mode": "debug simulator",
+      "installed": "09DA4C20-FD4B-446E-8C2F-9D04E5CFC206",
+      "dataPreserved": true
+    },
+    "live": "Published Lambda hashes, active policy, hosting bytes and unauthenticated handler rejection verified. No authenticated live order or financial mutation performed for tests.",
+    "actualOrderWalletOrDiscountConsumptionWrites": 0
+  },
+  "deployment": "Narrow overlays on freshly captured live archives preserve colleague changes. Completion and reporting deployed before policy activation. Required-policy fence enabled on actual order writer.",
+  "permissions": "Create-order exact cash-policy read/condition fence; company projected-read attribute list extended only by cashRounding. Existing employee authorization and commercial consent retained.",
+  "rollback": "Keep compatible completion/report readers while rounded orders exist. Change policy through a new audited version; never delete accepted financial evidence or rewrite historical orders. Captured base archives permit code/hosting recovery after draining incompatible in-flight work."
+}

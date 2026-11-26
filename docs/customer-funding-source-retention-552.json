@@ -1,0 +1,46 @@
+{
+  "batch": 552,
+  "status": "PUBLISHED_STAGING_RETENTION_COMPATIBILITY_VERIFIED_SOURCE_PURGE_STILL_BLOCKED",
+  "problem": "Financial expiry did not recognize delivery_funding/delivery_usage archive kinds and could stop the full inventory.",
+  "change": "Recognize and validate new funding archives, retain them without source reads or destructive operations, classify retention/hold/review reason, continue unrelated archive checks.",
+  "tests": {
+    "allAccountDeletionPassed": 338,
+    "publishedPackagePassed": 15,
+    "actualSourceFormatsValidatedReadOnly": 28
+  },
+  "lambda": {
+    "name": "staging-account-deletion-financial-expiry",
+    "state": "Active",
+    "codeSha256": "Z1kcEuZF535o59nPoAi0iiaaEWR8ctLncJlUOqH1hmQ=",
+    "environmentChanged": false
+  },
+  "beforePreview": {
+    "removed": 0,
+    "archivesRemoved": 0,
+    "eligible": 0,
+    "blocked": 67,
+    "dryRun": true,
+    "incomplete": false
+  },
+  "afterPreview": {
+    "removed": 0,
+    "archivesRemoved": 0,
+    "eligible": 0,
+    "blocked": 67,
+    "dryRun": true,
+    "fundingRetained": {
+      "WITHIN_RETENTION": 0,
+      "DOCUMENTED_HOLD": 0,
+      "SOURCE_LIFECYCLE_REVIEW_REQUIRED": 0
+    },
+    "incomplete": false
+  },
+  "iamChanges": 0,
+  "actualDeletesInvoked": 0,
+  "financialWrites": 0,
+  "limitations": [
+    "New funding archive sources are deliberately not deleted even after expiry; safe source lifecycle adapter and independent claimant/replay protections remain open.",
+    "No new funding archive rows existed during live preview; 28 real source formats and synthetic future/held/expired archives were validated locally."
+  ],
+  "next": "Complete source locator and shared claim/replay guards before permitting deletion of expired funding source records; retain fail-closed behavior until verified."
+}

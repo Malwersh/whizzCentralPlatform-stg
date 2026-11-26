@@ -1,0 +1,168 @@
+{
+  "part": 208,
+  "status": "VERIFIED",
+  "functions": [
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": true
+    },
+    {
+      "name": "staging-wizz-wallet-service",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": false
+    },
+    {
+      "name": "staging-wizz-wallet-lifecycle",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": false
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": false
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": false
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "codeMatches": true,
+      "configurationMatches": true,
+      "resourcesPreserved": true,
+      "generalActivation": false
+    }
+  ],
+  "accessPoliciesMatch": true,
+  "invalidFinancialInvocationRejectedBeforeOrderAccess": true,
+  "negativeSmokes": [
+    {
+      "function": "staging-driver-financial-accept",
+      "statusCode": 409,
+      "purpose": "reject invalid envelope before order access"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "statusCode": 401,
+      "purpose": "reject missing authentication or required fields without an order"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "statusCode": 400,
+      "purpose": "reject missing authentication or required fields without an order"
+    }
+  ],
+  "orderIdOrTokenSupplied": false,
+  "financialOperationsRequested": false,
+  "cardPaymentsEnabled": false
+}

@@ -1,0 +1,47 @@
+{
+  "part": 278,
+  "status": "PUBLISHED_VERIFIED",
+  "scope": "staging",
+  "purpose": "Prove administrative cash settlement in merchant accrual/payout readers and wallet statements",
+  "functions": [
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "CyawIMR6LMQg5pok+eHmkI9Hy2Sgqgt4OHksoQUB2nM=",
+      "changedFiles": [
+        "settlement-runtime.js",
+        "cash-adjudication-read-278.js",
+        "settlement-evidence-fields.json",
+        "merchant-account.js",
+        "settlement-orders.js"
+      ],
+      "packageSha256": "d5d01a44ac2ea74e40bf33ed2c9189854aec429fc5db080a90c40b545b185f20",
+      "deployedCodeSha256": "1dAaRKwup05AvzPtLJGJhUrsQp/F2wgKkMQLVFsYXyA=",
+      "allDeployedBytesVerified": true
+    },
+    {
+      "label": "wallet",
+      "function": "staging-wizz-wallet-service",
+      "baseCodeSha256": "lcBRl2rrSg24i61rkSmCekjHLdHcoBuQfPVH256AVco=",
+      "changedFiles": [
+        "dist/ledgerEffects.js"
+      ],
+      "packageSha256": "17c0e1fc405183fe42b16cf7de144dcaa93c13fc2441c4d9045670705ea116a0",
+      "deployedCodeSha256": "F8Dh/EBRg/5CsWz33hRNyqk8E/wkQcTZBFZwcF6hFqA=",
+      "allDeployedBytesVerified": true
+    },
+    {
+      "label": "lifecycle",
+      "function": "staging-wizz-wallet-lifecycle",
+      "baseCodeSha256": "5UdXAtKiLp5YHl69qJuzHeBU8edyv81hiGl0vKArEhw=",
+      "changedFiles": [
+        "dist/ledgerEffects.js"
+      ],
+      "packageSha256": "7189dd0d4bfe92d462365d03b0c598df8544ca99645766c5c9ee7ffd4e69523d",
+      "deployedCodeSha256": "cYndDUv+ktRiNl0DsMWY34VEyplkV2bFye5//U5pUj0=",
+      "allDeployedBytesVerified": true
+    }
+  ],
+  "iamOrConfigurationChanged": false,
+  "existingFinancialOrOrderRecordsModified": false
+}

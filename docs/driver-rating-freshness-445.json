@@ -1,0 +1,15 @@
+{
+  "feature": "driverRatingFreshness445",
+  "date": "2026-11-05",
+  "status": "DRIVER_RELEASE408_INSTALLED_LAUNCHED",
+  "finding": "MoreTab retained its initial profile while account details fetched a newer profile; both use same DriverService and one-decimal formatting. Canonical profile read customerRating4.2 customerRatingCount5.",
+  "fix": [
+    "Refresh profile silently after account-details route returns",
+    "Refresh on app resume, no periodic polling",
+    "Request generation guard prevents older response overwriting latest; silent failure keeps visible profile"
+  ],
+  "tests": 14,
+  "regression": "Lifecycle resume replaces old4.3 with current4.2",
+  "build": "Release408 using scoped staging-test-driver.json; fixed Iraqi trial coordinates preserved",
+  "mutations": "No ratings or profile records modified"
+}

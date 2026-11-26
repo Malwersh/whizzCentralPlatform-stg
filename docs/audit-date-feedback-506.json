@@ -1,0 +1,8 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "hostingJob": "264",
+  "cause": "User selected 2026-10-01 through 2026-11-11, beyond existing 31-day reader bound",
+  "fix": "Validate date range before request and explain specific error in Arabic; show date range help",
+  "tests": 15,
+  "financialChanges": false
+}

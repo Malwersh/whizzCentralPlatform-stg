@@ -1,0 +1,38 @@
+{
+  "part": 87,
+  "problem": "Manual quote renewal and generic commercial-preview failure during the one-order canary",
+  "existingLogic": {
+    "quoteMaximumLifetimeSeconds": 120,
+    "lifetimeCanBeShorter": "Bound route, policy, address or source validity",
+    "orderRevalidatesQuoteAndConsentAtomically": true
+  },
+  "actualPreviewFailure": {
+    "source": "Writer CloudWatch for the user-triggered request, 2026-10-17T21:11:25Z",
+    "reason": "Existing active order in ready_for_pickup; returned HTTP409 with activeOrder",
+    "notAQuoteRefreshFailure": true,
+    "previousOrderModified": false
+  },
+  "clientChanges": [
+    "Foreground checkout renews automatically with 20 seconds remaining, or after expiry",
+    "Only one request; 15-second retry backoff and server quota Retry-After respected",
+    "No renewal while confirming or restoring an ambiguous persisted order",
+    "Manual refresh removed from normal flow; retry offered only on load failure",
+    "Existing active-order conflict shown using the existing order sheet instead of a generic pricing error",
+    "Raw Bad state prefix removed from displayed order error"
+  ],
+  "verification": {
+    "deliveryAndMoneyTestsPassed": 25,
+    "commercialConsentTestsPassed": 5,
+    "scopedBuildSpecificCaseSkippedWithoutBinding": 1,
+    "autoRenewNeverCreatesOrder": true,
+    "actualDeliverySettlementVerified": false
+  },
+  "serverChanges": false,
+  "financialOrOrderWrites": false,
+  "simulator": {
+    "buildSucceeded": true,
+    "installed": true,
+    "launched": true,
+    "sameScopedCheckoutAttemptPreserved": true
+  }
+}

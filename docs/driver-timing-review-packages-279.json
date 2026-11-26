@@ -1,0 +1,43 @@
+{
+  "status": "PREPARED_NOT_PUBLISHED",
+  "functions": [
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "before": "jXVI7KaMKeI+GMdTL1twyqmBDbhmI7SgqRC6Sv89KQQ=",
+      "revision": "defd1282-72d1-4b60-87c6-d87464239391",
+      "candidate": "53mGdmFThN1h9FxDRTu43Lfp4O2qZ2vf+F96s2z+lok=",
+      "changedFiles": [
+        "order-exception-runtime-229.js",
+        "driver-timing-review-runtime-279.js",
+        "index.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "before": "ff8NC02HUkqngn4Cyy/8cdIUQPBwZxGsQ7GSfL/Iy6E=",
+      "revision": "d741db52-3b04-49f1-8e04-4ec564a6142c",
+      "candidate": "P1TwmqZbP5Y/gv2y2blN6nNqB7NOwljc3i5gjKLeVTU=",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "allOtherEntriesIdentical": true
+    },
+    {
+      "label": "driver",
+      "function": "DriversApi-staging",
+      "before": "PnEYJQVLtKzTdffA6hFOb9R7BLl9HebY1ekDbj6lqJ4=",
+      "revision": "7574cc0a-bf88-4c78-aed6-11591b9290c5",
+      "candidate": "E+DGLpDv/EtxY/4ZfZCNWUexLFLaLB6C4vq3EJjddxU=",
+      "changedFiles": [
+        "driver-performance.js",
+        "driver-timing-review.js"
+      ],
+      "allOtherEntriesIdentical": true
+    }
+  ],
+  "newPermissions": false,
+  "financialCalculationChanged": false
+}

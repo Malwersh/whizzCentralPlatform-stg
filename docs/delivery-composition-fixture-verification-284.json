@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "readOnly": true,
+  "stagingSimulationFixtures": true,
+  "verifiedAt": "2026-10-22T17:20:30.134918+00:00",
+  "fixtures": [
+    {
+      "orderId": "2209bbd1-9e9f-5d18-8d47-97293159773e",
+      "orderStatus": "delivered",
+      "cashCollectedAmount": 8500,
+      "caseState": "CLOSED",
+      "caseVersion": 5
+    },
+    {
+      "orderId": "878cc8ee-17e6-56eb-884c-142ae0f00635",
+      "orderStatus": "delivered",
+      "cashCollectedAmount": 9000,
+      "caseState": "CLOSED",
+      "caseVersion": 8
+    }
+  ]
+}

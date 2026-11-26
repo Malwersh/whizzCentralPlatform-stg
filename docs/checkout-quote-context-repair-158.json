@@ -1,0 +1,20 @@
+{
+  "function": "WizzUser-DeliveryQuotes-staging",
+  "oldCodeSha256": "5pDJICSVgutecvgZ5uZbVZsQ/Z50mSa1fQ+t3tz3Bd8=",
+  "newCodeSha256": "ZuX/7ty8lwZf3yidlvlwp4oKlbjxLjXJPSBmhyFE8MA=",
+  "status": "VERIFIED",
+  "changedFields": [
+    "pricingContext",
+    "pricingAt"
+  ],
+  "environmentUnchanged": true,
+  "roleUnchanged": true,
+  "cause": "Deployed delivery quote producer omitted pricingContext/pricingAt required by commercial preview funding integration",
+  "validation": {
+    "targetedTestsPassed": 36,
+    "syntaxCheck": true,
+    "unrelatedZipEntryUnchanged": true
+  },
+  "deviceRetryPending": true,
+  "orderSubmitted": false
+}

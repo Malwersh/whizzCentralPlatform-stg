@@ -1,0 +1,63 @@
+{
+  "status": "SECURITY_ACTIVE_ON_STAGING_AWAITING_OWNER_ACCEPTANCE",
+  "atUtc": "2026-11-11T14:55:23.285878+00:00",
+  "environment": "staging",
+  "deployments": {
+    "staff": {
+      "FunctionName": "staging-wizz-staff-service",
+      "RevisionId": "4524bea6-b261-42d4-9e25-1cbce42abc2e",
+      "CodeSha256": "AftBR3TtVPKMS5RX2a5RWz28FrDc5uHdSmqKQHFo46U=",
+      "LastModified": "2026-11-11T14:53:04.000+0000"
+    },
+    "merchantProxy": {
+      "FunctionName": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "RevisionId": "8f51ff79-bb73-4cfa-ad94-7df74e529a0d",
+      "CodeSha256": "iNzc5dYQ1ycqyj0I18N6voB9WysMwi4QiL3VpQVpHLM=",
+      "LastModified": "2026-11-11T14:53:41.000+0000"
+    }
+  },
+  "tests": {
+    "actualPublishedPayoutImplementation": 17,
+    "merchantProxy": 11,
+    "flutterFinancialFlagEnabled": 11
+  },
+  "preserved": [
+    "Current merchant-payout-corrections-353 implementation: inserted only transactional outbox operation",
+    "Current staff entry wrapper, commercial routes and settlement calculations",
+    "Current merchant proxy lifecycle import paths and all unrelated archive files"
+  ],
+  "activation": [
+    {
+      "function": "staging-wizz-wallet-notification-worker",
+      "flags": {
+        "MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED": "true"
+      },
+      "status": "Successful"
+    },
+    {
+      "function": "staging-wizz-wallet-service",
+      "flags": {
+        "MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED": "true"
+      },
+      "status": "Successful"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "flags": {
+        "MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED": "true",
+        "MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED": "true",
+        "MERCHANT_PAYOUT_NOTIFICATIONS_ENABLED": "false"
+      },
+      "status": "Successful"
+    }
+  ],
+  "build": "Merchant iOS Release 347 built, installed and launched on paired iMohammed; MERCHANT_FINANCIAL_LOCK_ENABLED=true",
+  "remaining": [
+    "Owner OTP and relock acceptance on real device",
+    "Explicit owner financial notification device opt-in",
+    "Enable payout producer and verify cold-start notification and current payout references"
+  ],
+  "financialMutationsPerformed": false,
+  "staffFlagEnabledTestsPassed": 19,
+  "notificationProduction": "Still false until explicit owner device opt-in and acceptance"
+}

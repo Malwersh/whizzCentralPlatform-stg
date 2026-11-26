@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_EXISTING_TRANSPORT_AND_CHANNEL_ACKS_VERIFIED",
+  "published": false,
+  "installedOnPhone": false,
+  "liveFlagsChanged": false,
+  "liveIAMChanged": false,
+  "humanDataChanged": false,
+  "newApplicationTables": false,
+  "newAPI": false,
+  "newScreen": false,
+  "realNotificationsSent": 0,
+  "liveInspection": {
+    "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+    "revisionId": "f97ab1a9-36cf-4a99-b3a5-d80270c9daa9",
+    "handler": "src/handlers/push-wave-offer.sendWaveOffer",
+    "handlerSha256": "0f6654c135e43b365bfaeb277ae9bae1fa5f531a6916f73e3e028775d038356a",
+    "archiveSha256": "d4f79f590f2d3f1fb16090d49357513e0b24291ce9f2b7117aa5a4f73234a496",
+    "handlerMatchesLocal": false,
+    "versionedSourceBranchInLive": false,
+    "deliveredNewSourceFlagsRead": false,
+    "liveHandlerMatchesLocalWithoutNewVersionedBranch": true
+  },
+  "reused": [
+    "Existing StartWave WebSocket management client and notifications HTTP endpoint/internal key",
+    "Existing shared Legacy source, runner, lease/coordinator and acceptance fences",
+    "Existing WaveOffers row for deliveryAck; no new dispatch child entity",
+    "Existing push token registry, SubjectIdIndex and Firebase sender",
+    "Existing account-deletion retention projection"
+  ],
+  "deliveryAck": {
+    "location": "WaveOffers_staging: deliveryAck",
+    "fields": [
+      "schemaVersion",
+      "messageDigest",
+      "pushDigest",
+      "websocketAccepted",
+      "websocketUnavailable",
+      "pushAccepted",
+      "updatedAt"
+    ],
+    "containsTokensOrAddressesOrConnectionIds": false,
+    "partialRetry": "Only the unacknowledged channel; continue other selected recipients for known transport retries",
+    "socketGone": "410 or absent current connection records unavailable, uses push, does not expire offer",
+    "pushAck": "2xx + success true + positive integer provider success count + matching subject/offer/event/cycle",
+    "uncertainExternalAcknowledgement": "At least once; a provider-accepted request with lost HTTP reply may be retried",
+    "scheduledRetryWorkerCreated": false,
+    "financialEffects": false
+  },
+  "receiver": {
+    "modeDefault": "OFF",
+    "account": "699561669180",
+    "stage": "staging",
+    "region": "us-east-1",
+    "proof": "Pending non-winning source-v1 offer, both stored hashes, driver identity/status and lifecycle rechecks",
+    "tokenReads": "Up to five complete 100-item index pages, followed by strong owner/app/env/TTL hydration",
+    "deviceReceiptProven": false,
+    "expiry": "Original expiresAt, Android TTL and APNs expiration; no renewal",
+    "payloadLimits": {
+      "dataBytes": 3500,
+      "notificationDataApnsBytes": 4096
+    },
+    "responseTokenOrProviderErrorLeak": false,
+    "versionedFallbackToOldHandler": false,
+    "proposedIAMOnly": "GetItem projected attributes on exact Staging offer and driver tables; existing lifecycle and token read policies retained"
+  },
+  "retention": "Existing redaction removes deliveryAck and presentation; preserves financial terms hashes and receipt",
+  "tests": {
+    "walletPassed": 592,
+    "newWalletTests": 11,
+    "deletionAndNotificationsPassed": 227,
+    "newReceiverTests": 9,
+    "scriptTestsPassed": 11,
+    "typeScriptBuild": true,
+    "offlineArtifacts": true,
+    "javaScriptSyntax": true,
+    "yamlParse": true,
+    "defaultGateOff": true,
+    "whitespaceChecks": true,
+    "FlutterChangedOrRerun": false,
+    "deviceBuildOrInstall": false,
+    "liveIAMPushedOrSimulated": false,
+    "syntheticDynamoDB": {
+      "scope": "REAL_DYNAMODB_ISOLATED_CHANNEL_ACKS",
+      "applicationTablesAccessed": false,
+      "published": false,
+      "realNotificationsSent": 0,
+      "humanFundsChanged": false,
+      "providers": "FAKE_SOCKET_AND_FAKE_PUSH_HTTP_ACK",
+      "partialFailureResumesOnlyMissingChannelAndOtherRecipientContinues": true,
+      "lostDatabaseAcknowledgementRecoveredWithoutDuplicateNetworkSend": true,
+      "pickupChangeAfterSocketPreventsAckAndPush": true,
+      "goneConnectionUsesPushWithoutExpiringOffer": true,
+      "tableDeleted": true
+    }
+  },
+  "artifactManifests": {
+    "coordinator": {
+      "schemaVersion": 1,
+      "mode": "OFF",
+      "executionReady": false,
+      "financialExecutorImplemented": true,
+      "creatorAdapterImplemented": true,
+      "candidateProviderImplemented": true,
+      "legacyTransportBindingImplemented": true,
+      "legacySourceImplemented": true,
+      "legacyExecutorImplemented": true,
+      "legacyResponsesImplemented": true,
+      "legacyAcceptanceBridgeImplemented": true,
+      "responseIntegrationImplemented": true,
+      "publicationReady": false,
+      "sha256": "51a2ce0218ed7e10f0acf8f528322a73ff18205eec624b551b2b6ec8ecc12970",
+      "requiredLocalFiles": {
+        "WaveSystem_StartWave": [
+          "driver-selection.js",
+          "legacy-offer-contract.js",
+          "wave-offer-transport.js"
+        ]
+      },
+      "legacyContractSha256": "999438215bf20058d55a4d7116128a919ce162149a618d32d335ab0241074812",
+      "selectionModuleSha256": "5ec27d40d5e9efd6b787d31b4bfbdd732d7b1c0735df4340e77b9289196469e2",
+      "destinations": [
+        "WaveSystem_CreateDispatchJob",
+        "WaveSystem_StartWave",
+        "WaveSystem_HandleWaveTimeout",
+        "WaveSystem_HandleDriverAccept",
+        "WaveSystem_HandleDriverReject"
+      ],
+      "blockers": [
+        "Historical source coverage; live sender/receiver packages, reservations and entry-point verification with independent gates OFF",
+        "Live Push IAM, token ownership and device notification verification; durable retry scheduling and response outbox/retention integration",
+        "Coordinated IAM and live-package verification",
+        "Central wave editor, recovery and full behavior compatibility"
+      ]
+    },
+    "notificationsOverlay": {
+      "schemaVersion": 1,
+      "stage": "staging",
+      "mode": "OFF",
+      "publicationReady": false,
+      "overlayOnly": true,
+      "functionName": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "handler": "src/handlers/push-wave-offer.sendWaveOffer",
+      "sourceSha256": {
+        "src/handlers/push-wave-offer.js": "c620c446a7a21eb0425f58153223afc1231f0eba8e5c284ca762e7b246257eda",
+        "src/utils/pinned-wave-push.js": "e812578b4c67669386039ff6ddd8f2b3043bdea6a0772c045966de03aca4df83",
+        "src/utils/pinned-wave-push-handler.js": "70ff3b8533bd450836ccbaba239713d2406e37fd4269081ed93c0113344cb49d"
+      },
+      "requiredGate": "PINNED_LEGACY_PUSH_MODE=OFF",
+      "requiredAccount": "699561669180",
+      "iamProposal": "backend/serverless.notifications.yml; no actual grants",
+      "retained": [
+        "Existing Firebase runtime, internal-key authentication, token registry and HTTP endpoint",
+        "Unversioned handler logic and unrelated package files"
+      ],
+      "blockers": [
+        "Merge with freshly inspected live package and existing dependencies",
+        "Simulate projected GetItem permissions on driver/offer and lifecycle/token reads",
+        "Coordinate source, sender, receiver, acceptance/retention, retry scheduling and client contracts",
+        "Verify real devices and provider acknowledgements before independent gate activation"
+      ]
+    },
+    "bridge": {
+      "schemaVersion": 1,
+      "mode": "OFF",
+      "publicationReady": false,
+      "destination": "STAGING_DRIVER_API",
+      "file": "pinned-legacy-runtime.js",
+      "sha256": "b6a51c14109bcca32166aabd68fc3c06fa54cbd106f9ddcdcd04c5b22121ed2e",
+      "requiredAssignmentRuntime": "dispatch-cycle-runtime.js with atomic DISPATCH_ACCEPTANCE marker",
+      "requiredTarget": "arn:aws:lambda:us-east-1:699561669180:function:WaveSystem_HandleDriverAccept",
+      "blockers": [
+        "Coordinated driver API and assignment Lambda bundles, live IAM and table verification",
+        "Reservation service identity/metadata and lost-response integration test",
+        "Pending/review UI; response outbox delivery/client behavior and retention live verification",
+        "Live legacy source coverage and coordinated sender/client verification; central policy rollout"
+      ]
+    }
+  },
+  "sourceSha256": {
+    "backend/wallet-service/src/dispatchLegacy.ts": "b9481e5b57300257eccde3aa03d9ccbe1247e613e09f26ae4065340b2d752e11",
+    "backend/wallet-service/src/dispatchLegacySource.ts": "9616b9caa88b42cdbc722e314583c364615b88081b132bbd30e30eac3b1a8f6f",
+    "backend/wallet-service/src/dispatchLegacyDelivery.ts": "818c7db1ceccca59f2624805af2e3d10b97dd22e5f35f76f3b0869ef7261f430",
+    "backend/wallet-service/src/dispatchCoordinatorRuntime.ts": "ad73e9d8c0c3d051e1517820b4965f5c40cb441f563e64967b1c58f800eff3fe",
+    "backend/src/handlers/push-wave-offer.js": "c620c446a7a21eb0425f58153223afc1231f0eba8e5c284ca762e7b246257eda",
+    "backend/src/utils/pinned-wave-push.js": "e812578b4c67669386039ff6ddd8f2b3043bdea6a0772c045966de03aca4df83",
+    "backend/src/utils/pinned-wave-push-handler.js": "70ff3b8533bd450836ccbaba239713d2406e37fd4269081ed93c0113344cb49d",
+    "backend/serverless.notifications.yml": "24980a50d9c552aa3d43ce93ce4fd8e93f53306bc542aa5705ad3ca7b1cf7605",
+    "lambda/WaveSystem_StartWave/index.js": "63adf1c1b1c6ea5b070fbc315a5fab107833d37f4866805c27e3beba51238718",
+    "lambda/WaveSystem_StartWave/wave-offer-transport.js": "13ab964b729df4863412a1439bdc4f073fbbd9c9d0362eff86509639e74cf2f3",
+    "backend/wallet-service/test/dispatch-legacy-delivery.test.cjs": "8659ab78a989e56b9db61184326bc5092a30c471a2e6baffc466ddb474648024",
+    "backend/wallet-service/test/dispatch-existing-transport.test.cjs": "9e9b0acd75ff32a8664402e56ce11d9d947465780ff075639d21ddccbfc5b29f",
+    "backend/account-deletion/test/pinned-wave-push.test.cjs": "d824922d68f866311739c74c84c418554193450f1c61f2a205fdd9ff0e4e25d1",
+    "backend/account-deletion/test/cod-retention.test.cjs": "bd25f313b1413a29028dbee7f42e1d6ca3c6db37c3d7363b7efc0cac8b110aed",
+    "scripts/build-dispatch-coordinator-runtime.cjs": "43c5e137da36e0f43e518540e095293cf864155eeb885d05ea8b6178e0793d5e",
+    "scripts/build-pinned-wave-notifications-review.cjs": "c67575a191e033913eb9d11229242844a6a902de0da00977aa4876b0df236990",
+    "scripts/test-dispatch-cycle-staging.cjs": "040ec3f3cd13bc5f3ab45b8b1aa8faf72fe3e2b3f5f656607983870d51c04c26",
+    "scripts/test-dispatch-legacy-delivery-staging.cjs": "0d8951e617a229e64c6eb2047403c019abff8da0605ff88da05764b28a571fdb"
+  },
+  "limitations": [
+    "No enabled Lambda sending entry point, actual push/websocket provider send, or phone notification/sound/background verification",
+    "No new timer or scheduled retry worker; coordinated invocation and retry scheduling still required",
+    "Full authenticated offer-list reconciliation and operational review UI remain pending",
+    "No exactly-once guarantee across DynamoDB and external providers; provider ACK is not device delivery",
+    "New projected IAM and package/runtime/dependency overlays require live verification before rollout",
+    "No Mapbox road approval, numeric-policy change, Score/Tiers/performance enablement, new settlement or test-location change"
+  ],
+  "next": [
+    "Operational review UI and authorized handling of exhaustion/pending/unsupported source",
+    "Authenticated offer-list reconciliation and retry scheduling integration",
+    "Coordinated IAM/package/provider/device verification before limited activation"
+  ],
+  "docs": "finance-pricing-settlements-returns-unified-plan.md section 60"
+}

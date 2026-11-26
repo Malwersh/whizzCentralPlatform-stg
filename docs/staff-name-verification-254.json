@@ -1,0 +1,20 @@
+{
+  "part": 254,
+  "status": "VERIFIED",
+  "employeeId": "f40834f8-4091-7054-0e20-dba35a2793ce",
+  "correctName": "غيث علي",
+  "source": "User explicitly identified their current admin account as غيث علي",
+  "cause": "Canonical staff PROFILE name contained login email; no separate fullName/displayName and no Cognito name attribute",
+  "changed": true,
+  "fieldsChanged": [
+    "name",
+    "version",
+    "updatedAt",
+    "updatedBy"
+  ],
+  "permissionsRolesStatusApprovalLimitAndSessionFieldsUnchanged": true,
+  "auditRetained": true,
+  "auditId": "STAFF-NAME-254-430cc735-c4b1-4cb7-9eca-dc19b8562fb7",
+  "deploymentRequired": false,
+  "financialRecordsChanged": false
+}

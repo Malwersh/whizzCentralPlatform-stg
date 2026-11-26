@@ -1,0 +1,215 @@
+[
+  {
+    "TableName": "chat-sessions-staging",
+    "TableStatus": "ACTIVE",
+    "KeySchema": [
+      {
+        "AttributeName": "sessionId",
+        "KeyType": "HASH"
+      }
+    ],
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "driverId",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "sessionId",
+        "AttributeType": "S"
+      }
+    ],
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "DriverIdIndex",
+        "KeySchema": [
+          {
+            "AttributeName": "driverId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        }
+      }
+    ],
+    "ttl": {
+      "TimeToLiveStatus": "DISABLED"
+    }
+  },
+  {
+    "TableName": "chat-messages-staging",
+    "TableStatus": "ACTIVE",
+    "KeySchema": [
+      {
+        "AttributeName": "sessionId",
+        "KeyType": "HASH"
+      },
+      {
+        "AttributeName": "messageKey",
+        "KeyType": "RANGE"
+      }
+    ],
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "createdAt",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "messageKey",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "senderType",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "sessionId",
+        "AttributeType": "S"
+      }
+    ],
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "SenderIndex",
+        "KeySchema": [
+          {
+            "AttributeName": "senderType",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "createdAt",
+            "KeyType": "RANGE"
+          }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        }
+      }
+    ],
+    "ttl": {
+      "TimeToLiveStatus": "ENABLED",
+      "AttributeName": "ttl"
+    }
+  },
+  {
+    "TableName": "support-message-receipts-staging",
+    "TableStatus": "ACTIVE",
+    "KeySchema": [
+      {
+        "AttributeName": "receiptId",
+        "KeyType": "HASH"
+      }
+    ],
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "receiptId",
+        "AttributeType": "S"
+      }
+    ],
+    "ttl": {
+      "TimeToLiveStatus": "ENABLED",
+      "AttributeName": "ttl"
+    }
+  },
+  {
+    "TableName": "support-attachments-staging",
+    "TableStatus": "ACTIVE",
+    "KeySchema": [
+      {
+        "AttributeName": "attachmentId",
+        "KeyType": "HASH"
+      }
+    ],
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "attachmentId",
+        "AttributeType": "S"
+      }
+    ],
+    "ttl": {
+      "TimeToLiveStatus": "ENABLED",
+      "AttributeName": "ttl"
+    }
+  },
+  {
+    "TableName": "websocket-connections-staging",
+    "TableStatus": "ACTIVE",
+    "KeySchema": [
+      {
+        "AttributeName": "connectionId",
+        "KeyType": "HASH"
+      }
+    ],
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "businessId",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "connectionId",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "userId",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "userType",
+        "AttributeType": "S"
+      }
+    ],
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "UserTypeIndex",
+        "KeySchema": [
+          {
+            "AttributeName": "userType",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "userId",
+            "KeyType": "RANGE"
+          }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        }
+      },
+      {
+        "IndexName": "BusinessIdIndex",
+        "KeySchema": [
+          {
+            "AttributeName": "businessId",
+            "KeyType": "HASH"
+          }
+        ],
+        "Projection": {
+          "ProjectionType": "ALL"
+        }
+      }
+    ],
+    "ttl": {
+      "TimeToLiveStatus": "ENABLED",
+      "AttributeName": "ttl"
+    }
+  },
+  {
+    "TableName": "websocket-subscriptions-staging",
+    "TableStatus": "ACTIVE",
+    "KeySchema": [
+      {
+        "AttributeName": "subscriptionId",
+        "KeyType": "HASH"
+      }
+    ],
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "subscriptionId",
+        "AttributeType": "S"
+      }
+    ],
+    "ttl": {
+      "TimeToLiveStatus": "ENABLED",
+      "AttributeName": "ttl"
+    }
+  }
+]

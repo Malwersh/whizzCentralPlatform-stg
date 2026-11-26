@@ -1,0 +1,43 @@
+{
+  "status": "CORE_CODE_DEPLOYED_FLAGS_OFF",
+  "checkedAtUtc": "2026-11-11T14:49:14.444909+00:00",
+  "environment": "staging",
+  "deployments": {
+    "staff": {
+      "FunctionName": "staging-wizz-staff-service",
+      "RevisionId": "e0782291-592a-4ab3-9d84-fe47d65ad32f",
+      "CodeSha256": "YB1xLV+pKCT+U7kmhXYFlepgCvG4U+CX+/fxz7C1aWQ=",
+      "LastModified": "2026-11-11T14:48:28.000+0000"
+    },
+    "wallet": {
+      "FunctionName": "staging-wizz-wallet-service",
+      "RevisionId": "21891732-b733-4528-9c99-a3de5d774f46",
+      "CodeSha256": "gyJa/4Ow1jUHybJ9QlhjvGtxfPReEPLW6THACXgYmpo=",
+      "LastModified": "2026-11-11T14:48:21.000+0000"
+    },
+    "worker": {
+      "FunctionName": "staging-wizz-wallet-notification-worker",
+      "RevisionId": "83cd33b4-4ae2-4461-947a-c10504e40b80",
+      "CodeSha256": "IWamPfaJ8MAkk4Z5vih80TKz+sj3OUe3nMQXPjayDZc=",
+      "LastModified": "2026-11-11T14:46:48.000+0000"
+    }
+  },
+  "tests": {
+    "nodePassed": 78,
+    "deployedOwnerUnauthorizedSmoke": "401 UNAUTHORIZED",
+    "lambdaUpdateStatus": "Successful Active for all three",
+    "zipHashesVerified": true
+  },
+  "preservation": "Patched downloaded live archives; preserved finance rollout wrappers, unrelated routes and current settlement runtime. Conditional RevisionId used for all uploads.",
+  "notDeployed": [
+    "Payout notice producer inside settlement runtime: live runtime differs from local; requires separate reviewed patch",
+    "Merchant API proxy changes and CORS",
+    "Merchant app flagged release"
+  ],
+  "activation": "All new backend flags remain off; no activation or OTP, payout or balance change performed",
+  "next": [
+    "Preserve and patch current settlement runtime for payout outbox events",
+    "Deploy merchant proxies and install flagged merchant app",
+    "Verify owner OTP and dedicated staff PIN before coordinated activation"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "feature": "trackingMarkers443",
+  "date": "2026-11-05",
+  "status": "CUSTOMER_RELEASE406_INSTALLED_DEVICE_LOCKED_LAUNCH_PENDING",
+  "implementation": [
+    "Transparent 3D-look raster sedan or scooter marker selected from order.vehicleType; unknown type keeps navigation fallback",
+    "Driver heading derived from successive movements; billboard marker avoids flattening the 3D-look image with map tilt",
+    "Customer home marker; restaurant logo loaded once per store with bounded decode and timeout; storefront fallback",
+    "Existing location ownership checks and server lifecycle unchanged"
+  ],
+  "assets": [
+    "frontend/assets/images/tracking-car-3d-443.png",
+    "frontend/assets/images/tracking-scooter-3d-443.png"
+  ],
+  "assetGeneration": {
+    "skill": "imagegen",
+    "mode": "built-in",
+    "promptSet": [
+      "Single top-down miniature delivery sedan, front north; navy #00296B and gold #FDC500 accents; realistic 3D render; transparent; no text/frame/road.",
+      "Single top-down delivery scooter with helmeted courier and cargo box, front north; navy #00296B and gold #FDC500; realistic 3D render; transparent; no text/frame/road."
+    ],
+    "alphaVerified": true
+  },
+  "validation": {
+    "movementAndSampleTests": 2,
+    "flutterAnalyze": "No errors, style infos only",
+    "releaseBuild": 406
+  },
+  "limitations": [
+    "3D-look bitmap markers, not interactive 3D models",
+    "Vehicle type uses current order API field; no backend driver profile migration in this visual change",
+    "Visual review of assets on active native map pending user"
+  ],
+  "backendChanges": false
+}

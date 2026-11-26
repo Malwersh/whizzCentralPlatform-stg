@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ExceptionCompensationAccrualIndex",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:ConditionCheckItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+      "Condition": {
+        "Null": {
+          "dynamodb:LeadingKeys": "false"
+        },
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "MERCHANT_ACCRUAL#*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadVerifiedMerchantPayoutProof",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:ConditionCheckItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+      "Condition": {
+        "Null": {
+          "dynamodb:LeadingKeys": "false"
+        },
+        "ForAllValues:StringLike": {
+          "dynamodb:LeadingKeys": [
+            "MERCHANT_PAYOUT_PAID#*"
+          ]
+        }
+      }
+    }
+  ]
+}

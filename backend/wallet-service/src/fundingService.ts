@@ -3,13 +3,17 @@ import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from 
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { docClient, TABLES, GetCommand, TransactWriteCommand } from './db';
 import { WalletError } from './types';
+import {readWalletLimits} from './walletOperatingLimits';
 const s3 = new S3Client({});
-const bucket = process.env.FUNDING_RECEIPTS_BUCKET || '';
+import { fundingReceiptBindings } from './walletBindings';
 const configKey = { idempotencyKey: 'CONFIG#FUNDING', sk: 'META' };
 export const fundingError = (message: string, code = 'INVALID_FUNDING_REQUEST', status = 400) => new WalletError(message, code, status);
 export async function getFundingConfig() {
  const { Item } = await docClient.send(new GetCommand({ TableName: TABLES.IDEMPOTENCY_KEYS, Key: configKey, ConsistentRead: true }));
- return Item?.config || { version: 0, manual: { enabled: false, phone: '07800868280', name: 'محمد علي دعاش', minimum: 25000 }, zaincash: { enabled: false }, card: { enabled: false } };
+ const production = [process.env.ENVIRONMENT, process.env.PLATFORM_ENVIRONMENT].some(value => ['prod','production'].includes(value || ''));
+ const config=Item?.config || { version: 0, manual: { enabled: false, phone: production ? '' : '07800868280', name: production ? '' : 'محمد علي دعاش', minimum: 25000 }, zaincash: { enabled: false }, card: { enabled: false } };
+ const limits=await readWalletLimits(docClient,TABLES.IDEMPOTENCY_KEYS);
+ return {...config,limitsVersion:limits.version,manual:{...config.manual,minimum:limits.manualMinimumIqd,maximum:limits.manualMaximumIqd}};
 }
 export async function saveFundingConfig(input: any, actor: string) {
  const previous = await getFundingConfig();
@@ -27,11 +31,23 @@ export async function saveFundingConfig(input: any, actor: string) {
 }
 export async function receiptUpload(driver: string, input: any) {
  if (!['image/jpeg','image/png'].includes(input.contentType) || !Number.isInteger(input.size) || input.size < 1 || input.size > 4 * 1024 * 1024) throw fundingError('الوصل يجب أن يكون صورة JPG أو PNG بحجم لا يتجاوز 4 ميجابايت');
- const key = `receipts/${driver}/${randomUUID()}.${input.contentType === 'image/png' ? 'png' : 'jpg'}`;
+ const { deletion: deletionTable, bucket } = fundingReceiptBindings();
+ const walletId=`WALLET#DRIVER#${driver}`;
+ const {Item:wallet}=await docClient.send(new GetCommand({TableName:TABLES.WALLETS,Key:{walletId,sk:'META'},ConsistentRead:true}));
+ if(!wallet||wallet.status!=='ACTIVE'||wallet.deletionRequestId)throw fundingError('هذه المحفظة غير متاحة للشحن','ACCOUNT_CLOSING',409);
+ const operationId=randomUUID(),key = `receipts/${driver}/${operationId}.${input.contentType === 'image/png' ? 'png' : 'jpg'}`;
+
+ const operations:any[]=[{Update:{TableName:TABLES.WALLETS,Key:{walletId,sk:'META'},UpdateExpression:'SET #v = #v + :one',ConditionExpression:'#v = :v AND #s = :active AND attribute_not_exists(deletionRequestId)',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':wallet.version,':one':1,':active':'ACTIVE'}}}];
+ if(deletionTable){
+
+  operations.push({ConditionCheck:{TableName:deletionTable,Key:{pk:`ACCOUNT_LIFECYCLE#DRIVER#${driver}`,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},{Put:{TableName:deletionTable,Item:{pk:`ACCOUNT_OPERATION#DRIVER#${driver}`,sk:`FUNDING_RECEIPT#${operationId}`,subjectId:driver,operationId,kind:'FUNDING_RECEIPT',assetKey:key,expiresAt:Math.floor(Date.now()/1000)+600},ConditionExpression:'attribute_not_exists(pk)'}});
+ }
+ await docClient.send(new TransactWriteCommand({TransactItems:operations}));
  const uploadUrl = await getSignedUrl(s3, new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: input.contentType, ContentLength: input.size, ServerSideEncryption:'AES256', IfNoneMatch:'*' }), { expiresIn: 300 });
  return { key, uploadUrl, contentType: input.contentType };
 }
 export async function validateReceipt(driver: string, key: string) {
+ const { bucket } = fundingReceiptBindings();
  if (typeof key !== 'string' || !new RegExp(`^receipts/${driver}/[a-f0-9-]+\\.(jpg|png)$`).test(key)) throw fundingError('الوصل لا يخص هذا الحساب');
  const head = await s3.send(new HeadObjectCommand({Bucket:bucket,Key:key}));
  if (!head.ContentLength || head.ContentLength > 4*1024*1024 || !['image/jpeg','image/png'].includes(head.ContentType || '')) throw fundingError('صورة الوصل غير صالحة');
@@ -41,6 +57,7 @@ export async function validateReceipt(driver: string, key: string) {
  if (!valid) throw fundingError('محتوى الملف ليس صورة صالحة');
 }
 export async function receiptView(key: string) {
+ const { bucket } = fundingReceiptBindings();
  if (!/^receipts\/[a-zA-Z0-9-]+\/[a-f0-9-]+\.(jpg|png)$/.test(key)) throw fundingError('مفتاح الوصل غير صالح');
  return { url: await getSignedUrl(s3,new GetObjectCommand({Bucket:bucket,Key:key}),{expiresIn:300}) };
 }

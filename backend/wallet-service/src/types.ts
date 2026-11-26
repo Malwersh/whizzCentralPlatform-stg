@@ -393,6 +393,7 @@ export interface RejectTopupResponse {
 }
 
 export interface GetTopupRequestsResponse {
+  cursor?: string;
   success: boolean;
   requests: TopupRequest[];
   count: number;

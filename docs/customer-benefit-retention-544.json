@@ -1,0 +1,35 @@
+{
+  "batch": 544,
+  "status": "INTEGRATED_AND_DEPLOYED_IN_545",
+  "module": "backend/account-deletion/customer-benefit-inventory.js",
+  "notYetIntegratedOrDeployed": false,
+  "validation": {
+    "testsPassed": 52,
+    "newTests": 7
+  },
+  "safeBehavior": [
+    "Query exact customer and known order partitions only; no Scan",
+    "Reject missing ownership, unknown reservation status, malformed counters, partial pagination and denied reads",
+    "Reserved grants or order reservations require settlement; completed financial records remain retention review",
+    "No deletion, funds, expiry policy change or account execution"
+  ],
+  "requiredReadPermission": {
+    "policy": "docs/customer-benefit-inventory-read-544-policy.json",
+    "roles": [
+      "staging-account-deletion-WorkerRole-u5xpbVRU9G0Q",
+      "staging-account-deletion-FunctionRole-sPGSPcNZULcs"
+    ],
+    "workerSimulation": "implicitDeny; approval required before adding permission",
+    "purpose": "Enable matching preflight in request API and worker; cleanup guard before personal deletion"
+  },
+  "attachmentEvidence": {
+    "source": "deployed supportAttachments Lambda code and live S3 lifecycle read",
+    "metadataTtlSeconds": 86400,
+    "getRejectsExpiredMetadata": true,
+    "s3ExpirationDays": 30,
+    "complaintEvidenceRetentionGuaranteed": false,
+    "next": "Separate case evidence from transient chat uploads, with ownership/checksum and controlled retention; do not disable all bucket expiry or invent a retention duration"
+  },
+  "next": "Obtain exact read approval, integrate inventory in evidence and pre-cleanup checks, test packaged source and publish targeted changes",
+  "publicationEvidence": "docs/customer-benefit-retention-publication-545.json"
+}

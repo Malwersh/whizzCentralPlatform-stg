@@ -1,0 +1,138 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "functions": [
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "codeSha256": "XpsDlXebEE5mSpc2hmnnyQEq+uiJ+lbhCi43MO0kcAI=",
+      "changedEntries": [
+        "delivery-agreement-runtime-284.js",
+        "_discount_review/user-create-order/index.js"
+      ],
+      "allBytesVerified": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "PEmWNR4UF240XaPfZF5OFlSG0NVX+cxCrgOPhXV7q3A=",
+      "changedEntries": [
+        "commercial-management.js",
+        "offers.js",
+        "promotions.js",
+        "_discount_review/central-staff/index.js",
+        "shared-discount-lock.js",
+        "campaign-version.js"
+      ],
+      "allBytesVerified": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "o/iU1xob0UOBbtWp7k9mozeVXAevaGrIlTREGojm5yU=",
+      "changedEntries": [
+        "shared/campaign-version.js",
+        "shared/shared-discount-lock.js",
+        "shared/merchant-lifecycle.js",
+        "branch_device_discounts.js"
+      ],
+      "allBytesVerified": true,
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-discount-management-v1-sam",
+      "codeSha256": "2T7jNFKWZuSlV/+nf+YGHl/YtAZ9uaVdTaAUD8OyF7w=",
+      "changedEntries": [
+        "_discount_review/merchant-discounts/index.js",
+        "shared/campaign-version.js",
+        "shared/shared-discount-lock.js",
+        "shared/merchant-lifecycle.js"
+      ],
+      "allBytesVerified": true,
+      "configurationPreserved": true
+    }
+  ],
+  "businessDataWritten": false,
+  "humanConsentSubmitted": false,
+  "financialWritesGranted": false,
+  "verifiedAt": "2026-10-24T02:28:54.486159+00:00",
+  "frontend": {
+    "status": "PUBLISHED_VERIFIED",
+    "jobId": "180",
+    "baseJobId": "179",
+    "changedFiles": [
+      "commercial-management.js",
+      "data-service.js",
+      "promotions-workspace.js"
+    ],
+    "businessDataWritten": false,
+    "hostedBytesMatched": true
+  },
+  "native": {
+    "checks": [
+      {
+        "deviceId": "E2B409D5-6821-4BDC-BDAC-D415977B971E",
+        "build": "238",
+        "installed": true
+      },
+      {
+        "deviceId": "09DA4C20-FD4B-446E-8C2F-9D04E5CFC206",
+        "build": "238",
+        "installed": true
+      }
+    ],
+    "launched": "E2B409D5-6821-4BDC-BDAC-D415977B971E"
+  },
+  "iam": {
+    "role": "Wizz-Merchants-staging-DiscountManagementFunctionRo-yyqcChSn9i6f",
+    "policyName": "SharedDiscountReadGuards238",
+    "policy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "ReadAndFenceSharedDiscountApproval",
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:GetItem",
+            "dynamodb:ConditionCheckItem"
+          ],
+          "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+          "Condition": {
+            "ForAllValues:StringLike": {
+              "dynamodb:LeadingKeys": [
+                "CAMPAIGN_SHARING_LOCK#MERCHANT#*",
+                "BRANCH#*"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "simulatedAllowed": true,
+    "financialWritesGranted": false
+  },
+  "tests": {
+    "staffService": 352,
+    "walletService": 1500,
+    "merchantBackend": 27,
+    "merchantFlutter": 18,
+    "actualStaffBundle": 26,
+    "actualFinancialComposition": 16,
+    "actualOwnerBundle": "PASS: shared update/delete/restart blocked, stop preserves history, unshared update works",
+    "browserStates": [
+      "active",
+      "stale-version",
+      "paused",
+      "inactive"
+    ]
+  },
+  "semantics": [
+    "Approved shared campaign terms and published sharing percentages are immutable",
+    "Stop retains the campaign and financial history; stopped shared campaigns cannot restart",
+    "A newly approved inactive replacement may be activated once",
+    "Replacement copies editable values into a new inactive campaign with a new identity and no transferred consent",
+    "Stale campaign sharing rejects checkout; never silently falls back to merchant-paid funding",
+    "Prior orders retain their immutable accepted allocations"
+  ],
+  "existingCampaignsChanged": false,
+  "humanAcceptanceStillRequired": true,
+  "nextHumanStep": "Stop the old stale campaign in the merchant app, create a replacement, then create and accept 50/50 sharing for its current version before a NEW order."
+}

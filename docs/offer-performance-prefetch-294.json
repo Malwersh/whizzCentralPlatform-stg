@@ -1,0 +1,33 @@
+{
+  "status": "RELEASE_294_INSTALLED_AND_LAUNCHED",
+  "part": 294,
+  "behavior": "Prefetch account-scoped saved performance on offer arrival and refresh only while live offers exist; resolve data before opening confirmation; render percentages synchronously",
+  "cache": {
+    "maximumAgeSeconds": 5,
+    "accountScoped": true,
+    "singleFlight": true,
+    "clearedAfterAcceptanceDeclineAndAuthChanges": true,
+    "publishedValidityChecked": true,
+    "persistentStorage": false
+  },
+  "expiryAndOwnerRecheckedBeforeOpening": true,
+  "networkFailure": "Clear unavailable message; do not present loading dashes or fabricate a rate; decline remains possible",
+  "tests": {
+    "passed": 16,
+    "includes": [
+      "first-frame current and predicted percentage",
+      "single-flight arrival/open",
+      "expired cache refresh",
+      "expired published validity",
+      "late response from previous account",
+      "decision invalidation",
+      "pending projection retry",
+      "bounded network failure"
+    ]
+  },
+  "backendChanged": false,
+  "nativeAudioFixPreserved": true,
+  "release": 294,
+  "physicalDevice": "iMohammed",
+  "humanFirstFrameVerification": "PENDING"
+}

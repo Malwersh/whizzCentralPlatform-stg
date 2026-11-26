@@ -1,0 +1,40 @@
+تسليم تحديثات التطبيقات الأربعة — 2026-10-25
+الفرع: feature/malwersh/bootstrap
+
+طريقة السحب في كل مستودع staging:
+git fetch origin
+git checkout feature/malwersh/bootstrap
+git pull --ff-only origin feature/malwersh/bootstrap
+احتفظ بتعديلاتك المحلية قبل السحب، ولا تستخدم إعادة ضبط أو force-push.
+
+أبق المستودعات الأربعة متجاورة بأسمائها الحالية، وثبّت اعتماديات Node/Flutter من ملفات المشروع؛ الاختبارات المشتركة تستورد شيفرة من المستودعات المجاورة. لا تعتمد على مجلدات node_modules أو مخرجات بناء محلية.
+
+جزء المنتجات والإضافة اليدوية واستيراد CSV/Excel/XLSX مع كامل متعلقاته محال إلى الزميل. المرجع الكامل:
+https://github.com/Malwersh/whizzCentralPlatform-stg/blob/feature/malwersh/bootstrap/docs/merchant-products-import-colleague-handoff-2026-10-24.txt
+لا يُدعى أن المستورد المتكامل منجز. حافظ على عزل الفرع وتسعير الخيارات وحراس الطلبات الموجودة.
+
+نقطة الاستئناف:
+- الطلب ORD1792911323338: أكد المستخدم تسجيل الإفادة وقرار المسؤولية. آخر قراءة: الإصدار7.
+- نُشر إصلاح فقد محاولات السائق من القارئ الفعلي؛ الاختبار بالقراءة أعاد المحاولة الأولى.
+- لم يؤكد المستخدم بعد حفظ COUNT_FAILURE أو إغلاق القضية المالية؛ هاتان خطوتان بشريتان معلقتان. لا تُكرر قيد التعويض المعتمد سابقًا بصفر للطرفين.
+- لا تعتبر الاختبارات الآلية إثباتًا لاكتمال الاختبارات البشرية المؤجلة. اختبار الدفع المباشر الحالي لم يكتمل بسبب تعذر رمز هاتف Zain Cash، رغم توثيق نجاحات تجريبية سابقة. بيانات الإنتاج والتفعيل الحقيقي ليست جزءًا من هذا الرفع.
+- لا توجد سياسة احتفاظ معتمدة لقضايا الجودة والسلامة؛ تبقى الحالات ذات الصلة معلقة على السياسة، دون اختراع مدة حفظ.
+- الإطلاق الأول نقدي على Android وiPhone. نستكمل أولويات التشغيل في الخطة قبل فحوص البناء/الأجهزة والإطلاق النهائية.
+
+الخطة الرئيسية والتقدم:
+https://github.com/Malwersh/whizzCentralPlatform-stg/blob/feature/malwersh/bootstrap/docs/finance-pricing-settlements-returns-unified-plan.md
+https://github.com/Malwersh/whizzCentralPlatform-stg/blob/feature/malwersh/bootstrap/docs/resume-checkpoint-latest.md
+
+تنبيهات الدمج:
+- هذا تسليم مصدر إلى GitHub وليس نشرًا جديدًا إلى AWS أو تثبيت تطبيقات.
+- ملفات scripts/publish* وprepare* التاريخية توثّق ترقيعات لحزم staging ملتقطة في /private/tmp؛ ليست سكربتات نشر قابلة لإعادة التشغيل على جهاز جديد كما هي. لا تُشغّلها عشوائيًا أو تستبدل خدمة كاملة بملف تاريخي؛ افحص Handler ومسار الحزمة الفعلي وبصمتها أولًا.
+- آخر استضافة منصة منشورة209، ونسخة السائق المثبتة Release290. تفاصيل النشر في receipts. يحتوي تسليم المصدر أيضًا مواءمة نصوص الأخطاء وحفظ timeout والاختبارات؛ لم يُنشر أي شيء إضافي ضمن طلب رفع GitHub.
+
+محتويات هذا المستودع (whizzCentralPlatform-stg):
+- Wallet funding and Zain Cash configuration, callback/inquiry reconciliation, pending-operation handling, monthly history and recipient selection.
+- Driver acceptance/completion/timing metrics, evidence-based decisions, rating chronology and quality/safety incident review and appeals.
+- Administrative cancellation, redispatch and pickup reports; independent responsibility, performance and financial closure; safe set-preserving evidence guards.
+- Actual bundled staff reader now returns original assignment attempts and prior performance decisions; performance section is immediately below case progress.
+- Master operational priorities, ordered acceptance tests, deployment receipts and the saved resume checkpoint.
+
+الفحوص في دفعة الرفع: TypeScript بلا أخطاء؛ اختبارات خادم المحفظة129، الموظفين/حذف الحساب660، التقييم33، خادم السائق77، واجهة المتجر6؛ Flutter السائق79، الزبون50، المطعم5؛ وفحصا متصفح لموضع الأداء ومسار الإغلاق. استعمل NODE_PATH إلى backend/wallet-service/node_modules عند تشغيل الاختبارات المشتركة، وPYTHONPATH=authorizer_lambda لاختبار authorizer. الاختبار البشري الجاري يبقى معلقًا.

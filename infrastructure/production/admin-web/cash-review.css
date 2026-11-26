@@ -1,0 +1,11 @@
+.cash-review-content { display:grid; gap:16px; max-width:1100px; margin-inline:auto; }
+.cash-review-content :is(section,details,fieldset) { min-width:0; overflow-wrap:anywhere; }
+.cash-review-content .cash-queue-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+.cash-review-content .cash-queue ul { padding:0; margin:0; list-style:none; }
+.cash-review-content .cash-queue li { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:12px; padding-block:12px; border-top:1px solid #dce4ef; }
+.cash-review-content form { display:grid; gap:12px; padding-block:8px; }
+.cash-review-content #case { display:grid; gap:12px; }
+.cash-review-content fieldset { border:1px solid #dce4ef; border-radius:10px; padding:12px; }
+.cash-review-content .cash-choices label { display:flex; align-items:flex-start; gap:8px; padding:8px; }
+.cash-review-content input[type="radio"], .cash-review-content input[type="checkbox"] { width:auto; }
+@media(max-width:620px) { .cash-review-content .cash-queue li { grid-template-columns:1fr; } }

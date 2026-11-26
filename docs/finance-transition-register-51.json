@@ -1,0 +1,1078 @@
+{
+  "schemaVersion": 1,
+  "part": 51,
+  "purpose": "Adopt the completed work as updates to existing applications, then retire superseded paths.",
+  "environment": "Staging",
+  "activationPerformed": false,
+  "definition": "Source fingerprints identify primary modules only, not entire deployment bundles. Historical implementation completion never implies current deployment or activation.",
+  "liveEvidence": "docs/finance-transition-live-audit-51.json",
+  "packageEvidence": "docs/finance-transition-package-audit-51.json",
+  "repositories": [
+    {
+      "repo": "wizzuser-stg",
+      "branch": "feature/malwersh/bootstrap",
+      "head": "b02c34b1e5017717ba9525f686912e9bf25ce411",
+      "dirty": true
+    },
+    {
+      "repo": "whizzDrivers-stg",
+      "branch": "feature/malwersh/bootstrap",
+      "head": "0821e6c652994ea5b04873c66c09e79c514e32ae",
+      "dirty": true
+    },
+    {
+      "repo": "whizzMerchants-stg",
+      "branch": "feature/malwersh/bootstrap",
+      "head": "25bdbc65064aa48e34e60ae7bf2e614466cdaca5",
+      "dirty": true
+    },
+    {
+      "repo": "whizzCentralPlatform-stg",
+      "branch": "feature/malwersh/bootstrap",
+      "head": "cb4cb7d4052d0171482804f294e5422f9e7f2049",
+      "dirty": true
+    }
+  ],
+  "parts": [
+    {
+      "part": 1,
+      "section": 13,
+      "title": "سجل التنفيذ — الجزء الأول: عقد المبالغ — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/money.ts",
+      "sourceSha256": "a650a50ed22593f5cee9c88df9ab01869acff4a32c234fef5ade9497dd39e90e",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 2,
+      "section": 14,
+      "title": "سجل التنفيذ — الجزء الثاني: توزيع مبالغ الطلب — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/orderAllocation.ts",
+      "sourceSha256": "2f6d20eafa945b83570d5831476f938f34c87008597fce64b440d6b428ddf47d",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 3,
+      "section": 15,
+      "title": "سجل التنفيذ — الجزء الثالث: محرك رسوم التوصيل وأجرة السائق — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/deliveryPricing.ts",
+      "sourceSha256": "ee05af2c120e9052d25eeed4f898275ec5a734ac21be99f135e77d219535aab3",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 4,
+      "section": 16,
+      "title": "سجل التنفيذ — الجزء الرابع: إدارة التسعير المركزية والمحاكاة — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/staff-service/delivery-pricing.js",
+      "sourceSha256": "cc5a0837d2509b74b8e4feec318c74e1788ef2405f12d41c14f97e7edc9c9865",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 5,
+      "section": 17,
+      "title": "سجل التنفيذ — الجزء الخامس محول الطريق الخادمي — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/roadRouting.ts",
+      "sourceSha256": "4d363aa662f6d854c55364732e6d7837d3e4a2d4b2d5a2f607ab11010af72cd2",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 6,
+      "section": 18,
+      "title": "سجل التنفيذ — الجزء السادس ربط المناطق وH3 — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/regionCoverage.ts",
+      "sourceSha256": "f833744de6161739a0f8a381ca2d7de55fb22df5b1990326391355f66a68dfde",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 7,
+      "section": 19,
+      "title": "سجل التنفيذ — الجزء السابع قراءة اعتماد مزود الطريق — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/routingCredentials.ts",
+      "sourceSha256": "8623b57f351b5e7043d867f705373b86bc81fa2a6737168001d51a91e45d0771",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 8,
+      "section": 20,
+      "title": "سجل التنفيذ — الجزء الثامن ربط مراجع التسعير — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/deliveryPricingContext.ts",
+      "sourceSha256": "869fafc37e911328866fd106deb389b564a4eabcfcb3351313f14fa06a8851fb",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 9,
+      "section": 21,
+      "title": "سجل التنفيذ — الجزء التاسع حفظ عرض رسم التوصيل — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/deliveryQuoteRecord.ts",
+      "sourceSha256": "23ac87acd52d2bcc4fb36c6564f2d30d27a0548b38cac41448cd757b0e4195ef",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 10,
+      "section": 22,
+      "title": "سجل التنفيذ — الجزء العاشر استهلاك العرض مع الطلب — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/deliveryQuoteOrder.ts",
+      "sourceSha256": "32943b13f400b09b71053c147c9da2d1538d81f23fb43d0322d227bd6faff7fe",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 11,
+      "section": 23,
+      "title": "سجل التنفيذ — الجزء الحادي عشر API العرض وشاشة التأكيد — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "../wizzuser-stg/frontend/lib/services/delivery_quote_checkout.dart",
+      "sourceSha256": "e79534cb78d9ba9be80a24abe4d86bc97a14ad318bb9874f3e463d7ba5f9dc13",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 12,
+      "section": 24,
+      "title": "سجل التنفيذ — الجزء الثاني عشر تجهيز اعتماديات النشر ومطابقة الحزم — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "scripts/build-delivery-quote-runtime.cjs",
+      "sourceSha256": "f321b46e0e47c6379eb19dd5e446be032c353a72eafbe0a6989eb2453400aef3",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2",
+        "T7"
+      ]
+    },
+    {
+      "part": 13,
+      "section": 26,
+      "title": "سجل التنفيذ — الجزء الثالث عشر ضبط معدل طلبات تسعير التوصيل — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/deliveryQuoteRateLimit.ts",
+      "sourceSha256": "67fb3fa03dea5dd91bd5bdcd0fe8668163cd6855fe015afb12d81256c9ff7efe",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 14,
+      "section": 27,
+      "title": "سجل التنفيذ — الجزء الرابع عشر أساس عقد عرض أجرة السائق — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/driverOffer.ts",
+      "sourceSha256": "e0a636a12d51002e695e841ea4cf0b20b3a3e4063b3881aac9477e312ce933ba",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 15,
+      "section": 28,
+      "title": "سجل التنفيذ — الجزء الخامس عشر قارئ لقطة الطلب المالية لعرض السائق — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/driverOfferOrderReader.ts",
+      "sourceSha256": "f086b3e2c46a2af06ad707828ecba7fbe08e477f0d7353f0079bb199dbd1dc6a",
+      "releaseEvidence": [
+        "docs/finance-payments-audit-2026-10-15.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 16,
+      "section": 29,
+      "title": "سجل التنفيذ — الجزء السادس عشر مصدر أسعار السلع من المنتجات القائمة — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/orderGoodsPricing.ts",
+      "sourceSha256": "32941f511a40806d455c4e35ec8c35fd858632695a8d86c76850207c6d207a77",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 17,
+      "section": 30,
+      "title": "سجل التنفيذ — الجزء السابع عشر حساب العمولة ورسوم الخدمة وحصص خصم السلع — 2026-10-15",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/orderCommercialPricing.ts",
+      "sourceSha256": "7a2c30ee07aa06ce1e00808a7b279973d6f21b634f5a5884bc5d0ca56866d690",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 18,
+      "section": 32,
+      "title": "سجل التنفيذ — الجزء الثامن عشر حفظ عرض السائق واستعادة إقرار الكتابة — 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/driverOfferStore.ts",
+      "sourceSha256": "24b7ae2838f862de3d3a376c750ad1ad4bc7d3b5359ecb36217a869f5657660a",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 19,
+      "section": 33,
+      "title": "سجل التنفيذ — الجزء التاسع عشر مصادر عرض السائق وربطها بالحفظ — 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/driverOfferContext.ts",
+      "sourceSha256": "8b3f65f0dacfe02c80114b12b6a39836b679f9b44033eceff671f4c1f17b816c",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 20,
+      "section": 34,
+      "title": "سجل التنفيذ — الجزء العشرون ربط الموجات وإرسال العرض والقبول والحجز الذري — 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/driverOfferAcceptance.ts",
+      "sourceSha256": "f8c026d7de896dd6985aa1dae594942be2c62455fdeb552644e1b5b4d5f63da8",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T4"
+      ]
+    },
+    {
+      "part": 21,
+      "section": 35,
+      "title": "سجل التنفيذ — الجزء الحادي والعشرون إكمال COD والتسوية الذرية — 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/codCompletion.ts",
+      "sourceSha256": "b760491d5d30f3fc859d6baa044506035885797f7795979e773a6bdefa462fb4",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4"
+      ]
+    },
+    {
+      "part": 22,
+      "section": 36,
+      "title": "سجل التنفيذ — الجزء الثاني والعشرون عودة COD وتأكيد الاستلام وفك الحجز — 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/codReturn.ts",
+      "sourceSha256": "fbbb4cccf84d645fa88fd457476530fe7f13b894f560d13f21a3ab7ebc9701f6",
+      "releaseEvidence": [],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4"
+      ]
+    },
+    {
+      "part": 23,
+      "section": 37,
+      "title": "الجزء 23 — واجهات العودة والإلغاء قبل الاستلام وإعادة الإسناد والتحقق التركيبي، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "../whizzMerchants-stg/frontend/lib/services/order_returns_service.dart",
+      "sourceSha256": "9919d233f17977bb5bbda9ad475b71118d6ea90f05676fd4ba7181cefe53b657",
+      "releaseEvidence": [
+        "docs/finance-cod-lifecycle-staging-23.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4",
+        "T5"
+      ]
+    },
+    {
+      "part": 24,
+      "section": 38,
+      "title": "الجزء 24 — ربط الأحداث بالعدادات وصندوق إشعارات السائق، محلي وغير مفعّل، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/codIntegration.ts",
+      "sourceSha256": "057ba6e4621d438876f4f820094c6424523f8aec0d98b70c0868cd221254ada0",
+      "releaseEvidence": [
+        "docs/finance-cod-integration-review-24.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4"
+      ]
+    },
+    {
+      "part": 25,
+      "section": 39,
+      "title": "الجزء 25 — تكامل القبول والحذف والاحتفاظ والتحقق المنسق للمعاملات، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/account-deletion/cod-retention.js",
+      "sourceSha256": "144fa94a04aa7ce6a7514a897d40a690f0269a5c81c27102427fe34ac22631ce",
+      "releaseEvidence": [
+        "docs/finance-cod-acceptance-retention-staging-25.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4",
+        "T5"
+      ]
+    },
+    {
+      "part": 26,
+      "section": 40,
+      "title": "الجزء 26 — نشر عقود COD على Staging ببوابات مغلقة والتحقق من حدودها، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/cod-lifecycle.staging.json",
+      "sourceSha256": "cdbfb4b932e310853b4c520535e06e1961323979bd194f7c7440d9cf1b6aafbd",
+      "releaseEvidence": [
+        "docs/finance-cod-staging-release-26.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4",
+        "T5",
+        "T7"
+      ]
+    },
+    {
+      "part": 27,
+      "section": 41,
+      "title": "الجزء 27 — اعتماديات كاتب الطلب وقراءة التاجر وخصوصية الردود، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "../wizzuser-stg/backend/src/functions/create-order/commercial-order-router.js",
+      "sourceSha256": "e89a1845f1194aeac802e1bf2e1b459dc8d1b5a6c76428c2830e5de34bc8b154",
+      "releaseEvidence": [
+        "docs/finance-cod-order-dependencies-staging-27.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2",
+        "T4",
+        "T5"
+      ]
+    },
+    {
+      "part": 28,
+      "section": 42,
+      "title": "الجزء 28 — تحصين مداخل الحالة المراجعة وتوحيد مآلات العودة، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "../wizzuser-stg/backend/src/functions/shared/legacy-order-policy.js",
+      "sourceSha256": "5d7312b69cc1ba3cbc2017896534bfc1ae1691723d8216f82fb81d8215fb9ea4",
+      "releaseEvidence": [
+        "docs/finance-cod-legacy-fences-staging-28.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4",
+        "T5",
+        "T6",
+        "T7"
+      ]
+    },
+    {
+      "part": 29,
+      "section": 43,
+      "title": "الجزء 29 — جاهزية التاجر وبنية عرض السعر المغلقة، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/delivery-quotes.staging.json",
+      "sourceSha256": "d8417b2f0b2b303cffc2f52ae97919a12312ec5112162ab13d666bee46c3da22",
+      "releaseEvidence": [
+        "docs/finance-cod-quote-readiness-staging-29.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2",
+        "T5"
+      ]
+    },
+    {
+      "part": 30,
+      "section": 44,
+      "title": "تجهيز الجزء 30 — تدقيق الاعتماديات والتحقق المعزول لتمويل الخصم، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/orderCommercialSource.ts",
+      "sourceSha256": "4abde486156dd14be3c4812774113c299d56c9598e7320c1460c26036be220e8",
+      "releaseEvidence": [
+        "docs/finance-commercial-writer-access-proposal-30.json",
+        "docs/finance-commercial-readiness-funding-30.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 31,
+      "section": 45,
+      "title": "الجزء 31 — الحدود المعتمدة وتعذر البحث دون إلغاء أو فك أموال، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/deliveryOperations.ts",
+      "sourceSha256": "b47ecc72eb838c290609d461fa717775df3237ee43bc657886663c3b2a41d871",
+      "releaseEvidence": [
+        "docs/finance-operating-limits-search-exhaustion-31.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2",
+        "T4"
+      ]
+    },
+    {
+      "part": 32,
+      "section": 47,
+      "title": "إدارة حدود التشغيل من Settings — الجزء 32، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/staff-service/dispatch-settings.js",
+      "sourceSha256": "1477c40874019c7f5988432546a7daf280cc11fea9e049ba91ce1a26bae2c6bd",
+      "releaseEvidence": [
+        "docs/finance-delivery-operations-settings-staging-32.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2"
+      ]
+    },
+    {
+      "part": 33,
+      "section": 50,
+      "title": "عقد الموجات وتثبيت دورة البحث — الجزء 33، تنفيذ محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchCycleStore.ts",
+      "sourceSha256": "e4bf4fa00e96a4a4562889ef6afc14c43edafb416b32b4580bcfe4ce1c70873b",
+      "releaseEvidence": [
+        "docs/finance-dispatch-cycle-foundation-33.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T6"
+      ]
+    },
+    {
+      "part": 34,
+      "section": 51,
+      "title": "مطالبة انتقال مشتركة وحجز العامل — الجزء34، تنفيذ محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchCoordinator.ts",
+      "sourceSha256": "716d6f9639c4106eaac22ed84202e48cce4eebe887fdda358733355c10473ff9",
+      "releaseEvidence": [
+        "docs/finance-dispatch-transition-coordinator-34.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T6"
+      ]
+    },
+    {
+      "part": 35,
+      "section": 52,
+      "title": "منفذ الموجة المالية القابل للاستئناف والقبول والرفض — الجزء35، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchWaveExecutor.ts",
+      "sourceSha256": "d90077327d470fcd669a1718652cf49df1feb1e7fb8c83839388d480c77cd097",
+      "releaseEvidence": [
+        "docs/finance-dispatch-financial-executor-35.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3"
+      ]
+    },
+    {
+      "part": 36,
+      "section": 53,
+      "title": "ربط منشئ المهمة واختيار المرشحين المشترك — الجزء36، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchCreator.ts",
+      "sourceSha256": "ed7b457f4f9129f9385548a2553c4ba7c10713ee6bd11ed224a80f7b27f73ba6",
+      "releaseEvidence": [
+        "docs/finance-dispatch-creator-candidates-36.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T6"
+      ]
+    },
+    {
+      "part": 37,
+      "section": 54,
+      "title": "محول الموجات القديمة والإسناد الذري بحجز قائم — الجزء37، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchLegacy.ts",
+      "sourceSha256": "fdbd2a8624ebd37a413ce08699df5c2f8d77b8f4a04a4be12cde4a4b74a28444",
+      "releaseEvidence": [
+        "docs/finance-dispatch-legacy-adapter-37.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T6"
+      ]
+    },
+    {
+      "part": 38,
+      "section": 55,
+      "title": "جسر قبول Legacy بنتيجة دائمة دون فك تلقائي — الجزء38، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchLegacyBridge.ts",
+      "sourceSha256": "c7093a89971783247a70d2a631f0edb4b2ace2d26d258fb10f36021b9f9490c6",
+      "releaseEvidence": [
+        "docs/finance-dispatch-legacy-acceptance-bridge-38.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T6"
+      ]
+    },
+    {
+      "part": 39,
+      "section": 57,
+      "title": "استهلاك أحداث رد السائق وإغلاق العروض والاحتفاظ — الجزء39، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchResponseIntegration.ts",
+      "sourceSha256": "f8fe45594b1dfbde3612bf0d9625ce6c999047db6e20fbdecca4fd1038430708",
+      "releaseEvidence": [
+        "docs/finance-dispatch-response-integration-retention-39.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T5"
+      ]
+    },
+    {
+      "part": 40,
+      "section": 58,
+      "title": "استقبال سحب العرض في تطبيق السائق ومنع استعادته المتأخرة — الجزء40، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "../whizzDrivers-stg/frontend/lib/services/offer_closure_inbox.dart",
+      "sourceSha256": "5525a4c991371eecb1438db9ddadf2c458cf79a6c8cf84a2587f0a714c53b1e5",
+      "releaseEvidence": [
+        "docs/finance-driver-offer-closure-client-40.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T5"
+      ]
+    },
+    {
+      "part": 41,
+      "section": 59,
+      "title": "مصدر عرض Legacy المثبت ووحدة الدينار والرسالة المحفوظة — الجزء41، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchLegacySource.ts",
+      "sourceSha256": "e1dd9d9e8eaf062358338894348647ebcfa9157574778f3b6186cd063e2ab4f3",
+      "releaseEvidence": [
+        "docs/finance-dispatch-legacy-source-message-41.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3"
+      ]
+    },
+    {
+      "part": 42,
+      "section": 60,
+      "title": "ربط ناقل العرض القائم وإقرارات القنوات واستقبال Push — الجزء42، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchLegacyDelivery.ts",
+      "sourceSha256": "26e000df49b9145e61c4506b315e681b3fbbd62f6c0ba55b4d0874190aeed4bb",
+      "releaseEvidence": [
+        "docs/finance-dispatch-legacy-transport-42.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T5"
+      ]
+    },
+    {
+      "part": 43,
+      "section": 61,
+      "title": "واجهة مراجعة الإسناد وطلبات القرار المخوّل — الجزء43، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/staff-service/dispatch-reviews.js",
+      "sourceSha256": "a14c5fd7a4877468b0cf34c9986fcccae5e87213d32bc557601a2527c061b550",
+      "releaseEvidence": [
+        "docs/finance-dispatch-review-requests-43.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4",
+        "T5"
+      ]
+    },
+    {
+      "part": 44,
+      "section": 62,
+      "title": "منفّذ قرار الموظف والإلغاء الأولي بلا حجز وتكامل الاحتفاظ — الجزء44، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchReviewExecutor.ts",
+      "sourceSha256": "50ecc8c2438ae9fe6226eab9a7473fe5d11a66aefa69eb2bb3a9d6daf1e19442",
+      "releaseEvidence": [
+        "docs/finance-dispatch-review-executor-44.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T4"
+      ]
+    },
+    {
+      "part": 45,
+      "section": 63,
+      "title": "عزل مفاتيح دورات البحث وحماية أدلة العروض — الجزء45، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchCycle.ts",
+      "sourceSha256": "532b16f8d38a7602bb40c5a780634b4da67db6207bff4547ccd2241ec17c176a",
+      "releaseEvidence": [
+        "docs/finance-dispatch-cycle-namespace-45.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T6"
+      ]
+    },
+    {
+      "part": 46,
+      "section": 64,
+      "title": "إعادة بحث Legacy ذريًا وسجل البدء القابل للاستئناف — الجزء46، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchRestartStart.ts",
+      "sourceSha256": "8fb573cd5c57a1e64456fe489ca09ab28e8c577eea6cd68f3d3f46cb23b5b209",
+      "releaseEvidence": [
+        "docs/finance-dispatch-restart-durable-start-46.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T4",
+        "T6"
+      ]
+    },
+    {
+      "part": 47,
+      "section": 65,
+      "title": "ربط مضيف Legacy الدوري ونقاط الدخول والمهل — الجزء47، محلي 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchLegacyHost.ts",
+      "sourceSha256": "f6158e76a571e6c72634ab92e2c0691c5754a6a2473c3465ed0b9e4cfe855329",
+      "releaseEvidence": [
+        "docs/finance-dispatch-legacy-periodic-host-47.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T4",
+        "T6"
+      ]
+    },
+    {
+      "part": 48,
+      "section": 66,
+      "title": "تجهيز الحزم من المنشور ومراجعة الصلاحيات — الجزء48، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "scripts/prepare-dispatch-coordinated-release.cjs",
+      "sourceSha256": "d69109e74cd17e503010a2121b765d7a780bda4a016ba972d9d4d1c8982b393f",
+      "releaseEvidence": [
+        "docs/finance-dispatch-coordinated-release-preparation-48.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T6",
+        "T7"
+      ]
+    },
+    {
+      "part": 49,
+      "section": 67,
+      "title": "نشر الربط المنسق ببوابات مغلقة وصلاحية قراءة السائق — الجزء49، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "scripts/publish-dispatch-closed-staging.cjs",
+      "sourceSha256": "4bba23d42a32f1ac2e9e9d5f020b0d57e0a43c2c8bffa9049b4614c11c2460ee",
+      "releaseEvidence": [
+        "docs/finance-dispatch-closed-staging-release-49.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T3",
+        "T5",
+        "T6",
+        "T7"
+      ]
+    },
+    {
+      "part": 50,
+      "section": 68,
+      "title": "سياسة الموجات المركزية ومضيف القرار والحذف والتحقق المنسق — الجزء50، 2026-10-16",
+      "implementationRecord": "docs/finance-pricing-settlements-returns-unified-plan.md",
+      "primarySource": "backend/wallet-service/src/dispatchReviewHost.ts",
+      "sourceSha256": "4c6eaa5b5bbd4c43eea6afdeaeb4564b6739bc103f5e4998634e3803bdfb8897",
+      "releaseEvidence": [
+        "docs/finance-dispatch-policy-host-retention-staging-50.json"
+      ],
+      "adoptionStatus": "REQUIRES_PHASE_EXIT_EVIDENCE",
+      "transitionPhases": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T6",
+        "T7"
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "id": "T1",
+      "title": "مطابقة حزم التشغيل واستكمال نطاق التجربة",
+      "dependsOn": [],
+      "parts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "exitCriteria": [
+        "Resolve CreateOrder live hash drift against a fresh package without replacing coworker changes.",
+        "Identify scoped rollout guard for creator, HTTP responses, workers and schedules; absence blocks activation.",
+        "Confirm current installed mobile builds and all canonical order writers."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "اعتماد التسعير والطريق والتمويل وتجربة المستخدم",
+      "dependsOn": [
+        "T1"
+      ],
+      "parts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        27,
+        29,
+        30,
+        31,
+        32,
+        50
+      ],
+      "exitCriteria": [
+        "Deploy and validate approved pricing rules/editor using existing staff routes and sources.",
+        "Verify server route credential and provider under deployed role without exposing its value.",
+        "Verify funded promotion/commission source guards and quote consumption atomically.",
+        "Scoped Checkout uses server quote and IQD, rejects expired prices, and removes fixed-fee fallback within the adopted scope."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "ربط الموجات والعروض والردود والإشعارات",
+      "dependsOn": [
+        "T1"
+      ],
+      "parts": [
+        20,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "exitCriteria": [
+        "Reconcile notification worker dispatch closure implementation with deployed package.",
+        "Verify all selected drivers are paginated for LEGACY ALL; never silently cap at 25.",
+        "Verify recipient/policy pinning, durable retry, accept/reject/timeout races and restored offers through real transports.",
+        "Keep fixed test coordinates explicit; do not treat them as current GPS proof."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "ربط الحجز والتسليم والإرجاع والمراجعة",
+      "dependsOn": [
+        "T2",
+        "T3"
+      ],
+      "parts": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        31,
+        43,
+        44,
+        46,
+        47,
+        50
+      ],
+      "exitCriteria": [
+        "Authenticated scoped acceptance reserves once; completion settles merchant/platform/driver and tip once.",
+        "Completion versus cancellation is mutually exclusive; return after pickup releases only after authenticated receipt.",
+        "Expiry enters review without automatic cancellation or release; execute only implemented authorized decisions.",
+        "Financial reassignment/review unsupported cases stay blocked and visibly routed for review."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "التحقق المنسق على التطبيقات والأدوار المنشورة",
+      "dependsOn": [
+        "T4"
+      ],
+      "parts": [
+        23,
+        25,
+        26,
+        27,
+        28,
+        29,
+        39,
+        40,
+        42,
+        43,
+        49,
+        50
+      ],
+      "exitCriteria": [
+        "Run one traceable journey across customer, merchant, driver and central staff using deployed roles and real authentication.",
+        "Verify foreground/background offers and closure, restart, offline retry, revocation, deletion and retention.",
+        "Compare holds, receipts and ledger counts/balances before and after duplicate and concurrent requests.",
+        "Record provider/device acknowledgments separately from database commits; measure worker backlog/cursor age."
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "الانتقال المحدود ثم إيقاف إنشاء المسار القديم",
+      "dependsOn": [
+        "T5"
+      ],
+      "parts": [
+        28,
+        33,
+        34,
+        36,
+        37,
+        38,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "exitCriteria": [
+        "Adopt new journey for explicitly scoped new orders; never run two writers for one pinned order.",
+        "Keep old in-flight orders on their stored version/deadlines until terminal reconciliation; no blind financial migration.",
+        "Stop creation of superseded jobs after scoped acceptance and monitoring; rollback preserves fences and revocations."
+      ]
+    },
+    {
+      "id": "T7",
+      "title": "إزالة مسارات التوافق المستبدلة وتثبيت الملكية",
+      "dependsOn": [
+        "T6"
+      ],
+      "parts": [
+        12,
+        26,
+        28,
+        48,
+        49,
+        50
+      ],
+      "exitCriteria": [
+        "Prove no nonterminal legacy jobs/orders/holds or pending receipts depend on replaced paths.",
+        "Remove superseded branches, constant-fee paths and obsolete flags with checks for each old entry point.",
+        "Reconcile direct changes with CloudFormation ownership; retain ledger/receipts and legal holds."
+      ]
+    }
+  ],
+  "deferredScope": [
+    "Driver performance v1.6 Score/Tiers and funded recovery are not activated; legacy metrics remain in use.",
+    "Prepaid, merchant payout/settlement UI and wider merchant/menu/import scope remain in the original unified plans; this cutover does not mark them complete."
+  ]
+}

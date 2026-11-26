@@ -1,0 +1,18 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "orderNumber": "ORD1793870612765",
+  "canonicalStatus": "cancelled",
+  "cause": "pushSendOrderUpdate bundled obsolete notification sound policy and contract, rejecting merchant_original and custom driverGoOnline sound before merchant delivery",
+  "fix": "Updated sound policy, custom asset reader and matching validation contract in existing live bundle; preserved all other entries and function configuration",
+  "verification": {
+    "backendTests": 8,
+    "flutterTests": 3,
+    "actualCandidateCustomSoundRegression": "passed",
+    "deploymentBytesVerified": true,
+    "replayedCanonicalCancellation": "MerchantCancellationDelivery success true, tokensCount 2",
+    "merchantSimulator": "Debug 398 installed and launched",
+    "humanReceiptAndCardConfirmation": "pending"
+  },
+  "ui": "Cancelled customer requests show ألغاه الزبون; existing canonical status routes order to cancelled tab; no new polling",
+  "financialChanges": "none"
+}

@@ -1,0 +1,10 @@
+{
+  "cause": "EXISTING_SAVED_ADDRESS_LIMIT_REACHED",
+  "savedAddressCount": 10,
+  "existingServerLimit": 10,
+  "serverLimitChanged": false,
+  "addressesDeleted": false,
+  "clientFix": "Display address service error instead of replacing it with generic save failure; refresh token before create",
+  "devicePublication": "PROFILE_BUILT_INSTALLED_AND_LAUNCHED_IMOHAMMED",
+  "dartAnalysisErrors": 0
+}

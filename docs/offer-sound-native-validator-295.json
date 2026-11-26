@@ -1,0 +1,18 @@
+{
+  "part": 295,
+  "status": "RELEASE_295_INSTALLED_AND_LAUNCHED",
+  "rootCause": "The Swift string over-escaped the dot in .wav, rejecting driver_original.wav before playback; the error also returned before recording diagnostics.",
+  "fix": "Use a Swift raw string for the exact allowed basename/extension pattern and record native early-exit failures.",
+  "tests": {
+    "runtime": "Swift Foundation using the exact production pattern extracted from AppDelegate.swift",
+    "validCasesPassed": 7,
+    "invalidPathsRejected": 7,
+    "regressionScript": "scripts/test-offer-sound-native-validator-295.py"
+  },
+  "preserved": [
+    "Release294 prefetch and synchronous rejection percentages",
+    "Native playback and sound test button",
+    "Existing central sound policy and silent choice"
+  ],
+  "physicalAudibility": "PENDING_USER_RETEST"
+}

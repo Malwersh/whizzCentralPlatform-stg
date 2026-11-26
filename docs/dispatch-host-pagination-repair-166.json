@@ -1,0 +1,15 @@
+{
+  "status": "VERIFIED",
+  "functions": [
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "verified": true,
+      "codeSha256": "0q+9qlz9pJ1BNy3MaPYmnA5dPmnuMcVCgynSCxkdCxA=",
+      "configurationUnchanged": true
+    }
+  ],
+  "newIam": false,
+  "guardChecksRemoved": 0,
+  "targetedRegressionTestsPassed": 25,
+  "maximumFinancialPagesPerTick": 20
+}

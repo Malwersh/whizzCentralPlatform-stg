@@ -1,0 +1,26 @@
+{
+  "backendFunction": "staging-wizz-staff-service",
+  "baseCodeSha256": "51N75PIVUj5yUWfEXG7xjTPhzY753T0HHFtZJDr0/Qc=",
+  "codeSha256": "fhkTRSLiw7z0qda09VLlA4gVqZH91qe9esbNDyCAITs=",
+  "backendChangedFiles": [
+    "_discount_review/central-staff/index.js",
+    "customer-benefit-compensation-runtime.js"
+  ],
+  "businessActionsExecuted": false,
+  "iamChanges": false,
+  "status": "PUBLISHED_VERIFIED",
+  "baseHostingJobId": "189",
+  "hostingJobId": "190",
+  "frontendChangedFiles": [
+    "customer-benefit-compensation.js",
+    "cancellation-compensation.js",
+    "cancellation-compensation-link.js",
+    "pages/cancellation-compensation.html",
+    "order-management.js",
+    "settlement-statements.js",
+    "order-exception-cases.js",
+    "pages/order-exceptions.html",
+    "pages/orders.html"
+  ],
+  "hostedBytesMatched": true
+}

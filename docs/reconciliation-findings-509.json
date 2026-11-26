@@ -1,0 +1,76 @@
+{
+  "batch": 509,
+  "status": "READ_ONLY_FINDINGS_REVIEW_OPEN",
+  "scope": "Only four wallets identified in user-supplied report; projected accounting fields; no raw local export",
+  "financialMutations": 0,
+  "findings": {
+    "legacyDriver": {
+      "classifiedNet": -11100,
+      "unclassifiedAdjustments": [
+        25000,
+        5000,
+        -18900
+      ],
+      "arithmeticCombinedNet": 0,
+      "proofStatus": "Adjustment authority and source not established by arithmetic"
+    },
+    "legacyCustomer": {
+      "classifiedNet": 5000,
+      "unclassifiedAdjustments": [
+        -5000
+      ],
+      "arithmeticCombinedNet": 0,
+      "proofStatus": "Adjustment authority and source not established by arithmetic"
+    },
+    "platform": {
+      "classifiedNet": 109625,
+      "unclassifiedAdjustments": [
+        5000,
+        18900
+      ],
+      "unclassifiedPromotionHoldPairs": 2,
+      "promotionHoldAmountEach": 1000,
+      "arithmeticCombinedNet": 133525,
+      "caution": "Net-zero pairs still require bucket interpretation and hold proof; do not silently classify generic adjustments"
+    },
+    "testDriver": {
+      "ledgerNet": -86500,
+      "reportedBalance": 250,
+      "difference": 86750,
+      "explicitAvailableBalanceGaps": [
+        {
+          "dateUTC": "2026-10-22T14:30:18",
+          "priorAfter": 18750,
+          "nextBefore": 25000,
+          "gap": 6250
+        },
+        {
+          "dateUTC": "2026-10-22T19:38:29",
+          "priorAfter": 19500,
+          "nextBefore": 100000,
+          "gap": 80500
+        }
+      ],
+      "excludedFalseGaps": "25000 and 50000 are explained by existing legacy TOPUP entries with single balances",
+      "conclusion": "Two unexplained discontinuities sum to 86750; provenance still requires original funding/change evidence, not a balance repair"
+    }
+  },
+  "next": [
+    "Verify original adjustment evidence before adding narrowly validated interpretation",
+    "Interpret platform promotion holds from writer and original proof",
+    "Trace two test-driver discontinuities against original audit evidence; never invent backdated transactions"
+  ],
+  "testFundingFollowup": {
+    "userStatement": "User confirms repeated direct database balance increases for test driver; all current accounts are test fixtures",
+    "localEvidence": "Existing funding scripts use paired ledger entries or TOPUP entries; no exact documentary match found for 6250 and 80500",
+    "auditRead": {
+      "table": "staging-AuditLog",
+      "dateUTC": "2026-10-22",
+      "entriesRead": 35,
+      "matchingWalletActionsInProjectedFields": 0
+    },
+    "conclusion": "86750 is explained numerically by two balance discontinuities and is consistent with user-declared direct test funding, but exact historical attribution is not independently proven",
+    "noBackfill": true,
+    "financialMutations": 0
+  }
+}

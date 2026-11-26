@@ -1,0 +1,25 @@
+{
+  "status": "CUSTOMER_REAL_RATING_AND_DRIVER_AGGREGATE_VERIFIED_READ_ONLY",
+  "orderId": "96cd4249-41af-5ebb-885a-d7dae2c321d0",
+  "merchantStars": 4,
+  "driverStars": 5,
+  "driverAggregate": {
+    "count": 1,
+    "sum": 5,
+    "average": 5,
+    "version": 1
+  },
+  "driverProfile": {
+    "customerRating": 5,
+    "customerRatingCount": 1,
+    "customerRatingSum": 5
+  },
+  "chronologyIndex": "Original rating present in DriverRatingChronology281",
+  "createdAt": "2026-10-25T06:26:14.102Z",
+  "businessMutationsByAgent": false,
+  "notYetVerified": [
+    "Driver screen refresh visibility",
+    "Customer and merchant public assigned-driver rating display",
+    "Moderation/exclusion/appeal human scenarios"
+  ]
+}

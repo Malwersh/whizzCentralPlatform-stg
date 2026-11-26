@@ -1,0 +1,31 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "sourceTests": 33,
+  "noOfferTtlExtended": true,
+  "searchDeadlinePreserved": true,
+  "noDirectOrderMutation": true,
+  "functions": [
+    {
+      "name": "WaveSystem_StartWave",
+      "beforeHash": "BdlP1YHgKQkUTURL/ZznEgH+vPRlXqm0lGtKFQkGkm4=",
+      "hash": "atOp3HptP5ndWab++DFmfveBxqVE6TfIX5UOm5teH58=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "beforeHash": "/ifj9ePEHVHrcg+kgmoikcPcq2cwE1yh3lXaeuYo7Os=",
+      "hash": "GZ5Lp9577CgTKrGhj/ec+JgN1Iy8V0RIxup7ZRHJR2M=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "admin-retry-runtime-298.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ]
+}

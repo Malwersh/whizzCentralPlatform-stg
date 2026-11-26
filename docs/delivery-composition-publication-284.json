@@ -1,0 +1,220 @@
+{
+  "part": 284,
+  "status": "PUBLISHED_VERIFIED",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "startedAt": "2026-10-22T17:17:19.500597+00:00",
+  "iamChanged": false,
+  "configurationChanged": false,
+  "hostingChanged": false,
+  "businessDataModified": false,
+  "functions": [
+    {
+      "function": "staging-driver-financial-accept",
+      "baseCodeSha256": "VHTJdYuKGH9mqHfvGFMN/U14v5aoprfk6S2TZCrbnKQ=",
+      "codeSha256": "ERMb+QR9TUlgRLS1P1NnuxuZJcjElxPBHRTQzkCI2nY=",
+      "revisionId": "110c55ff-a2e9-41ba-bfd8-fe90593d06d3",
+      "changedFiles": [
+        "index.js",
+        "agreement-runtime182.js",
+        "order-exception-runtime-229.js",
+        "financial-compatibility.js",
+        "return-items-runtime-262.js",
+        "return-continuation-runtime-264.js",
+        "return-continuation-runtime-265.js",
+        "customer-cash-runtime-266.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "staging-cod-integration",
+      "baseCodeSha256": "38+Jk7GosNWnGQ5NpHvtYXsHOMfea2SUoWdN7NqSruw=",
+      "codeSha256": "DJD+wmZA6/9fgdV/ZRpOAsmSd8YnreUTtFzeG6634QA=",
+      "revisionId": "9e14374e-c0af-47d3-84df-338c1e256281",
+      "changedFiles": [
+        "index.js",
+        "agreement-runtime182.js",
+        "dispatch-review-host-238.js",
+        "financial-compatibility.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "baseCodeSha256": "JxYhBGIPPM/t/69UQ0Uk5fnhNilJ1Uxn3oF4HYsXkig=",
+      "codeSha256": "lDP5ijE+1u7kcHlvT3BffVN5vDpzaAGwtQjPABxAnQQ=",
+      "revisionId": "e3f8b88c-5a58-4719-82b6-7ad72d081312",
+      "changedFiles": [
+        "pricing-runtime/deliveryCampaignBudget.js",
+        "settlement-runtime.js",
+        "financial-compatibility.js",
+        "cash-adjudication-read-278.js",
+        "_discount_review/central-staff/index.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "baseCodeSha256": "pAaRov5//M7ONPet78+sc5+hUfL4sUbqV3Q4orRZ6Qs=",
+      "codeSha256": "mReIKL8koAqoNCybpOJpbBGQomUqDD9cbl+RdLj64Ig=",
+      "revisionId": "7063f133-b72d-496b-82f1-a4de1aa6f5b8",
+      "changedFiles": [
+        "storefront-runtime.js",
+        "agreement-runtime182.js",
+        "financial-compatibility.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "WizzUser-CancelOrder-staging",
+      "baseCodeSha256": "ztBhPE9E675LUeTj+nPOr8Twwak5SQ3F8AAyvRhA2jY=",
+      "codeSha256": "S2kLjBFPrrWJo3nAx6PeMDK4c69tabLNhhrJ4PPv7UM=",
+      "revisionId": "7a0d6c42-efbc-4364-afe9-7eed3fb4bafb",
+      "changedFiles": [
+        "_discount_review/user-cancel-order/index.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "staging-merchant-response-99",
+      "baseCodeSha256": "lpwfnQEA1Yk+yPCYPuNgG7UbwSnFTydowSd7jQ2pQd0=",
+      "codeSha256": "jDIAsIg+b9hon0AEo4IKXgYX0RP9sJHj2nNaej/zNuA=",
+      "revisionId": "2ff2d254-101a-4a1f-a287-17ef6d5755bf",
+      "changedFiles": [
+        "agreement-runtime182.js",
+        "_discount_review/merchant-response-worker/index.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "baseCodeSha256": "DCO/CmFPXA2O+Z+QkBWNeO65fDlbyM2btvC6LiIivPY=",
+      "codeSha256": "pzzylCKyou+M3xlQiZxPVyiczfTR9+fS8FEeGkZNLRY=",
+      "revisionId": "21d7c064-004e-4e10-9fee-fd09f02fc7ca",
+      "changedFiles": [
+        "merchant_pending_response.js",
+        "agreement-runtime182.js",
+        "financial-compatibility.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "WaveSystem_CreateDispatchJob",
+      "baseCodeSha256": "foIMIrAMjsHxRolOh9aMPRS6vbgc2GrNdDjrx3pZ0Wg=",
+      "codeSha256": "z+xgx7XOZgQDzIuF2f/6zpPLhWVsMCr9bZkhetCECGg=",
+      "revisionId": "11f6b9ba-d1ca-4a2a-acc2-439e74bd7e6c",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "agreement-runtime182.js",
+        "financial-compatibility.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "WaveSystem_StartWave",
+      "baseCodeSha256": "dh+lEgQggB70D4NV/f7HXE4YbfmwfAf55D5Kp2jwWdI=",
+      "codeSha256": "fcG+/g+JwNW9u0yjlX329+aoT27HUGNYZJO2+K75dS4=",
+      "revisionId": "37ab5320-8ed6-480b-b3eb-6515b7d3c2ab",
+      "changedFiles": [
+        "financial-runtime.js",
+        "dispatch-cycle-runtime.js",
+        "agreement-runtime182.js",
+        "financial-compatibility.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "WaveSystem_HandleWaveTimeout",
+      "baseCodeSha256": "+r36S5Dnlufq4DyKsJDKNIV99Z0SRQyThJudY8bqg+4=",
+      "codeSha256": "8TMcSHcc1mWjSkKkcxLTgaShorvJSWjJL/8vK3cRDyU=",
+      "revisionId": "054457d8-7abc-4043-931f-3b76f8444d32",
+      "changedFiles": [
+        "financial-runtime.js",
+        "dispatch-cycle-runtime.js",
+        "agreement-runtime182.js",
+        "financial-compatibility.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "WaveSystem_HandleDriverAccept",
+      "baseCodeSha256": "QnXzmFk4W/4m5Wb2q6m3x0c1vPOTSWkjMpG1YwqlubA=",
+      "codeSha256": "TsDBpLOxTGV4cs5XO49GzCukj3VIguMvEo0UpwgtliU=",
+      "revisionId": "a2251088-87d2-44e4-9836-19ce6793bf29",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "financial-compatibility.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "WaveSystem_HandleDriverReject",
+      "baseCodeSha256": "iHDz8yKYNaw9pBZeiZapPgMzeceTRmsvNFPBSv0bZ8o=",
+      "codeSha256": "uOxJ1t/rFR7grfuxhA+GGBpZCIK51vz7rrE/OEf93LE=",
+      "revisionId": "e8e46e44-4ec2-4341-a577-7cd1070523b3",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "financial-compatibility.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "baseCodeSha256": "JoGgqcfyHJwU2h3q5102p1cnBa00jN9twhing5wgx7w=",
+      "codeSha256": "6UT1Gt8qFUepB5EXFh1Q0LCSkV8mYnY5qnzkncZdb0E=",
+      "revisionId": "667251da-21d5-4917-bab9-f8ee2e9c56ad",
+      "changedFiles": [
+        "functions/create-order/quote-runtime/orderCommercialSource.js",
+        "functions/create-order/commercial-runtime.js",
+        "agreement-runtime182.js",
+        "checkout-finance-runtime-222.js",
+        "_discount_review/user-create-order/index.js",
+        "delivery-agreement-runtime-284.js"
+      ],
+      "otherEntriesPreserved": true,
+      "settingsPreserved": true
+    }
+  ],
+  "reviewedFunctions": 22,
+  "unitTests": 848,
+  "actualHostAllocationFactories": 42,
+  "actualHostLifecycleFactories": 29,
+  "companyAccountsUnauthenticatedReadRejected": true,
+  "optionsSmokePassed": true,
+  "completedAt": "2026-10-22T17:19:44.841855+00:00",
+  "humanAcceptance": "PENDING",
+  "initialUnitTests": 839,
+  "finalTargetedTestCounts": {
+    "financial": 431,
+    "staff": 344,
+    "customer": 40,
+    "merchant": 33
+  },
+  "additionalPeerReviewCases": 9,
+  "peerIntegrationRuntimeMatches": true,
+  "priorCashFixturesVerifiedReadOnly": true
+}

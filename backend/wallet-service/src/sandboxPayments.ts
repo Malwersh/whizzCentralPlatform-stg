@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'crypto';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
-import { docClient, GetCommand, QueryCommand, ScanCommand, PutCommand, UpdateCommand, TransactWriteCommand } from './db';
+import { docClient, TABLES, GetCommand, QueryCommand, ScanCommand, UpdateCommand, TransactWriteCommand } from './db';
 import { fundingError } from './fundingService';
 
 type Provider = 'zaincash' | 'qi';
@@ -75,8 +75,14 @@ export async function createSandboxPayment(driver: string, input: any) {
   return existing.Item;
  }
  const payment: Payment={...key,driverId:driver,amount:input.amount,provider:input.provider,requestId:input.requestId,state:'CREATING',createdAt:new Date().toISOString()};
- try {await docClient.send(new PutCommand({TableName:table(),Item:payment,ConditionExpression:'attribute_not_exists(pk)'}));}
- catch(error:any) {if(error.name==='ConditionalCheckFailedException')return createSandboxPayment(driver,input);throw error;}
+ const walletKey={walletId:`WALLET#DRIVER#${driver}`,sk:'META'};
+ const {Item:wallet}=await docClient.send(new GetCommand({TableName:TABLES.WALLETS,Key:walletKey,ConsistentRead:true}));
+ if(!wallet||wallet.status!=='ACTIVE'||wallet.deletionRequestId)throw fundingError('هذه المحفظة غير متاحة للاختبار','ACCOUNT_CLOSING',409);
+ try {await docClient.send(new TransactWriteCommand({TransactItems:[
+  {Update:{TableName:TABLES.WALLETS,Key:walletKey,UpdateExpression:'SET #v = #v + :one',ConditionExpression:'#v = :v AND #s = :active AND attribute_not_exists(deletionRequestId)',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':wallet.version,':one':1,':active':'ACTIVE'}}},
+  {Put:{TableName:table(),Item:payment,ConditionExpression:'attribute_not_exists(pk)'}},
+ ]}));}
+ catch(error:any) {if(error.name==='TransactionCanceledException'){const retry=await docClient.send(new GetCommand({TableName:table(),Key:key,ConsistentRead:true}));if(retry.Item){if(retry.Item.amount!==input.amount||retry.Item.provider!==input.provider)throw fundingError('لا يمكن تغيير بيانات المحاولة','PAYMENT_CONFLICT',409);return retry.Item;}}throw error;}
  // An uncertain creation is retained; never blindly create it again on a retry.
  try {
   const result=await adapters.create(payment.provider,payment);

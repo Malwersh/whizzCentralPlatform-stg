@@ -1,0 +1,18 @@
+{
+  "verifiedAt": "2026-10-25T16:24:04.532624+00:00",
+  "codeHashesVerified": 10,
+  "health": true,
+  "mode": "SHADOW",
+  "operationalSelectionChanged": false,
+  "release": 291,
+  "releaseInstalledAndLaunched": true,
+  "sourceBusinessWrites": 0,
+  "persistedParityDrivers": 5,
+  "tests": {
+    "driverAndProjection": 51,
+    "sourceSelection": 15,
+    "capturedStart": 15,
+    "capturedTimeout": 15
+  },
+  "remainingGate": "Observe a real search cycle in SHADOW and use approved admin settings workflow before VERIFIED_SNAPSHOT_V1 enforcement"
+}

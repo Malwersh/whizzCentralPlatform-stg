@@ -1,0 +1,46 @@
+{
+  "batch": 540,
+  "status": "STAGING_DEPLOYED_VERIFIED_LEGACY_RETENTION_OPEN",
+  "scope": "بيانات جلسات المالك وتفضيلات جهاز التنبيهات المالية عند حذف حسابه",
+  "deployment": [
+    {
+      "function": "staging-wizz-staff-service",
+      "hash": "5R4Q4uW6nwnghVHGmP9GArCvPcfS3W/BPgrGkcNWm0s=",
+      "status": "Successful",
+      "environmentUnchanged": true
+    },
+    {
+      "function": "staging-account-deletion-worker",
+      "hash": "evLEHBxx16oGVCp80X2E+eoT7aDorL7YLb2d4lGQ6IQ=",
+      "status": "Successful",
+      "environmentUnchanged": true
+    }
+  ],
+  "permissions": {
+    "newIamPermissions": false,
+    "workerScanMerchantPlatform": "allowed",
+    "workerDeleteMerchantPlatform": "allowed"
+  },
+  "tests": {
+    "sourceTestsPassed": 36,
+    "packagedTestsPassed": 3,
+    "packagedTestsAreSubset": true
+  },
+  "deploymentMethod": "Replace only the two reviewed files in downloaded live packages; revision and code hash checks; environment unchanged",
+  "excludedLocalChanges": [
+    "older TRANSFER_VERIFY cleanup block in merchant-personal-worker remains local and was not included in this publication"
+  ],
+  "legacyRetention": {
+    "table": "staging-MerchantPlatform",
+    "ttlStatus": "DISABLED",
+    "sessionAuthorization": "expiresAt still enforced at five minutes and lifecycle deletion fences deny access",
+    "physicalCleanup": "Old sessions without subject ownership are not guessed or deleted; define scoped expired-security-record retention cleanup before marking X02 complete",
+    "globalTtlEnabled": false
+  },
+  "realDeletionInvoked": false,
+  "financialMutationsPerformed": false,
+  "remaining": [
+    "معالجة احتفاظ السجلات الأمنية القديمة المنتهية بمسار محدود النطاق دون تفعيل TTL على الجدول كله",
+    "استكمال جرد كيانات الحذف الجديدة ضمن X02؛ هذا النشر لا يغلق بند حذف الحساب كليًا"
+  ]
+}

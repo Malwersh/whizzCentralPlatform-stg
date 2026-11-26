@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const config=JSON.parse(fs.readFileSync('/private/tmp/checkout-223/config.private.json','utf8'));
+const env={...config.Environment.Variables,AWS_REGION:'us-east-1'};
+const old=require('/private/tmp/checkout-223/old-runtime.cjs'),fixed=require('../backend/shared/checkout-finance-runtime-222');
+const noIo={send(){assert.fail('Admission validation must not perform I/O');}};
+assert.throws(()=>old.createFinanceRollout({env,db:noIo}),e=>e.code==='FINANCE_ROLLOUT_NOT_CONFIGURED');
+const gate=fixed.createFinanceRollout({env,db:noIo});
+gate.customer('synthetic-unrelated-merchant','synthetic-unrelated-customer');gate.admit('synthetic-unrelated-merchant','synthetic-unrelated-customer');
+for(const wrong of [{...env,AWS_REGION:'other'},{...env,ENVIRONMENT:'production'},{...env,FINANCE_ROLLOUT_SHA256:'invalid'}])assert.throws(()=>fixed.createFinanceRollout({env:wrong,db:noIo}),/NOT_CONFIGURED/);
+const scoped=fixed.createFinanceRollout({env:{...env,FINANCE_GENERAL_RELEASE_MODE:'OFF'},db:noIo});assert.throws(()=>scoped.customer('synthetic-unrelated-merchant','synthetic-unrelated-customer'),/OUT_OF_SCOPE/);
+console.log('PASS exact captured live environment: old runtime reproduces503; fixed runtime accepts existing six-scope archive with general admission, preserves digest/region/stage guards and scope restrictions when general release is off. No I/O or financial writes.');

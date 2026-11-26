@@ -1,0 +1,41 @@
+{
+  "batch": 549,
+  "scope": "delivery reservation and customer usage; merchant inventory reservation",
+  "sources": {
+    "staging-PlatformStaff": {
+      "pages": 10,
+      "records": 28,
+      "states": {
+        "DELIVERY_RESERVATION:CAPTURED": 14,
+        "DELIVERY_RESERVATION:RELEASED": 14
+      },
+      "orderRelations": {
+        "ORDER_delivered": 14,
+        "ORDER_cancelled": 12,
+        "ORDER_returned": 2
+      }
+    },
+    "staging-MerchantPlatform": {
+      "pages": 9,
+      "records": 0,
+      "states": {},
+      "orderRelations": {}
+    }
+  },
+  "recordsDeleted": 0,
+  "financialWrites": 0,
+  "status": "READ_ONLY_AUDIT_COMPLETE_RETENTION_ADAPTER_OPEN",
+  "findings": {
+    "deliveryFunding": "28 records tied to terminal orders; 14 CAPTURED and 14 RELEASED. No active reservations or DELIVERY_USAGE rows observed.",
+    "inventory": "No inventory reservation rows observed. Source schema is branch/order scoped and has no direct customer identifier.",
+    "deletionGap": "Customer delivery funding reservation/customer usage records in PlatformStaff do not have an explicit customer retention adapter. Preserve records; audit does not establish complete deletion coverage.",
+    "limits": "Bounded strongly consistent per-page reads, not an atomic cross-table snapshot. Empty observed inventory does not validate the production stock lifecycle."
+  },
+  "tests": {
+    "command": "node --test backend/account-deletion/test/customer-benefit-inventory.test.cjs backend/account-deletion/test/customer-delivery-quotes.test.cjs backend/account-deletion/test/customer-cleanup.test.cjs",
+    "passed": 24,
+    "failed": 0
+  },
+  "next": "Implement customer delivery funding retention preflight and archive policy without deleting financial evidence; verify live IAM before rollout.",
+  "cloudMutations": 0
+}

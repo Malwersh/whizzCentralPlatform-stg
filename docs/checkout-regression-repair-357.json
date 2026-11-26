@@ -1,0 +1,63 @@
+{
+  "part": 357,
+  "scope": "Repair known checkout baseline test failures without changing runtime",
+  "status": "AUTOMATED_VERIFIED_NO_CLOUD_OR_NATIVE_DEPLOYMENT_REQUIRED",
+  "baseline": {
+    "flutterDeliveryQuoteFailures": 19,
+    "backendQuoteOrderHandlerFailures": 6
+  },
+  "rootCauses": [
+    "Old Flutter confirmation fixtures omitted required commercial-preview proposal and explicit total reviewer",
+    "Old mock database returned organization metadata for absent INVENTORY_RESERVATION keys, simulating a false reservation conflict"
+  ],
+  "fixes": [
+    "Provide complete server monetary proposal with quote/request/digest/expiry and explicit approving callback; preserve exact saved retry body",
+    "Model commercial preview separately from final order/error responses",
+    "Assert explicit review/consent before final send",
+    "Make durable-write failure test actually reach failing storage rather than pass at missing approval gate",
+    "Separate inventory reservation absence from organization metadata in read and atomic transaction fixtures"
+  ],
+  "newSafetyChecks": [
+    "No reviewer: no durable attempt or order request",
+    "User declines total: one preview, no durable attempt or order",
+    "Approved displayed total/digest matches persisted consent",
+    "Inventory absent resolves as absent; real zero-stock still prevents all order/quote-consumption writes"
+  ],
+  "verification": {
+    "backendTargeted": {
+      "passed": 23,
+      "failed": 0
+    },
+    "backendRelated": {
+      "passed": 62,
+      "failed": 0,
+      "files": [
+        "quote-order-handler.test.cjs",
+        "delivery-quote-order.test.cjs",
+        "full-cash-quote-order.test.cjs",
+        "product-inventory.test.cjs"
+      ]
+    },
+    "flutterRelated": {
+      "passed": 87,
+      "failed": 0,
+      "skipped": 1,
+      "files": [
+        "delivery_quote_checkout_test.dart",
+        "commercial_quote_checkout_test.dart",
+        "commercial_checkout_amounts_test.dart",
+        "guest_checkout_identity_test.dart",
+        "checkout_invoice_store_test.dart",
+        "basket_invoice_delivery_test.dart",
+        "point_invoice_321_test.dart"
+      ]
+    },
+    "skipReason": "Existing scoped build test requires FINANCE_TEST_CHECKOUT_ATTEMPT define; not counted as pass. Scoped lost-response flow independently covered by explicit synthetic binding in repaired test file.",
+    "flutterAnalyze": "No issues found"
+  },
+  "runtimeSourceChanged": false,
+  "cloudChanges": false,
+  "financialRecordsWritten": 0,
+  "humanAcceptance": "DEFERRED_NOT_PASSED",
+  "nextPriorityCandidate": "A06 audit trail coverage for financial/sensitive decisions; do not confuse unit evidence with full launch acceptance"
+}

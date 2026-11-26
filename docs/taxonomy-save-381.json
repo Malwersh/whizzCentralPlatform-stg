@@ -1,0 +1,45 @@
+{
+  "part": 381,
+  "status": "PUBLISHED_VERIFIED_AWAITING_USER_RETRY",
+  "environment": "staging",
+  "cause": "Catalog validation required businessTypeId although the existing restaurant only stores businessType=restaurant.",
+  "observedError": "Classification does not support this branch activity.",
+  "fix": "Resolve only the exact three legacy aliases already supported by merchant onboarding; explicit canonical IDs take precedence. Apply compatibility to central catalog validation, merchant taxonomy choices and publication, and customer activity matching.",
+  "legacyAliases": {
+    "restaurant": "RESTAURANT",
+    "grocery": "MARKET",
+    "store": "STORE"
+  },
+  "security": "Unknown and conflicting explicit activities remain rejected. Legacy mutation/publication fences use the stored legacy value. No direct data migration or saving on behalf of the administrator.",
+  "authoredDataChanged": false,
+  "iamChanged": false,
+  "publishedFunctions": {
+    "staging-wizz-staff-service": {
+      "sha256": "u0SGspChdIF+vDCsKwavryiCZpubi1yeWacgVO18pfA=",
+      "files": [
+        "home-taxonomy-378.js"
+      ]
+    },
+    "order-receiver-regional-staging-product-management-v4-sam": {
+      "sha256": "rjIGaVAYqnOBWkHIuqXggEbhUOj5/AnnMoO/tnLJO7c=",
+      "files": [
+        "branch-device-menu-378.js",
+        "menu-taxonomy-378.js",
+        "menu_versions-378.js"
+      ]
+    }
+  },
+  "checks": {
+    "centralBackend": 26,
+    "merchantBackend": 28,
+    "browserWidths": [
+      390,
+      1280
+    ],
+    "browserValidationErrorAndRetryRetainsSelections": true,
+    "customerSimulatorBuild": 326,
+    "customerFlutter": 7
+  },
+  "next": "Administrator retries Save then configure third strip from the current editor.",
+  "hostingJob": "249"
+}

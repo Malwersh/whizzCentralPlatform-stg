@@ -1,0 +1,180 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "iam": [
+    {
+      "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+      "policyName": "DriverWorkRegionRead311",
+      "sourceReadAndConditionOnly": true,
+      "verified": true
+    },
+    {
+      "role": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+      "policyName": "DriverWorkRegionRead311",
+      "sourceReadAndConditionOnly": true,
+      "verified": true
+    },
+    {
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "policyName": "DriverWorkRegionRead311",
+      "sourceReadAndConditionOnly": true,
+      "verified": true
+    },
+    {
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+      "policyName": "DriverWorkRegionRead311",
+      "sourceReadAndConditionOnly": true,
+      "verified": true
+    },
+    {
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "policyName": "DriverWorkRegionRead311",
+      "sourceReadAndConditionOnly": true,
+      "verified": true
+    },
+    {
+      "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "policyName": "DriverWorkRegionRead311",
+      "sourceReadAndConditionOnly": true,
+      "verified": true
+    },
+    {
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+      "policyName": "DriverWorkRegionRead311",
+      "sourceReadAndConditionOnly": true,
+      "verified": true
+    },
+    {
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+      "policyName": "DriverWorkRegionRead311",
+      "sourceReadAndConditionOnly": true,
+      "verified": true
+    }
+  ],
+  "functions": [
+    {
+      "name": "staging-wizz-staff-service",
+      "beforeHash": "4eiT1e/9XYBp99i86lwcACK6mHYs7D5yKeosuDIH+k0=",
+      "hash": "Hv3AMHK52oFyJoSUixD3iRQsfT9utFQ5IS7nSy34eQY=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "beforeHash": "C6nsyRukamDSd5cMZXFaLxN5PCLwrIkcsnn1BwDJ9OQ=",
+      "hash": "rCmx+CmegXJMAQ3XpULBULomfvfQMQKkP2wZm84ZOZA=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "beforeHash": "IuwEM4L7SuNSSnq6W+032L415jHy/MrLFntzscjpXak=",
+      "hash": "3vaxUB8TNSiGmqrtVDx/uyBCfHO1xdaZ0ioNXI9os58=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js",
+        "lambda_driver_api_v2.js",
+        "driver-work-region-311.js",
+        "driver-region-locator-311.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "beforeHash": "F9+YUDOq5BCN17b/Qx67oL/VVj/eD3bFw8Qku5nzcqI=",
+      "hash": "crKEIPb+Elp/eykp8/t42hDkTP523rvgwve5yb4AIEk=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "beforeHash": "OGAkqQilfNt9cNjz06afYfN145RTo6m0szuKAp61OkE=",
+      "hash": "6uUByhjSNuvo0iyH6nCW9pJg4fSs9YHFgQFGYx7KtL0=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "beforeHash": "2Ow4NPSPGY9flhWo2AtzzBj+AMqmOVlJcO9E+FHnptQ=",
+      "hash": "6zNpBjv2HOwYwb8bp3z6LpB9a4yTICsKBP/GqLLp2WE=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "beforeHash": "QLXtntFVZZeG7mqcLjoyzYZa3nFswfPBkjQvuKbBLLo=",
+      "hash": "r+YzXTM5sUvqdhpO5CHpTE4iIqwrrkmieOg6DSvHav0=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "beforeHash": "5lz6vszuaEgIRoq3Ipwg2dGEH2Ik/zT8HJ0zlfOPJHE=",
+      "hash": "GH3PhG+hmNT6hrBXXxIHmXwHPWqLZhRBfXIyH/ZNcCw=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "beforeHash": "/6eHajrE1F745ckmbzkhcwdk8t0k7e04HoSj+thIzkQ=",
+      "hash": "ovyL5NWgORh4m5xhAIdhs/9S25ptIH1seszcLDYsEqQ=",
+      "changedFiles": [
+        "driver-vehicles-runtime-308.js"
+      ],
+      "role": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-CodIntegrationWorkerRole-rpC6WIxcIXB1",
+      "otherEntriesPreserved": true,
+      "regionEnforced": true,
+      "configurationPreservedExceptRegionFlag": true
+    }
+  ],
+  "tests": {
+    "packagedDelegates": 56,
+    "regionCore": 12,
+    "actualLocationFunction": "PASS",
+    "liveReadOnly": {
+      "resolvedRegion": "Rmhvcpnn3iy5f1",
+      "allowed": true,
+      "code": "ELIGIBLE"
+    },
+    "actualLegacyMissingRegion": "PASS"
+  },
+  "businessDataMutatedDirectly": false,
+  "clientBuildRequired": false,
+  "existingDriverRelease": 310
+}

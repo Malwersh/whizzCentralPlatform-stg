@@ -1,0 +1,21 @@
+{
+  "part": 222,
+  "status": "PUBLISHED_ACTUAL_ENTRY_VERIFIED",
+  "function": "WizzUser-CreateOrder-staging",
+  "baseCodeSha256": "I/bByW6uLhmdyoUf0bOY03lnHc4zjWvY5BBwYT7Vjoo=",
+  "codeSha256": "6NgE+/s2tTKzGodMgyHxYTSoTKICo85cCTJtPprhLwc=",
+  "changedFiles": [
+    "_discount_review/user-create-order/index.js",
+    "checkout-finance-runtime-222.js"
+  ],
+  "otherFilesPreserved": true,
+  "actualEntry": "functions/create-order/index.js -> _discount_review/user-create-order/index.js",
+  "configurationAndPermissionsPreserved": true,
+  "repair": "Canonical general finance admission, full-cash quote commit and promotion selection; surgical full-cash funding integration into existing commercial builder preserves current discount/benefit receipts and line pricing",
+  "offlineActualEntry": "Old403 reproduced; fresh general preview read-only; tip/no-tip, merchant/platform delivery funding commit snapshot3, no platform cash reservation, replay no repeated financial mutation, missing auth401",
+  "negativeLiveAuthSmoke": 401,
+  "financialDataWrites": false,
+  "newTestScopesAdded": false,
+  "helperSdkDependencies": "SELF_CONTAINED",
+  "previousVerifiedPublication": "I/bByW6uLhmdyoUf0bOY03lnHc4zjWvY5BBwYT7Vjoo="
+}

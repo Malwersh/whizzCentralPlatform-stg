@@ -1,0 +1,60 @@
+{
+  "batch": 550,
+  "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_RETENTION_ARCHIVE_OPEN",
+  "purpose": "Read-only preflight before customer eligibility and before any personal-data cleanup. Preserve terminal financial funding evidence pending retention review.",
+  "tests": {
+    "passed": 315,
+    "failed": 0
+  },
+  "packages": {
+    "requests": {
+      "changedFiles": {
+        "customer-evidence.js": "732804d7108dc4a92f405f504f88e871b387a75c90ffeb79bcf9c12cd165ab76",
+        "customer-delivery-funding-inventory.js": "2e17f372a67f8f0c52ffcb8b1676c4b7abd6a54c2009b06fa14c8843628aa3f1"
+      },
+      "unrelatedEntriesPreserved": true,
+      "beforeLambdaHash": "UVqd8WWcMsnkQD2DZxXCKBeI6QiPDMfLZOi1UXhjQPA="
+    },
+    "worker": {
+      "changedFiles": {
+        "customer-cleanup.js": "e0f71b89eb5ca99ef6bc3fe5aa3932f77ef256c1162fdfa9aeb75823ed32329c",
+        "customer-delivery-funding-inventory.js": "2e17f372a67f8f0c52ffcb8b1676c4b7abd6a54c2009b06fa14c8843628aa3f1"
+      },
+      "unrelatedEntriesPreserved": true,
+      "beforeLambdaHash": "T53Wh4x8RPAAfZ+7InB6zf4t6mNXvZnu/CURiq6/CNs="
+    }
+  },
+  "cloudWrites": "Approved IAM policy attachment and Lambda package updates only; no data mutations.",
+  "financialWrites": 0,
+  "deletions": 0,
+  "limits": [
+    "Terminal records currently stop automatic deletion for retention review; no financial archive rewrite or expiry policy is introduced.",
+    "Account deletion remains incomplete until retained evidence is covered by an approved archive adapter."
+  ],
+  "requiredPermission": {
+    "action": "dynamodb:Scan",
+    "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+    "roles": [
+      "staging-account-deletion-FunctionRole-sPGSPcNZULcs",
+      "staging-account-deletion-WorkerRole-u5xpbVRU9G0Q"
+    ]
+  },
+  "approval": "Explicit user approval for projected Scan on staging-PlatformStaff for both deletion service roles.",
+  "policyArn": "arn:aws:iam::699561669180:policy/staging-CustomerDeliveryFundingRetentionRead550",
+  "publishedVerification": {
+    "requests": {
+      "publishedSourceExact": true,
+      "unrelatedEntriesUnchanged": true,
+      "testsPassed": true,
+      "codeSha256": "5W/RNKRVO5r1zSldKGhM4+1mssGz8OWiRVYR6zidvtc=",
+      "testsPassedCount": 29
+    },
+    "worker": {
+      "publishedSourceExact": true,
+      "unrelatedEntriesUnchanged": true,
+      "testsPassed": true,
+      "codeSha256": "AUznZvbXzDDlzIWdLLn7QNN6nZETc0AC9JO2FxTjvjc=",
+      "testsPassedCount": 27
+    }
+  }
+}

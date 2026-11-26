@@ -1,0 +1,752 @@
+{
+  "additions": [
+    {
+      "id": "f988cc33-a830-59d3-8846-caad1f25bef0",
+      "label": "بيتزا",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "85f4dce6-2fb9-583c-9fad-b2e4811615f5",
+      "label": "برجر",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "1c5fa9dd-2986-5753-952b-c71819003b04",
+      "label": "دجاج مقلي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "98d3ccae-b3fa-520e-81e8-ef88c034f5a4",
+      "label": "دجاج مشوي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "4855938b-71a1-50f3-ba35-561985eb96d9",
+      "label": "شاورما",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "39e3200c-8c4d-5e80-8372-d16f3fb7c2a1",
+      "label": "مشويات",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "2643f66f-ec16-5982-a691-b95f0bc8182a",
+      "label": "كباب",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "64d5d067-49b4-5185-9120-8f6907fd8bc9",
+      "label": "ستيك",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "e448624e-5a58-5fbf-b2a1-1b40a84945f0",
+      "label": "سمك",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "7270340c-8a09-5ea1-aadb-57069fd45b58",
+      "label": "مأكولات بحرية",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "cc81f0fb-5209-54b2-8b31-d68af78ef629",
+      "label": "مطبخ عراقي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "78a3f976-62be-5690-83a2-735e8c3919a8",
+      "label": "مطبخ شامي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "02035b27-e694-57c7-80dc-5971de0306f7",
+      "label": "مطبخ تركي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "f90edfe2-40e0-5616-bd8e-e81d23001e77",
+      "label": "مطبخ إيطالي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "bf92f97e-005e-5eac-a95d-9900dae35c73",
+      "label": "مطبخ أمريكي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "35ea45e8-24bf-50d1-93b9-3388de94ed89",
+      "label": "مطبخ هندي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "27a12713-52e3-5e19-b04f-8b56048ceb49",
+      "label": "مطبخ صيني",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "b22beb63-6f07-5a20-bd34-696d651504b7",
+      "label": "مطبخ ياباني",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "76b886f1-9980-5dc2-87af-1203b3e7a01d",
+      "label": "مطبخ كوري",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "3a1359f9-d0d3-5e53-a8dc-ca2bd87db83f",
+      "label": "مطبخ مكسيكي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "8b11089e-7abf-587b-8c4c-fad8ba5eab57",
+      "label": "مطبخ خليجي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "814f34cb-545a-524a-aac3-297ff1b42973",
+      "label": "مطبخ إيراني",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "1758676f-25a9-5c20-a4c1-aa77960e3f00",
+      "label": "فطور",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "0bdc6a82-5078-5625-b03b-3004fd876129",
+      "label": "سندويشات",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "a37948d8-e862-57ad-86d8-74809cc10ef4",
+      "label": "فلافل",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "6457a2dd-2bd5-5991-a360-7cf3a055835b",
+      "label": "معجنات",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "f6654eff-35b6-5fb3-bd94-c2aef1003499",
+      "label": "مناقيش",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "73ee1855-b3b6-529b-bec1-3759f5590cb7",
+      "label": "صفيحة ولحم بعجين",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "93b3e74f-fc1e-576b-b9e8-726e525c6313",
+      "label": "رز وبرياني",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "2b43c1e4-463b-5f88-9fc5-99ca81cb9868",
+      "label": "دولمة ومحاشي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "00a66b4f-3c81-5476-bfee-102b91df2c79",
+      "label": "مرق ويخنات",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "ab6bc857-ced7-5d16-9d08-5cbb7bfdcc47",
+      "label": "باستا",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "0efd3358-612d-5e50-a273-2b219dec1f6a",
+      "label": "ريزو",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "a03de451-6b34-5d3f-a018-73b383bf5f22",
+      "label": "سوشي",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "0c8e1fb7-ca2b-5758-9c72-987272b74866",
+      "label": "نودلز",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "72332ee6-4765-5283-b124-b50bb408875f",
+      "label": "شوربات",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "ed6de86c-12e9-57b1-86dc-3f91b12b25ab",
+      "label": "سلطات",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "e03b51a8-21ad-5486-aa4d-87abe8d91c46",
+      "label": "مقبلات",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "2f9d2511-89ed-5e95-b5e9-79c6e6fa2528",
+      "label": "بطاطا",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "78cb05c3-3c5f-518e-811b-3134a1f875f0",
+      "label": "صلصات وتغميسات",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "a731aa97-52db-5a5a-b71f-843ee1da25e8",
+      "label": "وجبات أطفال",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "45b48a82-e377-53cd-9ce2-ffab78073af1",
+      "label": "وجبات عائلية",
+      "activityIds": [
+        "RESTAURANT"
+      ]
+    },
+    {
+      "id": "f5bd3d2e-639c-5b5a-8202-ed1ceedb7891",
+      "label": "وجبات نباتية",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "f09b7d74-baf1-5615-aa18-783a1b25f988",
+      "label": "حلويات شرقية",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "de4baa78-bc13-5f8b-a596-3f546229330f",
+      "label": "حلويات غربية",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "0e1a18c5-550f-55b6-9ee4-f4d5412426b4",
+      "label": "كنافة",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "02cf70f6-a9e9-5555-9e60-2fee00b7ece5",
+      "label": "بقلاوة",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "6d665be3-da03-5b1c-84d3-98b4369850ee",
+      "label": "كليجة ومعمول",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "a728f9fb-f031-5f98-b1c5-061eb67989d4",
+      "label": "كيك",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "79bd74ec-5068-52b0-8c2b-63bc5931947d",
+      "label": "تشيز كيك",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "178483fd-69aa-52db-989a-8daa6bdf7197",
+      "label": "دونات",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "643ed4b3-f594-5d31-9287-25d80a071d19",
+      "label": "وافل",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "a364b1f4-f2e4-5306-b807-b357cf3b3919",
+      "label": "كريب",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "54bf8415-ae60-54a6-b76f-f71c6c68842c",
+      "label": "بان كيك",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "50dcc8eb-cb0b-5d78-ada3-0a381e07a296",
+      "label": "آيس كريم",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "c2b6fc23-8e90-5b5e-aca3-cad83388d437",
+      "label": "قهوة",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "51b8a080-9ef0-51cc-a61c-0c8a49a985c5",
+      "label": "شاي",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "551bf53a-b3c2-52ee-bc68-411b0009aa73",
+      "label": "عصائر طبيعية",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "f4325b35-0d24-5ee6-8e16-497d3d4ddc89",
+      "label": "سموذي وميلك شيك",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "9495bd6e-6fd5-523b-b8c6-10dce8ba0c95",
+      "label": "مشروبات باردة",
+      "activityIds": [
+        "RESTAURANT",
+        "TYPE_A44A23E0D37A4A38B70B74508D1EF64C"
+      ]
+    },
+    {
+      "id": "dd04fffe-17dc-56d9-8d6d-be0f7c94e039",
+      "label": "خضروات",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "c84bf577-a743-5e45-bae2-b666260f0032",
+      "label": "فواكه",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "eabe88a3-429a-5a88-9731-d089784a2ebf",
+      "label": "تمور وفواكه مجففة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "9e3d3d30-e647-5303-b237-b2fe7bdb17ad",
+      "label": "لحوم طازجة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "3a3fdf72-d418-552f-81bc-46da8f8a091a",
+      "label": "دواجن طازجة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "c4d3ead0-49df-5722-94ba-f79f10888077",
+      "label": "أسماك طازجة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "aceccdf8-8741-5108-b951-ab11f8b10dcd",
+      "label": "ألبان وأجبان",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "c7fa8cba-8b49-5278-b897-f9b038f59cae",
+      "label": "بيض",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "f01b9ad2-6b09-53a9-a705-b7c4f91a9507",
+      "label": "خبز وصمون",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "772b039b-5fff-5f64-978c-fa6ba367cda3",
+      "label": "أرز وحبوب وبقوليات",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "b5d5d4e3-5345-551a-86ba-0189df010050",
+      "label": "طحين ومستلزمات الخبز",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "7c41b2cd-553d-5ef5-b9bd-573687ff09b9",
+      "label": "زيوت وسمن",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "9e32d4ee-632b-597f-a732-43f9c4ba8a0a",
+      "label": "بهارات وتوابل",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "fa5df5ea-5331-5646-9176-c42bbbce4eac",
+      "label": "معلبات ومخللات",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "2cca639a-ac7e-52bd-a410-352f359d3d89",
+      "label": "أغذية مجمدة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "e0fa78bf-c466-5505-9566-f6598443f8ea",
+      "label": "مكسرات وبذور",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "f277fa47-880a-547d-9df4-ddd19faef4d1",
+      "label": "شوكولاتة وحلويات مغلفة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "8e09e1a8-fdec-53e6-acec-cca5e226c49f",
+      "label": "شيبس وتسالي",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "da8b453c-f13e-5067-a452-4bec9fdaea21",
+      "label": "مياه ومشروبات معبأة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "4bca2ae6-ab3d-5a51-92a8-7d7f72819227",
+      "label": "حبوب الإفطار",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "d1c89364-eee8-568a-85c6-19cbf7464d31",
+      "label": "عسل ومربى ودبس",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "9084b9d4-3d1c-5bca-be3d-a01d88446db4",
+      "label": "شاي وقهوة معبأة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "597f8b48-cf53-5577-b853-995dfb968127",
+      "label": "أغذية الأطفال",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "e345771a-262e-54ea-8553-c759dd7ed727",
+      "label": "تنظيف وغسيل",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "a3332f6b-ef92-5fd2-ba44-1ff0e2fe17e8",
+      "label": "مناديل ومنتجات ورقية",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "373e4490-a1af-5d87-ad16-69244a5dfb4a",
+      "label": "عناية شخصية",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "b0ab8d1f-4119-5e85-8951-060c88b8dd35",
+      "label": "عناية بالأطفال",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "9e449204-c1a6-5699-b6c3-53bb9e8479ea",
+      "label": "مستلزمات الحيوانات الأليفة",
+      "activityIds": [
+        "MARKET",
+        "STORE"
+      ]
+    },
+    {
+      "id": "69d54f83-1a72-5ed1-aa91-c68023aa86dd",
+      "label": "أدوات منزلية ومطبخ",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "e378fae7-3d74-57f0-83ce-db4020e497bb",
+      "label": "أجهزة منزلية صغيرة",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "40d51916-3120-5f55-a279-70cd4a45d252",
+      "label": "إكسسوارات الهاتف",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "ad287ea9-b8c3-5c57-a8d0-6f943e985761",
+      "label": "إلكترونيات وإكسسوارات",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "1f6ad5d8-f867-52cf-9ff3-1a6e020aa436",
+      "label": "قرطاسية ولوازم مدرسية",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "13810821-ce85-5373-abee-dae3e0395ca0",
+      "label": "كتب",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "dc7e69fb-c9e8-541d-84cd-09056e66106f",
+      "label": "ألعاب وهوايات",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "5267f892-5af2-5192-977e-519646e481d9",
+      "label": "هدايا وتغليف",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "759f8765-df22-5a40-9e14-28ef1fdb1438",
+      "label": "زهور ونباتات",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "de699390-ebbf-59b6-8912-8f46ff03f3f8",
+      "label": "عطور ومستحضرات تجميل",
+      "activityIds": [
+        "STORE"
+      ]
+    },
+    {
+      "id": "a8622fc3-563c-5a55-93ba-d6f7adbee544",
+      "label": "ملابس وإكسسوارات",
+      "activityIds": [
+        "STORE"
+      ]
+    }
+  ],
+  "preserveExisting": true,
+  "autoAssignBranches": false,
+  "autoPublishHomeStrip": false
+}

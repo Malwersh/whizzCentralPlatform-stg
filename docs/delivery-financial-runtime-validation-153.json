@@ -1,0 +1,24 @@
+{
+  "part": 153,
+  "localOnly": true,
+  "deployed": false,
+  "typescriptBuild": "PASS",
+  "targetedTestsPassed": 61,
+  "bundleExportsLoad": "PASS",
+  "bundleSha256": "4641f4214dda9b15db2a61d2ccae566fa24958eabb981bc6d8b76b1b568b3a2e",
+  "implemented": [
+    "Separate account/stage/mode gates for financial hosted runtime",
+    "Exact EventBridge rule and invocation context checks before SDK work",
+    "Financial cursor allowed only under its own host gate in scoped rollout DB",
+    "Captured cycle policy used by trusted pinned candidate/road-route runner",
+    "Creator admission remains constrained by explicit rollout scope",
+    "StartWave selector and cycle forwarding with socket transport errors propagated",
+    "Timeout marks pinned financial work host-managed instead of old expiration path"
+  ],
+  "remaining": [
+    "Financial background push payload, stored proof and acknowledgement integration",
+    "Read-only review of actual runtime role permissions for new hosted paths",
+    "Fresh coordinated package and activation review",
+    "Explicit nonexpired test scope and real-device E2E"
+  ]
+}

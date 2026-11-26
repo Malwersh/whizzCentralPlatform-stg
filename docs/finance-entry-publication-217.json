@@ -1,0 +1,23 @@
+{
+  "part": 217,
+  "status": "PUBLISHED_ACTUAL_ENTRY_VERIFIED",
+  "function": "staging-wizz-staff-service",
+  "baseCodeSha256": "ywog2Jgky+gboIXeTp6OcRcKvvq/sEepLShqDGo1PwA=",
+  "codeSha256": "QRTNNZUjshYvypqvtEduSJAdd73wbKh97zO19WAv7rM=",
+  "changedEntries": [
+    "_discount_review/central-staff/index.js"
+  ],
+  "actualEntry": "index.js -> _discount_review/central-staff/index.js",
+  "repair": "Bundled staff settlement module delegates to current root service; owner settlement action delegates to verified owner adapter; unrelated commercial action remains original",
+  "otherFilesPreserved": true,
+  "configurationAndPermissionsPreserved": true,
+  "offlineActualEntryRegression": "Old403 reproduced with non-v4 Cognito ID; staff and merchant read paths200 after fix; invalid auth401; no writes",
+  "negativeLiveAuthSmokes": 2,
+  "financialDataChanged": false,
+  "humanPermissionsChanged": false,
+  "realUserReadConfirmation": {
+    "merchantApp": true,
+    "centralPlatform": true,
+    "message": "ظهرت في التطبيق والمنصة"
+  }
+}

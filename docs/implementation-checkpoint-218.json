@@ -1,0 +1,27 @@
+{
+  "part": 218,
+  "status": "CASH_PAYOUT_ACCEPTANCE_PREPARATION",
+  "methodSelectedByUser": "CASH",
+  "preparation": "payout-cycle-preparation-218.json",
+  "branch": "مطعم فتوش",
+  "expectedCurrentPendingIqd": 43575,
+  "existingBatches": 0,
+  "existingPayouts": 0,
+  "periodCondition": {
+    "firstApprovedScheduleStartsBaghdad": "2026-10-21T00:00:00+03:00",
+    "openingCutoffChicago": "2026-10-20T16:00:00-05:00",
+    "openingPeriodStillOpenAtRead": true,
+    "scheduleChanged": false
+  },
+  "nextHumanStep": "Freeze opening statement after first approved schedule cutoff; then approve it and create CASH payout from merchant owner account",
+  "financialWritesPerformed": false,
+  "realPayoutPerformed": false,
+  "openingPreviewUserConfirmed": {
+    "amountIqd": 43575,
+    "orderCount": 7,
+    "fromLocalDate": "2026-10-01",
+    "message": "ظهر الصافي ٤٣٬٥٧٥ د.ع"
+  },
+  "deferredByUser": true,
+  "resumePoint": "Opening preview confirmed43575IQD for7orders; freeze only after approved opening cutoff; no payout or receipt recorded"
+}

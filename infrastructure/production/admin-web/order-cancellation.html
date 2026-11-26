@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>طلبات الإلغاء — إدارة ويز</title>
+  <link rel="stylesheet" href="/portal.css">
+  <link rel="stylesheet" href="/order-cancellation.css?v=1">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script src="/order-cancellation.js?v=compensation-1" defer></script>
+</head>
+<body>
+  <main>
+    <header><h1>طلبات الإلغاء</h1><button id="cancellation-refresh" type="button">تحديث الطلبات</button></header>
+    <section aria-labelledby="cancellation-heading">
+      <header><h2 id="cancellation-heading">الطلبات المفتوحة</h2></header>
+      <form id="cancellation-search" class="cancellation-search">
+        <label for="cancellation-order">البحث برقم الطلب
+          <input id="cancellation-order" dir="ltr" autocomplete="off" maxlength="150">
+        </label>
+        <button type="submit">بحث</button>
+        <button id="cancellation-reset" class="cancellation-secondary" type="button" hidden>عرض الطلبات المفتوحة</button>
+      </form>
+      <p id="cancellation-message" role="status" aria-live="polite"></p>
+      <div id="cancellation-queue"></div>
+      <button id="cancellation-more" class="cancellation-secondary" type="button" hidden>تحميل المزيد</button>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,47 @@
+{
+  "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+  "explicitUserApproval": true,
+  "functions": [
+    {
+      "function": "staging-driver-financial-accept",
+      "hash": "3IW/aG+/69UW+kUFZAEsMrmPFIHg53V4rkeKrezzl8g=",
+      "revision": "2515fa45-24c3-4be0-aaf9-5e8349072e6c"
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "hash": "ff8NC02HUkqngn4Cyy/8cdIUQPBwZxGsQ7GSfL/Iy6E=",
+      "revision": "d741db52-3b04-49f1-8e04-4ec564a6142c"
+    },
+    {
+      "function": "DriversApi-staging",
+      "hash": "H38DxQ7aMkh6hU6mLH9JmVJY6WQEVYMcw4RiREcqKOo=",
+      "revision": "f125bcd0-5986-4a2d-9111-85d34c76e956"
+    }
+  ],
+  "iamPolicy": "DriverOfferDisplayReceipt272",
+  "hostingJobId": "203",
+  "verification": {
+    "status": "PASS",
+    "checks": [
+      "DriversApi-staging: downloaded deployment identical to tested candidate",
+      "staging-driver-financial-accept: downloaded deployment identical to tested candidate",
+      "staging-wizz-staff-service: downloaded deployment identical to tested candidate",
+      "Receipt role policy exact and all three actions allowed",
+      "Hosted bytes verified: order-exception-cases.js",
+      "Hosted bytes verified: driver-performance-case.js",
+      "Hosted bytes verified: case-workflow.js",
+      "Hosted bytes verified: pages/order-exceptions.html",
+      "Anonymous GET performance and POST displayed returned401"
+    ],
+    "businessWritesByAgent": 0
+  },
+  "native": {
+    "build": 272,
+    "mode": "Release",
+    "installed": true,
+    "launched": true,
+    "device": "B8850CE6-BCC2-551D-B930-3E108456B23F",
+    "uninstalled": false
+  },
+  "completedAtUTC": "2026-10-25T04:05:23.780239+00:00"
+}

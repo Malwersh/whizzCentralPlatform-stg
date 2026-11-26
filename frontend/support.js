@@ -748,7 +748,10 @@ async function updateTicketInDatabase(ticket) {
         const apiBase = window.API_BASE_URL || window.API_BASE || '/api';
         const url = `${apiBase.replace(/\/$/, '')}/support/tickets/${encodeURIComponent(ticketId)}`;
         const token = (window.Auth && typeof window.Auth.getIdToken === 'function') ? window.Auth.getIdToken() : null;
-        const res = await fetch(url, {
+        const resController=new AbortController(),resTimer=setTimeout(()=>resController.abort(),20000);
+        let res;
+        try{res = await fetch(url, {
+            signal:resController.signal,
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -759,7 +762,7 @@ async function updateTicketInDatabase(ticket) {
                 status: ticket.status,
                 priority: ticket.priority
             })
-        });
+        });}finally{clearTimeout(resTimer);}
         if (!res.ok) {
             console.warn('⚠️ Backend PATCH failed (non-fatal):', res.status);
             return;

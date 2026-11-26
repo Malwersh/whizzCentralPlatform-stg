@@ -1,0 +1,31 @@
+.complaints-workspace { display:grid; grid-template-columns:minmax(230px,1fr) minmax(360px,2.2fr); gap:20px; align-items:start }
+.complaints-panel,.complaints-box { background:#fff; border:1px solid #d9e2ef; border-radius:16px; padding:18px; min-width:0 }
+.complaints-panel h2,.complaints-box h3 { margin-block:0 12px }
+.complaints-panel label { display:grid; gap:5px }
+.complaints-box { background:#f6f8fc; margin-block:14px }
+.complaints-fields { display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-block:8px 14px }
+.complaints-fields label { flex:1 1 130px }
+.complaints-panel input,.complaints-panel select,.complaints-panel textarea { box-sizing:border-box; width:100%; min-width:0 }
+.complaints-panel textarea { resize:vertical }
+.complaints-panel .secondary { background:#fff; color:#102e5b; border:1px solid #c6d4e6 }
+.complaints-panel .secondary[aria-current="true"] { border-color:#102e5b; background:#eaf1fc }
+.complaints-list { padding:0; list-style:none; display:grid; gap:8px }
+.complaints-list button { width:100%; text-align:start; display:grid; gap:4px; overflow-wrap:anywhere }
+.complaints-list button bdi { font-weight:700 }
+.complaints-list button span { font-size:.9em; color:#526780 }
+.complaints-status { color:#102e5b; background:#eaf1fc; border-radius:20px; display:inline-block; padding:4px 12px }
+.complaints-facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:12px; margin-block:10px 18px }
+.complaints-facts dt { color:#526780; font-size:.9em }
+.complaints-facts dd { margin:0; overflow-wrap:anywhere }
+.complaints-copy { white-space:pre-wrap; overflow-wrap:anywhere }
+.complaints-evidence { padding-inline-start:20px }
+.complaints-evidence li { margin-block:12px }
+.complaints-evidence img { display:block; max-width:100%; max-height:420px; object-fit:contain; margin-block:10px }
+.complaints-panel label.complaints-check { display:flex; align-items:center; gap:8px; margin-block:5px }
+.complaints-panel input[type=checkbox] { width:auto }
+.complaints-review { display:grid; gap:12px }
+.complaints-review fieldset { border:1px solid #c6d4e6; border-radius:10px; margin:0; min-width:0 }
+.complaints-review > button { justify-self:start }
+.complaints-panel [role=status]:empty { display:none }
+[hidden] { display:none!important }
+@media(max-width:1020px){.complaints-workspace {grid-template-columns:minmax(0,1fr)}}

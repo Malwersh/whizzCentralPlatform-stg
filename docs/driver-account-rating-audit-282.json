@@ -1,0 +1,43 @@
+{
+  "status": "DRIVER_RELEASE_282_INSTALLED_LAUNCHED_CUSTOMER_RATING_INTEGRATION_OPEN",
+  "ratingDataMutationExecuted": false,
+  "ratingSeedDecision": "REAL_CUSTOMER_RATING_AFTER_DELIVERED_ORDER_NO_SYNTHETIC_DATA",
+  "evidence": [
+    "frontend/test/more/account_details_test.dart",
+    "frontend/test/ratings/profile_rating_test.dart",
+    "frontend/test/more/more_tab_layout_test.dart"
+  ],
+  "automatedTestsPassed": 12,
+  "manualAcceptance": "DEFERRED_NOT_PASSED",
+  "fixed": [
+    "Arabic RTL neutral white/navy layout",
+    "No default zero deliveries or zero-star rating",
+    "Only verified customerRating with positive customerRatingCount shown",
+    "No fake join date displayed; original createdAt only",
+    "Preserve original document fields and timestamps from API instead of dropping them",
+    "Separate account approval from documentsVerified",
+    "PENDING identity and license values displayed as unregistered",
+    "Only name/city editable; only those two fields sent from account screen; reload server after saving",
+    "Phone/email/photo edits unsupported and explicitly unavailable; delete-account route preserved",
+    "Legacy profile totalEarnings/completionRate removed in favor of actual performance screen"
+  ],
+  "remaining": [
+    "Customer order tracking: authenticated assigned-driver rating projection and display missing",
+    "Merchant order card: authenticated assigned-driver rating projection and display missing",
+    "Audit original rating submission customer branch integration before creating any customer-owned rating",
+    "Profile photo upload/persistence missing backend allowlist/storage flow; deferred",
+    "Identity/vehicle/document validity remains D01; display of existing flags does not complete eligibility",
+    "Manual device acceptance deferred"
+  ],
+  "sourceFindings": {
+    "customer": "frontend/lib/screens/order_tracking_screen.dart shows driverName without rating",
+    "merchant": "frontend/lib/widgets/order_card.dart shows driverName without rating",
+    "ratingTable": "Last281 read-only verification found zero records; no fictitious scores inserted"
+  },
+  "release": {
+    "build": 282,
+    "buildPassed": true,
+    "deviceInstalled": true,
+    "deviceLaunchPassed": true
+  }
+}

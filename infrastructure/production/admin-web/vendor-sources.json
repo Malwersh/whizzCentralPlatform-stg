@@ -1,0 +1,14 @@
+[
+  {
+    "file": "amazon-cognito-identity.min.js",
+    "url": "https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.12/dist/amazon-cognito-identity.min.js",
+    "sha256": "165e0d38136cffd35f870e43a4e8c6fdf409930a6161b19cb4d8fd5cb876c3f9",
+    "bytes": 113374
+  },
+  {
+    "file": "aws-sdk.min.js",
+    "url": "https://sdk.amazonaws.com/js/aws-sdk-2.1544.0.min.js",
+    "sha256": "63fbe294df9f2cfe6caf9a96a7816aaa7fe89991ab563e3bfd14573122be7662",
+    "bytes": 3334791
+  }
+]

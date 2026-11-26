@@ -1,0 +1,28 @@
+{
+  "receipts": [
+    {
+      "function": "WaveSystem_StartWave",
+      "codeSha256": "k4J1ZVDoc3abJ5+MPN8RjZsqDGZ2qxaE9Tl9T2XhL60=",
+      "verified": true,
+      "configurationUnchanged": true
+    },
+    {
+      "function": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "v9s42YihTIYYKOYOwDcSFZ64y8u7YGDxzAPaFnBDlQQ=",
+      "verified": true,
+      "configurationUnchanged": true
+    }
+  ],
+  "newIam": false,
+  "currentOrderRecoveryPending": false,
+  "currentOrderStatus": "no_driver_available",
+  "reason": "PREPARATION_DEADLINE",
+  "offersCreated": 0,
+  "holdsCreated": 0,
+  "scopedStartRetry": "Expired preparation; StartWave could not record review because its role lacks order UpdateItem; existing timeout worker recorded review using its current permission",
+  "nextTestRequiresFreshCycle": true,
+  "tests": {
+    "candidateAndFinancialHost": 22,
+    "coordinatorAndCandidate": 21
+  }
+}

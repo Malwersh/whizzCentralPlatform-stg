@@ -1,0 +1,14 @@
+{
+  "status": "LOCAL_TRANSACTION_PLANNER_IMPLEMENTED_NOT_INTEGRATED_OR_DEPLOYED",
+  "module": "backend/wallet-service/src/deliveryCampaignBudget.ts",
+  "activation": "versioned campaign allowance initialized atomically with merchant consent",
+  "reservation": "budget and campaign-scoped customer usage plus order reservation, conditional and idempotent",
+  "completion": "reserved allowance to spent exactly once",
+  "cancellation": "reserved allowance and use released exactly once",
+  "cashWalletReservationImplemented": false,
+  "refundAfterCaptureImplemented": false,
+  "verification": {"typescriptCompile": "PASS", "runtimeSync": "PASS", "newBudgetTests": 9, "combinedTestsPassed": 105, "realDynamoDBTested": false},
+  "remaining": ["trusted order/cart composition", "deduplication of transaction conditions", "actual wallet funding holds", "allocation and financial lifecycle integration", "post-completion refund reversal", "deployment and end-to-end verification"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

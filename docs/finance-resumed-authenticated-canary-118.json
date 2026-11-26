@@ -1,0 +1,108 @@
+{
+  "part": 118,
+  "status": "SUPERSEDED_BY_FATTOUSH_CUSTOMER7435_PART121",
+  "recordedAt": "2026-10-18T15:02:59.472219+00:00",
+  "functions": [
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "4BrxC5Ko0gPd8dXN8sTVWxctebX4z+vZtIWynxjBcn4=",
+      "revisionId": "c939fd83-d96b-4f2f-a127-8c4013425d23"
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "codeSha256": "DLSxSxT2gdZ3DBdvnyAhQxmBLNazhXHbaJku+jVZBXM=",
+      "revisionId": "30cf6738-8358-434f-bac7-48ef4caa6c81"
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "5pDJICSVgutecvgZ5uZbVZsQ/Z50mSa1fQ+t3tz3Bd8=",
+      "revisionId": "8b55f45d-c824-4391-b5d5-33bd8775bc05"
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha256": "ZxUt0RUPXOcwYrKqitGsB47/QNCoJIMBQyJ8HrkFHe8=",
+      "revisionId": "12ddc5d6-b51b-486f-92f6-589016de7847"
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+      "revisionId": "10e2d863-72a4-4ce3-89d8-d8f4a0b9aef1"
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "LL7g7l3aamaYw3URJHV7zgPDopeZahZs0OPTdKMWMcc=",
+      "revisionId": "7c394d4b-2cf2-41ac-b431-1d2e794c5b4e"
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "DbcS4wGUw0RTd37Nwjzf9mda2p2zdnAMn+iTXZ6nEvw=",
+      "revisionId": "08087de3-9265-4ab5-9fed-36695f488561"
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "codeSha256": "2J7BvHTGk/Dnb3Va0Uu9QFdh751uxSkdiTxkL49gPcM=",
+      "revisionId": "c8c944e1-8a06-4654-8eaa-4dc60b9d02c2"
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "codeSha256": "s5VY//RJOiuDFnauWZCw5SHcMN9aTR+SkN3kj4uaz0w=",
+      "revisionId": "e139f5b7-67ca-4ff4-855a-b5b6c5f8d499"
+    },
+    {
+      "name": "DriversApi-staging",
+      "codeSha256": "oPmzlGO7H8+EciwdDJXYP/0HE7CSPQ/avXXqGB0mWSU=",
+      "revisionId": "91d2f8dd-adf9-4d32-8f37-0cc9c8c737ce"
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "t6IygAJq4HYpvXsyhFN+YDYIZ+4r+vs41SsgZCavXfs=",
+      "revisionId": "b6c7a0bb-3015-4bec-ab83-3851b757bcb3"
+    },
+    {
+      "name": "staging-cod-integration",
+      "codeSha256": "DwqZGppZ20ajNgQ/nY42NPYQdDcWg+oQftW4NoRjfsQ=",
+      "revisionId": "c09ca3b2-88f2-44ec-aba7-ba2fa41c0157"
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "pf41wS1kwKFNe8Wy4SQ9cmpOATfVLC6zCqVhUaJmjbs=",
+      "revisionId": "302e019c-182a-4ef9-ac56-4a4abeca74fb"
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "codeSha256": "wXACKH/twuCjnyshTtEe7qSRmjdkT6n8eRB2KhdJqQE=",
+      "revisionId": "da9a8c38-47e4-4e70-802a-b41dfa2c9f7e"
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "codeSha256": "xzfurAgrBRHxMFNYQoScEKd0mV+lugCDCLh5Jmi1i9Y=",
+      "revisionId": "4b72bc5c-9ba8-40ab-b11f-337724a5b6e4"
+    }
+  ],
+  "customerMerchantDriverAccountSame": true,
+  "branch": "Fattoush",
+  "oldUnusedAttemptHasNoOrderHoldsOffersOrJobs": true,
+  "historicalOrderPinsPreserved": true,
+  "newOrdersAllowed": 1,
+  "scopeDeadline": "2026-10-18T15:59:04.841Z",
+  "androidTrackingTestsPassed": 3,
+  "notificationsPermissionGranted": true,
+  "merchantSimulatorUpdatedAndLaunched": true,
+  "customerBuildNumber": 2003,
+  "actualBackgroundTrackingTested": false,
+  "ownerScheduleConsentTested": false,
+  "applicationWritesByMaintenance": false,
+  "balancesChangedByMaintenance": false,
+  "otpBlockRemoved": true,
+  "physicalIosLiveActivitySigning": "Separate pre-existing Apple signing dependency, not resolved by OTP recovery",
+  "customerAndroidInstalled": true,
+  "customerAndroidAbi": "arm64-v8a",
+  "customerDataCleared": false,
+  "emulatorStorageReserveTemporarilyReducedAndRestored": true,
+  "merchantDiscountPercent": 10,
+  "merchantDiscountFullyFunded": true,
+  "next": "Do not submit the Part118 checkout. Use fresh Part121 selector for customer7435.",
+  "androidInstalledVersionCode": 4003,
+  "customerLaunchSucceeded": true,
+  "driverLaunchedOnIMohammed": true
+}

@@ -1,0 +1,26 @@
+{
+  "checkedAtUtc": "2026-10-18T04:15:44.198959+00:00",
+  "status": "PROVIDER_DELIVERY_PENDING",
+  "scope": "The two explicitly approved test-account login attempts between 04:08 and 04:12 UTC on 2026-10-18",
+  "merchantRequestReachedProvider": true,
+  "customerRequestReachedProvider": true,
+  "providerBalanceAvailable": true,
+  "whatsapp": {
+    "attempted": true,
+    "success": false,
+    "errorCode": 131031,
+    "error": "Business account has been locked."
+  },
+  "smsFallback": {
+    "attempted": true,
+    "providerAttemptSuccess": true,
+    "trackingStatus": "sent",
+    "isFinalStatus": false,
+    "confirmedDelivered": false
+  },
+  "newOtpSentByMaintenance": false,
+  "authOrRoutingConfigurationChanged": false,
+  "reportsGeneratedWithExplicitUserApproval": true,
+  "userConfirmedNeitherChannelReceived": true,
+  "next": "Provider must investigate the unconfirmed SMS delivery and locked WhatsApp sending account; delivery must not be claimed from HTTP acceptance or sent status."
+}

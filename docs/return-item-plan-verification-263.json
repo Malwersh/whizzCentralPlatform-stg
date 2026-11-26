@@ -1,0 +1,35 @@
+{
+  "part": 263,
+  "status": "PASS",
+  "verifiedAt": "2026-10-21T22:44:02.559657+00:00",
+  "scope": "staging",
+  "services": [
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "psg5jjK5RXaDv95ybo9czLRGm4JcuWEu2NJjfzGvRU4=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "PtSnpiUzh8MS8tuhcor7X3FLdjNGYeT+j6miVLkjwSs=",
+      "allDeployedBytesVerified": true,
+      "unrelatedEntriesPreserved": true
+    }
+  ],
+  "hostingJobId": "152",
+  "historicalCase": {
+    "number": "ORD1792545370610",
+    "version": 14,
+    "status": "RESOLVED",
+    "oldCaseNotBackfilled": true,
+    "compensationStatus": "PAID",
+    "compensationIqd": 6250,
+    "guaranteeStatus": "RELEASED"
+  },
+  "realNewOrderReceiptOrCustodyPlanCreatedByAgent": false,
+  "humanNewPlanAcceptance": "PENDING_NEW_PARTIAL_RETURN_CASE",
+  "employeeFeatureHumanTest": "DEFERRED_BY_USER",
+  "physicalExecutionImplemented": false,
+  "iamChanged": false
+}

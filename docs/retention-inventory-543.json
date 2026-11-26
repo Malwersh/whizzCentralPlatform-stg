@@ -1,0 +1,45 @@
+{
+  "batch": 543,
+  "status": "AUDIT_PARTIAL_FOLLOWUP_REQUIRED",
+  "financialWrites": 0,
+  "recordsDeleted": 0,
+  "findings": {
+    "complaints": {
+      "table": "staging-Holds",
+      "ownerField": "customerId",
+      "protection": "542 published; open blocks and closed requires retention review"
+    },
+    "benefits": {
+      "table": "staging-WizzOfferJourney",
+      "keys": [
+        "USER#subject / BENEFIT#campaign",
+        "BENEFIT_ORDER#order / target",
+        "USER#subject / CASE_COMPENSATION#case"
+      ],
+      "coverage": "NOT_YET_IN_DELETION_INVENTORY",
+      "required": "Reserved uses and RESERVED holds must block; settled reservations and compensation links require financial evidence classification before cleanup"
+    },
+    "supportImages": {
+      "table": "support-attachments-staging",
+      "liveTtlStatus": "ENABLED",
+      "liveTtlAttribute": "ttl",
+      "complaintReference": [
+        "attachmentId",
+        "sessionId",
+        "checksum",
+        "contentType"
+      ],
+      "risk": "Complaint retention alone does not establish image retention; expiry and object lifecycle still need checking",
+      "automaticCleanupAdded": false
+    },
+    "checkout": {
+      "deliveryQuotes": "separate guarded cleanup adapter exists",
+      "allOrderIntents": "NOT_PROVEN; do not equate delivery quote coverage with all checkout intent sources"
+    }
+  },
+  "next": [
+    "Inspect attachment writer and object retention behavior for complaint evidence",
+    "Implement benefit inventory after checking service IAM and lifecycle guards",
+    "Keep X02 open; no claim of complete deletion coverage"
+  ]
+}

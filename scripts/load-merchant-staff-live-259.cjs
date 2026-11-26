@@ -1,0 +1,3 @@
+'use strict';
+const runtime=require('../backend/.tmp/order-exceptions-work/staff-settlement-259/verified-live/settlement-runtime'),sdk=require('../backend/wallet-service/node_modules/@aws-sdk/lib-dynamodb');
+for(const [file,key]of [['merchantPayoutApi','createMerchantPayoutApi'],['merchantPayoutDeviceAuthority','createMerchantDevicePayoutAuthority']]){const id=require.resolve('../backend/wallet-service/dist/'+file);require(id);require.cache[id].exports[key]=options=>runtime[key]({...options,db:{send:c=>{const kind=c.constructor.name.replace(/\d+$/,'');return options.db.send(sdk[kind]&&!(c instanceof sdk[kind])?new sdk[kind](c.input):c);}}});}

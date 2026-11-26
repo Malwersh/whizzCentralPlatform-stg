@@ -1,0 +1,151 @@
+{
+  "revision": 307,
+  "scope": "Registration display alignment then read-only D01 vehicle/document/region audit",
+  "status": "DISPLAY_IMPLEMENTED_INSTALLED_AUDIT_COMPLETE_OPERATIONAL_GAPS_OPEN",
+  "businessMutations": 0,
+  "backendPublishedThisTurn": false,
+  "display": {
+    "build": 307,
+    "configuration": "RELEASE scoped staging-test-driver.json",
+    "installedAndLaunched": true,
+    "tests": {
+      "passed": 17,
+      "failed": 0
+    },
+    "analysis": "6 changed units: no issues",
+    "changes": [
+      "Schema2 personal profile shows governorate, work region and landmark rather than stale city",
+      "Canonical registrationPaperUrl/status mapped to vehicle registration in profile/document models",
+      "Uploaded is separate from individually approved; no overall account verification fallback",
+      "Vehicle page shows registered type and its two uploaded documents without old make/model/plate/insurance assumptions",
+      "Schema2 basic edit sends name without obsolete city; legacy basic edit retained",
+      "Vehicle menu label now المركبة والوثائق"
+    ],
+    "registrationFieldContract": [
+      "name",
+      "governorate_id/name",
+      "work_region_id/name",
+      "home_address_text",
+      "vehicleType",
+      "registrationPaperUrl",
+      "drivingLicenseUrl",
+      "nationalIdUrl"
+    ]
+  },
+  "liveDriverRead": {
+    "documents": {
+      "drivingLicense": {
+        "uploaded": true,
+        "reviewStatus": null
+      },
+      "registrationPaper": {
+        "uploaded": true,
+        "reviewStatus": null
+      },
+      "nationalId": {
+        "uploaded": true,
+        "reviewStatus": null
+      }
+    },
+    "licenseExpiryRecorded": false,
+    "vehicleApprovalRecorded": false
+  },
+  "deployedPackages": [
+    {
+      "FunctionName": "DriversApi-staging",
+      "CodeSha256": "BCGhHONyUZAQF5P6c+Xj5i5OZCDX7lEEcjFyHQfT4w4=",
+      "LastModified": "2026-10-25T21:23:44.000+0000",
+      "Runtime": "nodejs20.x"
+    },
+    {
+      "FunctionName": "WaveSystem_StartWave",
+      "CodeSha256": "atOp3HptP5ndWab++DFmfveBxqVE6TfIX5UOm5teH58=",
+      "LastModified": "2026-10-25T21:43:31.000+0000",
+      "Runtime": "nodejs20.x"
+    },
+    {
+      "FunctionName": "staging-driver-financial-accept",
+      "CodeSha256": "amboAVQaAB/rTeScfmJ7dRTO0/pFBLob3sGrnFmjxbI=",
+      "LastModified": "2026-10-25T21:23:01.000+0000",
+      "Runtime": "nodejs22.x"
+    },
+    {
+      "FunctionName": "staging-wizz-staff-service",
+      "CodeSha256": "Wh+qPnqVqFG9KEYoxoGZHS4vxZXo4B4WctWNgvZ93ck=",
+      "LastModified": "2026-10-25T21:25:17.000+0000",
+      "Runtime": "nodejs22.x"
+    }
+  ],
+  "auditFindings": [
+    {
+      "id": "D01-307-A",
+      "priority": "P0-OPS",
+      "finding": "General approval helper does not validate supported vehicle type or per-document review/expiry. Actual packaged helper accepts APPROVED profile with rejected/expired license or unsupported vehicle. Financial context checks vehicleType as an entity identifier, not a car/motorcycle whitelist.",
+      "evidence": [
+        "DriversApi-staging/driver_eligibility.js",
+        "WaveSystem_StartWave/driver_eligibility.js",
+        "wallet-service/src/driverOfferContext.ts"
+      ],
+      "required": "Server-owned, versioned operational review bound to actual vehicle and current document references; explicit expiry or administratively recorded not-applicable decision, no assumed validity."
+    },
+    {
+      "id": "D01-307-B",
+      "priority": "P0-OPS",
+      "finding": "Approved driver can update vehicle/document/profile fields while preserving account approval; upload replaces document URL without invalidating individual review. Schema2 enforces document ownership; legacy profile update path does not apply that same ownership contract.",
+      "evidence": [
+        "DriversApi-staging/lambda_driver_api_v2.js updateDriverProfile/uploadDriverDocument"
+      ],
+      "required": "Protect review fields from driver writes; validate ownership consistently and invalidate matching approval on evidence changes; keep existing delivery completion possible."
+    },
+    {
+      "id": "D01-307-C",
+      "priority": "P0-OPS",
+      "finding": "Candidate hydration checks profile status but region filtering uses live-state allowed-region arrays. Financial offer context does not read/fence profile work region or current region authorization. Starting/location permission also retains legacy Bronze/Silver/Gold broad fallback.",
+      "evidence": [
+        "wallet-service/src/dispatchCandidates.ts",
+        "wallet-service/src/driverOfferContext.ts",
+        "DriversApi-staging/lambda_driver_api_v2.js checkDriverRegionPermission"
+      ],
+      "required": "One explicit administrative region authorization and active-region/neighbor contract shared by start, candidate preparation and acceptance; fence region/version changes and remove undocumented tier bypass."
+    },
+    {
+      "id": "D01-307-D",
+      "priority": "P0-OPS",
+      "finding": "Staff driver edit route cannot capture separate vehicle approval, document review or expiry. Bootstrap browser still uses direct status writes.",
+      "evidence": [
+        "staging-wizz-staff-service/drivers.js",
+        "frontend/drivers.js toggleDriverStatus and edit"
+      ],
+      "required": "Audited staff API and understandable per-document review/expiry UI; scoped permissions, expected version and transactional audit; replace approval shortcut."
+    },
+    {
+      "id": "D01-307-E",
+      "priority": "P0-OPS",
+      "finding": "General start-search approval guard does not itself reject explicit profile isActive=false; later candidate and financial acceptance guards already do.",
+      "evidence": [
+        "DriversApi-staging/lambda_driver_api_v2.js startSearching",
+        "wallet-service/src/dispatchCandidates.ts",
+        "wallet-service/src/driverOfferContext.ts"
+      ],
+      "required": "Unify online-entry reason with actual operational eligibility rather than letting inactive profile appear online but receive no offers."
+    }
+  ],
+  "additionalSourceDrift": {
+    "status": "SUPERSEDED_BY_308_ACTIVE_ENTRYPOINT_AUDIT",
+    "correction": "The 307 root drivers.js comparison concerned a dormant copy. The active staff entry point is _discount_review/central-staff/index.js and already includes the administrative performance read route. No missing active endpoint is inferred from that root-file difference."
+  },
+  "nextImplementationOrder": [
+    "Versioned shared eligibility contract bound to evidence; define current approved-driver migration explicitly without inventing document validity",
+    "Staff review API/UI with guarded writes and audit; dates captured by administrator from actual documents",
+    "Driver self-update invalidation and ownership safeguards across supported schemas",
+    "Uniform start/candidate/preparation/acceptance and current region checks, atomically fenced without interrupting existing delivery",
+    "Driver eligibility explanation and document review status read from same server evidence",
+    "Automated tests for expiry boundaries, changed docs/vehicle/region, permissions/concurrency and delayed acceptance; ordered human tests retained for later"
+  ],
+  "notClaimed": [
+    "D01 operational enforcement complete",
+    "Every uploaded document approved",
+    "Actual driver has expired or invalid documents",
+    "A new vehicle approval or review decision recorded by agent"
+  ]
+}

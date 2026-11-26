@@ -1,0 +1,23 @@
+{
+  "phase": 453,
+  "status": "implemented_release_413_installed",
+  "changes": [
+    "Explore uses home region catalog and selected browsing delivery point; no independent GPS permission or Baghdad fallback",
+    "Removed Explore status/product polling and repeated menu refresh; store opens shared current menu flow",
+    "Uses destination/account scoped StorefrontPricing display cache; first four previews warmed, remaining requested explicitly",
+    "Preserves search and availability/rating filters on catalog updates; marker selection can reset without clearing filters",
+    "White rounded draggable results sheet, RTL search, navy chips, map recenter and unavailable labels; invalid coordinates excluded from markers"
+  ],
+  "validation": {
+    "analyze": "no issues",
+    "filter_tests": 4,
+    "ios_release_build": 413,
+    "device": "iMohammed installed and launched"
+  },
+  "manual_pending": [
+    "Inspect native map rendering, marker selection and sheet drag on device",
+    "Change delivery destination and confirm catalog/route fees correspond to new point",
+    "Open store and verify current menu/options and unavailable status"
+  ],
+  "note": "No backend changes or financial writes. Products are accessed through the shared store menu instead of fetching every visible menu in Explore."
+}

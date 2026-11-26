@@ -1,0 +1,56 @@
+{
+  "status": "DEPLOYED_STAGING_SIMULATOR_RUNNING",
+  "atUtc": "2026-11-12T00:07:58.528902+00:00",
+  "cause": "Merchant accrual verification omitted order.commercialPricing.cashRounding when reconstructing the completion journal. Journal lines matched but digest did not.",
+  "fix": "Pass recorded cash-rounding evidence exactly as completion does; retain every identity, allocation, digest, journal and payable check. No data backfill or balance mutation.",
+  "deployment": {
+    "revision": "12d27961-bdd0-4c81-bc81-d69ceda6c31e",
+    "before": "h92dYmPYbjAQELux4Z+swX3/tPT8K2jLu02jzCmsgak=",
+    "after": "3HsLZzfd0uf1e14YcTRpn/dkyZDaODjZF2jhQ0vySXs=",
+    "changed": [
+      [
+        "cash-adjudication-read-278.js",
+        1
+      ],
+      [
+        "admin-retry-runtime-298.js",
+        1
+      ]
+    ]
+  },
+  "readOnlyVerification": {
+    "pendingAllPeriodsIqd": 104550,
+    "period": "2026-11-01 through 2026-11-12 Baghdad",
+    "orders": [
+      "ORD1793924734516",
+      "ORD1793919628232",
+      "ORD1793916546453"
+    ],
+    "netIqd": [
+      5950,
+      5950,
+      14875
+    ],
+    "totalIqd": 26775,
+    "allEvidenceVerified": true,
+    "nextCursor": null
+  },
+  "merchantUI": [
+    "Group money with separators",
+    "Remove internal operation, payout and statement hashes from account movement detail; retain meaningful external execution reference",
+    "Incomplete verification/pagination shows dash instead of misleading zero totals",
+    "Hide unverified breakdown; keep explicit review explanation",
+    "Reduce technical help and remove heavy movement shadows"
+  ],
+  "validation": {
+    "financialTests": 15,
+    "widgetTests": 9,
+    "flutterAnalyze": "No issues",
+    "simulator": "iPhone 16; installed and launched latest build"
+  },
+  "moneyWritten": false,
+  "pending": [
+    "Human visual acceptance of account screen",
+    "Existing financial notification device opt-in and payout notice acceptance remain pending; producer remains disabled"
+  ]
+}

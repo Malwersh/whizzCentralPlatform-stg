@@ -1,0 +1,47 @@
+{
+  "part": 355,
+  "scope": "staging",
+  "status": "PUBLISHED_BACKEND_HOSTING_NATIVE_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+  "changes": [
+    "Versioned manual topup min/max, daily admin approval cap, driver payout request cap centrally controlled",
+    "Server and app use canonical operating limits; atomic policy version fences at topup creation/approval and payout reservation",
+    "Recent staff authentication, audited reasons, independent review outside staging DIRECT mode; DIRECT requires request and approve permissions",
+    "Explicit per-request cap display and actionable rejection; definitive rejected first topup permits corrected draft"
+  ],
+  "preserved": [
+    "Existing topup approval UTC day counter and all counts; transfer Baghdad limits unchanged",
+    "Gateway limits remain separate",
+    "Persisted transfers enabled true version3 unchanged",
+    "No financial records or balances mutated; no real policy saved",
+    "Existing reserved payouts continue existing lifecycle"
+  ],
+  "defaults": {
+    "manualMinimumIqd": 25000,
+    "manualMaximumIqd": 500000,
+    "manualApprovalDailyIqd": 500000,
+    "driverPayoutMaximumIqd": 1000000000
+  },
+  "defaultMaximumRationale": "Manual 500000 equals pre-existing effective approval ceiling; prevents requests impossible to approve under unchanged default daily cap.",
+  "checks": {
+    "backend": 62,
+    "native": 18,
+    "browser": "PASS retry identity, before-after proposal, reviewer action",
+    "bundleBridge": "PASS",
+    "typescript": "PASS",
+    "release355Build": "PASS",
+    "flutterAnalyze": {
+      "errors": 0,
+      "warnings": 0,
+      "styleInfos": 18
+    }
+  },
+  "nativeInstallation": "RELEASE355_INSTALLED_AND_LAUNCHED_IMOHAMMED",
+  "humanAcceptance": [
+    "Change limits using admin workflow then restore with audit",
+    "Verify manual topup min/max, insufficient/over-limit payout and configured daily ceiling",
+    "Verify a policy change does not reset consumed daily counter",
+    "Re-test existing payout completion and gateway separate limits"
+  ],
+  "next": "A05 API authorization and wallet creation caller identity audit; ensure no legacy trusted header bypass.",
+  "persistedOperatingLimitsConfig": "ABSENT_DEFAULTS_APPLY_NO_INITIALIZATION"
+}

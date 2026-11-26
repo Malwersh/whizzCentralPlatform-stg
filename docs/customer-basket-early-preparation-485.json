@@ -1,0 +1,13 @@
+{
+  "phase": 485,
+  "change": "Prepare basket invoice and delivery benefits while browsing store, reuse scoped results in cart. Fetch benefits concurrently with baseline invoice; share discovery for 30 seconds across store/cart by account/address/location/branch. Continue mounted preparation across route transitions.",
+  "validation": {
+    "flutterTestsPassed": 9,
+    "analyzer": "No errors or warnings in changed files; existing style infos remain."
+  },
+  "limitations": [
+    "First network request can still take time if customer proceeds immediately or changes basket/location.",
+    "Real device timing not measured yet."
+  ],
+  "build": 437
+}

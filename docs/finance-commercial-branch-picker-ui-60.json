@@ -1,0 +1,48 @@
+{
+  "environment": "Staging",
+  "kind": "COMMERCIAL_BRANCH_PICKER_UI_CORRECTION",
+  "baseJobId": "70",
+  "baseSha256": "iYTL9dn9IgpfB6PIBgRQY7sPoH2BJ6Blrc+nF9Ee5VM=",
+  "package": {
+    "codeSha256": "lvdBD7YDAXBn6sYOvzId36cOLizNOCltRQNTxahGqks=",
+    "changedFiles": [
+      "commercial-management.js",
+      "merchants.js",
+      "pages/merchants.html",
+      "pages/promotions.html"
+    ],
+    "preservedFiles": 180
+  },
+  "backendChanged": false,
+  "activationPerformed": false,
+  "tests": {
+    "branchPickerBrowser": true,
+    "agreementAndFundingBrowser": true
+  },
+  "sourceSha256": {
+    "frontend/commercial-management.js": "5138fce81678f93ecff46b3f7b6cc497d27373c2b9e54e1c03252a0404cb3299",
+    "frontend/merchants.js": "57d09f15f9ba7309dbf26f8d7f16d561e8104fdf6a976478acbb8f01314df0ed",
+    "scripts/test-commercial-branch-picker-browser.cjs": "6d17c53b0296af7ed4c09b24ae2cabb2a0cc6af5f8c43b4ec672e2d754729d6a",
+    "scripts/test-commercial-management-browser.cjs": "d04d452e7ac12fd009f8e71287cb85556d5ccc2061a3986a6f14817d87faa8dd",
+    "scripts/publish-commercial-branch-picker-ui.py": "186f3cd49c7c3450b6c7a6f7fddf2dad36530c779a0bb0ff36d44d79d55c3ce7",
+    "frontend/pages/merchants.html": "c76d7c1a0c2763617dae4adaf473f3798748d7bafef1182cadcd030765591690",
+    "frontend/pages/promotions.html": "c7eda142711b95f9a3c7a40f5dced23081e73fa58d8e37c761ad77ca3734e0aa"
+  },
+  "publication": {
+    "atUtc": "2026-10-17T05:22:41.027977+00:00",
+    "amplify": {
+      "appId": "d2vmebm1e1n95m",
+      "branch": "staging",
+      "jobId": "71",
+      "status": "SUCCEED"
+    },
+    "hostedFilesMatched": 4,
+    "versionedFilesMatched": 4
+  },
+  "explanation": "Replace manual businessId entry with existing merchant inventory names/areas, searchable explicit selection, scoped named branch choices and loading/error/empty behavior. UI-only correction to Part60.",
+  "applicationDataWrites": 0,
+  "iamChanges": 0,
+  "functionsUpdated": 0,
+  "rollbackDirectory": "/private/tmp/commercial-branch-picker-20261017",
+  "published": true
+}

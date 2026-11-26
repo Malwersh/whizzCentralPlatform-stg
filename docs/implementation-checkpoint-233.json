@@ -1,0 +1,57 @@
+{
+  "part": 233,
+  "status": "PUBLISHED_STAGING_EXPLICIT_RETURN_AUTHORIZATION",
+  "scope": "Explicit whole-order return authorization before physical return on new-policy cases; old in-flight cases preserved",
+  "financialWritesByAgent": false,
+  "wholeSpecificationComplete": false,
+  "remainingOutsideThisSlice": [
+    "Replacement-driver custody and authorized safe-disposition execution",
+    "Item-level partial handoff and delivery",
+    "Funded fare/merchant compensation/refunds and claims/appeals"
+  ],
+  "publication": "return-disposition-publication-233.json",
+  "hosting": "return-disposition-page-publication-233.json",
+  "implemented": [
+    "New-policy driver reports create REQUESTED with custody WITH_DRIVER; no authorization is inferred",
+    "No-response report consumes only the qualified attempt, not a physical-return authorization",
+    "Live branch owner records readiness independently from actual receipt",
+    "Global authorized staff explicitly confirms feasibility and issues immutable RETURN_TO_MERCHANT decision after signed readiness",
+    "Financial amounts and balances unchanged by report, readiness and authorization; old in-flight return paths preserved",
+    "Customer tracking and Live Activity suppress delivery ETA and show pending review before authorization"
+  ],
+  "tests": {
+    "wallet": 1192,
+    "capturedFinancialLifecycle": 65,
+    "engineFocused": 77,
+    "liveActivityAndStream": 9,
+    "driverFlutter": 8,
+    "merchantFlutter": 10,
+    "customerFlutter": 4,
+    "browser": "PASS",
+    "bundledMerchantAdapter": "PASS",
+    "liveAuthAndPublishedContent": "PASS",
+    "failed": 0
+  },
+  "native": {
+    "driver": {
+      "build": 212,
+      "device": "iMohammed",
+      "installed": true,
+      "launched": true
+    },
+    "customer": {
+      "build": 214,
+      "device": "iMohammed",
+      "installed": true,
+      "launched": true
+    },
+    "merchant": {
+      "build": 219,
+      "device": "iPhone16Pro simulator",
+      "installed": true,
+      "launched": true,
+      "processId": 1439
+    }
+  },
+  "physicalPositiveNewAuthorizationTest": "NOT_RUN"
+}

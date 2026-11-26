@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "actualHostAllocationFactories": 42,
+  "actualHostLifecycleFactories": 29,
+  "idempotentFiles": 45,
+  "businessDataModified": false
+}

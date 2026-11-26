@@ -1,0 +1,16 @@
+{
+  "status": "IMPLEMENTED_TESTED",
+  "customerBuild": 288,
+  "supersedes": "Visible 15-second interface refresh in build 287",
+  "policy": "Screen-owned template snapshot; no periodic presentation refresh",
+  "behavior": [
+    "Published template applied on screen opening or explicit pull-to-refresh",
+    "App resume can warm shared cache without replacing existing screen snapshot",
+    "Cache TTL expiry cannot reset an open screen to default sections",
+    "Current product options, cart state and scroll position are retained during background template fetch"
+  ],
+  "tests": 11,
+  "analyzerErrors": 0,
+  "analyzerWarnings": 0,
+  "backendDeploymentRequired": false
+}

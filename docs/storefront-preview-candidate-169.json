@@ -1,0 +1,14 @@
+{
+  "function": "WizzUser-DeliveryQuotes-staging",
+  "changedEntries": [
+    "index.js"
+  ],
+  "addedEntries": [
+    "storefront-runtime.js"
+  ],
+  "otherEntriesIdentical": true,
+  "candidateCodeSha256": "ODSDMFi8XCMTwyakxRk/Nqq4Khj2Ei86Mho/JPOj8Pk=",
+  "permissionPolicy": "StorefrontPreviewRead169",
+  "permissionDocument": "docs/storefront-preview-permissions-169.json",
+  "newFinancialWritePermissions": false
+}

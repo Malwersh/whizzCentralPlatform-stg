@@ -1,0 +1,58 @@
+{
+  "part": 356,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_VERIFIED_POSITIVE_SIGNUP_ACCEPTANCE_QUEUED",
+  "functions": [
+    {
+      "name": "staging-wizz-wallet-service",
+      "sha256": "GbqLBCwxV72wbPZwS4k1dXfMH6nGYuC4+J2AsboPrx0=",
+      "changedFiles": [
+        "dist/index.js",
+        "dist/index.js.map",
+        "dist/walletCreationAuth.js",
+        "dist/walletCreationAuth.js.map"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreservedExceptExplicitAuthBindings": true,
+      "strictInputTypesVerified": true
+    },
+    {
+      "name": "staging-wizz-wallet-creation-trigger",
+      "sha256": "P7D86JukHs8Az44ms80R+jWO/q3DMrM2G9M63OiiZvM=",
+      "changedFiles": [
+        "dist/cognitoTrigger.js",
+        "dist/cognitoTrigger.js.map",
+        "dist/walletCreationAuth.js",
+        "dist/walletCreationAuth.js.map"
+      ],
+      "unrelatedEntriesPreserved": true,
+      "configurationPreservedExceptExplicitAuthBindings": true,
+      "strictInputTypesVerified": true
+    }
+  ],
+  "financialRecordsWritten": 0,
+  "balanceChanges": false,
+  "apiMethodsParityBefore": 141,
+  "api": {
+    "deploymentId": "rb88aq",
+    "path": "POST /wallet/create",
+    "authorization": "AWS_IAM",
+    "unrelatedDeployedMethodsPreserved": true
+  },
+  "liveNegativeChecks": [
+    {
+      "case": "anonymous",
+      "status": 403,
+      "body": "empty object; no financial mutation"
+    },
+    {
+      "case": "untrusted-header",
+      "status": 403,
+      "body": "empty object; no financial mutation"
+    }
+  ],
+  "tests": {
+    "node": 69,
+    "authorizer": 16
+  }
+}

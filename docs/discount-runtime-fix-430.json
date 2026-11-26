@@ -1,0 +1,36 @@
+{
+  "id": 430,
+  "status": "deployed_staging",
+  "rootCause": "Live patched bundled reservation allocation referenced d instead of the function-local d4, causing TypeError calculationMode before returning an offer preview and during order resolution",
+  "resolution": [
+    "Corrected exact bundle lexical binding in ApplyPromoCode, ValidatePromoCode and CreateOrder while preserving all other deployed files and function configuration",
+    "Fixed prepare-item-markdown-361.cjs to derive lexical binding rather than hardcode d",
+    "Canonical discount resolver emits actionable minimum, date, usage and nonmatching goods codes",
+    "Customer separates service failure from customer eligibility failure and preserves known stock/catalog errors"
+  ],
+  "validation": {
+    "backendTests": 24,
+    "flutterTests": 18,
+    "liveBundleTests": "Original failure reproduced in all 3 live artifacts; corrected per-item/fixed allocation, branch and product scope and minimum checks using fake read-only sources",
+    "lambdaArtifacts": [
+      {
+        "function": "WizzUser-CreateOrder-staging",
+        "codeSha256": "u0L9oQmH6EtEFaid8mFfYgScjFMp5ZeN5qEzIR2P/7I=",
+        "configurationPreserved": true
+      },
+      {
+        "function": "WizzUser-ValidatePromoCode-staging",
+        "codeSha256": "7ClxMvan/478oB3HTJpLmTkdQL5RlUhIlc6ejXPUqOE=",
+        "configurationPreserved": true
+      },
+      {
+        "function": "WizzUser-ApplyPromoCode-staging",
+        "codeSha256": "dv0fR7OAd2wCoWUtlKaug36gNd2/9+b1MjBOni4tYSs=",
+        "configurationPreserved": true
+      }
+    ],
+    "customerRelease": 394
+  },
+  "humanRetry": "User confirmed the 40% merchant offer applied successfully to the same basket",
+  "noDataChanges": "No campaign edits, order creation, wallet mutation or usage consumption performed"
+}

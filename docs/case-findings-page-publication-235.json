@@ -1,0 +1,13 @@
+{
+  "part": 235,
+  "baseJobId": "131",
+  "jobId": "132",
+  "changedFiles": [
+    "pages/order-exceptions.html",
+    "order-exception-cases.js"
+  ],
+  "otherFilesPreserved": true,
+  "status": "SUCCEED",
+  "sha256": "23f51d4a5897a6c169479a790f7a65b0127d0c6d7821cd3e16e86c5fc061d4d2",
+  "hostedBytesVerified": true
+}

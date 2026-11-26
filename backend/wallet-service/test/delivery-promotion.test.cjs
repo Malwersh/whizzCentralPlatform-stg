@@ -1,0 +1,45 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const {calculateDeliveryPromotionCandidate:calc}=require('../dist/deliveryPromotion');
+const {parseIqd:m,formatIqd:f}=require('../dist/money');
+const {fixture}=require('./helpers/delivery-promotion-fixture.cjs');
+test('existing route engine plus platform-funded cap gives customer 1500 and platform 2500',()=>{const r=calc(fixture());assert.equal(r.applied,true);assert.equal(f(r.calculation.customerDeliveryFee),'1500');assert.equal(f(r.funding.allocation.platformShare),'2500');assert.equal(r.calculation.rule.id,'tariff');});
+test('free, amount, ratio and fixed rules reuse discount application',()=>{
+ for(const [rule,expected] of [[{kind:'FREE'},'0'],[{kind:'AMOUNT_OFF',amount:m('500')},'3500'],[{kind:'PERCENT_OFF',numerator:1,denominator:2,maximumDiscount:m('3000')},'2000'],[{kind:'FIXED_TARIFF',amount:m('1500')},'1500']]){const v=fixture();v.policy.customerRule=rule;assert.equal(f(calc(v).calculation.customerDeliveryFee),expected);}
+});
+test('cap never increases low normal tariff; fixed tariff increase takes explicit separate path',()=>{const v=fixture();v.pricingRequest.rules[0].base=m('1000');let r=calc(v);assert.equal(r.applied,false);assert.equal(f(r.calculation.customerDeliveryFee),'1000');v.policy.customerRule.kind='FIXED_TARIFF';assert.throws(()=>calc(v),e=>e.code==='FIXED_TARIFF_REQUIRES_TARIFF_PATH');});
+test('shared delivery stays shared and conserves funding',()=>{const v=fixture();v.policy.origin='SHARED';v.policy.funding={kind:'CONTRIBUTION_THEN_REMAINDER',contributor:'MERCHANT',contribution:m('1000'),remainderCap:m('3000')};v.policy.limits.merchantPerOrder=m('1000');v.policy.limits.merchantBudget=m('10000');const r=calc(v);assert.equal(r.calculation.discountFunding.party,'SHARED');assert.equal(f(r.funding.allocation.merchantShare),'1000');assert.equal(f(r.funding.allocation.platformShare),'1500');});
+test('date bounds, geography, basket basis, audience, usage and stacking enforce eligibility',()=>{
+ for(const edit of [v=>v.policy.effectiveFrom='2026-10-19T00:00:00.000Z',v=>v.policy.effectiveTo=v.pricingRequest.at,v=>v.policy.eligibility.regionIds=['other'],v=>v.policy.eligibility.maximumRoadMeters=1999,v=>v.policy.eligibility.minimumGoods=m('11500'),v=>v.policy.eligibility.audience='NEW_CUSTOMER',v=>v.eligibility.customerUses=3,v=>v.policy.eligibility.goodsDiscountStacking='DENY']){const v=fixture();edit(v);const r=calc(v);assert.equal(r.applied,false);assert.equal(r.reason,'NOT_ELIGIBLE');assert.equal(f(r.calculation.customerDeliveryFee),'4000');}
+ const v=fixture();v.policy.effectiveFrom=v.pricingRequest.at;v.policy.eligibility.minimumGoods=m('11500');v.policy.eligibility.minimumGoodsBasis='GOODS_GROSS';assert.equal(calc(v).applied,true);
+});
+test('funding cap fallback does not reassign liability',()=>{const v=fixture();v.policy.limits.platformPerOrder=m('2000');const r=calc(v);assert.equal(r.reason,'FUNDING_CAP_EXCEEDED');assert.equal(r.funding,null);assert.equal(f(r.calculation.customerDeliveryFee),'4000');});
+test('strict inputs exclude foreign policies, nested promotions and fabricated customer facts',()=>{
+ for(const edit of [v=>v.policy.branchId='other',v=>v.policy.merchantId='other',v=>v.pricingRequest.discount={id:'old',fundingParty:'PLATFORM',amount:m('1')},v=>v.driverEarning=m('4000'),v=>v.eligibility.customerUses=-1,v=>v.eligibility.isNewCustomer='yes',v=>v.eligibility.goodsAfterDiscounts=m('13000'),v=>v.eligibility.hasGoodsDiscount=false]){const v=fixture();edit(v);assert.throws(()=>calc(v));}
+});
+test('percent promotion follows existing whole-IQD quantum without binary rounding',()=>{const v=fixture();v.pricingRequest.rules[0].finalRounding={incrementIqd:1,mode:'EXACT'};v.policy.customerRule={kind:'PERCENT_OFF',numerator:1,denominator:3,maximumDiscount:m('5000')};const r=calc(v);assert.equal(f(r.calculation.customerDeliveryFee),'2667');assert.equal(f(r.funding.allocation.platformShare),'1333');});
+
+test('cash rounding follows promotions and funds only actual customer savings',()=>{
+ for(const customerRule of [
+  {kind:'FIXED_TARIFF',amount:m('1100')},
+  {kind:'CAPPED_PRICE',amount:m('1100')},
+  {kind:'AMOUNT_OFF',amount:m('2900')},
+  {kind:'PERCENT_OFF',numerator:29,denominator:40,maximumDiscount:m('4000')},
+ ]){
+  const v=fixture();v.pricingRequest.rules[0].finalRounding={incrementIqd:250,mode:'CEILING'};v.policy.customerRule=customerRule;
+  const r=calc(v);assert.equal(r.applied,true);
+  assert.equal(f(r.calculation.customerDeliveryFee),'1250');
+  assert.equal(f(r.funding.allocation.subsidy),'2750');
+  assert.equal(f(r.funding.allocation.platformShare),'2750');
+  assert.equal(f(r.calculation.components.promotionRoundingAdjustment),'150');
+  assert.equal(f(r.calculation.components.customerFeeBeforeFinalRounding),'1100');
+  assert.equal(f(r.calculation.discountFundingAmount),'2750');
+ }
+});
+test('free delivery stays zero and sub-quantum promotions reserve no budget',()=>{
+ for(const rule of [{kind:'FREE'},{kind:'AMOUNT_OFF',amount:m('100')}]){
+  const v=fixture();v.pricingRequest.rules[0].finalRounding={incrementIqd:250,mode:'CEILING'};v.policy.customerRule=rule;
+  const r=calc(v);
+  if(rule.kind==='FREE'){assert.equal(r.applied,true);assert.equal(f(r.calculation.customerDeliveryFee),'0');assert.equal(f(r.funding.allocation.platformShare),'4000');}
+  else {assert.equal(r.applied,false);assert.equal(r.funding,null);assert.equal(r.reason,'NO_DISCOUNT');assert.equal(f(r.calculation.customerDeliveryFee),'4000');}
+ }
+});

@@ -1,0 +1,58 @@
+{
+  "part": 209,
+  "status": "PUBLISHED_ACTIVE_VERIFIED_APP_LAUNCH_VERIFIED",
+  "resumeAt": "209 device launch verified; continuing statement detail and bounded export in211",
+  "backend": {
+    "functionsUpdated": 7,
+    "existingRoutesReused": true,
+    "active": true,
+    "approvalPolicy": "SINGLE_FINANCE_ADMIN_WITH_OWNER_RECEIPT",
+    "existingApprovalLimitsUnchanged": true,
+    "paymentMethods": [
+      "CASH",
+      "ZAIN_CASH"
+    ],
+    "externalExecution": "MANUAL_ONLY",
+    "bankEnabled": false
+  },
+  "tests": {
+    "walletServicePassed": 1064,
+    "accountDeletionPassed": 262,
+    "merchantWidgetPassed": 4,
+    "browserWorkflowsPassed": 4,
+    "iamDeltaSimulationsPassed": 10,
+    "negativeDeployedAuthSmokesPassed": 2
+  },
+  "hosting": {
+    "jobId": "118",
+    "hostedBytesVerified": true
+  },
+  "merchantApp": {
+    "bundleId": "com.whizz.merchants",
+    "build": 209,
+    "mode": "Release",
+    "installedOn": "iMohammed",
+    "installSucceeded": true,
+    "launchVerified": true,
+    "processObserved": true
+  },
+  "noRealPayoutOrOtpOrMoneyMovement": true,
+  "deferredByUser": [
+    "Card capture integration pending provider contract"
+  ],
+  "evidence": [
+    "merchant-payout-publication-209.json",
+    "merchant-payout-verification-209.json",
+    "merchant-payout-page-publication-209.json"
+  ],
+  "nextSteps": [
+    "Complete merchant app launch verification after device reconnects",
+    "Any real cash/Zain execution and owner receipt remain user actions; no monetary operation performed by agent"
+  ],
+  "temporaryPause": {
+    "reason": "User requested Live Activity visual design only",
+    "resume": "Payout cycle 209: preserve published implementation; finish device launch verification and continue plan",
+    "userReportedEvidence": "Two new orders (tip; tip plus 10% discount) completed through all three apps; Live Activity updates worked perfectly. Financial journals not independently audited in this check.",
+    "resumed": true
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "status": "PUBLISHED_STAGING_RELEASE290_INSTALLED_LAUNCHED",
+  "features": [
+    "Own incident list with original accepted-offer and immutable-event proof",
+    "No disclosure of staff identities, other-party evidence references, financial receipts or customer data",
+    "Partial bounded history explicitly labelled and read errors never shown as clean empty results",
+    "Original-token Cognito verification for own driver appeal",
+    "Driver appeal reopens same administrative case with exact idempotency/version guards",
+    "New case on released prior assignment uses original release archive and matching integration event and accepted offer",
+    "Open or resolved quality cases pause driver deletion for review; no invented nonfinancial retention duration and no financial debt inferred"
+  ],
+  "tests": {
+    "sourceRegression": 38,
+    "accountDeletionSource": 272,
+    "capturedIncidentAndAppeal": 16,
+    "capturedRetention": 13,
+    "flutter": 13,
+    "flutterAnalysis": "No issues found"
+  },
+  "driverRelease": {
+    "build": 290,
+    "built": true,
+    "installed": true,
+    "launched": true
+  },
+  "businessMutationsByAgent": 0,
+  "retentionPolicy": {
+    "userAnswer": "NO_APPROVED_POLICY",
+    "duration": null,
+    "status": "PENDING_POLICY_REVIEW",
+    "noAutomaticPurgeOrFinancialRetentionReuse": true
+  },
+  "permission": {
+    "status": "EXPLICIT_USER_APPROVED_APPLIED_VERIFIED",
+    "policy": "docs/driver-quality-read-policy-290.json",
+    "action": "dynamodb:Query",
+    "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+    "writePermissionAdded": false,
+    "applied": true,
+    "userApproval": "نعم اوافق",
+    "approvalContext": "User approved the exact named read-only Query scope and then requested inspection of ORD1792911323338 first."
+  },
+  "manualAcceptance": "DEFERRED_READY_AFTER_PUBLICATION_NOT_PASSED",
+  "remaining": [
+    "Human acceptance remains deferred except the cancellation/completion test the user is now performing manually",
+    "Approve a separate nonfinancial retention policy before deleting affected case evidence; no duration selected",
+    "Public assigned-driver rating display in customer and merchant apps remains separate unfinished work",
+    "D01 vehicle approval, document validity and operating region remains open"
+  ],
+  "publication": "docs/driver-quality-self-service-publication-290.json",
+  "corePublishedFunctions": [
+    "staging-driver-financial-accept",
+    "staging-account-deletion-requests",
+    "staging-account-deletion-worker"
+  ],
+  "driverApiPublished": true,
+  "authenticatedBoundary": {
+    "list": 401,
+    "appeal": 401
+  }
+}

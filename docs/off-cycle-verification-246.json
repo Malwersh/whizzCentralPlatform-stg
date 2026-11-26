@@ -1,0 +1,17 @@
+{
+  "part": 246,
+  "status": "PASS",
+  "serviceAndAssetsVerified": true,
+  "recurringScheduleUnchanged": true,
+  "currentTest": {
+    "orderNumber": "ORD1792545370610",
+    "merchantCompensationIqd": 6250,
+    "status": "LOCKED_PENDING_SETTLEMENT",
+    "statementCreatedByAgent": false,
+    "payoutExecutedByAgent": false,
+    "driverFareIqd": 2750,
+    "driverGuaranteeStatus": "RELEASED"
+  },
+  "merchantBuild": 224,
+  "wholeSpecificationComplete": false
+}

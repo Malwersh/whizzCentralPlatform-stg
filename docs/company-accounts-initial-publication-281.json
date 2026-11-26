@@ -1,0 +1,33 @@
+{
+  "part": 281,
+  "status": "PUBLISHED_VERIFIED",
+  "baseStaffCodeSha256": "u//6UBwra/oQEesUtEASV7wrZhXlNUNKtc2rWwnh9wo=",
+  "staffRole": "arn:aws:iam::699561669180:role/staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+  "baseHostingJobId": "158",
+  "staffFiles": [
+    "company-accounts-281.js",
+    "_discount_review/central-staff/index.js"
+  ],
+  "hostingFiles": [
+    "pages/financial-management.html",
+    "company-accounts.js",
+    "styles/company-accounts.css",
+    "assets/js/navigation.js",
+    "assets/js/rbac.js",
+    "includes/sidebar.html",
+    "pages/finance.html"
+  ],
+  "removedHostingFiles": [
+    "financial-management.js"
+  ],
+  "unrelatedEntriesPreserved": true,
+  "staffCandidateSha256": "e6530560cefa3cc03ed4830f121b18d5e2c0f465c2bd9f7066c020b3a1e3b78f",
+  "hostingCandidateSha256": "267e611178058bcb6eef16e7f9fbab18ebb31c6b63fab3b9764725dea16b1b0c",
+  "readPolicyArn": "arn:aws:iam::699561669180:policy/staging-company-accounts-read-281",
+  "iamProjectionTests": "PASS",
+  "businessDataModified": false,
+  "deployedStaffCodeSha256": "5lMFYM76PMA+1IMPEhsY1eLA9GXCvZ9wZsAgs6Hjt48=",
+  "hostingJobId": "159",
+  "unauthenticatedReadRejected": true,
+  "allHostedBytesVerified": true
+}

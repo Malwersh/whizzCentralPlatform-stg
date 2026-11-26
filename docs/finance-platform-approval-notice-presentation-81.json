@@ -1,0 +1,76 @@
+{
+  "part": 81,
+  "date": "2026-10-17",
+  "deployment": {
+    "baseJobId": "96",
+    "jobId": "97",
+    "changedFiles": [
+      "commercial-platform-notices.js",
+      "pages/account-deletion-requests.html",
+      "pages/customers.html",
+      "pages/dashboard.html",
+      "pages/drivers.html",
+      "pages/finance.html",
+      "pages/merchants.html",
+      "pages/orders-management.html",
+      "pages/orders.html",
+      "pages/regions.html",
+      "pages/settings.html",
+      "pages/staff.html",
+      "pages/support.html",
+      "pages/delivery-pricing.html",
+      "pages/promotions.html",
+      "pages/account-security.html"
+    ],
+    "sha256": "456a5331c5b043470af0393426a52ac2415db76e1dced0ee7a7c99749a7a492d",
+    "backendChanged": false,
+    "applicationDataWrites": false,
+    "status": "SUCCEED",
+    "hostedBytesVerified": true
+  },
+  "presentationChecks": {
+    "passed": true,
+    "bellInsideFundingSection": true,
+    "noPersistentOverlay": true,
+    "widths": [
+      375,
+      1280
+    ],
+    "closeButton": true,
+    "escape": true,
+    "outsideClick": true,
+    "focusRestored": true,
+    "pollDoesNotReopen": true,
+    "toastDismissible": true,
+    "stableFocusDuringPolling": true,
+    "realWrites": false
+  },
+  "behaviorChecks": {
+    "passed": true,
+    "automaticStateRefresh": true,
+    "unsavedFormPreserved": true,
+    "openCardPreserved": true,
+    "actualAcceptorShown": true,
+    "duplicateNoticeSuppressed": true,
+    "readStateScoped": true,
+    "revokedAccessCleared": true,
+    "eventReads": 6,
+    "realApplicationWrites": false
+  },
+  "changes": [
+    "Compact bell inside funding-policy section summary; agreement section or page content used on other protected pages",
+    "Unread badge; popup remains closed until user clicks bell",
+    "Close button, Escape and outside click; keyboard focus restored when appropriate",
+    "Popup remains within 375px/1280px viewport",
+    "Toast can be dismissed and auto-hides after six seconds",
+    "Polling retains focus and does not reopen dismissed popup",
+    "Existing two-second refresh, audit events and employee-scoped read markers retained"
+  ],
+  "backendChanged": false,
+  "applicationDataWrites": false,
+  "phoneBuildChanged": false,
+  "screenshotsReviewed": [
+    "/private/tmp/sharing81/popup-375.png",
+    "/private/tmp/sharing81/popup-1280.png"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "part": 257,
+  "status": "PUBLISHED",
+  "scope": "Iraq timezone labels; no time calculation changes",
+  "businessWrites": false,
+  "hosting": {
+    "baseJobId": "144",
+    "jobId": "145",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-payout-print.js",
+      "finance-period-label.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

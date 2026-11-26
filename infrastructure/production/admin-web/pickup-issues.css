@@ -1,0 +1,18 @@
+.pickup-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.pickup-form label { flex: 1 1 210px; max-width: 420px; margin: 0; }
+.pickup-form input { margin-block-start: 5px; }
+.platform-main .pickup-secondary { background: #fff; color: #062b67; border: 1px solid #c9d2e0; }
+.pickup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 275px), 1fr)); gap: 14px; }
+.pickup-grid article { min-width: 0; padding: 16px; border: 1px solid #dce4ef; border-radius: 14px; background: #f8fafc; }
+.pickup-grid article.overdue { border-inline-start: 4px solid #a22222; }
+.pickup-grid h3, .pickup-grid p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.pickup-grid label { margin-block: 12px; }
+.pickup-grid select { display: block; width: 100%; padding: 12px; border: 1px solid #c9d2e0; border-radius: 12px; font: inherit; color: #062b67; background: #fff; }
+.pickup-grid input[type=checkbox] { display: inline-block; width: auto; margin-inline-end: 8px; }
+#detail dl { display: grid; grid-template-columns: minmax(120px, 1fr) 2fr; gap: 8px; }
+#detail dd { margin: 0; overflow-wrap: anywhere; }
+#work { margin-block-start: 16px; }
+#message.error { color: #a22222; }
+#review { width: min(90vw, 540px); max-height: 90vh; border: 1px solid #dce4ef; border-radius: 14px; padding: 22px; color: #062b67; }
+#review::backdrop { background: #0b173870; }
+@media (max-width: 520px) { #detail dl { grid-template-columns: 1fr; } #detail dd { margin-block-end: 8px; } }

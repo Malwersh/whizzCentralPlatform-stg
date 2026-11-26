@@ -40,3 +40,10 @@ Sources: https://docs.zaincash.iq/ ; https://developers-gate.qi.iq/docs/api-auth
 Staging SAM stack updated successfully; Amplify staging job 18 succeeded. Live Lambda checks created PENDING sessions for both providers, denied a driver's finance-setting update (403), returned eligible=false for a non-allowlisted driver, and reported isolated balance zero before payment. Unauthenticated sandbox configuration returns 401. An unknown callback claiming SUCCESS is acknowledged without crediting anything. The primary driver's available balance remained 50,000 IQD and locked balance zero. The user confirmed both test methods appear on the real iPhone. Final completed-payment acceptance is pending user checkout.
 
 Validation totals: 23 Node backend tests (including sandbox, manual funding and push), 3 Python role tests, 3 finance-page tests, Flutter analysis without issues and 2 routing tests including the sandbox notification type.
+
+
+## Operational gateway follow-up — 260
+
+The primary driver topup screen now uses `zaincash_payment_screen.dart` and `/wallet/funding/zaincash/*` for both UAT and LIVE. Existing sandbox APIs and historical data are preserved; the old ZainCash sandbox tile is no longer the primary entry. Qi sandbox remains independent. The new UAT path writes isolated success evidence and never spendable wallet balances. A legacy sandbox success is not silently promoted into the new launch acceptance proof.
+
+Read `zaincash-readiness-260.json` for setup fields, pilot/general activation gates, safe retries, signed callbacks, original-attempt recovery, credential rotation, ongoing reconciliation, account-lifecycle guards and remaining human/provider acceptance. Existing official UAT credentials were initialized server-side with the real AWS setup principal and OAuth authentication succeeded. New UAT and LIVE payment creation remain disabled until explicitly configured. No completed provider payment or actual wallet credit was performed by the agent.

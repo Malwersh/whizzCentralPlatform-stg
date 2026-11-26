@@ -1,0 +1,10 @@
+{
+  "status": "LOCAL_CANDIDATE_IMPLEMENTED_NOT_DEPLOYED",
+  "module": "backend/wallet-service/src/deliveryPromotion.ts",
+  "reuses": ["calculateDeliveryFee", "Money", "multiplyMoney", "quantizeWholeIqd", "readDeliveryFundingPolicy", "calculatePolicyDeliveryFunding"],
+  "verification": {"typescriptCompile": "PASS", "runtimeSync": "PASS", "testsPassed": 61, "newPromotionTests": 8},
+  "remaining": ["trusted live policy and authority reader", "customer/cart eligibility evidence", "policy priority and discovery", "fixed tariff above normal integration", "atomic budget/usage reservation", "order financial lifecycle and UI"],
+  "approvalFlow": "STAFF_SEND_MERCHANT_ACCEPT",
+  "awsMutations": 0,
+  "financialWrites": 0
+}

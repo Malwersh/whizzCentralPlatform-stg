@@ -1,0 +1,67 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "phase": 281,
+  "functions": [
+    {
+      "function": "whizz-order-ratings-staging-ratings",
+      "hash": "TExkU8KW3yQ11SmkqcrapE9srrratabJpjCCp9OIUik=",
+      "revision": "fa74498c-e912-40a6-b274-b7d294ac7342",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true,
+      "postIndexCodeHashReverified": true
+    },
+    {
+      "function": "DriversApi-staging",
+      "hash": "hXBZjqz2e2Na9kvAsmG1iRSWprSnEPxTdWwGYX9cU8g=",
+      "revision": "336ea49b-2914-411a-b750-45bb8ac88b4e",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    }
+  ],
+  "newIndex": "DriverRatingChronology281",
+  "tableReplacement": false,
+  "originalStarsOrCommentsChanged": false,
+  "walletOrLedgerWrites": false,
+  "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "readOnlyIamPolicy": "DriverRatingWindow281",
+  "metadataPreparation": {
+    "phase": 281,
+    "mode": "APPLY",
+    "scannedRows": 0,
+    "verifiedDriverRatings": 0,
+    "merchantOnlyRatings": 0,
+    "metadataNeeded": 0,
+    "metadataChanged": 0,
+    "originalRatingValuesChanged": false,
+    "aggregateOrProfileWrites": false,
+    "financialWrites": false
+  },
+  "changeSetExecuted": "driver-rating-window-281-20261025055119",
+  "indexVerification": {
+    "status": "VERIFIED",
+    "scannedRows": 0,
+    "driverQueriesVerified": 1,
+    "emptySourceProbe": true,
+    "noBusinessWrites": true
+  },
+  "indexStatus": "ACTIVE",
+  "localSdkSsoCompatibility": "Verified using same approved AWS CLI profile cached short-lived role credentials in memory; no secrets persisted.",
+  "postPublicationAnonymousCheck": {
+    "route": "driver/performance?rules=4",
+    "status": 401,
+    "dataAccessDenied": true
+  },
+  "explicitApprovalEvidence": "docs/driver-rating-window-approval-281.json",
+  "device": {
+    "release": 281,
+    "installed": true,
+    "launched": true,
+    "sessionPreserved": true,
+    "testLocationUnchanged": true
+  },
+  "automatedTests": {
+    "capturedRuntimeAndMetadata": 87,
+    "flutterPerformanceAndMore": 21,
+    "changeSetGuard": "PASS"
+  }
+}

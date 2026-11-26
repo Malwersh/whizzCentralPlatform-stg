@@ -1,0 +1,19 @@
+{
+  "part": 256,
+  "scope": [
+    "Cash voucher is the clear stable primary reference of the cash payout report; no fictitious independent sequence",
+    "Explicit cash voucher versus external transfer labeling, LTR code isolation",
+    "Human executor/reconciler names, public order number, owner receipt and reconciliation timestamps",
+    "Verified historical source balances 10000 before / 3750 after cash delivery",
+    "One A4 page for the current one-order payout; metadata grouped and signatures intact",
+    "Optional separately paginated technical audit appendix; UUIDs and digest retained in system",
+    "Print dialog hint disables browser generated headers/footers"
+  ],
+  "references": [
+    "payout-report-verification-256.json",
+    "payout-report-access-256.json",
+    "payout-report-publication-256.json"
+  ],
+  "financialWrites": false,
+  "next": "User reviews improved PDF, then reviews financial case closure; current paid payout must not be repeated."
+}

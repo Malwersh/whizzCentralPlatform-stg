@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-04",
+  "build": 381,
+  "hostingJob": 258,
+  "changes": [
+    "76px rounded square surrounding cards; 80px central brand; 88px spacing",
+    "Automatically derive card colour from campaign background; nullable manual override in central settings",
+    "Existing campaign choices and published settings retained"
+  ],
+  "validation": {
+    "backendTests": 42,
+    "flutterTests": 9,
+    "browserWidths": [
+      390,
+      1280
+    ]
+  }
+}

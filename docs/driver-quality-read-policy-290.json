@@ -1,0 +1,18 @@
+{
+  "roleArn": "arn:aws:iam::699561669180:role/drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+  "policyName": "DriverQualityCaseRead290",
+  "policyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "ReadOwnQualityCasesFromExistingHoldsTable",
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:Query"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds"
+      }
+    ]
+  },
+  "scope": "Read-only Query on existing Holds; server derives driver from authenticated identity and verifies original accepted offer before projecting a case."
+}

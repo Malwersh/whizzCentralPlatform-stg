@@ -1,0 +1,42 @@
+{
+  "feature": "merchant_branch_receipts_498",
+  "date": "2026-11-10",
+  "status": "IMPLEMENTED_LOCAL_SIMULATOR_BUILD_HARDWARE_ACCEPTANCE_PENDING",
+  "scope": [
+    "branch-isolated device printer settings",
+    "kitchen/customer/cancellation receipts",
+    "same Arabic raster for preview and ESC/POS",
+    "58mm/80mm",
+    "explicit reprints",
+    "durable per-device journal and event-driven card status",
+    "manual/employee/automatic acceptance observations",
+    "preserve existing optional KDS forwarding"
+  ],
+  "money": "Display canonical order amounts only; no repricing, ledger, balance, or order-status mutation.",
+  "verification": {
+    "automatedUniqueTests": 27,
+    "virtualPrinter": "loopback TCP received kitchen/customer, explicit reprints, cancellation; duplicate observations suppressed",
+    "physicalPrinter": false
+  },
+  "entryPoints": [
+    "بطاقة الطلب ← الوصولات والطباعة",
+    "إعدادات POS ← الطابعات ووصولات الطلبات"
+  ],
+  "limitations": [
+    "No physical printer verified; paper, cut, Arabic legibility require hardware acceptance.",
+    "Device-local journal only: designate ONE printing device per branch. No cross-device lease.",
+    "App must be active and receiving order snapshots. No promise of printing while terminated.",
+    "After interrupted sending, explicit operator review/reprint required; never auto retry uncertain output.",
+    "Older accepted orders are manual after printer activation.",
+    "USB/Bluetooth/full POS integrations not implemented in this change."
+  ],
+  "manualAcceptance": [
+    "Preview both receipts and sizes from a real order without printer.",
+    "Configure a compatible LAN ESC/POS printer for branch; test print.",
+    "Accept manually/automatically/as employee with app active; verify one kitchen and one customer ticket.",
+    "Restart/reconnect and verify no duplicate same-device output.",
+    "Disconnect printer, check review label, reconnect and explicitly reprint.",
+    "Cancel printed order and check cancellation ticket.",
+    "Verify canonical order financial breakdown and paid/unpaid wording."
+  ]
+}

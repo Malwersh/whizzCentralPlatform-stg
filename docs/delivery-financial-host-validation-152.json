@@ -1,0 +1,25 @@
+{
+  "part": 152,
+  "localOnly": true,
+  "deployed": false,
+  "typescriptBuild": "PASS",
+  "targetedTestsPassed": 29,
+  "newFinancialHostTests": 8,
+  "sharedMechanism": "Existing bounded cursor/lease/pagination host with engine-specific checkpoint and coordinator capability",
+  "verified": [
+    "V2 timeout advances wave preserving original funding",
+    "Missing delivery acknowledgement resumes without new deadlines",
+    "Concurrent ticks share one financial lease",
+    "Assigned and foreign engine orders do not send",
+    "Failed invocation retries durable intent without reserving funds again",
+    "Empty and partial scan pages retain continuation",
+    "Disabled host, changed snapshot and unsupported restart fail closed",
+    "Finite search ends without cancellation or releasing original funding"
+  ],
+  "remaining": [
+    "Scoped runtime and rollout database checkpoint integration",
+    "Trusted financial websocket/push transport integration",
+    "Actual periodic Lambda handler integration and fresh package review",
+    "Device end-to-end verification before order admission"
+  ]
+}

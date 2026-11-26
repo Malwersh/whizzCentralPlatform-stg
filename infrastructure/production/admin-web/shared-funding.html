@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>التمويل المشترك للعروض — إدارة ويز</title>
+  <link rel="stylesheet" href="/portal.css">
+  <link rel="stylesheet" href="/platform-campaigns.css">
+  <link rel="stylesheet" href="/shared-funding.css">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script src="/shared-funding.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>التمويل المشترك للعروض</h1>
+      <div class="campaign-actions">
+        <button type="button" id="funding-new" hidden>مشاركة تمويل جديدة</button>
+        <button type="button" id="funding-refresh" class="campaign-secondary">تحديث</button>
+      </div>
+    </header>
+    <div class="funding-filters campaign-card">
+      <div class="campaign-grid">
+        <label>الفرع<select id="funding-branch"><option value="">جميع الفروع</option></select></label>
+        <label>الحالة<select id="funding-state">
+          <option value="">جميع الحالات</option>
+          <option value="READY">جاهزة للاعتماد</option>
+          <option value="WAITING">بانتظار موافقة المطعم</option>
+          <option value="APPROVED">معتمدة</option>
+          <option value="EXPIRED">منتهية</option>
+        </select></label>
+      </div>
+      <div class="campaign-actions">
+        <button type="button" id="funding-branches-more" class="campaign-secondary" hidden>تحميل فروع أخرى</button>
+        <button type="button" id="funding-clear-campaign" class="campaign-secondary" hidden>عرض جميع الحملات</button>
+      </div>
+    </div>
+    <p id="funding-status" role="status"></p>
+    <div id="funding-list" class="campaign-list" aria-label="طلبات التمويل المشترك"></div>
+    <button type="button" id="funding-more" class="campaign-secondary" hidden>عرض المزيد من الطلبات</button>
+    <dialog id="funding-editor" aria-labelledby="funding-editor-title">
+      <form id="funding-form">
+        <h2 id="funding-editor-title"></h2>
+        <div id="funding-proposal">
+          <div class="campaign-grid">
+            <label>الفرع<select id="funding-editor-branch" required></select></label>
+            <label>العرض<select id="funding-campaign" aria-label="العرض" required></select></label>
+          </div>
+          <button type="button" id="funding-editor-branches-more" class="campaign-secondary" hidden>تحميل فروع أخرى</button>
+          <div class="campaign-grid">
+            <label>حصة المطعم من قيمة الخصم (%)<input id="funding-merchant-share" type="number" inputmode="decimal" min="0.01" max="99.99" step="0.01" required></label>
+            <p id="funding-platform-share"></p>
+          </div>
+          <p id="funding-offer-terms"></p>
+        </div>
+        <p id="funding-confirmation" hidden></p>
+        <label><span id="funding-reason-label">سبب الإعداد</span><textarea id="funding-reason" rows="2" minlength="5" maxlength="300" required></textarea></label>
+        <p id="funding-editor-status" role="status"></p>
+        <div class="campaign-actions">
+          <button id="funding-save" type="submit"></button>
+          <button id="funding-close" type="button" class="campaign-secondary">إغلاق</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+</body>
+</html>

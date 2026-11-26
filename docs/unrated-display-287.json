@@ -1,0 +1,26 @@
+{
+  "status": "CUSTOMER_SIMULATOR_AND_DRIVER_RELEASE287_INSTALLED_LAUNCHED",
+  "emptyRatingLabel": "—",
+  "customerLocations": [
+    "BusinessModel ratingString",
+    "Store ratingLabel",
+    "map cards old/new",
+    "enhanced restaurant cards",
+    "restaurant hero",
+    "restaurant details"
+  ],
+  "driverLocations": [
+    "More profile header",
+    "personal profile",
+    "performance screen already dash"
+  ],
+  "reviewCount": "Removed remaining static500+ from rendered map card; actual positive review count only",
+  "tests": {
+    "customer": 16,
+    "driver": 9
+  },
+  "businessMutations": false,
+  "buildsPassed": true,
+  "installsPassed": true,
+  "launchesPassed": true
+}

@@ -1,0 +1,25 @@
+{
+  "task": 426,
+  "status": "implemented_and_deployed_staging",
+  "change": "Independent store search, menu tabs and menu content positions",
+  "sources": [
+    "search",
+    "menuTabs",
+    "menuContent"
+  ],
+  "existingTemplates": "Legacy combined menu splits in editor on edit; database remains unchanged until save and publish",
+  "compatibility": "Clients without storeStructureVersion=2 receive combined menu at content position",
+  "safety": "Full menu and menu tabs remain required, enabled, unfiltered and audience all; prices, catalog and offer eligibility unchanged",
+  "checks": {
+    "backendTests": 19,
+    "customerTests": 14,
+    "browserViewports": [
+      390,
+      1280
+    ],
+    "release": 387,
+    "hostingJob": 261
+  },
+  "deployment": "Preserved live runtime; overrode interface route/feed only with bundled interface-order-426.js",
+  "manualTestPending": "Move menu tabs above offers and content below search; publish and reenter store, tap category and verify target scrolling"
+}

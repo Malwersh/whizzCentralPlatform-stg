@@ -1,0 +1,79 @@
+{
+  "accountId": "746727375268",
+  "otpEnabled": false,
+  "apiEndpointsCreated": false,
+  "applications": [
+    {
+      "application": "Customer",
+      "poolId": "us-east-1_rNtNKVsVf",
+      "table": "wizz-production-CustomerPhoneAuth",
+      "functionName": "wizz-production-customer-phone-challenge",
+      "sourceModules": [
+        {
+          "module": "challenge-policy",
+          "sha256": "09d44b22c3f4c529d82a0edc1f0d4684eea7abb6f5d5f82e77101660daf5fd56"
+        },
+        {
+          "module": "login-proof",
+          "sha256": "55f506156c3bc907d8d174c93e1fc0fc8c4d988be53bbdf328cf9b2e889ceba8"
+        },
+        {
+          "module": "triggers",
+          "sha256": "3aec13896ce2988181acc72b3d2fbcf8f5a33e535d43e48d3387e7c0962cbdfe"
+        }
+      ]
+    },
+    {
+      "application": "Driver",
+      "poolId": "us-east-1_5sUT54eCB",
+      "table": "wizz-production-DriverOtpSessions",
+      "functionName": "wizz-production-driver-phone-challenge",
+      "sourceModules": [
+        {
+          "module": "challenge-policy",
+          "sha256": "09d44b22c3f4c529d82a0edc1f0d4684eea7abb6f5d5f82e77101660daf5fd56"
+        },
+        {
+          "module": "login-proof",
+          "sha256": "55f506156c3bc907d8d174c93e1fc0fc8c4d988be53bbdf328cf9b2e889ceba8"
+        },
+        {
+          "module": "triggers",
+          "sha256": "b5fd3d7b7013db26eb0ee67224003a060f678ac56927c27a328e141f9776dffb"
+        },
+        {
+          "module": "iraqi-phone",
+          "sha256": "87e4e9c78b83548ab31b2eddd6aa3aac5b2ebb6e14d47e5cbbeacb8dd77c7e94"
+        }
+      ]
+    },
+    {
+      "application": "Merchant",
+      "poolId": "us-east-1_2sKZ4fGbZ",
+      "table": "wizz-production-MerchantOtpSessions",
+      "functionName": "wizz-production-merchant-phone-challenge",
+      "sourceModules": [
+        {
+          "module": "merchant-challenge",
+          "sha256": "33225cc77482bda0bded53bef0ca744b142584f9bb4c693b9c5f3ae2cdc65610"
+        },
+        {
+          "module": "runtime",
+          "sha256": "3655251b02257fcec8a257bb2eb264740dd5bc00d50332374e0d16f74cbcb639"
+        },
+        {
+          "module": "merchant-login-proof.cjs",
+          "sha256": "86fb8a02c75987885191a75177634b36029eae30ffa825c979754e187646c58f"
+        },
+        {
+          "module": "merchant-enrollment.cjs",
+          "sha256": "11c51aba5b9db279b7ffced44509b0ff39ca64398c5bac82760f02fc3e312974"
+        },
+        {
+          "module": "merchant-enrollment-store.cjs",
+          "sha256": "e96176c33994975a0859faf59a14a9abf280be83981fbf51c146d06d28df6301"
+        }
+      ]
+    }
+  ]
+}

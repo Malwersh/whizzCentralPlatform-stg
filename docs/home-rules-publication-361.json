@@ -1,0 +1,45 @@
+{
+  "part": 361,
+  "status": "PUBLISHED_STAGING_VERIFIED",
+  "environment": "staging",
+  "layoutRecordsChanged": false,
+  "classificationRecordsSeeded": false,
+  "financialRecordsWritten": 0,
+  "existingStaffRolePreserved": true,
+  "tests": {
+    "node": 36,
+    "flutter": 16,
+    "browserViewports": [
+      390,
+      1280
+    ],
+    "actualBundleWiring": true
+  },
+  "backwardCompatibility": "Old clients omit unsupported filtered sections; old sections retain defaults",
+  "backend": {
+    "function": "staging-wizz-staff-service",
+    "sha256": "fLSDZBc+re3yN5Bz/ZU7cy1NfIySUs/GDwazNGNRkSg=",
+    "allOtherEntriesPreserved": true,
+    "configurationPreserved": true
+  },
+  "snapshot": {
+    "rebuilt": true,
+    "branches": 2,
+    "asOf": "2026-10-30T23:33:17.957Z"
+  },
+  "schedule": {
+    "rule": "staging-home-discovery-refresh-361",
+    "period": "1 hour",
+    "invokePermissionBoundToRule": true
+  },
+  "publicFeedVerified": true,
+  "hosting": {
+    "jobId": "234",
+    "previousJob": "233",
+    "sourceHashes": {
+      "home-layout.js": "1bb24f8cee970d9d77bdd377ad7474f5995505b3648458512d5b3f938575fbb5",
+      "pages/home-layout.html": "d399396874d7e1b58b343c51264276f9080ca4e60491c33fd39e6c1472c2d58e"
+    },
+    "allOtherEntriesPreserved": true
+  }
+}

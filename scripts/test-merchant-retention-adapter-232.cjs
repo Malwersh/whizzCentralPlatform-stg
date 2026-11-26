@@ -1,0 +1,14 @@
+'use strict';const assert=require('node:assert/strict');
+Object.assign(process.env,{FINANCIAL_COD_ASSIGNMENTS_MODE:'REQUIRED',FINANCIAL_COD_RETURNS_MODE:'REQUIRED',FINANCIAL_ACCEPT_FUNCTION_ARN:'arn:aws:lambda:us-east-1:699561669180:function:staging-driver-financial-accept'});
+const {route}=require('/private/tmp/exceptions-232/merchant-auth-candidate.js');let sends=0,request;
+const db={send:async c=>({Item:c.input.TableName==='WhizzMerchants_Businesses'?{businessId:'branch1',ownerId:'owner1',cognitoUserId:'owner1'}:{orderId:'order1',storeId:'branch1'}})};
+const client={send:async c=>{sends++;request=JSON.parse(Buffer.from(c.input.Payload));return {Payload:Buffer.from(JSON.stringify({statusCode:200,result:{success:true,orderId:'order1',cancellationStatus:'REQUESTED'}}))};}};
+(async()=>{const event={path:'/auth/order-cancellation',httpMethod:'GET',headers:{Authorization:'Bearer synthetic-owner'},queryStringParameters:{businessId:'branch1',orderId:'order1'}};
+ await route({db,sub:'owner1'},event,{},client);assert.equal(request.action,'read_merchant_cancellation');assert.deepEqual(request.body,{orderId:'order1',branchId:'branch1'});assert.equal(request.accessToken,'synthetic-owner');
+ const input={businessId:'branch1',orderId:'order1',requestId:'CAN:one',expectedVersion:1,preparationNotStarted:true};await route({db,sub:'owner1'},{...event,httpMethod:'POST'},input,client);assert.equal(request.action,'confirm_customer_cancellation');assert.equal(request.body.preparationNotStarted,true);
+ await assert.rejects(route({db,sub:'someone-else'},event,{},client),/OWNER_REQUIRED/);await assert.rejects(route({db,sub:'owner1'},{...event,httpMethod:'POST'},{...input,amount:1},client),/INVALID_COD_RETURN/);assert.equal(sends,2);
+ await route({db,sub:'owner1'},{...event,httpMethod:'POST'},{businessId:'branch1',orderId:'order1',requestId:'CAN:one',expectedVersion:1,goodsRetainedByBranch:true,preparationState:'STARTED',note:'actual food preparation'},client);assert.equal(request.action,'record_merchant_cancellation_retention');assert.equal(request.body.branchId,'branch1');assert.equal(request.body.note,'actual food preparation');
+ // Existing whole-order merchant cancellation retains its old delegated contract.
+ await route({db,sub:'owner1'},{...event,httpMethod:'POST'},{businessId:'branch1',orderId:'order1',offerId:'offer1',attempt:1,goodsRetainedByBranch:true,cashCollected:false},client);assert.equal(request.action,'cancel_before_pickup');assert.equal(request.body.branchId,'branch1');
+ console.log('PASS bundled merchant adapter: scoped owner read/confirm, exact request fields, original token, foreign actor denial and old cancellation compatibility');
+})().catch(e=>{console.error(e);process.exitCode=1;});

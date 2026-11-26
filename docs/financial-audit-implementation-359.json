@@ -1,0 +1,60 @@
+{
+  "part": 359,
+  "scope": "Manual topup lifecycle and wallet operating limits audit; independent driver cash payout audit is next",
+  "status": "PUBLISHED_STAGING_SHA_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+  "findings": [
+    "Manual topup audit captures actor ID/amount but not immutable staff identity or balance before/after",
+    "Reject path lacks live staff profile/version guard inside transaction",
+    "Date-partition audit sort key uses timestamp alone, permitting overwrite on same-millisecond requests",
+    "Pending operating limit proposal audit needs to retain proposed numbers independently of mutable pending slot"
+  ],
+  "changes": [
+    "financialAudit projections retain staff profile name/roles/version/scope read at action, with ID_ONLY for nonstaff/unavailable historical identity",
+    "Approval audit stores pending->approved state, exact available/locked/version snapshots and transaction/ledger references; no balance calculation changed",
+    "Create/reject explicitly record no monetary effect rather than invent wallet balances not read",
+    "Each topup audit uses timestamp+topup+action(+transaction) and conditional immutable Put in original atomic transaction",
+    "Reject validates reason and rechecks live finance.topup.review with staff active/version fence inside transaction; conflict returns actionable 409",
+    "Operating limit proposal audit includes proposedConfig and activeConfigChanged=false; saved active changes explicitly marked",
+    "Audit free text redacts bearer/JWT/signed-link material; oversized free text is explicitly hash/length marked"
+  ],
+  "verification": {
+    "testsPassed": 74,
+    "testsFailed": 0,
+    "typescript": "PASS",
+    "specificCases": [
+      "Exact audit balance delta and unchanged locked balance",
+      "Trusted staff profile roles retained instead of caller-provided role label",
+      "Rejected topup has reason/state and no balance update",
+      "Suspended staff cannot reject",
+      "Revoked staff version at commit prevents status/notification/audit writes",
+      "Two approvals at same timestamp have different immutable audit keys",
+      "Limit proposal archived while active config remains unchanged",
+      "Existing identity, transfer, payout and funding retry tests stay green"
+    ]
+  },
+  "publication": {
+    "function": "staging-wizz-wallet-service",
+    "modules": [
+      "dist/topupService.js",
+      "dist/walletLimitsSettings.js",
+      "dist/financialAudit.js"
+    ],
+    "sourceMapsIncluded": true,
+    "unrelatedModulesBytePreserved": true,
+    "environmentAndIAMUnchanged": true
+  },
+  "preserved": [
+    "No financial balance or daily limit calculation changes",
+    "No historical audit row rewrites or invented names",
+    "No actual topup approval/rejection or balance mutation performed for deployment",
+    "No app build or hosting change needed"
+  ],
+  "remaining": [
+    "Driver cash payout actor and before/after audit projections",
+    "Transfer/provider-specific audits and authority coverage",
+    "Authorized cross-source audit reader and operational failure coverage",
+    "Ordered human acceptance without treating synthetic tests as real cash proof"
+  ],
+  "financialRecordsWritten": 0,
+  "humanAcceptance": "DEFERRED_NOT_PASSED"
+}

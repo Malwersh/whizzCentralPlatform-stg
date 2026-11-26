@@ -1,0 +1,30 @@
+{
+  "part": 251,
+  "checkedAt": "2026-10-21T19:34:24.289519+00:00",
+  "status": "PASS",
+  "businessWritesByAgent": false,
+  "payout": {
+    "payoutId": "MPO:b402c95f947d7a06cbeda06c4fa822afbdc11e4a54bbb242",
+    "batchId": "MSB:e07bdd613375116bff5973bf9514056c332c68f9aac45d07",
+    "status": "PROCESSING",
+    "amountIqd": 6250,
+    "executionRecorded": false,
+    "cashAssetPostingRecorded": false
+  },
+  "cashboxDirectory": {
+    "complete": true,
+    "count": 0,
+    "openingOrPhysicalCashSeedByAgent": false
+  },
+  "checks": {
+    "walletTests": 1263,
+    "staffTests": 242,
+    "bundledRuntimeTests": 26,
+    "focusedCashAndPayoutTests": 47,
+    "browserAndPrint": "PASS",
+    "liveRolePermissionChecks": 38,
+    "platformWalletFundingRequired": false,
+    "sourceInitializedAndSufficientRequiredForPhysicalCash": true
+  },
+  "next": "User registers a real/test company cashbox, assigns an active registered custodian, records and approves documented opening; then completes existing 6250 payout without repeating fare/guarantee."
+}

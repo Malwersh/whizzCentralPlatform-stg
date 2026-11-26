@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "account": "699561669180",
+  "region": "us-east-1",
+  "financialActivation": "OFF",
+  "quoteEnabled": false,
+  "quotaConfigured": false,
+  "routingCredentialConfigured": false,
+  "existingEnvironmentMutation": false,
+  "existingIamMutation": false,
+  "merchant": {
+    "name": "order-receiver-merchant-orders-staging-v1",
+    "revisionId": "c2f69d8c-9f14-41cd-8288-d466354a1d74",
+    "codeSha256": "l5oHnMh7qPuQDjAilL1WBZ2NmkLezwSXK2481EaCazA=",
+    "ownerStack": "Wizz-Merchants-staging",
+    "handler": "merchant_order_handler.handler",
+    "preservedFiles": 4251,
+    "replacedFiles": [
+      "merchant_order_handler.js",
+      "shared/legacy-order-policy.js",
+      "shared/merchant-lifecycle.js"
+    ],
+    "addedFiles": [],
+    "published": {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeSha256": "l5oHnMh7qPuQDjAilL1WBZ2NmkLezwSXK2481EaCazA=",
+      "revisionId": "e95214cb-d307-481c-97a7-24c3bc3cbda8",
+      "environmentUnchanged": true
+    }
+  },
+  "quote": {
+    "name": "WizzUser-DeliveryQuotes-staging",
+    "newFunction": true,
+    "codeSha256": "mzLcBrKT/gORjTJ4vP9bGEQDFyVVCf4g8Jc+egooqRY=",
+    "files": [
+      "index.js"
+    ]
+  },
+  "stack": {
+    "name": "staging-delivery-quotes",
+    "sourceTemplate": "backend/wallet-service/delivery-quotes.staging.json",
+    "resources": [
+      "DeliveryQuotes",
+      "QuoteLogs",
+      "DeliveryQuoteRole",
+      "DeliveryQuotesFunction",
+      "DeliveryQuotesResource",
+      "CommercialPreviewResource",
+      "QuoteGetMethod",
+      "QuoteGetPermission",
+      "QuotePostMethod",
+      "QuotePostPermission",
+      "QuoteOptionsMethod",
+      "PreviewPostMethod",
+      "PreviewPostPermission",
+      "PreviewOptionsMethod",
+      "QuoteApiDeployment"
+    ],
+    "parameters": {
+      "QuoteCodeBucket": "aws-sam-cli-managed-default-samclisourcebucket-c0s0eilxsprc",
+      "QuoteCodeKey": "cod29/9b32dc06b293fe03918d3278bcff5b18440317255509fe20f0973e7a0a28a916.zip",
+      "CustomerRestApiId": "4jut6787c8",
+      "CustomerRootResourceId": "rtde87rap0",
+      "CustomerOrdersResourceId": "yg8set",
+      "CustomerAuthorizerId": "r7nmgw",
+      "MapboxSecretArn": ""
+    }
+  },
+  "previousCustomerDeployment": "864v5g",
+  "existingCustomerPaths": 65,
+  "policySha256": "5d7312b69cc1ba3cbc2017896534bfc1ae1691723d8216f82fb81d8215fb9ea4",
+  "date": "2026-10-16",
+  "status": "READINESS_AND_CLOSED_QUOTE_INFRASTRUCTURE_PUBLISHED",
+  "publication": {
+    "quoteFunction": {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeSha256": "mzLcBrKT/gORjTJ4vP9bGEQDFyVVCf4g8Jc+egooqRY=",
+      "revisionId": "ae6f3439-c0fc-42c7-8782-d7e3129682e5",
+      "enabled": false
+    },
+    "quoteRuntimeChecks": [
+      {
+        "method": "POST",
+        "statusCode": 503,
+        "code": "QUOTES_NOT_ENABLED"
+      },
+      {
+        "method": "GET",
+        "statusCode": 503,
+        "code": "QUOTES_NOT_ENABLED"
+      },
+      {
+        "method": "OPTIONS",
+        "statusCode": 204,
+        "code": null
+      }
+    ],
+    "iam": [
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+        "key": "CUSTOMER#cod29",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+        "key": "CUSTOMER#cod29",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:ConditionCheckItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+        "key": "CUSTOMER#cod29",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+        "key": "CUSTOMER#cod29",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:DeleteItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+        "key": "CUSTOMER#cod29",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-DeliveryQuotes",
+        "key": "PERSON#cod29",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders",
+        "key": "ORDER#cod29",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:UpdateItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Wallets",
+        "key": "WALLET#PLATFORM",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:PutItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-LedgerEntries",
+        "key": "WALLET#PLATFORM",
+        "decision": "implicitDeny"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "key": "OPERATIONAL_SETTINGS#DELIVERY_PRICING",
+        "decision": "allowed"
+      },
+      {
+        "action": "dynamodb:GetItem",
+        "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+        "key": "PERSON#cod29",
+        "decision": "implicitDeny"
+      }
+    ],
+    "table": {
+      "name": "staging-DeliveryQuotes",
+      "pitr": "ENABLED",
+      "ttl": "DISABLED"
+    },
+    "apiSnapshot": {
+      "oldDeployment": "864v5g",
+      "newDeployment": "tcrbil",
+      "oldPathsUnchanged": 65,
+      "newPaths": [
+        "/delivery-quotes",
+        "/orders/commercial-preview"
+      ],
+      "temporaryStageRemoved": true
+    },
+    "financialActivation": "OFF",
+    "http": [
+      {
+        "method": "GET",
+        "path": "/delivery-quotes",
+        "statusCode": 401
+      },
+      {
+        "method": "POST",
+        "path": "/delivery-quotes",
+        "statusCode": 401
+      },
+      {
+        "method": "POST",
+        "path": "/orders/commercial-preview",
+        "statusCode": 401
+      },
+      {
+        "method": "OPTIONS",
+        "path": "/delivery-quotes",
+        "statusCode": 200
+      },
+      {
+        "method": "OPTIONS",
+        "path": "/orders/commercial-preview",
+        "statusCode": 200
+      },
+      {
+        "method": "POST",
+        "path": "/orders",
+        "statusCode": 409
+      },
+      {
+        "method": "OPTIONS",
+        "path": "/orders",
+        "statusCode": 200
+      }
+    ],
+    "stageSwitched": true,
+    "humanDataAccess": false,
+    "otpOrPushSent": false
+  },
+  "realReadiness": {
+    "scope": "REAL_DYNAMODB_ISOLATED_TABLE_CANONICAL_READER",
+    "financialActivation": "OFF",
+    "applicationTablesAccessed": false,
+    "humanDataAccess": false,
+    "canonicalReaderAccepted": true,
+    "snapshotUnchanged": true,
+    "concurrentAssignmentProtected": true,
+    "tableDeleted": true
+  },
+  "realClosedAuth": {
+    "scope": "REAL_COGNITO_GATEWAY_CLOSED_QUOTE_PREVIEW",
+    "messagesSent": false,
+    "applicationWrites": false,
+    "existingClientsChanged": false,
+    "results": [
+      {
+        "method": "GET",
+        "path": "/delivery-quotes",
+        "statusCode": 503,
+        "code": "QUOTES_NOT_ENABLED"
+      },
+      {
+        "method": "POST",
+        "path": "/delivery-quotes",
+        "statusCode": 503,
+        "code": "QUOTES_NOT_ENABLED"
+      },
+      {
+        "method": "POST",
+        "path": "/orders/commercial-preview",
+        "statusCode": 409,
+        "code": "COMMERCIAL_NOT_ENABLED"
+      }
+    ],
+    "allFixturesRemoved": true,
+    "disabledTokenRejected": true,
+    "cleanupErrors": []
+  },
+  "reviewedChanges": [
+    {
+      "id": "CommercialPreviewResource",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "DeliveryQuoteRole",
+      "type": "AWS::IAM::Role",
+      "action": "Add"
+    },
+    {
+      "id": "DeliveryQuotesFunction",
+      "type": "AWS::Lambda::Function",
+      "action": "Add"
+    },
+    {
+      "id": "DeliveryQuotesResource",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "DeliveryQuotes",
+      "type": "AWS::DynamoDB::Table",
+      "action": "Add"
+    },
+    {
+      "id": "PreviewOptionsMethod",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "PreviewPostMethod",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "PreviewPostPermission",
+      "type": "AWS::Lambda::Permission",
+      "action": "Add"
+    },
+    {
+      "id": "QuoteApiDeployment",
+      "type": "AWS::ApiGateway::Deployment",
+      "action": "Add"
+    },
+    {
+      "id": "QuoteGetMethod",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "QuoteGetPermission",
+      "type": "AWS::Lambda::Permission",
+      "action": "Add"
+    },
+    {
+      "id": "QuoteLogs",
+      "type": "AWS::Logs::LogGroup",
+      "action": "Add"
+    },
+    {
+      "id": "QuoteOptionsMethod",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "QuotePostMethod",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "QuotePostPermission",
+      "type": "AWS::Lambda::Permission",
+      "action": "Add"
+    }
+  ],
+  "tests": {
+    "wallet": 460,
+    "merchant": 195,
+    "orderService": 17,
+    "quoteReleasePreparation": 9,
+    "deviceLifecycleFocused": 13,
+    "dedicatedTemplateLint": "CLEAN",
+    "flutterChanged": false,
+    "applicationsBuiltOrInstalled": false
+  },
+  "limitations": [
+    "Quote credential and operating quota remain unconfigured; enabled=false.",
+    "Authenticated test uses an administrator-only ephemeral client, not a normal application client; it only proves closed integrations.",
+    "Readiness transaction uses an isolated DynamoDB table and the canonical financial reader, not an active human order or a dispatch job.",
+    "No quote generation, pricing, funding reservation, financial settlement, cancellation or reassignment was activated.",
+    "Pre-assignment commercial merchant rejection still requires atomic funding release and remains blocked.",
+    "Reconcile current CodeUri and API stage deployment with parent SAM ownership before a full parent-stack deployment."
+  ],
+  "humanDataAccess": false,
+  "otpOrPushSent": false,
+  "humanOrdersOrFundsChanged": false
+}

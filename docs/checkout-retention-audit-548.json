@@ -1,0 +1,38 @@
+{
+  "batch": 548,
+  "status": "QUOTED_CHECKOUT_SCOPE_AUDITED_AUTOMATED_VERIFIED_RELATED_RESERVATIONS_OPEN",
+  "tests": {
+    "flutterConfirmationAccountIsolationAndRetry": 41,
+    "backendAccountGuardAndWrites": 13,
+    "deletionAndQuoteCleanup": 17,
+    "failed": 0,
+    "skipped": 0
+  },
+  "liveVerification": {
+    "createOrderFunction": "WizzUser-CreateOrder-staging",
+    "createOrderCodeHash": "u0L9oQmH6EtEFaid8mFfYgScjFMp5ZeN5qEzIR2P/7I=",
+    "deliveryQuoteMode": "REQUIRED",
+    "commercialPricingMode": "REQUIRED",
+    "deletionWorkerCodeHash": "T53Wh4x8RPAAfZ+7InB6zf4t6mNXvZnu/CURiq6/CNs=",
+    "workerAndCustomerCleanupAndQuoteAdapterMatchSource": true
+  },
+  "findings": [
+    "Unresolved confirmation request is persisted in device secure storage before request, scoped to owner",
+    "Timeout or malformed success preserves request identity for replay; definitive rejection/success removes attempt",
+    "Account switch cannot restore or submit another owners saved request",
+    "Completed deletion status or receipt triggers removal of scoped device attempt on that installation",
+    "Server request creates deterministic order ID and atomically consumes quote with order creation",
+    "Live profile deletion fence prevents late order creation",
+    "Personal quote cleanup is scoped and fenced; does not delete the resulting order or ledger"
+  ],
+  "limits": [
+    "No real account deletion or financial mutation executed",
+    "Remote devices are not proven physically wiped by the server; account authorization blocks stale requests",
+    "Related DELIVERY_USAGE/DELIVERY_RESERVATION funding and INVENTORY_RESERVATION records need separate ownership, retention and race review; quote coverage does not prove those sources complete"
+  ],
+  "next": "Inventory delivery-promotion usage/funding and product inventory reservation references before extending cleanup",
+  "cloudWrites": 0,
+  "recordsDeleted": 0,
+  "financialWrites": 0,
+  "X02Complete": false
+}

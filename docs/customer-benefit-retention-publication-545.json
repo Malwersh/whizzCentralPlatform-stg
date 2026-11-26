@@ -1,0 +1,60 @@
+{
+  "batch": 545,
+  "status": "STAGING_DEPLOYED",
+  "authorization": "User approved exact benefit Query read for request API and worker",
+  "scope": [
+    "Benefit inventory in request eligibility and worker preflight",
+    "Second check before personal cleanup including delivery quotes",
+    "Direct customer complaint ownership parity added to request API; worker retained 542"
+  ],
+  "permissions": {
+    "action": "dynamodb:Query",
+    "table": "staging-WizzOfferJourney",
+    "leadingKeys": [
+      "USER#*",
+      "BENEFIT_ORDER#*"
+    ],
+    "requestRolePolicy": "CustomerBenefitRetentionRead545",
+    "workerManagedPolicy": "staging-customer-benefit-retention-read-545",
+    "workerInlineQuotaReached": true,
+    "noAdditionalActionsGranted": true,
+    "simulation": {
+      "requestScopedQuery": "allowed",
+      "requestPutItem": "implicitDeny",
+      "requestDeleteItem": "implicitDeny",
+      "requestScan": "implicitDeny",
+      "workerScopedQuery": "allowed",
+      "workerOtherPartitionQuery": "implicitDeny"
+    }
+  },
+  "validation": {
+    "sourceTestsPassed": 62,
+    "artifactTestsPerPackage": 31,
+    "artifactTestsAreSubset": true,
+    "includes": [
+      "Pending reservations",
+      "Completed evidence retention review",
+      "Read failure fail closed",
+      "Cleanup blocked before quote purge and personal deletion",
+      "Ownership and pagination guards"
+    ]
+  },
+  "deployment": {
+    "worker": {
+      "function": "staging-account-deletion-worker",
+      "codeSha256": "T53Wh4x8RPAAfZ+7InB6zf4t6mNXvZnu/CURiq6/CNs=",
+      "status": "Successful",
+      "environmentUnchanged": true
+    },
+    "requests": {
+      "function": "staging-account-deletion-requests",
+      "codeSha256": "UVqd8WWcMsnkQD2DZxXCKBeI6QiPDMfLZOi1UXhjQPA=",
+      "status": "Successful",
+      "environmentUnchanged": true
+    }
+  },
+  "financialWrites": 0,
+  "recordsDeleted": 0,
+  "accountDeletionInvoked": false,
+  "limitation": "Existing completed benefit and compensation evidence blocks deletion pending a reviewed archive/retention adapter; this is a protective guard, not full benefit cleanup. Support complaint image retention remains open."
+}

@@ -1,0 +1,77 @@
+{
+  "part": 216,
+  "status": "PUBLISHED_ACTIVE_VERIFIED",
+  "objective": "Complete-period merchant accrual aggregation with zero-net coverage, exclusive saved membership and durable resumption",
+  "previousCheckpoint": "implementation-checkpoint-215.json",
+  "currentChanges": [
+    "merchantAccrualIndex.ts: strong branch discovery and bounded calendar-segment revision guards",
+    "COD V2/V3 and full-cash V4 completion append projection and revisions atomically; wallet/journal calculations unchanged",
+    "Durable collection service with 26-order/zero-net and lost-reply tests; staff API routes wired",
+    "Whole-period UI supports resume, source-change restart and immutable batch references",
+    "Retention inventory includes collection and accrual partitions before any producer publication"
+  ],
+  "sourceIndex": "staging-MerchantPlatform / MERCHANT_ACCRUAL#branch / DELIVERED#timestamp#order; HEAD and NODE calendar revisions",
+  "consistency": "4-way day tree depth9 (Baghdad-aligned day buckets), at most54 disjoint range guards; unrelated dates do not invalidate the collection",
+  "stillRequired": [],
+  "cloudSession": "VALID_ACCOUNT_699561669180",
+  "noLiveFinancialMutations": true,
+  "localVerification": {
+    "typescriptBuild": "PASS",
+    "walletTests": 1079,
+    "walletFailures": 0,
+    "retentionTests": 264,
+    "retentionFailures": 0,
+    "apiIntegrationTests": 2,
+    "browserSuites": [
+      "whole-period-collection-216",
+      "collection-print-216",
+      "merchant-statements-208",
+      "company-payout-print-215"
+    ],
+    "merchantAnalyze": "PASS",
+    "merchantReleaseBuild": 213
+  },
+  "hostingJob": "124",
+  "liveVerification": "merchant-collection-live-verification-216.json",
+  "historicalMigration": "merchant-accrual-migration-216.json",
+  "publication": "merchant-collection-publication-216.json",
+  "device": {
+    "merchantBuild": 213,
+    "built": true,
+    "installed": true,
+    "launched": true,
+    "runningProcessVerified": true,
+    "bundleId": "com.whizz.merchants",
+    "device": "iMohammed",
+    "acceptanceScope": "Installation, release launch and running process; no human payout or new financial action performed"
+  },
+  "scopeLimits": [
+    "Explicit finance-admin period initiation; child statements retain bounded transaction contract",
+    "No real cash/Zain payout acceptance or OTP performed",
+    "Legacy account screen remains posted-ledger coverage; zero-net included in new collection",
+    "Previously documented Android/compatibility requirements remain; card and bank disabled by decision"
+  ],
+  "sourceSha256": {
+    "backend/wallet-service/src/merchantAccrualIndex.ts": "74369e6da483895852d5177a974a9fb1935570fe2a2eace85a8be70fd01d2910",
+    "backend/wallet-service/src/merchantPeriodCollection.ts": "553d95983c53b7d058d4b955a5dfba58155fc28e14e842427776e767503a74fe",
+    "backend/wallet-service/src/codCompletion.ts": "a8920e2b856a64e986a20d90d74f912308f220a39f9817b242d8e6053b5aa74c",
+    "backend/wallet-service/src/fullCashCompletion.ts": "dc5723affe94877a6c56202d6f8fa409ef52cac7acddf12e87e717de84f4d984",
+    "backend/wallet-service/src/merchantSettlementBatch.ts": "aadca5bf14eab5681e2c1c2f4695df170e28e6dbdee4e2191bced89927641372",
+    "backend/wallet-service/src/merchantSettlementAdminRuntime.ts": "7984611381a8556a09623cae3d094cf14b7bbc1aa746d50e13eac5f969c485f2",
+    "backend/staff-service/settlement-schedules.js": "c399ed5178029f360b149b578903bf766f4553b3ec5b617ae412eea600ff6dc1",
+    "backend/staff-service/settlement-runtime.js": "78e04b72eecdcf4d43c059eecfa4604b7edc14a520372fc424419d605463d3a8",
+    "backend/account-deletion/settlement-retention.js": "b130c7ef436b0ccdaeced39e5a49b736c8d0328640ec47540b5c9f8607d67469",
+    "backend/account-deletion/settlement-collection-inventory.js": "878078a104978c635f9553c941f2e6a6aa1f72f8cbeed789c4107a5b08a95921",
+    "backend/shared/merchant-period-collection-access-216.template.json": "36795a752dffffae9c13703de57b8249d7920650c18ca6d4f6a676544ddfe098",
+    "frontend/merchant-period-collection.js": "16d15580cfe865c0fea5f24d26b7f25649116a8439891eae87c18b74c6c52734",
+    "frontend/merchant-collection-print.js": "1912248bc7324883d5fbdd2d9afaf23ee55919130c590ce365ee4f6acee70c2e",
+    "frontend/settlement-orders.js": "b66f14e1b716cf43c33800608fea3c3fbfc6468444b5c0c99202fb1e620446de",
+    "frontend/settlement-statements.js": "fded7380d8bd238b8e55d6e6a5dee59a4fb690a6eb514155a834b51cb26aa6d6",
+    "frontend/pages/finance.html": "e0b8fb4ae93cddcb2c17857fb0c13467d8fb2adee3801ac896cbc0ec63f8770f"
+  },
+  "actualEntryCorrection": {
+    "part": 217,
+    "checkpoint": "implementation-checkpoint-217.json",
+    "reason": "Earlier root overlay byte checks did not prove bundled staff routing; corrected actual entry and regressed real dispatch shape in217. Historical code hashes remain deployment evidence only."
+  }
+}

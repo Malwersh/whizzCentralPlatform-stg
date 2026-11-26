@@ -1,0 +1,64 @@
+{
+  "part": 216,
+  "readOnly": true,
+  "functions": [
+    {
+      "function": "staging-account-deletion-worker",
+      "codeSha256": "P+xBzw1BVfCl8ZqqaNn5eJHmddwSTXBwHUjQnHoQPg0=",
+      "verified": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "codeSha256": "9tn/1T5x3HAblZdgHNt6sCMDb1ho8TUwEZTzRgFXy3Y=",
+      "verified": true
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "codeSha256": "UGK7JsYiqSJ5T88OH4a+M9iuc2ezl6+CRZWiXc9QTMs=",
+      "verified": true
+    }
+  ],
+  "sourceIndex": {
+    "business_95ac73c9-feda-4207-9285-550aec61b94c": {
+      "verifiedOrderCount": 7,
+      "merchantNetIqd": 43575,
+      "currentPendingIqd": 43575,
+      "walletVersion": 8,
+      "zeroNetCount": 0
+    }
+  },
+  "permissions": [
+    {
+      "kind": "producer",
+      "policy": "staging-merchant-period-collection-216-producer",
+      "exactDeltaVerified": true
+    },
+    {
+      "kind": "staff",
+      "policy": "staging-merchant-period-collection-216-staff",
+      "exactDeltaVerified": true
+    },
+    {
+      "kind": "retention",
+      "policy": "staging-merchant-period-collection-216-retention",
+      "exactDeltaVerified": true
+    }
+  ],
+  "coverageCertificateVerified": true,
+  "hosting": {
+    "part": 216,
+    "baseJobId": "123",
+    "jobId": "124",
+    "changedFiles": [
+      "pages/finance.html",
+      "settlement-orders.js",
+      "settlement-statements.js",
+      "merchant-period-collection.js",
+      "merchant-collection-print.js"
+    ],
+    "otherFilesPreserved": true,
+    "status": "SUCCEED",
+    "sha256": "934bfbc594c5e58655980cf0786dd3e7874ae0b02efa3f1381471a35892bd589",
+    "hostedBytesVerified": true
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "recordedAt": "2026-10-25T20:41:57.908923+00:00",
+  "status": "PUBLISHED_ACTIVE_STAGING",
+  "scope": "Explicit administrative restart of a stalled ready-for-pickup order",
+  "requirement": "Prior decline, non-response or released assignment must not exclude a driver from the administrative replacement search.",
+  "rules": [
+    "Reset prior-cycle offer and unassignment exclusions only for the new authorized cycle",
+    "Retain all old offer, response, release and performance history",
+    "Continue live eligibility, availability, region, identity and financial collateral checks",
+    "Verify no active assignment, unresolved acceptance, pickup or unreleased guarantee before starting",
+    "Apply ordinary limits and refusal behavior to new responses within the replacement cycle"
+  ],
+  "technicalDependencies": [
+    "Implementation and publication complete. Real administrative restart and incoming offer sound remain ordered human acceptance tests."
+  ],
+  "currentOrder": {
+    "orderNumber": "ORD1792947277354",
+    "orderId": "11f7b253-537c-5890-8993-25269ae95bc3",
+    "statusVerified": "ready_for_pickup",
+    "dispatchReason": "PREPARATION_DEADLINE"
+  },
+  "deployment": "Nine existing staging Lambda packages published with all unrelated entries and settings preserved. Existing recorded-decision worker now SAFE_FINANCIAL_RETRY. Hosting deployment 212 byte-verified; no IAM changes or direct order/money writes.",
+  "implementation": {
+    "cycleKeyVersion": 3,
+    "oldOfferKeysUnchanged": true,
+    "staffRetryPriorDriverPolicy": "REOFFER_ALL_ELIGIBLE",
+    "sourceTests": 1633,
+    "packagedTests": 47,
+    "failures": 0,
+    "requiresRecordedStaffDecision": true,
+    "dataMutatedByAgent": false
+  },
+  "verifiedAt": "2026-10-25T21:04:45.393762+00:00",
+  "latestLiveTest": {
+    "status": "DELIVERED_VERIFIED",
+    "orderNumber": "ORD1792947277354",
+    "requestId": "288f278a-426b-483c-bb23-88674cebdc34",
+    "evidence": "order-ORD1792947277354-verification-298.json",
+    "realOfferSoundConfirmedByUser": true,
+    "backgroundSoundVerified": false
+  }
+}

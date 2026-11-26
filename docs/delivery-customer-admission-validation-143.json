@@ -1,0 +1,11 @@
+{
+  "part": 143,
+  "scope": "local actual customer API and Flutter promotion consent",
+  "checks": {"typescript": "passed", "runtimeSync": "passed", "backendTestsPassed": 88, "flutterTestsPassed": 14, "flutterTestsSkipped": 1},
+  "customerApiPromotionWiringCompleteLocally": true,
+  "newCustomerDefinition": "zero prior orders from existing authenticated offer journey history and conditional counter",
+  "deployment": false,
+  "financialMutation": false,
+  "liveFeatureEnabled": false,
+  "limitations": ["local conditional fixtures are not DynamoDB integration", "all live order writers must honor history counter protocol", "downstream V2 integration and release review remain", "physical checkout and Live Activity tests remain"]
+}

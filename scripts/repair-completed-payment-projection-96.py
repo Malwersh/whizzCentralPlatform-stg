@@ -1,0 +1,23 @@
+"""Repair one completed canary's stale payment projection from its immutable COD journal.
+No wallet/ledger writes, no repeated completion or invented customer declaration.
+"""
+import pathlib,json,importlib.util,datetime,subprocess,uuid,sys
+from boto3.dynamodb.types import TypeSerializer
+R=pathlib.Path(__file__).resolve().parents[1];O=pathlib.Path('/private/tmp/finance96');spec=importlib.util.spec_from_file_location('c',R/'scripts/capture-financial-readers-63.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+def main():
+ s=m.session();actor=s.client('sts').get_caller_identity();db=s.resource('dynamodb');oid=json.loads(pathlib.Path('/private/tmp/finance94/selector.private.json').read_text())['orderId'];key={'PK':'ORDER#'+oid,'SK':'META'};o=db.Table('WizzOrders').get_item(Key=key,ConsistentRead=True)['Item'];j=db.Table('staging-Holds').get_item(Key={'orderId':oid,'sk':'FINANCIAL_OUTCOME'},ConsistentRead=True)['Item'];h=db.Table('staging-Holds').get_item(Key={'orderId':oid,'sk':'HOLD'},ConsistentRead=True)['Item'];assert actor['Account']=='699561669180';assert o['status']=='delivered' and o['orderStatus']=='delivered' and o['cashCollected'] is True and o['cashCollectedAmount']==9500 and o['holdStatus']=='SETTLED';assert j['kind']=='COD_COMPLETION_JOURNAL' and j['outcome']=='COMPLETED' and j['operationId']==o['financialOutcome'] and j['receipt']['cashCollected'] is True and j['receipt']['cashCollectedAmount']==9500 and j['createdAt']==o['deliveredAt'];assert h['status']=='SETTLED' and h['settlementOperationId']==j['operationId']
+ if o.get('paymentStatus')=='captured':assert o['codCollectedAt']==j['createdAt'];print(json.dumps({'alreadyRepaired':True,'walletWrites':0}));return
+ assert o['paymentStatus']=='pending'
+ fields=json.loads(subprocess.check_output(['node','-e',"const o=JSON.parse(require('fs').readFileSync(0));console.log(JSON.stringify(require('./backend/wallet-service/dist/codCompletion').codCollectedPaymentFields(o,o.deliveredAt)))"],input=json.dumps(o,default=str).encode(),cwd=R));assert fields['paymentStatus']=='captured'
+ at=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z');op='PAYMENT_PROJECTION_REPAIR#'+oid
+ names={'#p':'paymentStatus','#g':'paymentStatus_gsi','#s':'status'};values={':before':o['paymentStatus'],':oldg':o['paymentStatus_gsi'],':delivered':'delivered',':yes':True,':cash':o['cashCollectedAmount'],':outcome':o['financialOutcome'],':new':'captured',':newg':fields['paymentStatus_gsi'],':at':fields['codCollectedAt'],':repair':{'operationId':op,'actorArn':actor['Arn'],'at':at,'sourceFinancialOperationId':j['operationId']}}
+ ops=[{'Update':{'TableName':'WizzOrders','Key':key,'UpdateExpression':'SET #p=:new,#g=:newg,codCollectedAt=:at,paymentProjectionRepair=:repair','ConditionExpression':'#p=:before AND #g=:oldg AND #s=:delivered AND cashCollected=:yes AND cashCollectedAmount=:cash AND financialOutcome=:outcome','ExpressionAttributeNames':names,'ExpressionAttributeValues':values}},
+ {'ConditionCheck':{'TableName':'staging-Holds','Key':{'orderId':oid,'sk':'FINANCIAL_OUTCOME'},'ConditionExpression':'#k=:kind AND #o=:outcome AND operationId=:op AND receipt=:receipt','ExpressionAttributeNames':{'#k':'kind','#o':'outcome'},'ExpressionAttributeValues':{':kind':'COD_COMPLETION_JOURNAL',':outcome':'COMPLETED',':op':j['operationId'],':receipt':j['receipt']}}},
+ {'Put':{'TableName':'staging-AuditLog','Item':{'datePartition':'date#'+at[:10].replace('-',''),'sk':op,'action':'COD_PAYMENT_PROJECTION_REPAIRED','actorId':actor['Arn'],'orderId':oid,'sourceFinancialOperationId':j['operationId'],'createdAt':at,'paymentStatusBefore':'pending','paymentStatusAfter':'captured','walletChanged':False},'ConditionExpression':'attribute_not_exists(sk)'}}]
+ print(json.dumps({'prepared':True,'sourceJournalVerified':True,'paymentStatus':'captured','walletWrites':0,'ledgerWrites':0}),flush=True)
+ if '--execute' not in sys.argv:return
+ ser=TypeSerializer();wire=[]
+ for item in ops:
+  k,v=next(iter(item.items()));wire.append({k:{n:({a:ser.serialize(b) for a,b in z.items()} if n in ['Key','Item','ExpressionAttributeValues'] else z) for n,z in v.items()}})
+ token=str(uuid.uuid5(uuid.NAMESPACE_URL,op));s.client('dynamodb').transact_write_items(TransactItems=wire,ClientRequestToken=token);after=db.Table('WizzOrders').get_item(Key=key,ConsistentRead=True)['Item'];assert after['paymentStatus']=='captured' and after['cashCollectedAmount']==9500 and after['financialOutcome']==o['financialOutcome'];r={'repaired':True,'paymentStatus':'captured','cashCollectedIqd':9500,'walletWrites':0,'ledgerWrites':0};(O/'payment-repair.json').write_text(json.dumps(r,indent=2));print(json.dumps(r))
+if __name__=='__main__':main()

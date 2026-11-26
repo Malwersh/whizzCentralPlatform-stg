@@ -1,0 +1,33 @@
+{
+  "receivedDate": "2026-10-15",
+  "sources": [
+    {
+      "file": "master-implementation-v1.0-ar.txt",
+      "sha256": "455d5f7552b135b270479229e1114a4d493381bc61289c493689627ba8eef07f",
+      "bytes": 53756
+    },
+    {
+      "file": "driver-tips-v1.2-ar.txt",
+      "sha256": "c28bbaf89d30fdbd74ef4f5fec315d9b6a72ddb84726532b546212eb0562ef87",
+      "bytes": 7563
+    },
+    {
+      "file": "delivery-pricing-driver-earnings-v1.3-ar.txt",
+      "sha256": "a2aabbe5a31f884836aa7407a7ce3a1cbd1194eaa1378a2fca6f7bb1aad58af1",
+      "bytes": 16126
+    },
+    {
+      "file": "unified-dispatch-waves-recovery-v1.5.1-ar.txt",
+      "sha256": "5ff0f2d0c88a80754d202851252e4369a5f58d7c7117eb36ff13565748339ef3",
+      "bytes": 8816,
+      "receivedDate": "2026-10-16"
+    },
+    {
+      "file": "driver-performance-dispatch-priority-v1.6-ar.txt",
+      "sha256": "90150f815a4d1c439d75e21451fdffcd2f6f64e412845232afa8d4e9e993b4e6",
+      "bytes": 12371,
+      "receivedDate": "2026-10-16"
+    }
+  ],
+  "addendumV1_1Supplied": false
+}

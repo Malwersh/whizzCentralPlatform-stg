@@ -1,0 +1,42 @@
+{
+  "status": "RELEASE274_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_DEFERRED",
+  "scope": "Driver performance page presentation only",
+  "build": 274,
+  "backendChanges": false,
+  "calculationsChanged": false,
+  "features": [
+    "Compact grouped metric list, distinct numeric value/sample/provisional badge",
+    "Metric tap opens existing counts and event details in a bottom sheet",
+    "Definitions and eligibility notes moved to collapsed bottom guide",
+    "Unavailable data shown as dash with explicit status, never invented percentage",
+    "Navy and neutral text instead of gold text on white",
+    "Responsive stacked row for narrow displays and large text",
+    "Last update shown in Baghdad time"
+  ],
+  "referencePatterns": [
+    {
+      "url": "https://help.doordash.com/en-us/dashers/article/dasher-ratings-explained",
+      "use": "Separation of metric summary and per-metric order breakdown; not an exact visual copy"
+    },
+    {
+      "url": "https://www.uber.com/ca/en/drive/basics/how-ratings-work/",
+      "use": "Ratings summary and separate feedback detail"
+    }
+  ],
+  "verification": {
+    "regressionWidgetChecks": 23,
+    "portraitPreviewCheck": "PASS",
+    "staticAnalysis": "NO_ISSUES",
+    "narrowWidth": 320,
+    "largeTextScale": 1.6,
+    "visualInspection": "PASS; test fixture preview, not a real device screenshot",
+    "releaseBuild": "PASS"
+  },
+  "preview": "screenshots/driver-performance-layout-274.png",
+  "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "nextOperationalScope": "Evidence-backed delay review, quality/rating moderation and appeals remain open.",
+  "installed": true,
+  "launched": true,
+  "device": "B8850CE6-BCC2-551D-B930-3E108456B23F",
+  "updatedAtUTC": "2026-10-25T04:27:39.068224+00:00"
+}

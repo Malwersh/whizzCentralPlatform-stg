@@ -1,0 +1,48 @@
+{
+  "part": 379,
+  "status": "PUBLISHED_VERIFIED",
+  "environment": "staging",
+  "hostingJob": "249",
+  "previousHostingJob": "248",
+  "files": [
+    "pages/home-layout.html",
+    "home-layout.js"
+  ],
+  "beforeSha256": {
+    "pages/home-layout.html": "10e8c4e24b025c03b95ea4ead0a3ec4e4ff520f55b8d5723f25d7ffa106235a6",
+    "home-layout.js": "634c87f3c431a902561a2bde730a09c49146544d820bcc1ccf91ac67725d2c94"
+  },
+  "afterSha256": {
+    "pages/home-layout.html": "10e8c4e24b025c03b95ea4ead0a3ec4e4ff520f55b8d5723f25d7ffa106235a6",
+    "home-layout.js": "7ba59a1d6a23d89301e38811e1da556a54530ab20f08608ed84f81948d84caf3"
+  },
+  "authoredDataChanged": false,
+  "backendChanged": false,
+  "browserChecks": {
+    "widths": [
+      390,
+      1280
+    ],
+    "workflow": [
+      "define classification",
+      "assign branch",
+      "assign category and product separately",
+      "save catalog then open strip",
+      "save strip draft without publishing",
+      "review and publish",
+      "edit price category separately without losing classification mappings"
+    ]
+  },
+  "design": [
+    "Three numbered strip cards in app order",
+    "Classification dictionary separated from presentation settings",
+    "Guided definition and branch assignment with optional menu assignment",
+    "Only selected menu item is edited at a time",
+    "Optional brands separated",
+    "Price categories managed from price filter settings",
+    "Advanced navigation targeting and media collapsed",
+    "Compact filter summaries",
+    "Explicit immediate/draft/menu publication explanations",
+    "Unsaved dictionary close confirmation and stale async response guards"
+  ]
+}

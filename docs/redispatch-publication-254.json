@@ -1,0 +1,26 @@
+{
+  "part": 254,
+  "functions": [
+    {
+      "name": "WaveSystem_StartWave",
+      "before": "d8pEagJfnWrfLzZQ8dm/qO1MLGHRf8jgUEy/m+1dk8g=",
+      "after": "z9gDK2jKirJMvjyq1F18gkUi13tXuUSpL1KA5Bc2HDE=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "unrelatedEntriesIdentical": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "before": "bGbXuxo5IqV0fhl6IJZNtInhQVzCY3dGRp1rLZxnhno=",
+      "after": "ZIGIb5RBzQq7wYfN0TlauQbqjrzbTA50Fkm/jrxfTvk=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "index.js"
+      ],
+      "unrelatedEntriesIdentical": true
+    }
+  ],
+  "configurationChanged": false,
+  "manualOrderReset": false
+}

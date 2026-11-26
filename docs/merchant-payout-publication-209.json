@@ -1,0 +1,104 @@
+{
+  "part": 209,
+  "status": "PUBLISHED_ACTIVE_VERIFIED",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "functions": [
+    {
+      "name": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "codeSha256": "BQRMMOsixRpSvGTpWKRUU2RlS6GqCMcwXcSV16q5N3A=",
+      "changedFiles": [
+        "settlement_schedules.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-wizz-wallet-service",
+      "codeSha256": "lUoVjsJw4a8XQgMCdSqAFvDBY369mStj15O/xJZxbhM=",
+      "changedFiles": [
+        "dist/ledgerEffects.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-wizz-wallet-lifecycle",
+      "codeSha256": "p5G53HUMz0hvYcFSXEyzkV7D5+ctitGF/sx07vRtvQQ=",
+      "changedFiles": [
+        "dist/ledgerEffects.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-account-deletion-worker",
+      "codeSha256": "wGmxkhNdz4he3f5V6/t5qhP52DO++gNE09wC3t783rY=",
+      "changedFiles": [
+        "cod-retention.js",
+        "settlement-retention.js",
+        "payout-retention.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-account-deletion-requests",
+      "codeSha256": "gUY72px8yNxqdahlKsW0O6RN2KtMb+3347X0Jfef6Wc=",
+      "changedFiles": [
+        "cod-retention.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-account-deletion-financial-expiry",
+      "codeSha256": "dSGVZ1NQpJsdMQBk8bhoSJqkJS0xyJXTb+N7p2eZJYM=",
+      "changedFiles": [
+        "cod-retention.js"
+      ],
+      "otherEntriesIdentical": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "TRJRs3DI2qcs+ZY6Hi2ALt2FlcZzsa0Qk5w1cKOPWP8=",
+      "changedFiles": [
+        "settlement-runtime.js",
+        "settlement-schedules.js",
+        "settlement-orders.js",
+        "settlement-evidence-fields.json",
+        "finance-rollout.js",
+        "merchant-payouts.js",
+        "commercial-owner.js",
+        "package.json",
+        "package-lock.json",
+        "payout-otp-provider.js"
+      ],
+      "otherEntriesIdentical": true
+    }
+  ],
+  "access": [
+    {
+      "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "policy": "arn:aws:iam::699561669180:policy/staging-merchant-payout-209"
+    },
+    {
+      "role": "staging-account-deletion-WorkerRole-u5xpbVRU9G0Q",
+      "policy": "arn:aws:iam::699561669180:policy/staging-merchant-payout-retention-209"
+    },
+    {
+      "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "policy": "CompletedOrderStatements204",
+      "change": "named paid evidence fields only"
+    }
+  ],
+  "existingRoutesReused": true,
+  "manualMethods": [
+    "CASH",
+    "ZAIN_CASH"
+  ],
+  "bankEnabled": false,
+  "secondFinanceEmployeeRequired": false,
+  "ownerReceiptAndFinalReconciliationRequired": true,
+  "payoutCreatedOrApproved": false,
+  "financialHandlerInvoked": false,
+  "otpSent": false,
+  "moneyMoved": false,
+  "otpProviderConfigured": true,
+  "historicalScopeAndGeneralReleasePreserved": true
+}

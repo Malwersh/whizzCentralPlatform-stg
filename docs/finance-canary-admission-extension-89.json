@@ -1,0 +1,23 @@
+{
+  "part": 89,
+  "orderStatusVerified": "ready_for_pickup",
+  "extension": {
+    "functions": 13,
+    "orderCount": 1,
+    "membershipPreserved": true,
+    "orderPinPreserved": true,
+    "gateValuesPreserved": true,
+    "admitUntil": "2026-10-17T22:15:53.574Z",
+    "codeChanged": false
+  },
+  "dispatchStatus": "searching; currentWaveNumber=0",
+  "initialFailure": "FINANCE_ROLLOUT_ADMISSION_CLOSED after the original 45-minute canary window expired",
+  "driverReadiness": "Online but position older than 120 seconds; asked human to open driver app",
+  "wallet": {
+    "availableIqd": 25000,
+    "lockedIqd": 0
+  },
+  "financialWritesPerformed": false,
+  "exactWaveRetryPreparedButNotExecuted": true,
+  "manualGenericIntegrationWorkerInvoked": false
+}

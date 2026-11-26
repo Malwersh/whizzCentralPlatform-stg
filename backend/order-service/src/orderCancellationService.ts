@@ -1,8 +1,9 @@
+const {isFinancialOrder,LEGACY_ONLY}=require('../legacy-order-policy');
 /**
  * Order Cancellation Service - Core business logic
  */
 
-import { docClient, TABLES, GetCommand, UpdateCommand } from './db';
+import { docClient, TABLES, GetCommand } from './db';
 import { WalletServiceClient } from './walletServiceClient';
 import { WebSocketNotifier } from './websocketNotifier';
 import { OrderTimelineManager } from './orderTimelineManager';
@@ -11,10 +12,13 @@ import {
   CancelOrderResponse,
   Order,
   OrderNotFoundError,
+  OrderServiceError,
   UnauthorizedError,
   InvalidStatusError,
 } from './types';
 import { getCurrentTimestamp } from './utils';
+import {TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
+import {prepareOfferUsageRelease,offerUsageOrderFence} from './offerUsageRelease';
 
 export class OrderCancellationService {
   private walletClient: WalletServiceClient;
@@ -40,27 +44,16 @@ export class OrderCancellationService {
 
     // Step 1: Get order from WizzOrders
     const order = await this.getOrder(orderId);
+    if (isFinancialOrder(order)) throw new OrderServiceError('Financial order requires its return/cancellation workflow', 409, 'FINANCIAL_CANCELLATION_REQUIRED');
+    const previous=order.orderTimeline?.filter(event=>event.event==='order_cancelled').slice(-1)[0];
+    if(order.status==='canceled_by_'+canceledBy&&order.canceledBy===canceledBy&&order.cancelReason===reason&&previous?.actor===requestedBy){
+      return {success:true,orderId,newStatus:order.status,holdReleased:order.holdStatus==='RELEASED',message:'Order cancellation already recorded'};
+    }
 
     // Step 2: Validate cancellation rules
     this.validateCancellation(order, canceledBy, requestedBy);
 
-    // Step 3: Release Hold (if exists and ACTIVE)
     let holdReleased = false;
-    if (order.holdId && order.holdStatus === 'ACTIVE') {
-      console.log(`💰 Order has active Hold: ${order.holdId}`);
-      try {
-        await this.walletClient.releaseHold(order.holdId, reason);
-        holdReleased = true;
-        console.log('✅ Hold released successfully');
-      } catch (error: any) {
-        console.error('❌ Failed to release Hold:', error.message);
-        // Continue with cancellation even if Hold release fails
-        // (Hold might be already released or expired)
-      }
-    } else {
-      console.log('ℹ️ No active Hold to release');
-    }
-
     // Step 4: Update WizzOrders with Timeline event
     const newStatus = `canceled_by_${canceledBy}`;
     
@@ -81,8 +74,29 @@ export class OrderCancellationService {
       canceledBy,
       cancelReason: reason,
       holdStatus: holdReleased ? 'RELEASED' : order.holdStatus,
+      walletFinancialStatus: order.holdId && !holdReleased ? 'PENDING_RELEASE' : (holdReleased?'RELEASED':'NONE'),
+      walletPendingHoldId: order.holdId && !holdReleased ? order.holdId : '',
+      originalStatus: order.status,
+      originalDriverId: order.driverId,
       orderTimeline: updatedTimeline,
-    });
+    }, order);
+    // Step 3: Release Hold (if exists and ACTIVE)
+    if (order.holdId && order.holdStatus === 'ACTIVE') {
+      console.log(`💰 Order has active Hold: ${order.holdId}`);
+      try {
+        await this.walletClient.releaseHold(order.holdId, reason);
+        holdReleased = true;
+        console.log('✅ Hold released successfully');
+      } catch (error: any) {
+        console.error('❌ Failed to release Hold:', error.message);
+        // Continue with cancellation even if Hold release fails
+        // (Hold might be already released or expired)
+      }
+    } else {
+      console.log('ℹ️ No active Hold to release');
+    }
+
+
 
     console.log(`✅ Order ${orderId} cancelled successfully`);
     console.log(`   New Status: ${newStatus}`);
@@ -128,6 +142,7 @@ export class OrderCancellationService {
           PK: `ORDER#${orderId}`,
           SK: 'META',
         },
+        ConsistentRead: true,
       })
     );
 
@@ -194,7 +209,7 @@ export class OrderCancellationService {
     }
 
     if (canceledBy === 'customer') {
-      const customerId = order.customerId || order.userId;
+      const customerId = order.customerId || order.userId || (order as any).guestToken;
       if (customerId !== requestedBy) {
         throw new UnauthorizedError('Order does not belong to this customer');
       }
@@ -221,20 +236,31 @@ export class OrderCancellationService {
       canceledBy: string;
       cancelReason: string;
       holdStatus?: string;
+      walletFinancialStatus: string;
+      walletPendingHoldId: string;
+      originalStatus: string;
+      originalDriverId?: string;
       orderTimeline?: any[];
-    }
+    },
+    originalOrder: Order
   ): Promise<void> {
     console.log(`💾 Updating order ${orderId} in database...`);
 
     let updateExpression = 'SET #status = :status, canceledAt = :canceledAt, canceledBy = :canceledBy, cancelReason = :cancelReason, updatedAt = :updatedAt';
     const expressionAttributeValues: Record<string, any> = {
       ':status': updates.status,
+      ':originalStatus': updates.originalStatus,
       ':canceledAt': updates.canceledAt,
       ':canceledBy': updates.canceledBy,
       ':cancelReason': updates.cancelReason,
       ':updatedAt': getCurrentTimestamp(),
     };
 
+    updateExpression += ', walletFinancialStatus = :financial, walletPendingHoldId = :pendingHold';
+    expressionAttributeValues[':financial'] = updates.walletFinancialStatus;
+    expressionAttributeValues[':pendingHold'] = updates.walletPendingHoldId;
+
+    if(updates.originalDriverId)expressionAttributeValues[':originalDriverId']=updates.originalDriverId;
     if (updates.holdStatus) {
       updateExpression += ', holdStatus = :holdStatus';
       expressionAttributeValues[':holdStatus'] = updates.holdStatus;
@@ -245,22 +271,32 @@ export class OrderCancellationService {
       expressionAttributeValues[':orderTimeline'] = updates.orderTimeline;
     }
 
-    await docClient.send(
-      new UpdateCommand({
+    const release=await prepareOfferUsageRelease(docClient,originalOrder,updates.canceledAt);
+    const fence=offerUsageOrderFence(originalOrder);
+    const names:Record<string,string>={...fence.ExpressionAttributeNames,'#status':'status'};
+    Object.assign(expressionAttributeValues,fence.ExpressionAttributeValues);
+    for(const [i,[key,value]] of Object.entries(release.fields).entries()){
+      names['#release'+i]=key;expressionAttributeValues[':release'+i]=value;
+      updateExpression+=', #release'+i+'=:release'+i;
+    }
+    const orderUpdate={
         TableName: TABLES.ORDERS,
         Key: {
           PK: `ORDER#${orderId}`,
           SK: 'META',
         },
         UpdateExpression: updateExpression,
-        ExpressionAttributeNames: {
-          '#status': 'status',
-        },
+        ExpressionAttributeNames: names,
         ExpressionAttributeValues: expressionAttributeValues,
         // ConditionExpression to prevent race conditions
-        ConditionExpression: 'attribute_exists(PK)',
-      })
-    );
+        ConditionExpression: LEGACY_ONLY+' AND '+fence.ConditionExpression+' AND attribute_exists(PK) AND #status = :originalStatus AND '+(updates.originalDriverId?'driverId = :originalDriverId':'attribute_not_exists(driverId)'),
+    };
+    try {
+      await docClient.send(new TransactWriteCommand({TransactItems:[{Update:orderUpdate},...release.operations] as any}));
+    } catch(error:any) {
+      if(error.name==='TransactionCanceledException')throw new OrderServiceError('Order or discount usage changed; retry cancellation',409,'CANCELLATION_STATE_CHANGED');
+      throw error;
+    }
 
     console.log('✅ Order updated successfully');
   }

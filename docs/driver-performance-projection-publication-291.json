@@ -1,0 +1,244 @@
+{
+  "status": "VERIFIED_SNAPSHOT_ENFORCED",
+  "userApproval": "EXPLICIT_STAGING_INFRASTRUCTURE_APPROVAL_RECEIVED",
+  "policies": [
+    {
+      "role": "drivers-api-staging-DriversApiFunctionRole-ngkzZnWAPRS0",
+      "name": "DriverPerformanceRead291",
+      "managedArn": "arn:aws:iam::699561669180:policy/wizz/staging/staging-DriverPerformanceRead291",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:GetItem",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/DriverPerformanceSnapshots_staging"
+          }
+        ]
+      }
+    },
+    {
+      "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "name": "DriverPerformanceRead291",
+      "managedArn": "arn:aws:iam::699561669180:policy/wizz/staging/staging-DriverPerformanceRead291",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:GetItem",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/DriverPerformanceSnapshots_staging"
+          }
+        ]
+      }
+    },
+    {
+      "role": "wavesystem-staging-WaveSystemHandleWaveTimeoutFunct-1Ha5LxcDA5TA",
+      "name": "DriverPerformanceRead291",
+      "managedArn": "arn:aws:iam::699561669180:policy/wizz/staging/staging-DriverPerformanceRead291",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:GetItem",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/DriverPerformanceSnapshots_staging"
+          }
+        ]
+      }
+    },
+    {
+      "role": "wavesystem-staging-WaveSystemStartWaveFunctionRole-wywNnz4z2VEE",
+      "name": "DriverPerformanceRead291",
+      "managedArn": "arn:aws:iam::699561669180:policy/wizz/staging/staging-DriverPerformanceRead291",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "dynamodb:GetItem",
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/DriverPerformanceSnapshots_staging"
+          }
+        ]
+      }
+    },
+    {
+      "role": "wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "name": "DriverPerformanceForward291",
+      "managedArn": "arn:aws:iam::699561669180:policy/wizz/staging/staging-DriverPerformanceForward291",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "lambda:InvokeFunction",
+            "Resource": "arn:aws:lambda:us-east-1:699561669180:function:staging-driver-performance-collector"
+          }
+        ]
+      }
+    }
+  ],
+  "functions": [
+    {
+      "name": "DriversApi-staging",
+      "hash": "uCZMij3dCYmxX8YBts8IP6kH3ik5Ouit70rW12+JBp4=",
+      "changedFiles": [
+        "lambda_driver_api_v2.js",
+        "pinned-legacy-runtime.js",
+        "full-cash-rollout-208.js",
+        "driver-performance-snapshot.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true,
+      "previousPublishedHash": "+drIMQzCGJcxIdwufKHVOY7DAHfQriUQ7OffdYw1108=",
+      "boundaryFixVerified": true,
+      "activation": {
+        "DRIVER_PERFORMANCE_SNAPSHOT_READS_ENABLED": "true"
+      },
+      "configurationPreservedExceptActivationFlag": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "hash": "b8Wi5ptOoFs3PUhCQOgcFVKagsg3Ekwycw3ooOpykbQ=",
+      "changedFiles": [
+        "_discount_review/central-staff/index.js",
+        "driver-performance-admin-291.js",
+        "driver-performance-policy-guard-291.js",
+        "dispatch-settings-contract.js",
+        "finance-rollout.js",
+        "cancellation-compensation-runtime.js",
+        "driver-performance-snapshot.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true,
+      "previousPublishedHash": "wVlhHbjDIm6qlY+iKOsX6oNOLFu48+v4aH5Y3P7r43c=",
+      "boundaryFixVerified": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "hash": "N6JYQD61+JP1JT75EXbO8g+X2ztr9xnbxOL1RSLHC7A=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "dispatch-settings-contract.js",
+        "finance-rollout.js",
+        "financial-wave-policy.js",
+        "financial-runtime.js",
+        "driver-performance-snapshot.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true,
+      "previousPublishedHash": "S4q5k6DD3tP93CUcrZLlcnFGYh2BJv3s1fH5cHckCrA=",
+      "boundaryFixVerified": true,
+      "activation": {
+        "DISPATCH_DRIVER_PERFORMANCE_MODE": "ENFORCE"
+      },
+      "configurationPreservedExceptActivationFlag": true,
+      "shadowAllEligibilityCountersObserved": true,
+      "capturedRuntimeTests": 15,
+      "immediateCutoverUserAuthorized": true,
+      "subsequentOverlay": "wave-push-timeout-publication-293.json"
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "hash": "pBf8axN/sA1DJSGOs34nV9pf70+PPFqLQBPyGK/Q9Js=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "dispatch-settings-contract.js",
+        "finance-rollout.js",
+        "financial-wave-policy.js",
+        "financial-runtime.js",
+        "driver-performance-snapshot.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true,
+      "previousPublishedHash": "7tII7Dqj+aPUz6jv2SuNUcMqNux0+hpHmyjbGDpM/yI=",
+      "boundaryFixVerified": true,
+      "activation": {
+        "DISPATCH_DRIVER_PERFORMANCE_MODE": "ENFORCE"
+      },
+      "configurationPreservedExceptActivationFlag": true,
+      "shadowAllEligibilityCountersObserved": true,
+      "capturedRuntimeTests": 15,
+      "immediateCutoverUserAuthorized": true,
+      "subsequentOverlay": "wave-push-timeout-publication-293.json"
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "hash": "YSKzeUrmdkEoQhqv4r0o6yCQzCE/GrMUUP9D7bF5Fm0=",
+      "changedFiles": [
+        "index.js",
+        "driver-performance-order-forwarder-291.js",
+        "dispatch-cycle-runtime.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true,
+      "activation": {
+        "DRIVER_PERFORMANCE_FORWARD_ENABLED": "true"
+      }
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "hash": "K0drqAFMcqoEfnzkM3q+oinI+zutbGJvVtwteoP98GU=",
+      "changedFiles": [
+        "dispatch-settings-contract.js",
+        "finance-rollout.js",
+        "driver-acceptance-eta98.js",
+        "index.js",
+        "customer-cash-runtime-266.js",
+        "staff-order-management-runtime.js",
+        "merchant-handover-runtime.js",
+        "cancellation-compensation-runtime.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "hash": "X0t1zsT3QC/hv5dLak5oYAcOoOtJ2euTmyQTpi1jyQc=",
+      "changedFiles": [
+        "functions/create-order/commercial-runtime.js",
+        "checkout-finance-runtime-222.js",
+        "_discount_review/user-create-order/index.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "hash": "qsL0bcCIDt4CAXL2CJkbcqYj1OZhIpMz6qjtGAsRJVY=",
+      "changedFiles": [
+        "index.js",
+        "dispatch-settings-contract.js",
+        "full-cash-rollout-208.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "hash": "QdQ1yTukVxVU+d6X1MVzjhtjQEDF66RDBoL7V8nJ3Yg=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "hash": "9NY6gtzi/2uNLV4gscFt7XEHNN391OhnOqrg5NHDeP0=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "configurationPreserved": true,
+      "downloadByteVerified": true,
+      "subsequentOverlay": "wave-legacy-fences-publication-292.json"
+    }
+  ],
+  "sourceBusinessWrites": 0,
+  "liveDispatchPolicyChanged": false,
+  "readModelEnabled": false,
+  "operationalPolicyWrittenByAgent": false,
+  "activatedAt": "2026-10-25T16:21:13.558298+00:00",
+  "forwardingEnabled": true,
+  "finalVerificationAt": "2026-10-25T16:24:04.532624+00:00"
+}

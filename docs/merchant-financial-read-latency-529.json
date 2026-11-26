@@ -1,0 +1,25 @@
+{
+  "status": "DEPLOYED_USER_CONFIRMED_DATA_LOADED",
+  "atUtc": "2026-11-11T15:03:39.686498+00:00",
+  "problem": "Owner OTP succeeded, but account and statement reads exceeded the app 20-second timeout. CloudWatch showed staff reads of 21082 and 23443 ms, proxied as 21244 and 25197 ms.",
+  "cause": "Financial wrapper revalidated Cognito, branch, deletion fences and session both before and after every internal database read.",
+  "fix": "Request-scoped read authorization at entry and before returning any result; fresh checks and atomic conditions retained for each financial transaction. No authorization cache across HTTP requests. Notification preference POST also verifies before response.",
+  "tests": {
+    "passed": 35,
+    "regressions": [
+      "Forty internal reads use constant four identity checks at the two boundaries rather than checks per read",
+      "Revocation during read blocks response verification",
+      "Revocation before transaction prevents write",
+      "Session expiry, ownership and replay checks remain"
+    ]
+  },
+  "pending": "Customer retries refresh to verify real read duration; no app update required",
+  "financialMutationPerformed": false,
+  "deployment": {
+    "FunctionName": "staging-wizz-staff-service",
+    "RevisionId": "71ab51b3-8c71-408e-9a9d-3004ff0e8b98",
+    "CodeSha256": "h92dYmPYbjAQELux4Z+swX3/tPT8K2jLu02jzCmsgak=",
+    "LastModified": "2026-11-11T15:03:30.000+0000"
+  },
+  "userAcceptance": "User confirmed account data loaded after server fix; separate gray UI error addressed in 530"
+}

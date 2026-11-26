@@ -1,0 +1,16 @@
+{
+  "part": 216,
+  "baseJobId": "123",
+  "jobId": "124",
+  "changedFiles": [
+    "pages/finance.html",
+    "settlement-orders.js",
+    "settlement-statements.js",
+    "merchant-period-collection.js",
+    "merchant-collection-print.js"
+  ],
+  "otherFilesPreserved": true,
+  "status": "SUCCEED",
+  "sha256": "934bfbc594c5e58655980cf0786dd3e7874ae0b02efa3f1381471a35892bd589",
+  "hostedBytesVerified": true
+}

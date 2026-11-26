@@ -1,0 +1,21 @@
+{
+  "part": 187,
+  "capturedAt": "2026-10-19T17:19:46.737232+00:00",
+  "status": "ORDER_CREATED_AGREEMENT_PRICING_VERIFIED_SETTLEMENT_PENDING",
+  "orderId": "0277eafa-183c-506a-8eae-cb4b3c65b1a4",
+  "orderNumber": "ORD1792430247687",
+  "agreementId": "DLV-94d90033-ac99-4af6-8d09-2a766ab34051",
+  "goodsIqd": 7000,
+  "customerDeliveryFeeIqd": 1500,
+  "serviceFeeIqd": 500,
+  "driverTipIqd": 500,
+  "customerTotalIqd": 9500,
+  "commissionPercent": 15,
+  "commissionIqd": 1050,
+  "merchantPayableOnSuccessfulDeliveryIqd": 5950,
+  "referenceDeliveryFeeIqd": 2500,
+  "platformDeliverySubsidyReservedIqd": 1000,
+  "driverAcceptancePending": true,
+  "deliveryAndSettlementPending": true,
+  "financialDataWritesByAudit": 0
+}

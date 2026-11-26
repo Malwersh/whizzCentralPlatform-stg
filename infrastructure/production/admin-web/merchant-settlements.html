@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مستحقات المطاعم والصرف | ويز سنترال</title>
+  <link rel="stylesheet" href="/portal.css">
+  <link rel="stylesheet" href="/styles/finance-workflow.css">
+  <link rel="stylesheet" href="/merchant-settlements.css?v=2">
+  <script src="/config.js" defer></script>
+  <script src="/assets/js/auth-utils.js" defer></script>
+  <!-- settlement-scripts -->
+  <script src="/merchant-settlements-page.js?v=2" defer></script>
+</head>
+<body>
+  <main id="merchant-finance">
+    <header class="merchant-finance-header">
+      <h1>مستحقات المطاعم والصرف</h1>
+      <a class="merchant-finance-link" href="/pages/wallets.html">المحافظ والشحن</a>
+    </header>
+    <div class="finance-content">
+      <nav class="merchant-finance-nav" aria-label="أقسام التسويات">
+        <a href="#completed-order-settlements">حسابات المطاعم والصرف</a>
+        <a href="#company-cashboxes">صناديق الشركة</a>
+        <a href="#merchant-settlement-schedules">جداول التسوية</a>
+      </nav>
+      <details id="merchant-settlement-schedules" data-settlement-schedules data-independent-source="true" class="settlement-report" hidden></details>
+      <div id="company-cashboxes" hidden></div>
+    </div>
+  </main>
+</body>
+</html>

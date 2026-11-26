@@ -1,0 +1,155 @@
+{
+  "part": 156,
+  "reviewOnly": true,
+  "applied": false,
+  "roles": [
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "policyName": "FinancialCycleCreator156",
+      "functions": [
+        "WaveSystem_CreateDispatchJob"
+      ],
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "ValidateBranch",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses"
+          },
+          {
+            "Sid": "CaptureDispatchPolicy",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem",
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          },
+          {
+            "Sid": "FenceMerchantDeletion",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "BUSINESS_LIFECYCLE#MERCHANT#*",
+                  "ACCOUNT_LIFECYCLE#MERCHANT#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "baselineRolePolicySnapshotSha256": "0ad784a07b4936c9e951283241450382556b161b3859f1a89186c0bb3a134785"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+      "policyName": "FinancialPushValidation156",
+      "functions": [
+        "wizzcentral-notifications-staging-liveActivityPushEnd",
+        "wizzcentral-notifications-staging-pushSendMerchantOrderTokens",
+        "wizzcentral-notifications-staging-pushTokensUnregister",
+        "wizzcentral-notifications-staging-pushTokensRegister",
+        "wizzcentral-notifications-staging-liveActivityPushUpdate",
+        "wizzcentral-notifications-staging-pushSendOrderUpdate",
+        "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "wizzcentral-notifications-staging-liveActivityRegister",
+        "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "wizzcentral-notifications-staging-pushSoundSettings",
+        "wizzcentral-notifications-staging-pushAdminSendTest"
+      ],
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "InvokeReadOnlyProofAction",
+            "Effect": "Allow",
+            "Action": [
+              "lambda:InvokeFunction"
+            ],
+            "Resource": "arn:aws:lambda:us-east-1:699561669180:function:staging-driver-financial-accept"
+          }
+        ]
+      },
+      "baselineRolePolicySnapshotSha256": "37edf204bfe0a2b0e2155902dfd98817cf4d3ecadb9cafd747ca6cb071dc9dea"
+    }
+  ],
+  "simulations": [
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "action": "dynamodb:ConditionCheckItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses",
+      "leadingKey": "synthetic-branch",
+      "before": "implicitDeny",
+      "candidate": "allowed"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "action": "dynamodb:GetItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "leadingKey": "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS",
+      "before": "implicitDeny",
+      "candidate": "allowed"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "action": "dynamodb:ConditionCheckItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+      "leadingKey": "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS",
+      "before": "implicitDeny",
+      "candidate": "allowed"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "action": "dynamodb:ConditionCheckItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+      "leadingKey": "BUSINESS_LIFECYCLE#MERCHANT#synthetic",
+      "before": "implicitDeny",
+      "candidate": "allowed"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemCreateDispatchJobFunct-JYOain643E7e",
+      "action": "dynamodb:ConditionCheckItem",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion",
+      "leadingKey": "ACCOUNT_LIFECYCLE#MERCHANT#synthetic",
+      "before": "implicitDeny",
+      "candidate": "allowed"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+      "action": "lambda:InvokeFunction",
+      "resource": "arn:aws:lambda:us-east-1:699561669180:function:staging-driver-financial-accept",
+      "leadingKey": "synthetic-branch",
+      "before": "implicitDeny",
+      "candidate": "allowed"
+    }
+  ],
+  "excluded": [
+    "New notification financial table reads",
+    "Wallet/ledger/hold writes",
+    "New roles/tables/queues/rules",
+    "API Gateway route changes",
+    "Environment changes or admission activation"
+  ],
+  "limitation": "InvokeFunction IAM cannot restrict the action payload. Existing financial mutations still require authenticated tokens and their existing server gates; the new tokenless action validates only persisted notification proof and returns reference metadata."
+}

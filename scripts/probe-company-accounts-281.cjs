@@ -1,0 +1,5 @@
+// Temporary IAM-only Lambda probe: fixed read-only route, no financial writes.
+const {DynamoDBClient}=require('../backend/staff-service/node_modules/@aws-sdk/client-dynamodb');
+const {DynamoDBDocumentClient,GetCommand}=require('../backend/staff-service/node_modules/@aws-sdk/lib-dynamodb');
+const {route}=require('../backend/staff-service/company-accounts'),{allowed}=require('../backend/staff-service/catalog');
+exports.handler=async()=>{const db=DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'})),table='staging-PlatformStaff';const actor=(await db.send(new GetCommand({TableName:table,Key:{pk:'EMPLOYEE#f40834f8-4091-7054-0e20-dba35a2793ce',sk:'PROFILE'},ConsistentRead:true}))).Item;const r=(await route({db,table,allowed,query:{from:'2026-10-01',through:'2026-10-22'}},actor,'GET','/staff/company-accounts')).report;return{summary:r.summary,stats:r.stats,issues:r.issues,coverage:r.coverage,verifiedOrderNetMinor:r.orders.find(o=>o.orderNumber==='ORD1792679331051')?.netMinor};};

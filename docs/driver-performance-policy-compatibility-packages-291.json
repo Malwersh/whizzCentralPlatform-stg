@@ -1,0 +1,81 @@
+{
+  "status": "PREPARED_NOT_DEPLOYED",
+  "functions": [
+    {
+      "function": "staging-driver-financial-accept",
+      "baseHash": "QZ+8CPaZtcutNK9zhIHXr37C8DzYGQBpo0LJDgy8ho8=",
+      "revision": "d3ff2cc3-25c5-44ae-8ab7-511d75db6520",
+      "candidateHash": "K0drqAFMcqoEfnzkM3q+oinI+zutbGJvVtwteoP98GU=",
+      "changedFiles": [
+        "dispatch-settings-contract.js",
+        "finance-rollout.js",
+        "driver-acceptance-eta98.js",
+        "index.js",
+        "customer-cash-runtime-266.js",
+        "staff-order-management-runtime.js",
+        "merchant-handover-runtime.js",
+        "cancellation-compensation-runtime.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "configurationChanged": false,
+      "deployed": false,
+      "scope": "Allow only the new explicit performance source enum; financial computations unchanged"
+    },
+    {
+      "function": "WizzUser-CreateOrder-staging",
+      "baseHash": "XpsDlXebEE5mSpc2hmnnyQEq+uiJ+lbhCi43MO0kcAI=",
+      "revision": "ef6c2ece-189b-483a-898d-84e9d604983e",
+      "candidateHash": "X0t1zsT3QC/hv5dLak5oYAcOoOtJ2euTmyQTpi1jyQc=",
+      "changedFiles": [
+        "functions/create-order/commercial-runtime.js",
+        "checkout-finance-runtime-222.js",
+        "_discount_review/user-create-order/index.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+      "configurationChanged": false,
+      "deployed": false,
+      "scope": "Allow only the new explicit performance source enum; financial computations unchanged"
+    },
+    {
+      "function": "WizzUser-DeliveryQuotes-staging",
+      "baseHash": "zfiX2fMwzfAO1tXCSLDV2iQ6DWOXOrf81wAXLUAicgA=",
+      "revision": "6a06884d-638d-40d2-b1b1-095e9c9d5ecd",
+      "candidateHash": "qsL0bcCIDt4CAXL2CJkbcqYj1OZhIpMz6qjtGAsRJVY=",
+      "changedFiles": [
+        "index.js",
+        "dispatch-settings-contract.js",
+        "full-cash-rollout-208.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/staging-delivery-quotes-DeliveryQuoteRole-ZBt492FUdXTr",
+      "configurationChanged": false,
+      "deployed": false,
+      "scope": "Allow only the new explicit performance source enum; financial computations unchanged"
+    },
+    {
+      "function": "WaveSystem_HandleDriverAccept",
+      "baseHash": "TsDBpLOxTGV4cs5XO49GzCukj3VIguMvEo0UpwgtliU=",
+      "revision": "a2251088-87d2-44e4-9836-19ce6793bf29",
+      "candidateHash": "QdQ1yTukVxVU+d6X1MVzjhtjQEDF66RDBoL7V8nJ3Yg=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverAcceptFunc-doZgEP987Dhg",
+      "configurationChanged": false,
+      "deployed": false,
+      "scope": "Allow only the new explicit performance source enum; financial computations unchanged"
+    },
+    {
+      "function": "WaveSystem_HandleDriverReject",
+      "baseHash": "uOxJ1t/rFR7grfuxhA+GGBpZCIK51vz7rrE/OEf93LE=",
+      "revision": "e8e46e44-4ec2-4341-a577-7cd1070523b3",
+      "candidateHash": "1B1GFgoe4ZBWErR4UWXreeCX63ZoFbaQp3LNIa8eQSw=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "roleArn": "arn:aws:iam::699561669180:role/wavesystem-staging-WaveSystemHandleDriverRejectFunc-NtaHl3I3UB5q",
+      "configurationChanged": false,
+      "deployed": false,
+      "scope": "Allow only the new explicit performance source enum; financial computations unchanged"
+    }
+  ]
+}

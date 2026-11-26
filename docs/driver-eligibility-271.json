@@ -1,0 +1,64 @@
+{
+  "scope": "D01_REQUIRED_OPERATIONAL_AUDIT",
+  "status": "PUBLISHED_STAGING_ACCOUNT_ACTIVE_GUARD",
+  "confirmedGap": "Approved driver profile with explicit isActive=false remained eligible; profile flag absent from atomic guard",
+  "fix": "Exclude explicitly non-active profiles in candidates, read and fence isActive in offer preparation and acceptance",
+  "legacyMissingFlag": "Retain existing approved legacy compatibility; absence is not converted to an approved new field",
+  "regressionProof": {
+    "before": {
+      "failed": 2
+    },
+    "after": {
+      "passed": 47,
+      "failed": 0
+    }
+  },
+  "notClaimedComplete": [
+    "Document expiry lifecycle and administrative capture contract",
+    "Vehicle approval lifecycle and category coverage",
+    "Region operational eligibility coverage",
+    "Human acceptance of changed eligibility"
+  ],
+  "businessWrites": 0,
+  "functions": [
+    {
+      "name": "staging-driver-financial-accept",
+      "before": "hmmWWpiQMCaSMYYy/ZNn6Krsd/w1WLpoD/ncs19tCk4=",
+      "after": "cIuVdmYoTu3KhWGnzcVtWANfxr7Fhe0DDrXJgfHWODc=",
+      "changedFiles": [
+        "index.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "before": "z9gDK2jKirJMvjyq1F18gkUi13tXuUSpL1KA5Bc2HDE=",
+      "after": "CY1BGOcrye7gJtn/iCRFVcVmsjCXzCFUtSf6Szq6GJk=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "before": "ZIGIb5RBzQq7wYfN0TlauQbqjrzbTA50Fkm/jrxfTvk=",
+      "after": "OCIxH6Qz6HXRWrKJP7ZuEsztkkuDMLUdZQzO87br+lI=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "otherEntriesPreserved": true,
+      "configurationPreserved": true
+    }
+  ],
+  "capturedRuntimeChecks": {
+    "eligibility-271-after": "ℹ tests 47",
+    "eligibility-271-staging-driver-financial-accept-runtime-tests": "ℹ tests 11",
+    "eligibility-271-WaveSystem_StartWave-runtime-tests": "ℹ tests 11",
+    "eligibility-271-WaveSystem_HandleWaveTimeout-runtime-tests": "ℹ tests 11",
+    "eligibility-271-start-candidates-tests": "ℹ tests 13",
+    "eligibility-271-timeout-candidates-tests": "ℹ tests 13"
+  },
+  "wholeD01Complete": false
+}

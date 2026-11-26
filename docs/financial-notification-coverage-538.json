@@ -1,0 +1,44 @@
+{
+  "batch": 538,
+  "status": "RELEASE_INSTALLED_DEVICE_ACCEPTANCE_PENDING",
+  "historicalAudit": "docs/operational-notification-audit-514.json",
+  "coverage": [
+    {
+      "event": "MERCHANT_PAYOUT_TRANSITIONS",
+      "implementedBatch": 533,
+      "staging": "deployed",
+      "deviceAcceptance": "test push sent in 534; actual payout tap pending"
+    },
+    {
+      "event": "RETURN_CUSTODY_COMPLETED_REVIEW_REQUIRED",
+      "implementedBatch": 536,
+      "staging": "deployed",
+      "deviceAcceptance": "pending authorized return"
+    },
+    {
+      "event": "EXCEPTION_ENTITLEMENTS_AND_GUARANTEE_DECISIONS",
+      "implementedBatch": 537,
+      "staging": "deployed",
+      "deviceAcceptance": "pending authorized decision"
+    }
+  ],
+  "builds": {
+    "merchant": {
+      "release": 351,
+      "financialLockEnabled": true,
+      "result": "Passed",
+      "installed": true
+    },
+    "driver": {
+      "release": 356,
+      "result": "Passed",
+      "installed": true
+    }
+  },
+  "financialMutationsPerformed": false,
+  "remaining": [
+    "Actual notification arrival and tap acceptance during an authorized action",
+    "No additional financial operation authorized or performed to manufacture a notification"
+  ],
+  "device": "iMohammed — B8850CE6-BCC2-551D-B930-3E108456B23F"
+}

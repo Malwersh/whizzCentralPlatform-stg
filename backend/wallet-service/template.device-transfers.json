@@ -1,0 +1,1155 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "Staging employee transfers: isolated write runtime with exact API methods and role. No changes to the read-only wallet role.",
+  "Parameters": {
+    "Environment": {
+      "Type": "String",
+      "Default": "staging",
+      "AllowedValues": [
+        "staging"
+      ]
+    },
+    "MerchantStaffPermissionMode": {
+      "Type": "String",
+      "Default": "CENTRAL",
+      "AllowedValues": [
+        "CENTRAL"
+      ]
+    },
+    "WalletsTableName": {
+      "Type": "String",
+      "Default": "staging-Wallets"
+    },
+    "LedgerTableName": {
+      "Type": "String",
+      "Default": "staging-LedgerEntries"
+    },
+    "AuditLogTableName": {
+      "Type": "String",
+      "Default": "staging-AuditLog"
+    },
+    "IdempotencyKeysTableName": {
+      "Type": "String",
+      "Default": "staging-IdempotencyKeys"
+    },
+    "WalletNotificationsTableName": {
+      "Type": "String",
+      "Default": "staging-WalletNotifications"
+    },
+    "WalletApiId": {
+      "Type": "String",
+      "Default": "z14s5f8oxh"
+    },
+    "BranchDeviceResourceId": {
+      "Type": "String",
+      "Default": "wkm2t0"
+    },
+    "WalletAuthorizerId": {
+      "Type": "String",
+      "Default": "2bqq12"
+    },
+    "WalletAuthorizerRoleName": {
+      "Type": "String",
+      "Default": "staging-wizz-wallet-servi-WalletAuthorizerFunctionR-dNShlP21Ntcz"
+    }
+  },
+  "Resources": {
+    "MerchantDeviceTransferRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Sub": "${Environment}-merchant-device-transfers-role"
+        },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "EmployeeTransferRuntime",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:PutItem",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "BRANCH#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:PutItem",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AuditLogTableName}"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "date#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:GetItem",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "BRANCH#*"
+                      ]
+                    },
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:Attributes": [
+                        "pk",
+                        "sk",
+                        "businessId",
+                        "ownerId",
+                        "cognitoUserId",
+                        "subjectId",
+                        "membershipId",
+                        "displayName",
+                        "role",
+                        "status",
+                        "version",
+                        "permissionSchema",
+                        "extraPermissions",
+                        "grant",
+                        "deviceId",
+                        "deviceVersion",
+                        "sessionId",
+                        "membershipVersion",
+                        "pinVersion",
+                        "tokenHash",
+                        "expiresAt",
+                        "deletionRequestId"
+                      ]
+                    },
+                    "StringEquals": {
+                      "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:ConditionCheckItem",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-MerchantPlatform"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "BRANCH#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-AccountDeletion"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "BUSINESS_LIFECYCLE#MERCHANT#*",
+                        "ACCOUNT_LIFECYCLE#MERCHANT#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzMerchants_Businesses"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/staging-PlatformStaff"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:LeadingKeys": [
+                        "OPERATIONAL_SETTINGS#MERCHANT_STAFF_PERMISSIONS"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WalletsTableName}"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "WALLET#MERCHANT#*",
+                        "WALLET#DRIVER#*",
+                        "WALLET#CUSTOMER#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:Query",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LedgerTableName}"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "WALLET#MERCHANT#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:PutItem",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LedgerTableName}"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "WALLET#MERCHANT#*",
+                        "WALLET#DRIVER#*",
+                        "WALLET#CUSTOMER#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IdempotencyKeysTableName}"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "TRANSFER#*",
+                        "TRANSFER_DAILY#WALLET#MERCHANT#*",
+                        "TRANSFER_VERIFY#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${IdempotencyKeysTableName}"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:LeadingKeys": [
+                        "CONFIG#TRANSFERS"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:PutItem",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${WalletNotificationsTableName}"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "TRANSFER#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:Scan",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/WhizzDrivers_staging"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:Attributes": [
+                        "driverId",
+                        "name",
+                        "fullName",
+                        "phone",
+                        "phoneNumber"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "cognito-idp:AdminGetUser",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_gtCR3ndzT"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "cognito-idp:ListUsers",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_TpyyrVkEE"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "secretsmanager:GetSecretValue",
+                  "Resource": "arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${Environment}-merchant-device-transfers:*"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "MerchantDeviceFinanceFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Sub": "${Environment}-merchant-device-transfers"
+        },
+        "CodeUri": "build/device-transfers/",
+        "Handler": "index.handler",
+        "Timeout": 30,
+        "MemorySize": 256,
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": {
+              "Ref": "Environment"
+            },
+            "MERCHANT_STAFF_PERMISSION_MODE": {
+              "Ref": "MerchantStaffPermissionMode"
+            },
+            "WALLETS_TABLE": {
+              "Ref": "WalletsTableName"
+            },
+            "LEDGER_TABLE": {
+              "Ref": "LedgerTableName"
+            },
+            "AUDIT_LOG_TABLE": {
+              "Ref": "AuditLogTableName"
+            },
+            "IDEMPOTENCY_KEYS_TABLE": {
+              "Ref": "IdempotencyKeysTableName"
+            },
+            "WALLET_NOTIFICATIONS_TABLE": {
+              "Ref": "WalletNotificationsTableName"
+            },
+            "MERCHANTS_TABLE": "WhizzMerchants_Businesses",
+            "DRIVERS_TABLE": "WhizzDrivers_staging",
+            "MERCHANT_USER_POOL_ID": "us-east-1_gtCR3ndzT",
+            "CUSTOMER_USER_POOL_ID": "us-east-1_TpyyrVkEE",
+            "TRANSFER_OTP_SECRET_ARN": "arn:aws:secretsmanager:us-east-1:699561669180:secret:wizz/staging/otpiq-SB1iGZ"
+          }
+        },
+        "Runtime": "nodejs22.x",
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": {
+          "Fn::GetAtt": [
+            "MerchantDeviceTransferRole",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": "TransferLogGroup"
+    },
+    "TransferRoot": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "BranchDeviceResourceId"
+        },
+        "PathPart": "transfers"
+      }
+    },
+    "TransferOtpRoot": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferRoot"
+        },
+        "PathPart": "otp"
+      }
+    },
+    "TransferRoute0": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferRoot"
+        },
+        "PathPart": "context"
+      }
+    },
+    "TransferRoute0Method": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute0"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "WalletAuthorizerId"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MerchantDeviceFinanceFunction.Arn}/invocations"
+          },
+          "TimeoutInMillis": 29000
+        }
+      }
+    },
+    "TransferRoute0Options": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute0"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Staff-Session'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Methods": false,
+              "method.response.header.Access-Control-Allow-Headers": false
+            }
+          }
+        ]
+      }
+    },
+    "TransferRoute1": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferRoot"
+        },
+        "PathPart": "recipient"
+      }
+    },
+    "TransferRoute1Method": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute1"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "WalletAuthorizerId"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MerchantDeviceFinanceFunction.Arn}/invocations"
+          },
+          "TimeoutInMillis": 29000
+        }
+      }
+    },
+    "TransferRoute1Options": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute1"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Staff-Session'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Methods": false,
+              "method.response.header.Access-Control-Allow-Headers": false
+            }
+          }
+        ]
+      }
+    },
+    "TransferRoute2": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferRoot"
+        },
+        "PathPart": "history"
+      }
+    },
+    "TransferRoute2Method": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute2"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "WalletAuthorizerId"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MerchantDeviceFinanceFunction.Arn}/invocations"
+          },
+          "TimeoutInMillis": 29000
+        }
+      }
+    },
+    "TransferRoute2Options": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute2"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Staff-Session'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Methods": false,
+              "method.response.header.Access-Control-Allow-Headers": false
+            }
+          }
+        ]
+      }
+    },
+    "TransferRoute3": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferRoot"
+        },
+        "PathPart": "status"
+      }
+    },
+    "TransferRoute3Method": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute3"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "WalletAuthorizerId"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MerchantDeviceFinanceFunction.Arn}/invocations"
+          },
+          "TimeoutInMillis": 29000
+        }
+      }
+    },
+    "TransferRoute3Options": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute3"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Staff-Session'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Methods": false,
+              "method.response.header.Access-Control-Allow-Headers": false
+            }
+          }
+        ]
+      }
+    },
+    "TransferRoute4": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferOtpRoot"
+        },
+        "PathPart": "send"
+      }
+    },
+    "TransferRoute4Method": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute4"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "WalletAuthorizerId"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MerchantDeviceFinanceFunction.Arn}/invocations"
+          },
+          "TimeoutInMillis": 29000
+        }
+      }
+    },
+    "TransferRoute4Options": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute4"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Staff-Session'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Methods": false,
+              "method.response.header.Access-Control-Allow-Headers": false
+            }
+          }
+        ]
+      }
+    },
+    "TransferRoute5": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferOtpRoot"
+        },
+        "PathPart": "verify"
+      }
+    },
+    "TransferRoute5Method": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute5"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "WalletAuthorizerId"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MerchantDeviceFinanceFunction.Arn}/invocations"
+          },
+          "TimeoutInMillis": 29000
+        }
+      }
+    },
+    "TransferRoute5Options": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute5"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Staff-Session'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Methods": false,
+              "method.response.header.Access-Control-Allow-Headers": false
+            }
+          }
+        ]
+      }
+    },
+    "TransferRoute6": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferRoot"
+        },
+        "PathPart": "request"
+      }
+    },
+    "TransferRoute6Method": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute6"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "WalletAuthorizerId"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MerchantDeviceFinanceFunction.Arn}/invocations"
+          },
+          "TimeoutInMillis": 29000
+        }
+      }
+    },
+    "TransferRoute6Options": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute6"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Staff-Session'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Methods": false,
+              "method.response.header.Access-Control-Allow-Headers": false
+            }
+          }
+        ]
+      }
+    },
+    "TransferRoute7": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ParentId": {
+          "Ref": "TransferRoot"
+        },
+        "PathPart": "cancel"
+      }
+    },
+    "TransferRoute7Method": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute7"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "WalletAuthorizerId"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MerchantDeviceFinanceFunction.Arn}/invocations"
+          },
+          "TimeoutInMillis": 29000
+        }
+      }
+    },
+    "TransferRoute7Options": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "ResourceId": {
+          "Ref": "TransferRoute7"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,X-Staff-Session'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": false,
+              "method.response.header.Access-Control-Allow-Methods": false,
+              "method.response.header.Access-Control-Allow-Headers": false
+            }
+          }
+        ]
+      }
+    },
+    "TransferApiInvokeGET": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "MerchantDeviceFinanceFunction"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${WalletApiId}/${Environment}/GET/wallet/branch-device/transfers/*"
+        }
+      }
+    },
+    "TransferApiInvokePOST": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "MerchantDeviceFinanceFunction"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${WalletApiId}/${Environment}/POST/wallet/branch-device/transfers/*"
+        }
+      }
+    },
+    "TransferAuthorizerDelegate": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "MerchantDeviceTransferDelegate",
+        "Roles": [
+          {
+            "Ref": "WalletAuthorizerRoleName"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "lambda:InvokeFunction",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "MerchantDeviceFinanceFunction",
+                  "Arn"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "TransferApiDeployment": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "DependsOn": [
+        "TransferRoute0Method",
+        "TransferRoute0Options",
+        "TransferRoute1Method",
+        "TransferRoute1Options",
+        "TransferRoute2Method",
+        "TransferRoute2Options",
+        "TransferRoute3Method",
+        "TransferRoute3Options",
+        "TransferRoute4Method",
+        "TransferRoute4Options",
+        "TransferRoute5Method",
+        "TransferRoute5Options",
+        "TransferRoute6Method",
+        "TransferRoute6Options",
+        "TransferRoute7Method",
+        "TransferRoute7Options"
+      ],
+      "Properties": {
+        "RestApiId": {
+          "Ref": "WalletApiId"
+        },
+        "StageName": {
+          "Ref": "Environment"
+        },
+        "Description": "Employee transfers through device and live membership. Existing API routes preserved."
+      }
+    },
+    "TransferLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/aws/lambda/${Environment}-merchant-device-transfers"
+        },
+        "RetentionInDays": 14
+      }
+    }
+  },
+  "Outputs": {
+    "FunctionArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "MerchantDeviceFinanceFunction",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

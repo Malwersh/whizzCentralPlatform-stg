@@ -1,0 +1,116 @@
+{
+  "phase": 462,
+  "date": "2026-11-08",
+  "status": "IMPLEMENTED_IOS_BUILT_INSTALLED_LIVE_ACCEPTANCE_PENDING",
+  "authorization": "User approved implementation, then explicitly approved customer/driver private images and isolated drafts plus existing staging support endpoint binding after automatic-review scope rejection.",
+  "scope": "Selective support-only adaptation; no merge/pull of colleague branches; no pricing/ledger/wallet/offer transport/global auth replacement.",
+  "provenance": {
+    "merchantSupportSourceCommit": "5dc0545c2d28a68ef3b8efbc991ba1b967dff0a0",
+    "source": "origin/review/app-updates-20261106",
+    "adaptation": "Only merchant chat service, private image widget and related tests used as starting point; correlated history, explicit same-id retry, identity/branch invalidation and scoped encrypted checkpoint added. Current customer/driver adapters retained."
+  },
+  "merchant": [
+    "Existing access-token refresh provider retained; user subject differs from branch ID",
+    "Server-confirmed connection; pending/accepted/unknown message states",
+    "Explicit same-clientMessageId retry without auto replay",
+    "Paginated history with per-request correlation and failure recovery",
+    "Private JPEG/PNG upload and authenticated image viewing; no localhost/public URL flow",
+    "Synchronous support invalidation on branch selection change and logout",
+    "Encrypted owner/backend/branch session checkpoint and draft",
+    "Existing app entry and floating support widget retained; direct central support replaces legacy WhizzMe detour"
+  ],
+  "customerDriver": [
+    "Existing authorized support adapters retained; customer complaint orderId/fixedSessionId preserved",
+    "Encrypted owner/backend/order scoped draft/session metadata replaces support SharedPreferences defaults",
+    "Uncertain receipt identifier persisted before send and restored without automatic replay, protecting draft retry after navigation",
+    "Authenticated private image upload/view; unknown image retry keeps same upload/receipt ID",
+    "Late callbacks cannot send or display bytes after identity/session changes",
+    "Customer uses existing SessionService token refresh; customer identity changes and driver auth invalidations close active chat"
+  ],
+  "runtimeReadOnlyVerification": {
+    "api": "vzvnqu5jhl",
+    "attachmentApi": "5ytyphpnkc/staging/support/attachments",
+    "handlers": [
+      "websocketConnect",
+      "liveChatConnect",
+      "liveChatMessage",
+      "websocketDefault",
+      "supportAttachments"
+    ],
+    "publishedCodeSha256": "1o1grci+/L335p8YKTyOAtmmaAQpZ60lY9duC9Jg26Y=",
+    "supportFilesIdenticalToReviewedSource": true,
+    "unauthenticatedAttachmentGetStatus": 401,
+    "backendDeploymentPerformed": false,
+    "cloudResourcesCreated": false,
+    "liveSupportMessagesSent": false
+  },
+  "validation": {
+    "customerTests": 19,
+    "driverTests": 19,
+    "merchantTestsIncludingBranchRegression": 47,
+    "backendContractTests": 130,
+    "totalPassed": 215,
+    "analysis": "No errors or warnings in targeted support files; style info diagnostics remain.",
+    "ios": [
+      "Customer signed Release416 built and installed iMohammed",
+      "Driver signed Release367 built and installed iMohammed",
+      "Merchant debug simulator build installed and launched on booted iPhone16"
+    ],
+    "android": "No fresh native Android build/device test in this batch; Dart behavior covered by tests."
+  },
+  "preservation": {
+    "whizzCentralPlatform-stg": [
+      "docs/main-plan-all-apps-priority-review-2026-10-24.json"
+    ],
+    "whizzDrivers-stg": [],
+    "whizzMerchants-stg": [
+      "frontend/lib/screens/support_chat_screen.dart"
+    ],
+    "wizzuser-stg": []
+  },
+  "sourceFilesSha256": {
+    "whizzMerchants-stg": {
+      "frontend/lib/services/support_chat_service.dart": "e46387f2e0797c695803e76dacdc032e5365ae618365d8c1ee458a4c673ddf8a",
+      "frontend/lib/services/support_conversation_checkpoint.dart": "0e3072a101e222e5d057324b94459d8e260cd84ca934dccb3adbb1b6d9355a30",
+      "frontend/lib/screens/support_chat_screen.dart": "8c554fffe23d75fa48680a64bdf23aa1e24c56a52b1f112216974d875553f143",
+      "frontend/lib/widgets/support_attachment_image.dart": "7efecab2207e64984b92288e4cf44dbde86e993e9854203bbc66c63449b6b3b5",
+      "frontend/lib/providers/session_provider.dart": "a352013da683a5f09445453f2397223286c8b55132824ab8a56e7e9d393d4e02",
+      "frontend/lib/config/app_config.dart": "97c41b7532b55bfe8e05b0aacec1068d73f857919980f669a2d857b8b09dbb3c",
+      "frontend/test/support_chat_reliability_test.dart": "cabdccad730a30dddfa15e43e5e25adf63a851e6242af6cbc4cb4799456cf40c",
+      "frontend/test/support_attachments_test.dart": "bc835bd83e145e83962f8edae634e1a1a98d4e6f55e7c899a71fe8d7f6a78f0d",
+      "frontend/test/support_attachment_image_test.dart": "2588f863872658dcdf72b9aefe79f0a6f27d40f852d7026d18c8b645c1d0746a",
+      "frontend/test/helpers/support_chat_fixture.dart": "7a39ec864306b2731bfeb47b3b1014add7a746c22d8a436b0415369b97ca7eda",
+      "frontend/test/support_checkpoint_test.dart": "0743637a62f6a8e05529bbf5272da754ca75f318df09fbacc90e45a4a99b438c"
+    },
+    "wizzuser-stg": {
+      "frontend/lib/services/customer_support_chat.dart": "75659d76f43585ece6546e85fec24e095e9bd5350c4ed1dc2b105ce658c36f0d",
+      "frontend/lib/services/support_private_images.dart": "0e9dc84aaa5f75b30acb10abd5db56c14d17f627c4dcf3d04e590e98c6a613ee",
+      "frontend/lib/services/support_conversation_checkpoint.dart": "c52a200a791ad3867f8fd4941c5d7b135107827ee6c48a1338ea750736857513",
+      "frontend/lib/widgets/support_attachment_image.dart": "d7b7b0294332248bbe81eebf0d09256c722c2b34d5791be4fe223eb809ed6938",
+      "frontend/lib/screens/customer_support_chat_screen.dart": "84cafadc6f62270c0a9b7604eae86c9b2b0f3cd7ddc588343f0ad4a51b616836",
+      "frontend/test/customer_support_chat_test.dart": "7b443a4b375fddbe40c01fc7de753429825d44ae1107c5973c31ff18be2f0a61",
+      "frontend/test/support_private_images_test.dart": "4644eafac22b63f4c519e7160cfff1149ee2bc08d8fd8230bed00d3969e65c4b",
+      "frontend/test/support_checkpoint_test.dart": "3f9e9eb9e519eb29b726215e71dbca81d4c1806e45cd729e6702837d429018e6",
+      "frontend/test/support_roundtrip_462_test.dart": "23741755a95e2ba78f7c203ade6f4b8e87d5183e3f56bae331aa1b5c7f86fb9e"
+    },
+    "whizzDrivers-stg": {
+      "frontend/lib/services/authenticated_support_chat.dart": "02a05a612c037db767b552540c6a1e7cb11ad71dbe9d0119e963495b4c24b809",
+      "frontend/lib/services/support_private_images.dart": "1c9445c738594f80ef4875db6277092e1ed9fe8112061ad30a2d6d1b9d47c59f",
+      "frontend/lib/services/support_conversation_checkpoint.dart": "0e3072a101e222e5d057324b94459d8e260cd84ca934dccb3adbb1b6d9355a30",
+      "frontend/lib/widgets/support_attachment_image.dart": "7efecab2207e64984b92288e4cf44dbde86e993e9854203bbc66c63449b6b3b5",
+      "frontend/lib/features/more/screens/live_chat_screen.dart": "ffb42bbd298c00bbb20c76b1fdec2c723ddd3d58de4e27a0e34464f56db73fcc",
+      "frontend/test/support/authenticated_support_chat_test.dart": "70fa786b8e3a250e133643be3288d42a5cdcfd6314d6adc2703a327dc9f3fdca",
+      "frontend/test/support_private_images_test.dart": "7fa27828f3e872fa7f6a47cbc723b3e3a1b26e2b7ff7e1ac2942ceea6e16ba84",
+      "frontend/test/support_checkpoint_test.dart": "8e168a321b3becfda76206cd3c70f7abfd3217ff789b639b0d503d0c009f45cf",
+      "frontend/test/support_roundtrip_462_test.dart": "4b87c64661d198d6a3e9b7a9bbfb4cf1ccc184b35ddac6e05d953d2e396eec08"
+    }
+  },
+  "pendingHumanAcceptance": [
+    "From merchant selected branch: send text and JPEG/PNG; verify staff reply and private image view",
+    "Customer order complaint: send text/image, receive staff reply, leave/reopen draft and history",
+    "Driver More/support: text/image and staff reply; reconnect and explicit uncertain-send retry",
+    "Verify sign-out/branch switch while chat/upload open on devices",
+    "Merchant outbox is in-process pending state; persisted checkpoint includes session/draft, not a full offline message queue. No offline auto-send."
+  ],
+  "next": "Run the three-app support acceptance with central agent; preserve main operational plan position. No global branch merge."
+}

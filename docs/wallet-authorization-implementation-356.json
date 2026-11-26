@@ -1,0 +1,44 @@
+{
+  "part": 356,
+  "scope": "staging wallet provisioning and self ownership boundaries",
+  "findings": [
+    "POST wallet/create deployed authorization NONE with legacy shared-header gate",
+    "Cognito trigger already signs requests and exact role already has IAM invoke permission",
+    "Driver self wallet, holds and settlements use authenticated identity, not query driverId; arbitrary wallet lookup is finance-only"
+  ],
+  "changes": [
+    "API Gateway AWS_IAM for create route",
+    "Handler exact configured assumed IAM role, account and signed identity required; no serviceId/header bypass",
+    "Trigger exact configured driver Cognito pool and confirmation source; valid Cognito subject required",
+    "No hardcoded API fallback or shared secret header; no full confirmation-event PII logging",
+    "Creation input rejects injected owner/balance and altered minimum"
+  ],
+  "deploymentNotes": [
+    "Supply WalletCreationCallerRoleArn parameter with exact trigger IAM role on future SAM deployment",
+    "Preserve captured Lambda environment except explicit role/pool bindings",
+    "Do not widen trigger execution permissions; existing scoped invoke is sufficient"
+  ],
+  "verification": {
+    "nodeTests": 69,
+    "pythonAuthorizerTests": 16,
+    "APIExistingMethodsParity": 141,
+    "typescript": "PASS",
+    "positiveFlow": "mock signed confirmation, trusted caller, strict input",
+    "negativeFlow": "anonymous, header-only, forged serviceId, wrong account/role, malformed driver, balance injection, foreign pool",
+    "selfOwnership": "authenticated self independent of query/body foreign IDs",
+    "positiveHandler": "PASS exact synthetic signed identity accepted; balance override denied without invoking wallet create",
+    "triggerUrl": "Matches current staging wallet API",
+    "privateDeploymentArtifactsIgnored": true
+  },
+  "financialDataWritten": 0,
+  "newWalletsCreated": 0,
+  "liveHumanAcceptance": [
+    "Register a new staging driver and verify zero-balance wallet provisioned once",
+    "Repeat confirmation and verify existing balance untouched",
+    "Verify actual driver app self wallet loads and foreign wallet access remains denied"
+  ],
+  "notClaimed": [
+    "No real positive financial provisioning test",
+    "No full system-wide identity security certification"
+  ]
+}

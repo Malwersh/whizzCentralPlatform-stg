@@ -1,0 +1,468 @@
+{
+  "part": 151,
+  "accountId": "699561669180",
+  "region": "us-east-1",
+  "stage": "staging",
+  "applied": false,
+  "packages": [
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "baseRevisionId": "a7ac1b6c-d4b6-42da-8a14-17e4d782483c",
+      "baseCodeSha256": "ZxUt0RUPXOcwYrKqitGsB47/QNCoJIMBQyJ8HrkFHe8=",
+      "candidate": "WizzUser-CreateOrder-staging.candidate.zip",
+      "codeSha256": "TDaGiUGv2DJ2ypyq6lLJKij7s4F8aBO0SUzLB5Urs7k=",
+      "changedFiles": [
+        "functions/create-order/commercial-runtime.js",
+        "functions/shared/customer-order-view.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "functions/create-order/index.handler"
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "baseRevisionId": "bc265906-dd1b-4f84-b6b1-9d4b9378a221",
+      "baseCodeSha256": "krOEuYD5MUHLD3djp+AtKPkLlSksVkOKHFkxhyQ9psw=",
+      "candidate": "staging-wizz-staff-service.candidate.zip",
+      "codeSha256": "UCPes9MhMK884HdsOrXhYTt7Q5+jMPe0P6INWGSnbWc=",
+      "changedFiles": [
+        "commercial-management.js",
+        "commercial-notices.js",
+        "delivery-options.js",
+        "index.js",
+        "pricing-runtime/deliveryCampaignBudget.js",
+        "pricing-runtime/deliveryFunding.js",
+        "pricing-runtime/deliveryFundingPolicy.js",
+        "pricing-runtime/deliveryPricing.js",
+        "pricing-runtime/deliveryPromotion.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "index.handler"
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "baseRevisionId": "7f63804d-6f8c-4f9c-9748-332ff384511c",
+      "baseCodeSha256": "t6IygAJq4HYpvXsyhFN+YDYIZ+4r+vs41SsgZCavXfs=",
+      "candidate": "staging-driver-financial-accept.candidate.zip",
+      "codeSha256": "q366ehuxv6jookgMb9ZtKW11mMwzlsZDT/gYa4D9q1g=",
+      "changedFiles": [
+        "index.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "index.financialAcceptanceHandler"
+    },
+    {
+      "name": "staging-cod-integration",
+      "baseRevisionId": "d13c1214-41fc-4bb4-b093-48df8ed1d0d1",
+      "baseCodeSha256": "DwqZGppZ20ajNgQ/nY42NPYQdDcWg+oQftW4NoRjfsQ=",
+      "candidate": "staging-cod-integration.candidate.zip",
+      "codeSha256": "IOVIWe8AvSVOPj/0/03g7KUVOQ/vIaDyrus8yQtSwPU=",
+      "changedFiles": [
+        "index.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "index.handler"
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "baseRevisionId": "5aaf16f2-b13d-4614-bddc-4ddc6130f0ec",
+      "baseCodeSha256": "DLSxSxT2gdZ3DBdvnyAhQxmBLNazhXHbaJku+jVZBXM=",
+      "candidate": "staging-merchant-response-99.candidate.zip",
+      "codeSha256": "4WLJ8SAzEjsuOXetOfd2kUeBfRlL1eTkY/4VxV0Sn0Q=",
+      "changedFiles": [
+        "index.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "index.handler"
+    },
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "baseRevisionId": "ef3953e9-8ee8-4211-92a2-77e2953d7ca7",
+      "baseCodeSha256": "4BrxC5Ko0gPd8dXN8sTVWxctebX4z+vZtIWynxjBcn4=",
+      "candidate": "order-receiver-merchant-orders-staging-v1.candidate.zip",
+      "codeSha256": "LaQZDmaAyoiti9VpIPzGiUJDyXaznCWpg0K5L4JO1xM=",
+      "changedFiles": [
+        "merchant_order_handler.js",
+        "merchant_pending_response.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "merchant_order_handler.handler"
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "baseRevisionId": "d757a3f9-1b78-43f5-a0f9-45393387c95a",
+      "baseCodeSha256": "JCBLg600ElO0JCpPReAAKu5YIoc2LFFSq9hJxpIT+ow=",
+      "candidate": "WaveSystem_CreateDispatchJob.candidate.zip",
+      "codeSha256": "TGVWs/dMHlhPn72Pub/L4JMBzKKKPuMJPClwpOVQXpU=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "index.handler"
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "baseRevisionId": "70ded931-991b-4ec1-87a5-523e553d42fd",
+      "baseCodeSha256": "LL7g7l3aamaYw3URJHV7zgPDopeZahZs0OPTdKMWMcc=",
+      "candidate": "WaveSystem_StartWave.candidate.zip",
+      "codeSha256": "8S4yzYAYIb5x82nlKLrJH0uwddI5RfRCnlwrJN03MQY=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "financial-runtime.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "index.handler"
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "baseRevisionId": "4a277f4c-2a3b-4ce3-8cbb-cd8d4e530255",
+      "baseCodeSha256": "DbcS4wGUw0RTd37Nwjzf9mda2p2zdnAMn+iTXZ6nEvw=",
+      "candidate": "WaveSystem_HandleWaveTimeout.candidate.zip",
+      "codeSha256": "chG8kofrYBN7MwvqjV8k3Vr6Lu4vqCNQZkHYxQs1Efg=",
+      "changedFiles": [
+        "dispatch-cycle-runtime.js",
+        "financial-runtime.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "index.handler"
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendMerchantOrder",
+      "baseRevisionId": "7f3d2824-c533-492e-a6c7-fc4c6cf6228d",
+      "baseCodeSha256": "Pbp9eKQhJog7KVMEqRKVD0G0w/acgF0CTYXkpz3FRFI=",
+      "candidate": "wizzcentral-notifications-staging-pushSendMerchantOrder.candidate.zip",
+      "codeSha256": "WY1jaLYCo7Js1s39XsaSW2soz33HBhhmc6+1KtJnavE=",
+      "changedFiles": [
+        "src/utils/commercial-sharing-push.js"
+      ],
+      "untouchedEntriesVerified": true,
+      "handler": "src/handlers/push-merchant-order.sendMerchantOrder"
+    }
+  ],
+  "frontend": {
+    "appId": "d2vmebm1e1n95m",
+    "branch": "staging",
+    "jobId": "105",
+    "artifactSha256": "8f17729b1f3ec25e937e02fef397bcdbc14b8bddd6190c9a9e5ecc6da9d43091",
+    "observedJobs": [
+      {
+        "id": "105",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "104",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "103",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "102",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "101",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "100",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "99",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "98",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "97",
+        "status": "SUCCEED"
+      },
+      {
+        "id": "96",
+        "status": "SUCCEED"
+      }
+    ],
+    "candidate": "frontend.candidate.zip",
+    "candidateSha256": "4da07b33c4b3d2d1efd1a8f146d0f52fff3f8736213ab936d263515ca6107095",
+    "changedFiles": [
+      "delivery-policy-form.js",
+      "delivery-policy-management.js",
+      "pages/merchants.html"
+    ],
+    "untouchedEntriesVerified": true
+  },
+  "permissions": [
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/staging-cod-lifecycle-DriverFinancialAcceptanceFunc-ByuiNV8TkCUW",
+      "functions": [
+        "staging-driver-financial-accept"
+      ],
+      "policyName": "DeliveryFunding149",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryFunding1490",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_BUDGET#*",
+                  "DELIVERY_RESERVATION#*",
+                  "DELIVERY_USAGE#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "expectedRolePolicySnapshotSha256": "38fac7dee3e45d7cb4d32080e1a63fbe182a59972686fd9914e00b2c62f790b1"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/staging-merchant-response-99",
+      "functions": [
+        "staging-merchant-response-99"
+      ],
+      "policyName": "DeliveryFunding149",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryFunding1490",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_BUDGET#*",
+                  "DELIVERY_RESERVATION#*",
+                  "DELIVERY_USAGE#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "expectedRolePolicySnapshotSha256": "b6233f5228cbd8c82c8fc34b451afc0820479fb76b58076e6303e2d2418c5adb"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/Wizz-Merchants-staging-MerchantOrderFunctionRole-AZ12ipBY0zyt",
+      "functions": [
+        "order-receiver-merchant-orders-staging-v1"
+      ],
+      "policyName": "DeliveryFunding149",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryFunding1490",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_BUDGET#*",
+                  "DELIVERY_RESERVATION#*",
+                  "DELIVERY_USAGE#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "expectedRolePolicySnapshotSha256": "9632c0f257cec2d73218e28605c26c1a664ebe483bc6c6519d7d1d4e010f510b"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/WizzUser-backend-staging-CreateOrderFunctionRole-XxtsdKKNLkNN",
+      "functions": [
+        "WizzUser-CreateOrder-staging"
+      ],
+      "policyName": "DeliveryFunding149",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryFunding1490",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:Query"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "BRANCH#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DeliveryFunding1491",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem",
+              "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_BUDGET#*",
+                  "DELIVERY_RESERVATION#*",
+                  "DELIVERY_USAGE#*"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DeliveryFunding1492",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:ConditionCheckItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_FUNDING#*",
+                  "EMPLOYEE#*",
+                  "OPERATIONAL_SETTINGS#MERCHANT_STAFF_PERMISSIONS"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false"
+              }
+            }
+          }
+        ]
+      },
+      "expectedRolePolicySnapshotSha256": "328adf2fa52793e592ec1e77b31425a0c5ae910218cec8224f2f0af1f294d8d0"
+    },
+    {
+      "roleArn": "arn:aws:iam::699561669180:role/wizzcentral-notifications-staging-us-east-1-lambdaRole",
+      "policyName": "DeliveryNotice150",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DeliveryNoticeMetadata150",
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:GetItem"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-PlatformStaff",
+            "Condition": {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [
+                  "DELIVERY_FUNDING#*"
+                ]
+              },
+              "ForAllValues:StringEquals": {
+                "dynamodb:Attributes": [
+                  "pk",
+                  "sk",
+                  "ownerId",
+                  "businessId",
+                  "draftVersion",
+                  "draftHash",
+                  "eventId",
+                  "status",
+                  "createdAt",
+                  "expiresAt",
+                  "attempts",
+                  "nextAttemptAt",
+                  "leaseUntil",
+                  "sentTokenHashes",
+                  "id",
+                  "kind",
+                  "version",
+                  "hash",
+                  "businessIds",
+                  "publishedVersion",
+                  "subjectId",
+                  "cognitoUserId",
+                  "deletionRequestId",
+                  "deletedAt",
+                  "isDeleted",
+                  "role",
+                  "permissionSchema",
+                  "grant"
+                ]
+              },
+              "Null": {
+                "dynamodb:LeadingKeys": "false",
+                "dynamodb:Attributes": "false"
+              }
+            }
+          }
+        ]
+      },
+      "functions": [
+        "wizzcentral-notifications-staging-liveActivityPushEnd",
+        "wizzcentral-notifications-staging-liveActivityPushUpdate",
+        "wizzcentral-notifications-staging-liveActivityRegister",
+        "wizzcentral-notifications-staging-pushAdminSendTest",
+        "wizzcentral-notifications-staging-pushSendMerchantOrder",
+        "wizzcentral-notifications-staging-pushSendMerchantOrderTokens",
+        "wizzcentral-notifications-staging-pushSendOrderUpdate",
+        "wizzcentral-notifications-staging-pushSendWaveOffer",
+        "wizzcentral-notifications-staging-pushSoundSettings",
+        "wizzcentral-notifications-staging-pushTokensRegister",
+        "wizzcentral-notifications-staging-pushTokensUnregister"
+      ]
+    }
+  ],
+  "configuration": {
+    "changes": {},
+    "preserveAllExistingEnvironment": true,
+    "preserveFinancialRolloutScope": true,
+    "noAutomaticActivation": true
+  },
+  "financialDataMutations": false,
+  "preconditions": [
+    "Fresh clean drift report",
+    "Scoped IAM authorization",
+    "Exact ZIP hashes verified",
+    "Do not enable admission before financial dispatch integration verification"
+  ],
+  "rollback": {
+    "code": "Use captured original ZIP for each function; conditional revision check required",
+    "frontend": "Use captured successful job 105 artifact",
+    "permissions": "Remove only newly installed named inline policies after confirming no active funded orders; never overwrite existing policies",
+    "financial": "No new orders or financial data in package-only publication"
+  }
+}

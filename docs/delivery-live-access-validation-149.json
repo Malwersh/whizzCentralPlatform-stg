@@ -1,0 +1,33 @@
+{
+  "part": 149,
+  "accountId": "699561669180",
+  "capturedAt": "2026-10-18T19:03:39.606364+00:00",
+  "readOnly": true,
+  "applied": false,
+  "liveFunctionsRead": 9,
+  "liveRolesRead": 9,
+  "baselineSimulation": {
+    "cases": 53,
+    "allowed": 16,
+    "denied": 37,
+    "errors": 0
+  },
+  "candidateSimulation": {
+    "allowed": 53,
+    "unresolved": 0
+  },
+  "proposedRoleCount": 4,
+  "proposedStatementCount": 6,
+  "newWalletOrLedgerAccess": false,
+  "liveDeliveryFundingActivated": false,
+  "limitations": [
+    "IAM simulation is not real end-to-end service authorization",
+    "No Lambda code or configuration deployed",
+    "Role/config revisions must be rechecked before applying changes",
+    "Coordinated packaging and host scheduling still require verification"
+  ],
+  "downloadedPackageHashesVerified": 9,
+  "candidateRolesEachUsedByOneExpectedLambda": true,
+  "candidateRoleTrustLambdaOnly": true,
+  "candidateRolesWithPermissionsBoundary": 0
+}

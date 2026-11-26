@@ -1,0 +1,11 @@
+{
+  "status": "LOCAL_V2_PROOF_CONTRACTS_NOT_INTEGRATED_OR_DEPLOYED",
+  "module": "backend/wallet-service/src/deliveryFundedOffer.ts",
+  "contracts": ["immutable financial snapshot", "funding-bound driver offer", "driver allowlisted view", "acceptance plan", "assignment integrity proof"],
+  "reuses": ["validateDriverOfferOrderSnapshot", "buildDriverOffer", "driverOfferView", "prepareDriverOfferAcceptance", "allocateDeliveryFundedOrder"],
+  "verification": {"typescriptCompile": "PASS", "newTests": 8, "targetedTestsPassed": 66},
+  "legacyWritersStillRejectV2": true,
+  "remaining": ["cash hold capture/release", "completion journal and merchant accrual", "return/refund proofs", "actual admission and dispatch", "deployment and app verification"],
+  "awsMutations": 0,
+  "financialWrites": 0
+}

@@ -1,0 +1,78 @@
+{
+  "status": "PUBLISHED_STAGING",
+  "scope": "Driver rating validity review and appeals; original customer stars and merchant aggregates preserved",
+  "functions": [
+    {
+      "function": "whizz-order-ratings-staging-ratings",
+      "hash": "4yIo91qR4/VXBabzQbvsVbIZBNzaVFqeW5OSLUh/aG4=",
+      "revision": "c6977628-df5a-4c20-bace-95a32e172fea",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "staging-driver-financial-accept",
+      "hash": "QtUuvAcxSiiRk/GtBOaySto7v/Mz9onj4rg8Zemx1hw=",
+      "revision": "7f748abd-f7c9-418d-a442-07374bc3ba6d",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "staging-wizz-staff-service",
+      "hash": "sp3w74AsBFxzke7DF6YVn57Rde8/cjjuqXFLe9Q3eoI=",
+      "revision": "2f5a66c4-2f10-45ec-818a-144c8e1aa06d",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    },
+    {
+      "function": "DriversApi-staging",
+      "hash": "CCMoVuCWcxx7S7t2ifwCknrG605CPkPbg5aPtrPna7I=",
+      "revision": "1c9e90ee-5eb8-4a0e-b02c-2b98545c9e98",
+      "downloadedByteIdentical": true,
+      "configUnchanged": true
+    }
+  ],
+  "newPermissions": true,
+  "financialCalculationChanged": false,
+  "businessWritesByAgent": 0,
+  "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED",
+  "iamPolicy": "DriverRatingReview280",
+  "iamActions": [
+    "GetItem",
+    "PutItem",
+    "ConditionCheckItem"
+  ],
+  "iamResource": "whizz-order-ratings-staging",
+  "hostingJobId": "206",
+  "hostingChangedAssetsByteVerified": [
+    "driver-rating-review.js",
+    "pages/driver-rating-review.html",
+    "order-management.js",
+    "order-exception-cases.js",
+    "pages/orders.html",
+    "pages/order-exceptions.html"
+  ],
+  "anonymousAccessChecks": [
+    {
+      "route": "customer-rating",
+      "anonymousStatus": 401
+    },
+    {
+      "route": "staff-rating-review",
+      "anonymousStatus": 401
+    }
+  ],
+  "explicitApprovalEvidence": "docs/driver-rating-review-approval-280.json",
+  "device": {
+    "release": 280,
+    "installed": true,
+    "launched": true,
+    "sessionPreserved": true,
+    "testLocationUnchanged": true
+  },
+  "automatedTests": {
+    "capturedRuntimeIncludingSharedFactory": 85,
+    "staffProjectionAndPublicOrderNumber": 2,
+    "flutterPerformanceAndMore": 19,
+    "browser": "PASS"
+  }
+}

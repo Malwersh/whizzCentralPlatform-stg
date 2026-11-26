@@ -1,0 +1,59 @@
+{
+  "id": 427,
+  "status": "audit_complete_implementation_pending",
+  "scope": "Customer discounts selection and savings UX; checkout split deferred",
+  "findings": [
+    "Offer exposure is separate from selection and eligibility validation",
+    "Checkout auto-selection considers specific item/category merchant offers when no explicit selection is active; requires address and current quote",
+    "Platform benefits are manually selected or carried as PendingOffer from use action; not universally automatically selected",
+    "Merchant selection clears platform coupon and delivery benefit; benefit sheet clears prior selections; promo path supports explicitly permitted platform goods plus delivery benefit",
+    "Basket point invoice carries pending merchant discount; saved-address basket request omits selected discount and platform benefit identifiers",
+    "Menu crossed-out prices are server-projected offer previews, not an additional independent discount",
+    "No cart savings celebration flow found; success mostly uses messages in checkout"
+  ],
+  "rules": [
+    "One merchant goods discount or platform goods coupon/benefit; no arbitrary stacking",
+    "Two platform goods/delivery benefits require explicit permission from both",
+    "Delivery agreement/base price is distinct from promotional benefit",
+    "Reserve usage at confirmation; do not consume on preview"
+  ],
+  "proposed": [
+    "Unified eligible offer selection and savings model shared by cart and checkout",
+    "Server evaluates eligible combinations and best customer total; preserve explicit user choice",
+    "Automatic mode configurable in central platform; explicit-entry coupon stays explicit unless campaign authorizes auto application",
+    "Show goods subtotal, delivery, service, named savings and net payable from one validated invoice",
+    "Celebrate only confirmed positive savings once per applied selection, honor reduced motion, no fake entitlement",
+    "Explain unavailable offers with unmet minimum and remaining amount",
+    "After discount work split checkout into contact/address then invoice/payment; text-only directions must not trigger pricing calls"
+  ],
+  "validation": {
+    "flutterTestsPassed": 27,
+    "backendTestsPassed": 24
+  },
+  "limitations": "Code and automated tests audited; no new customer order or production financial changes; live deployed campaign eligibility not individually exercised",
+  "checkoutAudit": {
+    "status": "code_review_complete_no_ui_change",
+    "current": [
+      "Guest phone sign-in gate preserving basket",
+      "Order summary",
+      "Address editor or address summary; neighborhood and landmark required",
+      "Recipient disclosure; account data prefilled and readonly name/verified phone",
+      "Optional delivery instructions disclosure",
+      "Enabled payment methods only",
+      "Merchant offers and coupon section",
+      "Separate platform benefits disclosure",
+      "Optional tip disclosure",
+      "Invoice and quote status",
+      "CommercialConfirmationSheet before final submission"
+    ],
+    "recommended": "Delivery information step shown only when incomplete or requested for edit, then compact payment screen; retain one authoritative commercial review and pending-order recovery",
+    "requirements": [
+      "Preserve basket, point, identity, selected offer and tip across steps/back navigation",
+      "No order creation or benefit usage reservation when completing delivery information",
+      "Pricing tied to point/cart/offer, not typing directions",
+      "Resolve whether existing confirmation sheet becomes payment confirmation or remains only for changed invoice; avoid duplicate routine review",
+      "Preserve suggestions on existing cart screen"
+    ],
+    "implementation": "Deferred until discount selection is unified; user currently requested inspection"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "part": 120,
+  "checkedAt": "2026-10-18T15:26:43.106225+00:00",
+  "readOnly": true,
+  "branchId": "business_1791634772438_p2hlg6w5qii",
+  "businessName": "فروج المدينة",
+  "ownerMatchesSelectedPhone": true,
+  "customerVerified": true,
+  "approvedAgreementLinked": false,
+  "deliveryBranchRules": [],
+  "driverBranchRules": [],
+  "products": [
+    {
+      "productId": "2ec7286a-58e0-49e6-b01f-288d9d7d746a",
+      "name": "هم برجر",
+      "price": "3000",
+      "isAvailable": true,
+      "isActive": null,
+      "status": null
+    },
+    {
+      "productId": "8237249a-a4fb-466e-b426-53cf693431f7",
+      "name": "برجر",
+      "price": "100",
+      "isAvailable": false,
+      "isActive": null,
+      "status": null
+    }
+  ],
+  "driverAvailable": "67500",
+  "driverLocked": "0",
+  "proposedSettingsSavedOnlyLocally": true,
+  "applicationWrites": false,
+  "status": "DEFERRED_BY_USER_RETURN_TO_FATTOUSH",
+  "userApprovedSameFattoushTestValues": true,
+  "commissionPercent": 10,
+  "serviceFeeIqd": 500,
+  "driverPhoneLastFour": "8280",
+  "customerMerchantPhoneLastFour": "7435",
+  "platformPresetJobId": "102",
+  "mergedPricingValidated": true,
+  "existingPublishedRulesPreserved": true,
+  "liveAgreementApproved": false,
+  "newOrderScopeActivated": false,
+  "next": "Do not create or approve Farouj policies for this test. Continue Fattoush under Part121."
+}

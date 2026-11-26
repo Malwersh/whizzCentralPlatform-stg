@@ -1,0 +1,17 @@
+{
+  "functions": [
+    {
+      "name": "WizzUser-GetBusinesses-staging",
+      "codeSha256": "XswvM2jImoKjEmXz2nVPqx4f8sHGROrkdOIivpuon4Y=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WizzUser-GetBusiness-staging",
+      "codeSha256": "+n3EaKTEM/VIbtjUOJtujGNuv01YArP7Fy/LQzkAfe0=",
+      "configurationPreserved": true
+    }
+  ],
+  "newIam": false,
+  "financialWrites": false,
+  "sourceContractTestsPassed": 3
+}

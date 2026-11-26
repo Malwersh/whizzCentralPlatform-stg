@@ -1,0 +1,763 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Private production financial cancellation and driver unassignment for production orders.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    },
+    "ArtifactKey": {
+      "Type": "String",
+      "AllowedPattern": "order-financial/[a-f0-9]{64}\\.zip"
+    },
+    "ArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1
+    },
+    "HostMode": {
+      "Type": "String",
+      "Default": "OFF",
+      "AllowedValues": [
+        "OFF",
+        "SCOPED",
+        "GENERAL"
+      ]
+    },
+    "RolloutConfig": {
+      "Type": "String",
+      "Default": "{}",
+      "NoEcho": true
+    },
+    "RolloutSha256": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "^(?:[a-f0-9]{64})?$"
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    },
+    "EnabledProductionOrderHost": {
+      "Fn::And": [
+        {
+          "Condition": "IsProductionAccount"
+        },
+        {
+          "Fn::Not": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "HostMode"
+                },
+                "OFF"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "GeneralProductionOrderHost": {
+      "Fn::And": [
+        {
+          "Condition": "IsProductionAccount"
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "HostMode"
+            },
+            "GENERAL"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-order-financial",
+        "RetentionInDays": 90
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "WriteOrderFinancialLogs",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-order-financial:*"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "Fn::If": [
+              "EnabledProductionOrderHost",
+              {
+                "PolicyName": "OrderFinancialTransactions",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Orders"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "ORDER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Orders"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "ORDER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:UpdateItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Orders"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "ORDER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        },
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:PutItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:UpdateItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Wallets"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "WALLET#DRIVER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Wallets"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "WALLET#DRIVER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:UpdateItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Wallets"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "WALLET#DRIVER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        },
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:PutItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-LedgerEntries"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "WALLET#DRIVER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        },
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:PutItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AuditLog"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "date#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        },
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DispatchJobs"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DispatchJobs"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:UpdateItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DispatchJobs"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WaveOffers"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WaveOffers"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DriverLiveState"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DriverLiveState"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:UpdateItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DriverLiveState"
+                      },
+                      "Condition": {
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Drivers"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Drivers"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Merchants"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Merchants"
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "ACCOUNT_LIFECYCLE#DRIVER#*",
+                            "ACCOUNT_LIFECYCLE#MERCHANT#*",
+                            "BUSINESS_LIFECYCLE#MERCHANT#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-OfferJourney"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "BENEFIT_ORDER#*",
+                            "USER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:PutItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-OfferJourney"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "BENEFIT_ORDER#*",
+                            "USER#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        },
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "DELIVERY_BUDGET#*",
+                            "DELIVERY_USAGE#*",
+                            "DELIVERY_RESERVATION#*",
+                            "OPERATIONAL_SETTINGS#ORDER_EXCEPTION_CASES",
+                            "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "DELIVERY_BUDGET#*",
+                            "DELIVERY_USAGE#*",
+                            "DELIVERY_RESERVATION#*",
+                            "OPERATIONAL_SETTINGS#ORDER_EXCEPTION_CASES",
+                            "OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:PutItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "DELIVERY_BUDGET#*",
+                            "DELIVERY_USAGE#*",
+                            "DELIVERY_RESERVATION#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        },
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:GetItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WalletLifecycle"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "FCH:*",
+                            "FH:*",
+                            "EXCEPTION_CASE#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:ConditionCheckItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WalletLifecycle"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "FCH:*",
+                            "FH:*",
+                            "EXCEPTION_CASE#*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:UpdateItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WalletLifecycle"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "FCH:*",
+                            "FH:*"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        },
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "dynamodb:PutItem",
+                      "Resource": {
+                        "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WalletLifecycle"
+                      },
+                      "Condition": {
+                        "ForAllValues:StringLike": {
+                          "dynamodb:LeadingKeys": [
+                            "EXCEPTION_CASE#*",
+                            "CA:*:EVENT"
+                          ]
+                        },
+                        "Null": {
+                          "dynamodb:LeadingKeys": "false"
+                        },
+                        "StringEquals": {
+                          "dynamodb:EnclosingOperation": "TransactWriteItems"
+                        }
+                      }
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": "cognito-idp:AdminGetUser",
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_5sUT54eCB"
+                        },
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_2sKZ4fGbZ"
+                        },
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_rNtNKVsVf"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Function": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "wizz-production-order-financial",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.financialAcceptanceHandler",
+        "MemorySize": 256,
+        "Timeout": 30,
+        "Role": {
+          "Fn::GetAtt": [
+            "Role",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "ArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactVersion"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "PLATFORM_ENVIRONMENT": "production",
+            "WALLETS_TABLE": "wizz-production-Wallets",
+            "LEDGER_TABLE": "wizz-production-LedgerEntries",
+            "HOLDS_TABLE": "wizz-production-Holds",
+            "TOPUP_REQUESTS_TABLE": "wizz-production-TopupRequests",
+            "AUDIT_LOG_TABLE": "wizz-production-AuditLog",
+            "IDEMPOTENCY_KEYS_TABLE": "wizz-production-IdempotencyKeys",
+            "ACCOUNT_DELETION_TABLE": "wizz-production-AccountDeletion",
+            "WALLET_LIFECYCLE_TABLE": "wizz-production-WalletLifecycle",
+            "ORDERS_TABLE": "wizz-production-Orders",
+            "STAFF_TABLE": "wizz-production-PlatformStaff",
+            "MERCHANTS_TABLE": "wizz-production-Merchants",
+            "DRIVERS_TABLE": "wizz-production-Drivers",
+            "DRIVER_USER_POOL_ID": "us-east-1_5sUT54eCB",
+            "DRIVER_CLIENT_ID": "59to4hbat3lv2fvosa49afu0gi",
+            "ADMIN_USER_POOL_ID": "us-east-1_njh6vaNWj",
+            "ADMIN_CLIENT_ID": "7924qedsr5m1j1bvc3c7va8egk",
+            "CUSTOMER_USER_POOL_ID": "us-east-1_rNtNKVsVf",
+            "CUSTOMER_CLIENT_ID": "3e8p0ouglrprpd0a3pc91du0hg",
+            "MERCHANT_USER_POOL_ID": "us-east-1_2sKZ4fGbZ",
+            "MERCHANT_CLIENT_ID": "5l8ng11uudg146crop63926svq",
+            "DISPATCH_JOBS_TABLE": "wizz-production-DispatchJobs",
+            "WAVE_OFFERS_TABLE": "wizz-production-WaveOffers",
+            "DRIVER_LIVE_STATE_TABLE": "wizz-production-DriverLiveState",
+            "OFFER_JOURNEY_TABLE": "wizz-production-OfferJourney",
+            "DELIVERY_QUOTES_TABLE": "wizz-production-DeliveryQuotes",
+            "FINANCIAL_ORDER_HOST_MODE": {
+              "Ref": "HostMode"
+            },
+            "FINANCE_ROLLOUT_CONFIG": {
+              "Ref": "RolloutConfig"
+            },
+            "FINANCE_ROLLOUT_SHA256": {
+              "Ref": "RolloutSha256"
+            },
+            "FINANCIAL_DISPATCH_MODE": {
+              "Fn::If": [
+                "EnabledProductionOrderHost",
+                "REQUIRED",
+                "OFF"
+              ]
+            },
+            "FINANCIAL_COD_ASSIGNMENTS_MODE": {
+              "Fn::If": [
+                "EnabledProductionOrderHost",
+                "REQUIRED",
+                "OFF"
+              ]
+            },
+            "FINANCIAL_DELIVERY_FUNDING_MODE": "REQUIRED",
+            "FINANCIAL_SETTLEMENT_MODEL": "FULL_CASH_AT_DELIVERY_V1",
+            "DELIVERY_OPERATIONS_MODE": "CENTRAL",
+            "FINANCE_GENERAL_RELEASE_MODE": {
+              "Fn::If": [
+                "GeneralProductionOrderHost",
+                "REQUIRED",
+                "OFF"
+              ]
+            },
+            "FINANCIAL_OFFER_TTL_SECONDS": "60",
+            "FINANCIAL_POSITION_MAX_AGE_SECONDS": "120"
+          }
+        },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "LogGroup"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    }
+  }
+}

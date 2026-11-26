@@ -1,0 +1,14 @@
+{
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED",
+  "changes": [
+    "Arabic action labels including COD_EVENT_INTEGRATED",
+    "Human-readable before/after field table with unchanged indicators",
+    "System actor explanation without fabricated employee identities",
+    "Human-readable operation references",
+    "Raw technical data retained inside collapsed details only"
+  ],
+  "tests": 16,
+  "financialDataChanged": false,
+  "visualBrowserAcceptance": "Pending",
+  "hostingJob": "265"
+}

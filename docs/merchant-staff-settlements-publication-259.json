@@ -1,0 +1,175 @@
+{
+  "part": 259,
+  "status": "PUBLISHED",
+  "functions": [
+    {
+      "function": "staging-wizz-staff-service",
+      "changes": [
+        "staff-capabilities.js",
+        "_discount_review/central-staff/index.js",
+        "settlement-runtime.js",
+        "merchant-device-payouts.js",
+        "index.js"
+      ],
+      "baseCodeSha256": "NjP2/CrLhD4/zwgN7okPkeUbPuRDxUphOlEJo63Ql3Q=",
+      "packageSha256": "a9ae5c03e43d75291e5ca3c5d2c81d638402ffea09fb7249c5639174f372007d",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "qa5cA+Q9dSkeXKPF0sgdY4QC/+oJ+3JJxWORdPNyAH0=",
+      "configurationPreserved": true,
+      "expiryFenceVerification": {
+        "baseCodeSha256": "7JsY7l+QvfhJZ75uTbvvjMQbdhS03m2Bo/Y+Vly8YOI=",
+        "changedFiles": [
+          "settlement-runtime.js"
+        ],
+        "freshTimeChecksPreserved": true,
+        "otherEntriesAndConfigPreserved": true
+      },
+      "verifiedLiveCodeSha256": "/oqx2RE8yZNAlFOgMY1CVcXKuQdrtUEgtsvp8rwozAM=",
+      "subsequentCompatibilityOverlay": {
+        "lastModified": "2026-10-21T21:12:56.000+0000",
+        "changedFiles": [
+          "settlement-runtime.js",
+          "financial-compatibility.js"
+        ],
+        "scope": "Platform benefit allocation compatibility, outside this employee release",
+        "employeeImplementationPreservedByteForByte": true,
+        "publishedByThisRelease": false,
+        "helperSha256": "dd19fef622f9bce704cee8837576f39d6d8c56e49b3da6b80748e3cc9edddd00"
+      }
+    },
+    {
+      "function": "order-receiver-regional-staging-product-management-v4-sam",
+      "changes": [
+        "merchant-platform/staff-capabilities.js",
+        "_discount_review/merchant-products/index.js"
+      ],
+      "baseCodeSha256": "YnfPI12KKSKqbEQHKIMDOW/VOUylQHfH8sTMR9vzmE4=",
+      "packageSha256": "57a9b70e02f1cb6f3b428e7be4fcea8044c869f1617ecc26ff0a306a188a49ac",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "V6m3DgLxy287Qo575PzqgETIafFhfswm/wowahiKSaw=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-location-settings-v1-sam",
+      "changes": [
+        "merchant-platform/staff-capabilities.js"
+      ],
+      "baseCodeSha256": "7hbvr5ffgEebEsj7YXAx7ieCMoDIMWtHW9aK5v8ljew=",
+      "packageSha256": "6270c053d382ea57d2b59c0c5d86161d651a3011adee0e2582ae17f0e234020b",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "YnDAU9OC6lfStZwMXYYWHWUaMBGt7g4lgq4X8OI0Ags=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "staging-merchant-device-transfers",
+      "changes": [
+        "index.js"
+      ],
+      "baseCodeSha256": "xKR04WxC5g3I4BN0lg8RXP+/1QdFYs9wTv8fi921bsg=",
+      "packageSha256": "a3ead77b74bf6c6e2ef39be8f0220184885cae4e2211fbf2a9b07ba8dcc5ef08",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "o+rXe3S/bG4u85vo8CIBhIhcrk4iEfvyqbB7qNzF7wg=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+      "changes": [
+        "merchant-platform/staff-capabilities.js",
+        "branch_devices.js",
+        "branch_device_settlements.js",
+        "merchant-platform/branch-profile-policy.js"
+      ],
+      "baseCodeSha256": "7tkOCOgx09+IS6I//D1314/chmQr1mLxEmv3JF3nHwk=",
+      "packageSha256": "fce293ffdac584abf8e87565d4642e6741abd84eaf05943c3af755849c1f7f59",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "/OKT/9rFhKv46HVl1GQuZ0Gr2E6vBZQ8OvdVhJwff1k=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "staging-merchant-device-wallet-read",
+      "changes": [
+        "index.js"
+      ],
+      "baseCodeSha256": "2GTc+4v65ozHby5RcI3+6y7rKZBx7msPOPqO9v/GuZw=",
+      "packageSha256": "dd631798cf6acdcaf8adbdad522aaf725dead18f6e8c2ff780a51400ee9b2944",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "3WMXmM9qzcr4rb2tUiqvcl3q0Y9ujC/3gKUUAO6bKUQ=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-merchant-orders-staging-v1",
+      "changes": [
+        "merchant-platform/staff-capabilities.js"
+      ],
+      "baseCodeSha256": "ZwSykLF8MKvB4lxKZH4ZaT+LcgqdjsqEBxMnlNNEEv8=",
+      "packageSha256": "c090caaccbf209c5868ef6957d032a17a541c3a31fca5245212f33d58ab5c625",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "wJDKrMvyCcWGjvaVfQMqF6VBw6MfylJFIS8z1Yq1xiU=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-business-staging-status-v1-sam",
+      "changes": [
+        "merchant-platform/staff-capabilities.js"
+      ],
+      "baseCodeSha256": "YQFYB796anSY0nWnSOCM2nQJM8bg9B6me96jDmVdXKg=",
+      "packageSha256": "573a2edc1cdb3d2df344ab8b958a1342e8a4dde42b4e5146ab822c911022c6e3",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "Vzou3BzbPS3zRKuLlYoTQuik3eQrTlFGq4IskRAixuM=",
+      "configurationPreserved": true
+    },
+    {
+      "function": "order-receiver-regional-staging-discount-management-v1-sam",
+      "changes": [
+        "_discount_review/merchant-discounts/index.js"
+      ],
+      "baseCodeSha256": "IxoU9yBxWbRP6nKmudVi67Y82tXGrYeH3bNWnH88jIQ=",
+      "packageSha256": "58e142bc9a4ca4f4339af061a178e09b397fca409781ac635b2462c648b356b0",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "WOFCvJpMpPQzmvBhoXjgmzl/ykCXgaxjWyRixkizVrA=",
+      "configurationPreserved": true
+    }
+  ],
+  "iamChanged": false,
+  "employeeMembershipGrantsChanged": false,
+  "financialActionsRequested": false,
+  "otpSent": false,
+  "invalidDeviceSmoke": {
+    "statusCode": 401,
+    "code": "DEVICE_REVOKED"
+  },
+  "hosting": {
+    "baseJobId": "146",
+    "jobId": "147",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-payouts.js",
+      "merchant-payout-print.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedEntriesPreserved": true,
+    "hostedBytesVerified": true
+  },
+  "policyVersion": 2,
+  "policyEditorHosting": {
+    "jobId": "148",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "merchant-staff-policy.js",
+      "pages/merchants.html"
+    ],
+    "unrelatedEntriesPreserved": true,
+    "hostedBytesVerified": true
+  },
+  "recipientWordingHosting": {
+    "jobId": "149",
+    "status": "SUCCEED",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-payouts.js",
+      "merchant-payout-print.js"
+    ],
+    "unrelatedEntriesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

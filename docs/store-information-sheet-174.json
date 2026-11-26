@@ -1,0 +1,17 @@
+{
+  "fields": [
+    "preparation",
+    "arrival",
+    "deliveryFee",
+    "roadDistance",
+    "optionalMinimum"
+  ],
+  "source": "Shared StorefrontPricing preview scoped to customer address and basket",
+  "oldDeliveryPlaceholdersRemoved": true,
+  "iosProfileBuildPassed": true,
+  "codesignVerified": true,
+  "physicalDeviceInstalled": true,
+  "physicalLaunchVerified": false,
+  "launchError": "iOS security: signature, entitlements, or developer trust rejected; embedded profiles are unexpired",
+  "visualConfirmationPending": true
+}

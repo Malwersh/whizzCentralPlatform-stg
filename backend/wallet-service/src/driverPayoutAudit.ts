@@ -1,0 +1,9 @@
+import {financialAudit,auditText} from './financialAudit';
+type Row=Record<string,any>;
+export const payoutAuditState=(r:Row|null)=>r?Object.fromEntries(['payoutId','driverId','status','version','amount','sourceAccount','cashVoucherNumber','cashLedgerJournalId','cashReturnJournalId','receiptAt','paidAt','failureReference'].filter(k=>r[k]!==undefined).map(k=>[k,typeof r[k]==='string'?auditText(r[k]):r[k]])):null;
+export const payoutWalletAudit=(w:Row)=>Object.fromEntries(['walletId','availableBalance','lockedBalance','driverPayoutReservedIqd','driverPayoutActiveId','version','status'].filter(k=>w[k]!==undefined).map(k=>[k,w[k]]));
+export function payoutAudit(a:Row,before:Row|null,after:Row,wallet:Row,ops:Row[],requestId:string,reason?:string){
+ const identity=a.auditIdentity,valid=identity?.actorId===a.actorId&&(a.driver?identity.actorIdentityEvidence==='VERIFIED_DRIVER_AT_ACTION'&&identity.actorSnapshot?.driverId===a.actorId:identity.actorIdentityEvidence==='VERIFIED_STAFF_AT_ACTION'&&identity.actorSnapshot?.employeeId===a.actorId);
+ const ledger=ops.filter(x=>x.Put?.TableName==='staging-LedgerEntries').map(x=>({walletId:x.Put.Item.walletId,sk:x.Put.Item.sk,transactionId:x.Put.Item.transactionId,category:x.Put.Item.category}));
+ return {...financialAudit(a.actorId,undefined,{payout:payoutAuditState(before),wallet:wallet.before},{payout:payoutAuditState(after),wallet:wallet.after},{requestId,payoutId:after.payoutId,driverId:after.driverId,cashLedgerJournalId:after.cashLedgerJournalId??null,cashReturnJournalId:after.cashReturnJournalId??null,sourceAccount:after.sourceAccount??null,cashVoucherNumber:after.cashVoucherNumber??null,ledger},reason),...(valid?{actorId:identity.actorId,actorIdentityEvidence:identity.actorIdentityEvidence,actorSnapshot:identity.actorSnapshot}:{}),currency:'IQD',amountUnit:'WHOLE_IQD'};
+}

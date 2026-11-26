@@ -1,0 +1,262 @@
+{
+  "changeSetId": "arn:aws:cloudformation:us-east-1:699561669180:changeSet/employee-transfers-closure213-1792474336/ea7fa851-1038-48f1-903a-b8d233a11abd",
+  "changeSetName": "employee-transfers-closure213-1792474336",
+  "stack": "staging-merchant-device-transfers",
+  "packageSha256": "c4a474e16c42e60dc8e01374960f115cffbfd5074562cf704eff1f8bddb56ec8",
+  "status": "PUBLISHED_VERIFIED",
+  "executed": true,
+  "financialOperationsRequested": false,
+  "resources": [
+    {
+      "id": "MerchantDeviceFinanceFunction",
+      "type": "AWS::Lambda::Function",
+      "action": "Add"
+    },
+    {
+      "id": "MerchantDeviceTransferRole",
+      "type": "AWS::IAM::Role",
+      "action": "Add"
+    },
+    {
+      "id": "TransferApiDeployment",
+      "type": "AWS::ApiGateway::Deployment",
+      "action": "Add"
+    },
+    {
+      "id": "TransferApiInvokeGET",
+      "type": "AWS::Lambda::Permission",
+      "action": "Add"
+    },
+    {
+      "id": "TransferApiInvokePOST",
+      "type": "AWS::Lambda::Permission",
+      "action": "Add"
+    },
+    {
+      "id": "TransferAuthorizerDelegate",
+      "type": "AWS::IAM::Policy",
+      "action": "Add"
+    },
+    {
+      "id": "TransferLogGroup",
+      "type": "AWS::Logs::LogGroup",
+      "action": "Add"
+    },
+    {
+      "id": "TransferOtpRoot",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoot",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute0Method",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute0Options",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute0",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute1Method",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute1Options",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute1",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute2Method",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute2Options",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute2",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute3Method",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute3Options",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute3",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute4Method",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute4Options",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute4",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute5Method",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute5Options",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute5",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute6Method",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute6Options",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute6",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute7Method",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute7Options",
+      "type": "AWS::ApiGateway::Method",
+      "action": "Add"
+    },
+    {
+      "id": "TransferRoute7",
+      "type": "AWS::ApiGateway::Resource",
+      "action": "Add"
+    }
+  ],
+  "functionName": "staging-merchant-device-transfers",
+  "functionCodeSha256": "xKR04WxC5g3I4BN0lg8RXP+/1QdFYs9wTv8fi921bsg=",
+  "authorizerCodeSha256": "QM1lfqAxiXht0W0xjnqVzDNm1CaftetDHnSonhRMh2A=",
+  "authorizerOtherFilesAndConfigPreserved": true,
+  "existingApiResourcesPreserved": true,
+  "exactRoutesVerified": 8,
+  "negativeAuthSmoke": 401,
+  "humanPermissionGrantsChanged": false,
+  "otpSent": false,
+  "realTransferAcceptance": "NOT_PERFORMED",
+  "iamBoundariesVerified": [
+    {
+      "boundary": "merchant wallet read",
+      "decision": "allowed"
+    },
+    {
+      "boundary": "merchant wallet update",
+      "decision": "allowed"
+    },
+    {
+      "boundary": "platform wallet update denied",
+      "decision": "implicitDeny"
+    },
+    {
+      "boundary": "permission policy read",
+      "decision": "allowed"
+    },
+    {
+      "boundary": "employee profile read denied",
+      "decision": "implicitDeny"
+    },
+    {
+      "boundary": "branch audit allowed",
+      "decision": "allowed"
+    },
+    {
+      "boundary": "payout journal write denied",
+      "decision": "implicitDeny"
+    }
+  ],
+  "deployedGatewayRoutesVerified": [
+    {
+      "path": "context",
+      "method": "GET",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "recipient",
+      "method": "GET",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "history",
+      "method": "GET",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "status",
+      "method": "GET",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "otp/send",
+      "method": "POST",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "otp/verify",
+      "method": "POST",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "request",
+      "method": "POST",
+      "unauthenticatedStatus": 401
+    },
+    {
+      "path": "cancel",
+      "method": "POST",
+      "unauthenticatedStatus": 401
+    }
+  ],
+  "authorizerTests": 15,
+  "nativeTransferTests": 7,
+  "serviceRegressionTests": 1067,
+  "noRealPaymentOrOtpPerformed": true
+}

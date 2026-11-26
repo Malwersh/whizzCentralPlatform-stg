@@ -1,0 +1,23 @@
+{
+  "phase": 487,
+  "status": "release-439-installed-iMohammed-human-roundtrip-pending",
+  "changes": [
+    "Shared exact-context basket preparation across store/cart/checkout; removing a replacement triggers revalidation and automatic recovery.",
+    "No permanent attempted-scope flag; in-flight preparation deduplicated.",
+    "Before delivery replacement, show both full server-priced totals and request explicit acceptance.",
+    "Merchant/coupon/goods-benefit replacement keeps previous selection on rejection, cancellation or preview failure.",
+    "Only explicit server stacking denial allows proposing a coupon replacement; compatible combinations follow existing server policy.",
+    "Explicit removal of automatic benefit remains respected for that basket.",
+    "Final confirmation is disabled while automatic recovery is running, with a clear reviewing-delivery-benefit label."
+  ],
+  "verification": {
+    "flutter": 39,
+    "analyzer": "No errors or warnings in changed files; style infos remain."
+  },
+  "remainingManual": [
+    "Device: automatic -> merchant -> remove -> delivery restored -> back/cart -> reopen",
+    "Device: keep delivery or accept comparison; higher total warning",
+    "Device: confirm final cash order after restored benefit"
+  ],
+  "build": 439
+}

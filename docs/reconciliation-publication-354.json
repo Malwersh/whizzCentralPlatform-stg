@@ -1,0 +1,51 @@
+{
+  "part": 354,
+  "scope": "staging",
+  "status": "PUBLISHED_STAGING_BYTE_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+  "functions": [
+    {
+      "name": "staging-wizz-wallet-service",
+      "codeSha256": "bbsye4vI2u6vtSF838hRpZ2+u5R2z+Fiknv52IF2MGY=",
+      "changedFiles": [
+        "dist/reconciliation.js"
+      ],
+      "configurationPreserved": true,
+      "otherEntriesPreserved": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha256": "kYOtqyyk/b4QHDbcedL7ufIgrMWxDHBONwK8Qe6d7/s=",
+      "changedFiles": [
+        "company-accounts.js"
+      ],
+      "configurationPreserved": true,
+      "otherEntriesPreserved": true
+    }
+  ],
+  "financialRecordsWritten": 0,
+  "balanceChanges": false,
+  "iamChange": "Projected read only for company report and active driver payout proof; no monetary writes",
+  "readPolicies": [
+    {
+      "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+      "policyArn": "arn:aws:iam::699561669180:policy/StagingReconciliationRead354-staff"
+    },
+    {
+      "role": "staging-wizz-wallet-servi-WalletServiceFunctionRole-uclfG6mK9iE6",
+      "policyArn": "arn:aws:iam::699561669180:policy/StagingReconciliationRead354-wallet"
+    }
+  ],
+  "hosting": {
+    "jobId": "226",
+    "previousJob": "224",
+    "sourceHashes": {
+      "finance.js": "96f01f41dbce8bb0b6defc13f322ba0c6c72fca23aabfa298f4bbb556d757771",
+      "company-accounts.js": "7a671f5e1469ecb0b9e6e7cac482a06ea6128f0dc4b8646d854ad398df976ccf",
+      "pages/finance.html": "81976b3f24580ee313733529a4c9d3757d4b7890a04dcf05c65f2ecdf742d8aa",
+      "pages/financial-management.html": "3efed11f038c279c78ea266f132dc3e1a599ae9ce4c2e908ec55f176aeaa7800"
+    },
+    "unrelatedEntriesPreserved": true,
+    "previousDisplayJob": "225"
+  },
+  "legacyMissingPositionsShownAsUnknown": true
+}

@@ -1,0 +1,12 @@
+{
+  "part": 147,
+  "scope": "local V2 funded pinned dispatch and wave progression",
+  "checks": {"typescript": "passed", "runtimeSync": "passed", "targetedTestsPassed": 203, "newPinnedFlowTestsPassed": 8, "coordinatorBundle": "built and loaded", "driverBundle": "built and loaded"},
+  "deliveryFundingDefault": "OFF",
+  "hostedFinancialGatePreserved": true,
+  "deployed": false,
+  "iamChanged": false,
+  "financialMutation": false,
+  "deviceVerified": false,
+  "remaining": ["coordinated host entry-point and IAM release review", "policy editor edit and stale-version checks", "original-share refunds and partial returns", "legacy coupon timestamp repair", "staging device end-to-end verification"]
+}

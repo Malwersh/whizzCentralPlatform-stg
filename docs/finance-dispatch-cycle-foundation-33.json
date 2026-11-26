@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-16",
+  "status": "LOCAL_DISPATCH_POLICY_AND_ATOMIC_CREATION_FOUNDATION_VERIFIED_ISOLATED",
+  "published": false,
+  "financialActivation": "OFF_UNCHANGED",
+  "runtimeEntryPointsChanged": false,
+  "existingPolicyValuesChanged": false,
+  "newFeatureFlagEnabled": false,
+  "scope": [
+    "Optional dispatch schemaVersion2 in existing DELIVERY_OPERATIONS values",
+    "Legacy and financial profiles in one versioned policy record",
+    "Immutable search-cycle snapshot and digest",
+    "Atomic initial job creation, order link, policy and branch/deletion fences",
+    "Pure shared transition decision only",
+    "Old settings client and pending approval downgrade protection",
+    "Source publication gate for expanded schema until coordinated rollout"
+  ],
+  "notComplete": [
+    "Creator integration and deterministic request/job identity from stream events",
+    "Atomic transition claims for Timeout/Reject/StartWave",
+    "Durable executor and at-least-once Invoke deduplication",
+    "Resume/progress adapters and real offer deadlines from existing stores",
+    "Reassignment cycle rollover and existing job migration strategy",
+    "Funded recovery stage and approved ETA/time/budget limits",
+    "Full central editor for expanded wave policies",
+    "Unified performance events, metrics and driver display",
+    "Live role/Gateway/device verification and coordinated publication"
+  ],
+  "tests": {
+    "walletPassed": 488,
+    "staffPassed": 128,
+    "newCycleTests": 13,
+    "newStaffTests": 4,
+    "chromeMock": {
+      "requestAndApprove": true,
+      "staleConflict": true,
+      "readOnly": true,
+      "expandedPolicyReadOnly": true,
+      "safeText": true,
+      "realWrites": false
+    }
+  },
+  "isolatedDynamoDB": {
+    "scope": "REAL_DYNAMODB_ISOLATED_DISPATCH_CYCLE",
+    "applicationTablesAccessed": false,
+    "financialActivation": "OFF",
+    "livePolicyChanged": false,
+    "atomicJobOrderPolicyAndDeletionGuards": true,
+    "retryPreservesCapturedPolicyAndDeadline": true,
+    "concurrentCreatesOneJob": true,
+    "policyRaceRollsBackBothRecords": true,
+    "noFinancialJournalOrOfferWrites": true,
+    "tableDeleted": true
+  },
+  "safetyBoundaries": {
+    "noNewDispatchTriggerOrTable": true,
+    "noOfferSendInDecisionOrCreation": true,
+    "noWalletLedgerHoldMutationInCreation": true,
+    "recoveryEnabledRejectedInCurrentSchema": true,
+    "newScoreOrTierActivationRejectedInCurrentSchema": true,
+    "noSilentBackfillOfExistingJobs": true,
+    "noFinancialToLegacyDowngradeForMalformedEvidence": true,
+    "v2PolicyRequestAndApprovalBlockedUntilAdaptersAndEditorReady": true
+  },
+  "sourceDigests": [
+    {
+      "path": "backend/wallet-service/src/dispatchPolicy.ts",
+      "sha256": "19fedbaab9322bab3debc2bd49e492aa6648eddaf68afda60fa767de61f736d3"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCycle.ts",
+      "sha256": "98c7972c0274fd9312b798e7098b7a89d3e304218f3aadfcad76b0752f99e6b7"
+    },
+    {
+      "path": "backend/wallet-service/src/dispatchCycleStore.ts",
+      "sha256": "e4bf4fa00e96a4a4562889ef6afc14c43edafb416b32b4580bcfe4ce1c70873b"
+    },
+    {
+      "path": "backend/wallet-service/src/deliveryOperationsPolicy.ts",
+      "sha256": "4c843e2d34abfcabaf6ef41b5c9faf129f09f79f9282b01367c1bcb54d7b82d4"
+    },
+    {
+      "path": "backend/wallet-service/src/driverFinancialWave.ts",
+      "sha256": "0998310009c95e4a70fa8a0d754fe9fbce55921cb5f04537c476cf40c9265831"
+    },
+    {
+      "path": "backend/staff-service/dispatch-settings.js",
+      "sha256": "b344e522e4acf294de6ac258b8fbb81a7aec3df89fd4e4c10d0c05e9187637b1"
+    },
+    {
+      "path": "backend/staff-service/dispatch-settings-contract.js",
+      "sha256": "fc77ca961bd3b58622aa0cb60591fbb14a87932e7f99a9b1fec385643b598dd0"
+    },
+    {
+      "path": "frontend/settings-delivery-operations.js",
+      "sha256": "c638ad52ccde77db32d0e7ec336a9b4e9dbcf111c789c2e5470740435a181f92"
+    },
+    {
+      "path": "backend/wallet-service/test/dispatch-cycle.test.cjs",
+      "sha256": "f94595f774e143052b738d0b0da8f9a06df54ebe7b46dd874dde84d35d6e01b3"
+    },
+    {
+      "path": "backend/wallet-service/test/helpers/dispatch-cycle-fixture.cjs",
+      "sha256": "06c920f77a90db0126c6cf5e09b5b6f4f745c24914c675e9dc42e266849b3c65"
+    },
+    {
+      "path": "scripts/test-dispatch-cycle-staging.cjs",
+      "sha256": "7e832371e815dbcd04cb8be2d421f94c7ab9427ed98d96ac9766939033be67e5"
+    }
+  ]
+}

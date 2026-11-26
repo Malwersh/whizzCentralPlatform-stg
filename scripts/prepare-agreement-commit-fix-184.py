@@ -1,0 +1,13 @@
+"""Capture live staging code and prepare a one-expression correction; no AWS writes."""
+import pathlib,json,boto3,urllib.request,zipfile,copy,hashlib,base64,subprocess
+p=pathlib.Path('/private/tmp/agreement-commit-184');p.mkdir(exist_ok=True,mode=0o700)
+s=boto3.Session(profile_name='Wizz_stg_UserApp',region_name='us-east-1');assert s.client('sts').get_caller_identity()['Account']=='699561669180'
+l=s.client('lambda');r=l.get_function(FunctionName='WizzUser-CreateOrder-staging');c=r['Configuration'];b=urllib.request.urlopen(r['Code']['Location']).read();assert base64.b64encode(hashlib.sha256(b).digest()).decode()==c['CodeSha256']
+f=p/'config.private.json';f.write_text(json.dumps(c,default=str));f.chmod(0o600);(p/'before.zip').write_bytes(b)
+z=zipfile.ZipFile(p/'before.zip');name='functions/create-order/commercial-runtime.js';source=z.read(name).decode();(p/'before.js').write_text(source)
+program="""const fs=require('fs'),ts=require('./backend/wallet-service/node_modules/typescript'),{customerExpression}=require('./scripts/store-agreement-commit-overlay.cjs');const p='/private/tmp/agreement-commit-184/',s=fs.readFileSync(p+'before.js','utf8'),ast=ts.createSourceFile('runtime.js',s,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS),edits=[];function visit(n){if(ts.isIfStatement(n)){const t=n.expression.getText(ast);if(t.includes('hasStoreAgreementOrderEvidence')&&t.includes('DELIVERY_BUDGET#')){const customer=customerExpression(t);if(customer==='c.userId')throw Error('NOT_EXPECTED_RENAMED_BINDING');const bad='hasStoreAgreementOrderEvidence(operations,deliveryFunding,orderId,c.userId)';if(t.split(bad).length!==2)throw Error('UNEXPECTED_OVERLAY');edits.push({start:n.expression.getStart(ast),end:n.expression.end,body:t.replace(bad,'hasStoreAgreementOrderEvidence(operations,deliveryFunding,orderId,'+customer+')')});}}ts.forEachChild(n,visit);}visit(ast);if(edits.length!==1)throw Error('PATCH_COUNT');const e=edits[0];fs.writeFileSync(p+'after.js',s.slice(0,e.start)+e.body+s.slice(e.end));fs.writeFileSync(p+'corrected-predicate.json',JSON.stringify(e.body));"""
+subprocess.run(['node','-e',program],check=True);subprocess.run(['node','--check',str(p/'after.js')],check=True)
+with zipfile.ZipFile(p/'candidate.zip','w',zipfile.ZIP_DEFLATED) as out:
+ for entry in z.infolist():out.writestr(copy.copy(entry),(p/'after.js').read_bytes() if entry.filename==name else z.read(entry.filename))
+with zipfile.ZipFile(p/'candidate.zip') as out:assert all(out.read(n)==z.read(n) for n in z.namelist() if n!=name)
+print('Prepared single expression fix; all other ZIP entries identical; no AWS mutation.')

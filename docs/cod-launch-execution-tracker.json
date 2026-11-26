@@ -1,0 +1,647 @@
+{
+  "scope": "CASH_LAUNCH_SUBTRACK_OF_COMPLETE_ALL_APPS_MAIN_PLAN",
+  "updatedAt": "2026-10-24",
+  "sourcePlan": "finance-pricing-settlements-returns-unified-plan.md",
+  "scenarioMatrix": "cod-launch-exceptions-matrix-251.csv",
+  "decisions": {
+    "skipRepeatedMerchantPayoutHumanTest": true,
+    "skipNewPositiveMerchantAndDriverCancellationPayoutTest": true,
+    "skippedIsNotPassed": true,
+    "customerPreferredRemedy": "EXISTING_TARGETED_BENEFIT_OR_COUPON",
+    "driverRemedy": "CANONICAL_WALLET_CREDIT",
+    "merchantRemedy": "MERCHANT_PAYABLE_AND_EXISTING_SETTLEMENT_PAYOUT",
+    "prepaidCardChargeback": "DEFERRED_OUT_OF_FIRST_LAUNCH"
+  },
+  "globalDefinitionOfDone": [
+    "Existing path audited",
+    "Input/state/actor/authority rules pinned",
+    "Clear interface and explicit review",
+    "Meaningful state/race/replay tests passed",
+    "Actual deployment IAM verified without unnecessary expansion",
+    "Narrow publication preserves unrelated changes",
+    "Hosted code/read-only compatibility verified",
+    "Human acceptance state recorded separately",
+    "Plan/checkpoint and scenario evidence updated"
+  ],
+  "workItems": [
+    {
+      "id": "COD-01",
+      "name": "ربط المنحة الموجهة القائمة بصاحب الطلب والقضية",
+      "status": "PUBLISHED_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+      "acceptance": [
+        "No new grant or wallet",
+        "Only own existing unused one-use DIRECT goods grant",
+        "Current employee approval authority and amount limit",
+        "Case/current grant/campaign/user deletion atomic guards",
+        "One grant per case and no grant reuse between cases",
+        "Immutable reference and replay receipt",
+        "Show available/used/reserved/revoked/expired truth",
+        "No cash refund or automatic closure"
+      ],
+      "humanAcceptance": "PENDING_NEW_OPEN_CASE",
+      "evidence": [
+        "backend/staff-service/test/customer-benefit-compensation-252.test.cjs",
+        "scripts/test-customer-compensation-ui-252.cjs",
+        "docs/customer-benefit-compensation-publication-252.json",
+        "docs/customer-benefit-compensation-verification-252.json",
+        "docs/customer-benefit-compensation-cash-ui-252b.json"
+      ],
+      "launchPriority": "P0"
+    },
+    {
+      "id": "COD-02",
+      "name": "إنهاء دورة بلاغات الاستلام الخمسة",
+      "status": "P0_MINIMUM_PUBLISHED_HUMAN_ACCEPTANCE_PENDING",
+      "scenarios": [
+        "A04",
+        "A05",
+        "A06",
+        "A11",
+        "A12"
+      ],
+      "acceptance": [
+        "Owner/assignee/deadline",
+        "Contact trail",
+        "Customer approval for item changes",
+        "Reasoned decision",
+        "Canonical cancel/unassign",
+        "Resolved operational and financial result"
+      ],
+      "launchPriority": "P0",
+      "launchAcceptance": [
+        "Staff can discover and select reports, including older unresolved reports",
+        "Named current employee and explicit follow-up deadline",
+        "Authenticated staff contact trail without pretending automated notification or consent",
+        "Continue only original unchanged order; no item/price editing",
+        "Close cancellation/unassignment only against actual server evidence",
+        "Existing canonical order management and financial review stay separate",
+        "Handover/pickup race guarded",
+        "Sparse pages and continuation explicitly shown; queue performance acceptance required before scale"
+      ],
+      "evidence": [
+        "docs/pickup-workflow-publication-253.json",
+        "docs/pickup-workflow-verification-253.json",
+        "backend/staff-service/test/pickup-issue-workflow-253.test.cjs",
+        "scripts/test-pickup-issues-ui-253.cjs",
+        "docs/pickup-workflow-ui-253b.json"
+      ],
+      "deferredSubscope": [
+        "Customer-authorized item substitution/removal/repricing with colleague contracts",
+        "Automatic notification/communication/SLA escalation",
+        "Dedicated indexed queue for larger volumes, after measured launch load acceptance"
+      ],
+      "humanAcceptance": "PENDING_NEW_REPORT_AND_STAFF_FLOW"
+    },
+    {
+      "id": "COD-03",
+      "name": "تغيير عنوان الزبون بعد الاستلام",
+      "status": "PENDING",
+      "scenarios": [
+        "B02",
+        "B03"
+      ],
+      "acceptance": [
+        "Old/new address pinned",
+        "Road/zone/time validation",
+        "Quoted difference and explicit agreement",
+        "Immutable original accepted terms",
+        "Ineligible address outcome"
+      ],
+      "launchPriority": "P1"
+    },
+    {
+      "id": "COD-04",
+      "name": "نقل عهدة الطلب بين سائقين",
+      "status": "PENDING",
+      "scenarios": [
+        "B07",
+        "B08",
+        "B12"
+      ],
+      "acceptance": [
+        "Authenticated sender/recipient",
+        "Both custody attestations",
+        "Quantities pinned",
+        "Old/new live state and collateral",
+        "No double fare/collateral or fictional handover"
+      ],
+      "launchPriority": "P1"
+    },
+    {
+      "id": "COD-05",
+      "name": "تسليم جزئي للزبون وإرجاع الباقي",
+      "status": "PENDING",
+      "scenarios": [
+        "B05",
+        "B06",
+        "B13"
+      ],
+      "acceptance": [
+        "Customer-approved quantities",
+        "Canonical goods/discount/fees/cash allocation",
+        "Remaining custody tracked",
+        "No rewriting original receipt/ledger",
+        "Safe retries and disputes"
+      ],
+      "launchPriority": "P1"
+    },
+    {
+      "id": "COD-06",
+      "name": "شكاوى ما بعد التسليم وربط التعويضات",
+      "status": "PENDING",
+      "scenarios": [
+        "B18",
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C07",
+        "C08"
+      ],
+      "acceptance": [
+        "Claim intake linked to final order",
+        "Safety priority and deadlines",
+        "Evidence/confirmed responsibility",
+        "Existing benefit/wallet/merchant remedy",
+        "Separate after-payout correction if owed",
+        "No duplicate payment or historical status rewrite"
+      ],
+      "launchPriority": "P0_BASIC_SUPPORT_P1_AUTOMATION",
+      "launchMinimum": "Accessible support linked to order, safe full-return/cash-dispute handling and existing targeted remedy; advanced item-level automation and after-payout corrections deferred with unsupported writes closed"
+    },
+    {
+      "id": "COD-07",
+      "name": "إقفال كامل تغطية42سيناريو",
+      "status": "PENDING",
+      "scenarios": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10",
+        "B11",
+        "B12",
+        "B13",
+        "B14",
+        "B15",
+        "B16",
+        "B17",
+        "B18",
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12"
+      ],
+      "acceptance": [
+        "Every scenario has trigger/actor/operation/financial outcome/terminal state",
+        "Timeout/offline/replay/race",
+        "No unsupported partial success",
+        "Human test only where materially missing",
+        "Skipped payout test stays skipped",
+        "All evidence reconciled before launch"
+      ],
+      "launchPriority": "P0",
+      "launchAcceptanceScope": "P0 scenarios and refusal/alternative handling of deferred scenarios. All42 remain tracked; not all advanced features required before launch."
+    }
+  ],
+  "businessActionsExecutedByAgent": false,
+  "nextWorkItem": "ALL_APPS_P0_OPERATIONAL_BLOCKER_AUDIT_IN_DEPENDENCY_ORDER",
+  "delegatedParallelWork": {
+    "id": "MERCHANT_PRODUCTS_AND_BULK_IMPORT",
+    "owner": "USER_COLLEAGUE",
+    "status": "DELEGATED_TO_COLLEAGUE",
+    "assignedBy": "USER",
+    "assignedAt": "2026-10-24",
+    "scope": [
+      "Manual product management",
+      "CSV/Excel/XLSX bulk import",
+      "Menus/categories/options/images/catalog",
+      "SKU/barcode/branch stock and availability",
+      "Versioned draft/review/publish/resume",
+      "Branch/device permissions and order/pricing/custody integration"
+    ],
+    "handoff": "merchant-products-import-colleague-handoff-2026-10-24.txt",
+    "agentMustNotStartParallelImplementation": true,
+    "dependenciesOnCodWork": [
+      "Approved item changes",
+      "Partial delivery pricing",
+      "Inventory release on cancellation/return"
+    ]
+  },
+  "launchPlatforms": [
+    "ANDROID",
+    "IOS"
+  ],
+  "priorityPolicy": {
+    "approvedAt": "2026-10-24",
+    "launchPayment": "CASH_ONLY",
+    "P0": "Required to complete/resolve a cash order safely on Android and iOS; unsupported advanced actions remain closed",
+    "P1": "May follow launch without changing accepted order/custody/financial truth",
+    "colleagueWork": "Manual product entry/orderability P0; CSV/XLSX automation/versioned advanced import P1 unless required by actual launch assortment; delegation remains unchanged",
+    "executionOrder": [
+      "Cash operational blockers and cross-app contracts",
+      "Acceptance of existing cash workflows and role scope",
+      "Close operational financial/data/notification evidence",
+      "Android+iPhone and release gates",
+      "Retained later scope"
+    ],
+    "latestUserCorrection": "2026-10-24: Review the ENTIRE main plan across all four apps and linked plans, excluding colleague implementation. Neither COD exceptions alone nor a driver-only lane defines the whole remaining scope."
+  },
+  "releaseGates": [
+    {
+      "id": "P0-CASH",
+      "name": "Cash order pricing, accepted snapshot, delivery, wallet and merchant entitlement consistency",
+      "status": "PARTLY_HUMAN_VERIFIED_REMAINING_ACCEPTANCE_PENDING"
+    },
+    {
+      "id": "P0-EXCEPTIONS",
+      "name": "Pickup issue resolution, cancellation, unassignment, full return, cash conflict and support without stranded custody or duplicate finance",
+      "status": "IN_PROGRESS"
+    },
+    {
+      "id": "P0-CATALOG",
+      "name": "Launch merchant branches correctly configured; manual products orderable with server prices and real availability",
+      "owner": "COLLEAGUE_AND_OPERATIONS",
+      "status": "PENDING_LAUNCH_ASSORTMENT_ACCEPTANCE"
+    },
+    {
+      "id": "P0-IOS-ANDROID",
+      "name": "Release builds, identifiers, signing, permissions, real GPS, login/session, push foreground/background/locked, online/reconnect and complete journey on both platforms",
+      "status": "NOT_YET_PROVEN_FOR_RELEASE",
+      "dependsOn": [
+        "P0_OPERATIONAL_COMPLETION_AND_ACCEPTANCE"
+      ],
+      "executionTiming": "AFTER_REMAINING_ESSENTIAL_OPERATIONAL_WORK_AND_TESTS"
+    },
+    {
+      "id": "P0-OPS",
+      "name": "Staff access and responsibility, working-hour/zone policy, monitoring, financial reconciliation, backups and known rollback preserving new contracts",
+      "status": "ACCEPTANCE_PENDING"
+    },
+    {
+      "id": "P0-GO-LIVE",
+      "name": "Final version/config/account/provider review and explicit launch decision; staging is not production release proof",
+      "status": "PENDING"
+    }
+  ],
+  "operationalFixes": [
+    {
+      "id": "DISPATCH_UNASSIGNMENT_254",
+      "status": "PUBLISHED_EXHAUSTION_HUMAN_SAMPLE_VERIFIED_REPLACEMENT_ACCEPTANCE_PENDING",
+      "orderNumber": "ORD1792870714924",
+      "evidence": [
+        "redispatch-publication-254.json",
+        "redispatch-live-verification-254.json"
+      ],
+      "doesNotComplete": "Replacement driver human acceptance on fresh search"
+    }
+  ],
+  "currentHumanAcceptance": {
+    "orderNumber": "ORD1792870714924",
+    "flow": "ADMIN_CANCEL_AFTER_UNASSIGNMENT_THEN_PARTIAL_MERCHANT_COMPENSATION",
+    "status": "MERCHANT_COMPENSATION_POSTED_CASH_PAYMENT_LEFT_PENDING_BY_USER",
+    "merchantCompensationIqd": 6000,
+    "fundedBy": "PLATFORM",
+    "foodCustody": "USER_CONFIRMED_RETAINED_AT_MERCHANT",
+    "foodCondition": "USER_CONFIRMED_PARTIALLY_DAMAGED",
+    "agentDirectBusinessWrites": false,
+    "cancellationEvidence": "admin-cancellation-human-audit-256.json",
+    "evidence": "merchant-cancellation-compensation-human-audit-257.json"
+  },
+  "driverOperationalLane": {
+    "status": "SUBSCOPE_OF_ALL_APPS_REVIEW_NOT_GLOBAL_EXECUTION_PRIORITY",
+    "sources": [
+      "finance-pricing-settlements-returns-unified-plan.md",
+      "driver-performance-v1.6-gap-analysis-and-integration.md",
+      "../whizzDrivers-stg/docs/resume-checkpoint-latest.md"
+    ],
+    "P0Audit": [
+      "Acceptance/active task/reassignment and removal of stale task",
+      "Cannot complete before pickup; report resolution and return/cash conflict operational actions",
+      "Available/held balance and eligibility; actual cash-launch topup and handling of owed wallet credits without inventing withdrawability",
+      "Entitlement/trip/wallet consistency and operational UI clarity"
+    ],
+    "P1": [
+      "New score/tiers and ranking metrics v1.6",
+      "Funded rescue dispatch",
+      "Advanced forecast and analytics",
+      "Prepaid-related pending/withdrawable automation"
+    ],
+    "existingImplementedNotNew": [
+      "Trip history redesign311",
+      "Earnings summary312",
+      "Demand forecast314-318 with LIVE readiness still pending",
+      "Assignment release guard261"
+    ],
+    "preservePending": [
+      "Fresh replacement-driver human acceptance",
+      "COD-06 linked post-delivery support and compensation",
+      "COD-07 scenario reconciliation"
+    ],
+    "doNotConflateWithDeferredPlatformReadiness": true
+  },
+  "authoritativeAllAppsPriorityReview": "main-plan-all-apps-priority-review-2026-10-24.json",
+  "currentOperationalBatch": {
+    "scope": "ALL_APPS_DEPENDENCY_BATCH_ONE",
+    "firstPackage": "D01_HARD_DRIVER_ELIGIBILITY_AUDIT",
+    "status": "ACTIVE_PROFILE_GUARD_271_PUBLISHED_REMAINING_D01_OPEN",
+    "evidence": "driver-eligibility-271.json",
+    "nextAudit": [
+      "D01_VEHICLE_DOCUMENT_REGION_CONTRACT",
+      "F05_OWED_CREDIT_PAYOUT_SCOPE",
+      "A02_FAILED_ASSIGNMENT_FOLLOWUP",
+      "C05_POST_DELIVERY_COMPLAINTS"
+    ],
+    "notWholeBatchComplete": true,
+    "activeSubtask": "USER_REQUESTED_CANCELLATION_COMPLETION_TEST_ORD1792911323338",
+    "activeSubtaskStatus": "HUMAN_ACTIONS_PENDING_DRIVER_RELEASE290_INSTALLED_NEXT_D01"
+  },
+  "fundingGatewayReadiness260": {
+    "status": "CORE_IMPLEMENTED_STAGING_PUBLISHED_HUMAN_AND_PROVIDER_ACCEPTANCE_PENDING",
+    "scope": "DRIVER_FUNDING_ONLY_CUSTOMER_ORDERS_REMAIN_CASH",
+    "evidence": "docs/zaincash-readiness-260.json",
+    "liveEnabled": false,
+    "uatOAuthPassed": true,
+    "humanUatPending": true,
+    "wholeF02Complete": false,
+    "allAppsBatchComplete": false
+  },
+  "walletMonthlyStatement266": {
+    "evidence": "monthly-wallet-266.json",
+    "backendPublished": true,
+    "driverBuild": 266,
+    "physicalDeviceInstall": "INSTALLED_AND_LAUNCHED_VERIFIED",
+    "wholeFinancialPackageComplete": false
+  },
+  "tripAndTransferControls270": {
+    "evidence": "trip-transfer-controls-270.json",
+    "installedRelease": {
+      "driver": 270,
+      "customer": 248,
+      "merchant": 243
+    },
+    "transferFlagStateChanged": false,
+    "commissionAdded": false,
+    "legalClassificationBeforePublicTransfers": "OPEN_USER_HAS_NO_LICENSE_OR_PARTNER_TRANSFER_CONTRACT",
+    "wholeFinancialPackageComplete": false
+  },
+  "driverEligibility271": {
+    "evidence": "driver-eligibility-271.json",
+    "sourceTests": 47,
+    "capturedRuntimeTests": 59,
+    "publishedServices": 3,
+    "wholeD01Complete": false
+  },
+  "driverPerformanceSupport271": {
+    "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+    "evidence": "docs/driver-performance-support-ready.json",
+    "fullV16Complete": false,
+    "businessWrites": 0,
+    "userApproval": true
+  },
+  "driverPerformancePolicy272": {
+    "status": "PUBLISHED_STAGING_INSTALLED_HUMAN_ACCEPTANCE_PENDING",
+    "evidence": "docs/driver-performance-policy-272.json",
+    "published": true,
+    "fullMetricsComplete": false,
+    "installed": true,
+    "userApproval": true
+  },
+  "orderedDriverAcceptanceTests": {
+    "reference": "docs/driver-performance-ordered-acceptance-tests.json",
+    "status": "DEFERRED_BY_USER_ORDERED_NOT_PASSED",
+    "blocksImplementation": false,
+    "requiredBeforeLaunch": true
+  },
+  "driverPerformanceTiming273": {
+    "status": "PUBLISHED_STAGING_INSTALLED_MANUAL_ACCEPTANCE_DEFERRED",
+    "evidence": "docs/driver-performance-timing-273.json",
+    "fullMetricsComplete": false,
+    "manualTestsDeferred": true
+  },
+  "driverPerformancePresentation274": {
+    "status": "RELEASE274_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_DEFERRED",
+    "evidence": "docs/driver-performance-layout-274.json",
+    "nextOperationalScopeUnchanged": true
+  },
+  "driverMorePresentation275": {
+    "status": "RELEASE275_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_DEFERRED",
+    "evidence": "docs/more-layout-275.json",
+    "nextOperationalScopeUnchanged": true
+  },
+  "moreFunctionalAudit276": {
+    "status": "RELEASE276_INSTALLED_LAUNCHED_UNSUPPORTED_FEATURES_OPEN",
+    "evidence": "docs/more-functional-audit-276.json",
+    "unsupportedFeaturesComplete": false,
+    "manualAcceptance": "DEFERRED_NOT_PASSED"
+  },
+  "driverTimingReview279": {
+    "evidence": "docs/driver-timing-review-279.json",
+    "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+    "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED"
+  },
+  "driverRatingReview280": {
+    "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+    "evidence": "docs/driver-rating-review-280.json",
+    "humanAcceptance": "DEFERRED_BY_USER_NOT_PASSED"
+  },
+  "driverRatingWindow281": {
+    "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_DEFERRED",
+    "evidence": "docs/driver-rating-window-281.json",
+    "manualAcceptance": "DEFERRED_BY_USER_NOT_PASSED"
+  },
+  "driverAccountRating282": {
+    "status": "UI_IMPLEMENTED_TESTED_RELEASE_BUILD_IN_PROGRESS",
+    "ratingDataMutationExecuted": false,
+    "ratingSeedDecision": "PENDING_USER_REAL_CUSTOMER_OR_LABELLED_TEST_DATA",
+    "evidence": [
+      "frontend/test/more/account_details_test.dart",
+      "frontend/test/ratings/profile_rating_test.dart",
+      "frontend/test/more/more_tab_layout_test.dart"
+    ],
+    "automatedTestsPassed": 12,
+    "manualAcceptance": "DEFERRED_NOT_PASSED",
+    "fixed": [
+      "Arabic RTL neutral white/navy layout",
+      "No default zero deliveries or zero-star rating",
+      "Only verified customerRating with positive customerRatingCount shown",
+      "No fake join date displayed; original createdAt only",
+      "Preserve original document fields and timestamps from API instead of dropping them",
+      "Separate account approval from documentsVerified",
+      "PENDING identity and license values displayed as unregistered",
+      "Only name/city editable; only those two fields sent from account screen; reload server after saving",
+      "Phone/email/photo edits unsupported and explicitly unavailable; delete-account route preserved",
+      "Legacy profile totalEarnings/completionRate removed in favor of actual performance screen"
+    ],
+    "remaining": [
+      "Customer order tracking: authenticated assigned-driver rating projection and display missing",
+      "Merchant order card: authenticated assigned-driver rating projection and display missing",
+      "Audit original rating submission customer branch integration before creating any customer-owned rating",
+      "Profile photo upload/persistence missing backend allowlist/storage flow; deferred",
+      "Identity/vehicle/document validity remains D01; display of existing flags does not complete eligibility",
+      "Manual device acceptance deferred"
+    ],
+    "sourceFindings": {
+      "customer": "frontend/lib/screens/order_tracking_screen.dart shows driverName without rating",
+      "merchant": "frontend/lib/widgets/order_card.dart shows driverName without rating",
+      "ratingTable": "Last281 read-only verification found zero records; no fictitious scores inserted"
+    }
+  },
+  "customerRatingIntegration283": {
+    "status": "RELEASE_283_INSTALLED_LAUNCHED_MANUAL_ACCEPTANCE_PENDING",
+    "sourceBranch": "origin/feature/order-ratings-20261024",
+    "sourceCommit": "30dc40f1df8f89a952ff6803a458f5ffc1b367f8",
+    "integration": "Selective new screen/service/test plus rating navigation and restaurant aggregate/cache fields; no branch merge or unrelated checkout changes",
+    "testsPassed": 14,
+    "analysis": "No issues found in rating screen/service/business model",
+    "customerRatingCreated": false,
+    "manualAcceptance": "READY_NOT_EXECUTED",
+    "remaining": "Complete delivered cash order as customer, submit separate merchant/driver rating, verify original row and aggregates then driver and public display; customer/merchant assigned-driver average projections remain separate open item.",
+    "release": {
+      "build": 283,
+      "buildPassed": true,
+      "device": "iMohammed",
+      "installPassed": true,
+      "launchPassed": true
+    }
+  },
+  "restaurantRatingDisplay285": {
+    "status": "PUBLISHED_PUBLIC_LIST_AND_DETAILS_VERIFIED_SIMULATOR285_INSTALLED",
+    "evidence": "docs/restaurant-rating-and-cart-sheet-285.json"
+  },
+  "driverQualityReview289": {
+    "status": "ADMIN_WORKFLOW_PUBLISHED_STAGING_DRIVER_SELF_SERVICE_OPEN",
+    "scope": "STAFF_ORDER_LINKED_QUALITY_SAFETY_CASES",
+    "features": [
+      "Category and severity with urgent operational warning",
+      "Authenticated case owner and verified accepted assignment binding",
+      "Multiple independent incident IDs per order",
+      "References and statements recorded as received; not proof by label alone",
+      "Substantiated result requires two different source parties and selected stored evidence",
+      "Reasoned decisions, revision chain, immutable events, exact idempotency/version guards",
+      "Driver appeal recorded by staff and evidence-backed uphold/revision",
+      "Existing open-cases queue and order-management entry",
+      "Existing incident remains bound to original accepted driver after reassignment"
+    ],
+    "unchanged": [
+      "Wallet/ledger/order/account business state",
+      "Rating stars/average/count",
+      "Existing dispatch/eligibility policies"
+    ],
+    "newTables": false,
+    "newIam": false,
+    "businessMutationsByAgent": 0,
+    "tests": {
+      "sourceAndRegression": 35,
+      "capturedCandidate": 9,
+      "browser": "PASS_390px_AUTH_RETRY_EVIDENCE_DECISION"
+    },
+    "manualAcceptance": "DEFERRED_READY_NOT_PASSED",
+    "limits": [
+      "Creation requires a currently verifiable accepted assignment; creating a new case for an already released historical attempt is not implemented",
+      "Driver self-service incident list and direct appeal submission not implemented; staff records received driver appeal",
+      "No numerical quality score, penalty tier or automatic account suspension",
+      "Open nonfinancial-case retention during account deletion requires separate audit; do not claim completed",
+      "Urgent severity is a visible triage priority; automated emergency paging or escalation SLA is not implemented"
+    ],
+    "evidence": [
+      "backend/wallet-service/test/driver-quality-review.test.cjs",
+      "backend/staff-service/test/driver-quality-review-289.test.cjs",
+      "scripts/test-driver-quality-review-browser-289.cjs",
+      "docs/driver-quality-review-packages-289.json"
+    ],
+    "publication": "docs/driver-quality-review-publication-289.json",
+    "hostingJob": "207",
+    "authenticatedBoundary": {
+      "unauthenticatedStatus": 401,
+      "businessWrites": false
+    }
+  },
+  "driverQualitySelfService290": {
+    "status": "PUBLISHED_STAGING_RELEASE290_INSTALLED_LAUNCHED",
+    "features": [
+      "Own incident list with original accepted-offer and immutable-event proof",
+      "No disclosure of staff identities, other-party evidence references, financial receipts or customer data",
+      "Partial bounded history explicitly labelled and read errors never shown as clean empty results",
+      "Original-token Cognito verification for own driver appeal",
+      "Driver appeal reopens same administrative case with exact idempotency/version guards",
+      "New case on released prior assignment uses original release archive and matching integration event and accepted offer",
+      "Open or resolved quality cases pause driver deletion for review; no invented nonfinancial retention duration and no financial debt inferred"
+    ],
+    "tests": {
+      "sourceRegression": 38,
+      "accountDeletionSource": 272,
+      "capturedIncidentAndAppeal": 16,
+      "capturedRetention": 13,
+      "flutter": 13,
+      "flutterAnalysis": "No issues found"
+    },
+    "driverRelease": {
+      "build": 290,
+      "built": true,
+      "installed": true,
+      "launched": true
+    },
+    "businessMutationsByAgent": 0,
+    "retentionPolicy": {
+      "userAnswer": "NO_APPROVED_POLICY",
+      "duration": null,
+      "status": "PENDING_POLICY_REVIEW",
+      "noAutomaticPurgeOrFinancialRetentionReuse": true
+    },
+    "permission": {
+      "status": "EXPLICIT_USER_APPROVED_APPLIED_VERIFIED",
+      "policy": "docs/driver-quality-read-policy-290.json",
+      "action": "dynamodb:Query",
+      "resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-Holds",
+      "writePermissionAdded": false,
+      "applied": true,
+      "userApproval": "نعم اوافق",
+      "approvalContext": "User approved the exact named read-only Query scope and then requested inspection of ORD1792911323338 first."
+    },
+    "manualAcceptance": "DEFERRED_READY_AFTER_PUBLICATION_NOT_PASSED",
+    "remaining": [
+      "Human acceptance remains deferred except the cancellation/completion test the user is now performing manually",
+      "Approve a separate nonfinancial retention policy before deleting affected case evidence; no duration selected",
+      "Public assigned-driver rating display in customer and merchant apps remains separate unfinished work",
+      "D01 vehicle approval, document validity and operating region remains open"
+    ],
+    "publication": "docs/driver-quality-self-service-publication-290.json",
+    "corePublishedFunctions": [
+      "staging-driver-financial-accept",
+      "staging-account-deletion-requests",
+      "staging-account-deletion-worker"
+    ],
+    "driverApiPublished": true,
+    "authenticatedBoundary": {
+      "list": 401,
+      "appeal": 401
+    }
+  }
+}

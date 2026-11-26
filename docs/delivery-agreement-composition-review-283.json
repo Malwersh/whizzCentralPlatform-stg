@@ -1,0 +1,107 @@
+{
+  "reviewedAt": "2026-10-22T20:16:47.955709+03:00",
+  "scope": "Coordinated GitHub-only delivery agreement and benefit composition review",
+  "status": "VERIFIED_FOR_INTEGRATION",
+  "branches": {
+    "review": "review/delivery-agreement-composition-283",
+    "target": "integration/discounts-settlements-20261022"
+  },
+  "central": {
+    "sourceFixCommit": "59db2c74f8d98fc2bd9c8183ab547a973ccff7ae",
+    "cherryPickCommit": "61a448568ddd3ff271b4f30c61c452df17952d8a",
+    "integrationBaseline": "7a51b67",
+    "sourceAndGeneratedFilesByteExact": 16
+  },
+  "customer": {
+    "sourceFixCommit": "d955de2c86c657b2d134eab574ba5b97d424cdde",
+    "cherryPickCommit": "dc5bb9c2a4c01a29abde5d29f43baad454a16970",
+    "integrationBaseline": "0d22e99",
+    "sourceAndGeneratedFilesByteExact": 8
+  },
+  "textualConflicts": [],
+  "resolution": "Cherry-picked only the two pinned fixes. Later central hosting/localization changes and both existing frontend trees retained unchanged. No ours/theirs wholesale resolutions.",
+  "additionalChanges": [
+    "9 regression tests for explicit deliveryBenefitId, tip and replay, changed tip/basket/address consent, expired/absent agreement, new ineligibility, exhausted entitlement and campaign budget",
+    "Review documentation only; no runtime source alterations beyond the two pinned repair commits"
+  ],
+  "verification": {
+    "typescript": "PASS",
+    "wallet": {
+      "tests": 1473,
+      "pass": 1473,
+      "fail": 0
+    },
+    "staff": {
+      "tests": 346,
+      "pass": 346,
+      "fail": 0
+    },
+    "customerPortable": {
+      "tests": 100,
+      "pass": 100,
+      "fail": 0
+    },
+    "generatedRuntimeChecks": "PASS: quote-order, delivery-pricing, platform-benefits, local quote package",
+    "protectedSettlementBoundary": "PASS: 156 protected files and 4 lifecycle adapters",
+    "frontendTreesPreserved": true
+  },
+  "historicalCustomerTestsNotAvailable": [
+    {
+      "file": "backend/test/checkout-agreement-compatibility-270.test.cjs",
+      "reason": "Depends on archived /private/tmp/checkout-270 runtime and writer-base.js, unavailable on this workstation"
+    },
+    {
+      "file": "backend/test/order-exception-bundle-274.test.cjs",
+      "reason": "Depends on archived /private/tmp/cash-review-274 deployment artifacts, unavailable on this workstation"
+    }
+  ],
+  "localPackagingNote": "The broad wallet run initially found a missing ignored delivery-quotes/runtime.js. Generated it from the canonical source using scripts/build-delivery-quote-runtime.cjs and reran the entire wallet suite successfully. No test assertions were weakened.",
+  "offlineArtifacts": {
+    "schemaVersion": 1,
+    "deployed": false,
+    "createdAt": "2026-10-22T17:11:54.385Z",
+    "requiresCoordinatedHostReview": true,
+    "artifacts": [
+      {
+        "name": "delivery-agreement-runtime-283",
+        "source": "backend/wallet-service/src/deliveryAgreementCompositionRuntime.ts",
+        "file": "delivery-agreement-runtime-283.js",
+        "bytes": 3520390,
+        "sha256": "74c68ed2d257d72911fd792fed68b3638b1d2042fbbf8ccd50de856476b1a5df"
+      },
+      {
+        "name": "delivery-quotes-runtime",
+        "source": "backend/wallet-service/src/deliveryQuoteRuntime.ts",
+        "file": "delivery-quotes-runtime.js",
+        "bytes": 4519313,
+        "sha256": "ae0cd475e24588213d5543a900968b15ce77ebbadf8165a5dfa1e9c949c10277"
+      },
+      {
+        "name": "customer-cash-runtime-266",
+        "source": "backend/wallet-service/src/customerCashRuntime266.ts",
+        "file": "customer-cash-runtime-266.js",
+        "bytes": 1982541,
+        "sha256": "25364809cdba99d745e912fe1ebd1d560bbc8840f81e0fdf1bf73c7cc80776eb"
+      },
+      {
+        "name": "driver-financial-runtime",
+        "source": "backend/wallet-service/src/driverFinancialRuntime.ts",
+        "file": "driver-financial-runtime.js",
+        "bytes": 3794695,
+        "sha256": "4ce45a9f7582624b7fc377632fa52b95564708cc802924731de7bcab14ea8581"
+      },
+      {
+        "name": "merchant-response-runtime",
+        "source": "backend/wallet-service/src/merchantResponseRuntime.ts",
+        "file": "merchant-response-runtime.js",
+        "bytes": 1581136,
+        "sha256": "0f04b1f3124d06a77a88077496b02d14e97957c7b40b34caf19b7b055e27318d"
+      }
+    ]
+  },
+  "awsDeploymentPerformed": false,
+  "awsConfigurationChanged": false,
+  "businessDataModified": false,
+  "productionAcceptanceTestPerformed": false,
+  "deploymentHandoff": "Colleague owns coordinated AWS publication. Review historical embedded funding readers and reservation bridges across completion/cancellation/returns/dispatch/adjudication before admitting composite orders. The five local bundles are not proof of deployed host compatibility."
+}

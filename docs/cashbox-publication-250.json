@@ -1,0 +1,32 @@
+{
+  "part": 250,
+  "status": "PUBLISHED",
+  "scope": "Registered cashboxes, server-issued cash vouchers, atomic disbursement register and linked printable proof",
+  "businessDecisionsOrPaymentsByAgent": false,
+  "iamChanged": true,
+  "function": {
+    "name": "staging-wizz-staff-service",
+    "baseCodeSha256": "9gxGurCGX4ABG2VG9iftfyk/aev4gqNWkqJwdnU7sgc=",
+    "codeSha256": "zJVefqKCRekK9bjsJbZeDOT7CFr70Nmk4fDmqXf0hEg=",
+    "changedFiles": [
+      "settlement-runtime.js",
+      "merchant-payouts.js"
+    ],
+    "unrelatedEntriesAndConfigurationPreserved": true
+  },
+  "hosting": {
+    "baseJobId": "139",
+    "jobId": "140",
+    "changedFiles": [
+      "pages/finance.html",
+      "merchant-cashboxes.js",
+      "merchant-payouts.js",
+      "merchant-payout-print.js"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  },
+  "walletBalanceCalculationsChanged": false,
+  "cashboxMetadataRegisterAdded": true
+}

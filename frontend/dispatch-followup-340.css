@@ -1,0 +1,5 @@
+#dispatch-reviews article{border:1px solid #dce3ee!important;border-radius:16px;padding:20px!important;color:#00296b;background:#fff}
+#dispatch-reviews button{background:#00296b;color:#fff;border:0;border-radius:10px;min-height:42px;padding:9px 16px;margin:5px;cursor:pointer;font:inherit}
+#dispatch-reviews button:disabled{background:#e3e8f0;color:#536079;cursor:wait}
+#dispatch-reviews textarea,#dispatch-reviews select{display:block;width:100%;max-width:640px;border:1px solid #b8c5d8;border-radius:10px;padding:12px;margin:12px 0;font:inherit;color:#00296b;background:#fff}
+.dispatch-followup-card{background:#f3f6fb;border-radius:12px;padding:16px;margin:16px 0}.dispatch-followup-card p{margin:8px 0;line-height:1.6}

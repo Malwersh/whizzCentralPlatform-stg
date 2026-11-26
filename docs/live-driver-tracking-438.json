@@ -1,0 +1,42 @@
+{
+  "feature": "liveDriverTracking438",
+  "date": "2026-11-05",
+  "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_TRIP_PENDING",
+  "scope": "Customer order tracking redesign and real GPS delivery tracking after pickup only",
+  "customerBuild": "Release 401 installed and launched on iMohammed",
+  "driverBuild": "Release 402 installed on iMohammed",
+  "behavior": [
+    "Real driver GPS published through authenticated existing location endpoint",
+    "Customer ownership and current driver assignment checked on server",
+    "Sharing restricted to pickup-to-delivery phases; stale samples rejected",
+    "WebSocket location messages animate marker without fetching invoice or order per GPS point",
+    "Actual road route when routing service is available; no simulated movement or invented ETA",
+    "Compact progress, driver information and expandable order details; no direct chat added"
+  ],
+  "deployment": [
+    "DriversApi-staging",
+    "WizzUser-WebSocketSendUpdate-staging",
+    "WizzUser-WebSocketDefault-staging"
+  ],
+  "permissions": "Dedicated LiveTripTracking438 policies: invoke existing sender; scoped live-state read and connection-index query; existing route secret reference read. No financial permissions added.",
+  "validation": {
+    "backendVisibilityAndScopeTests": 14,
+    "identityAndVisibilityTests": 22,
+    "customerFlutterTests": 8,
+    "builds": "Customer iOS release 401 and driver iOS release 402 succeeded",
+    "runtime": "Ended order tracking event safely skipped; deployed package bytes verified"
+  },
+  "limits": [
+    "Real moving trip and locked-screen background GPS need human validation",
+    "Existing order-status fallback polling unchanged; GPS delivery uses WebSocket events",
+    "Route is pickup-to-destination road geometry; ETA remains existing server order estimate"
+  ],
+  "pendingHumanTests": [
+    "Pickup real test order and observe driver marker movement",
+    "Lock driver device and verify fresh background updates",
+    "Reconnect customer screen and verify last fresh point",
+    "Complete/cancel/unassign and verify sharing stops",
+    "Verify no tracking for another customer or before pickup"
+  ],
+  "dataSafety": "No orders, settlement records or financial data created or modified for tracking tests."
+}

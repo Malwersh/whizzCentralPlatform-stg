@@ -1,0 +1,57 @@
+{
+  "id": 448,
+  "date": "2026-11-05",
+  "status": "STAGING_DEPLOYED_DEVICE_ACCEPTANCE_PENDING",
+  "scope": "Real customer notification preferences and send-time enforcement",
+  "changes": [
+    "Account-bound notification settings GET/PUT with refreshed access token and 15 second timeout",
+    "Fresh-owner check before applying network response; false is persisted as false",
+    "Preference write validates booleans, preserves existing settings and atomically checks lifecycle/ownership",
+    "Campaign sender excludes opted-out customers and rechecks immediately before sending",
+    "Order sender strips alerts/sounds when disabled while retaining silent tracking data",
+    "Foreground notice respects saved account settings",
+    "Sound/permissions link uses OS app settings; no fake sound/vibration/newsletter/reminder controls",
+    "Preference refresh does not block push listener or token registration"
+  ],
+  "tests": {
+    "frontend": 25,
+    "preferencesBackend": 5,
+    "centralSender": 6,
+    "total": 36,
+    "analyzer": "No issues in new preference service and screen",
+    "iamProjectionSimulation": "allowed",
+    "anonymousSaveHTTP": 401,
+    "invalidTokenSaveHTTP": 401,
+    "realCustomerWritesDuringAutomatedValidation": 0,
+    "realPushSendsDuringValidation": 0
+  },
+  "deployment": {
+    "WizzUser-UpdateUserPreferences-staging": "bwNrIQX6nArlZmitkBrxTeCpE9wCqBS73WTf+Gya0mI=",
+    "wizzcentral-notifications-staging-pushAdminSendTest": "DonbnA8LFq6cEwkqRQDs0dSklNdRPjgdLlSDEi8Qbkw=",
+    "wizzcentral-notifications-staging-pushSendOrderUpdate": "wP915L1dwmZtEBVsAymlRA3ptoqKh1/obA5gWznBiXU="
+  },
+  "permission": "CustomerNotificationPreferences448: GetItem on WizzUser_users_staging restricted to userId, notification_settings, isActive, deletionRequestId; no financial or write permissions",
+  "deploymentScript": "scripts/publish-customer-preferences-448.py",
+  "packageStrategy": "Patch only selected files in captured live bundles; abort on concurrent release; preserve unrelated deployed work",
+  "runtimeNotes": [
+    "Alert choices do not end Live Activities or silent Android progress tracking",
+    "Support/security notices are not classified as marketing",
+    "Removed unsupported toggles; no promise of full-app localization or future reminder/newsletter senders"
+  ],
+  "remaining": [
+    "Save each preference off and reopen screen",
+    "Turn it back on and verify restored server value",
+    "Confirm no marketing push when disabled, and delivery when enabled",
+    "Confirm order alerts off keeps live tracking but removes alert/sound",
+    "Check iPhone and Android OS permission/settings link",
+    "Align personal-information marketing/newsletter consent fields with notification preference source before closing complete account audit"
+  ],
+  "device": {
+    "build": 409,
+    "configuration": "Preserved staging defines from previous customer build; no secret values in report",
+    "target": "iMohammed",
+    "result": "Final rebuilt package installed and launched successfully",
+    "buildLog": "/private/tmp/account448/customer409-build.log",
+    "installLog": "/private/tmp/account448/customer409-install.log"
+  }
+}

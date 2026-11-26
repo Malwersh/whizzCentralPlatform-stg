@@ -1,0 +1,34 @@
+[
+  {
+    "function": "WizzUser-CreateOrder-staging",
+    "changedEntries": [
+      "functions/create-order/commercial-runtime.js"
+    ],
+    "otherEntriesIdentical": true,
+    "candidateCodeSha256": "72lAN1+qbfgfkFghFkaAcx/pDlaiubZde8VVWvbRP0A="
+  },
+  {
+    "function": "WizzUser-DeliveryQuotes-staging",
+    "changedEntries": [
+      "storefront-runtime.js"
+    ],
+    "otherEntriesIdentical": true,
+    "candidateCodeSha256": "pwPWDIuNO9H6uqKFMJijqFnyLESRG5hWEZsM45dvZNA="
+  },
+  {
+    "function": "order-receiver-business-staging-status-v1-sam",
+    "changedEntries": [
+      "shared/order-reception.js"
+    ],
+    "otherEntriesIdentical": true,
+    "candidateCodeSha256": "YQFYB796anSY0nWnSOCM2nQJM8bg9B6me96jDmVdXKg="
+  },
+  {
+    "function": "order-receiver-regional-staging-unified-auth-v4-sam",
+    "changedEntries": [
+      "shared/order-reception.js"
+    ],
+    "otherEntriesIdentical": true,
+    "candidateCodeSha256": "1zshQg6c673nik72Aqdh7IjUgxlmOJpelm5Hh2g4Vnk="
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "part": 262,
+  "status": "PUBLISHED_STAGING",
+  "whole243Complete": false,
+  "scope": "Per-line return manifest and immutable merchant receipt with unresolved quantities, not adjudicated custody closure",
+  "tests": {
+    "wallet": {
+      "passed": 1299,
+      "failed": 0
+    },
+    "staff": {
+      "passed": 242,
+      "failed": 0
+    },
+    "merchant": {
+      "passed": 208,
+      "failed": 0
+    },
+    "bundle": {
+      "passed": 21,
+      "failed": 0
+    },
+    "proxy": {
+      "passed": 2,
+      "failed": 0
+    },
+    "projection": {
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "merchantWidgetsPassed": 11,
+  "browser": "PASS",
+  "nativeBuild": 227,
+  "nativeInstalledAndLaunched": true,
+  "newReturnsOnly": true,
+  "financialPolicyChanged": false,
+  "iamChanged": false,
+  "existingClosedCaseUnchanged": true,
+  "humanNewQuantityReceipt": "NOT_PERFORMED",
+  "merchantEmployeeTest": "DEFERRED_BY_USER",
+  "remaining": [
+    "adjudicated custody remainder resolution",
+    "authorized safe disposition and transfer",
+    "appeals and disputes",
+    "broader244cash/cancellation/complaint integration"
+  ],
+  "references": [
+    "return-items-262.md",
+    "return-items-publication-262.json",
+    "return-items-verification-262.json"
+  ]
+}

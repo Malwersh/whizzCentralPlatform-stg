@@ -1,0 +1,553 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Fresh production authentication and lifecycle storage. Empty schemas only.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "MerchantFinancialSessionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-MerchantFinancialSessions",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "DataClass",
+            "Value": "ephemeral-financial-verification"
+          }
+        ]
+      }
+    },
+    "CustomerPhoneAuthTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-CustomerPhoneAuth",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "Enabled": true,
+          "AttributeName": "expiresAt"
+        }
+      }
+    },
+    "CustomerPhoneLinkTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-CustomerPhoneLink",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "Enabled": true,
+          "AttributeName": "expiresAt"
+        }
+      }
+    },
+    "DriverOtpSessionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-DriverOtpSessions",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "Enabled": true,
+          "AttributeName": "expiresAt"
+        }
+      }
+    },
+    "DriversTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-Drivers",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "driverId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "driverId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "StreamSpecification": {
+          "StreamViewType": "NEW_AND_OLD_IMAGES"
+        }
+      }
+    },
+    "PlatformStaffTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-PlatformStaff",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ]
+      }
+    },
+    "MerchantPlatformTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-MerchantPlatform",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "organizationPk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "organizationSk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "subjectPk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "subjectSk",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "OrganizationIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "organizationPk",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "organizationSk",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "KEYS_ONLY"
+            }
+          },
+          {
+            "IndexName": "SubjectIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "subjectPk",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "subjectSk",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "KEYS_ONLY"
+            }
+          }
+        ]
+      }
+    },
+    "AccountDeletionTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-AccountDeletion",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "Enabled": true,
+          "AttributeName": "expiresAt"
+        }
+      }
+    },
+    "AccountDeletionFinancialArchiveTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-AccountDeletionFinancialArchive",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "pk",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "sk",
+            "KeyType": "RANGE"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "pk",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sk",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "MerchantFinancialSessionsTableName": {
+      "Condition": "IsProductionAccount",
+      "Value": {
+        "Ref": "MerchantFinancialSessionsTable"
+      }
+    },
+    "CustomerPhoneAuthTableName": {
+      "Value": {
+        "Ref": "CustomerPhoneAuthTable"
+      }
+    },
+    "CustomerPhoneLinkTableName": {
+      "Value": {
+        "Ref": "CustomerPhoneLinkTable"
+      }
+    },
+    "DriverOtpSessionsTableName": {
+      "Value": {
+        "Ref": "DriverOtpSessionsTable"
+      }
+    },
+    "DriversTableName": {
+      "Value": {
+        "Ref": "DriversTable"
+      }
+    },
+    "PlatformStaffTableName": {
+      "Value": {
+        "Ref": "PlatformStaffTable"
+      }
+    },
+    "MerchantPlatformTableName": {
+      "Value": {
+        "Ref": "MerchantPlatformTable"
+      }
+    },
+    "AccountDeletionTableName": {
+      "Value": {
+        "Ref": "AccountDeletionTable"
+      }
+    },
+    "AccountDeletionFinancialArchiveTableName": {
+      "Value": {
+        "Ref": "AccountDeletionFinancialArchiveTable"
+      }
+    }
+  }
+}

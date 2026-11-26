@@ -1,0 +1,1212 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Fresh production merchant catalog, customer and region storage. Schema only; no imports or initial records.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "MerchantsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-Merchants",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "businessId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "businessId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "email",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "ownerId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "email-index",
+            "KeySchema": [
+              {
+                "AttributeName": "email",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "ownerId-index",
+            "KeySchema": [
+              {
+                "AttributeName": "ownerId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "KEYS_ONLY"
+            }
+          }
+        ]
+      }
+    },
+    "ProductsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-Products",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "productId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "businessId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "productId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "BusinessIdIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "businessId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "MenuCategoriesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-MenuCategories",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "categoryId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "businessType",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "categoryId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "BusinessTypeIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "businessType",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "BusinessSubcategoriesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-BusinessSubcategories",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "subcategoryId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "businessType",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "subcategoryId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "BusinessTypeIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "businessType",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "WorkingHoursTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-WorkingHours",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "businessId",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "weekday",
+            "KeyType": "RANGE"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "businessId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "weekday",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ]
+      }
+    },
+    "MerchantDiscountsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-MerchantDiscounts",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "discountId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "businessId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "discountId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "BusinessIdIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "businessId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "GlobalProductsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-GlobalProducts",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "globalProductId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "barcode",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "categoryId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "globalProductId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "searchableName",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "sku",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "BarcodeIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "barcode",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "SearchableNameCategoryIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "searchableName",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "categoryId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "SkuIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "sku",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RegionListingsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-RegionListings",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "regionId",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "metadataType",
+            "KeyType": "RANGE"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "metadataType",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "regionId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ]
+      }
+    },
+    "CustomersTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-Customers",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "userId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "email",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "phone",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "email-index",
+            "KeySchema": [
+              {
+                "AttributeName": "email",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "phone-index",
+            "KeySchema": [
+              {
+                "AttributeName": "phone",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "AddressesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-Addresses",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "addressId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "addressId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "isDefault",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "userId-index",
+            "KeySchema": [
+              {
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "userId-isDefault-index",
+            "KeySchema": [
+              {
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "isDefault",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "Enabled": true,
+          "AttributeName": "checkoutExpiresAt"
+        }
+      }
+    },
+    "FavoritesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-Favorites",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "favoriteId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "businessId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "createdAt",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "favoriteId",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "userId-createdAt-index",
+            "KeySchema": [
+              {
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "createdAt",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "userId-businessId-index",
+            "KeySchema": [
+              {
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "businessId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RegionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-Regions",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "regionId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "level_n",
+            "AttributeType": "N"
+          },
+          {
+            "AttributeName": "name_ar_lower",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "name_lower",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "parent_id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "regionId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "search-name-index",
+            "KeySchema": [
+              {
+                "AttributeName": "name_lower",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "search-name-ar-index",
+            "KeySchema": [
+              {
+                "AttributeName": "name_ar_lower",
+                "KeyType": "HASH"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "parent-level-index",
+            "KeySchema": [
+              {
+                "AttributeName": "parent_id",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "level_n",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RegionIndexTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-RegionIndex",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "index_cell_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "h3_cell",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "index_cell_id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "regionId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "region-id-index",
+            "KeySchema": [
+              {
+                "AttributeName": "regionId",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "h3_cell",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "h3-index",
+            "KeySchema": [
+              {
+                "AttributeName": "h3_cell",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "regionId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RegionNeighborsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-RegionNeighbors",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "neighbor_pair_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "neighbor_pair_id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "source_region_id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "target_region_id",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "target-region-index",
+            "KeySchema": [
+              {
+                "AttributeName": "target_region_id",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "source_region_id",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "source-region-index",
+            "KeySchema": [
+              {
+                "AttributeName": "source_region_id",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "target_region_id",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    },
+    "RegionsDerivedTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-RegionsDerived",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "regionId",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "effective_is_active",
+            "AttributeType": "N"
+          },
+          {
+            "AttributeName": "level",
+            "AttributeType": "N"
+          },
+          {
+            "AttributeName": "parent_id",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "regionId",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "parent-index",
+            "KeySchema": [
+              {
+                "AttributeName": "parent_id",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "level",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "level-index",
+            "KeySchema": [
+              {
+                "AttributeName": "level",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "regionId",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          },
+          {
+            "IndexName": "active-regions-index",
+            "KeySchema": [
+              {
+                "AttributeName": "effective_is_active",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "level",
+                "KeyType": "RANGE"
+              }
+            ],
+            "Projection": {
+              "ProjectionType": "ALL"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "MerchantsTableName": {
+      "Value": {
+        "Ref": "MerchantsTable"
+      }
+    },
+    "ProductsTableName": {
+      "Value": {
+        "Ref": "ProductsTable"
+      }
+    },
+    "MenuCategoriesTableName": {
+      "Value": {
+        "Ref": "MenuCategoriesTable"
+      }
+    },
+    "BusinessSubcategoriesTableName": {
+      "Value": {
+        "Ref": "BusinessSubcategoriesTable"
+      }
+    },
+    "WorkingHoursTableName": {
+      "Value": {
+        "Ref": "WorkingHoursTable"
+      }
+    },
+    "MerchantDiscountsTableName": {
+      "Value": {
+        "Ref": "MerchantDiscountsTable"
+      }
+    },
+    "GlobalProductsTableName": {
+      "Value": {
+        "Ref": "GlobalProductsTable"
+      }
+    },
+    "RegionListingsTableName": {
+      "Value": {
+        "Ref": "RegionListingsTable"
+      }
+    },
+    "CustomersTableName": {
+      "Value": {
+        "Ref": "CustomersTable"
+      }
+    },
+    "AddressesTableName": {
+      "Value": {
+        "Ref": "AddressesTable"
+      }
+    },
+    "FavoritesTableName": {
+      "Value": {
+        "Ref": "FavoritesTable"
+      }
+    },
+    "RegionsTableName": {
+      "Value": {
+        "Ref": "RegionsTable"
+      }
+    },
+    "RegionIndexTableName": {
+      "Value": {
+        "Ref": "RegionIndexTable"
+      }
+    },
+    "RegionNeighborsTableName": {
+      "Value": {
+        "Ref": "RegionNeighborsTable"
+      }
+    },
+    "RegionsDerivedTableName": {
+      "Value": {
+        "Ref": "RegionsDerivedTable"
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "functions": [
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha256": "vWMuZP7lFuSOa9XrYEqyX5ZKkOL0iLBaW9aAikU0kgo=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha256": "+Y2Nm6P1kxGxNYuoAZFxPkGpCGA/Oyoptxo5tx8E9Xg=",
+      "configurationPreserved": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha256": "2lRejri8M7+MKwd0273V9AVZutz0fXvweJpwjRKPmqQ=",
+      "configurationPreserved": true
+    }
+  ],
+  "newIam": false,
+  "financialAmountsChanged": false,
+  "recipientFields": [
+    "name",
+    "address"
+  ],
+  "phoneExcluded": true,
+  "backendTargetedTestsPassed": 25,
+  "flutterTargetedTestsPassed": 9,
+  "bundleDisplayChecksPassed": 6,
+  "device": "iMohammed",
+  "profileBuildInstalledAndLaunched": true,
+  "beforeAcceptanceCardRequiresNewOfferVisualCheck": true,
+  "labels": {
+    "driverCompensation": "أجرة التوصيل",
+    "driverTotal": "إجمالي مستحقاتك",
+    "separateCollectionSection": "التحصيل والمحفظة"
+  }
+}

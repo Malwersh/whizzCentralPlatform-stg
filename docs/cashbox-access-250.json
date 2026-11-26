@@ -1,0 +1,36 @@
+{
+  "part": 250,
+  "status": "APPLIED_VERIFIED",
+  "role": "staging-wizz-staff-service-StaffFunctionRole-hk0IFW4PhVQx",
+  "policyArn": "arn:aws:iam::699561669180:policy/staging-merchant-cashbox-register-250",
+  "policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "CashboxDirectoryAndDisbursementRegisterOnly",
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:Query",
+          "dynamodb:PutItem",
+          "dynamodb:ConditionCheckItem"
+        ],
+        "Resource": "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform",
+        "Condition": {
+          "Null": {
+            "dynamodb:LeadingKeys": "false"
+          },
+          "ForAllValues:StringLike": {
+            "dynamodb:LeadingKeys": [
+              "MERCHANT_CASHBOXES#GLOBAL",
+              "MERCHANT_CASHBOX#*"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "noWalletOrderOrLedgerPermissionsAdded": true,
+  "noBusinessOrMoneyMutation": true,
+  "isolatedPolicyNegativeChecks": "PASS"
+}

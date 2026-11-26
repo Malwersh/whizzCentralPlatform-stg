@@ -1,0 +1,74 @@
+{
+  "reviewedAt": "2026-10-23T02:29:59.537737+03:00",
+  "scope": "Arabic dialog and customer/driver detail presentation polish",
+  "changes": [
+    "Structured dialogs retain header and actions while the long body scrolls",
+    "Mobile dialog fields use one column and action buttons wrap with 44px minimum targets",
+    "Arabic accessible close labels and a native product dialog close button",
+    "Display-only Iraqi dinar formatter for customer spend, with missing/invalid values shown as a dash",
+    "Customer and driver dates use Arabic and Asia/Baghdad; original numeric Unix-second conversion retained",
+    "Customer timestamps stay raw until display, preventing re-parsing localized Arabic dates",
+    "Customer tier, points and marketing labels localized"
+  ],
+  "verification": {
+    "browserCases": [
+      {
+        "page": "drivers",
+        "dir": "rtl",
+        "lang": "ar",
+        "width": 390,
+        "overflow": 0,
+        "bodyDirection": "rtl",
+        "h1": "السائقون",
+        "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "page": "drivers",
+        "dir": "rtl",
+        "lang": "ar",
+        "width": 1440,
+        "overflow": 0,
+        "bodyDirection": "rtl",
+        "h1": "السائقون",
+        "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "page": "customers",
+        "dir": "rtl",
+        "lang": "ar",
+        "width": 390,
+        "overflow": 0,
+        "bodyDirection": "rtl",
+        "h1": "العملاء",
+        "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "page": "customers",
+        "dir": "rtl",
+        "lang": "ar",
+        "width": 1440,
+        "overflow": 0,
+        "bodyDirection": "rtl",
+        "h1": "العملاء",
+        "bodyFont": "\"Wizz Arabic\", Tahoma, Arial, sans-serif"
+      }
+    ],
+    "fixedTitleAndVisibleActions": "PASS",
+    "internalFormScrolling": "PASS",
+    "formattingAndTimestampChecks": "PASS",
+    "formContractsPreservedPages": 4,
+    "protectedFinancialFilesVerified": 156,
+    "protectedBenefitLifecycleAdaptersVerified": 4,
+    "existingLocaleCatalogPreserved": true,
+    "syntaxAndWhitespaceChecks": "PASS"
+  },
+  "liveUserDataRead": false,
+  "financialLogicChanged": false,
+  "apiPayloadsChanged": false,
+  "awsConfigurationChanged": false,
+  "deployed": false,
+  "limits": [
+    "Browser layout uses the actual HTML with network-backed application scripts disabled; no live customer profile or write was exercised",
+    "This iteration targets customer and driver detail rendering and structured dialogs, not every specialized finance workflow"
+  ]
+}

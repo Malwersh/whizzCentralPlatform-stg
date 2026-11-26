@@ -1,0 +1,5 @@
+const test=require('node:test'),assert=require('node:assert/strict');const web=require('../../../frontend/account-deletion-web');
+const token=(sub,client='4a9e8o3em311eq2rgckp0pd2s9',use='access')=>'header.'+Buffer.from(JSON.stringify({sub,client_id:client,token_use:use})).toString('base64url')+'.signature';
+test('public page normalizes Iraqi telephone and Arabic digits',()=>{for(const p of ['07800868280','+9647800868280','9647800868280','٠٧٨٠٠٨٦٨٢٨٠'])assert.equal(web.phone(p),'+9647800868280');assert.throws(()=>web.phone('555'));});
+test('tokens from a different application cannot authorize the selected UI',()=>{assert.equal(web.tokenMatches(token('a'),'CUSTOMER'),true);assert.equal(web.tokenMatches(token('a'),'DRIVER'),false);assert.equal(web.tokenMatches(token('a',undefined,'id'),'CUSTOMER'),false);});
+test('receipt on a shared browser belongs to its verified subject, not telephone',()=>{assert.equal(web.receiptBelongs({subject:'old'},token('new')),false);assert.equal(web.receiptBelongs({subject:'old'},token('old')),true);assert.equal(web.receiptBelongs({},token('new')),false);});

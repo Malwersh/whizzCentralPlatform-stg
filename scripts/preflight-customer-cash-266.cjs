@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),sdk=require('../backend/wallet-service/node_modules/@aws-sdk/lib-dynamodb'),{DynamoDBClient}=require('../backend/wallet-service/node_modules/@aws-sdk/client-dynamodb'),runtime=require('/private/tmp/customer-cash-266/candidate-runtime/customer-cash-runtime-266');
+const real=sdk.DynamoDBDocumentClient.from(new DynamoDBClient({region:'us-east-1'}));let reads=0;
+const db={send:async c=>{assert.equal(c.constructor.name.replace(/\d+$/,''),'GetCommand','ALL_WRITES_BLOCKED');assert.equal(c.input.ConsistentRead,true);reads++;return real.send(new sdk.GetCommand(c.input));}};
+(async()=>{const orderId='bb728bfe-c2c4-5c95-8492-26ce81ee1ed1',get=async(t,k)=>(await db.send(new sdk.GetCommand({TableName:t,Key:k,ConsistentRead:true}))).Item;
+ const before=await get('staging-Holds',{orderId,sk:'RETURN#1'}),order=await get('WizzOrders',{PK:'ORDER#'+orderId,SK:'META'});
+ const service=runtime.createCustomerCashCase({db,authenticate:async()=>({kind:'CUSTOMER',subjectId:order.userSub}),authorizeStaff:async()=>{throw Error('NO_STAFF_AUTHORITY');}});
+ const out=await service.execute({action:'READ_CUSTOMER_CASH_CASE',orderId});assert.equal(out.status,'NOT_OPENED');assert.equal(out.version,0);assert.equal(out.refunds.length,0);
+ const after=await get('staging-Holds',{orderId,sk:'RETURN#1'});assert.deepEqual(after,before);assert.equal(after.version,14);assert.equal(after.exceptionResolution.status,'RESOLVED');
+ console.log('PASS candidate read-only preflight: '+reads+' strong reads; every write blocked; historical case unchanged 14 RESOLVED. Local identity stub is not real customer authentication or acknowledgment.');
+})().catch(e=>{console.error(e.code||e.message);process.exitCode=1;});

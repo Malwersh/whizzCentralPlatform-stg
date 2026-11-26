@@ -1,0 +1,65 @@
+{
+  "phase": 451,
+  "date": "2026-11-07",
+  "status": "implemented_and_deployed_staging; Release412 installed and launched on iMohammed; real OTP acceptance pending",
+  "problem": [
+    "Recent-authentication check incorrectly blocked even read-only current phone status",
+    "Phone linking only synchronized legacy email profiles",
+    "Phone changes spanning Cognito and DynamoDB lacked resumable finalization"
+  ],
+  "behavior": {
+    "read": "Current phone status accepts a live saved/refreshed session without requiring authentication younger than 15 minutes; GET makes no profile writes",
+    "change": "Mutations require recent authentication; for phone accounts an inline existing-number OTP refreshes the same account session without logout; legacy email accounts use existing email authentication",
+    "newNumber": "Canonical Iraqi mobile number, OTP with expiry/attempt/cooldown and sender limits; reject current number and number belonging to another identity/profile/reservation",
+    "identity": "Keep Cognito subject and original profile userId, orders and canonical wallet owner; no account recreation or balance mutations",
+    "reauthOwnerFence": "Bound existing phone entry is read-only; reject mismatched account response before replacing saved OTP session; fence network results and verify return by owner",
+    "sync": "Modern canonical profiles plus legacy email and phone-only profiles resolved from verified server identity; request cannot select userId",
+    "recovery": "Claim challenge, subject pending marker and target reservation together. Keep pending operation and active pointer without TTL until finalized. Existing authenticated owner can resume only the same fixed target if network/profile finalization fails. Completed retry is idempotent. Alias collision cleans pending marker and target reservation. Old number reservation released only for same subject.",
+    "loginDuringPending": "Do not issue fresh login tokens or initialize wallet while phone-change marker is present; existing session can complete operation",
+    "UI": "Current number card, explain security proof, separate new number/code steps, clear errors and resume action; removed wallet-transfer-only copy"
+  },
+  "deployment": {
+    "functions": [
+      "WizzUser-phone-link-staging",
+      "WizzUser-phone-auth-staging"
+    ],
+    "method": "Captured deployed packages, preserved dependencies and already-deployed review configuration, RevisionId fences and CodeSha256 confirmation",
+    "permissions": "CustomerPhoneChange451 grants GetItem on customer profiles, Query on phone-index, and GetItem on subject-scoped deletion lifecycle keys only; existing profile UpdateItem and OTP transaction permissions reused",
+    "financialPermissionsAdded": false,
+    "template": "backend/phone-link-template.yaml",
+    "publisher": "backend/scripts/publish-phone-change-451.py"
+  },
+  "validation": {
+    "backendTests": 40,
+    "flutterTests": 19,
+    "total": 59,
+    "liveNegativeAuthChecks": 4,
+    "liveNegativeResult": "Missing/invalid credentials return 401 on GET status and POST send/verify",
+    "analyzer": "No errors or warnings in changed files; existing style infos remain",
+    "build": "Release412 built, installed and launched on iMohammed",
+    "realSmsOrPhoneChangesExecutedByAgent": false,
+    "fixtures": "Synthetic account/phone values only; no financial mutations"
+  },
+  "humanAcceptancePending": [
+    "Open My Account > Change phone after old session: actual current number appears without forced login",
+    "When required confirm ownership of current phone, return to same account, then OTP to new phone",
+    "Verify profile shows new phone and next login with new number returns same orders/wallet",
+    "Check duplicate-phone rejection using authorized test identities",
+    "Android physical-device OTP flow remains in deferred acceptance plan",
+    "If a number is inaccessible use support/account recovery rather than bypass ownership proof"
+  ],
+  "evidence": [
+    "/private/tmp/phone451/all-backend-tests.log",
+    "/private/tmp/phone451/flutter-tests-final2.log",
+    "/private/tmp/phone451/auth-smoke.json",
+    "/private/tmp/phone451/build412.log",
+    "/private/tmp/phone451/publish.log",
+    "/private/tmp/phone451/publish-final.log"
+  ],
+  "remainingLimitations": [
+    "Cognito and DynamoDB are different services; partial completion is deliberately represented as a pending operation and resumed, not described as one cross-service atomic transaction",
+    "Manual phone changes outside this path must be handled as administrative recovery; no forced alias takeover",
+    "No claim that real SMS delivery or physical new-number login has been proven yet"
+  ],
+  "next": "Wallet capability wording and support navigation under customer account plan"
+}

@@ -1,0 +1,22 @@
+{
+  "status": "published_verified_staging",
+  "hostingJob": 251,
+  "customerSimulatorBuild": 353,
+  "source": "pastOrders now selectable in admin editor; customer completed-order merchant history remains private and account-scoped",
+  "placement": [
+    "beforeSlideshow",
+    "afterSlideshow"
+  ],
+  "default": "afterSlideshow preserves existing sections",
+  "authoredSectionsChanged": false,
+  "validation": {
+    "backendTests": 15,
+    "flutterTests": 12,
+    "browserWidths": [
+      390,
+      1280
+    ],
+    "liveBundleValidation": "passed"
+  },
+  "backendSha": "cianfQ+NHpyDGAHKFVQ+y/cVJ8tglJkFBwf5T2WOi+E="
+}

@@ -1,0 +1,60 @@
+{
+  "part": 358,
+  "scope": "Shared staff audit writer and STAFF_AUDIT_ONLY read UI; not complete financial audit consolidation",
+  "findings": [
+    "Shared staff audit writer stores actor ID but no identity/role snapshot at action time",
+    "Old audit viewer requires staff.read before showing audit-only role data",
+    "Audit feed scans platform staff table and returns unsanitized historical before/after values"
+  ],
+  "changes": [
+    "Request-local verified employee snapshot cloned into new shared audit records; no global request identity state",
+    "Explicit RECORDED outcome, reason if supplied, changed field names, immutable record condition",
+    "Recursive secret-key and signed-link/bearer redaction; large text stored with explicit SHA-256/length marker, not silently truncated",
+    "Historical records redacted on read without overwriting stored records or assigning a present-day identity",
+    "Global audit.read boundary; Query exact AUDIT partition, strong read, descending pagination, strict cursor/limit/action inputs",
+    "Independent responsive auditor UI with before/after details and safe text rendering; audit-only login/RBAC destination"
+  ],
+  "notClaimed": [
+    "No existing audit rows rewritten",
+    "No financial record or balance changes",
+    "Shared writer does not cover every independent wallet/merchant/driver audit writer",
+    "Failed business attempts are not falsely recorded as successful financial actions",
+    "No historical names reconstructed from current employees"
+  ],
+  "verification": {
+    "backendRelatedTests": 21,
+    "actualDeployedBundleRoute": "PASS auditor without staff.read, SDK Query bridge, redaction, global boundary",
+    "browser": "PASS 390 and 1280px: before/after, unknown historical identity, no markup execution, pagination, no horizontal overflow",
+    "permission": "Existing role already allows exact AUDIT Query; no grant added"
+  },
+  "coverageFollowup": [
+    {
+      "source": "Staff shared audit writer",
+      "state": "HARDENED_358"
+    },
+    {
+      "source": "Wallet topup AuditLog",
+      "state": "IMMUTABLE_ID_RECORDED; actor snapshot/standard shape remains audit work"
+    },
+    {
+      "source": "Wallet operating limits AuditLog",
+      "state": "BEFORE_AFTER_REASON_ID; actor snapshot and unified reader remain audit work"
+    },
+    {
+      "source": "Driver cash payout AuditLog",
+      "state": "ACTOR_AMOUNT_EVENT; cross-source shape and historical identity audit remains open"
+    },
+    {
+      "source": "Pre-auth internal owner callbacks",
+      "state": "ID_ONLY_EVIDENCE; do not label as verified staff"
+    }
+  ],
+  "humanAcceptance": [
+    "Open audit page from staff audit button with permitted actor",
+    "Verify audit-only role can read without employees listing permission",
+    "Perform future authorized settings change and verify recorded snapshot; do not change values solely for this deployment",
+    "Confirm historical rows remain marked identity unrecorded"
+  ],
+  "financialRecordsWritten": 0,
+  "historicalAuditRowsModified": 0
+}

@@ -1,0 +1,23 @@
+{
+  "part": 256,
+  "status": "PUBLISHED",
+  "function": "staging-driver-financial-accept",
+  "before": "a+j9lDh9kibQFIKf7Bk+zdsF2BYtvLpORKYatyxaGW8=",
+  "after": "hmmWWpiQMCaSMYYy/ZNn6Krsd/w1WLpoD/ncs19tCk4=",
+  "changedFiles": [
+    "staff-order-management-runtime.js"
+  ],
+  "change": "Normalize absent commercial delivery funding to null while preserving exact funded matching",
+  "unrelatedEntriesIdentical": true,
+  "configurationAndIamPreserved": true,
+  "sourceTests": 25,
+  "capturedRuntimeTests": 11,
+  "realOrderFullCancellationDryRun": {
+    "plannedOperations": 14,
+    "reads": 9,
+    "mutationsExecuted": 0,
+    "authenticatedStaffExecution": false
+  },
+  "humanAcceptance": "PENDING_ADMIN_RETRY",
+  "agentDirectBusinessWrites": false
+}

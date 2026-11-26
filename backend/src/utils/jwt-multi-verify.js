@@ -1,6 +1,8 @@
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
+const { isProduction } = require('./notification-provider-bindings');
 
 const COGNITO_REGION = process.env.COGNITO_REGION || 'us-east-1';
+const requireAccessClient = isProduction(process.env);
 
 const pools = {
   central: {
@@ -31,7 +33,7 @@ function getVerifier({ userPoolId, clientId, tokenUse }) {
   const verifier = CognitoJwtVerifier.create({
     userPoolId,
     tokenUse,
-    clientId: tokenUse === 'id' ? clientId : null
+    clientId: tokenUse === 'id' || requireAccessClient ? clientId : null
   });
 
   verifierCache.set(cacheKey, verifier);
@@ -46,7 +48,7 @@ function extractBearerToken(event) {
 }
 
 async function verifyJwtForPool(token, pool) {
-  if (!pool?.userPoolId) return null;
+  if (!pool?.userPoolId || (requireAccessClient && !pool.clientId)) return null;
 
   // First try ID token (common in these apps)
   if (pool.clientId) {

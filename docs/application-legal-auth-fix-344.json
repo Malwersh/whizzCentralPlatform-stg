@@ -1,0 +1,11 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "jobId": "222",
+  "baseJobId": "221",
+  "changedFile": "pages/legal-documents.html",
+  "allOtherHostedFilesPreserved": true,
+  "sha256": "ccbb58efa09b45308210db371dc293f09087d8eb2c86b0fb85b46e3282c97213",
+  "backendChanges": false,
+  "policyPublication": false,
+  "regression": "Real auth-utils loaded through HTML, authenticated CMS fetch passed"
+}

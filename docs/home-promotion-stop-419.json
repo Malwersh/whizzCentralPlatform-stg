@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-04",
+  "hosting": 259,
+  "changes": [
+    "Retain promotion form input after failed save and show error locally",
+    "Explain draft/publish after saving",
+    "Explicit stop and publish button preserves other published home settings"
+  ],
+  "validation": [
+    "Browser 390 and 1280: save failure retains unchecked value; save disabled; publish disabled; reenable; direct stop publishes disabled"
+  ]
+}

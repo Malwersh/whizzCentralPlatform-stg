@@ -1,0 +1,2 @@
+const vm=require('node:vm'),fs=require('node:fs');
+module.exports=classes=>{const module={exports:{}};vm.runInNewContext(fs.readFileSync(__dirname+'/../cod-retention.js','utf8'),{module,require:n=>n==='node:util'?require(n):n==='./quality-review-retention-290'?require('../quality-review-retention-290'):n==='./customer-cash-retention'?require('../customer-cash-retention'):n==='./policy'?require('../policy'):n==='./customer-cleanup'?require('../customer-cleanup'):classes});return module.exports;};

@@ -1,0 +1,58 @@
+{
+  "part": 242,
+  "status": "PUBLISHED_AND_VERIFIED",
+  "wholeSpecificationComplete": false,
+  "scope": "Authorized exception fare, merchant compensation and funding; partial/full guarantee resolution; actual-payment gated financial closure",
+  "publication": "exception-financial-publication-242.json",
+  "verification": "exception-financial-verification-242.json",
+  "iam": "exception-financial-access-242.json",
+  "implemented": [
+    "Separate immutable approval and execution with staff permissions, limits, fresh evidence/finding, exact balances and idempotency",
+    "Original driver fare FULL or ZERO; no uncollected tip or additional return fee",
+    "Platform funding and proven merchant share from AVAILABLE only; no locked collateral financing",
+    "Separate merchant exception accrual schema5, calendar index, saved scheduled statement, verified actual payout and print/account totals",
+    "Partial or full guarantee release/capture, justified remainder with deadline and metadata-only escalation; independent evidence required for proven liability",
+    "Historic absent server arrival requires explicit support verification and independent sources; no invented GPS or contact attempts",
+    "Financial closure requires settled guarantee, executed fare decision and actual merchant payout proof when positive",
+    "Reconciliation counts remaining guarantee; legacy whole-hold endpoint blocked after partial allocation",
+    "Exception fare and compensation now mirror full-cash GL: signed platform expense/position, balanced accounting journal and merchant pending liability; no platform wallet read, debit or funding prerequisite. Merchant funding debit remains the existing available-balance liability offset."
+  ],
+  "tests": {
+    "wallet": 1235,
+    "staff": 242,
+    "capturedRuntime": 18,
+    "merchantWidget": 11,
+    "browserFinancialControls": "PASS",
+    "periodAndPayoutPrint": "PASS",
+    "merchantBuild": 223,
+    "merchantInstalledAndLaunched": true,
+    "driverUnchanged": 213
+  },
+  "realOrder": {
+    "number": "ORD1792545370610",
+    "decisionsByAgent": false,
+    "paymentsByAgent": false,
+    "status": "returned",
+    "returnStatus": "REVIEW_REQUIRED",
+    "holdAmountIqd": 6250,
+    "holdStatus": "ACTIVE",
+    "entitlementDecisionExists": false,
+    "entitlementPostingExists": false
+  },
+  "remaining": [
+    {
+      "part": 243,
+      "scope": "Per-item partial/missing custody, authorized disposition and disputes/appeals; partial financial guarantee now implemented in242"
+    },
+    {
+      "part": 244,
+      "scope": "Broader cancellation/cash/post-delivery option-to-endpoint audit"
+    }
+  ],
+  "hostingJob": 137,
+  "correction": "EXCEPTION_ACCRUAL_GL_V1",
+  "correctionPublication": "exception-gl-publication-242.json",
+  "correctionVerification": "exception-gl-verification-242.json",
+  "correctionStatus": "PUBLISHED_AND_VERIFIED",
+  "platformWalletFundingRequired": false
+}

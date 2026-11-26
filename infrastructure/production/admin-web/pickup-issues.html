@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>بلاغات الاستلام — إدارة ويز</title>
+  <link rel="stylesheet" href="/portal.css">
+  <link rel="stylesheet" href="/pickup-issues.css">
+  <script src="/config.js" defer></script>
+  <script src="/assets/js/auth-utils.js" defer></script>
+  <script src="/pickup-issues.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>بلاغات الاستلام</h1>
+        <p class="page-intro">تابع مشكلات السائقين قبل استلام الطلب، من أول تواصل حتى توثيق النتيجة.</p>
+      </div>
+    </header>
+    <section aria-labelledby="list-title">
+      <h2 id="list-title">البلاغات المفتوحة</h2>
+      <form id="lookup" class="pickup-form">
+        <label for="order-number">البحث برقم الطلب
+          <input id="order-number" dir="ltr" autocomplete="off" required maxlength="150">
+        </label>
+        <button type="submit">بحث</button>
+        <button type="button" id="queue" class="pickup-secondary">تحديث البلاغات المفتوحة</button>
+      </form>
+      <p id="message" role="status" aria-live="polite"></p>
+      <div id="reports" class="pickup-grid"></div>
+      <p id="coverage" class="muted"></p>
+      <button id="more" type="button" class="pickup-secondary" hidden>تحميل المزيد</button>
+    </section>
+    <section id="detail" hidden aria-labelledby="detail-title">
+      <header><h2 id="detail-title"></h2><button id="refresh" type="button" class="pickup-secondary">تحديث البلاغ</button></header>
+      <div id="facts"></div>
+      <a id="cases" class="pickup-secondary button">فتح طلبات الإلغاء للطلب</a>
+      <div id="history"></div>
+      <div id="work" class="pickup-grid"></div>
+    </section>
+    <dialog id="review" aria-labelledby="review-title">
+      <h2 id="review-title">تأكيد إجراء المتابعة</h2>
+      <p id="review-summary"></p>
+      <button id="confirm" type="button">تأكيد التسجيل</button>
+      <button id="dismiss" type="button" class="pickup-secondary">رجوع للمراجعة</button>
+      <p id="review-message" role="status"></p>
+    </dialog>
+  </main>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "part": 339,
+  "environment": "staging",
+  "rootCause": {
+    "pricingUiLastGoodJob": "175",
+    "regressingFullDeployment": "176",
+    "observed": "Live pricing HTML and JavaScript replaced with older flat renderer; workspace and field-help assets absent, cash policy section removed",
+    "browserCacheCause": false
+  },
+  "restoration": [
+    "Restore pricing cards, isolated workspaces, region chooser, field help and cash-rounding section with complete assets",
+    "Retain newer app-shell/admin-ui styles and shell body class from176",
+    "Keep latest176 bundle as base; unrelated hosted files unchanged",
+    "Use cache version339 for pricing dependencies"
+  ],
+  "validation": [
+    "Browser driver/customer editor and unchanged save payload PASS",
+    "Packaging guard PASS on exact candidate",
+    "4 guard tests: valid bundle, missing helper, stale renderer, stale page PASS"
+  ],
+  "deploymentPreflightWired": [
+    ".github/workflows/deploy-amplify-staging.yml",
+    "amplify.yml"
+  ],
+  "preflightLimit": "Workflow changes are on the authorized feature branch; manual deployments outside these paths are not automatically guarded.",
+  "pricingDataChanged": false,
+  "backendChanged": false,
+  "hosting": {
+    "jobId": "177",
+    "status": "SUCCEED_VERIFIED",
+    "changed": [
+      "pages/delivery-pricing.html",
+      "delivery-pricing.js",
+      "pricing-field-help.js",
+      "pricing-region-picker.js",
+      "pricing-workspace.js",
+      "cash-rounding.js",
+      "styles/pricing-layout.css"
+    ],
+    "baseJob": "176"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "part": 353,
+  "date": "2026-10-29",
+  "status": "PUBLISHED_STAGING_AUTOMATED_VERIFIED_HUMAN_ACCEPTANCE_OPEN",
+  "publication": "docs/post-payout-correction-publication-353.json",
+  "cashFlow": "Owner request -> administration approval -> registered cashbox execution -> owner receipt -> reconciliation; offset-only when net zero",
+  "standaloneSourceKind": "CORRECTIONS_ONLY",
+  "standaloneBatchPrefix": "MCP (independent correction source, not a sales statement)",
+  "originalPaidSourcesUnchanged": true,
+  "operatingMerchantWalletUntouchedForStandalone": true,
+  "caseReview": {
+    "link": "From case page, choose correction for this order; server validates branch, owner, paid source and current case version",
+    "completion": "All linked corrections rejected or fully settled, sealed allocation history and paid journals verified atomically",
+    "originalClosurePreserved": true,
+    "originalUnfinishedCaseRemainsOpen": true,
+    "unrelatedAppealsRemainOpen": true,
+    "financialAppealScope": "Only explicitly linked MERCHANT_OWNER financial review belonging to branch owner",
+    "changedFindingDuringReview": "blocks completion; fresh review required"
+  },
+  "authorization": {
+    "policy": "StagingPostPayoutCorrectionCaseMetadata353",
+    "scope": "Update case review/version/appeal metadata only in Holds; Put EXCEPTION_CASE metadata only in lifecycle queue",
+    "newMonetaryAttributePermissions": false,
+    "inlinePolicyLimit": "No inline change applied; dedicated managed policy preserves identical restrictions"
+  },
+  "validation": {
+    "backendTests": 98,
+    "flutterTests": 11,
+    "flutterAnalyzer": "No issues found",
+    "nativeBuild": 353,
+    "simulatorInstalledAndLaunched": true,
+    "browser": "Correction-link/completion + previous case workflow, correction approval retry, net-zero offset and policy suites passed",
+    "closureParity": "Live effective function bodies equal local functions except new pending-correction closure guards (compiler shorthand normalized)",
+    "packageWiring": "Bundled routes and SDK bridges tested",
+    "hostingJob": "224",
+    "noRealFinancialTestWrites": true
+  },
+  "limits": {
+    "correctionSourcesPerPayout": 16,
+    "reservationHistoryPagesForCaseCompletion": 20,
+    "pageSize": 50,
+    "caseTransactionGuardBudget": 85,
+    "onLimit": "Explicit blocked review, never silent completion"
+  },
+  "remaining": "Ordered human acceptance in main A10; no real payout or case completion executed by deployment"
+}

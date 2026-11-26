@@ -1,0 +1,212 @@
+{
+  "checkedAtUtc": "2026-10-17T05:53:05.510815+00:00",
+  "environment": "Staging",
+  "scope": "Fetched all existing remote heads in isolated temporary bare repositories; compared colleague branch, user branch and working-copy blobs.",
+  "colleagueBranch": "feature/ghaythalijarad/bootstrap",
+  "userBranch": "feature/malwersh/bootstrap",
+  "repositories": {
+    "whizzCentralPlatform-stg": {
+      "origin/feature/malwersh/bootstrap": "cb4cb7d4052d0171482804f294e5422f9e7f2049",
+      "origin/feature/ghaythalijarad/bootstrap": "bc736440e6e64ff7bd8afa9ab833292f31a776d3",
+      "origin/staging-main": "567d0cda8797d238a9c721afac245e684e9f2021"
+    },
+    "whizzMerchants-stg": {
+      "origin/feature/malwersh/bootstrap": "25bdbc65064aa48e34e60ae7bf2e614466cdaca5",
+      "origin/feature/ghaythalijarad/bootstrap": "bcd65274219ca0f1dbea20cbb818cae46c9325f6",
+      "origin/staging-main": "cbaf3d52ade56335bc29e48fbbf098dbfbf42b7e"
+    },
+    "wizzuser-stg": {
+      "origin/feature/malwersh/bootstrap": "b02c34b1e5017717ba9525f686912e9bf25ce411",
+      "origin/feature/ghaythalijarad/bootstrap": "d702337a1978d745c9b59d73b5ceb6afece641e2",
+      "origin/staging-main": "a229d055b964ee703b0edcd69186fc2b01d927cf"
+    },
+    "whizzDrivers-stg": {
+      "origin/feature/malwersh/bootstrap": "0821e6c652994ea5b04873c66c09e79c514e32ae",
+      "origin/feature/ghaythalijarad/bootstrap": "eaaed9a171d6049922055fa68cd717ae82808c58",
+      "origin/staging-main": "50c5a1a0adc6753caa844ca829eb985a6e1c7d89"
+    }
+  },
+  "discountCommits": [
+    {
+      "repo": "whizzMerchants-stg",
+      "sha": "5ee282982a64fe2015695b389a5b25539e318df9",
+      "summary": "Discount validation and merchant UI/auth integration; core discount files already in user branch."
+    },
+    {
+      "repo": "whizzMerchants-stg",
+      "sha": "3612d6d7eda4afb812b1b073bda6b76ee16ceebc",
+      "summary": "Reserved DynamoDB attribute alias fix; handler bytes already identical in user branch and working copy."
+    },
+    {
+      "repo": "wizzuser-stg",
+      "sha": "40283730827e452f3bedf6889937c96d84f8c141",
+      "summary": "Merchant discounts integrated into customer checkout."
+    },
+    {
+      "repo": "wizzuser-stg",
+      "sha": "1a3d362b1f146d5d42caeddb569fd14873efa06f",
+      "summary": "Platform promo-code listings, validation and customer checkout."
+    }
+  ],
+  "fileComparison": [
+    {
+      "repo": "whizzMerchants-stg",
+      "path": "backend/functions/discounts/discount_management_handler.js",
+      "alreadySameOnBothBranches": true,
+      "workingCopySameAsColleague": true,
+      "ourCommittedBlob": "b6e4a8d965d192363119b33c8d8d7893cf5ab15a",
+      "colleagueBlob": "b6e4a8d965d192363119b33c8d8d7893cf5ab15a",
+      "workingBlob": "b6e4a8d965d192363119b33c8d8d7893cf5ab15a"
+    },
+    {
+      "repo": "whizzMerchants-stg",
+      "path": "frontend/lib/models/discount.dart",
+      "alreadySameOnBothBranches": true,
+      "workingCopySameAsColleague": true,
+      "ourCommittedBlob": "34d41ca3503b81c763999647282e2b36bd8f8b3a",
+      "colleagueBlob": "34d41ca3503b81c763999647282e2b36bd8f8b3a",
+      "workingBlob": "34d41ca3503b81c763999647282e2b36bd8f8b3a"
+    },
+    {
+      "repo": "whizzMerchants-stg",
+      "path": "frontend/lib/screens/discount_management_page.dart",
+      "alreadySameOnBothBranches": true,
+      "workingCopySameAsColleague": true,
+      "ourCommittedBlob": "9c9314775823759264b3117322802659f8b815b5",
+      "colleagueBlob": "9c9314775823759264b3117322802659f8b815b5",
+      "workingBlob": "9c9314775823759264b3117322802659f8b815b5"
+    },
+    {
+      "repo": "whizzMerchants-stg",
+      "path": "frontend/lib/services/api_service.dart",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "9ca09c5105221238102c235030992cd1046d2fa9",
+      "colleagueBlob": "0c2b9de57d2d74136179d003770a1e903b1cf90a",
+      "workingBlob": "9ca09c5105221238102c235030992cd1046d2fa9"
+    },
+    {
+      "repo": "whizzMerchants-stg",
+      "path": "backend/functions/auth/branch_device_discounts.js",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "147bdde28cda84dac6046ee2da2be97feb692bde",
+      "colleagueBlob": null,
+      "workingBlob": "147bdde28cda84dac6046ee2da2be97feb692bde"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "backend/src/functions/shared/discount-engine.js",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "54b976d289579e3c550893a2243f5b6e7c5a83d9",
+      "colleagueBlob": "5727e965a8eee7175b9ea2451abd022eade84fb0",
+      "workingBlob": "5ccad82d63283c1785676d47712ff786a4681762"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "backend/src/functions/create-order/index.js",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "478f38afab0a8bea5434631643c880dfaa47adab",
+      "colleagueBlob": "04cd36e3a9bb247ddb3d8b1115c5ef0a2b56cf27",
+      "workingBlob": "5c78409280ab64a2e856fe190520347637cf85d5"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "backend/src/functions/get-store-discounts/index.js",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "c7be9761459b1c0382d75fd0f42672d08e4eee0f",
+      "colleagueBlob": "9e94a8fa3b9fb85399dce20fda2be602e89cb461",
+      "workingBlob": "c7be9761459b1c0382d75fd0f42672d08e4eee0f"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "backend/src/functions/validate-promo-code/index.js",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "e73cacadc2d0d5e57ed592fe34422c573f210871",
+      "colleagueBlob": "da1b3b4b431eb52c8477b9a89b5b38a6d1ea92aa",
+      "workingBlob": "e73cacadc2d0d5e57ed592fe34422c573f210871"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "backend/src/functions/get-active-promo-codes/index.js",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "b356d75f0e16b491aa584bfa9a8afadcb8ac7742",
+      "colleagueBlob": "b63bbaf3185bff9dca39f6dee0aadded62c5e49f",
+      "workingBlob": "b356d75f0e16b491aa584bfa9a8afadcb8ac7742"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "backend/src/functions/apply-promo-code/index.js",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "92ce51896ddfe2bb9b51da15fe7ac45d6db46341",
+      "colleagueBlob": "9180172613bcd53e040509820adc8a1c1fc15073",
+      "workingBlob": "92ce51896ddfe2bb9b51da15fe7ac45d6db46341"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "frontend/lib/models/store_discount.dart",
+      "alreadySameOnBothBranches": true,
+      "workingCopySameAsColleague": true,
+      "ourCommittedBlob": "3c546c0be5e0b8a6586174533902de09be25d613",
+      "colleagueBlob": "3c546c0be5e0b8a6586174533902de09be25d613",
+      "workingBlob": "3c546c0be5e0b8a6586174533902de09be25d613"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "frontend/lib/models/platform_promo.dart",
+      "alreadySameOnBothBranches": true,
+      "workingCopySameAsColleague": true,
+      "ourCommittedBlob": "03d15559b89eb3143a7a968937f6b16b3dfee6ef",
+      "colleagueBlob": "03d15559b89eb3143a7a968937f6b16b3dfee6ef",
+      "workingBlob": "03d15559b89eb3143a7a968937f6b16b3dfee6ef"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "frontend/lib/screens/checkout_screen.dart",
+      "alreadySameOnBothBranches": false,
+      "workingCopySameAsColleague": false,
+      "ourCommittedBlob": "c798b1d3d1635bacce9ecea11053a011f863070b",
+      "colleagueBlob": "c9c38287ec5a3fbd6d96ea556e4b79780b3b3b67",
+      "workingBlob": "c798b1d3d1635bacce9ecea11053a011f863070b"
+    },
+    {
+      "repo": "wizzuser-stg",
+      "path": "frontend/lib/widgets/promo_floating_card.dart",
+      "alreadySameOnBothBranches": true,
+      "workingCopySameAsColleague": true,
+      "ourCommittedBlob": "bcac703b3179bda0ae0f82a786ebc89a97d4a327",
+      "colleagueBlob": "bcac703b3179bda0ae0f82a786ebc89a97d4a327",
+      "workingBlob": "bcac703b3179bda0ae0f82a786ebc89a97d4a327"
+    }
+  ],
+  "findings": [
+    "Merchant handler/model/discount-management page are byte-identical between current user branch, colleague branch and working copy.",
+    "Customer store-discount model, platform-promo model and floating promo card are byte-identical between both branches and working copy.",
+    "Customer backend handlers, discount engine, order creation and checkout differ: user implementation includes shared guarded discount handlers, atomic usage reservation and delivery-quote integration.",
+    "Colleague branch does not implement the commercial campaign version/funding approval binding required for the next integration part in the reviewed discount writers.",
+    "Applying colleague customer checkout or create-order file wholesale would overwrite guarded quote checkout and atomic usage handling.",
+    "Central colleague-only changes concern Live Activities; no additional commercial funding/version implementation found in the reviewed changes."
+  ],
+  "nextIntegration": [
+    "Preserve existing discount UI and established fields/tables.",
+    "Review and adopt only missing compatible changes; do not wholesale replace checkout, order writer or shared discount implementation.",
+    "Add campaign versions and funding references consistently across owner/staff/platform writers and order reservation.",
+    "Compare fresh live Lambda packages before publishing; this Git audit is not deployment verification."
+  ],
+  "applicationCodeChanged": false,
+  "applicationDataChanged": false,
+  "workingGitRefsChanged": false,
+  "mergePerformed": false,
+  "pushPerformed": false,
+  "awsChanges": false,
+  "limitations": [
+    "Only commits pushed to the fetched Staging remotes were reviewed. Colleague local/unpushed work is not visible.",
+    "No deployment or phone behavior was tested in this review."
+  ]
+}

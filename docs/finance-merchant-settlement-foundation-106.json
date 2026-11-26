@@ -1,0 +1,36 @@
+{
+  "part": 106,
+  "status": "LOCAL_IMPLEMENTATION_TESTED_NOT_DEPLOYED",
+  "testsPassed": 35,
+  "typescriptBuildPassed": true,
+  "components": [
+    "Verified COD merchant accrual projection from accepted offer, completed journal and pending payable",
+    "Weekly, 14-day and anchored monthly periods using Asia/Baghdad calendar boundaries",
+    "Authorized explicit-order selection preview with complete evidence and authorization recheck",
+    "Exact-IQD CSV export with provenance and preview coverage labels"
+  ],
+  "historicalCanaryVerification": {
+    "historicalOnly": true,
+    "archivedSnapshotsVerified": true,
+    "newAwsRead": false,
+    "merchantNetIqd": 6300,
+    "commissionIqd": 700,
+    "serviceFeeIqd": 500,
+    "customerTotalIqd": 9500,
+    "financialWrites": false
+  },
+  "runtimeApiExposed": false,
+  "walletOrLedgerWrites": false,
+  "settlementPaymentAuthorized": false,
+  "periodCoverageProven": false,
+  "remaining": [
+    "Persisted schedule configuration with agreement authorization",
+    "Batch activation: permission/schedule adapters, retention compatibility, API/UI and live transaction verification",
+    "Closed-period and refund adjustments",
+    "Platform and merchant UI/API integration",
+    "Payout request, evidence, independent approval and reconciliation",
+    "PDF/XLSX export parity"
+  ],
+  "liveDeploymentBlockedBy": "AWS SSO session expired; remote publication not attempted for this new local component",
+  "continuedBy": "finance-merchant-settlement-batches-107.json"
+}

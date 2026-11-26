@@ -1,0 +1,167 @@
+{
+  "status": "PREPARED_NOT_APPLIED",
+  "environment": "staging",
+  "accountId": "699561669180",
+  "region": "us-east-1",
+  "note": "Additions derived from repository templates. Compare live IAM and function configuration before applying; never replace complete environment maps or existing policies. Existing deletion attribute conditions may require matching projections or a separate narrowly scoped statement. Existing MerchantPlatform staff Get/Put/ConditionCheck cover session and preference writes. OTP provider/key config must be verified without printing secret values.",
+  "policies": {
+    "staff_additions": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:GetItem",
+            "dynamodb:ConditionCheckItem"
+          ],
+          "Resource": [
+            "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_PushDeviceTokens_staging"
+          ]
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:PutItem"
+          ],
+          "Resource": [
+            "arn:aws:dynamodb:us-east-1:699561669180:table/staging-WalletNotifications"
+          ],
+          "Condition": {
+            "ForAllValues:StringLike": {
+              "dynamodb:LeadingKeys": [
+                "MERCHANT_PAYOUT_NOTICE#*"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "wallet_additions": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:GetItem",
+            "dynamodb:ConditionCheckItem"
+          ],
+          "Resource": [
+            "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform"
+          ],
+          "Condition": {
+            "ForAllValues:StringLike": {
+              "dynamodb:LeadingKeys": [
+                "MERCHANT_FINANCIAL_SESSION#*"
+              ]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:GetItem"
+          ],
+          "Resource": [
+            "arn:aws:dynamodb:us-east-1:699561669180:table/staging-AccountDeletion"
+          ],
+          "Condition": {
+            "ForAllValues:StringLike": {
+              "dynamodb:LeadingKeys": [
+                "ACCOUNT_LIFECYCLE#MERCHANT#*",
+                "BUSINESS_LIFECYCLE#MERCHANT#*"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "notification_worker_additions": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:GetItem"
+          ],
+          "Resource": [
+            "arn:aws:dynamodb:us-east-1:699561669180:table/WizzCentral_PushDeviceTokens_staging"
+          ]
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:GetItem"
+          ],
+          "Resource": [
+            "arn:aws:dynamodb:us-east-1:699561669180:table/staging-MerchantPlatform"
+          ],
+          "Condition": {
+            "ForAllValues:StringLike": {
+              "dynamodb:LeadingKeys": [
+                "MERCHANT_FINANCIAL_PUSH#*",
+                "MERCHANT_PAYOUT#*"
+              ]
+            }
+          }
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:GetItem"
+          ],
+          "Resource": [
+            "arn:aws:dynamodb:us-east-1:699561669180:table/WhizzMerchants_Businesses"
+          ]
+        }
+      ]
+    }
+  },
+  "flags": {
+    "staff": [
+      "MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED",
+      "MERCHANT_PAYOUT_NOTIFICATIONS_ENABLED",
+      "MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED"
+    ],
+    "wallet": [
+      "MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED"
+    ],
+    "notification_worker": [
+      "MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED"
+    ],
+    "merchant_app": [
+      "MERCHANT_FINANCIAL_LOCK_ENABLED"
+    ]
+  },
+  "sequence": [
+    "Deploy code with flags off and verify packaged modules",
+    "Install flagged merchant build; verify owner OTP on test account and staff PIN regression",
+    "Activate backend owner lock and device policy with paired client release; old clients will need update",
+    "Owner explicitly enables test device, then enable payout notice production",
+    "Verify cold-start tap, ownership/branch switch, background locking and duplicate replay"
+  ],
+  "rollback": "Disable producer first; preserve locks and device policy. Do not remove security flags as an automatic rollback or alter existing financial records.",
+  "liveComparison": {
+    "checkedAtUtc": "2026-11-11T14:43:03.081321+00:00",
+    "accountVerified": true,
+    "securityFlagsPresent": false,
+    "note": "Compared inline and attached managed IAM allow statements. Existing conditional permissions checked against caller projections; not a full IAM simulator or permissions-boundary evaluation. No AWS mutations performed."
+  },
+  "iamApplication": {
+    "status": "APPLIED_VERIFIED",
+    "roles": {
+      "staff_additions": {
+        "managedPolicyArn": "arn:aws:iam::699561669180:policy/StagingMerchantFinancialPrivacy526Staff",
+        "verified": true
+      },
+      "wallet_additions": {
+        "inlinePolicyName": "MerchantFinancialPrivacy526",
+        "verified": true
+      },
+      "notification_worker_additions": {
+        "inlinePolicyName": "MerchantFinancialPrivacy526",
+        "verified": true
+      }
+    },
+    "scope": "Only approved missing staging permissions; no code, environment flags or balances changed"
+  }
+}

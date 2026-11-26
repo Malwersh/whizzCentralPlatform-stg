@@ -1,0 +1,54 @@
+{
+  "status": "PERSISTED_PROJECTION_PARITY_PASSED",
+  "verifiedAt": "2026-10-25T16:44:25.267Z",
+  "sourceWrites": 0,
+  "allCurrent": true,
+  "drivers": [
+    {
+      "driverId": "14c884a8-30c1-7024-89b6-8003875446e2",
+      "version": 5,
+      "parity": true,
+      "dispatchDataReady": true,
+      "acceptanceRate": null,
+      "completionRate": null,
+      "consecutiveRejections": 0
+    },
+    {
+      "driverId": "743834a8-8081-70e2-3fca-b26e7e344671",
+      "version": 6,
+      "parity": true,
+      "dispatchDataReady": true,
+      "acceptanceRate": null,
+      "completionRate": null,
+      "consecutiveRejections": 0
+    },
+    {
+      "driverId": "04286448-6061-706c-cf61-b63491c04e13",
+      "version": 5,
+      "parity": true,
+      "dispatchDataReady": true,
+      "acceptanceRate": null,
+      "completionRate": null,
+      "consecutiveRejections": 0
+    },
+    {
+      "driverId": "e4880428-f061-70e9-152d-acb78227fcbc",
+      "version": 6,
+      "parity": true,
+      "dispatchDataReady": true,
+      "acceptanceRate": null,
+      "completionRate": null,
+      "consecutiveRejections": 0
+    },
+    {
+      "driverId": "34d8e408-1021-7076-6055-7325644f97cb",
+      "version": 68,
+      "parity": true,
+      "dispatchDataReady": true,
+      "acceptanceRate": 0.92,
+      "completionRate": 0.95,
+      "consecutiveRejections": 1
+    }
+  ],
+  "sourceFactsRecomputedInWaveRequest": false
+}

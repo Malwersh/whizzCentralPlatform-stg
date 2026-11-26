@@ -1,0 +1,58 @@
+{
+  "environment": "Staging",
+  "kind": "MERCHANT_BRANCH_DATA_VIEW_CORRECTION",
+  "baseJobId": "71",
+  "package": {
+    "codeSha256": "0k5RQGyA3KbG9cVQZeL6Zdbv0bLZwRgtRksreeNfOk8=",
+    "changedFiles": [
+      "merchant-branch-view.js",
+      "merchants.js",
+      "pages/merchants.html",
+      "styles/merchants-table.css"
+    ],
+    "preservedFiles": 181
+  },
+  "backendChanged": false,
+  "activationPerformed": false,
+  "tests": {
+    "realTableColumns": true,
+    "nestedAndLegacyAddress": true,
+    "reviewSetupAvailabilityReceptionSeparate": true,
+    "missingValuesNotGuessed": true,
+    "safeTextAndImage": true,
+    "realDelegatedDetailsAndCommercialActions": true,
+    "mobileHorizontalScroll": true
+  },
+  "sourceSha256": {
+    "frontend/merchant-branch-view.js": "d422624f808f45d8b76b5a9835127a8df9b607dc9ef82653eb9dfe4d739018e4",
+    "frontend/merchants.js": "49bbaa1046806aca5055c91a81aa7c54a375f7f5139ca0aa5827bc156860f0c4",
+    "frontend/styles/merchants-table.css": "3c121fa2214a3daa2bd1be85f79a1ca555d48c153df55046ad3f35feadec64e2",
+    "frontend/pages/merchants.html": "8770c9b8dcbf8c7949b2c15e7ae2db399b10e540c4ac8af1d7939dc949a79121",
+    "scripts/test-merchant-branch-view-browser.cjs": "ff717fa3ce1ff061027eb1d78e9705d1e4c13d7287ec64b1e1a0850e5dc757a3",
+    "scripts/publish-merchant-branch-view-ui.py": "3c9dbcf9c6a0585952d595a6b70d835410aca352d92eeb5be78054f209bf0513",
+    "scripts/publish-commercial-branch-picker-ui.py": "9bc5cefe60f856c4ecaa0a7dcd612758987633ac58c4836cc0cca06a3f8b130b"
+  },
+  "cacheVersion": "20261017-branch-view",
+  "published": true,
+  "atUtc": "2026-10-17T05:28:59.168191+00:00",
+  "amplify": {
+    "appId": "d2vmebm1e1n95m",
+    "branch": "staging",
+    "jobId": "72",
+    "status": "SUCCEED"
+  },
+  "hostedFilesMatched": 4,
+  "versionedFilesMatched": 4,
+  "schemaVersion": 1,
+  "applicationDataWrites": 0,
+  "iamChanges": 0,
+  "lambdaUpdates": 0,
+  "rootCause": "Existing HTML sanitizer removes tr/td/button and action data attributes from generated table strings; existing branch mapping misses nested addresses and conflates separate states.",
+  "scope": "Existing Merchants branch listing/detail read projection; existing server control and financial gates preserved.",
+  "limitations": [
+    "Unknown source fields are explicitly unrecorded; no person-profile lookup, ownership migration or operational eligibility calculation added",
+    "Old direct edit entry removed from rows and routes to read-only detail/review links; this UI change is not proof all legacy APIs or IAM writes are closed",
+    "Commercial/financial management stays gated by its previously documented prerequisites"
+  ],
+  "rollbackDirectory": "/private/tmp/merchant-branch-view-20261017"
+}

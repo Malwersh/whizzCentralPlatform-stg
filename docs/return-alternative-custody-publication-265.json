@@ -1,0 +1,78 @@
+{
+  "part": 265,
+  "status": "PUBLISHED",
+  "scope": "staging",
+  "functions": [
+    {
+      "label": "financial",
+      "function": "staging-driver-financial-accept",
+      "changedFiles": [
+        "order-exception-runtime-229.js",
+        "return-continuation-runtime-265.js"
+      ],
+      "baseCodeSha256": "XFaMcA/ft4o9QZs3I1y24LO01FOQMQO/v+9g+H7XrX4=",
+      "packageSha256": "6a642e100cc6cc4f8e55aff05c87009d6ff0bab4b19dd43287a1702aadbb8059",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "amQuEAzGzE+OVa/wXIcAnW/wurSxndQyh6FwKq27gFk=",
+      "configurationPreserved": true
+    },
+    {
+      "label": "staff",
+      "function": "staging-wizz-staff-service",
+      "changedFiles": [
+        "order-exception-cases.js"
+      ],
+      "baseCodeSha256": "lNPzQdaU5p7pgs/aIiwI+YC70G5bGULn1IWhGRHgk08=",
+      "packageSha256": "2a9164045bd9439ee1d56f1046b4d0d44915bf8637996925f007e13e6d35e149",
+      "unrelatedEntriesPreserved": true,
+      "deployedCodeSha256": "KpFkBFvZQ57h1W8QRrTQ1EkVv4Y3mWkl8AfhPm014Uk=",
+      "configurationPreserved": true
+    }
+  ],
+  "iamChanged": false,
+  "realOrderReceiptCustodyOrFinancialMutationByAgent": false,
+  "existingCasesMigrated": false,
+  "originalReceiptPreserved": true,
+  "nativeBuilds": {
+    "merchant": 229,
+    "driverSimulatorDebug": 215
+  },
+  "features": [
+    "alternative custody before a first merchant receipt",
+    "explicit server-manifest baseline, never an owner receipt",
+    "blocked bypass of ordinary return consent",
+    "atomic guard against legacy receipt races",
+    "separate loss adjudication preserving prior handovers",
+    "no driver liability for loss after company receipt"
+  ],
+  "negativeSmoke": [
+    {
+      "action": "return_case_driver",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    },
+    {
+      "action": "return_case_owner",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    },
+    {
+      "action": "exception_case_admin",
+      "statusCode": 401,
+      "code": "UNAUTHORIZED"
+    }
+  ],
+  "hosting": {
+    "baseJobId": "153",
+    "jobId": "154",
+    "changedFiles": [
+      "case-workflow.js",
+      "case-continuation.js",
+      "order-exception-cases.js",
+      "pages/order-exceptions.html"
+    ],
+    "status": "SUCCEED",
+    "unrelatedFilesPreserved": true,
+    "hostedBytesVerified": true
+  }
+}

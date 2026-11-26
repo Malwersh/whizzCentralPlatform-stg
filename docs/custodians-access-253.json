@@ -1,0 +1,11 @@
+{
+  "part": 253,
+  "status": "PASS",
+  "readOnly": true,
+  "activeAdministrativeEmployees": 5,
+  "pages": 3,
+  "knownActiveEmployeesIncluded": true,
+  "privateStaffFieldsExposed": false,
+  "permissionsChanged": false,
+  "businessWrites": false
+}

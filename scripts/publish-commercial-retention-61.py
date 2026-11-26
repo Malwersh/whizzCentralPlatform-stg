@@ -1,0 +1,34 @@
+"""Apply scoped CF-owned grants and CAS-publish existing deletion hosts; no execution or finance gates changed."""
+import pathlib,json,subprocess,hashlib,base64,datetime
+ROOT=pathlib.Path(__file__).resolve().parents[1];R=pathlib.Path('/private/tmp/finance61');STACK='staging-finance-commercial-retention-access-61'
+def sha(b):return base64.b64encode(hashlib.sha256(b).digest()).decode()
+def main():
+ import boto3
+ c=json.loads(subprocess.check_output(['aws','configure','export-credentials','--profile','Wizz_stg_UserApp','--format','process']));s=boto3.Session(aws_access_key_id=c['AccessKeyId'],aws_secret_access_key=c['SecretAccessKey'],aws_session_token=c['SessionToken'],region_name='us-east-1');assert s.client('sts').get_caller_identity()['Account']=='699561669180'
+ local=json.loads((R/'local-verification.json').read_text());assert local['pass']==399 and local['fail']==0 and local['candidateSourcesMatched'];assert all(hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==value for path,value in local['testedSources'].items())
+ p=json.loads((R/'preparation.json').read_text());proof=json.loads((R/'dynamodb-test.json').read_text());assert all(proof.get(k) for k in ['concurrentLifecycleFence','sharedAgreementPreserved','auditMovedAtomically','idempotentResume','activeSiblingBlocksExpiry','nonzeroWalletBlocksExpiry','concurrentHoldFence','expiryAfterAllClosures','tableDeleted'])
+ lam=s.client('lambda');iam=s.client('iam');cf=s.client('cloudformation');template=json.loads((ROOT/'backend/finance-commercial-retention-access.staging.json').read_text());assert len(template['Resources'])==2
+ for k,b in p['base'].items():
+  cfg=lam.get_function_configuration(FunctionName=b['name']);assert cfg['RevisionId']==b['revisionId'] and cfg['CodeSha256']==b['codeSha256'],'LIVE_DRIFT';assert sha((R/(k+'.candidate.zip')).read_bytes())==p['packages'][k]['codeSha256']
+ tests=[('worker','GetItem','staging-PlatformStaff','COMMERCIAL_AGREEMENT#fixture','allowed'),('worker','Query','staging-PlatformStaff','DISCOUNT_FUNDING#fixture','allowed'),('worker','DeleteItem','staging-PlatformStaff','AUDIT','allowed'),('worker','DeleteItem','staging-PlatformStaff','COMMERCIAL_AGREEMENT#fixture','implicitDeny'),('worker','DeleteItem','staging-PlatformStaff','EMPLOYEE#fixture','implicitDeny'),('expiry','DeleteItem','staging-MerchantPlatform','COMMERCIAL_AGREEMENT#fixture','allowed'),('expiry','DeleteItem','staging-MerchantPlatform','PERSON#fixture','implicitDeny'),('expiry','GetItem','staging-Wallets','WALLET#MERCHANT#fixture','allowed'),('expiry','UpdateItem','staging-Wallets','WALLET#MERCHANT#fixture','implicitDeny'),('expiry','DeleteItem','staging-PlatformStaff','DISCOUNT_FUNDING#fixture','allowed'),('expiry','GetItem','staging-AccountDeletion','SUBJECT#MERCHANT#fixture','allowed')]
+ results=[]
+ for k,action,t,key,expected in tests:
+  doc=template['Resources'][k.title()+'CommercialRetention']['Properties']['PolicyDocument'];kwargs={'ActionNames':['dynamodb:'+action],'ResourceArns':['arn:aws:dynamodb:us-east-1:699561669180:table/'+t],'ContextEntries':[{'ContextKeyName':'dynamodb:LeadingKeys','ContextKeyType':'stringList','ContextKeyValues':[key]}]};out=iam.simulate_custom_policy(PolicyInputList=[json.dumps(doc)],**kwargs)['EvaluationResults'][0]['EvalDecision'];assert out==expected,(k,action,t,out);results.append({'host':k,'action':action,'table':t,'key':key,'decision':out})
+ name='commercial61-scoped-retention';change=cf.create_change_set(StackName=STACK,ChangeSetName=name,ChangeSetType='CREATE',TemplateBody=json.dumps(template),Capabilities=['CAPABILITY_NAMED_IAM']);cf.get_waiter('change_set_create_complete').wait(ChangeSetName=change['Id'],WaiterConfig={'Delay':2,'MaxAttempts':90});detail=cf.describe_change_set(ChangeSetName=change['Id']);assert len(detail['Changes'])==2 and all(r['ResourceChange']['Action']=='Add' and r['ResourceChange']['ResourceType']=='AWS::IAM::Policy' for r in detail['Changes']);cf.execute_change_set(ChangeSetName=change['Id']);cf.get_waiter('stack_create_complete').wait(StackName=STACK,WaiterConfig={'Delay':3,'MaxAttempts':90})
+ effective=[]
+ for k,action,t,key,expected in tests:
+  if expected!='allowed':continue
+  out=iam.simulate_principal_policy(PolicySourceArn=p['base'][k]['role'],ActionNames=['dynamodb:'+action],ResourceArns=['arn:aws:dynamodb:us-east-1:699561669180:table/'+t],ContextEntries=[{'ContextKeyName':'dynamodb:LeadingKeys','ContextKeyType':'stringList','ContextKeyValues':[key]}])['EvaluationResults'][0]['EvalDecision'];assert out=='allowed';effective.append({'host':k,'action':action,'table':t,'decision':out})
+ state={'part':61,'environment':'Staging','atUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'stackName':STACK,'customPolicyChecks':results,'effectivePolicyChecks':effective,'functions':[],'activationPerformed':False}
+ def save():(R/'publication.json').write_text(json.dumps(state,indent=2))
+ save()
+ # Reader first, indexed writer second, branch archive producer last.
+ for k in ['expiry','staff','worker']:
+  base=json.loads((R/(k+'.config.private.json')).read_text());cfg=lam.get_function_configuration(FunctionName=base['FunctionName']);assert cfg['RevisionId']==base['RevisionId'] and cfg['CodeSha256']==base['CodeSha256'],'LIVE_DRIFT'
+  lam.update_function_code(FunctionName=base['FunctionName'],RevisionId=cfg['RevisionId'],ZipFile=(R/(k+'.candidate.zip')).read_bytes(),Publish=False);lam.get_waiter('function_updated_v2').wait(FunctionName=base['FunctionName'],WaiterConfig={'Delay':2,'MaxAttempts':90});cfg=lam.get_function_configuration(FunctionName=base['FunctionName']);assert cfg['CodeSha256']==p['packages'][k]['codeSha256']
+  for f in ['Environment','Role','Runtime','Handler','Timeout','MemorySize','Layers','VpcConfig','Architectures','TracingConfig']:assert cfg.get(f)==base.get(f),f
+  state['functions'].append({'name':cfg['FunctionName'],'codeSha256':cfg['CodeSha256'],'revisionId':cfg['RevisionId'],'environmentPreserved':True});save();print(json.dumps({'published':k,'environmentPreserved':True}),flush=True)
+ # Non-mutating invocation exercises the published purger's dependencies.
+ out=lam.invoke(FunctionName=p['base']['expiry']['name'],Payload=b'{"dryRun":true}');body=json.loads(out['Payload'].read());assert not out.get('FunctionError'),body;assert body['dryRun'] is True and body['removed']==0 and body['archivesRemoved']==0;state['liveExpiryDryRun']=body
+ out=lam.invoke(FunctionName=p['base']['staff']['name'],Payload=b'{"action":"commercial_owner","accessToken":"not-a-token","httpMethod":"POST","input":{}}');body=json.loads(out['Payload'].read());assert body=={'statusCode':503,'code':'COMMERCIAL_MANAGEMENT_DISABLED'};state['closedCommercialHandlerVerified']=True;save();print(json.dumps({'functionsPublished':3,'liveExpiryDryRun':True,'financialActivation':False}))
+if __name__=='__main__':main()

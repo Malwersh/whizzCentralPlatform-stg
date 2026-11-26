@@ -1,0 +1,44 @@
+{
+  "part": 111,
+  "status": "LOCAL_TESTED_NOT_DEPLOYED",
+  "recordedAt": "2026-10-18T05:18:06.268164+00:00",
+  "scope": "Preserve settlement schedule proposals, consent, approval, versions, cutovers and audit before merchant branch cleanup",
+  "implemented": [
+    "Bounded branch-specific strongly consistent Query for SETTLEMENT_SCHEDULE records and branch audit namespace",
+    "Validate supported field shapes and schedule/proposal digests before first archive write",
+    "Require complete version sequence, current version match, independently approved matching proposals and exact historical cutovers",
+    "Require each proposal creation/owner-consent/approval audit with actual actor, timestamp and matching digest",
+    "Fail closed on missing/orphan/foreign/corrupt/private/held records",
+    "Copy platform and staff financial records under existing immutable archive workflow with lease, lifecycle, ownership and source guards",
+    "Preserve original records and original retention clock on retry; archive remains purge-blocked without TTL"
+  ],
+  "verification": {
+    "accountDeletionTestsPassed": 257,
+    "settlementRegressionTestsPassed": 69,
+    "totalPassed": 326,
+    "failures": 0,
+    "actualScheduleWorkflowFixtureUsed": true,
+    "realAwsTransactionsVerified": false
+  },
+  "publicationPerformed": false,
+  "walletOrLedgerChanged": false,
+  "iamOrEnvironmentChanged": false,
+  "remaining": [
+    "Authenticated route adapters and platform/merchant consent interfaces",
+    "Deployment bundle and scoped IAM inventory plus real staging DynamoDB transaction verification",
+    "Eventual approved settlement purge adapter; financial archive is intentionally retained without TTL"
+  ],
+  "sourceSha256": {
+    "backend/account-deletion/settlement-schedule-inventory.js": "319205be09e83dce6e22e273ddbd5715319969532c36e5bbf9f41280dadd1fee",
+    "backend/account-deletion/settlement-retention.js": "ca99e46abfb671115ab6e0d7e2c314a59c312bef742b4b48bd825243d3b9d1a4",
+    "backend/account-deletion/test/settlement-schedule-retention.test.cjs": "508e33296dbe5d67430af2265c4aa3e2cbcd09ea644fe9068824a74d38d192e4",
+    "backend/wallet-service/test/helpers/merchant-settlement-schedule-fixture.cjs": "7aa8adc49d2c29cbdf4ccb49e1720dd70105b4b9cf2ddff9b11c71e429d3c26c",
+    "backend/wallet-service/test/merchant-settlement-schedule-workflow.test.cjs": "f96b2d4cbba1c3294fec7ff194d8c2bd59a142050993bdcb3f78ecef8b0bcdca"
+  },
+  "pausedTest": "Part103 remains paused pending OTP restoration",
+  "continuedBy": {
+    "part": 112,
+    "evidence": "finance-merchant-settlement-admin-ui-112.json",
+    "scope": "Local authenticated route adapters and platform/merchant interfaces; feature remains unactivated"
+  }
+}

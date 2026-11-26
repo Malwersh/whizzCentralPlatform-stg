@@ -1,0 +1,55 @@
+{
+  "part": 292,
+  "status": "HUMAN_ACCEPTANCE_PASSED_PLATFORM_GOODS_BENEFIT_WITH_FIXED_DELIVERY",
+  "orderNumber": "ORD1792697497756",
+  "orderId": "912a702c-4c03-5b60-8d32-d74ad4c05811",
+  "deliveredAt": "2026-10-22T19:45:38.510Z",
+  "orderStatus": "delivered",
+  "walletFinancialStatus": "SETTLED",
+  "cashCollectedIqd": 8500,
+  "customerDeliveryFeeIqd": 1500,
+  "goodsGrossIqd": 7000,
+  "platformGoodsDiscountIqd": 500,
+  "merchantGoodsDiscountIqd": 0,
+  "commissionIqd": 1050,
+  "serviceFeeIqd": 500,
+  "driverRetainedIqd": 2750,
+  "driverCollateralSettledIqd": 5750,
+  "merchantPayableIqd": 5950,
+  "merchantPayableStatus": "LOCKED_PENDING_SETTLEMENT",
+  "payoutPerformed": false,
+  "platformCostsIqd": {
+    "goodsBenefit": 500,
+    "agreementDeliverySupport": 1000,
+    "baseDeliverySubsidy": 250
+  },
+  "platformNetContributionIqd": -200,
+  "journal": {
+    "pk": "FULL_CASH_JOURNAL#912a702c-4c03-5b60-8d32-d74ad4c05811",
+    "sk": "META",
+    "status": "POSTED",
+    "debitIqd": 7500,
+    "creditIqd": 7500
+  },
+  "operationId": "FCS:a1f59d431d541cf378cc9fc1d383bdd2e2251b41d599e13f",
+  "selectedBenefitId": "f688fc65-9f68-4b57-8756-31722a4a38d4",
+  "benefitOrderStatus": "CAPTURED_USED",
+  "selectedGrant": {
+    "granted": 1,
+    "reserved": 0,
+    "used": 1
+  },
+  "otherSameNameBenefit": {
+    "id": "c90386ca-681f-455b-9454-8c543ff3e275",
+    "granted": 1,
+    "reserved": 0,
+    "used": 0
+  },
+  "agentBusinessWrites": false,
+  "remainingHumanScenarios": [
+    "merchant-funded and shared goods benefit",
+    "free/delivery amount benefit over fixed agreement",
+    "cancellation and return of a benefit-backed order",
+    "customer refund"
+  ]
+}

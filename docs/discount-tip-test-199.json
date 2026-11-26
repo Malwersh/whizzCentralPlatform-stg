@@ -1,0 +1,124 @@
+{
+  "part": 199,
+  "capacity": 5,
+  "explicitUserApproval": true,
+  "historicalScopesPreserved": true,
+  "financialDataWrites": false,
+  "iamChanges": false,
+  "functions": [
+    {
+      "name": "order-receiver-merchant-orders-staging-v1",
+      "codeSha": "3G2Abeg/zkxLuH//XwsWUwqsEvL44xm3kMCuv/0cIw0=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "staging-merchant-response-99",
+      "codeSha": "nvI+sLflbxq1w0V4VVwbrLILeP6co0yIF/OXxefs7bY=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "WizzUser-DeliveryQuotes-staging",
+      "codeSha": "YQ+AsJZYghXn+xAxDRzDqFkyUglBdFr+MWia0RVqv/U=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "WizzUser-CreateOrder-staging",
+      "codeSha": "pam41h/RRIA9oRnDDwgwhUXvt0LvZ5Nki4tLV4BStyw=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "WaveSystem_CreateDispatchJob",
+      "codeSha": "Ed+dr21w5OISSGqjlyXvULYA7lXr7avfwNoFmXC+oD0=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "WaveSystem_StartWave",
+      "codeSha": "MvWEK52Uo0i1an684HVdR9zQXFqm/vRoY8//6T+wMO0=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "WaveSystem_HandleWaveTimeout",
+      "codeSha": "VPytCK2Yjxmpli3uEzKNgEYPH1RYrDf4h3eFnlbivvA=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverAccept",
+      "codeSha": "vPThac8p0KQCK/b+YGMk865JCSDUR6x2l/kwy5Ta/Pk=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "WaveSystem_HandleDriverReject",
+      "codeSha": "iXbekwzN5TA0mG516Q6h07kyBXWHPXKYbOaRVnywzfs=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "DriversApi-staging",
+      "codeSha": "LlloOn1OrMSJ3ahkW8ZKRUtFp5a24wiWX9F3ECt5MD8=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "staging-driver-financial-accept",
+      "codeSha": "4tIWmuB8pdW4SG/guIq9OQbttYzLEMpLuX//p/6PAfU=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "staging-cod-integration",
+      "codeSha": "egEcERuADz9Iz4ZNhr8QJCSOfSAtQ5w7kJuuG0w77Ck=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "staging-wizz-staff-service",
+      "codeSha": "Tx0xIvPDGs82TcG3Z6pqoZbdgpdU3l0vJEEF+cENHkY=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "staging-wizz-wallet-notification-worker",
+      "codeSha": "cPueyhEBAeLzErM04PNkVJ+PbuB5vDbwddb1dz8WBn4=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    },
+    {
+      "name": "wizzcentral-notifications-staging-pushSendWaveOffer",
+      "codeSha": "WWkgxW2++vzhcXiUYH3qHefOmkz9col8WKqv+u8Vh50=",
+      "capacityVerified": true,
+      "admissionVerified": true
+    }
+  ],
+  "activated": true,
+  "unusedReceiverSettingsRemoved": [
+    "BUSINESS_WORKING_HOURS_TABLE",
+    "BUSINESS_SUBCATEGORIES_TABLE",
+    "USERS_TABLE",
+    "CATEGORIES_TABLE",
+    "DISCOUNTS_TABLE",
+    "PRODUCTS_TABLE",
+    "POS_LOGS_TABLE",
+    "BUSINESS_SETTINGS_TABLE"
+  ],
+  "scopeId": "fattoush-live-activity-198",
+  "orderId": "17f87a39-0edf-57c8-8971-c2d6d7dd42aa",
+  "admitUntil": "2026-10-19T21:33:20.990Z",
+  "discount": {
+    "id": "1f08d5e5-f95a-4d52-b5bf-fe05dd626ce0",
+    "percentage": 10
+  },
+  "suggestedTipIqd": 500,
+  "finalVerificationPassed": true,
+  "scopeCount": 5,
+  "previousOrderStillDelivered": true,
+  "newOrderNotYetCreated": true,
+  "unusedSettingsCleanupExplicitlyApproved": true
+}

@@ -1,0 +1,19 @@
+{
+  "part": 360,
+  "scope": "staging",
+  "function": "staging-driver-financial-accept",
+  "status": "PUBLISHED_STAGING_SHA_VERIFIED_HUMAN_ACCEPTANCE_PENDING",
+  "beforeSha256": "LJOouG4OFZgGiaq1KcdrYT2v1XZBqVk8P+H20B8VGsE=",
+  "candidateSha256": "LQJT1ksnJA5FEX3OepS8wy8WTQKfzVlOuBlUv/vmmcg=",
+  "changedFiles": [
+    "driver-cash-payout-runtime-v1.js",
+    "driver-payout-audit-360.js"
+  ],
+  "allOtherEntriesPreserved": true,
+  "iamChanges": false,
+  "financialRecordsWritten": 0,
+  "historicalAuditRowsModified": 0,
+  "configurationPreserved": true,
+  "testsPassed": 53,
+  "bundleAuthorityAndSdkBridge": "PASS"
+}

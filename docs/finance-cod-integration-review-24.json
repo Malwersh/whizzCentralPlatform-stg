@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-16",
+  "recordedAt": "2026-10-16T14:53:07.313728+00:00",
+  "account": "699561669180",
+  "region": "us-east-1",
+  "readOnlyAwsAudit": true,
+  "deploymentPerformed": false,
+  "featureActivation": "OFF",
+  "humanDataRead": false,
+  "publishedFunctions": [
+    {
+      "function": "DriversApi-staging",
+      "handler": "lambda_driver_api_v2.handler",
+      "revisionId": "6099765a-49ad-4e04-ae70-148d81c91dc5",
+      "codeSha256": "T/xQDTCihV5zUfKIEu6eQfTQSw5vN94Tg7J3hEmJYDY=",
+      "environment": {
+        "ORDERS_TABLE": "WizzOrders",
+        "DRIVER_PERFORMANCE_METRICS_TABLE": "WizzDriverPerformanceMetrics_staging"
+      },
+      "handlerSha256": "c0189c50991f8f6d28abecb394a31e5068236035bf759baf5c0ea7639287932f",
+      "hasFinancialDelegation": false,
+      "hasCompletionCounters": true
+    },
+    {
+      "function": "WaveSystem_CreateDispatchJob",
+      "handler": "index.handler",
+      "revisionId": "cfbb8452-74ea-4533-b009-a996b0349b45",
+      "codeSha256": "R8QEG/AZZrd2L0t2BIT7lPi50SKzgsmVhKx5zRkmD7M=",
+      "environment": {
+        "STAGE": "staging",
+        "ORDERS_TABLE": "WizzOrders"
+      },
+      "handlerSha256": "5b8009981b79ad27fa193f2ceefbf9779f2acc1533be634791a47cd14e645529",
+      "hasFinancialDelegation": false,
+      "hasCompletionCounters": false
+    }
+  ],
+  "orderStreamAudit": {
+    "table": "WizzOrders",
+    "streamArn": "arn:aws:dynamodb:us-east-1:699561669180:table/WizzOrders/stream/2026-10-09T16:02:28.064",
+    "enabledConsumersAtInspection": [
+      "WaveSystem_CreateDispatchJob"
+    ],
+    "walletLifecycleStreamEnabled": false,
+    "metricsTable": "WizzDriverPerformanceMetrics_staging"
+  },
+  "localChecks": {
+    "walletNodeTests": 456,
+    "finalIntegrationAndNotificationTests": 25,
+    "driverBackendTests": 52,
+    "driverFlutterTests": 25,
+    "pythonAuthorizationAndTemplateTests": 21,
+    "orderServiceTests": 10,
+    "samBasicValidation": true,
+    "samLintClean": false,
+    "samLintWarnings": {
+      "W3660": 13
+    },
+    "lintSameAsCommittedBaseline": true
+  },
+  "localArtifacts": {
+    "integrationSha256": "6795342468a17903f37326ba7bb226fc4a6f31fddd886665e72dc52867582b51",
+    "financialWriterSha256": "b161b417eaeb86d5c635666b56ade5bbdbb28d6a80515a80925a8c701a99bac9",
+    "integrationScheduleEnabled": false,
+    "integrationMode": "OFF",
+    "financialWriterActivation": "OFF"
+  },
+  "limitations": [
+    "Worker transactions and push/authorization races tested with mocks only",
+    "AWS audit inspected metadata and code, not human orders or balances",
+    "Existing live Drivers API has no financial delegation; deploy it before activation to avoid legacy counter overlap",
+    "Notification event enqueued is not proof of FCM or device receipt; external sends may repeat after acknowledgement loss",
+    "Driver acceptance metrics integration remains pending; completion rate intentionally unavailable",
+    "Customer/merchant order pushes, compensation policy, retention/deletion and coordinated live verification remain incomplete"
+  ]
+}

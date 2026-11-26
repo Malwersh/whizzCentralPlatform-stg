@@ -1,0 +1,35 @@
+{
+  "status": "PUBLISHED_VERIFIED",
+  "function": "staging-driver-financial-accept",
+  "changedEntries": [
+    "index.js",
+    "customer-cash-runtime-266.js"
+  ],
+  "codeSha256": "XN0C00Pm6VS/Ml9E+vXX0isr+NY2LPtMnWOBKMtWtOc=",
+  "allBytesVerified": true,
+  "unrelatedEntriesPreserved": true,
+  "configurationAndIamUnchanged": true,
+  "invalidEnvelopeBootCheck": 409,
+  "diagnosis": "JSON clone converted DynamoDB string set deliveryProofIds to map, so exact order guard failed",
+  "liveOrderProbe": "Read-only actual patched factory; all writes intercepted; proof set preserved",
+  "orderNumber": "ORD1792804837572",
+  "orderId": "4f0b538e-7211-57b0-8db4-83011a5ff992",
+  "agentFinancialOrOrderWrites": false,
+  "humanDeliveryRetry": "PENDING",
+  "nativeRebuildRequired": false,
+  "publishedAt": "2026-10-24T01:35:57.450603+00:00",
+  "tests": {
+    "wallet": 1499,
+    "actualHostReadOnlyProbe": "PASS; 28 strong reads; transaction intercepted before AWS; SS retained",
+    "typescript": "PASS"
+  },
+  "currentOrderFunding": {
+    "discountIqd": 500,
+    "merchantShareIqd": 500,
+    "platformShareIqd": 0,
+    "orderOfferVersion": 3,
+    "sharingCampaignVersion": 1,
+    "reason": "Offer minimum changed after sharing approval; old sharing does not match version 3",
+    "retroactiveRepricingPerformed": false
+  }
+}
