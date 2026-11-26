@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>حملات الخصم — إدارة ويز</title>
+  <link rel="stylesheet" href="/portal.css?v=626861785e50">
+  <link rel="stylesheet" href="/platform-campaigns.css?v=ed89a4423633">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script src="/platform-campaigns.js?v=dd5ca860c482" defer></script>
+<style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style><script src="/platform-shell.js?v=626861785e50" defer></script></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=626861785e50" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html">الرئيسية</a><a href="/pages/support.html">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد والردّ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html" aria-current="page">حملات الخصم</a><a href="/pages/shared-funding.html">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+  <main class="platform-main">
+    <header>
+      <h1>حملات الخصم</h1>
+      <div class="campaign-actions">
+        <button id="campaign-new" type="button" hidden>حملة جديدة</button>
+        <button id="campaign-refresh" type="button" class="campaign-secondary">تحديث</button>
+      </div>
+    </header>
+    <p id="campaign-status" role="status"></p>
+    <div id="campaign-list" class="campaign-list" aria-label="حملات الخصم"></div>
+    <dialog id="campaign-editor" aria-labelledby="campaign-editor-title">
+      <form id="campaign-form">
+        <h2 id="campaign-editor-title">حملة جديدة</h2>
+        <fieldset>
+          <legend>الخصم</legend>
+          <div class="campaign-grid">
+            <label>اسم الحملة<input name="title" required maxlength="100"></label>
+            <label>رمز الخصم<input name="code" dir="ltr" autocomplete="off" required maxlength="40" pattern="[A-Za-z0-9_\-]+"></label>
+            <label>نوع الخصم<select name="type"><option value="percentage">نسبة من قيمة الأصناف</option><option value="fixed">مبلغ ثابت</option></select></label>
+            <label id="campaign-value-label"><span>النسبة المئوية</span><input name="value" type="number" min="0.001" max="100" step="0.001" required></label>
+            <label id="campaign-cap-label">أقصى خصم للطلب بالدينار<input name="maximumSavings" type="number" min="250" max="1000000000" step="1" required></label>
+            <label>الحد الأدنى للأصناف بالدينار<input name="minimumOrder" type="number" min="0" max="1000000000" value="0" step="1" required></label>
+          </div>
+          <label>الوصف الظاهر للزبون<textarea name="description" rows="2" maxlength="2000"></textarea></label>
+        </fieldset>
+        <fieldset class="campaign-media">
+          <legend>صورة الحملة</legend>
+          <img id="campaign-image-preview" class="campaign-image" alt="معاينة صورة الحملة" hidden>
+          <label>اختيار صورة<input id="campaign-image-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+          <button id="campaign-image-remove" class="campaign-secondary" type="button" hidden>إزالة الصورة</button>
+        </fieldset>
+        <fieldset>
+          <legend>مدة الحملة وحدودها</legend>
+          <div class="campaign-grid">
+            <label>البداية بتوقيت بغداد<input name="startAt" type="datetime-local" required></label>
+            <label>النهاية بتوقيت بغداد<input name="endAt" type="datetime-local" required></label>
+            <label>عدد الاستخدامات الإجمالي<input name="usageLimit" type="number" min="1" max="1000000000" step="1" required></label>
+            <label>حد الاستخدام لكل زبون<input name="perCustomerLimit" type="number" min="1" max="1000000" step="1"></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>الأهلية</legend>
+          <div class="campaign-grid">
+            <label>الزبائن المؤهلون<select name="audience">
+              <option value="all">الجميع</option><option value="registered">المسجلون</option>
+              <option value="new">الجدد</option><option value="returning">لديهم طلبات سابقة</option>
+              <option value="vip">المميزون</option><option value="inactive">غير النشطين</option>
+            </select></label>
+            <label class="campaign-check"><input name="firstOrderOnly" type="checkbox">أول طلب فقط</label>
+            <label>المطاعم المشمولة<select name="merchantIds" multiple size="4"></select><small>اتركها فارغة لتشمل جميع المطاعم.</small></label>
+            <label>المناطق المشمولة<select name="regionIds" multiple size="4"></select><small>اتركها فارغة لتشمل جميع المناطق.</small></label>
+            <label>الأصناف المشمولة<select name="applicability">
+              <option value="allItems">كل الأصناف</option><option value="specificItems">أصناف محددة</option>
+              <option value="specificCategories">أقسام محددة</option>
+            </select></label>
+            <label id="campaign-items-label" hidden>اختيار من قائمة المطعم<select name="selections" multiple size="4"></select></label>
+          </div>
+        </fieldset>
+        <p id="campaign-editor-status" role="status"></p>
+        <div class="campaign-actions">
+          <button id="campaign-save" type="submit">حفظ المسودة</button>
+          <button id="campaign-cancel" type="button" class="campaign-secondary">إغلاق</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="campaign-notice" aria-labelledby="campaign-notice-heading">
+      <form id="campaign-notice-form">
+        <h2 id="campaign-notice-heading">إشعار الحملة</h2>
+        <p id="campaign-notice-name"></p>
+        <div id="campaign-notice-fields" hidden>
+          <label>عنوان الإشعار<input id="campaign-notice-title" maxlength="100"></label>
+          <label>نص الإشعار<textarea id="campaign-notice-body" maxlength="150" rows="2"></textarea></label>
+          <p>يُرسل إلى الزبائن المؤهلين الذين فعّلوا إشعارات العروض.</p>
+        </div>
+        <p id="campaign-notice-status" role="status"></p>
+        <div class="campaign-actions">
+          <button id="campaign-notice-send" type="submit" hidden>إرسال الإشعار</button>
+          <button id="campaign-notice-refresh" class="campaign-secondary" type="button">تحديث الحالة</button>
+          <button id="campaign-notice-close" class="campaign-secondary" type="button">إغلاق</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+</body>
+</html>

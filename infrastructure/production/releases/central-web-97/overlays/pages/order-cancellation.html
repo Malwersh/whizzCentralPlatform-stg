@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>طلبات الإلغاء — إدارة ويز</title>
+  <link rel="stylesheet" href="/portal.css?v=626861785e50">
+  <link rel="stylesheet" href="/order-cancellation.css?v=1">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script src="/order-cancellation.js?v=compensation-1" defer></script>
+<style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style><script src="/platform-shell.js?v=626861785e50" defer></script></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=626861785e50" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html">الرئيسية</a><a href="/pages/support.html">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html" aria-current="page">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد والردّ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html">حملات الخصم</a><a href="/pages/shared-funding.html">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+  <main class="platform-main">
+    <header><h1>طلبات الإلغاء</h1><button id="cancellation-refresh" type="button">تحديث الطلبات</button></header>
+    <section aria-labelledby="cancellation-heading">
+      <header><h2 id="cancellation-heading">الطلبات المفتوحة</h2></header>
+      <form id="cancellation-search" class="cancellation-search">
+        <label for="cancellation-order">البحث برقم الطلب
+          <input id="cancellation-order" dir="ltr" autocomplete="off" maxlength="150">
+        </label>
+        <button type="submit">بحث</button>
+        <button id="cancellation-reset" class="cancellation-secondary" type="button" hidden>عرض الطلبات المفتوحة</button>
+      </form>
+      <p id="cancellation-message" role="status" aria-live="polite"></p>
+      <div id="cancellation-queue"></div>
+      <button id="cancellation-more" class="cancellation-secondary" type="button" hidden>تحميل المزيد</button>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>المطاعم والفروع — ويز سنترال</title>
+  <link rel="stylesheet" href="/portal.css?v=626861785e50">
+  <link rel="stylesheet" href="/merchants.css?v=f5fa57c03254">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script defer src="/merchant-staff-policy.js?v=6e768edaa684"></script>
+  <script defer src="/merchants.js?v=857b32bcc23c"></script>
+  <script defer src="/merchant-commercial.js?v=3a4f45ca942b"></script>
+<style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style><script src="/platform-shell.js?v=626861785e50" defer></script></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=626861785e50" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html">الرئيسية</a><a href="/pages/support.html">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html" aria-current="page">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد والردّ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html">حملات الخصم</a><a href="/pages/shared-funding.html">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+<main class="platform-main">
+  <header class="merchant-header">
+    <h1>المطاعم والفروع</h1>
+    <button id="merchant-refresh" type="button" class="merchant-secondary">تحديث</button>
+  </header>
+  <div class="merchant-tabs" role="tablist" aria-label="إدارة المطاعم">
+    <button type="button" role="tab" aria-selected="true" aria-controls="applications-panel" id="applications-tab">طلبات الانضمام</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="branches-panel" id="branches-tab" tabindex="-1">الفروع المسجّلة</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="changes-panel" id="changes-tab" tabindex="-1">تعديلات الاسم والموقع</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="lifecycle-panel" id="lifecycle-tab" tabindex="-1">الملكية والإغلاق</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="staff-policy-panel" id="staff-policy-tab" tabindex="-1">صلاحيات الموظفين</button>
+  </div>
+  <p id="merchant-notice" role="status" aria-live="polite"></p>
+  <section id="applications-panel" role="tabpanel" aria-labelledby="applications-tab">
+    <h2>طلبات بانتظار المراجعة</h2>
+    <p>راجع موقع الفرع والمستندات والاتفاقية المقبولة، ثم سجّل القرار.</p>
+    <div id="applications-list" class="merchant-list"></div>
+    <button id="applications-more" class="merchant-secondary" type="button" hidden>تحميل طلبات أخرى</button>
+  </section>
+  <section id="branches-panel" role="tabpanel" aria-labelledby="branches-tab" hidden>
+    <h2>الفروع المسجّلة</h2>
+    <div id="branches-list" class="merchant-list"></div>
+    <button id="branches-more" class="merchant-secondary" type="button" hidden>تحميل فروع أخرى</button>
+  </section>
+  <section id="changes-panel" role="tabpanel" aria-labelledby="changes-tab" hidden>
+    <h2>طلبات تعديل الاسم والموقع</h2>
+    <p>قارن البيانات المعتمدة بالمقترح قبل تسجيل القرار. يظهر سبب القرار للمالك في التطبيق.</p>
+    <div id="changes-list" class="merchant-list"></div>
+    <button id="changes-more" class="merchant-secondary" type="button" hidden>تحميل طلبات أخرى</button>
+  </section>
+  <section id="lifecycle-panel" role="tabpanel" aria-labelledby="lifecycle-tab" hidden>
+    <div class="merchant-header">
+      <h2>طلبات نقل الملكية والإغلاق</h2>
+      <label id="lifecycle-filter" hidden>نوع الطلب
+        <select id="lifecycle-kind">
+          <option value="ownership">نقل الملكية</option>
+          <option value="closure">الإغلاق وحذف الحساب</option>
+        </select>
+      </label>
+    </div>
+    <div id="lifecycle-list" class="merchant-list"></div>
+    <button id="lifecycle-more" class="merchant-secondary" type="button" hidden>تحميل طلبات أخرى</button>
+  </section>
+  <section id="staff-policy-panel" role="tabpanel" aria-labelledby="staff-policy-tab" hidden>
+    <div class="merchant-header">
+      <h2>سياسة صلاحيات موظفي المطاعم</h2>
+      <span id="staff-policy-version" class="merchant-badge" hidden></span>
+    </div>
+    <p>تحدّد السياسة ما يمكن للمالك تفويضه لموظفي فرعه من تطبيق المطعم.</p>
+    <p id="staff-policy-message" role="status" aria-live="polite"></p>
+    <div id="staff-policy-workspace" hidden>
+      <div class="staff-policy-grid">
+        <form id="staff-policy-global" class="staff-policy-card">
+          <h3>الصلاحيات المتاحة للتفويض</h3>
+          <p>إيقاف صلاحية يسري على الموظفين الحاليين عند استخدامهم لها.</p>
+          <div id="staff-policy-global-capabilities" class="staff-policy-checks"></div>
+          <div id="staff-policy-global-actions" hidden>
+            <label>سبب التغيير<input name="reason" required minlength="5" maxlength="300"></label>
+            <button type="submit">حفظ إتاحة الصلاحيات</button>
+          </div>
+        </form>
+        <form id="staff-policy-role" class="staff-policy-card">
+          <div class="merchant-header">
+            <h3>أنواع الموظفين</h3>
+            <button type="button" class="merchant-secondary" id="staff-policy-new" hidden>إضافة نوع</button>
+          </div>
+          <label>نوع الموظف<select id="staff-policy-types"></select></label>
+          <p id="staff-policy-role-status"></p>
+          <fieldset id="staff-policy-role-fields">
+            <legend>بيانات النوع</legend>
+            <div class="staff-policy-fields">
+              <label>الاسم بالعربية<input name="nameAr" required maxlength="100"></label>
+              <label>الاسم بالإنجليزية<input name="nameEn" dir="ltr" required maxlength="100"></label>
+            </div>
+            <label>الوصف<textarea name="description" rows="2" maxlength="1000"></textarea></label>
+            <label>ترتيب الظهور<input name="order" type="number" min="0" max="1000" required></label>
+            <label class="staff-policy-choice"><input name="enabled" type="checkbox"> متاح للتعيين من تطبيق المطعم</label>
+          </fieldset>
+          <h4>صلاحيات النوع</h4>
+          <div id="staff-policy-role-capabilities" class="staff-policy-checks"></div>
+          <div id="staff-policy-role-actions" hidden>
+            <label>سبب التغيير<input name="reason" required minlength="5" maxlength="300"></label>
+            <button type="submit">حفظ نوع الموظف</button>
+          </div>
+        </form>
+      </div>
+      <section class="staff-policy-card">
+        <div class="merchant-header">
+          <h3>سجل تغييرات السياسة</h3>
+          <button type="button" class="merchant-secondary" id="staff-policy-history-load">عرض السجل</button>
+        </div>
+        <ol id="staff-policy-history" class="staff-policy-history"></ol>
+      </section>
+    </div>
+  </section>
+  <dialog id="merchant-detail" aria-labelledby="merchant-title">
+    <header class="merchant-header">
+      <h2 id="merchant-title"></h2>
+      <button id="merchant-close" type="button" class="merchant-secondary">إغلاق</button>
+    </header>
+    <div id="merchant-summary" class="merchant-detail"></div>
+    <div id="merchant-documents"></div>
+    <form id="merchant-decision" hidden>
+      <h3>قرار المراجعة</h3>
+      <label for="merchant-action">القرار</label>
+        <select id="merchant-action" required>
+          <option value="">اختر القرار</option>
+          <option value="APPROVE">اعتماد الفرع</option>
+          <option value="NEEDS_INFORMATION">طلب استكمال البيانات</option>
+          <option value="REJECT">رفض الطلب</option>
+        </select>
+      <p id="merchant-decision-help"></p>
+      <label>سبب القرار<textarea id="merchant-reason" required minlength="5" maxlength="1000" rows="3"></textarea></label>
+      <p id="merchant-dialog-notice" role="status" aria-live="polite"></p>
+      <button type="submit" id="merchant-submit">تأكيد القرار</button>
+    </form>
+    <form id="merchant-change-decision" hidden>
+      <h3>قرار المراجعة</h3>
+      <label for="merchant-change-action">القرار</label>
+      <select id="merchant-change-action" required>
+        <option value="">اختر القرار</option>
+        <option value="APPROVE">اعتماد التعديل</option>
+        <option value="REJECT">رفض الطلب</option>
+      </select>
+      <label>سبب القرار<textarea id="merchant-change-reason" required minlength="5" maxlength="1000" rows="3"></textarea></label>
+      <p id="merchant-change-notice" role="status" aria-live="polite"></p>
+      <button type="submit" id="merchant-change-submit">تأكيد القرار</button>
+    </form>
+  </dialog>
+</main>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>محادثات الدعم — ويز</title>
+  <link rel="stylesheet" href="/portal.css?v=626861785e50">
+  <link rel="stylesheet" href="/support.css?v=aa44d66ed852">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script defer src="/support-config.js?v=9b8b7f9036fe"></script>
+  <script defer src="/support-attachments.js?v=258c67b5ea48"></script>
+  <script defer src="/support.js?v=1fb510d6ba4c"></script>
+<style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style><script src="/platform-shell.js?v=626861785e50" defer></script></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=626861785e50" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html">الرئيسية</a><a href="/pages/support.html" aria-current="page">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد والردّ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html">حملات الخصم</a><a href="/pages/shared-funding.html">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+<main class="platform-main">
+  <header><h1>محادثات الدعم</h1><button id="support-refresh" type="button">تحديث المحادثات</button></header>
+  <p id="support-status" role="status">جارٍ الاتصال بالدعم…</p>
+  <div class="support-workspace" id="support-workspace" hidden>
+    <section aria-labelledby="support-inbox-heading">
+      <h2 id="support-inbox-heading">الواردة</h2>
+      <label for="support-filter">التطبيق</label>
+      <select id="support-filter">
+        <option value="">كل التطبيقات</option>
+        <option value="customer">الزبون</option>
+        <option value="merchant">المطعم</option>
+        <option value="driver">السائق</option>
+      </select>
+      <ul id="support-sessions"></ul>
+      <p id="support-empty">لا توجد محادثات.</p>
+    </section>
+    <section aria-labelledby="support-title">
+      <header>
+        <div><h2 id="support-title" tabindex="-1">اختر محادثة</h2><p id="support-context"></p></div>
+        <button id="support-close" type="button" hidden>إغلاق المحادثة</button>
+      </header>
+      <button id="support-older" type="button" hidden>تحميل الرسائل الأقدم</button>
+      <div class="support-thread" id="support-thread" hidden>
+        <ol id="support-messages" aria-label="رسائل المحادثة" aria-live="polite"></ol>
+      </div>
+      <form id="support-reply" hidden>
+        <label for="support-text">الرد</label>
+        <textarea id="support-text" rows="3" maxlength="4000" required></textarea>
+        <button id="support-send">إرسال</button>
+      </form>
+      <p id="support-feedback" role="status"></p>
+    </section>
+  </div>
+  <dialog id="support-close-dialog" aria-labelledby="support-close-heading">
+    <form method="dialog">
+      <h2 id="support-close-heading">إغلاق المحادثة؟</h2>
+      <p>سيظهر للمستخدم أن فريق الدعم أغلق المحادثة.</p>
+      <button value="cancel" autofocus>تراجع</button>
+      <button value="close">تأكيد الإغلاق</button>
+    </form>
+  </dialog>
+</main>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>مستحقات المطاعم والصرف | ويز سنترال</title>
+  <link rel="stylesheet" href="/portal.css?v=626861785e50">
+  <link rel="stylesheet" href="/styles/finance-workflow.css">
+  <link rel="stylesheet" href="/merchant-settlements.css?v=2">
+  <script src="/config.js" defer></script>
+  <script src="/assets/js/auth-utils.js" defer></script>
+  <script src="/finance-period-label.js?v=c8593c028b6e" defer></script>
+  <script src="/finance-print-company.js?v=62019bec00bc" defer></script>
+  <script src="/merchant-payout-print.js?v=21110d536ead" defer></script>
+  <script src="/settlement-statement-details.js?v=772a872886d9" defer></script>
+  <script src="/merchant-collection-print.js?v=f2ab033f91b5" defer></script>
+  <script src="/merchant-period-collection.js?v=00402d4c4850" defer></script>
+  <script src="/settlement-statements.js?v=0c5f95e5a90a" defer></script>
+  <script src="/merchant-cashboxes.js?v=eb8baaf230ad" defer></script>
+  <script src="/merchant-corrections.js?v=b665b8f0b7e3" defer></script>
+  <script src="/merchant-payouts.js?v=4d112f47f239" defer></script>
+  <script src="/merchant-period-print.js?v=65c671066218" defer></script>
+  <script src="/merchant-financial-account.js?v=3ab212a7940d" defer></script>
+  <script src="/merchant-off-cycle.js?v=c1cbcd8b215a" defer></script>
+  <script src="/finance-workspace.js?v=03f8729ca025" defer></script>
+  <script src="/settlement-schedules.js?v=e5e18ce81268" defer></script>
+  <script src="/settlement-orders.js?v=557c4a267249" defer></script>
+  <script src="/merchant-settlements-page.js?v=2" defer></script>
+<style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style><script src="/platform-shell.js?v=626861785e50" defer></script></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=626861785e50" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html">الرئيسية</a><a href="/pages/support.html">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html" aria-current="page">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد والردّ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html">حملات الخصم</a><a href="/pages/shared-funding.html">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+  <main class="platform-main" id="merchant-finance">
+    <header class="merchant-finance-header">
+      <h1>مستحقات المطاعم والصرف</h1>
+      <a class="merchant-finance-link" href="/pages/wallets.html">المحافظ والشحن</a>
+    </header>
+    <div class="finance-content">
+      <nav class="merchant-finance-nav" aria-label="أقسام التسويات">
+        <a href="#completed-order-settlements">حسابات المطاعم والصرف</a>
+        <a href="#company-cashboxes">صناديق الشركة</a>
+        <a href="#merchant-settlement-schedules">جداول التسوية</a>
+      </nav>
+      <details id="merchant-settlement-schedules" data-settlement-schedules data-independent-source="true" class="settlement-report" hidden></details>
+      <div id="company-cashboxes" hidden></div>
+    </div>
+  </main>
+</body>
+</html>

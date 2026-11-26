@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>التمويل المشترك للعروض — إدارة ويز</title>
+  <link rel="stylesheet" href="/portal.css?v=626861785e50">
+  <link rel="stylesheet" href="/platform-campaigns.css?v=ed89a4423633">
+  <link rel="stylesheet" href="/shared-funding.css?v=2af3d601a1ce">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script src="/shared-funding.js?v=fb9e7ccf6a62" defer></script>
+<style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style><script src="/platform-shell.js?v=626861785e50" defer></script></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=626861785e50" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html">الرئيسية</a><a href="/pages/support.html">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد والردّ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html">حملات الخصم</a><a href="/pages/shared-funding.html" aria-current="page">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+  <main class="platform-main">
+    <header>
+      <h1>التمويل المشترك للعروض</h1>
+      <div class="campaign-actions">
+        <button type="button" id="funding-new" hidden>مشاركة تمويل جديدة</button>
+        <button type="button" id="funding-refresh" class="campaign-secondary">تحديث</button>
+      </div>
+    </header>
+    <div class="funding-filters campaign-card">
+      <div class="campaign-grid">
+        <label>الفرع<select id="funding-branch"><option value="">جميع الفروع</option></select></label>
+        <label>الحالة<select id="funding-state">
+          <option value="">جميع الحالات</option>
+          <option value="READY">جاهزة للاعتماد</option>
+          <option value="WAITING">بانتظار موافقة المطعم</option>
+          <option value="APPROVED">معتمدة</option>
+          <option value="EXPIRED">منتهية</option>
+        </select></label>
+      </div>
+      <div class="campaign-actions">
+        <button type="button" id="funding-branches-more" class="campaign-secondary" hidden>تحميل فروع أخرى</button>
+        <button type="button" id="funding-clear-campaign" class="campaign-secondary" hidden>عرض جميع الحملات</button>
+      </div>
+    </div>
+    <p id="funding-status" role="status"></p>
+    <div id="funding-list" class="campaign-list" aria-label="طلبات التمويل المشترك"></div>
+    <button type="button" id="funding-more" class="campaign-secondary" hidden>عرض المزيد من الطلبات</button>
+    <dialog id="funding-editor" aria-labelledby="funding-editor-title">
+      <form id="funding-form">
+        <h2 id="funding-editor-title"></h2>
+        <div id="funding-proposal">
+          <div class="campaign-grid">
+            <label>الفرع<select id="funding-editor-branch" required></select></label>
+            <label>العرض<select id="funding-campaign" aria-label="العرض" required></select></label>
+          </div>
+          <button type="button" id="funding-editor-branches-more" class="campaign-secondary" hidden>تحميل فروع أخرى</button>
+          <div class="campaign-grid">
+            <label>حصة المطعم من قيمة الخصم (%)<input id="funding-merchant-share" type="number" inputmode="decimal" min="0.01" max="99.99" step="0.01" required></label>
+            <p id="funding-platform-share"></p>
+          </div>
+          <p id="funding-offer-terms"></p>
+        </div>
+        <p id="funding-confirmation" hidden></p>
+        <label><span id="funding-reason-label">سبب الإعداد</span><textarea id="funding-reason" rows="2" minlength="5" maxlength="300" required></textarea></label>
+        <p id="funding-editor-status" role="status"></p>
+        <div class="campaign-actions">
+          <button id="funding-save" type="submit"></button>
+          <button id="funding-close" type="button" class="campaign-secondary">إغلاق</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+</body>
+</html>

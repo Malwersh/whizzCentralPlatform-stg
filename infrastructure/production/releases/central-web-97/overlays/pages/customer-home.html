@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>واجهات تطبيق الزبون — منصة الإدارة</title>
+  <link rel="stylesheet" href="/portal.css?v=626861785e50">
+  <link rel="stylesheet" href="/customer-home.css">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script defer src="/customer-home.js"></script>
+  <script defer src="/customer-home-slides.js"></script>
+<style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style><script src="/platform-shell.js?v=626861785e50" defer></script></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=626861785e50" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html">الرئيسية</a><a href="/pages/support.html">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد والردّ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html" aria-current="page">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html">حملات الخصم</a><a href="/pages/shared-funding.html">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+<main class="platform-main">
+  <header>
+    <div>
+      <h1>واجهات تطبيق الزبون</h1>
+      <p class="page-intro">الشاشة الرئيسية</p>
+    </div>
+    <button id="refresh" type="button" class="home-secondary">تحديث</button>
+  </header>
+  <nav aria-label="قوالب تطبيق الزبون"><a href="/pages/customer-interfaces.html?surface=store">المتجر</a> · <a href="/pages/customer-interfaces.html?surface=product">المنتج</a></nav>
+  <div class="home-tabs" role="tablist" aria-label="إعدادات رئيسية تطبيق الزبون">
+    <button type="button" role="tab" aria-selected="true" aria-controls="layout-panel" id="layout-tab">الأقسام والاختصارات</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="slides-panel" id="slides-tab" tabindex="-1">شرائح الإعلانات</button>
+  </div>
+  <div id="layout-panel" role="tabpanel" aria-labelledby="layout-tab">
+  <p id="notice" role="status" aria-live="polite">جارٍ تحميل إعدادات الرئيسية…</p>
+  <div id="workspace" hidden>
+    <section aria-labelledby="publication-heading" class="home-publication">
+      <div>
+        <h2 id="publication-heading">النشر</h2>
+        <p id="publication-state"></p>
+      </div>
+      <div class="home-actions">
+        <button type="submit" form="editor" id="save" class="home-secondary" hidden>حفظ المسودة</button>
+        <button type="button" id="publish-header" class="home-secondary" hidden>نشر الشريط وحده</button>
+        <button type="button" id="publish" hidden>مراجعة ونشر</button>
+      </div>
+    </section>
+    <form id="editor">
+      <fieldset id="editable">
+        <section aria-labelledby="sections-heading">
+          <div class="home-panel-header">
+            <div>
+              <h2 id="sections-heading">أقسام الرئيسية</h2>
+              <p>رتّب الأقسام وحدّد جمهورها ومصدر المطاعم المعروضة. يبقى «جميع المطاعم» أسفل الأقسام.</p>
+            </div>
+            <button id="add-section" class="home-secondary" type="button">إضافة قسم</button>
+          </div>
+          <div class="home-rows" id="sections"></div>
+        </section>
+        <section aria-labelledby="classifications-heading">
+          <details>
+            <summary id="classifications-heading">تصنيفات المطاعم والفروع</summary>
+            <div id="home-classifications" class="home-panel-body"></div>
+          </details>
+        </section>
+        <section aria-labelledby="promotion-header-heading">
+          <details>
+            <summary id="promotion-header-heading">الشريط العلوي المتحرك</summary>
+            <div id="promotion-header" class="home-panel-body"></div>
+          </details>
+        </section>
+        <section aria-labelledby="welcome-heading">
+          <details>
+            <summary id="welcome-heading">الترحيب والبحث</summary>
+            <div id="welcome" class="home-panel-body"></div>
+          </details>
+        </section>
+        <section aria-labelledby="navigation-heading">
+          <details>
+            <summary id="navigation-heading">اختصارات الأنشطة والتصنيفات</summary>
+            <div id="navigation" class="home-panel-body"></div>
+          </details>
+        </section>
+        <section aria-labelledby="filters-heading">
+          <details>
+            <summary id="filters-heading">شريط الفلاتر</summary>
+            <div id="filters" class="home-panel-body"></div>
+          </details>
+        </section>
+      </fieldset>
+    </form>
+    <section>
+      <details>
+        <summary>سجل النشر</summary>
+        <div id="history" class="home-panel-body home-rows"></div>
+      </details>
+    </section>
+  </div>
+  </div>
+  <div id="slides-panel" role="tabpanel" aria-labelledby="slides-tab" hidden>
+    <section aria-labelledby="slides-heading">
+      <div class="home-panel-header">
+        <div>
+          <h2 id="slides-heading">شرائح الإعلانات</h2>
+          <p>تظهر الشرائح أعلى الرئيسية خلال المدة المحددة، حسب ترتيب العرض.</p>
+        </div>
+        <div class="home-actions">
+          <button type="button" id="slides-reload" class="home-secondary">تحديث</button>
+          <button type="button" id="slides-add" hidden>إضافة شريحة</button>
+        </div>
+      </div>
+      <p id="slides-notice" role="status" aria-live="polite"></p>
+      <div id="slides-list" class="slides-list"></div>
+    </section>
+  </div>
+  <dialog id="slide-editor" class="slides-dialog" aria-labelledby="slide-editor-title">
+    <form id="slide-form">
+      <header>
+        <h2 id="slide-editor-title">إضافة شريحة</h2>
+        <button type="button" id="slide-close" class="home-secondary">إغلاق</button>
+      </header>
+      <div class="slide-editor-grid">
+        <div>
+          <label>اسم الشريحة<input id="slide-name" required maxlength="100"></label>
+          <div class="home-grid">
+            <label>الجمهور<select id="slide-audience">
+              <option value="all">الجميع</option><option value="registered">الحسابات المسجّلة</option><option value="guests">الضيوف</option>
+            </select></label>
+            <label>ترتيب العرض<input type="number" id="slide-order" dir="ltr" min="0" max="999" required></label>
+            <label>بداية العرض · توقيت بغداد<input type="datetime-local" id="slide-start" required></label>
+            <label>نهاية العرض · توقيت بغداد<input type="datetime-local" id="slide-end" required></label>
+          </div>
+          <div id="slide-regions"></div>
+          <label>عند الضغط على الشريحة<select id="slide-type"></select></label>
+          <label id="slide-merchant-label" hidden><span id="slide-target-label">المطعم</span><select id="slide-merchant"></select></label>
+        </div>
+        <div class="slide-editor-media">
+          <div class="slide-preview">
+            <img id="slide-preview-image" alt="معاينة الشريحة" hidden>
+            <span id="slide-preview-empty">معاينة الصورة داخل التطبيق</span>
+          </div>
+          <label>صورة الشريحة<input type="file" id="slide-file" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+          <p>استخدم صورة أفقية. يدعم التطبيق صور GIF المتحركة حتى ٣ ميغابايت.</p>
+        </div>
+      </div>
+      <p id="slide-editor-notice" role="status" aria-live="polite"></p>
+      <div class="home-actions">
+        <button type="submit" id="slide-save">حفظ المسودة</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="slide-confirm" class="slides-dialog" aria-labelledby="slide-confirm-title">
+    <h2 id="slide-confirm-title"></h2>
+    <div id="slide-confirm-content"></div>
+    <form method="dialog" class="home-actions">
+      <button value="cancel" class="home-secondary">رجوع</button>
+      <button id="slide-confirm-submit" value="confirm">تأكيد</button>
+    </form>
+  </dialog>
+  <dialog id="review" aria-labelledby="review-heading">
+    <h2 id="review-heading"></h2>
+    <div id="review-content"></div>
+    <form method="dialog" class="home-actions">
+      <button class="home-secondary" value="cancel">رجوع</button>
+      <button id="confirm" value="confirm">تأكيد</button>
+    </form>
+  </dialog>
+</main>
+</body>
+</html>

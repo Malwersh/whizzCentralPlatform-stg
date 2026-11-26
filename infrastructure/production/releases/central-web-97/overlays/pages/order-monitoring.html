@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>متابعة الطلبات — منصة الإدارة</title>
+  <link rel="stylesheet" href="/portal.css?v=9573ac99635d">
+  <link rel="stylesheet" href="/order-monitoring.css?v=d1b29579b8ec">
+  <script src="/config.js" defer></script>
+  <script src="/assets/js/auth-utils.js" defer></script>
+  <script src="/order-monitoring.js?v=b65769b07a1a" defer></script>
+<script src="/platform-shell.js?v=9573ac99635d" defer></script><style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=9573ac99635d" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html">الرئيسية</a><a href="/pages/support.html">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html" aria-current="page">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد ورد المبالغ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html">حملات الخصم</a><a href="/pages/shared-funding.html">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+  <main class="platform-main">
+    <header><h1>متابعة الطلبات</h1></header>
+    <section id="dispatch-followup" aria-labelledby="dispatch-followup-title" class="monitor-panel monitor-followup">
+      <div class="monitor-followup-header">
+        <h2 id="dispatch-followup-title">حالات الإسناد المتعثرة</h2>
+        <button type="button" id="followup-refresh" class="monitor-secondary">تحديث الحالات</button>
+      </div>
+      <p id="followup-status" role="status"></p>
+      <ul id="followup-list" class="monitor-list"></ul>
+      <button type="button" id="followup-more" class="monitor-secondary" hidden>تحميل حالات أخرى</button>
+      <details id="followup-policy" hidden>
+        <summary>مهل المراجعة والتصعيد</summary>
+        <div id="followup-policy-content"></div>
+        <p id="followup-policy-status" role="status"></p>
+      </details>
+    </section>
+    <form id="order-search" class="monitor-panel monitor-controls">
+      <label>رقم الطلب<input name="order" dir="ltr" type="search" maxlength="150" required></label>
+      <button>عرض الطلب</button>
+    </form>
+    <p id="order-status" role="status"></p>
+    <div class="monitor-layout">
+      <section aria-labelledby="orders-title" class="monitor-panel">
+        <h2 id="orders-title">طلبات الفرع</h2>
+        <form id="branch-search" class="monitor-controls">
+          <label>المطعم أو الفرع<select id="branch-selector" required disabled><option value="">اختر الفرع</option></select></label>
+          <button id="branch-submit" disabled>عرض الطلبات</button>
+        </form>
+        <button id="more-branches" type="button" class="monitor-secondary" hidden>تحميل فروع أخرى</button>
+        <p id="branch-status" role="status"></p>
+        <ul id="order-list" class="monitor-list"></ul>
+        <button id="more-orders" type="button" class="monitor-secondary" hidden>تحميل طلبات أقدم</button>
+      </section>
+      <section id="order-detail" class="monitor-panel" aria-label="تفاصيل الطلب" tabindex="-1">
+        <h2>تفاصيل الطلب</h2>
+        <p>اختر طلبًا أو ابحث برقمه لعرض حالته وسجل الإسناد والقضايا المرتبطة به.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

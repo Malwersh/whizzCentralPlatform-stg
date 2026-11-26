@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>الرئيسية — منصة الإدارة</title>
+  <link rel="stylesheet" href="/portal.css?v=626861785e50">
+  <link rel="stylesheet" href="/dashboard.css?v=bcadf03419fa">
+  <script src="/config.js"></script>
+  <script src="/assets/js/auth-utils.js"></script>
+  <script src="/assets/js/wizz-locale.js" defer></script>
+  <script src="/portal.js?v=4826866d0573" defer></script>
+<script src="/platform-shell.js?v=626861785e50" defer></script><style>body.platform-layout{font-family:Wizz,Tahoma,sans-serif}.platform-layout main.platform-main{max-width:none;margin:0 248px 0 0;padding:32px}@media(max-width:800px){.platform-layout main.platform-main{margin:0;padding:20px 16px}}</style></head>
+<body class="platform-layout"><aside class="platform-sidebar" aria-label="القائمة الرئيسية"><a class="platform-brand" href="/pages/dashboard.html" aria-label="شركة الانطلاق الخاطف، منصة الإدارة، الصفحة الرئيسية"><img src="/assets/brand/wizz-wordmark-yellow.png?v=626861785e50" alt="" width="2413" height="1024"><span>شركة الانطلاق الخاطف</span><span class="platform-brand-caption">منصة الإدارة</span></a><nav aria-label="أقسام الإدارة"><span class="nav-group-label">المتابعة</span><a href="/pages/dashboard.html" aria-current="page">الرئيسية</a><a href="/pages/support.html">محادثات الدعم</a><span class="nav-group-label">التشغيل</span><a href="/pages/order-monitoring.html">متابعة الطلبات</a><a href="/pages/pickup-issues.html">بلاغات الاستلام</a><a href="/pages/order-returns.html">المرتجعات بعد الاستلام</a><a href="/pages/order-cancellation.html">طلبات الإلغاء</a><a href="/pages/order-complaints.html">شكاوى الطلبات</a><a href="/pages/drivers.html">السائقون</a><a href="/pages/merchants.html">المطاعم والفروع</a><a href="/pages/regions.html">مناطق الخدمة</a><span class="nav-group-label">المالية</span><a href="/pages/merchant-settlements.html">مستحقات المطاعم والصرف</a><a href="/pages/wallets.html">المحافظ</a><a href="/pages/customer-cash-review.html">مراجعة النقد والردّ</a><span class="nav-group-label">تطبيق الزبون</span><a href="/pages/customer-home.html">واجهات تطبيق الزبون</a><span class="nav-group-label">العروض والتجربة</span><a href="/pages/benefits.html">مزايا الزبائن</a><a href="/pages/platform-campaigns.html">حملات الخصم</a><a href="/pages/shared-funding.html">التمويل المشترك للعروض</a><span class="nav-group-label">الإعدادات</span><a href="/pages/merchant-onboarding.html">الأنشطة واتفاقية الشراكة</a><a href="/pages/legal-documents.html">سياسات التطبيقات</a><a href="/pages/account-security.html">حماية الحساب</a><a href="/pages/notification-sounds.html">أصوات الإشعارات واستقبال الطلبات</a><a href="/pages/driver-delivery-settings.html">خريطة السائق والتوصيل</a></nav><div class="platform-sidebar-footer"><button class="platform-logout" type="button">تسجيل الخروج</button></div></aside>
+  <main class="platform-main">
+    <header><h1>لوحة التحكم</h1></header>
+    <p id="message" role="status">جارٍ التحقق من حساب الإدارة…</p>
+    <button id="retry" type="button" hidden>إعادة المحاولة</button>
+
+    <div id="account" hidden>
+      <p class="dashboard-greeting">مرحبًا، <bdi id="name"></bdi> <span id="role"></span></p>
+      <section id="dashboard-activity" class="dashboard-activity" aria-labelledby="activity-heading" hidden>
+        <header>
+          <h2 id="activity-heading">نشاط المنصة</h2>
+          <button id="refresh-activity" type="button">تحديث المؤشرات</button>
+        </header>
+        <dl class="dashboard-activity-grid">
+          <div><dt>طلبات اليوم · بغداد</dt><dd data-metric="orders">جارٍ التحميل…</dd></div>
+          <div><dt>الفروع النشطة</dt><dd data-metric="branches">جارٍ التحميل…</dd></div>
+          <div><dt>السائقون الباحثون عن طلب</dt><dd data-metric="drivers">جارٍ التحميل…</dd></div>
+          <div><dt>حسابات الزبائن</dt><dd data-metric="customers">جارٍ التحميل…</dd></div>
+          <div data-metric-permission="support.metrics" hidden>
+            <dt><a href="/pages/support.html">محادثات الدعم المفتوحة</a></dt>
+            <dd data-metric="support">جارٍ التحميل…</dd>
+          </div>
+          <div data-metric-permission="promotions.read" hidden>
+            <dt>عروض المنصة والمطاعم السارية</dt>
+            <dd data-metric="offers">جارٍ التحميل…</dd>
+          </div>
+          <div data-metric-permission="finance.read" hidden>
+            <dt>إيراد الطلبات النقدية المثبت اليوم</dt>
+            <dd data-metric="revenue">جارٍ التحميل…</dd>
+          </div>
+        </dl>
+        <p id="activity-status" role="status"></p>
+      </section>
+      <section class="dashboard-queues" aria-labelledby="queues-heading" hidden>
+        <header>
+          <h2 id="queues-heading">بانتظار المتابعة</h2>
+          <button id="refresh-queues" type="button">تحديث المتابعة</button>
+        </header>
+        <ul class="dashboard-card-grid" aria-labelledby="queues-heading">
+          <li data-queue="applications" data-permission="merchants.read" hidden>
+            <a href="/pages/merchants.html?tab=applications">
+              <strong>طلبات انضمام المطاعم</strong>
+              <span class="dashboard-queue-value" role="status">جارٍ التحميل…</span>
+            </a>
+          </li>
+          <li data-queue="cancellations" data-permission="orders.read finance.read" hidden>
+            <a href="/pages/order-cancellation.html">
+              <strong>طلبات الإلغاء المفتوحة</strong>
+              <span class="dashboard-queue-value" role="status">جارٍ التحميل…</span>
+            </a>
+          </li>
+          <li data-queue="complaints" data-permission="orders.read finance.read" hidden>
+            <a href="/pages/order-complaints.html">
+              <strong>شكاوى الطلبات المفتوحة</strong>
+              <span class="dashboard-queue-value" role="status">جارٍ التحميل…</span>
+            </a>
+          </li>
+          <li data-queue="dispatch" data-permission="orders.read" hidden>
+            <a href="/pages/order-monitoring.html#dispatch-followup">
+              <strong>حالات الإسناد المتعثرة</strong>
+              <span class="dashboard-queue-value" role="status">جارٍ التحميل…</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <h2 id="shortcuts-heading">الوصول السريع</h2>
+      <ul id="shortcuts" class="dashboard-card-grid dashboard-shortcuts" aria-labelledby="shortcuts-heading">
+        <li data-permission="orders.read" hidden><a href="/pages/order-monitoring.html">
+          <strong>متابعة الطلبات</strong><span>حالة الطلب والإسناد والموجات والقضايا المرتبطة به.</span>
+        </a></li>
+        <li data-permission="merchants.read" hidden><a href="/pages/merchants.html?tab=branches">
+          <strong>المطاعم والفروع</strong><span>الفروع المسجّلة واتفاقياتها.</span>
+        </a></li>
+        <li data-permission="drivers.read" hidden><a href="/pages/drivers.html">
+          <strong>السائقون</strong><span>حسابات السائقين وحالة المركبات.</span>
+        </a></li>
+        <li data-permission="regions.read" hidden><a href="/pages/regions.html">
+          <strong>مناطق الخدمة</strong><span>حدود المناطق وإتاحة الخدمة.</span>
+        </a></li>
+        <li data-permission="finance.read" hidden><a href="/pages/wallets.html">
+          <strong>المحافظ</strong><span>متابعة المحافظ وطلبات الشحن.</span>
+        </a></li>
+        <li data-permission="support.read" hidden><a href="/pages/support.html">
+          <strong>محادثات الدعم</strong><span>متابعة رسائل الزبائن والرد عليها.</span>
+        </a></li>
+        <li data-permission="promotions.read" hidden><a href="/pages/customer-home.html">
+          <strong>واجهات تطبيق الزبون</strong><span>ترتيب الأقسام وإدارة شريط الإعلانات.</span>
+        </a></li>
+      </ul>
+      <p id="shortcuts-empty" hidden>يمكنك الوصول إلى الأقسام الأخرى من القائمة الجانبية بحسب صلاحيات حسابك.</p>
+    </div>
+  </main>
+</body>
+</html>
