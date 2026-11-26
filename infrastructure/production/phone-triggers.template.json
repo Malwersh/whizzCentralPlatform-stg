@@ -1,0 +1,666 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Production phone challenge functions. OTP delivery disabled; no public endpoints.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    },
+    "MerchantArtifactKey": {
+      "Type": "String",
+      "AllowedPattern": "merchant-phone-trigger/[a-f0-9]{64}.zip"
+    },
+    "MerchantArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1
+    },
+    "CustomerPoolId": {
+      "Type": "String",
+      "Default": "us-east-1_rNtNKVsVf",
+      "AllowedValues": [
+        "us-east-1_rNtNKVsVf"
+      ]
+    },
+    "CustomerOtpEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ]
+    },
+    "DriverPoolId": {
+      "Type": "String",
+      "Default": "us-east-1_5sUT54eCB",
+      "AllowedValues": [
+        "us-east-1_5sUT54eCB"
+      ]
+    },
+    "DriverOtpEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ]
+    },
+    "MerchantPoolId": {
+      "Type": "String",
+      "Default": "us-east-1_2sKZ4fGbZ",
+      "AllowedValues": [
+        "us-east-1_2sKZ4fGbZ"
+      ]
+    },
+    "MerchantOtpEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ]
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "MerchantOtpSessionsTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "TableName": "wizz-production-MerchantOtpSessions",
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          }
+        ],
+        "SSESpecification": {
+          "SSEEnabled": true
+        },
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Project",
+            "Value": "Wizz"
+          }
+        ],
+        "TimeToLiveSpecification": {
+          "Enabled": true,
+          "AttributeName": "expiresAt"
+        }
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "CustomerOtpSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Name": "wizz/production/customer/otp",
+        "Description": "Fresh HMAC key; provider API key must be configured before activation.",
+        "GenerateSecretString": {
+          "SecretStringTemplate": "{\"apiKey\": \"\", \"configurationStatus\": \"PRODUCTION_PROVIDER_REQUIRED\"}",
+          "GenerateStringKey": "hmacKey",
+          "PasswordLength": 64,
+          "ExcludePunctuation": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          }
+        ]
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "CustomerChallengeLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-customer-phone-challenge",
+        "RetentionInDays": 90
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "CustomerChallengeRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "ProductionPhoneChallengeOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-customer-phone-challenge:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-CustomerPhoneAuth"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue"
+                  ],
+                  "Resource": {
+                    "Ref": "CustomerOtpSecret"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "CustomerChallengeFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "FunctionName": "wizz-production-customer-phone-challenge",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Timeout": 10,
+        "Role": {
+          "Fn::GetAtt": [
+            "CustomerChallengeRole",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "ZipFile": "'use strict';\nconst nativeRequire = require;\nconst factories = {\n\"challenge-policy\": function(module, exports, require) {\n'use strict';\nconst crypto = require('node:crypto');\nconst MAX_ATTEMPTS = 5;\nconst TTL_SECONDS = 300;\nfunction defineChallenge(event) {\n  const session = event.request.session || [];\n  const valid = session.every(s => s.challengeName === 'CUSTOM_CHALLENGE');\n  const success = valid && session.length > 0 && session.at(-1).challengeResult === true;\n  event.response = {\n    issueTokens: success && !event.request.userNotFound,\n    failAuthentication: !valid || !!event.request.userNotFound || (!success && session.length >= MAX_ATTEMPTS),\n  };\n  if (!event.response.issueTokens && !event.response.failAuthentication) event.response.challengeName = 'CUSTOM_CHALLENGE';\n  return event;\n}\nfunction digest(key, id, username, code) {\n  return crypto.createHmac('sha256', key).update(JSON.stringify([id, username, code])).digest('hex');\n}\nfunction matches(key, record, username, answer, now) {\n  if (!record || record.username !== username || record.expiresAt <= now || record.used || record.attempts >= MAX_ATTEMPTS || !/^[0-9]{6}$/.test(answer || '')) return false;\n  const expected = Buffer.from(record.digest, 'hex');\n  const received = Buffer.from(digest(key, record.id, username, answer), 'hex');\n  return expected.length === received.length && crypto.timingSafeEqual(expected, received);\n}\nmodule.exports = { defineChallenge, digest, matches, MAX_ATTEMPTS, TTL_SECONDS };\n\n},\n\"login-proof\": function(module, exports, require) {\n'use strict';\nconst crypto = require('node:crypto');\nconst { digest } = require('./challenge-policy');\nfunction newProof(key, username, time) {\n  const id=crypto.randomUUID();\n  const answer=crypto.randomBytes(32).toString('hex');\n  return {answer,record:{id,username,purpose:'login-proof',expiresAt:time+90,attempts:0,used:false,digest:digest(key,id,username,answer)}};\n}\nfunction proofMatches(key, record, username, answer, time) {\n  if (!record || record.purpose!=='login-proof' || record.username!==username || record.used || record.expiresAt<=time || !/^[a-f0-9]{64}$/.test(answer || '')) return false;\n  const expected=Buffer.from(record.digest,'hex'),actual=Buffer.from(digest(key,record.id,username,answer),'hex');\n  return expected.length===actual.length && crypto.timingSafeEqual(expected,actual);\n}\nmodule.exports={newProof,proofMatches};\n\n},\n\"triggers\": function(module, exports, require) {\n'use strict';\nconst {DynamoDBClient}=require('@aws-sdk/client-dynamodb');\nconst {DynamoDBDocumentClient,GetCommand,UpdateCommand}=require('@aws-sdk/lib-dynamodb');\nconst {SecretsManagerClient,GetSecretValueCommand}=require('@aws-sdk/client-secrets-manager');\nconst {defineChallenge}=require('./challenge-policy');\nconst {proofMatches}=require('./login-proof');\nconst db=DynamoDBDocumentClient.from(new DynamoDBClient({})),secrets=new SecretsManagerClient({});\nexports.handler=async e=>{\n if(e.userPoolId!==process.env.USER_POOL_ID)throw Error('Wrong pool');\n if(e.triggerSource==='DefineAuthChallenge_Authentication')return defineChallenge(e);\n if(e.request.userNotFound || e.request.userAttributes.phone_number_verified!=='true')throw Error('Phone verification required');\n const table=process.env.OTP_TABLE,time=Math.floor(Date.now()/1000);\n if(e.triggerSource==='CreateAuthChallenge_Authentication'){\n  const {Item:login}=await db.send(new GetCommand({TableName:table,Key:{id:`LOGIN#${e.userName}`},ConsistentRead:true}));\n  if(!login || login.expiresAt<=time)throw Error('SMS verification required');\n  const {Item:proof}=await db.send(new GetCommand({TableName:table,Key:{id:login.proofId},ConsistentRead:true}));\n  if(!proof || proof.username!==e.userName || proof.purpose!=='login-proof' || proof.used || proof.expiresAt<=time)throw Error('SMS verification required');\n  e.response.privateChallengeParameters={id:proof.id};e.response.publicChallengeParameters={method:'verified-phone'};e.response.challengeMetadata=proof.id;return e;\n }\n if(e.triggerSource==='VerifyAuthChallengeResponse_Authentication'){\n  e.response.answerCorrect=false;const id=e.request.privateChallengeParameters?.id;if(!id)return e;\n  const {Item:proof}=await db.send(new GetCommand({TableName:table,Key:{id},ConsistentRead:true}));\n  const config=JSON.parse((await secrets.send(new GetSecretValueCommand({SecretId:process.env.OTP_SECRET_ARN}))).SecretString);\n  if(!proofMatches(config.hmacKey,proof,e.userName,e.request.challengeAnswer,time))return e;\n  try{await db.send(new UpdateCommand({TableName:table,Key:{id},UpdateExpression:'SET used = :yes',ConditionExpression:'username = :username AND used = :no AND expiresAt > :now',ExpressionAttributeValues:{':username':e.userName,':yes':true,':no':false,':now':time}}));e.response.answerCorrect=true;}\n  catch(x){if(x.name!=='ConditionalCheckFailedException')throw x;}return e;\n }\n throw Error('Unsupported trigger');\n};\n\n},\n};\nconst cache = {};\nfunction load(name) {\n  if (!name.startsWith('./')) return nativeRequire(name);\n  const id = name.slice(2);\n  if (!Object.hasOwn(factories, id)) throw Error('Unknown bundled module');\n  if (!cache[id]) {\n    const module = {exports: {}};\n    cache[id] = module;\n    factories[id](module, module.exports, load);\n  }\n  return cache[id].exports;\n}\nconst application = load('./triggers');\nexports.handler = async event => {\n  if (process.env.ENVIRONMENT !== 'production' || process.env.OTP_ENABLED !== 'true' ||\n      !process.env.USER_POOL_ID || !process.env.OTP_TABLE || !process.env.OTP_SECRET_ARN ||\n      event.userPoolId !== process.env.USER_POOL_ID) throw Error('OTP configuration unavailable');\n  return application.handler(event);\n};\n"
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "OTP_ENABLED": {
+              "Ref": "CustomerOtpEnabled"
+            },
+            "USER_POOL_ID": {
+              "Ref": "CustomerPoolId"
+            },
+            "OTP_TABLE": "wizz-production-CustomerPhoneAuth",
+            "OTP_SECRET_ARN": {
+              "Ref": "CustomerOtpSecret"
+            }
+          }
+        },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "CustomerChallengeLogGroup"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          }
+        ]
+      }
+    },
+    "CustomerCognitoInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "CustomerChallengeFunction"
+        },
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CustomerPoolId}"
+        }
+      }
+    },
+    "DriverOtpSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Name": "wizz/production/driver/otp",
+        "Description": "Fresh HMAC key; provider API key must be configured before activation.",
+        "GenerateSecretString": {
+          "SecretStringTemplate": "{\"apiKey\": \"\", \"configurationStatus\": \"PRODUCTION_PROVIDER_REQUIRED\"}",
+          "GenerateStringKey": "hmacKey",
+          "PasswordLength": 64,
+          "ExcludePunctuation": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          }
+        ]
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "DriverChallengeLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-driver-phone-challenge",
+        "RetentionInDays": 90
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "DriverChallengeRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "ProductionPhoneChallengeOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-driver-phone-challenge:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DriverOtpSessions"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue"
+                  ],
+                  "Resource": {
+                    "Ref": "DriverOtpSecret"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cognito-idp:AdminUpdateUserAttributes"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${DriverPoolId}"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "DriverChallengeFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "FunctionName": "wizz-production-driver-phone-challenge",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Timeout": 10,
+        "Role": {
+          "Fn::GetAtt": [
+            "DriverChallengeRole",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "ZipFile": "'use strict';\nconst nativeRequire = require;\nconst factories = {\n\"challenge-policy\": function(module, exports, require) {\n'use strict';\nconst crypto = require('node:crypto');\nconst MAX_ATTEMPTS = 5;\nconst TTL_SECONDS = 300;\nfunction defineChallenge(event) {\n  const session = event.request.session || [];\n  const valid = session.every(s => s.challengeName === 'CUSTOM_CHALLENGE');\n  const success = valid && session.length > 0 && session.at(-1).challengeResult === true;\n  event.response = {\n    issueTokens: success && !event.request.userNotFound,\n    failAuthentication: !valid || !!event.request.userNotFound || (!success && session.length >= MAX_ATTEMPTS),\n  };\n  if (!event.response.issueTokens && !event.response.failAuthentication) event.response.challengeName = 'CUSTOM_CHALLENGE';\n  return event;\n}\nfunction digest(key, id, username, code) {\n  return crypto.createHmac('sha256', key).update(JSON.stringify([id, username, code])).digest('hex');\n}\nfunction matches(key, record, username, answer, now) {\n  if (!record || record.username !== username || record.expiresAt <= now || record.used || record.attempts >= MAX_ATTEMPTS || !/^[0-9]{6}$/.test(answer || '')) return false;\n  const expected = Buffer.from(record.digest, 'hex');\n  const received = Buffer.from(digest(key, record.id, username, answer), 'hex');\n  return expected.length === received.length && crypto.timingSafeEqual(expected, received);\n}\nmodule.exports = { defineChallenge, digest, matches, MAX_ATTEMPTS, TTL_SECONDS };\n\n},\n\"login-proof\": function(module, exports, require) {\n'use strict';\nconst crypto = require('node:crypto');\nconst { digest } = require('./challenge-policy');\nfunction newProof(key, username, time) {\n  const id=crypto.randomUUID();\n  const answer=crypto.randomBytes(32).toString('hex');\n  return {answer,record:{id,username,purpose:'login-proof',expiresAt:time+90,attempts:0,used:false,digest:digest(key,id,username,answer)}};\n}\nfunction proofMatches(key, record, username, answer, time) {\n  if (!record || record.purpose!=='login-proof' || record.username!==username || record.used || record.expiresAt<=time || !/^[a-f0-9]{64}$/.test(answer || '')) return false;\n  const expected=Buffer.from(record.digest,'hex'),actual=Buffer.from(digest(key,record.id,username,answer),'hex');\n  return expected.length===actual.length && crypto.timingSafeEqual(expected,actual);\n}\nmodule.exports={newProof,proofMatches};\n\n},\n\"triggers\": function(module, exports, require) {\n'use strict';\nconst crypto = require('node:crypto');\nconst { DynamoDBClient } = require('@aws-sdk/client-dynamodb');\nconst { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');\nconst { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');\nconst { CognitoIdentityProviderClient, AdminUpdateUserAttributesCommand } = require('@aws-sdk/client-cognito-identity-provider');\nconst cognito = new CognitoIdentityProviderClient({});\nconst { proofMatches } = require('./login-proof');\nconst { normalizeIraqiPhone } = require('./iraqi-phone');\nconst { defineChallenge, digest, matches, MAX_ATTEMPTS, TTL_SECONDS } = require('./challenge-policy');\nconst db = DynamoDBDocumentClient.from(new DynamoDBClient({}));\nconst secrets = new SecretsManagerClient({});\nlet secretCache;\nasync function config() {\n  if (!secretCache) {\n    const value = await secrets.send(new GetSecretValueCommand({SecretId:process.env.OTP_SECRET_ARN}));\n    const parsed = JSON.parse(value.SecretString);\n    if (!parsed.apiKey || !parsed.hmacKey) throw new Error('OTP configuration unavailable');\n    secretCache=parsed;\n  }\n  return secretCache;\n}\nconst now = () => Math.floor(Date.now()/1000);\nasync function create(event) {\n  if (event.request.userNotFound) throw new Error('Unable to start authentication');\n  if (event.request.userAttributes.phone_number_verified !== 'true') {\n    throw new Error('Phone enrollment required before custom authentication');\n  }\n  const phone = normalizeIraqiPhone(event.request.userAttributes.phone_number);\n  const {Item:login} = await db.send(new GetCommand({TableName:process.env.OTP_TABLE,Key:{id:`LOGIN#${event.userName}`},ConsistentRead:true}));\n  if (login && login.expiresAt > now()) {\n    const {Item:proof} = await db.send(new GetCommand({TableName:process.env.OTP_TABLE,Key:{id:login.proofId},ConsistentRead:true}));\n    if (proof && proof.username===event.userName && proof.purpose==='login-proof' && !proof.used && proof.expiresAt>now()) {\n      event.response.privateChallengeParameters={id:proof.id};\n      event.response.publicChallengeParameters={method:'verified-phone'};\n      event.response.challengeMetadata=proof.id;\n      return event;\n    }\n  }\n  const previous = (event.request.session || []).at(-1);\n  if (previous) {\n    // Incorrect answers continue the same challenge: no additional SMS or new lifetime.\n    const id = previous.challengeMetadata;\n    const {Item} = await db.send(new GetCommand({TableName:process.env.OTP_TABLE,Key:{id},ConsistentRead:true}));\n    if (!Item || Item.username !== event.userName || Item.expiresAt <= now()) throw new Error('Challenge expired');\n    event.response.privateChallengeParameters={id};\n    event.response.publicChallengeParameters={phoneNumber:phone,expiresAt:String(Item.expiresAt)};\n    event.response.challengeMetadata=id;\n    return event;\n  }\n  const secret=await config(); const time=now();\n  // Atomic phone cooldown also stops bypass through direct Cognito InitiateAuth.\n  await db.send(new TransactWriteCommand({TransactItems:[\n    {Update:{TableName:process.env.OTP_TABLE,Key:{id:`COOLDOWN#${phone}`},\n      UpdateExpression:'SET nextAllowedAt = :next, expiresAt = :ttl',\n      ConditionExpression:'attribute_not_exists(nextAllowedAt) OR nextAllowedAt <= :now',\n      ExpressionAttributeValues:{':next':time+60,':ttl':time+86400,':now':time}}},\n    {Update:{TableName:process.env.OTP_TABLE,Key:{id:`DAILY#${Math.floor(time/86400)}#${phone}`},\n      UpdateExpression:'SET expiresAt = :ttl ADD sends :one',\n      ConditionExpression:'attribute_not_exists(sends) OR sends < :limit',\n      ExpressionAttributeValues:{':ttl':time+172800,':one':1,':limit':10}}}\n  ]}));\n  const id=crypto.randomUUID(); const code=String(crypto.randomInt(0,1000000)).padStart(6,'0');\n  const record={id,username:event.userName,phone,expiresAt:time+TTL_SECONDS,attempts:0,used:false,digest:digest(secret.hmacKey,id,event.userName,code)};\n  await db.send(new PutCommand({TableName:process.env.OTP_TABLE,Item:record,ConditionExpression:'attribute_not_exists(id)'}));\n  const response=await fetch('https://api.otpiq.com/api/sms',{method:'POST',headers:{Authorization:`Bearer ${secret.apiKey}`,'Content-Type':'application/json'},\n    body:JSON.stringify({phoneNumber:phone.slice(1),smsType:'verification',provider:'whatsapp-telegram-sms',verificationCode:code}),signal:AbortSignal.timeout(3500)});\n  if (!response.ok) throw new Error('Unable to deliver verification code');\n  event.response.privateChallengeParameters={id};\n  event.response.publicChallengeParameters={phoneNumber:phone,expiresAt:String(record.expiresAt)};\n  event.response.challengeMetadata=id;\n  return event;\n}\nasync function verify(event) {\n  event.response.answerCorrect=false;\n  const id=event.request.privateChallengeParameters?.id;\n  if (!id || event.request.userNotFound) return event;\n  const {Item:record}=await db.send(new GetCommand({TableName:process.env.OTP_TABLE,Key:{id},ConsistentRead:true}));\n  const secret=await config(); const time=now();\n  const correct=record?.purpose==='login-proof'\n    ? proofMatches(secret.hmacKey,record,event.userName,event.request.challengeAnswer,time)\n    : matches(secret.hmacKey,record,event.userName,event.request.challengeAnswer,time);\n  if (!record || record.username!==event.userName) return event;\n  try {\n    await db.send(new UpdateCommand({TableName:process.env.OTP_TABLE,Key:{id},\n      UpdateExpression:correct?'SET used = :true ADD attempts :one':'ADD attempts :one',\n      ConditionExpression:'username = :username AND used = :false AND expiresAt > :now AND attempts < :max',\n      ExpressionAttributeValues:{':username':event.userName,':false':false,':now':time,':max':MAX_ATTEMPTS,':one':1,...(correct?{':true':true}:{})}}));\n    if (correct) {\n      await cognito.send(new AdminUpdateUserAttributesCommand({UserPoolId:event.userPoolId,Username:event.userName,\n        UserAttributes:[{Name:'phone_number_verified',Value:'true'}]}));\n    }\n    event.response.answerCorrect=correct;\n  } catch(error) { if(error.name!=='ConditionalCheckFailedException') throw error; }\n  return event;\n}\nexports.handler=async event => {\n  if (event.triggerSource==='DefineAuthChallenge_Authentication') return defineChallenge(event);\n  if (event.triggerSource==='CreateAuthChallenge_Authentication') return create(event);\n  if (event.triggerSource==='VerifyAuthChallengeResponse_Authentication') return verify(event);\n  throw new Error('Unsupported authentication trigger');\n};\n\n},\n\"iraqi-phone\": function(module, exports, require) {\n'use strict';\n\n// Iraq mobile numbers only. Canonical storage is E.164 (+9647XXXXXXXXX).\nfunction normalizeIraqiPhone(input) {\n  if (typeof input !== 'string') throw new TypeError('Phone must be a string');\n  const digits = input.trim().replace(/[\u0660-\u0669\u06f0-\u06f9]/g, c => {\n    const n = c.charCodeAt(0);\n    return String(n >= 0x6f0 ? n - 0x6f0 : n - 0x660);\n  }).replace(/[\\s()\\-]/g, '');\n  let national;\n  if (/^\\+9647[0-9]{9}$/.test(digits)) national = digits.slice(4);\n  else if (/^009647[0-9]{9}$/.test(digits)) national = digits.slice(5);\n  else if (/^9647[0-9]{9}$/.test(digits)) national = digits.slice(3);\n  else if (/^07[0-9]{9}$/.test(digits)) national = digits.slice(1);\n  else if (/^7[0-9]{9}$/.test(digits)) national = digits;\n  else throw new Error('Only Iraqi mobile numbers (+964) are supported');\n  return '+964' + national;\n}\nmodule.exports = { normalizeIraqiPhone };\n\n},\n};\nconst cache = {};\nfunction load(name) {\n  if (!name.startsWith('./')) return nativeRequire(name);\n  const id = name.slice(2);\n  if (!Object.hasOwn(factories, id)) throw Error('Unknown bundled module');\n  if (!cache[id]) {\n    const module = {exports: {}};\n    cache[id] = module;\n    factories[id](module, module.exports, load);\n  }\n  return cache[id].exports;\n}\nconst application = load('./triggers');\nexports.handler = async event => {\n  if (process.env.ENVIRONMENT !== 'production' || process.env.OTP_ENABLED !== 'true' ||\n      !process.env.USER_POOL_ID || !process.env.OTP_TABLE || !process.env.OTP_SECRET_ARN ||\n      event.userPoolId !== process.env.USER_POOL_ID) throw Error('OTP configuration unavailable');\n  return application.handler(event);\n};\n"
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "OTP_ENABLED": {
+              "Ref": "DriverOtpEnabled"
+            },
+            "USER_POOL_ID": {
+              "Ref": "DriverPoolId"
+            },
+            "OTP_TABLE": "wizz-production-DriverOtpSessions",
+            "OTP_SECRET_ARN": {
+              "Ref": "DriverOtpSecret"
+            }
+          }
+        },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "DriverChallengeLogGroup"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          }
+        ]
+      }
+    },
+    "DriverCognitoInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "DriverChallengeFunction"
+        },
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${DriverPoolId}"
+        }
+      }
+    },
+    "MerchantOtpSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Name": "wizz/production/merchant/otp",
+        "Description": "Fresh HMAC key; provider API key must be configured before activation.",
+        "GenerateSecretString": {
+          "SecretStringTemplate": "{\"apiKey\": \"\", \"configurationStatus\": \"PRODUCTION_PROVIDER_REQUIRED\"}",
+          "GenerateStringKey": "hmacKey",
+          "PasswordLength": 64,
+          "ExcludePunctuation": true
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          }
+        ]
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "MerchantChallengeLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-merchant-phone-challenge",
+        "RetentionInDays": 90
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "MerchantChallengeRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "ProductionPhoneChallengeOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-merchant-phone-challenge:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MerchantOtpSessions"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue"
+                  ],
+                  "Resource": {
+                    "Ref": "MerchantOtpSecret"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MerchantOtpSessions"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "ACCOUNT_LIFECYCLE#MERCHANT#*"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "MerchantChallengeFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "FunctionName": "wizz-production-merchant-phone-challenge",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Timeout": 10,
+        "Role": {
+          "Fn::GetAtt": [
+            "MerchantChallengeRole",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "MerchantArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "MerchantArtifactVersion"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "OTP_ENABLED": {
+              "Ref": "MerchantOtpEnabled"
+            },
+            "USER_POOL_ID": {
+              "Ref": "MerchantPoolId"
+            },
+            "OTP_TABLE": "wizz-production-MerchantOtpSessions",
+            "OTP_SECRET_ARN": {
+              "Ref": "MerchantOtpSecret"
+            },
+            "USER_POOL_CLIENT_ID": "5l8ng11uudg146crop63926svq"
+          }
+        },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "MerchantChallengeLogGroup"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          }
+        ]
+      },
+      "DependsOn": "MerchantOtpSessionsTable"
+    },
+    "MerchantCognitoInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "MerchantChallengeFunction"
+        },
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${MerchantPoolId}"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "CustomerChallengeArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "CustomerChallengeFunction",
+          "Arn"
+        ]
+      }
+    },
+    "DriverChallengeArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "DriverChallengeFunction",
+          "Arn"
+        ]
+      }
+    },
+    "MerchantChallengeArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "MerchantChallengeFunction",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

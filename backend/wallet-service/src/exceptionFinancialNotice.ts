@@ -1,9 +1,10 @@
+import {walletNotificationTable} from './walletBindings';
 import {createHash} from 'node:crypto';
 type Row=Record<string,any>;
 /** Called only from a verified case transition; appended to that same transaction. */
 export function exceptionFinancialNotices(c:Row,v:Row,receipt:Row):any[]{
  if(process.env.EXCEPTION_FINANCIAL_NOTIFICATIONS_MODE!=='REQUIRED')return [];
- const table=process.env.WALLET_NOTIFICATIONS_TABLE;
+ const table=walletNotificationTable();
  const actions:Record<string,[boolean,string,string]>={
   APPROVE_EXCEPTION_ENTITLEMENTS:[false,'اعتُمد قرار المستحقات','اعتُمد قرار مستحقات محاولة التوصيل. لم يُنفّذ القيد المالي بعد، ولا يعني الاعتماد صرف المبلغ.'],
   EXECUTE_EXCEPTION_ENTITLEMENTS:[true,'نُفذ قرار المستحقات','نُفذ قرار مستحقات محاولة التوصيل. راجع حركة المحفظة لمعرفة ما قُيّد لك؛ لا يُعد هذا صرفًا نقديًا جديدًا.'],

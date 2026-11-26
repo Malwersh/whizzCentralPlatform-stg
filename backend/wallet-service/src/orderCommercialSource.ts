@@ -11,9 +11,9 @@ import {createStagingOrderGoodsPricing} from './orderGoodsPricing';
 import {moneyFromMinor, readMoney, multiplyMoney, readWholeIqdRounding, quantizeWholeIqd, toWholeIqdExact} from './money';
 import {quoteEntityIdValid, quoteHash} from './deliveryQuoteRecord';
 import {prepareDriverOfferFinancialSnapshot} from './driverOfferOrderReader';
+import {checkoutTables} from './checkoutTables';
 type Row=Record<string,any>;
 const copy=<T>(v:T):T=>JSON.parse(JSON.stringify(v));
-const platform='staging-MerchantPlatform', staff='staging-PlatformStaff';
 export class CommercialSourceError extends Error {
  readonly statusCode=409;
  constructor(public readonly code:string){super(code);this.name='CommercialSourceError';}
@@ -30,13 +30,14 @@ function pin(table:string,key:Row,row:Row,fields=Object.keys(row)) {
  if(Buffer.byteLength(clauses.join(' AND '))>3900)return fail();
  return {ConditionCheck:{TableName:table,Key:key,ConditionExpression:clauses.join(' AND '),ExpressionAttributeNames:names,ExpressionAttributeValues:values}};
 }
-/** Staging-only trusted source composition. Reads server-owned, separately accepted/approved records.
+/** Reads server-owned, separately accepted and approved commercial records.
  * No initialization, assumed rates, client-supplied agreement/funding or standalone wallet write.
  * Operations MUST commit together with the order, catalog, campaign usage and Quote fences. */
 export async function readStagingCommercialAgreement(db:Pick<DynamoDBDocumentClient,'send'>,branchId:string,at:number){
  validId(branchId);
+ const {branches,platform,policy:staff}=checkoutTables();
  async function get(table:string,key:Row):Promise<Row>{try{const r=await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}));if(!r.Item)return fail();return copy(r.Item);}catch(e){if(e instanceof CommercialSourceError)throw e;return fail();}}
-  const branch=await get('WhizzMerchants_Businesses',{businessId:branchId});
+  const branch=await get(branches,{businessId:branchId});
   const merchantId=validId(branch.organizationId),ownerId=validId(branch.ownerId);
   if(branch.businessId!==branchId||branch.cognitoUserId!==ownerId||branch.isActive!==true||branch.status!=='approved'||
    branch.deletionRequestId!=null||branch.orderIntakeDeletionRequestId!=null||(branch.orderIntakeTransferExpiresAt!==undefined&&!(Number.isSafeInteger(branch.orderIntakeTransferExpiresAt)&&branch.orderIntakeTransferExpiresAt<=Date.now()))||branch.platformSuspended===true||branch.ordersBlocked===true||
@@ -76,6 +77,7 @@ export async function readStagingCommercialAgreement(db:Pick<DynamoDBDocumentCli
 }
 export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableFullCash?:boolean;cashRoundingRequired?:boolean;deliveryPromotion?:{prepare:(facts:any)=>Promise<Row>}}) {
  const {db}=options,now=options.now??Date.now;
+ const {branches,platform,policy:staff,holds,wallets,regions}=checkoutTables();
  async function get(table:string,key:Row):Promise<Row>{try{const r=await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}));if(!r.Item)return fail();return copy(r.Item);}catch(e){if(e instanceof CommercialSourceError)throw e;return fail();}}
  return Object.freeze({async prepare(input:unknown) {
   const r=copy(exact(input,['orderId','branchId','items','quote','discount','tip']));
@@ -172,23 +174,23 @@ export function createStagingCommercialSource(options:{db:Pick<DynamoDBDocumentC
   if(!options.enableFullCash&&(amountMinor||deliveryAmount.minorAmount)) {
    if(amountMinor%1000!==0)return fail('FUNDING_WALLET_PRECISION_UNSUPPORTED');
    const walletId='WALLET#PLATFORM',walletKey={walletId,sk:'META'};
-   const wallet=await get('staging-Wallets',walletKey);
+   const wallet=await get(wallets,walletKey);
    try {operations.push(...preparePlatformPromotionFunding({orderId,at:timestamp,wallet,components:[...(amountMinor?[{kind:'GOODS' as const,amount:calculation.platformGoodsDiscountFundingRequired,metadata:{agreementId,agreementVersion:version,fundingPolicy}}]:[]),...(deliveryAmount.minorAmount?[{kind:'DELIVERY' as const,amount:deliveryAmount,metadata:{policyPin:deliveryFunding!.policyPin}}]:[])]}).operations);}
    catch(error){return fail((error as any)?.code==='FUNDING_WALLET_PRECISION_UNSUPPORTED'?'FUNDING_WALLET_PRECISION_UNSUPPORTED':'DISCOUNT_FUNDING_UNAVAILABLE');}
   }
-  const zone=await get('WizzCentral_Regions',{regionId:validId(quote.destinationRegionId)});
-  const city=await get('WizzCentral_Regions',{regionId:validId(zone.parent_id)});
-  const governorate=await get('WizzCentral_Regions',{regionId:validId(city.parent_id)});
+  const zone=await get(regions,{regionId:validId(quote.destinationRegionId)});
+  const city=await get(regions,{regionId:validId(zone.parent_id)});
+  const governorate=await get(regions,{regionId:validId(city.parent_id)});
   if(zone.level!==3||city.level!==2||governorate.level!==1||[zone,city,governorate].some(v=>![true,1,'true','1'].includes(v.is_active)))return fail();
-  for(const region of [zone,city,governorate])operations.push(pin('WizzCentral_Regions',{regionId:region.regionId},region));
+  for(const region of [zone,city,governorate])operations.push(pin(regions,{regionId:region.regionId},region));
   const baseSnapshot=prepareDriverOfferFinancialSnapshot({snapshotId:'COMMERCIAL:'+orderId,revision:1,orderId,branchId,merchantId,
    zoneId:zone.regionId,cityId:city.regionId,governorateId:governorate.regionId,branchPoint:quote.origin,customerPoint:quote.destination,
    confirmedCustomerTotal:calculation.customerTotal,allocation:calculation.allocationInput,paymentEvidence:null});
   const financialSnapshot=options.enableFullCash?prepareFullCashOrderSnapshot({order:baseSnapshot.snapshot,deliveryFunding}):deliveryFunding?prepareDeliveryFundedFinancialSnapshot({order:baseSnapshot.snapshot,deliveryFunding}):baseSnapshot;
-  if(options.enableFullCash)operations.push({Put:{TableName:'staging-Holds',Item:{orderId,sk:'FULL_CASH_FUNDING_COMMITMENT',kind:'FULL_CASH_FUNDING_COMMITMENT',settlementModel:'FULL_CASH_AT_DELIVERY_V1',status:'COMMITTED',branchId,merchantId,snapshotDigest:financialSnapshot.digest,deliveryFunding,goodsExposure,...(cashRounding?{cashRounding}:{}),platformGoodsFunding:calculation.platformGoodsDiscountFundingRequired,agreement:{id:agreementId,version,termsHash:record.termsHash},createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}});
+  if(options.enableFullCash)operations.push({Put:{TableName:holds,Item:{orderId,sk:'FULL_CASH_FUNDING_COMMITMENT',kind:'FULL_CASH_FUNDING_COMMITMENT',settlementModel:'FULL_CASH_AT_DELIVERY_V1',status:'COMMITTED',branchId,merchantId,snapshotDigest:financialSnapshot.digest,deliveryFunding,goodsExposure,...(cashRounding?{cashRounding}:{}),platformGoodsFunding:calculation.platformGoodsDiscountFundingRequired,agreement:{id:agreementId,version,termsHash:record.termsHash},createdAt:timestamp},ConditionExpression:'attribute_not_exists(orderId)'}});
   const branchFields=['businessId','ownerId','cognitoUserId','organizationId','commercialAgreementId','commercialAgreementVersion','regionPath',
    'status','isActive','onboardingSchemaVersion','onboardingComplete','acceptingOrders','platformSuspended','ordersBlocked','deletionRequestId','minimum_order'];
-  const branchCondition=pin('WhizzMerchants_Businesses',{businessId:branchId},branch,branchFields);
+  const branchCondition=pin(branches,{businessId:branchId},branch,branchFields);
   const preview={...(promotion?.agreement===true?{deliveryAgreement:{...promotion.deliveryFunding.policyPin,kind:promotion.customerRule}}:{}),...(options.enableFullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),...(promotion?.benefitReceipt?{platformBenefitReceipt:copy(promotion.benefitReceipt)}:{}),schemaVersion:deliveryFunding?2:1,...(promotion?.cashRoundingEvidence?{deliveryCashRounding:copy(promotion.cashRoundingEvidence)}:{}),...(deliveryFunding?{deliveryFunding}:{}),kind:'COMMERCIAL_CHECKOUT',orderId,branchId,merchantId,expiresAt:new Date(validUntil).toISOString(),
    ...(cashRounding?{cashRounding}:{}),goodsFingerprint:goods.fingerprint,agreement:{id:agreementId,version,termsHash:record.termsHash},funding,
    calculation,financialSnapshot,branchCondition};

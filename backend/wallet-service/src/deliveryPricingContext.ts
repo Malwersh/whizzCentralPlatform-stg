@@ -1,8 +1,9 @@
 import { GetCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { createHash } from 'node:crypto';
-import { calculateDeliveryFee, validatePricingRules } from './deliveryPricing';
+import { allowsDeliveryRegionPair, calculateDeliveryFee, resolveDeliveryCoveragePolicy, validatePricingRules } from './deliveryPricing';
 import { createCoveredDeliveryRouter, Point, RoutingError } from './roadRouting';
 import { createDynamoRegionCoverage } from './regionCoverage';
+import { checkoutTables } from './checkoutTables';
 
 type Row = Record<string, any>;
 export class PricingContextError extends Error {
@@ -27,8 +28,6 @@ function location(value: Row): Point {
       typeof p.longitude !== 'number' || !Number.isFinite(p.longitude) || Math.abs(p.longitude) > 180) return fail('PRICING_REFERENCE_UNAVAILABLE');
   return Object.freeze(p);
 }
-const tables = { branches: 'WhizzMerchants_Businesses', addresses: 'WizzUser_addresses_staging',
-  policy: 'staging-PlatformStaff', platform: 'staging-MerchantPlatform', deletion: 'staging-AccountDeletion' };
 
 /** Internal composition, not an HTTP handler. authenticateCustomer must run the live customer account guard.
  * Its returned userId is the verified profile key, not a userId supplied in a request body.
@@ -41,11 +40,13 @@ export function createStagingDeliveryPricingContext(options: {
   now?: () => number;
   /** Read-only storefront composition only. Never supplied by the financial quote/order handlers. */
   pointPreview?: {point: Point; regionId: string};
+  /** Catalog requires an explicitly enabled rule for delivery across a region boundary. */
+  catalogPreview?: boolean;
 }) {
   const { db, authenticateCustomer, router } = options;
   const now = options.now ?? Date.now;
-  const resolveCoverage = createDynamoRegionCoverage({ db, tables: { regions: 'WizzCentral_Regions',
-    derived: 'WizzCentral_RegionsDerived_staging', index: 'WizzCentral_RegionIndex_staging' } });
+  const tables = checkoutTables();
+  const resolveCoverage = createDynamoRegionCoverage({ db, tables });
   async function get(table: string, key: Row, fields: string[]): Promise<Row | undefined> {
     const names: Record<string, string> = {};
     const projection = fields.map((field, i) => field.split('.').map((part, j) => {
@@ -70,7 +71,7 @@ export function createStagingDeliveryPricingContext(options: {
         'latitude', 'longitude', 'address.latitude', 'address.longitude', 'regionId', 'regionPath', 'status', 'isActive',
         'onboardingSchemaVersion', 'onboardingComplete', 'acceptingOrders', 'platformSuspended', 'ordersBlocked',
         'deletionRequestId', 'version', 'updatedAt', 'orderReceptionSettings', 'minimum_order']),
-      options.pointPreview ? Promise.resolve({addressId:'POINT_PREVIEW',userId:'POINT_PREVIEW',...location(options.pointPreview.point)}) : get(tables.addresses, { addressId }, ['addressId', 'userId', 'latitude', 'longitude', 'deletionRequestId', 'updatedAt', 'version']),
+      options.pointPreview ? Promise.resolve({addressId:'POINT_PREVIEW',userId:'POINT_PREVIEW',regionId:options.pointPreview.regionId,...location(options.pointPreview.point)}) : get(tables.addresses, { addressId }, ['addressId', 'userId', 'latitude', 'longitude', 'regionId', 'deletionRequestId', 'updatedAt', 'version']),
       needPricing ? get(tables.policy, { pk: 'OPERATIONAL_SETTINGS#DELIVERY_PRICING', sk: 'CURRENT' }, ['pk', 'sk', 'version', 'values']) : undefined
     ]);
     if (!branch || branch.businessId !== branchId || (branch.branchId !== undefined && branch.branchId !== branchId) ||
@@ -122,9 +123,10 @@ export function createStagingDeliveryPricingContext(options: {
       if(options.pointPreview && addressId!=='POINT_PREVIEW')return fail('INVALID_PRICING_REQUEST');
       const identity = await customer();
       const first = await read(identity.userId, branchId, addressId, needPricing);
-      const binding = await router.getDeliveryRoute(first.origin, first.destination);
+      const destinationPreference = id(first.address.regionId) ? { preferredRegionId: first.address.regionId } : undefined;
+      const binding = await router.getDeliveryRoute(first.origin, first.destination, destinationPreference);
       const [currentIdentity, latest, originCoverage, coverage] = await Promise.all([
-        customer(), read(identity.userId, branchId, addressId, needPricing), resolveCoverage(first.origin), resolveCoverage(first.destination)
+        customer(), read(identity.userId, branchId, addressId, needPricing), resolveCoverage(first.origin), resolveCoverage(first.destination, destinationPreference)
       ]);
       if (fingerprint(identity) !== fingerprint(currentIdentity) || first.referenceVersion !== latest.referenceVersion) return fail('PRICING_CONTEXT_CHANGED');
       if (!originCoverage || originCoverage.regionId !== binding.originCoverage.regionId ||
@@ -137,6 +139,19 @@ export function createStagingDeliveryPricingContext(options: {
       const context = Object.freeze({ branchId, merchantId: first.organization?.organizationId ?? 'UNBOUND_MERCHANT',
         zoneId: coverage.regionId, cityId: 'UNBOUND_CITY', governorateId: coverage.governorateId, vehicleType: 'UNASSIGNED' });
       const at = new Date(now()).toISOString();
+      if (needPricing && originCoverage.regionId !== coverage.regionId) {
+        const mode = resolveDeliveryCoveragePolicy({ at, context, rules: first.rules }).crossRegionMode;
+        if (!mode && options.catalogPreview) throw new RoutingError('OUTSIDE_COVERAGE');
+        if (mode) {
+          const neighbor = mode === 'SAME_REGION' ? undefined : await get(tables.neighbors,
+            { neighbor_pair_id: originCoverage.regionId + '#' + coverage.regionId },
+            ['source_region_id', 'target_region_id', 'source_level', 'target_level', 'relationship_type']);
+          const adjacent = neighbor?.source_region_id === originCoverage.regionId &&
+            neighbor?.target_region_id === coverage.regionId && neighbor?.source_level === 3 && neighbor?.target_level === 3 &&
+            neighbor.relationship_type === 'adjacent';
+          if (!allowsDeliveryRegionPair(mode, originCoverage, coverage, adjacent)) throw new RoutingError('OUTSIDE_COVERAGE');
+        }
+      }
       return { first, binding, context, at, branchId, addressId };
   }
   return Object.freeze({

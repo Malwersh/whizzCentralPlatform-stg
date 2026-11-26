@@ -307,9 +307,16 @@ function validate(input) {
   };
 }
 async function route(ctx, actor, method, path, input) {
+  const binding = ctx.offerTables;
+  const platformOnly = Boolean(binding);
+  const sourceTables = binding?.sources ?? tables;
+  const merchantsTable = binding?.merchants ?? MERCHANTS;
+  const regionsTable = binding?.regions ?? REGIONS;
+  const productsTable = binding?.products ?? PRODUCTS;
+  const categoriesTable = binding?.categories ?? CATEGORIES;
   if (!allowed(actor, "promotions.read"))
     throw fail("You do not have permission to view promotions.", 403);
-  const merchants = (await scan(ctx, MERCHANTS)).filter(
+  const merchants = (await scan(ctx, merchantsTable)).filter(
     (m) => !m.isDeleted && !m.deletedAt,
   );
   const visible = merchants.filter(
@@ -325,8 +332,8 @@ async function route(ctx, actor, method, path, input) {
     )
       throw fail("Merchant is outside your assigned regions.", 403);
     const [categories, products] = await Promise.all([
-      scan(ctx, CATEGORIES),
-      scan(ctx, PRODUCTS),
+      scan(ctx, categoriesTable),
+      scan(ctx, productsTable),
     ]);
     return {
       categories: categories
@@ -356,16 +363,16 @@ async function route(ctx, actor, method, path, input) {
   }
   if (method === "GET" && path === "/staff/offers") {
     const [platform, merchant, regions] = await Promise.all([
-      scan(ctx, tables.platform),
-      scan(ctx, tables.merchant),
-      scan(ctx, REGIONS),
+      scan(ctx, sourceTables.platform),
+      platformOnly ? [] : scan(ctx, sourceTables.merchant),
+      scan(ctx, regionsTable),
     ]);
     return {
       offers: await Promise.all([...platform, ...merchant]
         .filter(
           (r) => !r.benefit && !r.isDeleted && !r.deletedAt && inScope(actor, r, merchants),
         )
-        .map(async row => {const offer=normalize(row),sharing=await require('./shared-discount-lock').read(ctx.db,offer.source==='merchant'?'MERCHANT':'PLATFORM',row); return {...offer,sharingLocked:sharing.locked,sharingCanActivate:sharing.initiallyInactive&&!row.sharedStopped,imageUrl:offer.imageKey?await require('./home-slideshow').assets(ctx).url(offer.imageKey):''};})),
+        .map(async row => {const offer=normalize(row),sharing=await require('./shared-discount-lock').read(ctx.db,offer.source==='merchant'?'MERCHANT':'PLATFORM',row,binding?.lock); return {...offer,sharingLocked:sharing.locked,sharingCanActivate:sharing.initiallyInactive&&!row.sharedStopped,imageUrl:offer.imageKey?await require('./home-slideshow').assets(ctx).url(offer.imageKey):''};})),
       merchants: visible.map((m) => ({
         id: m.businessId,
         label: m.businessName || m.businessNameArabic || m.name || m.businessId,
@@ -398,9 +405,9 @@ async function route(ctx, actor, method, path, input) {
     !["/staff/offers/save", "/staff/offers/status"].includes(path)
   )
     throw fail("NOT_FOUND", 404);
-  if (!validSource(input.source) || !validId(input.id))
+  if (!validSource(input.source) || !Object.hasOwn(sourceTables,input.source) || !validId(input.id))
     throw fail("Invalid offer.");
-  const table = tables[input.source],
+  const table = sourceTables[input.source],
     before = await get(ctx, table, { discountId: input.id });
   if(before?.benefit)throw fail('BENEFIT_EDITOR_REQUIRED',409);
   if (
@@ -413,7 +420,7 @@ async function route(ctx, actor, method, path, input) {
       "This offer changed in another window. Reload it before saving.",
       409,
     );
-  const sharedLocks=require('./shared-discount-lock'),sharing=before?await sharedLocks.read(ctx.db,input.source==='merchant'?'MERCHANT':'PLATFORM',before):null;
+  const sharedLocks=require('./shared-discount-lock'),sharing=before?await sharedLocks.read(ctx.db,input.source==='merchant'?'MERCHANT':'PLATFORM',before,binding?.lock):null;
   if(sharing?.locked&&!path.endsWith('/status'))throw fail('هذا خصم مشترك معتمد؛ لا يمكن تعديل شروطه. أوقفه وأنشئ بديلًا بموافقة جديدة.',409);
   let data;
   if (path.endsWith("/status")) {
@@ -437,10 +444,18 @@ async function route(ctx, actor, method, path, input) {
         403,
       );
   }
+  if (platformOnly && (!data.code || !["percentage","fixed"].includes(data.type))) throw fail('CAMPAIGN_CODE_REQUIRED');
+  if (platformOnly && data.status === "active") {
+    const cap = data.type === "percentage" ? data.maximumSavings : data.value;
+    if (!data.code || !["percentage", "fixed"].includes(data.type) || !Number.isSafeInteger(cap) ||
+        cap < 250 || !Number.isSafeInteger(data.usageLimit) || data.usageLimit < 1 ||
+        BigInt(cap)*BigInt(data.usageLimit)*1000n > BigInt(Number.MAX_SAFE_INTEGER))
+      throw fail("CAMPAIGN_FINITE_GOODS_REQUIRED");
+  }
   if (data.imageKey && data.imageKey !== before?.imageKey) {
-    if (!data.imageKey.startsWith(`home-slideshow/${actor.employeeId}/`)) throw fail('Upload an image using your own account.',403);
+    if (!data.imageKey.startsWith(ctx.campaignImagePrefix?.(actor.employeeId) ?? `home-slideshow/${actor.employeeId}/`)) throw fail('Upload an image using your own account.',403);
     const head = await require('./home-slideshow').assets(ctx).head(data.imageKey);
-    if (!require('./home-slideshow').validImageMetadata(data.imageKey, head)) throw fail('Uploaded campaign image is unavailable.');
+    if (!require('./home-slideshow').validImageMetadata(data.imageKey, head || {})) throw fail('Uploaded campaign image is unavailable.');
   }
   if (before && normalize(before).unsupported)
     throw fail(
@@ -462,7 +477,7 @@ async function route(ctx, actor, method, path, input) {
   )
     throw fail("Choose regions within your assigned scope.", 403);
   for (const regionId of data.regionIds)
-    if (!(await get(ctx, REGIONS, { regionId })))
+    if (!(await get(ctx, regionsTable, { regionId })))
       throw fail("A selected region no longer exists.");
   if (data.status === "active") {
     if (Date.parse(data.endAt) <= Date.now())
@@ -495,12 +510,12 @@ async function route(ctx, actor, method, path, input) {
   if (data.applicability !== "allItems") {
     for (const [tableName, ids, key] of [
       [
-        PRODUCTS,
+        productsTable,
         data.applicability === "specificItems" ? data.itemIds : [],
         "productId",
       ],
       [
-        CATEGORIES,
+        categoriesTable,
         data.applicability === "specificCategories" ? data.categoryIds : [],
         "categoryId",
       ],
@@ -517,8 +532,8 @@ async function route(ctx, actor, method, path, input) {
       }
     if (data.status === "active") {
       const [products, categories] = await Promise.all([
-        scan(ctx, PRODUCTS),
-        scan(ctx, CATEGORIES),
+        scan(ctx, productsTable),
+        scan(ctx, categoriesTable),
       ]);
       const activeCategories = new Set(
         categories
@@ -550,7 +565,7 @@ async function route(ctx, actor, method, path, input) {
     }
   }
   if (data.source !== "merchant" && data.code) {
-    const duplicates = (await scan(ctx, tables.platform)).filter(
+    const duplicates = (await scan(ctx, sourceTables.platform)).filter(
       (r) =>
         r.discountId !== data.id &&
         r.code === data.code &&
@@ -720,7 +735,7 @@ async function route(ctx, actor, method, path, input) {
       const m = visible.find((m) => m.businessId === id);
       tx.push({
         ConditionCheck: {
-          TableName: MERCHANTS,
+          TableName: merchantsTable,
           Key: { businessId: id },
           ConditionExpression:
             "regionId=:region AND attribute_not_exists(deletedAt)",

@@ -1,0 +1,338 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Fresh production application phone identities. No users, public enrollment or OTP endpoints enabled.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "CustomerUserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "UserPoolName": "wizz-production-customer",
+        "DeletionProtection": "ACTIVE",
+        "UsernameAttributes": [
+          "email",
+          "phone_number"
+        ],
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true
+        },
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "admin_only",
+              "Priority": 1
+            }
+          ]
+        },
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 32,
+            "RequireUppercase": true,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "TemporaryPasswordValidityDays": 1
+          }
+        },
+        "Schema": [
+          {
+            "Name": "phone_number",
+            "AttributeDataType": "String",
+            "Mutable": true,
+            "Required": false
+          },
+          {
+            "Name": "name",
+            "AttributeDataType": "String",
+            "Mutable": true,
+            "Required": true
+          },
+          {
+            "Name": "marketing_consent",
+            "AttributeDataType": "String",
+            "Mutable": true
+          }
+        ],
+        "UserPoolTags": {
+          "Environment": "production",
+          "Project": "Wizz"
+        },
+        "LambdaConfig": {
+          "DefineAuthChallenge": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-customer-phone-challenge"
+          },
+          "CreateAuthChallenge": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-customer-phone-challenge"
+          },
+          "VerifyAuthChallengeResponse": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-customer-phone-challenge"
+          }
+        }
+      }
+    },
+    "CustomerClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "ClientName": "wizz-production-customer-app",
+        "UserPoolId": {
+          "Ref": "CustomerUserPool"
+        },
+        "GenerateSecret": false,
+        "ExplicitAuthFlows": [
+          "ALLOW_CUSTOM_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH"
+        ],
+        "PreventUserExistenceErrors": "ENABLED",
+        "EnableTokenRevocation": true,
+        "AuthSessionValidity": 3,
+        "AccessTokenValidity": 60,
+        "IdTokenValidity": 60,
+        "RefreshTokenValidity": 30,
+        "TokenValidityUnits": {
+          "AccessToken": "minutes",
+          "IdToken": "minutes",
+          "RefreshToken": "days"
+        }
+      }
+    },
+    "DriverUserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "UserPoolName": "wizz-production-driver",
+        "DeletionProtection": "ACTIVE",
+        "UsernameAttributes": [
+          "email",
+          "phone_number"
+        ],
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true
+        },
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "admin_only",
+              "Priority": 1
+            }
+          ]
+        },
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 32,
+            "RequireUppercase": true,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "TemporaryPasswordValidityDays": 1
+          }
+        },
+        "Schema": [
+          {
+            "Name": "phone_number",
+            "AttributeDataType": "String",
+            "Mutable": true,
+            "Required": false
+          }
+        ],
+        "UserPoolTags": {
+          "Environment": "production",
+          "Project": "Wizz"
+        },
+        "LambdaConfig": {
+          "DefineAuthChallenge": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-driver-phone-challenge"
+          },
+          "CreateAuthChallenge": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-driver-phone-challenge"
+          },
+          "VerifyAuthChallengeResponse": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-driver-phone-challenge"
+          }
+        }
+      }
+    },
+    "DriverClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "ClientName": "wizz-production-driver-app",
+        "UserPoolId": {
+          "Ref": "DriverUserPool"
+        },
+        "GenerateSecret": false,
+        "ExplicitAuthFlows": [
+          "ALLOW_CUSTOM_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH"
+        ],
+        "PreventUserExistenceErrors": "ENABLED",
+        "EnableTokenRevocation": true,
+        "AuthSessionValidity": 3,
+        "AccessTokenValidity": 60,
+        "IdTokenValidity": 60,
+        "RefreshTokenValidity": 30,
+        "TokenValidityUnits": {
+          "AccessToken": "minutes",
+          "IdToken": "minutes",
+          "RefreshToken": "days"
+        }
+      }
+    },
+    "MerchantUserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Condition": "IsProductionAccount",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "UserPoolName": "wizz-production-merchant",
+        "DeletionProtection": "ACTIVE",
+        "UsernameAttributes": [
+          "phone_number"
+        ],
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true
+        },
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "admin_only",
+              "Priority": 1
+            }
+          ]
+        },
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 32,
+            "RequireUppercase": true,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "TemporaryPasswordValidityDays": 1
+          }
+        },
+        "Schema": [
+          {
+            "Name": "phone_number",
+            "AttributeDataType": "String",
+            "Mutable": true,
+            "Required": true
+          }
+        ],
+        "UserPoolTags": {
+          "Environment": "production",
+          "Project": "Wizz"
+        },
+        "LambdaConfig": {
+          "DefineAuthChallenge": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-merchant-phone-challenge"
+          },
+          "CreateAuthChallenge": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-merchant-phone-challenge"
+          },
+          "VerifyAuthChallengeResponse": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-merchant-phone-challenge"
+          }
+        }
+      }
+    },
+    "MerchantClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "ClientName": "wizz-production-merchant-app",
+        "UserPoolId": {
+          "Ref": "MerchantUserPool"
+        },
+        "GenerateSecret": false,
+        "ExplicitAuthFlows": [
+          "ALLOW_CUSTOM_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH"
+        ],
+        "PreventUserExistenceErrors": "ENABLED",
+        "EnableTokenRevocation": true,
+        "AuthSessionValidity": 3,
+        "AccessTokenValidity": 60,
+        "IdTokenValidity": 60,
+        "RefreshTokenValidity": 30,
+        "TokenValidityUnits": {
+          "AccessToken": "minutes",
+          "IdToken": "minutes",
+          "RefreshToken": "days"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "CustomerUserPoolId": {
+      "Value": {
+        "Ref": "CustomerUserPool"
+      }
+    },
+    "CustomerClientId": {
+      "Value": {
+        "Ref": "CustomerClient"
+      }
+    },
+    "DriverUserPoolId": {
+      "Value": {
+        "Ref": "DriverUserPool"
+      }
+    },
+    "DriverClientId": {
+      "Value": {
+        "Ref": "DriverClient"
+      }
+    },
+    "MerchantUserPoolId": {
+      "Value": {
+        "Ref": "MerchantUserPool"
+      }
+    },
+    "MerchantClientId": {
+      "Value": {
+        "Ref": "MerchantClient"
+      }
+    }
+  }
+}

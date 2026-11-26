@@ -1,3 +1,4 @@
+import {checkoutTables} from './checkoutTables';
 import {verifyCashRoundingEvidence} from './cashRounding';
 import {prepareFullCashOrderSnapshot} from './fullCashOffer';
 import {verifyGoodsPromotionExposure} from './goodsPromotionExposure';
@@ -9,7 +10,7 @@ const same=(a:any,b:any)=>quoteCanonical(a)===quoteCanonical(b);
 export function hasBenefitOrderEvidence(operations:Row[],order:Row,subjectId:string,target:'GOODS'|'DELIVERY',amountMinor:number,funding?:Row){
  const receipt=target==='DELIVERY'?order.platformDeliveryBenefitReceipt??order.platformBenefitReceipt:order.platformBenefitReceipt;
  if(receipt?.schemaVersion!==1||receipt.target!==target||typeof receipt.campaignId!=='string')return false;
- const writes=operations.filter(x=>x.Put?.TableName==='staging-WizzOfferJourney').map(x=>x.Put);
+ const writes=operations.filter(x=>x.Put?.TableName===checkoutTables().journey).map(x=>x.Put);
  const hold=writes.find(x=>x.Item?.pk==='BENEFIT_ORDER#'+order.orderId&&x.Item?.sk===target);
  const grant=writes.find(x=>x.Item?.pk==='USER#'+subjectId&&x.Item?.sk==='BENEFIT#'+receipt.campaignId);
  return !!hold&&!!grant&&hold.ConditionExpression==='attribute_not_exists(pk)'&&typeof grant.ConditionExpression==='string'&&
@@ -20,8 +21,9 @@ export function hasBenefitOrderEvidence(operations:Row[],order:Row,subjectId:str
 /** Verify the same full-cash commitment contract as the published writer before consuming a quote. */
 export function verifyFullCashOrderEvidence(order:Row,operations:Row[],deliveryFunding:Row|undefined,subjectId:string){
  const snapshot=prepareFullCashOrderSnapshot({order:order.financialSnapshot.order,deliveryFunding:deliveryFunding??null});
- const commitment=operations.find(x=>x.Put?.TableName==='staging-Holds'&&x.Put.Item?.orderId===order.orderId&&x.Put.Item?.sk==='FULL_CASH_FUNDING_COMMITMENT')?.Put?.Item;
- if(snapshot.order.orderId!==order.orderId||snapshot.order.branchId!==order.storeId||snapshot.order.merchantId!==order.merchantId||snapshot.order.confirmedCustomerTotal.minorAmount!==order.pricing?.total||snapshot.order.allocation.paymentMethod!=='COD'||!same(snapshot,order.financialSnapshot)||!commitment||commitment.kind!=='FULL_CASH_FUNDING_COMMITMENT'||commitment.settlementModel!=='FULL_CASH_AT_DELIVERY_V1'||commitment.branchId!==order.storeId||commitment.merchantId!==order.merchantId||commitment.status!=='COMMITTED'||commitment.snapshotDigest!==snapshot.digest||!same(commitment.deliveryFunding,deliveryFunding??null)||!same(commitment.platformGoodsFunding,snapshot.order.allocation.platformGoodsDiscount)||operations.some(x=>x.Update?.TableName==='staging-Wallets'||x.Put?.TableName==='staging-Holds'&&['PROMOTION_FUNDING','DELIVERY_PROMOTION_FUNDING'].includes(x.Put.Item?.sk)))return fail();
+ const {holds,wallets}=checkoutTables();
+ const commitment=operations.find(x=>x.Put?.TableName===holds&&x.Put.Item?.orderId===order.orderId&&x.Put.Item?.sk==='FULL_CASH_FUNDING_COMMITMENT')?.Put?.Item;
+ if(snapshot.order.orderId!==order.orderId||snapshot.order.branchId!==order.storeId||snapshot.order.merchantId!==order.merchantId||snapshot.order.confirmedCustomerTotal.minorAmount!==order.pricing?.total||snapshot.order.allocation.paymentMethod!=='COD'||!same(snapshot,order.financialSnapshot)||!commitment||commitment.kind!=='FULL_CASH_FUNDING_COMMITMENT'||commitment.settlementModel!=='FULL_CASH_AT_DELIVERY_V1'||commitment.branchId!==order.storeId||commitment.merchantId!==order.merchantId||commitment.status!=='COMMITTED'||commitment.snapshotDigest!==snapshot.digest||!same(commitment.deliveryFunding,deliveryFunding??null)||!same(commitment.platformGoodsFunding,snapshot.order.allocation.platformGoodsDiscount)||operations.some(x=>x.Update?.TableName===wallets||x.Put?.TableName===holds&&['PROMOTION_FUNDING','DELIVERY_PROMOTION_FUNDING'].includes(x.Put.Item?.sk)))return fail();
  if(commitment.cashRounding||order.commercialPricing?.cashRounding){
   const cash=verifyCashRoundingEvidence(commitment.cashRounding);
   if(!same(cash,order.commercialPricing?.cashRounding)||cash.customerTotal.minorAmount!==snapshot.order.confirmedCustomerTotal.minorAmount||cash.serviceFee.minorAmount!==snapshot.order.allocation.serviceFee.minorAmount)return fail();

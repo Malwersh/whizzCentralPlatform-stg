@@ -24,6 +24,15 @@ test('dedicated global roles required, finance/merchants cannot write pricing',a
 });
 test('empty read explicit; no policy initialization or assumed rate',async()=>{const f=fixture(),r=await call(f,actor(),'GET');assert.equal(r.current,null);assert.equal(r.draft,null);assert.equal(f.commands.length,2);assert.ok(f.commands.every(c=>c.input.ConsistentRead));});
 test('draft save atomically fences current, draft, actor and audit; no publication',async()=>{const f=fixture();const r=await call(f,actor(),'POST','/draft',request());assert.equal(r.status,'DRAFT_SAVED');assert.equal(f.records.has('CURRENT'),false);const tx=f.commands.at(-1).input.TransactItems;assert.equal(tx.length,4);assert.equal(tx[1].ConditionCheck.Key.sk,'CURRENT');assert.equal(tx[2].Put.ConditionExpression,'attribute_not_exists(pk)');assert.equal(tx[3].Put.Item.action,'PRICING_DRAFT_SAVED');});
+test('neighbor scope is validated and published through the existing pricing workflow',async()=>{
+ const f=fixture(),input=request();
+ input.values.deliveryRules[0].coverage.crossRegionMode='ANYWHERE';
+ await assert.rejects(call(f,actor(),'POST','/draft',input),/INVALID_PRICING/);
+ input.values.deliveryRules[0].coverage.crossRegionMode='SAME_GOVERNORATE';
+ await call(f,actor(),'POST','/draft',input);
+ const r=await call(f,actor('review','pricing_approver'),'POST','/publish',{baseVersion:0,draftVersion:1,reason:'اعتماد نطاق التوصيل في الاختبار'});
+ assert.equal(r.policy.values.deliveryRules[0].coverage.crossRegionMode,'SAME_GOVERNORATE');
+});
 test('MFA/recent validation, editor/approver separation, stale versions and unknown input',async()=>{
  const f=fixture();f.ctx.enrolled=false;await assert.rejects(call(f,actor(),'POST','/draft',request()),/ENROLLMENT/);f.ctx.enrolled=true;f.ctx.recent=()=>{throw Error('REAUTH_REQUIRED');};await assert.rejects(call(f,actor(),'POST','/draft',request()),/REAUTH/);f.ctx.recent=()=>{};
  await assert.rejects(call(f,actor('review','pricing_approver'),'POST','/draft',request()),/PERMISSION/);

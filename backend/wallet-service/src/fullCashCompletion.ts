@@ -2,6 +2,8 @@ import {financialOfferSK} from './financialOfferKey';
 import {settlePlatformBenefit} from './platformBenefits';
 import {cashReportsDigest,cashAdjudicationAdjustment} from './cashAdjudication';
 import {prepareMerchantAccrualIndex} from './merchantAccrualIndex';
+import {checkoutTables} from './checkoutTables';
+import {financialDispatchTables} from './walletBindings';
 import {verifyGoodsPromotionExposure} from './goodsPromotionExposure';
 import {codIntegrationEvent} from './codIntegrationEvent';
 import {createStagingDeliveryCampaignBudget} from './deliveryCampaignBudget';
@@ -14,10 +16,6 @@ import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 import { toWholeIqdExact } from './money';
 
 type Row = Record<string, any>;
-const T = { orders: 'WizzOrders', offers: 'WaveOffers_staging', holds: 'staging-Holds', wallets: 'staging-Wallets',
-  ledger: 'staging-LedgerEntries', audit: 'staging-AuditLog', journal: 'staging-MerchantPlatform',
-  driver: 'WhizzDrivers_staging', branch: 'WhizzMerchants_Businesses', jobs: 'WizzDispatchJobs_staging',
-  live: 'WizzDriverLiveState_staging', deletion: 'staging-AccountDeletion' };
 const fail = (code = 'FULL_CASH_COMPLETION_CONFLICT'): never => { throw Object.assign(Error(code), { code }); };
 function safe(n: number) { if (!Number.isSafeInteger(n)) return fail('FULL_CASH_PRECISION_UNSUPPORTED'); return n; }
 function set(table: string, key: Row, row: Row, fields: Row, absent: string[] = []) {
@@ -48,6 +46,7 @@ export function createFullCashCompletion(options: {
   authenticateStaff?: () => Promise<{kind:string;subjectId:string}>;
 }) {
   const db = options.db, now = options.now || Date.now;
+  const T = { ...financialDispatchTables(), journal: checkoutTables().platform };
   async function run(value: unknown, administrative?: {decisionId:string}) {
     if (options.enabled !== true) return fail('FULL_CASH_COMPLETION_DISABLED');
     if (!value || typeof value !== 'object' || Array.isArray(value) ||
@@ -85,7 +84,7 @@ export function createFullCashCompletion(options: {
         (order.orderStatus !== undefined && order.orderStatus !== order.status) ||
         !Number.isSafeInteger(order.assignmentAttemptCounter) || order.assignmentAttemptCounter < 1 ||
         order.assignmentAttemptCounter > 1000 || order.financialAcceptance?.paymentMethod !== 'COD' ||
-        [...(administrative?[]:['openPaymentClaimId']), 'financialOutcome', 'returnStatus', 'returnCaseId', 'cancellationStatus', 'cancellationRequestId',
+        [...(administrative?[]:['openPaymentClaimId']), 'financialOutcome', 'cashReturnClearance', 'returnStatus', 'returnCaseId', 'cancellationStatus', 'cancellationRequestId',
           'deletionStatus', 'deletionRequestId', 'deletedAt'].some(k => order[k] != null) || order.isDeleted === true) return fail();
     const offerKey = { orderId, SK: await financialOfferSK(db,orderId,actor.driverId,order.assignmentWaveNumber) };
     const saved = await strongGet(db, T.offers, offerKey);
@@ -157,7 +156,7 @@ export function createFullCashCompletion(options: {
     if(a.platformGoodsDiscountFunding.minorAmount>0){verifyGoodsPromotionExposure(budget.goodsExposure,a.platformGoodsDiscountFunding);if(!equal(budget.goodsExposure,order.commercialPricing?.funding?.exposure))return fail('FULL_CASH_BUDGET_COMMITMENT_REQUIRED');}
     operations.push(set(T.holds, budgetKey, budget, { status: 'CONSUMED', operationId, consumedAt: timestamp }),
       set(T.holds, holdKey, hold, { status: H ? 'SETTLED' : 'NOT_REQUIRED', settlementOperationId: operationId, settledAt: timestamp }));
-    if(H){const lcKey={operationId:hold.holdId},lc=await strongGet(db,'staging-WalletLifecycle',lcKey);if(!lc||lc.kind!=='FULL_CASH_HOLD'||lc.financialSchemaVersion!==4||lc.orderId!==orderId||lc.status!=='FULL_CASH_PENDING_COMPLETION'||lc.amount!==H||lc.walletId!==driverId)return fail();operations.push(set('staging-WalletLifecycle',lcKey,lc,{status:'COMPLETED',action:'NONE',updatedAt:timestamp,lastError:null,settlementOperationId:operationId}));}
+    if(H){const lcKey={operationId:hold.holdId},lc=await strongGet(db,T.lifecycle,lcKey);if(!lc||lc.kind!=='FULL_CASH_HOLD'||lc.financialSchemaVersion!==4||lc.orderId!==orderId||lc.status!=='FULL_CASH_PENDING_COMPLETION'||lc.amount!==H||lc.walletId!==driverId)return fail();operations.push(set(T.lifecycle,lcKey,lc,{status:'COMPLETED',action:'NONE',updatedAt:timestamp,lastError:null,settlementOperationId:operationId}));}
     if(order.platformBenefitReceipt?.target==='GOODS'){const benefit=await settlePlatformBenefit(db,{orderId,target:'GOODS',outcome:'CAPTURED'});if(benefit.replayed)return fail();operations.push(...benefit.operations);}
     if(offer.financialSnapshot.deliveryFunding){const campaign=await createStagingDeliveryCampaignBudget({db,now}).settle({orderId,outcome:'CAPTURED',expectedFunding:offer.financialSnapshot.deliveryFunding});if(campaign.replayed)return fail();operations.push(...campaign.operations);}
     operations.push(...await prepareMerchantAccrualIndex(db,{branchId,orderId,operationId,deliveredAt:timestamp,merchantNetIqd:M,financialSchemaVersion:4}));
@@ -200,7 +199,7 @@ export function createFullCashCompletion(options: {
         cashCollected: actualCollected===C, cashCollectedAmount: actualCollected, ...codCollectedPaymentFields(order, timestamp),
         ...(administrative?{openPaymentClaimId:null,deliveryEvidenceSource:'ADMINISTRATIVE_FINDING',cashAdjudication:{caseId:cashCase!.caseId,decisionId:decision.decisionId,actualCollectedIqd:actualCollected,outcome:decision.outcome},
           ...(actualCollected!==C?{paymentStatus:'administratively_resolved',...(order.paymentStatus_gsi!==undefined?{paymentStatus_gsi:'administratively_resolved#'+order.paymentStatus_gsi.slice('pending#'.length)}:{})}:{} )}:{}), holdStatus: H ? 'SETTLED' : 'NOT_REQUIRED', walletFinancialStatus: 'SETTLED',
-        financialOutcome: operationId }, ['openPaymentClaimId', 'financialOutcome', 'financialRelease', 'returnStatus', 'returnCaseId', 'cancellationStatus',
+        financialOutcome: operationId }, ['openPaymentClaimId', 'cashReturnClearance', 'financialOutcome', 'financialRelease', 'returnStatus', 'returnCaseId', 'cancellationStatus',
         'cancellationRequestId', 'deletionStatus', 'deletionRequestId', 'deletedAt', 'isDeleted']),
       set(T.jobs, jobKey, job, { status: 'completed', completedAt: timestamp }),
       set(T.live, liveKey, live, { status: live.isActive === true && driver.isSuspended!==true && driver.isBanned!==true ? 'available' : 'offline', ...(administrative&&(driver.isSuspended===true||driver.isBanned===true)?{isActive:false}:{}), currentOrderId: null, activeOrdersCount: 0, isSearching: false }),

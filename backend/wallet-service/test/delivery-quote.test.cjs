@@ -24,6 +24,20 @@ test('retry returns the same quote without routing again or extending expiry, in
  assert.deepEqual(await f.create({requestId:a.quoteId.toUpperCase()}),a);assert.equal(f.providerCalls,1);assert.equal(f.saved.size,1);
  await reject(f.create({addressId:'other'}),'QUOTE_REQUEST_CONFLICT');assert.equal(f.providerCalls,1);
 });
+test('removing a confirmed neighborhood invalidates its live quote',async()=>{
+ const f=fixture();
+ f.regions.set('neighbor',{regionId:'neighbor',level:3,parent_id:'district',is_active:1,
+  geometry:{type:'Polygon',coordinates:[[[44.5,31.9],[44.6,31.9],[44.6,32],[44.5,32],[44.5,31.9]]]}});
+ f.address.longitude=44.52;
+ const coverage=f.policy.values.deliveryRules[0].coverage;
+ coverage.supportedZoneIds.push('neighbor');
+ coverage.crossRegionMode='SAME_DISTRICT';
+ f.neighbor={source_region_id:'zone',target_region_id:'neighbor',source_level:3,target_level:3,relationship_type:'adjacent'};
+ const quote=await f.create();
+ assert.ok([...f.saved.values()][0].fences.some(check=>check.TableName==='WizzCentral_RegionNeighbors_staging'));
+ f.neighbor=undefined;
+ await reject(f.service.get({quoteId:quote.quoteId}),'QUOTE_INVALIDATED');
+});
 test('expired ID stays reserved; new ID explicitly obtains a new quote',async()=>{
  const f=fixture(),q=await f.create();f.time=at+120000;
  await reject(f.create(),'QUOTE_EXPIRED');await reject(f.service.get({quoteId:q.quoteId}),'QUOTE_EXPIRED');

@@ -4,8 +4,12 @@ const sdk=require('@aws-sdk/lib-dynamodb');
 const runtime=require('../../dist/deliveryQuoteOrder');
 const handlerPath=process.env.QUOTE_ORDER_HANDLER_FILE||path.resolve(__dirname,'../../../../../wizzuser-stg/backend/src/functions/create-order/index.js');
 const {accountGuard}=require(path.join(path.dirname(handlerPath),'account-guard'));
-async function setup(mode='REQUIRED',free=false,{cashDenomination=false}={}){
- const f=fixture();const cashMoney=require('../../dist/money');f.policy.values.deliveryRules[0].base=cashMoney.parseIqd('3000');f.policy.values.deliveryRules[0].perKm=cashMoney.parseIqd('0');if(free){const {parseIqd}=require('../../dist/money');f.policy.values.deliveryRules[0].base=parseIqd('0');f.policy.values.deliveryRules[0].perKm=parseIqd('0');}
+const {checkoutTables}=require('../../dist/checkoutTables');
+async function setup(mode='REQUIRED',free=false,{cashDenomination=false,production=false}={}){
+ const f=fixture();const tables=checkoutTables();
+ const legacy=checkoutTables({});
+ const oldNames=new Map(Object.keys(tables).map(k=>[tables[k],legacy[k]]));
+ const cashMoney=require('../../dist/money');f.policy.values.deliveryRules[0].base=cashMoney.parseIqd('3000');f.policy.values.deliveryRules[0].perKm=cashMoney.parseIqd('0');if(free){const {parseIqd}=require('../../dist/money');f.policy.values.deliveryRules[0].base=parseIqd('0');f.policy.values.deliveryRules[0].perKm=parseIqd('0');}
  if(cashDenomination)f.policy.values.deliveryRules[0].base=require('../../dist/money').parseIqd('400');
  const quote=await f.create();f.orderQueries=0;f.externalCalls=0;
  f.products=new Map([['p1',{productId:'p1',businessId:'b1',name:'Test',price:3500,categoryId:'cat1',isAvailable:true}]]);
@@ -19,24 +23,40 @@ async function setup(mode='REQUIRED',free=false,{cashDenomination=false}={}){
   const [n,v]=field.split('=');const name=n.trim(),value=v.trim();row[u.ExpressionAttributeNames[name]||name]=u.ExpressionAttributeValues[value];}
   f.discountUpdates=(f.discountUpdates||0)+1;};
  const db={send:async c=>{
-  if(c.input.TableName==='staging-MerchantPlatform'&&c.input.Key?.sk?.startsWith('INVENTORY_RESERVATION#'))return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
-  if(c.input.TableName==='staging-PlatformStaff'&&c.input.Key?.pk==='OPERATIONAL_SETTINGS#CASH_ROUNDING')return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
-  if(f.deliveryIndexes&&c instanceof sdk.QueryCommand&&c.input.TableName==='staging-MerchantPlatform')return {Items:structuredClone(f.deliveryIndexes)};
-  if(f.deliveryIndexes&&c.input.TableName==='staging-PlatformStaff'&&c.input.Key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_PRICING')return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
-  if(f.commercialRecords&&c.input.TableName==='staging-MerchantPlatform'&&!c.input.Key?.pk?.startsWith('PERSON#'))return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
-  if(c.input.TableName==='staging-WizzOfferJourney')return {Item:f.extraLookup(c.input.TableName,c.input.Key)};
-  if(c.input.TableName==='WizzOrders'&&!c.input.Key&&c.constructor.name==='ScanCommand')return {Items:[...f.orders.values()]};
-  if(f.commercialRecords?.has(c.input.TableName+'|'+JSON.stringify(c.input.Key)))return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
-  if(['WhizzMerchants_Products','WhizzMerchants_Categories'].includes(c.input.TableName))return {Item:structuredClone(f.extraLookup(c.input.TableName,c.input.Key))};
-  if(c.input.TableName==='WhizzMerchants_Discounts'){
+  const originalTable=c.input.TableName;
+  if(production&&c.input.TableName)f.productionReads.push(originalTable);
+  const table=oldNames.get(originalTable)??originalTable;
+  if(table==='staging-MerchantPlatform'&&c.input.Key?.sk?.startsWith('INVENTORY_RESERVATION#'))return {Item:structuredClone(f.extraLookup(table,c.input.Key))};
+  if(table==='staging-PlatformStaff'&&c.input.Key?.pk==='OPERATIONAL_SETTINGS#CASH_ROUNDING')return {Item:structuredClone(f.extraLookup(table,c.input.Key))};
+  if(f.deliveryIndexes&&c instanceof sdk.QueryCommand&&table==='staging-MerchantPlatform')return {Items:structuredClone(f.deliveryIndexes)};
+  if(f.deliveryIndexes&&table==='staging-PlatformStaff'&&c.input.Key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_PRICING')return {Item:structuredClone(f.extraLookup(table,c.input.Key))};
+  if(f.commercialRecords&&table==='staging-MerchantPlatform'&&!c.input.Key?.pk?.startsWith('PERSON#'))return {Item:structuredClone(f.extraLookup(table,c.input.Key))};
+  if(table==='staging-WizzOfferJourney')return {Item:f.extraLookup(table,c.input.Key)};
+  if(table==='WizzOrders'&&!c.input.Key&&c.constructor.name==='ScanCommand')return {Items:[...f.orders.values()]};
+  if(f.commercialRecords?.has(table+'|'+JSON.stringify(c.input.Key)))return {Item:structuredClone(f.extraLookup(table,c.input.Key))};
+  if(['WhizzMerchants_Products','WhizzMerchants_Categories'].includes(table))return {Item:structuredClone(f.extraLookup(table,c.input.Key))};
+  if(table==='WhizzMerchants_Discounts'){
    return {Item:f.discountRow};
   }
-  if(c.input.TableName==='WizzCentral_Platform_Discounts'){
+  if(table==='WizzCentral_Platform_Discounts'){
    if(c.input.IndexName)return {Items:f.promoRow?[f.promoRow]:[]};
    return {Item:f.promoRow};
   }
-if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueries++;return {Items:[...f.orders.values()]};}return f.db.send(c);}};
+if(c instanceof sdk.QueryCommand&&table==='WizzOrders'){f.orderQueries++;return {Items:[...f.orders.values()]};}return f.db.send(c);}};
  const env={...require('./finance-rollout-fixture.cjs').scopeEnv({orders:[{orderId:require('./finance-rollout-fixture.cjs').orderId(),branchId:'b1',customerSubjectId:'sub1'}]}),USERS_TABLE:'WizzUser_users_staging',USER_POOL_ID:'us-east-1_TpyyrVkEE',USER_POOL_CLIENT_ID:'staging-client',AWS_REGION:'us-east-1',DELIVERY_QUOTE_MODE:mode};
+ if(production) {
+  Object.assign(env,process.env);
+  f.productionReads=[];
+  f.merchantEvents=new Map();
+  const lookup=f.extraLookup, put=f.extraPut;
+  f.extraLookup=(table,key)=>table===tables.lifecycle
+    ? f.merchantEvents.get(key?.operationId)
+    : lookup(oldNames.get(table)??table,key);
+  f.extraPut=operation=>{
+   if(operation.TableName===tables.lifecycle){f.merchantEvents.set(operation.Item.operationId,operation.Item);return true;}
+   return put({...operation,TableName:oldNames.get(operation.TableName)??operation.TableName});
+  };
+ }
  const exports={};
  const shared={};
  const FakeDate=class extends Date{constructor(...args){super(...(args.length?args:[f.time]));}static now(){return f.time;}};
@@ -61,6 +81,7 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   '../shared/offer-attribution':loadShared('offer-attribution'),
   '../shared/legacy-order-policy':require('../../../../../wizzuser-stg/backend/src/functions/shared/legacy-order-policy'),
   '@aws-sdk/client-dynamodb':{DynamoDBClient:class{}},'@aws-sdk/lib-dynamodb':{...sdk,DynamoDBDocumentClient:{from:()=>db}},
+  './quote-runtime/checkoutTables':require('../../dist/checkoutTables'),
   './quote-runtime/financeRollout':{createFinanceRollout:o=>require('../../dist/financeRollout').createFinanceRollout({...o,env,now:()=>f.time})},
   './account-guard':{accountGuard},'./quote-runtime/deliveryQuoteOrder':{...runtime,createStagingQuoteOrder:o=>runtime.createStagingQuoteOrder({...o,now:()=>f.time})},
   'aws-sdk':{CognitoIdentityServiceProvider:class{getUser(){return {promise:async()=>({Username:'username',UserAttributes:[{Name:'sub',Value:'sub1'}]})};}}},
@@ -78,11 +99,11 @@ if(c instanceof sdk.QueryCommand&&c.input.TableName==='WizzOrders'){f.orderQueri
   uuid:{v4:()=>require('node:crypto').randomUUID()},https:{request:()=>{f.externalCalls++;throw Error('external call prohibited');}}
  };
  vm.runInNewContext(fs.readFileSync(handlerPath,'utf8')+'\nexports.__readOnlyTestRun=handleOrder321;',{exports,require:n=>{if(n.startsWith('../shared/')&&/^\.\.\/shared\/[a-z0-9-]+$/.test(n))return modules[n]??loadShared(n.slice('../shared/'.length));if(!(n in modules))throw Error('unexpected require '+n);return modules[n];},process:{env},Buffer,Date:class extends Date{constructor(...args){super(...(args.length?args:[f.time]));}static now(){return f.time;}},console:{log(){},error(){},warn(){}}});
- const claims={sub:'sub1',iss:'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_TpyyrVkEE',client_id:'staging-client',token_use:'access'};
+ const claims={sub:'sub1',iss:'https://cognito-idp.us-east-1.amazonaws.com/'+env.USER_POOL_ID,client_id:env.USER_POOL_CLIENT_ID,token_use:'access'};
  const token='header.'+Buffer.from(JSON.stringify(claims)).toString('base64url')+'.signature';
  f.runReadOnlyTest=exports.__readOnlyTestRun;f.token=token;
  f.body={userId:'u1',storeId:'b1',storeName:'Synthetic',storeAddress:'Test',deliveryAddress:{id:'a1',latitude:31.925,longitude:44.457,fullAddress:'Test'},paymentMethod:'cod',items:[{id:'p1',name:'Test',price:3500,quantity:1}],quoteId:quote.quoteId,idempotencyKey:'abcdefab-1234-4123-8123-123456789abc',deliveryFee:999999};
- f.invoke=async (patch={})=>{const r=await exports.handler({httpMethod:'POST',resource:patch.action==='preview_commercial'?'/orders/commercial-preview':'/orders',headers:{Authorization:'Bearer '+token},body:JSON.stringify({...f.body,...patch})});return {...r,json:JSON.parse(r.body)};};
+ f.invoke=async (patch={})=>{const r=await exports.handler({httpMethod:'POST',...(production?{requestContext:{stage:'production'}}:{}),resource:patch.action==='preview_commercial'?'/orders/commercial-preview':'/orders',headers:{Authorization:'Bearer '+token},body:JSON.stringify({...f.body,...patch})});return {...r,json:JSON.parse(r.body)};};
  f.enableCommercial=()=>{
   const source=require('./commercial-source-fixture.cjs').fixture('org1','owner1');source.funded();
   f.commercialRecords=source.records;

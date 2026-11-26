@@ -4,6 +4,11 @@ const {isDeepStrictEqual}=require('node:util');
 const {GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {error}=require('./policy');
 const SOURCE='staging-PlatformStaff',ARCHIVE='staging-AccountDeletionFinancialArchive',REQUESTS='staging-AccountDeletion';
+function bindings(environment){
+ if(environment==='staging')return {source:SOURCE,archive:ARCHIVE,requests:REQUESTS,profiles:'WizzUser_users_staging'};
+ if(environment==='production')return {source:'wizz-production-PlatformStaff',archive:'wizz-production-AccountDeletionFinancialArchive',requests:'wizz-production-AccountDeletion',profiles:'wizz-production-Customers'};
+ throw error('FUNDING_ARCHIVE_SCOPE_INVALID');
+}
 const SOURCE_FIELDS=['pk','sk','schemaVersion','version','customerId','orderId','policyPin','allocation','requestDigest','status','createdAt','settledAt','reservedUses','completedUses','digest','legalHold','retentionHold'];
 const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);
 const hash=v=>createHash('sha256').update(canonical(v)).digest('hex');
@@ -40,13 +45,15 @@ function snapshot(row,key,owners){
 }
 // Sources remain immutable: the archive follows the configured financial retention
 // policy. Source expiry/anonymization requires a separate lifecycle implementation.
-async function validateSources({db,subjectIds,sourceKeys}) {
+async function validateSources({db,subjectIds,sourceKeys,environment='staging'}) {
+ const tables=bindings(environment);
  if(!db||!Array.isArray(subjectIds)||!subjectIds.length||!subjectIds.every(id)||!Array.isArray(sourceKeys)||sourceKeys.length>500)throw error('FUNDING_ARCHIVE_SCOPE_INVALID');
  const names=Object.fromEntries(SOURCE_FIELDS.map((f,i)=>['#a'+i,f]));
- for(const key of sourceKeys){validateKey(key);const row=(await db.send(new GetCommand({TableName:SOURCE,Key:key,ConsistentRead:true,ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names}))).Item;snapshot(row,key,subjectIds);}
+ for(const key of sourceKeys){validateKey(key);const row=(await db.send(new GetCommand({TableName:tables.source,Key:key,ConsistentRead:true,ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names}))).Item;snapshot(row,key,subjectIds);}
  return {verified:sourceKeys.length};
 }
-async function archive({db,r,job,sourceKeys,clock=()=>new Date().toISOString()}){
+async function archive({db,r,job,sourceKeys,clock=()=>new Date().toISOString(),environment='staging'}){
+ const tables=bindings(environment);
  if(!db||r?.actorType!=='CUSTOMER'||r.status!=='PROCESSING'||!r.leaseOwner||!Number.isSafeInteger(r.version)||!id(r.requestId)||!id(r.subjectId)||r.pk!=='SUBJECT#CUSTOMER#'+r.subjectId||r.sk!=='REQUEST#'+r.requestId||r.subjectId!==job?.subjectId||r.requestId!==job.requestId||!id(job.policyVersion?.toString())||!Number.isInteger(job.financialYears)||job.financialYears<1||job.financialYears>30||!Array.isArray(job.profileIds)||!Array.isArray(sourceKeys)||sourceKeys.length>500)throw error('FUNDING_ARCHIVE_SCOPE_INVALID');
  const owners=[...new Set([job.subjectId,...job.profileIds])];if(!owners.every(id))throw error('FUNDING_ARCHIVE_SCOPE_INVALID');
  const unique=new Map();for(const k of sourceKeys){validateKey(k);unique.set(canonical(k),k);}
@@ -54,14 +61,14 @@ async function archive({db,r,job,sourceKeys,clock=()=>new Date().toISOString()})
  const names=Object.fromEntries(SOURCE_FIELDS.map((f,i)=>['#a'+i,f]));
  // Validate every record and prior archive before the first write.
  for(const key of unique.values()){
-  const row=(await db.send(new GetCommand({TableName:SOURCE,Key:key,ConsistentRead:true,ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names}))).Item;
+  const row=(await db.send(new GetCommand({TableName:tables.source,Key:key,ConsistentRead:true,ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names}))).Item;
   const data=snapshot(row,key,owners),sourceKeyDigest=hash(key),archiveKey={pk:'REQUEST#'+job.requestId,sk:'DELIVERY_FUNDING#'+sourceKeyDigest};
-  const existing=(await db.send(new GetCommand({TableName:ARCHIVE,Key:archiveKey,ConsistentRead:true}))).Item;
+  const existing=(await db.send(new GetCommand({TableName:tables.archive,Key:archiveKey,ConsistentRead:true}))).Item;
   const now=existing?.archivedAt||clock(),until=new Date(now);if(!Number.isFinite(until.getTime()))throw error('RETENTION_POLICY_INVALID');
   // Unknown usage creation time: retain from archival time, never expire early.
   if(data.settledAt)until.setTime(Date.parse(data.settledAt));until.setUTCFullYear(until.getUTCFullYear()+job.financialYears);
-  const item={...archiveKey,requestId:job.requestId,subjectAlias:'DELETED#'+job.requestId,policyVersion:job.policyVersion,kind:data.kind,sourceTable:SOURCE,sourceKeyDigest,data,archivedAt:now,expiresAt:Math.floor(until.getTime()/1000)};
-  if(existing){if(existing.requestId!==job.requestId||existing.sourceTable!==SOURCE||existing.sourceKeyDigest!==sourceKeyDigest||existing.policyVersion!==job.policyVersion||!isDeepStrictEqual(existing.data,data)||!Number.isSafeInteger(existing.expiresAt)||existing.expiresAt<item.expiresAt)throw error('FUNDING_ARCHIVE_CONFLICT');}
+  const item={...archiveKey,requestId:job.requestId,subjectAlias:'DELETED#'+job.requestId,policyVersion:job.policyVersion,kind:data.kind,sourceTable:tables.source,sourceKeyDigest,data,archivedAt:now,expiresAt:Math.floor(until.getTime()/1000)};
+  if(existing){if(existing.requestId!==job.requestId||existing.sourceTable!==tables.source||existing.sourceKeyDigest!==sourceKeyDigest||existing.policyVersion!==job.policyVersion||!isDeepStrictEqual(existing.data,data)||!Number.isSafeInteger(existing.expiresAt)||existing.expiresAt<item.expiresAt)throw error('FUNDING_ARCHIVE_CONFLICT');}
   prepared.push({key,row,item,existing});
  }
  for(const {key,row,item,existing} of prepared){
@@ -73,10 +80,11 @@ async function archive({db,r,job,sourceKeys,clock=()=>new Date().toISOString()})
   else {sourceNames['#reserved']='reservedUses';sourceValues[':zero']=0;condition+=' AND #reserved=:zero';}
   const now=Math.floor(Date.parse(clock())/1000);
   await db.send(new TransactWriteCommand({TransactItems:[
-   {ConditionCheck:{TableName:REQUESTS,Key:{pk:r.pk,sk:r.sk},ConditionExpression:'leaseOwner=:owner AND leaseUntil>:now AND #v=:v AND #s=:processing',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':owner':r.leaseOwner,':now':now,':v':r.version,':processing':'PROCESSING'}}},
-   {ConditionCheck:{TableName:'WizzUser_users_staging',Key:{userId:job.subjectId},ConditionExpression:'deletionRequestId=:request AND isActive=:no',ExpressionAttributeValues:{':request':job.requestId,':no':false}}},
-   {ConditionCheck:{TableName:SOURCE,Key:key,ConditionExpression:condition,ExpressionAttributeNames:sourceNames,ExpressionAttributeValues:sourceValues}},
-   {Put:{TableName:ARCHIVE,Item:item,ConditionExpression:'attribute_not_exists(pk)'}}
+   {ConditionCheck:{TableName:tables.requests,Key:{pk:r.pk,sk:r.sk},ConditionExpression:'leaseOwner=:owner AND leaseUntil>:now AND #v=:v AND #s=:processing',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':owner':r.leaseOwner,':now':now,':v':r.version,':processing':'PROCESSING'}}},
+   ...(environment==='production'?[{ConditionCheck:{TableName:tables.requests,Key:{pk:'ACCOUNT_LIFECYCLE#CUSTOMER#'+job.subjectId,sk:'META'},ConditionExpression:'requestId=:request AND #state=:closing',ExpressionAttributeNames:{'#state':'state'},ExpressionAttributeValues:{':request':job.requestId,':closing':'CLOSING'}}}]:[]),
+   {ConditionCheck:{TableName:tables.profiles,Key:{userId:job.subjectId},ConditionExpression:'deletionRequestId=:request AND isActive=:no',ExpressionAttributeValues:{':request':job.requestId,':no':false}}},
+   {ConditionCheck:{TableName:tables.source,Key:key,ConditionExpression:condition,ExpressionAttributeNames:sourceNames,ExpressionAttributeValues:sourceValues}},
+   {Put:{TableName:tables.archive,Item:item,ConditionExpression:'attribute_not_exists(pk)'}}
   ]}));
  }
  return {records:prepared.length,archived:prepared.filter(x=>!x.existing).length,replayed:prepared.filter(x=>x.existing).length};

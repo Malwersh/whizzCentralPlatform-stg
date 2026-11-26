@@ -5,13 +5,14 @@ import { createStagingDeliveryCampaignBudget } from './deliveryCampaignBudget';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { toWholeIqdExact, readMoney } from './money';
 import { equal, strongGet, exactCheck, updateChecked, retainPlannedEvidence, FinancialRow as Row } from './driverFinancialTransaction';
-const T={wallets:'staging-Wallets',holds:'staging-Holds',ledger:'staging-LedgerEntries',lifecycle:'staging-WalletLifecycle'};
+import { financialOrderTables } from './walletBindings';
 const fail=():never=>{throw Object.assign(Error('COD_RELEASE_CONFLICT'),{code:'COD_RELEASE_CONFLICT'});};
 const whole=(v:unknown)=>toWholeIqdExact(readMoney(v));
 export function setFinancialFields(check:Row,values:Row){const names:Row={},args:Row={};const parts=Object.entries(values).map(([k,v],i)=>{names['#u'+i]=k;args[':u'+i]=v;return '#u'+i+'=:u'+i;});return updateChecked(check,'SET '+parts.join(', '),names,args);}
 /** Shared release plan only; caller MUST atomically compose authorized order/attempt/final-outcome fences. */
 export async function prepareCodRelease(db:Pick<DynamoDBDocumentClient,'send'>,order:Row,offer:Row,at:string,operationId:string,releasePromotion:boolean,enableDeliveryFunding=false,unacceptedDeliveryFunding?:Row,enableFullCash=false){
  if(order.financialSnapshot?.schemaVersion===3){if(!enableFullCash)return fail();return prepareFullCashRelease(db,order,offer,at,operationId,releasePromotion);}
+ const T=financialOrderTables();
  const deliveryFunding=unacceptedDeliveryFunding??order.financialAcceptance?.deliveryFunding;
  if(unacceptedDeliveryFunding&&(order.financialAcceptance!=null||order.driverId!=null||order.assignedDriverId!=null||order.financialSnapshot?.schemaVersion!==2||!equal(order.financialSnapshot.deliveryFunding,unacceptedDeliveryFunding)||!releasePromotion||whole(offer.allocation.driverWalletHold)!==0))return fail();
  const deliveryFunded=!!unacceptedDeliveryFunding||order.financialAcceptance?.schemaVersion===2;

@@ -134,3 +134,111 @@ test('authenticated runtime uses one rollout transaction fence with the original
   assert.equal(x.row().refunds.refunds[0].status,'EXECUTED');
  }finally{for(const key of Object.keys(process.env))if(!(key in old))delete process.env[key];Object.assign(process.env,old);}
 });
+
+test('full verified refund clears the route to physical return without permitting delivery settlement',async()=>{
+ const x=await fixture();
+ const refundId=randomUUID();
+ await x.verify(11950);
+ await x.act('STAFF','RESOLVE_CASH_COLLECTION_REVIEW',{confirmNoFinancialAdjustment:true});
+ assert.equal(x.order().cashReviewVerifiedCollection.collectedIqd,11950);
+ await x.report('CUSTOMER',10000);
+ await x.report('DRIVER',10000);
+ const [customer,driverReport]=x.row().reports.slice(-2);
+ await x.act('STAFF','VERIFY_CASH_COLLECTION',{customerReportId:customer.reportId,driverReportId:driverReport.reportId});
+ await x.act('STAFF','APPROVE_CUSTOMER_REFUND',{refundId,amountIqd:10000,sourceKind:'DRIVER_UNSETTLED',cashboxCode:null});
+ const clear=()=>x.act('STAFF','AUTHORIZE_RETURN_AFTER_REFUND',{confirmUndelivered:true});
+ await assert.rejects(clear(),/FINANCIAL_ADJUSTMENT_REQUIRED/);
+ await x.act('DRIVER','EXECUTE_CUSTOMER_REFUND',{refundId,confirmPhysicalExecution:true,reference:'تم رد المبلغ النقدي كاملًا'});
+ await x.act('CUSTOMER','ACKNOWLEDGE_CUSTOMER_REFUND',{refundId,confirmFullReceipt:true});
+ await x.act('STAFF','RECONCILE_CUSTOMER_REFUND',{refundId,reference:'مطابقة سند الرد النقدي وإقرار الزبون'});
+ await clear();
+ assert.equal(x.row().state,'CLOSED');
+ assert.equal(x.order().openPaymentClaimId,null);
+ assert.equal(x.order().cashReviewVerifiedCollection,null);
+ assert.equal(x.order().cashReturnClearance.refundedIqd,10000);
+ await assert.rejects(x.complete(),/FULL_CASH_COMPLETION_CONFLICT/);
+ await assert.rejects(x.report('DRIVER',10000),/CASH_REVIEW_CLOSED/);
+ const {createStagingCodReturn}=require('../dist/codReturn');
+ const {RETURN_OPERATIONS_PK,RETURN_OPERATIONS_DEFAULTS}=require('../dist/returnOperationsPolicy');
+ x.f.put('staging-PlatformStaff',{pk:RETURN_OPERATIONS_PK,sk:'CURRENT',version:1,policyVersion:'return-1',values:RETURN_OPERATIONS_DEFAULTS});
+ const api=createStagingCodReturn({db:x.f.db,now:()=>x.f.time,enableFullCash:true,enableDeliveryFunding:true,
+  authenticate:async()=>({kind:'DRIVER',subjectId:'driver1'})});
+ const result=await api.requestReturn({orderId:'order1',offerId:x.order().financialAcceptance.offerId,attempt:1,
+  cashCollected:false,reason:'CUSTOMER_REFUSED'});
+ assert.equal(result.status,'REQUESTED');
+ assert.equal(x.order().cashReturnClearance.refundedIqd,10000);
+ assert.equal(x.order().financialOutcome,undefined);
+});
+
+test('a reconciled partial refund cannot clear a return with outstanding cash',async()=>{
+ const x=await fixture();
+ const refundId=randomUUID();
+ await x.verify(10000);
+ await x.act('STAFF','APPROVE_CUSTOMER_REFUND',{refundId,amountIqd:9000,sourceKind:'DRIVER_UNSETTLED',cashboxCode:null});
+ await x.act('DRIVER','EXECUTE_CUSTOMER_REFUND',{refundId,confirmPhysicalExecution:true,reference:'تم رد جزء من المبلغ'});
+ await x.act('CUSTOMER','ACKNOWLEDGE_CUSTOMER_REFUND',{refundId,confirmFullReceipt:true});
+ await x.act('STAFF','RECONCILE_CUSTOMER_REFUND',{refundId,reference:'مطابقة الرد الجزئي وإقرار استلامه'});
+ await assert.rejects(x.act('STAFF','AUTHORIZE_RETURN_AFTER_REFUND',{confirmUndelivered:true}),/CASH_RETURN_REQUIRES_FULL_REFUND/);
+ assert.equal(x.order().openPaymentClaimId,x.row().caseId);
+ assert.equal(x.order().cashReturnClearance,undefined);
+});
+
+test('production cash review uses only production bindings for reporting, refund and return clearance',async t=>{
+ const x=await fixture();
+ const {financialDispatchTables}=require('../dist/walletBindings');
+ const {checkoutTables}=require('../dist/checkoutTables');
+ const {quoteHash}=require('../dist/deliveryQuoteRecord');
+ const {createFinanceRollout}=require('../dist/financeRollout');
+ const original={...process.env};
+ const stageTables={...checkoutTables({}),...financialDispatchTables({})};
+ const vars=require('../../../infrastructure/production/order-financial-runtime.template.json').Resources.Function.Properties.Environment.Variables;
+ const config={schemaVersion:1,accountId:'746727375268',region:'us-east-1',scopes:[]};
+ Object.assign(process.env,Object.fromEntries(Object.entries(vars).filter(([,value])=>typeof value==='string')),{
+  ENVIRONMENT:'production',PLATFORM_ENVIRONMENT:'production',AWS_REGION:'us-east-1',STAGE:'production',
+  FINANCE_GENERAL_RELEASE_MODE:'REQUIRED',FINANCE_ROLLOUT_CONFIG:JSON.stringify(config),FINANCE_ROLLOUT_SHA256:quoteHash(config),
+ });
+ t.after(()=>{for(const key of Object.keys(process.env))if(!Object.hasOwn(original,key))delete process.env[key];Object.assign(process.env,original);});
+ const productionTables={...checkoutTables(),...financialDispatchTables()};
+ const mapping=new Map(Object.keys(productionTables).map(key=>[productionTables[key],stageTables[key]]));
+ const adapt=op=>{
+  assert.ok(op.TableName.startsWith('wizz-production-')&&mapping.has(op.TableName),op.TableName);
+  return {...op,TableName:mapping.get(op.TableName)};
+ };
+ const db={send(command){
+  const data=command.input;
+  const input=data.TransactItems?{...data,TransactItems:data.TransactItems.map(item=>{
+   const [name,op]=Object.entries(item)[0];return {[name]:adapt(op)};
+  })}:adapt(data);
+  return x.f.db.send(new command.constructor(input));
+ }};
+ Object.assign(x.order(),{businessId:'branch1',userId:'customer1',financeRollout:{
+  schemaVersion:2,scopeId:'GENERAL_PRODUCTION_FULL_CASH_V1',version:1,
+  digest:quoteHash({release:'GENERAL_PRODUCTION_FULL_CASH_V1',version:1,orders:[{orderId:'order1',branchId:'branch1',customerSubjectId:'customer1'}]}),
+ }});
+ x.f.get('WhizzDrivers_staging',{driverId:'driver1'}).cognitoSub='driverSubject1';
+ const rollout=createFinanceRollout({db,now:()=>x.f.time,completion:true,cashReview:true});
+ await rollout.order('order1','DRAIN');
+ let actor;
+ const api=createCustomerCashCase({db:rollout.db,now:()=>x.f.time,authenticate:async()=>actor,
+  authorizeStaff:async()=>{
+   const key={pk:'EMPLOYEE#'+staffId,sk:'PROFILE'};
+   return [exactCheck(productionTables.staff,key,x.f.get('staging-PlatformStaff',key))];
+  }});
+ const act=(kind,action,args)=>{
+  actor={kind,subjectId:kind==='STAFF'?staffId:kind==='DRIVER'?'driverSubject1':'customer1'};
+  return api.execute(x.request(action,args));
+ };
+ const amountIqd=5000,refundId=randomUUID();
+ await act('CUSTOMER','REPORT_CASH_PAYMENT',{reportedPaidIqd:amountIqd,confirmActualPayment:true});
+ await act('DRIVER','REPORT_CASH_PAYMENT',{reportedPaidIqd:amountIqd,confirmActualPayment:true});
+ const [customer,driver]=x.row().reports;
+ assert.equal(driver.actorId,'driverSubject1');
+ await act('STAFF','VERIFY_CASH_COLLECTION',{customerReportId:customer.reportId,driverReportId:driver.reportId});
+ await act('STAFF','APPROVE_CUSTOMER_REFUND',{refundId,amountIqd,sourceKind:'DRIVER_UNSETTLED',cashboxCode:null});
+ await act('DRIVER','EXECUTE_CUSTOMER_REFUND',{refundId,confirmPhysicalExecution:true,reference:'تسليم كامل المبلغ للزبون'});
+ await act('CUSTOMER','ACKNOWLEDGE_CUSTOMER_REFUND',{refundId,confirmFullReceipt:true});
+ await act('STAFF','RECONCILE_CUSTOMER_REFUND',{refundId,reference:'مطابقة سند الرد وإقرار الزبون'});
+ await act('STAFF','AUTHORIZE_RETURN_AFTER_REFUND',{confirmUndelivered:true});
+ assert.equal(x.order().cashReturnClearance.refundedIqd,amountIqd);
+ assert.equal(x.f.get('staging-Holds',{orderId:'order1',sk:'DRIVER_CASH_REFUND#'+refundId}).amountIqd,amountIqd);
+});

@@ -5,12 +5,12 @@
 const {createHash}=require('crypto');
 const {GetCommand,QueryCommand,ScanCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {allowed}=require('./catalog');
-const PATH='/staff/dispatch-reviews',JOBS='WizzDispatchJobs_staging',ORDERS='WizzOrders',BRANCH='WhizzMerchants_Businesses',HOLDS='staging-Holds',LOCKS='staging-AccountDeletion';
+const PATH='/staff/dispatch-reviews',JOBS='WizzDispatchJobs_staging';
 const fail=(code,status=409)=>Object.assign(Error(code),{status});
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(v);
 const canon=v=>JSON.stringify(v===undefined?null:Array.isArray(v)?v.map(x=>JSON.parse(canon(x))):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,JSON.parse(canon(v[k]))])):v);
 const hash=v=>createHash('sha256').update(canon(v)).digest('hex');
-const fields={order:['PK','SK','orderId','storeId','businessId','status','orderStatus','driverId','assignedDriverId','pickedUpAt','deliveredAt','completedAt','financialOutcome','financialRelease','returnCaseId','returnStatus','cashCollected','cashCollectedAmount','cancellationRequestId','cancellationStatus','deletionRequestId','deletionStatus','deletedAt','isDeleted','dispatchReviewOutcome','financeRollout'],branch:['businessId','regionId','businessName','name','ownerId','cognitoUserId','status','isActive','ordersBlocked','platformSuspended','isDeleted','deletedAt','deletionRequestId'],hold:['orderId','sk','holdId','status','version','updatedAt'],job:['orderId','SK','kind','status','state','restaurantId','dispatchJobId','dispatchCycle','dispatchReview','financialDispatch','financialSearchVersion','noDriverReason','attemptId','cycleId','branchId','version','reason','updatedAt','createdAt','dispatchReviewOutcome']};
+const reviewFields={order:['PK','SK','orderId','storeId','businessId','status','orderStatus','driverId','assignedDriverId','pickedUpAt','deliveredAt','completedAt','financialOutcome','financialRelease','returnCaseId','returnStatus','cashCollected','cashCollectedAmount','cancellationRequestId','cancellationStatus','deletionRequestId','deletionStatus','deletedAt','isDeleted','dispatchReviewOutcome','financeRollout'],branch:['businessId','regionId','businessName','name','ownerId','cognitoUserId','status','isActive','ordersBlocked','platformSuspended','isDeleted','deletedAt','deletionRequestId'],hold:['orderId','sk','holdId','status','version','updatedAt'],job:['orderId','SK','kind','status','state','restaurantId','dispatchJobId','dispatchCycle','dispatchReview','financialDispatch','financialSearchVersion','noDriverReason','attemptId','cycleId','branchId','version','reason','updatedAt','createdAt','dispatchReviewOutcome']};
 function exact(table,key,row,keys){const names={},values={},parts=[];for(const [i,k]of keys.entries()){names['#g'+i]=k;if(row?.[k]===undefined)parts.push('attribute_not_exists(#g'+i+')');else{values[':g'+i]=row[k];parts.push('#g'+i+'=:g'+i);}}return {ConditionCheck:{TableName:table,Key:key,ConditionExpression:parts.join(' AND '),ExpressionAttributeNames:names,...(Object.keys(values).length?{ExpressionAttributeValues:values}:{})}};}
 const selector=q=>q.source==='SEARCH'?{orderId:q.orderId,SK:'METADATA'}:{orderId:q.orderId,SK:'DISPATCH_ACCEPTANCE#'+q.attemptId};
 function validate(q){if(!q||Object.keys(q).some(k=>!['orderId','source','attemptId'].includes(k))||!id(q.orderId)||!['SEARCH','ACCEPTANCE'].includes(q.source)||q.source==='ACCEPTANCE'&&!/^LA:[a-f0-9]{48}$/.test(q.attemptId||''))throw fail('INVALID_REVIEW_SELECTOR',400);return {orderId:q.orderId,source:q.source,...(q.source==='ACCEPTANCE'?{attemptId:q.attemptId}:{})};}
@@ -25,20 +25,25 @@ function reviewAccess({db,rollout,env=process.env}){
  return {db,scopeContains:()=>true,generalRelease:true,historicalContainsOrder:rollout.containsOrder};
 }
 function createReviewReader(ctx,actor){
+ const {jobs:JOBS,orders:ORDERS,branch:BRANCH,holds:HOLDS,deletion:LOCKS}=ctx.orderTables??{
+  jobs:'WizzDispatchJobs_staging',orders:'WizzOrders',branch:'WhizzMerchants_Businesses',holds:'staging-Holds',deletion:'staging-AccountDeletion',
+ };
+ const fields=ctx.followupFields?{...reviewFields,order:[...reviewFields.order,'orderNumber','userSub','pickupAt','merchantHandover'],job:[...reviewFields.job,'dispatchRestart']}:reviewFields;
  const get=async(table,key,keys)=>{const names=keys&&Object.fromEntries(keys.map((k,i)=>['#p'+i,k]));return (await ctx.db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true,...(names?{ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names}:{})}))).Item;};
  async function fresh(){const live=await ctx.employee(actor.employeeId);if(!live||live.version!==actor.version||live.status!=='ACTIVE')throw fail('EMPLOYEE_CHANGED',403);}
  async function load(q){
   q=validate(q);const key=selector(q),source=await get(JOBS,key,fields.job),job=q.source==='SEARCH'?source:await get(JOBS,{orderId:q.orderId,SK:'METADATA'},fields.job);
   if(!source||!job||!id(job.restaurantId))throw fail('REVIEW_UNAVAILABLE',404);
   const [order,branch,hold]=await Promise.all([get(ORDERS,{PK:'ORDER#'+q.orderId,SK:'META'},fields.order),get(BRANCH,{businessId:job.restaurantId},fields.branch),get(HOLDS,{orderId:q.orderId,sk:'HOLD'},fields.hold)]);
-  if(!order||order.orderId!==q.orderId||![order.storeId,order.businessId].includes(job.restaurantId)||[order.storeId,order.businessId].some(v=>v!==undefined&&v!==job.restaurantId)||!branch||branch.businessId!==job.restaurantId||!allowed(actor,'orders.read',branch.regionId)||!id(branch.ownerId)||branch.cognitoUserId!==branch.ownerId)throw fail('REVIEW_UNAVAILABLE',404);
+  if(!order||order.orderId!==q.orderId||![order.storeId,order.businessId].includes(job.restaurantId)||[order.storeId,order.businessId].some(v=>v!==undefined&&v!==job.restaurantId)||!branch||branch.businessId!==job.restaurantId||!allowed(actor,'orders.read',ctx.followupFields?(branch.regionId??null):branch.regionId)||!id(branch.ownerId)||branch.cognitoUserId!==branch.ownerId)throw fail('REVIEW_UNAVAILABLE',404);
+  if(ctx.orderPredicate&&!ctx.orderPredicate(order,branch))throw fail('REVIEW_UNAVAILABLE',404);
   if(ctx.generalRelease&&!ctx.historicalContainsOrder?.(q.orderId)){
    const pin=order.financeRollout;
    if(pin?.schemaVersion!==2||pin.scopeId!=='GENERAL_STAGING_FULL_CASH_V1'||pin.version!==1||!/^[a-f0-9]{64}$/.test(pin.digest??''))throw fail('REVIEW_UNAVAILABLE',404);
   }
   const guards=[exact(JOBS,key,source,fields.job),...(q.source==='SEARCH'?[]:[exact(JOBS,{orderId:q.orderId,SK:'METADATA'},job,fields.job)]),exact(ORDERS,{PK:order.PK,SK:order.SK},order,fields.order),exact(BRANCH,{businessId:branch.businessId},branch,fields.branch),exact(HOLDS,{orderId:q.orderId,sk:'HOLD'},hold,fields.hold)];
   if(order.deletionRequestId!=null||order.deletionStatus!=null||order.deletedAt!=null||order.isDeleted===true||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)throw fail('REVIEW_UNAVAILABLE',404);
-  for(const pk of ['ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId,'BUSINESS_LIFECYCLE#MERCHANT#'+branch.businessId]){if(await get(LOCKS,{pk,sk:'META'},['pk','sk']))throw fail('REVIEW_UNAVAILABLE',404);guards.push(exact(LOCKS,{pk,sk:'META'},undefined,['pk']));}
+  for(const pk of ['ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId,'BUSINESS_LIFECYCLE#MERCHANT#'+branch.businessId,...(ctx.followupFields?['ORDER_LIFECYCLE#'+q.orderId]:[])]){if(await get(LOCKS,{pk,sk:'META'},['pk','sk']))throw fail('REVIEW_UNAVAILABLE',404);guards.push(exact(LOCKS,{pk,sk:'META'},undefined,['pk']));}
   const cycle=q.source==='SEARCH'?job.dispatchCycle?.id??job.dispatchJobId:source.cycleId;if(!id(cycle)||q.source==='ACCEPTANCE'&&(source.kind!=='LEGACY_ACCEPTANCE_ATTEMPT'||source.attemptId!==q.attemptId))throw fail('REVIEW_UNAVAILABLE',404);
   let pending=false,attempts=[];
   if(q.source==='SEARCH'){
@@ -46,7 +51,7 @@ function createReviewReader(ctx,actor){
    if(cursor||attempts.length>50)throw fail('REVIEW_INCOMPLETE',503);
    for(const a of attempts){if(a.orderId!==q.orderId||a.kind!=='LEGACY_ACCEPTANCE_ATTEMPT'||a.SK!=='DISPATCH_ACCEPTANCE#'+a.attemptId||!['ASSIGNED','RESERVATION_PENDING','ASSIGNMENT_PENDING','REVIEW_REQUIRED'].includes(a.state))throw fail('REVIEW_INCOMPLETE',503);if(['RESERVATION_PENDING','ASSIGNMENT_PENDING','REVIEW_REQUIRED'].includes(a.state))pending=true;guards.push(exact(JOBS,{orderId:q.orderId,SK:a.SK},a,fields.job));}
   }
-  const active=candidate(source)&&(q.source!=='ACCEPTANCE'||job.dispatchCycle?.id===source.cycleId),before=['ready_for_pickup','confirmed','preparing','pending'].includes(order.status)&&order.driverId==null&&order.assignedDriverId==null&&order.pickedUpAt==null&&order.deliveredAt==null&&order.completedAt==null&&order.financialOutcome==null&&order.returnCaseId==null&&order.returnStatus==null&&order.cancellationRequestId==null&&order.cancellationStatus==null&&[undefined,null,false].includes(order.cashCollected)&&[undefined,null,0].includes(order.cashCollectedAmount);
+  const active=candidate(source)&&(q.source!=='ACCEPTANCE'||job.dispatchCycle?.id===source.cycleId),before=['ready_for_pickup','confirmed','preparing','pending'].includes(order.status)&&order.driverId==null&&order.assignedDriverId==null&&order.pickedUpAt==null&&order.pickupAt==null&&order.merchantHandover?.state!=='HANDED_TO_DRIVER'&&order.deliveredAt==null&&order.completedAt==null&&order.financialOutcome==null&&order.returnCaseId==null&&order.returnStatus==null&&order.cancellationRequestId==null&&order.cancellationStatus==null&&[undefined,null,false].includes(order.cashCollected)&&[undefined,null,0].includes(order.cashCollectedAmount);
   const safeHold=!hold||hold.status==='RELEASED';
   const ready=active&&q.source==='SEARCH'&&before&&safeHold&&!pending;
   const caseId=hash({orderId:q.orderId,source:q.source,cycle,...(q.attemptId?{attemptId:q.attemptId}:{})}),decisionKey={pk:'DISPATCH_REVIEW#'+caseId,sk:'DECISION'},decision=await get(ctx.table,decisionKey);
@@ -61,9 +66,9 @@ function createReviewReader(ctx,actor){
    canRequestReservationReview:!decision&&active&&q.source==='ACCEPTANCE'&&allowed(actor,'orders.assign',branch.regionId)};
   return {item,guards,decisionKey,decision,baseDigest,source,job,order,branch,hold,attempts};
  }
- async function readFence(c){
+ async function readFence(c,additional=[]){
   const decisionGuard=exact(ctx.table,c.decisionKey,c.decision,c.decision?Object.keys(c.decision):['pk']);
-  try{await ctx.db.send(new TransactWriteCommand({TransactItems:[ctx.guard(actor),...c.guards,decisionGuard]}));}
+  try{await ctx.db.send(new TransactWriteCommand({TransactItems:[ctx.guard(actor),...c.guards,...additional,decisionGuard]}));}
   catch(e){if(e.name==='TransactionCanceledException')throw fail('REVIEW_CHANGED');throw e;}
  }
  return {get,fresh,load,readFence};
@@ -78,7 +83,7 @@ async function route(ctx,actor,method,path,input={}){
   const query=ctx.query||{};
   if(query.orderId){const c=await load(query);await readFence(c);await fresh();return {item:{...c.item,followup:await require('./dispatch-followup').decorate(ctx,c,actor)},mode:'REQUESTS_ONLY'};}
   let cursor;if(query.cursor){try{const c=JSON.parse(Buffer.from(query.cursor,'base64url').toString());if(query.cursor.length>2048||c.actorId!==actor.employeeId||c.version!==actor.version||!id(c.key?.orderId)||typeof c.key.SK!=='string'||c.key.SK.length>220||Object.keys(c.key).sort().join(',')!=='SK,orderId')throw Error();cursor=c.key;}catch{throw fail('INVALID_CURSOR',400);}}
-  const projection=Object.fromEntries(fields.job.map((k,i)=>['#p'+i,k]));
+  const projection=Object.fromEntries(reviewFields.job.map((k,i)=>['#p'+i,k]));
   const result=await ctx.db.send(new ScanCommand({TableName:JOBS,ConsistentRead:true,Limit:25,ExclusiveStartKey:cursor,ProjectionExpression:Object.keys(projection).join(','),ExpressionAttributeNames:projection})),items=[];
   for(const row of result.Items||[]){if(ctx.scopeContains&&!ctx.scopeContains(row.orderId))continue;if(!candidate(row)&&!(row.SK==='METADATA'&&row.dispatchReviewOutcome?.caseId))continue;try{const c=await load({orderId:row.orderId,source:row.SK==='METADATA'?'SEARCH':'ACCEPTANCE',attemptId:row.attemptId});if(c.item.active||c.item.decision){await readFence(c);items.push({...c.item,followup:await require('./dispatch-followup').decorate(ctx,c,actor)});}}catch(e){if(e.message!=='REVIEW_UNAVAILABLE')throw e;}}
   await fresh();return {items,nextCursor:result.LastEvaluatedKey?Buffer.from(JSON.stringify({actorId:actor.employeeId,version:actor.version,key:result.LastEvaluatedKey})).toString('base64url'):null,mode:'REQUESTS_ONLY'};

@@ -1,3 +1,4 @@
+import {checkoutTables} from './checkoutTables';
 import { moneyFromMinor, readMoney, multiplyMoney, toWholeIqdExact } from './money';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 import { validateCommercialCharge } from './orderCommercialPricing';
@@ -53,10 +54,11 @@ export function calculateStoreDeliveryAgreement(value: unknown, reference: unkno
 export function hasStoreAgreementOrderEvidence(operations:Row[], funding:Row, orderId:string, customerId:string) {
   try {
     if(funding?.allocation?.schemaVersion!==2)return false;
+    const table=checkoutTables().policy;
     const pin=funding.policyPin,pk='DELIVERY_FUNDING#'+pin.policyId;
     let policy:Row|undefined;
     for(const sk of ['CURRENT','VERSION#'+pin.version]){
-      const checks=operations.map(o=>o.ConditionCheck).filter(c=>c?.TableName==='staging-PlatformStaff'&&c.Key?.pk===pk&&c.Key?.sk===sk);
+      const checks=operations.map(o=>o.ConditionCheck).filter(c=>c?.TableName===table&&c.Key?.pk===pk&&c.Key?.sk===sk);
       const matched=checks.some(check=>{
         const field=(name:string)=>{
           const alias=Object.entries(check.ExpressionAttributeNames??{}).find(([,v])=>v===name)?.[0];
@@ -71,7 +73,7 @@ export function hasStoreAgreementOrderEvidence(operations:Row[], funding:Row, or
       if(!matched)return false;
     }
     if(!policy||quoteHash(calculateStoreDeliveryAgreement(policy,funding.allocation.referenceFee))!==quoteHash(funding))return false;
-    const puts=operations.map(o=>o.Put).filter(p=>p?.TableName==='staging-PlatformStaff');
+    const puts=operations.map(o=>o.Put).filter(p=>p?.TableName===table);
     const reservation=puts.find(p=>p.Item?.pk==='DELIVERY_RESERVATION#'+orderId&&p.Item.sk==='META');
     const h=reservation?.Item;
     return !!h&&reservation.ConditionExpression==='attribute_not_exists(pk)'&&h.schemaVersion===2&&h.orderId===orderId&&h.customerId===customerId&&h.status==='RESERVED'&&quoteHash({policyPin:h.policyPin,allocation:h.allocation})===quoteHash(funding)&&!puts.some(p=>p.Item?.pk==='DELIVERY_BUDGET#'+pin.policyId||p.Item?.pk==='DELIVERY_USAGE#'+pin.policyId);

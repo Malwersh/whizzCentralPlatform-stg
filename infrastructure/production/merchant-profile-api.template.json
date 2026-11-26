@@ -1,0 +1,389 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Production merchant personal profile, exact pool identity and pinned legal consent; initially disabled.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    },
+    "ArtifactKey": {
+      "Type": "String",
+      "AllowedPattern": "merchant-profile/[a-f0-9]{64}.zip"
+    },
+    "ArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1
+    },
+    "ProfileApiEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ]
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-merchant-profile",
+        "RetentionInDays": 90
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "MerchantPersonalProfileOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-merchant-profile:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cognito-idp:AdminGetUser"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_2sKZ4fGbZ"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MerchantPlatform"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "PERSON#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "ACCOUNT_LIFECYCLE#MERCHANT#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:LeadingKeys": [
+                        "OPERATIONAL_SETTINGS#MERCHANT_LEGAL"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Function": {
+      "Type": "AWS::Lambda::Function",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "FunctionName": "wizz-production-merchant-profile",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Timeout": 15,
+        "Role": {
+          "Fn::GetAtt": [
+            "Role",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "ArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactVersion"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "PROFILE_API_ENABLED": {
+              "Ref": "ProfileApiEnabled"
+            }
+          }
+        },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "LogGroup"
+          }
+        }
+      }
+    },
+    "Api": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Name": "wizz-production-merchant-profile",
+        "EndpointConfiguration": {
+          "Types": [
+            "REGIONAL"
+          ]
+        }
+      }
+    },
+    "Authorizer": {
+      "Type": "AWS::ApiGateway::Authorizer",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Name": "ProductionMerchantPoolOnly",
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "Type": "COGNITO_USER_POOLS",
+        "IdentitySource": "method.request.header.Authorization",
+        "ProviderARNs": [
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_2sKZ4fGbZ"
+          }
+        ]
+      }
+    },
+    "Auth": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Fn::GetAtt": [
+            "Api",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "auth"
+      }
+    },
+    "Profile": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Auth"
+        },
+        "PathPart": "person-profile"
+      }
+    },
+    "GETMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Profile"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Function.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "GETInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "Function"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/auth/person-profile"
+        }
+      }
+    },
+    "POSTMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Profile"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Function.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "POSTInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "Function"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/POST/auth/person-profile"
+        }
+      }
+    },
+    "Deployment": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        }
+      },
+      "DependsOn": [
+        "GETMethod",
+        "POSTMethod"
+      ]
+    },
+    "Stage": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "DeploymentId": {
+          "Ref": "Deployment"
+        },
+        "StageName": "production",
+        "MethodSettings": [
+          {
+            "ResourcePath": "/*",
+            "HttpMethod": "*",
+            "ThrottlingBurstLimit": 10,
+            "ThrottlingRateLimit": 5,
+            "DataTraceEnabled": false
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ApiUrl": {
+      "Value": {
+        "Fn::Sub": "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/production"
+      }
+    }
+  }
+}

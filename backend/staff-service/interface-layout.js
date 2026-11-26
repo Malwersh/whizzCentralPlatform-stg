@@ -50,17 +50,24 @@ function project(current,{surface,branchId,businessType,cuisineIds=[],brandId,re
 async function read(ctx){return (await ctx.db.send(new GetCommand({TableName:ctx.table,Key:KEY,ConsistentRead:true}))).Item||{...KEY,version:0,draft:[],published:null,history:[]};}
 async function feed(ctx,scope,query){
  if(!id(query.branchId)||!sources[query.surface])throw fail('Invalid interface request.');
- const merchant=(await ctx.db.send(new GetCommand({TableName:'WhizzMerchants_Businesses',Key:{businessId:query.branchId}}))).Item;
- if(!merchant||merchant.isDeleted||merchant.deletedAt||merchant.isActive===false||merchant.platformSuspended===true)throw fail('Merchant unavailable.',404);
+ const merchant=(await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.merchants??'WhizzMerchants_Businesses',Key:{businessId:query.branchId}}))).Item;
+ if(!merchant||(ctx.selectableMerchant&&!ctx.selectableMerchant(merchant))||merchant.isDeleted||merchant.deletedAt||merchant.isActive===false||merchant.platformSuspended===true)throw fail('Merchant unavailable.',404);
  const [state,catalog]=await Promise.all([read(ctx),ctx.db.send(new GetCommand({TableName:ctx.table,Key:require('./home-discovery').KEY}))]);const p=catalog.Item?.profiles?.[query.branchId]||{};
  const result=project(state,{...scope,storeStructureVersion:query.storeStructureVersion==='2'?2:1,surface:query.surface,branchId:query.branchId,businessType:merchant.businessType||merchant.business_type||'restaurant',cuisineIds:p.cuisineIds||[],brandId:p.brandId});
- if(result.sections.some(s=>s.source==='bestsellers')){const stats=(await ctx.db.send(new GetCommand({TableName:ctx.table,Key:{pk:'HOME_DISCOVERY',sk:'PRODUCTS#'+query.branchId}}))).Item;result.itemCounts=stats&&Date.parse(stats.expiresAt)>Date.now()?stats.counts:{};}
+ if(result.sections.some(s=>s.source==='bestsellers')){
+  const discovery=require('./home-discovery');
+  const stats=await ctx.db.send(new GetCommand({TableName:ctx.table,Key:{pk:'HOME_DISCOVERY',sk:'PRODUCTS#'+query.branchId},ConsistentRead:!!ctx.homeTables}));
+  const currentStats=ctx.homeTables?(await ctx.db.send(new GetCommand({TableName:ctx.table,Key:discovery.STATS,ConsistentRead:true}))).Item:null;
+  result.itemCounts=stats.Item&&Date.parse(stats.Item.expiresAt)>(scope.now??Date.now())&&
+   (!ctx.homeTables||stats.Item.asOf===currentStats?.asOf)?stats.Item.counts:{};
+ }
  if(query.offerSlotsVersion==='1'&&result.sections.some(s=>s.source==='offers')){try{result.offers=await require('./offer-slot').feed(ctx,scope,query.branchId,result.sections.filter(s=>s.source==='offers').map(s=>s.offerSlot));result.offerState='ready';}catch(e){console.warn('Store offer presentation unavailable',{code:e.name||'Error'});result.offers=[];result.offerState='unavailable';}}
  return result;
 }
 async function catalogOptions(ctx,branchId){
- const products=[];let cursor;for(let page=0;page<10;page++){const r=await ctx.db.send(new QueryCommand({TableName:'WhizzMerchants_Products',IndexName:'BusinessIdIndex',KeyConditionExpression:'businessId = :b',ExpressionAttributeValues:{':b':branchId},Limit:100,ExclusiveStartKey:cursor}));products.push(...(r.Items||[]).filter(p=>!p.isDeleted&&!p.deletedAt).map(p=>({id:p.productId,label:p.name_ar||p.name||p.productName||p.productId,categoryId:p.categoryId})));cursor=r.LastEvaluatedKey;if(!cursor)break;if(page===9)throw fail('Catalog too large. Narrow configuration.',413);}
- const categories=[];for(const categoryId of new Set(products.map(p=>p.categoryId).filter(id))){const c=(await ctx.db.send(new GetCommand({TableName:'WhizzMerchants_Categories',Key:{categoryId}}))).Item;if(c&&!c.isDeleted&&!c.deletedAt&&(!(c.businessId||c.business_id)||(c.businessId||c.business_id)===branchId))categories.push({id:categoryId,label:c.name_ar||c.categoryName||c.name||categoryId});}
+ if(ctx.publishedInterfaceCatalog)return ctx.publishedInterfaceCatalog(branchId);
+ const products=[];let cursor;for(let page=0;page<10;page++){const r=await ctx.db.send(new QueryCommand({TableName:ctx.homeTables?.products??'WhizzMerchants_Products',IndexName:'BusinessIdIndex',KeyConditionExpression:'businessId = :b',ExpressionAttributeValues:{':b':branchId},Limit:100,ExclusiveStartKey:cursor}));products.push(...(r.Items||[]).filter(p=>!p.isDeleted&&!p.deletedAt).map(p=>({id:p.productId,label:p.name_ar||p.name||p.productName||p.productId,categoryId:p.categoryId})));cursor=r.LastEvaluatedKey;if(!cursor)break;if(page===9)throw fail('Catalog too large. Narrow configuration.',413);}
+ const categories=[];for(const categoryId of new Set(products.map(p=>p.categoryId).filter(id))){const c=(await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.categories??'WhizzMerchants_Categories',Key:{categoryId}}))).Item;if(c&&!c.isDeleted&&!c.deletedAt&&(!(c.businessId||c.business_id)||(c.businessId||c.business_id)===branchId))categories.push({id:categoryId,label:c.name_ar||c.categoryName||c.name||categoryId});}
  return {products,categories};
 }
 async function route(ctx,actor,method,path,input){
@@ -71,10 +78,11 @@ async function route(ctx,actor,method,path,input){
  const operation=path.split('/').pop();if(method!=='POST'||!['draft','publish','rollback'].includes(operation))throw fail('Unknown operation.',404);
  if(!permissions[operation==='draft'?'edit':'publish'])throw fail('Permission required.',403);
  if(!Number.isInteger(input.baseVersion)||input.baseVersion!==current.version)throw fail('Configuration changed. Refresh.',409);
+ if(operation==='rollback'&&!(current.history||[]).some(h=>h.revision===input.revision))throw fail('Snapshot unavailable.');
  const templates=validate(operation==='draft'?input.templates:operation==='rollback'?(current.history||[]).find(h=>h.revision===input.revision)?.templates:current.draft);
  const catalog=(await ctx.db.send(new GetCommand({TableName:ctx.table,Key:require('./home-discovery').KEY,ConsistentRead:true}))).Item;
  for(const t of templates){for(const c of t.target.cuisineIds)if(!catalog?.cuisines?.some(x=>x.id===c))throw fail('Unknown cuisine.');for(const b of t.target.brandIds)if(!catalog?.brands?.some(x=>x.id===b))throw fail('Unknown brand.');}
- for(const branch of new Set(templates.flatMap(t=>t.target.branchIds))){const m=(await ctx.db.send(new GetCommand({TableName:'WhizzMerchants_Businesses',Key:{businessId:branch}}))).Item;if(!m||m.isDeleted||m.deletedAt)throw fail('Unknown branch.');}
+ for(const branch of new Set(templates.flatMap(t=>t.target.branchIds))){const m=(await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.merchants??'WhizzMerchants_Businesses',Key:{businessId:branch}}))).Item;if(!m||(ctx.selectableMerchant&&!ctx.selectableMerchant(m))||m.isDeleted||m.deletedAt)throw fail('Unknown branch.');}
  const branchCatalogs=new Map();
  for(const t of templates){
   const productIds=new Set(t.sections.flatMap(s=>s.productIds)),categoryIds=new Set(t.sections.flatMap(s=>s.categoryIds));if(!productIds.size&&!categoryIds.size)continue;
@@ -83,7 +91,7 @@ async function route(ctx,actor,method,path,input){
   for(const categoryId of categoryIds)if(!choices.categories.some(c=>c.id===categoryId))throw fail('Category does not belong to selected branch.');
  }
 
- for(const region of new Set(templates.flatMap(t=>t.target.regionIds))){const r=(await ctx.db.send(new GetCommand({TableName:process.env.REGIONS_TABLE||'WizzCentral_Regions',Key:{regionId:region}}))).Item;if(!r)throw fail('Unknown region.');}
+ for(const region of new Set(templates.flatMap(t=>t.target.regionIds))){const r=(await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.regions||process.env.REGIONS_TABLE||'WizzCentral_Regions',Key:{regionId:region}}))).Item;if(!r)throw fail('Unknown region.');}
  await require('./offer-slot').validateRefs(ctx,templates);
  const next={...current,version:current.version+1,updatedAt:new Date().toISOString()};
  if(operation==='draft')next.draft=templates;else{next.history=[...(current.history||[]),...(current.published?[current.published]:[])].slice(-10);next.published={revision:next.version,templates,publishedAt:next.updatedAt};}

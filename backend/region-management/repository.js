@@ -1,6 +1,14 @@
 'use strict';
 const m=require('./model');
-const TABLES={base:'WizzCentral_Regions',derived:'WizzCentral_RegionsDerived_staging',index:'WizzCentral_RegionIndex_staging',neighbors:'WizzCentral_RegionNeighbors_staging',audit:'WizzCentral_RegionAudit_staging'};
+const TABLES={base:'WizzCentral_Regions',derived:'WizzCentral_RegionsDerived_staging',index:'WizzCentral_RegionIndex_staging',neighbors:'WizzCentral_RegionNeighbors_staging',audit:'WizzCentral_RegionAudit_staging',
+ listings:process.env.REGION_LISTINGS_TABLE||'WhizzMerchants_RegionListings'};
+const regionReferenceTables=()=>({
+ addresses:process.env.REGION_REFERENCE_ADDRESSES,
+ merchants:process.env.REGION_REFERENCE_MERCHANTS,
+ merchantPlatform:process.env.REGION_REFERENCE_MERCHANT_PLATFORM,
+ drivers:process.env.REGION_REFERENCE_DRIVERS,
+ orders:process.env.REGION_REFERENCE_ORDERS,
+});
 const JOB_PK='REGIONS_PUBLICATION#312';
 function create({db,sdk,table=process.env.STAFF_TABLE}){
  const get=async(TableName,Key)=>(await db.send(new sdk.GetCommand({TableName,Key,ConsistentRead:true}))).Item;
@@ -16,4 +24,4 @@ function create({db,sdk,table=process.env.STAFF_TABLE}){
  const recent=async pk=>(await db.send(new sdk.QueryCommand({TableName:table,KeyConditionExpression:'pk=:pk',ExpressionAttributeValues:{':pk':pk},ConsistentRead:true,ScanIndexForward:false,Limit:15}))).Items||[];
  return {db,sdk,table,get,scan,query,fence,transaction,draftKey,versionKey,jobKey,queueKey,historyKey,recent,async catalog(){const [base,derived]=await Promise.all([scan(TABLES.base),scan(TABLES.derived)]);return {base,derived,digest:m.catalogDigest(base)};},drafts:actor=>query('REGIONS_PLAN#'+actor,'DRAFT#'),job:id=>get(table,jobKey(id))};
 }
-module.exports={TABLES,JOB_PK,create};
+module.exports={TABLES,JOB_PK,create,regionReferenceTables};

@@ -49,3 +49,19 @@ test('CSV uses exact dinars, preserves totals and states that it is a preview, w
  assert.match(out.csv,/'?"merchantNet","8600"/);assert.match(out.csv,/"platformNetContribution","-5100"/);assert.equal(out.csv.includes('PRIVATE_CUSTOMER'),false);
  const changed=structuredClone(p);changed.summary.amounts.merchantNet.minorAmount++;assert.throws(()=>csv(changed));
 });
+test('settlement survives removal of customer fields but requires the original order proof',async()=>{
+ const {f,input}=await proof({platform:1000}),r=reader(f);
+ const {ORDER_PII,financialRecord}=require('../../account-deletion/customer-cleanup');
+ for(const field of ORDER_PII)input.order[field]='PRIVATE_CUSTOMER';
+ const before=await r.preview(request);
+ const archive=financialRecord(input.order,'order',{requestId:'request1',financialYears:7,policyVersion:1},request.at);
+ for(const field of ORDER_PII)delete input.order[field];
+ assert.deepEqual(await r.preview(request),before);
+ assert.doesNotMatch(csv(before).csv,/PRIVATE_CUSTOMER/);
+ assert.doesNotMatch(JSON.stringify(archive),/PRIVATE_CUSTOMER/);
+ assert.ok(archive.data.codFinancialEvidence);
+ delete input.order.financialSnapshot;
+ delete input.order.financialAcceptance;
+ input.order.codFinancialEvidence=archive.data.codFinancialEvidence;
+ await assert.rejects(r.preview(request),/MERCHANT_ACCRUAL_PROOF_REQUIRED/);
+});

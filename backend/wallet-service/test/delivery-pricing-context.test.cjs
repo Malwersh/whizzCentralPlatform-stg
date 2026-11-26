@@ -25,9 +25,11 @@ function fixture(){
   if(q.TableName===state.failTable)throw Error('sensitive SDK data');
   let item;
   switch(q.TableName){
-   case 'WizzCentral_RegionIndex_staging':return {Items:[{h3_cell:q.ExpressionAttributeValues[':cell'],regionId:'zone'}]};
+   case 'WizzCentral_RegionIndex_staging':return {Items:[...regions.values()].filter(row=>row.level===3)
+    .map(row=>({h3_cell:q.ExpressionAttributeValues[':cell'],regionId:row.regionId}))};
    case 'WizzCentral_Regions':item=regions.get(q.Key.regionId);break;
    case 'WizzCentral_RegionsDerived_staging':item={regionId:q.Key.regionId,effective_is_active:1};break;
+   case 'WizzCentral_RegionNeighbors_staging':item=q.Key.neighbor_pair_id==='zone#neighbor'?state.neighbor:undefined;break;
    case 'WhizzMerchants_Businesses':item=state.branch;break;
    case 'WizzUser_addresses_staging':item=state.address;break;
    case 'staging-PlatformStaff':item=state.policy;break;
@@ -110,6 +112,51 @@ test('district reference is never silently treated as CITY pricing scope',async(
  assert.equal((await f.calculate()).calculation.customerDeliveryFee.minorAmount,3100000);
  f.policy.values.deliveryRules=[rule({type:'CITY',id:'UNBOUND_CITY'},'8000')];
  await reject(f.calculate(),'NO_PRICING_RULE');
+});
+
+test('the selected pricing rule governs travel between neighboring areas',async()=>{
+ const f=fixture();
+ f.regions.set('otherGovernorate',{regionId:'otherGovernorate',level:1,parent_id:'country',is_active:1});
+ f.regions.set('otherDistrict',{regionId:'otherDistrict',level:2,parent_id:'otherGovernorate',is_active:1});
+ f.regions.set('neighbor',{regionId:'neighbor',level:3,parent_id:'district',is_active:1,
+  geometry:{type:'Polygon',coordinates:[[[44.5,31.9],[44.6,31.9],[44.6,32],[44.5,32],[44.5,31.9]]]}});
+ f.address.longitude=44.52;
+ const policy=f.policy.values.deliveryRules[0].coverage;
+ policy.supportedZoneIds.push('neighbor');
+ // Existing policies can continue to be read and priced before the control is configured.
+ assert.equal((await f.calculate()).context.zoneId,'neighbor');
+ policy.crossRegionMode='SAME_REGION';
+ await reject(f.calculate(),'OUTSIDE_COVERAGE');
+ policy.crossRegionMode='SAME_DISTRICT';
+ await reject(f.calculate(),'OUTSIDE_COVERAGE');
+ f.neighbor={source_region_id:'zone',target_region_id:'neighbor',source_level:3,target_level:3,relationship_type:'partially_overlapping'};
+ await reject(f.calculate(),'OUTSIDE_COVERAGE');
+ f.neighbor.relationship_type='adjacent';
+ assert.equal((await f.calculate()).context.zoneId,'neighbor');
+ f.regions.get('neighbor').parent_id='otherDistrict';
+ policy.crossRegionMode='SAME_GOVERNORATE';
+ await reject(f.calculate(),'OUTSIDE_COVERAGE');
+ policy.crossRegionMode='ADJACENT_REGIONS';
+ assert.equal((await f.calculate()).context.governorateId,'otherGovernorate');
+ policy.maxRoadMeters=2000;
+ await reject(f.calculate(),'OUTSIDE_DELIVERY_RANGE');
+});
+test('an address saved on the shared edge uses its selected region and invalidates on change',async()=>{
+ const f=fixture();
+ f.regions.set('neighbor',{regionId:'neighbor',level:3,parent_id:'district',is_active:1,
+  geometry:{type:'Polygon',coordinates:[[[44.5,31.9],[44.6,31.9],[44.6,32],[44.5,32],[44.5,31.9]]]}});
+ f.address.longitude=44.5;
+ f.neighbor={source_region_id:'zone',target_region_id:'neighbor',source_level:3,target_level:3,relationship_type:'adjacent'};
+ Object.assign(f.policy.values.deliveryRules[0].coverage,{crossRegionMode:'ADJACENT_REGIONS',supportedZoneIds:['zone','neighbor']});
+ f.address.regionId='zone';
+ assert.equal((await f.calculate()).context.zoneId,'zone');
+ f.address.regionId='neighbor';
+ assert.equal((await f.calculate()).context.zoneId,'neighbor');
+ f.afterProvider=()=>{f.address.regionId='zone';};
+ await reject(f.calculate(),'PRICING_CONTEXT_CHANGED');
+ f.afterProvider=()=>{};
+ f.address.regionId='unrelated';
+ await reject(f.calculate(),'BOUNDARY_REGION_SELECTION_REQUIRED');
 });
 test('authentication failures and guest identity cannot read a saved address',async()=>{
  for(const authenticate of [async()=>{throw Error('token expired');},async()=>({userId:'guest',subjectId:'s1'}),async()=>null]){

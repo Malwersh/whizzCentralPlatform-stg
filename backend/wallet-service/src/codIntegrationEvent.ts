@@ -1,3 +1,4 @@
+import { financialOrderTables } from './walletBindings';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 
 export const COD_INTEGRATION_QUEUE = 'COD_INTEGRATION';
@@ -17,7 +18,7 @@ export function codIntegrationEvent(input: CodIntegrationInput) {
       !Number.isFinite(Date.parse(input.createdAt)) || new Date(input.createdAt).toISOString() !== input.createdAt) {
     throw Error('INVALID_COD_INTEGRATION_EVENT');
   }
-  return { Put: { TableName: 'staging-WalletLifecycle', Item: {
+  return { Put: { TableName: financialOrderTables().lifecycle, Item: {
     ...input, operationId: input.financialOperationId + ':EVENT', integrationSchemaVersion: 1,
     status: 'PENDING_INTEGRATION', queuePartition: COD_INTEGRATION_QUEUE, nextAttemptAt: 0, integrationAttempts: 0
   }, ConditionExpression: 'attribute_not_exists(operationId)' } };

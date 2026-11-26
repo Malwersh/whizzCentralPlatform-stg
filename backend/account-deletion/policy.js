@@ -20,11 +20,17 @@ function blockers(actor,scope,evidence){
  if(scope.kind==='MEMBERSHIP'&&evidence.isOwner)throw error('OWNERSHIP_TRANSFER_REQUIRED');
  if(scope.kind==='MEMBERSHIP'&&!evidence.isMember)throw error('MEMBERSHIP_REQUIRED');
  if(scope.kind==='ACCOUNT'&&actor.type==='MERCHANT'&&evidence.ownedBusinesses?.length)issues.push({code:'OWNED_BUSINESSES',action:'TRANSFER_OR_CLOSE_BUSINESSES'});
+ if(actor.type==='MERCHANT'&&scope.kind==='BUSINESS'&&evidence.ownershipTransferReview)issues.push({code:'OWNERSHIP_TRANSFER_IN_PROGRESS',action:'RESOLVE_OWNERSHIP_TRANSFER'});
  if(actor.type==='STAFF'&&evidence.lastRequiredAdministrator)issues.push({code:'ADMIN_HANDOVER',action:'ASSIGN_SUCCESSOR'});
  if(evidence.activeOrders?.length)issues.push({code:'ACTIVE_ORDERS',action:actor.type==='DRIVER'?'FINISH_OR_REASSIGN':'RESOLVE_ORDERS'});
  if(evidence.pendingTransfers?.length)issues.push({code:'PENDING_TRANSFERS',action:'RESOLVE_TRANSFERS'});
  if(evidence.externalAssets?.length)issues.push({code:'EXTERNAL_ASSET_ACCESS_REQUIRED',action:'VERIFY_LEGACY_STORAGE_ACCESS'});
  if(evidence.pendingReviews?.length)issues.push({code:'QUALITY_CASE_REVIEW_REQUIRED',action:'REVIEW_NONFINANCIAL_CASE_AND_RETENTION_POLICY'});
+ if(evidence.driverSupportRetentionReview)issues.push({code:'DRIVER_SUPPORT_RETENTION_REVIEW_REQUIRED',action:'REVIEW_SUPPORT_RETENTION'});
+ if(evidence.driverRatingRetentionReview)issues.push({code:'DRIVER_RATING_RETENTION_REVIEW_REQUIRED',action:'REVIEW_NONFINANCIAL_CASE_AND_RETENTION_POLICY'});
+ if(evidence.driverDocumentedRetentionHold)issues.push({code:'DOCUMENTED_RETENTION_HOLD',action:'REVIEW_NONFINANCIAL_CASE_AND_RETENTION_POLICY'});
+ if(evidence.profileRetentionReview)issues.push({code:'DOCUMENTED_RETENTION_HOLD',action:'REVIEW_PROFILE_RETENTION'});
+ if(evidence.supportRetentionReview)issues.push({code:'DOCUMENTED_RETENTION_HOLD',action:'REVIEW_SUPPORT_RETENTION'});
  if(evidence.pendingPayments?.length)issues.push({code:'PENDING_PAYMENTS',action:'RESOLVE_PAYMENTS'});
  if(evidence.activeHolds?.length)issues.push({code:'ACTIVE_HOLDS',action:'RESOLVE_ORDER_HOLDS'});
  for(const wallet of evidence.wallets||[]){
@@ -35,7 +41,7 @@ function blockers(actor,scope,evidence){
  return issues;
 }
 function decision(issues,settings){
- if(issues.length&&issues.every(i=>i.code==='QUALITY_CASE_REVIEW_REQUIRED'))return 'PENDING_POLICY';
+ if(issues.length&&issues.every(i=>['QUALITY_CASE_REVIEW_REQUIRED','DOCUMENTED_RETENTION_HOLD','DRIVER_SUPPORT_RETENTION_REVIEW_REQUIRED','DRIVER_RATING_RETENTION_REVIEW_REQUIRED'].includes(i.code)))return 'PENDING_POLICY';
  if(issues.length&&issues.every(i=>i.code==='EXTERNAL_ASSET_ACCESS_REQUIRED'))return 'PENDING_EXTERNAL_ASSET';
  if(issues.length)return 'PENDING_SETTLEMENT';
  if(!settings?.inventoryApproved||!settings?.retentionPolicyVersion)return 'PENDING_POLICY';

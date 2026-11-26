@@ -103,3 +103,36 @@ test('acceptance racing restoration rolls back coupon, account and promotion cas
  assert.equal(f.get('WhizzMerchants_Discounts',{discountId:'discount'}).usage_count,3);
  assert.equal(f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,1000);
 });
+
+
+test('manual merchant acceptance saves the selected preparation time and closes the same response record',async()=>{
+ const {f,b}=fixture(true);
+ b.orderReceptionSettings.autoAccept=false;
+ const before=f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance;
+ const owner=create({db:f.db,now:()=>f.time,authenticate:async()=>({kind:'MERCHANT',subjectId:'owner1',ownerId:'owner1',businessId:'branch1',guards:[]})});
+ assert.deepEqual(await owner.accept('order1',35),{status:'confirmed',replayed:false});
+ const accepted=f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ assert.equal(accepted.estimatedPreparationTime,35);
+ assert.equal(accepted.estimatedReadyAt,new Date(f.time+35*60000).toISOString());
+ assert.equal(accepted.estimatedDeliveryTime,new Date(f.time+38*60000).toISOString());
+ assert.equal(f.get('staging-WalletLifecycle',{operationId:'MERCHANT_RESPONSE#order1'}).status,'DONE');
+ assert.equal(f.get('staging-Wallets',{walletId:'WALLET#PLATFORM',sk:'META'}).lockedBalance,before);
+ assert.deepEqual(await owner.accept('order1',35),{status:'confirmed',replayed:true});
+ await assert.rejects(owner.accept('order1',36),{code:'ORDER_ALREADY_HANDLED'});
+ f.put('WhizzMerchants_Businesses',{...b,ownerId:'owner2',cognitoUserId:'owner2'});
+ await assert.rejects(owner.accept('order1',35),{code:'MERCHANT_RESPONSE_UNAVAILABLE'});
+});
+
+test('manual confirmation denies a changed owner, a response past the deadline and concurrent decisions',async()=>{
+ for(const scenario of ['owner','deadline','competing']){
+  const {f,b,engine}=fixture();
+  if(scenario==='owner')b.ownerId=b.cognitoUserId='owner2';
+  if(scenario==='deadline')f.time+=300000;
+  if(scenario==='competing')f.beforeCommit=()=>{f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).status='expired';};
+  const owner=create({db:f.db,now:()=>f.time,authenticate:async()=>({kind:'MERCHANT',subjectId:'owner1',ownerId:'owner1',businessId:'branch1',guards:[]})});
+  await assert.rejects(engine.accept('order1',20),{code:'MERCHANT_RESPONSE_UNAUTHORIZED'});
+  await assert.rejects(owner.accept('order1',0),{code:'INVALID_PREPARATION_TIME'});
+  await assert.rejects(owner.accept('order1',20),scenario==='competing'?{name:'TransactionCanceledException'}:{code:scenario==='owner'?'MERCHANT_RESPONSE_UNAVAILABLE':'MERCHANT_RESPONSE_EXPIRED'});
+  assert.equal(f.get('staging-WalletLifecycle',{operationId:'MERCHANT_RESPONSE#order1'}).status,'PENDING');
+ }
+});

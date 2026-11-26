@@ -1,0 +1,464 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Production merchant phone enrollment bootstrap; initially disabled, no branch or financial access.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    },
+    "ArtifactKey": {
+      "Type": "String",
+      "AllowedPattern": "merchant-enrollment/[a-f0-9]{64}.zip"
+    },
+    "ArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1
+    },
+    "EnrollmentEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ]
+    },
+    "OtpSecretArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:secretsmanager:us-east-1:746727375268:secret:wizz/production/merchant/otp-[A-Za-z0-9]{6}"
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-merchant-enrollment",
+        "RetentionInDays": 90
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "MerchantEnrollmentOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-merchant-enrollment:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MerchantOtpSessions"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "ACCOUNT_LIFECYCLE#MERCHANT#*",
+                        "MERCHANT_PHONE_CLOSURE#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:LeadingKeys": [
+                        "OPERATIONAL_SETTINGS#MERCHANT_LEGAL"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cognito-idp:ListUsers",
+                    "cognito-idp:AdminCreateUser",
+                    "cognito-idp:AdminGetUser",
+                    "cognito-idp:AdminSetUserPassword"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_2sKZ4fGbZ"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue"
+                  ],
+                  "Resource": {
+                    "Ref": "OtpSecretArn"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Function": {
+      "Type": "AWS::Lambda::Function",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "FunctionName": "wizz-production-merchant-enrollment",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Timeout": 25,
+        "Role": {
+          "Fn::GetAtt": [
+            "Role",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "ArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactVersion"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "MERCHANT_ENROLLMENT_ENABLED": {
+              "Ref": "EnrollmentEnabled"
+            },
+            "USER_POOL_ID": "us-east-1_2sKZ4fGbZ",
+            "USER_POOL_CLIENT_ID": "5l8ng11uudg146crop63926svq",
+            "OTP_TABLE": "wizz-production-MerchantOtpSessions",
+            "LEGAL_TABLE": "wizz-production-PlatformStaff",
+            "LIFECYCLE_TABLE": "wizz-production-AccountDeletion",
+            "OTP_SECRET_ARN": {
+              "Ref": "OtpSecretArn"
+            }
+          }
+        },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "LogGroup"
+          }
+        }
+      }
+    },
+    "Api": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Name": "wizz-production-merchant-enrollment",
+        "EndpointConfiguration": {
+          "Types": [
+            "REGIONAL"
+          ]
+        }
+      }
+    },
+    "Auth": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Fn::GetAtt": [
+            "Api",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "auth"
+      }
+    },
+    "Deployment": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        }
+      },
+      "DependsOn": [
+        "LegalMethod",
+        "SendMethod",
+        "VerifyMethod"
+      ]
+    },
+    "Stage": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "DeploymentId": {
+          "Ref": "Deployment"
+        },
+        "StageName": "production",
+        "MethodSettings": [
+          {
+            "ResourcePath": "/*",
+            "HttpMethod": "*",
+            "ThrottlingBurstLimit": 5,
+            "ThrottlingRateLimit": 2,
+            "DataTraceEnabled": false
+          }
+        ]
+      }
+    },
+    "Enrollment": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Auth"
+        },
+        "PathPart": "merchant-enrollment"
+      }
+    },
+    "Legal": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Enrollment"
+        },
+        "PathPart": "legal"
+      }
+    },
+    "LegalMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Legal"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Function.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "LegalInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "Function"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/auth/merchant-enrollment/legal"
+        }
+      }
+    },
+    "Send": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Enrollment"
+        },
+        "PathPart": "send"
+      }
+    },
+    "SendMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Send"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Function.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "SendInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "Function"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/POST/auth/merchant-enrollment/send"
+        }
+      }
+    },
+    "Verify": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Enrollment"
+        },
+        "PathPart": "verify"
+      }
+    },
+    "VerifyMethod": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Verify"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Function.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "VerifyInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "Function"
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/POST/auth/merchant-enrollment/verify"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ApiUrl": {
+      "Value": {
+        "Fn::Sub": "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/production"
+      }
+    }
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Production wallet identity authorizer; no public routes or balance writes.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    },
+    "ArtifactKey": {
+      "Type": "String",
+      "AllowedPattern": "wallet-authorizer/[a-f0-9]{64}.zip"
+    },
+    "ArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-wallet-authorizer",
+        "RetentionInDays": 90
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "WalletIdentityReadOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-wallet-authorizer:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "EMPLOYEE#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cognito-idp:AdminGetUser"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_njh6vaNWj"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Function": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "wizz-production-wallet-authorizer",
+        "Runtime": "python3.12",
+        "Handler": "wallet_authorizer_entry.lambda_handler",
+        "MemorySize": 256,
+        "Timeout": 20,
+        "Role": {
+          "Fn::GetAtt": [
+            "Role",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "ArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactVersion"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "REGION": "us-east-1",
+            "DRIVER_USER_POOL_ID": "us-east-1_5sUT54eCB",
+            "ADMIN_USER_POOL_ID": "us-east-1_njh6vaNWj",
+            "CUSTOMER_USER_POOL_ID": "us-east-1_rNtNKVsVf",
+            "MERCHANT_USER_POOL_ID": "us-east-1_2sKZ4fGbZ",
+            "DRIVER_CLIENT_ID": "59to4hbat3lv2fvosa49afu0gi",
+            "ADMIN_CLIENT_ID": "7924qedsr5m1j1bvc3c7va8egk",
+            "CUSTOMER_CLIENT_ID": "3e8p0ouglrprpd0a3pc91du0hg",
+            "MERCHANT_CLIENT_ID": "5l8ng11uudg146crop63926svq",
+            "STAFF_TABLE": "wizz-production-PlatformStaff"
+          }
+        },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "LogGroup"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    }
+  }
+}

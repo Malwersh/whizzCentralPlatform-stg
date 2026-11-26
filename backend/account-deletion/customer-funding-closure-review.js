@@ -7,7 +7,9 @@ const terminal=new Set(['delivered','completed','returned','cancelled','canceled
 function caseClosed(r){
  if(r.correctionReview?.status==='PENDING')return false;
  if(r.kind==='CUSTOMER_CASH_REVIEW_CASE')return r.state==='CLOSED';
- if(['CUSTOMER_CANCELLATION','MERCHANT_CANCELLATION'].includes(r.kind))return ['DECLINED','SUPERSEDED'].includes(r.state)||r.state==='CANCELLED'&&['SETTLED','NOT_APPLICABLE'].includes(r.settlementStatus);
+ if(['CUSTOMER_CANCELLATION','MERCHANT_CANCELLATION'].includes(r.kind))return ['DECLINED','SUPERSEDED'].includes(r.state)||r.state==='CANCELLED'&&(['SETTLED','NOT_APPLICABLE'].includes(r.settlementStatus)||
+   r.settlementStatus==='RESOLVED'&&typeof r.financialClosure?.actorId==='string'&&
+   Number.isFinite(Date.parse(r.financialClosure.closedAt)));
  return r.kind==='COD_RETURN_CASE'&&r.exceptionResolution?.status==='RESOLVED';
 }
 // Read-only assessment; a Query is NOT a transactional fence against a newly

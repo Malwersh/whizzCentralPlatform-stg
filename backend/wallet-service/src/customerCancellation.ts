@@ -1,3 +1,4 @@
+import { financialDispatchTables } from './walletBindings';
 import {readExceptionCasePolicy,casePhase} from './exceptionCasePolicy';
 import {exceptionCaseIndexOperation} from './orderExceptionCaseIndex';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
@@ -9,9 +10,9 @@ import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
 import {readOrderExceptionPolicy} from './orderExceptionPolicy';
 type Row=Record<string,any>;
 const fail=(code='CANCELLATION_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
-const T={orders:'WizzOrders',holds:'staging-Holds',audit:'staging-AuditLog',jobs:'WizzDispatchJobs_staging'};
 export type CancellationActor={kind:'CUSTOMER'|'MERCHANT_OWNER'|'STAFF';subjectId:string};
 export function createCustomerCancellation(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<CancellationActor>;now?:()=>number;enableFullCash?:boolean;enableDeliveryFunding?:boolean;administrativeCancellation?:boolean;authorizeStaff?:(actor:CancellationActor,order:Row,branch:Row)=>Promise<Row[]>}){
+ const T=financialDispatchTables();
  const {db,authenticate}=options,now=options.now??Date.now;
  async function load(orderId:string){
   if(!quoteEntityIdValid(orderId))return fail('INVALID_CANCELLATION');
@@ -20,7 +21,7 @@ export function createCustomerCancellation(options:{db:Pick<DynamoDBDocumentClie
   if(!o||o.orderId!==orderId||o.isGuestOrder===true||o.deletedAt!=null||o.deletionRequestId!=null||o.isDeleted===true)return fail('CANCELLATION_UNAVAILABLE');
   const guards:Row[]=[];
   if(actor.kind==='CUSTOMER'){if(o.userSub!==actor.subjectId)return fail('FORBIDDEN');}
-  else {const bk={businessId:o.storeId},b=await strongGet(db,'WhizzMerchants_Businesses',bk);if(!b||!b.ownerId||b.cognitoUserId!==b.ownerId||b.deletionRequestId!=null||b.deletedAt!=null||b.isDeleted===true)return fail('FORBIDDEN');if(actor.kind==='STAFF'){if(!options.authorizeStaff)return fail('FORBIDDEN');const staffGuards=await options.authorizeStaff(actor,o,b);if(!staffGuards?.length)return fail('FORBIDDEN');guards.push(...staffGuards);}else if(b.ownerId!==actor.subjectId)return fail('FORBIDDEN');guards.push(exactCheck('WhizzMerchants_Businesses',bk,b,[...new Set([...Object.keys(b),'deletedAt','deletionRequestId','isDeleted'])]));for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+o.storeId,'ACCOUNT_LIFECYCLE#MERCHANT#'+b.ownerId])guards.push({ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}});}
+  else {const bk={businessId:o.storeId},b=await strongGet(db,T.branch,bk);if(!b||!b.ownerId||b.cognitoUserId!==b.ownerId||b.deletionRequestId!=null||b.deletedAt!=null||b.isDeleted===true)return fail('FORBIDDEN');if(actor.kind==='STAFF'){if(!options.authorizeStaff)return fail('FORBIDDEN');const staffGuards=await options.authorizeStaff(actor,o,b);if(!staffGuards?.length)return fail('FORBIDDEN');guards.push(...staffGuards);}else if(b.ownerId!==actor.subjectId)return fail('FORBIDDEN');guards.push(exactCheck(T.branch,bk,b,[...new Set([...Object.keys(b),'deletedAt','deletionRequestId','isDeleted'])]));for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+o.storeId,'ACCOUNT_LIFECYCLE#MERCHANT#'+b.ownerId])guards.push({ConditionCheck:{TableName:T.deletion,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}});}
   const policy=readOrderExceptionPolicy(o);if(!policy||o.financialSnapshot?.schemaVersion!==3||options.enableFullCash!==true)return fail('CANCELLATION_POLICY_REQUIRED');
   return {actor,key,o,guards,policy};
  }
@@ -70,7 +71,7 @@ export function createCustomerCancellation(options:{db:Pick<DynamoDBDocumentClie
    if(!row||row.requestId!==value.requestId)return fail();
    if(row.state==='CANCELLED'&&row.decision?.decisionId===value.decisionId&&row.decision?.actorId===c.actor.subjectId){if(row.decision.reason!==value.reason.trim()||row.decision.expectedVersion!==value.expectedVersion)return fail();return {...view(row),replayed:true};}
    if(row.state!=='REQUESTED'||row.version!==value.expectedVersion)return fail();beforePickup(c.o);
-   const branch=(await strongGet(db,'WhizzMerchants_Businesses',{businessId:c.o.storeId})),proof=row.merchantRetentionProof;
+   const branch=(await strongGet(db,T.branch,{businessId:c.o.storeId})),proof=row.merchantRetentionProof;
    if(options.administrativeCancellation!==true&&(!proof||proof.ownerId!==branch?.ownerId||proof.branchId!==c.o.storeId||proof.goodsRetainedByBranch!==true))return fail('CANCELLATION_RETAINED_PROOF_REQUIRED');
    const at=new Date(now()).toISOString(),policy=row.casePolicySnapshot?null:await readExceptionCasePolicy(db);
    return cancelUnassigned(c,{...row,...(policy?{casePolicySnapshot:policy.snapshot,casePolicyAdoptedAt:at}:{}),decision:{decisionId:value.decisionId,expectedVersion:value.expectedVersion,actorId:c.actor.subjectId,reason:value.reason.trim(),at}},at,[...(policy?[policy.condition]:[]),{Put:{TableName:T.holds,Item:{orderId:value.orderId,sk:'CASE_DECISION#'+row.caseId+'#'+value.decisionId,kind:'ORDER_EXCEPTION_DECISION',caseId:row.caseId,decisionId:value.decisionId,action:'CANCEL_BEFORE_PICKUP',actorId:c.actor.subjectId,actorKind:'STAFF',reason:value.reason.trim(),caseVersion:row.version,createdAt:at,financialPosting:false},ConditionExpression:'attribute_not_exists(orderId)'}}],true,true);

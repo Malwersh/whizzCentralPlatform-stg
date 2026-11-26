@@ -54,3 +54,52 @@ test('admin reader enforces driver scope before reading the shared projection',a
 test('a mismatched projection owner is never returned as a cached view',async()=>{const f=fixture();f.ready();await f.w.refresh('d1');f.get(TABLE,{pk:'DRIVER#d1',sk:'STATE'}).driverId='other';await assert.rejects(readSnapshot({db:f.db,GetCommand,driverId:'d1',now:()=>NOW}),/PROJECTION_UNAVAILABLE/);});
 test('a transaction conflict during concurrent source invalidation retries without losing or duplicating generation',async()=>{const f=fixture(),send=f.db.send;let conflict=2;f.db.send=async c=>{if(c instanceof TransactWriteCommand&&conflict-->0)throw Object.assign(Error('conflict'),{name:'TransactionCanceledException',CancellationReasons:[{Code:'None'},{Code:'TransactionConflict'}]});return send(c);};assert.equal(await f.w.invalidate('d1','concurrent-event'),true);assert.equal(f.get(TABLE,{pk:'DRIVER#d1',sk:'STATE'}).generation,1);});
 test('older performance API versions derive their view from saved counters without requerying history',()=>{const {viewForRules}=require('../contract'),p=fixture().performance();p.projection={status:'CURRENT'};p.ratingAllTime={average:4.5,count:10};p.acceptance={accepted:2,declined:1,expiredDelivered:1,sampleSize:4};p.acceptanceRate=.5;const legacy=viewForRules(p,1);assert.equal(legacy.acceptanceRate,2/3);assert.equal(legacy.acceptance.sampleSize,3);assert.equal(legacy.customerRating,4.5);assert.equal(p.acceptance.sampleSize,4);assert.equal(viewForRules(p,4).customerRating,5);});
+
+test('production projection accepts only its own sources, queue and snapshot table', async () => {
+ const {performanceBindings,PRODUCTION_SOURCES,PRODUCTION_SNAPSHOT_TABLE}=require('../bindings');
+ const prefix='arn:aws:dynamodb:us-east-1:746727375268:table/';
+ const streams=Object.fromEntries(Object.values(PRODUCTION_SOURCES).map(name=>[name,prefix+name+'/stream/2026-11-23T22:00:00.000']));
+ const queue='https://sqs.us-east-1.amazonaws.com/746727375268/wizz-production-driver-performance-';
+ const env={STAGE:'production',AWS_REGION:'us-east-1',SOURCE_STREAMS:JSON.stringify(streams),
+   WORK_QUEUE_URL:queue+'refresh',FAILURE_QUEUE_URL:queue+'failures',DRIVER_PERFORMANCE_TABLE:PRODUCTION_SNAPSHOT_TABLE};
+ const config=performanceBindings(env);
+ for (const patch of [
+   {SOURCE_STREAMS:JSON.stringify({...streams,[PRODUCTION_SOURCES.offers]:streams[PRODUCTION_SOURCES.offers].replace('746727375268','699561669180')})},
+   {WORK_QUEUE_URL:'https://sqs.us-east-1.amazonaws.com/699561669180/staging-driver-performance-refresh'},
+   {DRIVER_PERFORMANCE_TABLE:TABLE},
+ ]) assert.throws(()=>performanceBindings({...env,...patch}),/PROJECTION/);
+
+ const f=fixture(),worker=createWorker({...config,db:f.db,sdk,now:()=>NOW,
+   readPerformance:async()=>f.performance(),readIncidents:async()=>({items:[],coverageComplete:true}),
+   sourceHealth:async()=>true});
+ f.put(config.sources.drivers,{driverId:'d1',status:'APPROVED'});
+ const event={eventSource:'aws:dynamodb',eventName:'INSERT',eventID:'driver1',
+   eventSourceARN:streams[PRODUCTION_SOURCES.drivers],dynamodb:{Keys:{driverId:'d1'}}};
+ await assert.rejects(worker.streamRecord({...event,eventSourceARN:event.eventSourceARN.replace('746727375268','699561669180')}),/INVALID_PROJECTION_SOURCE/);
+ assert.deepEqual(await worker.streamRecord(event),['d1']);
+ assert.equal((await worker.refresh('d1')).bootstrapped,true);
+ assert.equal((await worker.refresh('d1')).published,true);
+ await worker.scheduled();
+ const state=f.get(config.snapshotTable,{pk:'DRIVER#d1',sk:'STATE'});
+ const health=f.get(config.snapshotTable,{pk:'CONTROL',sk:'HEALTH'});
+ assert.equal(stateOf(state,health,NOW),'CURRENT');
+ assert.equal(dispatchMetrics(state,health,NOW).metricsSnapshot_acceptanceRate,.5);
+ assert.ok(f.commands.every(c=>c.input.TransactItems
+   ?c.input.TransactItems.every(op=>(op.Put??op.Update).TableName===config.snapshotTable)
+   :c.input.TableName.startsWith('wizz-production-')));
+});
+
+test('the production order collector receives only keys and exact source provenance', async () => {
+ const {forwardOrderEvents}=require('../order-forwarder');
+ const streamArn='arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-Orders/stream/verified';
+ const target='arn:aws:lambda:us-east-1:746727375268:function:wizz-production-driver-performance-collector';
+ const record={eventSource:'aws:dynamodb',eventSourceARN:streamArn,eventName:'MODIFY',eventID:'event',
+   dynamodb:{Keys:{PK:{S:'ORDER#order1'},SK:{S:'META'}},NewImage:{customerName:{S:'private'}},SequenceNumber:'1'}};
+ await forwardOrderEvents({Records:[record]},async input=>{
+   assert.equal(input.FunctionName,target);
+   assert.doesNotMatch(input.Payload.toString(),/private|customerName|NewImage/);
+   return {StatusCode:202};
+ },{streamArn,target});
+ await assert.rejects(forwardOrderEvents({Records:[{...record,eventSourceARN:streamArn+'-other'}]},async()=>{throw Error('unexpected');},
+   {streamArn,target}),/INVALID_ORDER_PROJECTION_FORWARD/);
+});

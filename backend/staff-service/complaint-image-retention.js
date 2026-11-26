@@ -15,6 +15,14 @@ function isRetained(row) {
     row.userType === 'customer' && row.status === 'PUBLISHED' && uuid.test(row.attachmentId || '') &&
     /^[A-Za-z0-9+/]{43}=$/.test(row.checksum || '') && row.key === keyFor(row,r.caseId));
 }
+function belongsToComplaint(row, complaint) {
+  return isRetained(row) && complaint?.kind === 'CUSTOMER_POST_DELIVERY_CASE' &&
+    complaint.caseId === row.evidenceRetention.caseId && complaint.orderId === row.evidenceRetention.orderId &&
+    complaint.customerId === row.subjectId && complaint.supportSessionId === row.sessionId &&
+    complaint.evidence?.some(item => item.attachmentId === row.attachmentId &&
+      item.actorId === row.subjectId && item.sessionId === row.sessionId &&
+      item.checksum === row.checksum && item.retained === true);
+}
 async function bytes(object, row) {
   if (!object?.Body || object.ContentType !== row.contentType || object.ContentLength !== row.size) fail();
   const data = Buffer.from(await object.Body.transformToByteArray());
@@ -52,4 +60,4 @@ async function retain({image, caseId, orderId, subjectId, at, s3, bucket, bucket
   delete row.ttl;
   return row;
 }
-module.exports={retain,isRetained,keyFor};
+module.exports={retain,isRetained,keyFor,belongsToComplaint,bytes};

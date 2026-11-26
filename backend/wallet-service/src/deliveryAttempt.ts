@@ -1,3 +1,4 @@
+import {financialOrderTables} from './walletBindings';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {createCodFlowContext,ReturnActor} from './codFlowContext';
 import {readOrderExceptionPolicy} from './orderExceptionPolicy';
@@ -35,11 +36,13 @@ export function attemptView(row:Row,now:number){
   contacts:row.contacts.map((r:Row)=>({eventId:r.eventId,channel:r.channel,recordedAt:r.recordedAt})),contactEvidenceMeaning:'INITIATION_REPORTED_BY_DRIVER_NOT_CONNECTED_CALL_PROOF'};
 }
 export async function requireNoResponseAttempt(db:Pick<DynamoDBDocumentClient,'send'>,c:Row){
- const key=attemptKey(c.order.orderId,c.order.assignmentAttemptCounter),row=await strongGet(db,'staging-Holds',key);validateAttemptRecord(row!,c);
+ const T=financialOrderTables();
+ const key=attemptKey(c.order.orderId,c.order.assignmentAttemptCounter),row=await strongGet(db,T.holds,key);validateAttemptRecord(row!,c);
  if(!attemptView(row!,Date.parse(c.timestamp)).noResponseEligible)return fail('NO_RESPONSE_REQUIREMENTS_NOT_MET');
- return {row,key,operation:updateChecked(exactCheck('staging-Holds',key,row!), 'SET #state=:state, #authorizedAt=:at',{'#state':'state','#authorizedAt':'exceptionReportedAt'},{':state':'EXCEPTION_REPORTED',':at':c.timestamp})};
+ return {row,key,operation:updateChecked(exactCheck(T.holds,key,row!), 'SET #state=:state, #authorizedAt=:at',{'#state':'state','#authorizedAt':'exceptionReportedAt'},{':state':'EXCEPTION_REPORTED',':at':c.timestamp})};
 }
 export function createDeliveryAttempt(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;now?:()=>number;enableFullCash?:boolean;enableDeliveryFunding?:boolean}){
+ const T=financialOrderTables();
  const {db,authenticate}=options,now=options.now??Date.now,context=createCodFlowContext({...options,now});
  async function load(value:Row,extra:string[]){
   const v=exact(value,['orderId','offerId','attempt',...extra]);if(!Number.isSafeInteger(v.attempt)||v.attempt<1)return fail('INVALID_DELIVERY_ATTEMPT');
@@ -47,21 +50,21 @@ export function createDeliveryAttempt(options:{db:Pick<DynamoDBDocumentClient,'s
   return {v,c,key:attemptKey(v.orderId,v.attempt)};
  }
  function active(c:Row){if(c.order.status!=='arrived_at_customer'||c.order.financialOutcome!=null||c.order.returnCaseId!=null||c.order.cashCollected===true||Number(c.order.cashCollectedAmount??0)!==0)return fail();}
- function audit(c:Row,action:string,id:string){return {Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+c.timestamp.slice(0,10).replace(/-/g,''),sk:c.timestamp+'#'+id,logId:id,orderId:c.order.orderId,actorId:c.subject,actorKind:'DRIVER',action,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(sk)'}};}
- async function commit(c:Row,operations:Row[]){if(quoteCanonical(await authenticate())!==quoteCanonical(c.actor))return fail('UNAUTHORIZED');await db.send(new TransactWriteCommand({TransactItems:[...c.guards,exactCheck('WizzOrders',c.key,c.order),...operations] as any}));}
+ function audit(c:Row,action:string,id:string){return {Put:{TableName:T.audit,Item:{datePartition:'date#'+c.timestamp.slice(0,10).replace(/-/g,''),sk:c.timestamp+'#'+id,logId:id,orderId:c.order.orderId,actorId:c.subject,actorKind:'DRIVER',action,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(sk)'}};}
+ async function commit(c:Row,operations:Row[]){if(quoteCanonical(await authenticate())!==quoteCanonical(c.actor))return fail('UNAUTHORIZED');await db.send(new TransactWriteCommand({TransactItems:[...c.guards,exactCheck(T.orders,c.key,c.order),...operations] as any}));}
  return {
-  async start(value:Row){const {v,c,key}=await load(value,['position']);active(c);let row=await strongGet(db,'staging-Holds',key);if(row){validateAttemptRecord(row,c);return attemptView(row,now());}
+  async start(value:Row){const {v,c,key}=await load(value,['position']);active(c);let row=await strongGet(db,T.holds,key);if(row){validateAttemptRecord(row,c);return attemptView(row,now());}
    const settings=await readExceptionSettings(db),at=now(),position=assertPosition(v.position,c.offer.source.order.customerPoint,settings.snapshot.values,at);
    row={...key,kind:'COD_DELIVERY_ATTEMPT',schemaVersion:1,version:1,attemptId:'ATT:'+quoteHash({orderId:v.orderId,attempt:v.attempt,offerId:v.offerId}).slice(0,48),attempt:v.attempt,offerId:v.offerId,offerDigest:c.offer.digest,driverId:c.order.driverId,driverSubjectId:c.subject,policyDigest:c.order.exceptionPolicy.digest,settingsSnapshot:settings.snapshot,position,startedAt:new Date(at).toISOString(),deadlineAt:new Date(at+settings.snapshot.values.waitSeconds*1000).toISOString(),contacts:[],state:'WAITING',createdAt:c.timestamp};
-   try{await commit(c,[settings.condition,{Put:{TableName:'staging-Holds',Item:row,ConditionExpression:'attribute_not_exists(orderId)'}},audit(c,'DELIVERY_ATTEMPT_STARTED',row.attemptId)]);}catch(e){const saved=await strongGet(db,'staging-Holds',key);if(!saved)throw e;validateAttemptRecord(saved,c);return attemptView(saved,now());}return attemptView(row,now());
+   try{await commit(c,[settings.condition,{Put:{TableName:T.holds,Item:row,ConditionExpression:'attribute_not_exists(orderId)'}},audit(c,'DELIVERY_ATTEMPT_STARTED',row.attemptId)]);}catch(e){const saved=await strongGet(db,T.holds,key);if(!saved)throw e;validateAttemptRecord(saved,c);return attemptView(saved,now());}return attemptView(row,now());
   },
-  async read(value:Row){const {c,key}=await load(value,[]),row=await strongGet(db,'staging-Holds',key);if(!row)return {success:true,orderId:c.order.orderId,exists:false};validateAttemptRecord(row,c);return {...attemptView(row,now()),exists:true};},
+  async read(value:Row){const {c,key}=await load(value,[]),row=await strongGet(db,T.holds,key);if(!row)return {success:true,orderId:c.order.orderId,exists:false};validateAttemptRecord(row,c);return {...attemptView(row,now()),exists:true};},
   async contact(value:Row){const {v,c,key}=await load(value,['eventId','channel']);if(typeof v.eventId!=='string'||!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v.eventId)||!['CALL_INITIATED','MESSAGE_INITIATED'].includes(v.channel))return fail('INVALID_DELIVERY_ATTEMPT');
-   const row=await strongGet(db,'staging-Holds',key);validateAttemptRecord(row!,c);const prior=row!.contacts.find((r:Row)=>r.eventId===v.eventId);if(prior){if(prior.channel!==v.channel)return fail();return attemptView(row!,now());}active(c);
+   const row=await strongGet(db,T.holds,key);validateAttemptRecord(row!,c);const prior=row!.contacts.find((r:Row)=>r.eventId===v.eventId);if(prior){if(prior.channel!==v.channel)return fail();return attemptView(row!,now());}active(c);
    const view=attemptView(row!,now());if(row!.state!=='WAITING'||row!.contacts.length>=row!.settingsSnapshot.values.minimumContactAttempts||now()<Date.parse(view.nextContactAt))return fail('CONTACT_ATTEMPT_TOO_SOON');
-   const {Key:_key,...fence}=exactCheck('staging-Holds',key,row!).ConditionCheck;
+   const {Key:_key,...fence}=exactCheck(T.holds,key,row!).ConditionCheck;
    const next={...row!,version:row!.version+1,contacts:[...row!.contacts,{eventId:v.eventId,channel:v.channel,recordedAt:c.timestamp,actorId:c.subject}],updatedAt:c.timestamp};
-   try{await commit(c,[{Put:{...fence,Item:next}},audit(c,'DELIVERY_CONTACT_INITIATED',v.eventId)]);}catch(e){const saved=await strongGet(db,'staging-Holds',key);if(!saved)throw e;validateAttemptRecord(saved,c);if(saved.contacts.some((r:Row)=>r.eventId===v.eventId&&r.channel===v.channel))return attemptView(saved,now());throw e;}return attemptView(next,now());
+   try{await commit(c,[{Put:{...fence,Item:next}},audit(c,'DELIVERY_CONTACT_INITIATED',v.eventId)]);}catch(e){const saved=await strongGet(db,T.holds,key);if(!saved)throw e;validateAttemptRecord(saved,c);if(saved.contacts.some((r:Row)=>r.eventId===v.eventId&&r.channel===v.channel))return attemptView(saved,now());throw e;}return attemptView(next,now());
   }
  };
 }

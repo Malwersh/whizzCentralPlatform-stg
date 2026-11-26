@@ -2,6 +2,7 @@ import {GetCommand} from '@aws-sdk/lib-dynamodb';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
 import {moneyFromMinor} from './money';
 import {allocateDeliveryFunding} from './deliveryFunding';
+import { financialOrderTables } from './walletBindings';
 type Row=Record<string,any>;
 type DB={send:(command:any)=>Promise<any>};
 export const BENEFIT_TABLE='staging-WizzOfferJourney';
@@ -23,8 +24,8 @@ export function readPlatformBenefit(value:any){
 
 export const benefitGrantKey=(campaignId:string,sub:string)=>({pk:'USER#'+id(sub),sk:'BENEFIT#'+id(campaignId)});
 const holdKey=(orderId:string,target:string)=>({pk:'BENEFIT_ORDER#'+id(orderId),sk:target});
-const get=async(db:DB,key:Row)=>(await db.send(new GetCommand({TableName:BENEFIT_TABLE,Key:key,ConsistentRead:true}))).Item as Row|undefined;
-function write(next:Row,before?:Row){return {Put:{TableName:BENEFIT_TABLE,Item:next,...(before?{ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':before.version}}:{ConditionExpression:'attribute_not_exists(pk)'})}};}
+const get=async(db:DB,table:string,key:Row)=>(await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item as Row|undefined;
+function write(table:string,next:Row,before?:Row){return {Put:{TableName:table,Item:next,...(before?{ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':before.version}}:{ConditionExpression:'attribute_not_exists(pk)'})}};}
 
 function grantValid(g:Row){integer(g.version,1);integer(g.grantedUses,1);integer(g.reservedUses);integer(g.usedUses);if(typeof g.revoked!=='boolean'||g.reservedUses+g.usedUses>g.grantedUses)fail('BENEFIT_GRANT_INVALID');}
 
@@ -43,12 +44,14 @@ export function platformBenefitEligibility(campaign:Row,facts:BenefitFacts,at=Da
  return null;
 }
 export async function platformBenefitBalance(db:DB,campaign:Row,sub:string){
- const b=readPlatformBenefit(campaign.benefit),grant=await get(db,benefitGrantKey(campaign.discountId,sub));
+ const table=financialOrderTables().offerJourney;
+ const b=readPlatformBenefit(campaign.benefit),grant=await get(db,table,benefitGrantKey(campaign.discountId,sub));
  if(grant)grantValid(grant);
  const granted=grant?.grantedUses??(b.grantMode==='AUTO'?b.usesPerCustomer:0),reserved=grant?.reservedUses??0,used=grant?.usedUses??0;
  return {grant,granted,reserved,used,remaining:grant?.revoked?0:Math.max(0,granted-reserved-used),revoked:grant?.revoked===true};
 }
 export async function preparePlatformBenefit(db:DB,input:{campaign:Row;facts:BenefitFacts;orderId?:string;referenceDeliveryMinor?:number;hasGoodsDiscount?:boolean;preview?:boolean;now?:number}){
+ const table=financialOrderTables().offerJourney;
  const {campaign,facts}=input,b=readPlatformBenefit(campaign.benefit),at=input.now??Date.now();
  const reason=platformBenefitEligibility(campaign,facts,at);if(reason)fail(reason);
  if(!facts.branchId||facts.goodsMinor===undefined)fail('BENEFIT_CART_REQUIRED');
@@ -68,20 +71,21 @@ export async function preparePlatformBenefit(db:DB,input:{campaign:Row;facts:Ben
  const termsHash=quoteHash({campaignId:campaign.discountId,benefit:b,startDate:campaign.startDate,endDate:campaign.endDate});
  const deliveryFunding=target==='DELIVERY'?{policyPin:{policyId:BENEFIT_POLICY_PREFIX+campaign.discountId,version:campaign.version,termsHash},allocation:allocateDeliveryFunding({schemaVersion:1,referenceFee:moneyFromMinor(reference),customerFee:moneyFromMinor(reference-amount),funding:{kind:'PLATFORM'}})}:null;
  if(!input.preview){
-  const orderId=id(input.orderId),key=holdKey(orderId,target),previous=await get(db,key);
+  const orderId=id(input.orderId),key=holdKey(orderId,target),previous=await get(db,table,key);
   if(previous)fail('BENEFIT_ORDER_RECOVERY_REQUIRED');
-  operations.push(write({...grant,version:integer(grant.version+1,1),reservedUses:grant.reservedUses+1},balance.grant),write({...key,version:1,campaignId:campaign.discountId,sub:facts.sub,orderId,target,amountMinor:amount,status:'RESERVED',deliveryFunding,createdAt:new Date(at).toISOString()}));
+  operations.push(write(table,{...grant,version:integer(grant.version+1,1),reservedUses:grant.reservedUses+1},balance.grant),write(table,{...key,version:1,campaignId:campaign.discountId,sub:facts.sub,orderId,target,amountMinor:amount,status:'RESERVED',deliveryFunding,createdAt:new Date(at).toISOString()}));
  }
  return {amountMinor:amount,target,deliveryFunding,customerFee:moneyFromMinor(reference-(target==='DELIVERY'?amount:0)),operations,receipt:{schemaVersion:1,campaignId:campaign.discountId,target,termsHash},validUntil:campaign.endDate};
 }
 /** Returned operations must join the caller's existing authorized order transaction. */
 export async function settlePlatformBenefit(db:DB,input:{orderId:string;target:string;outcome:'CAPTURED'|'RELEASED';keepUse?:boolean;expectedFunding?:Row}){
- const key=holdKey(input.orderId,input.target),h=await get(db,key);if(!h)fail('BENEFIT_RESERVATION_MISSING');
+ const table=financialOrderTables().offerJourney;
+ const key=holdKey(input.orderId,input.target),h=await get(db,table,key);if(!h)fail('BENEFIT_RESERVATION_MISSING');
  if(h.orderId!==input.orderId||h.target!==input.target||!['GOODS','DELIVERY'].includes(h.target))fail('BENEFIT_RESERVATION_INVALID');integer(h.version,1);integer(h.amountMinor,1);id(h.campaignId);id(h.sub);
  if(input.expectedFunding&&quoteHash(input.expectedFunding)!==quoteHash(h.deliveryFunding))fail('BENEFIT_RESERVATION_INVALID');
  const keep=input.outcome==='CAPTURED'||input.keepUse===true,status=input.outcome+(keep?'_USED':'');
  if(h.status===status)return {replayed:true,operations:[] as Row[]};if(h.status!=='RESERVED')fail('BENEFIT_RESERVATION_CONFLICT');
- const grant=await get(db,benefitGrantKey(h.campaignId,h.sub));if(!grant)fail('BENEFIT_RESERVATION_INVALID');grantValid(grant);
+ const grant=await get(db,table,benefitGrantKey(h.campaignId,h.sub));if(!grant)fail('BENEFIT_RESERVATION_INVALID');grantValid(grant);
  if(grant.reservedUses<1)fail('BENEFIT_RESERVATION_INVALID');
- return {replayed:false,operations:[write({...grant,version:integer(grant.version+1,1),reservedUses:grant.reservedUses-1,usedUses:grant.usedUses+(keep?1:0)},grant),write({...h,version:integer(h.version+1,1),status},h)]};
+ return {replayed:false,operations:[write(table,{...grant,version:integer(grant.version+1,1),reservedUses:grant.reservedUses-1,usedUses:grant.usedUses+(keep?1:0)},grant),write(table,{...h,version:integer(h.version+1,1),status},h)]};
 }

@@ -70,13 +70,14 @@ test('revoked requester, expired proposal, changed consent digest and commercial
 
 
 test('schedule uses staging valid-session policy without bypassing current permissions or production freshness',async()=>{
- const oldEnvironment=process.env.PLATFORM_ENVIRONMENT,oldPolicy=process.env.PLATFORM_SESSION_POLICY;
+ const oldEnvironment=process.env.PLATFORM_ENVIRONMENT,oldPolicy=process.env.PLATFORM_SESSION_POLICY,oldRegion=process.env.AWS_REGION;
  const now=Date.parse('2026-10-18T12:00:00.000Z');
  const adapter=f=>create({db:f.db,principal:{kind:'STAFF',employeeId:maker,authTime:now/1000-7200,mfaEnrolled:true},now:()=>now});
  try{
  process.env.PLATFORM_ENVIRONMENT='staging';process.env.PLATFORM_SESSION_POLICY='VALID_SESSION';
  const f=fixture();await adapter(f).propose(f.input());
  const g=fixture();const row=g.get(S,{pk:'EMPLOYEE#'+maker,sk:'PROFILE'});row.minimumAuthTime=now/1000;g.put(S,row);await assert.rejects(adapter(g).propose(g.input()),/PERMISSION_REQUIRED/);
- process.env.PLATFORM_ENVIRONMENT='production';const h=fixture();await assert.rejects(adapter(h).propose(h.input()),/REAUTH_REQUIRED/);
- }finally{for(const [k,v]of [['PLATFORM_ENVIRONMENT',oldEnvironment],['PLATFORM_SESSION_POLICY',oldPolicy]]){if(v===undefined)delete process.env[k];else process.env[k]=v;}}
+ process.env.PLATFORM_ENVIRONMENT='production';process.env.AWS_REGION='us-east-1';
+ const h=fixture();await assert.rejects(adapter(h).propose(h.input()),/REAUTH_REQUIRED/);
+ }finally{for(const [k,v]of [['PLATFORM_ENVIRONMENT',oldEnvironment],['PLATFORM_SESSION_POLICY',oldPolicy],['AWS_REGION',oldRegion]]){if(v===undefined)delete process.env[k];else process.env[k]=v;}}
 });

@@ -7,6 +7,19 @@ function inScope(actor,row,rows){if(actor.scope?.allRegions===true)return true;c
 function permitted(ctx,actor,p,row,rows){permission(ctx,actor,p);if(!inScope(actor,row,rows))throw m.fail('REGION_FORBIDDEN',403);}
 function publicJob(j){return j?{jobId:j.jobId||j.sk,status:j.status,stage:j.stage,error:j.error||null,detail:j.detail||null,createdAt:j.createdAt,updatedAt:j.updatedAt,indexedCells:j.indexedCells||0,cleanupPending:j.cleanupPending===true,regionIds:j.changes.map(r=>r.regionId)}:null;}
 async function scopeRows(repo,actor,base,region){const map=new Map(base.map(r=>[r.regionId,r]));for(const d of await repo.drafts(actor.employeeId))if(d.status==='DRAFT')map.set(d.region.regionId,d.region);map.set(region.regionId,region);return [...map.values()];}
+function authorizeChange(ctx,actor,permission,region,base,rows){
+ const old=base.find(r=>r.regionId===region.regionId);
+ if(m.structural(region)&&old)permitted(ctx,actor,permission,old,base);
+ if(region.operation!=='delete')permitted(ctx,actor,permission,region,rows);
+}
+function readChange(raw,base,operation){return m.normalizeChange(raw,base.find(r=>r.regionId===raw?.regionId),operation);}
+function readDraft(draft,base){return readChange(m.editable(draft.region),base,draft.operation);}
+async function planErrors(ctx,catalog,changes,report){
+ const structural=changes.filter(m.structural);
+ if(!structural.length||!report.valid)return report.errors;
+ if(!ctx.checkReferences)throw m.fail('REGION_REFERENCE_CHECK_UNAVAILABLE',503);
+ return ctx.checkReferences(m.changeImpact(catalog.base,structural).map(r=>r.regionId));
+}
 async function route(ctx,actor,method,path,input={}){
  const repo=R.create({db:ctx.db,sdk:ctx.sdk,table:ctx.table});permission(ctx,actor,'regions.read');
  if(method==='GET'){
@@ -25,26 +38,33 @@ async function route(ctx,actor,method,path,input={}){
  if(path==='/staff/regions/manage/validate-plan'){
   permission(ctx,actor,'regions.edit');const c=await repo.catalog();if(input.catalogDigest!==c.digest)throw m.fail('REGION_VERSION_CONFLICT',409);
   if(!Array.isArray(input.drafts)||!input.drafts.length||input.drafts.length>10)throw m.fail('REGION_PLAN_INVALID');
-  const changes=await Promise.all(input.drafts.map(async d=>{if(!m.id(d.regionId))throw m.fail('REGION_PLAN_INVALID');const draft=await repo.get(repo.table,repo.draftKey(actor.employeeId,d.regionId));if(!draft||draft.version!==d.version||draft.status!=='DRAFT'||draft.catalogDigest!==c.digest)throw m.fail('REGION_VERSION_CONFLICT',409);permitted(ctx,actor,'regions.edit',draft.region,await scopeRows(repo,actor,c.base,draft.region));return m.normalize(m.editable(draft.region),c.base.find(r=>r.regionId===d.regionId));}));
-  const report=m.validatePlan(c.base,changes);return {valid:report.valid,errors:report.errors,highlights:report.highlights,digest:c.digest};
+  const changes=await Promise.all(input.drafts.map(async d=>{if(!m.id(d.regionId))throw m.fail('REGION_PLAN_INVALID');const draft=await repo.get(repo.table,repo.draftKey(actor.employeeId,d.regionId));if(!draft||draft.version!==d.version||draft.status!=='DRAFT'||draft.catalogDigest!==c.digest)throw m.fail('REGION_VERSION_CONFLICT',409);return readDraft(draft,c.base);}));
+  const report=m.validatePlan(c.base,changes);
+  for(const r of changes)authorizeChange(ctx,actor,'regions.edit',r,c.base,report.rows);
+  const errors=await planErrors(ctx,c,changes,report);
+  return {valid:errors.length===0,errors,highlights:report.highlights,digest:c.digest};
  }
  if(path==='/staff/regions/manage/validate'){
   permission(ctx,actor,'regions.edit');const c=await repo.catalog();if(c.base.some(r=>r._regionPublication))throw m.fail('REGION_PUBLICATION_IN_PROGRESS',409);
-  const region=m.normalize(input.region,c.base.find(r=>r.regionId===input.region?.regionId));permitted(ctx,actor,'regions.edit',region,await scopeRows(repo,actor,c.base,region));
-  return {...geometry.validate(region,c.base),digest:c.digest};
+  const region=readChange(input.region,c.base,input.operation);
+  authorizeChange(ctx,actor,'regions.edit',region,c.base,await scopeRows(repo,actor,c.base,region));
+  const report=m.structural(region)?m.validatePlan(c.base,[region]):geometry.validate(region,c.base);
+  const errors=await planErrors(ctx,c,[region],report);
+  return {valid:errors.length===0,errors,highlights:report.highlights,digest:c.digest};
  }
- permission(ctx,actor,'regions.edit');ctx.recent(ctx.claims);
+ permission(ctx,actor,'regions.edit');
  if(path==='/staff/regions/manage/draft'){
   const c=await repo.catalog();if(input.catalogDigest!==c.digest)throw m.fail('REGION_VERSION_CONFLICT',409);if(c.base.some(r=>r._regionPublication))throw m.fail('REGION_PUBLICATION_IN_PROGRESS',409);
-  const region=m.normalize(input.region,c.base.find(r=>r.regionId===input.region?.regionId));permitted(ctx,actor,'regions.edit',region,await scopeRows(repo,actor,c.base,region));
+  const change=readChange(input.region,c.base,input.operation),{operation,...region}=change;
+  authorizeChange(ctx,actor,'regions.edit',change,c.base,await scopeRows(repo,actor,c.base,region));
   const why=reason(input.reason),key=repo.draftKey(actor.employeeId,region.regionId),old=await repo.get(repo.table,key);
   if((old?.version??0)!==input.expectedDraftVersion)throw m.fail('REGION_VERSION_CONFLICT',409);
   if(old?.status==='QUEUED')throw m.fail('REGION_PUBLICATION_IN_PROGRESS',409);
-  const at=new Date(ctx.now?.()??Date.now()).toISOString(),version=(old?.version??0)+1,report=geometry.validate(region,c.base),draft={...key,version,region,status:'DRAFT',catalogDigest:c.digest,reason:why,updatedAt:at,actorId:actor.employeeId};
+  const at=new Date(ctx.now?.()??Date.now()).toISOString(),version=(old?.version??0)+1,report=operation?m.validatePlan(c.base,[change]):geometry.validate(region,c.base),draft={...key,version,region,...(operation?{operation}:{}),status:'DRAFT',catalogDigest:c.digest,reason:why,updatedAt:at,actorId:actor.employeeId};
   const fence=repo.fence(repo.table,key,old,['version','status']).ConditionCheck;
   await repo.transaction([ctx.guard(actor),{Put:{...fence,Item:draft,Key:undefined}},
-   {Put:{TableName:repo.table,Item:{...draft,...repo.versionKey(actor.employeeId,region.regionId,version)},ConditionExpression:'attribute_not_exists(pk)'}},ctx.audit(actor.employeeId,'REGION_DRAFT_SAVED',{regionId:region.regionId,version:old?.version??0},{regionId:region.regionId,version,geometryDigest:m.digest(region.geometry),reason:why},randomUUID())].map(x=>{if(x.Put)delete x.Put.Key;return x;}));
-  return {draft,validation:report};
+   {Put:{TableName:repo.table,Item:{...draft,...repo.versionKey(actor.employeeId,region.regionId,version)},ConditionExpression:'attribute_not_exists(pk)'}},ctx.audit(actor.employeeId,'REGION_DRAFT_SAVED',{regionId:region.regionId,version:old?.version??0},{regionId:region.regionId,version,operation:operation||'edit',geometryDigest:m.digest(region.geometry),reason:why},randomUUID())].map(x=>{if(x.Put)delete x.Put.Key;return x;}));
+  return {draft,validation:{valid:report.valid,errors:report.errors,highlights:report.highlights}};
  }
  if(path==='/staff/regions/manage/discard'){
   if(!m.id(input.regionId))throw m.fail('REGION_INPUT_INVALID');const key=repo.draftKey(actor.employeeId,input.regionId),old=await repo.get(repo.table,key);
@@ -68,8 +88,11 @@ async function route(ctx,actor,method,path,input={}){
   if(existing){if(existing.requestDigest!==requestDigest)throw m.fail('REGION_REQUEST_CONFLICT',409);return {job:publicJob(existing),replayed:true};}
   const c=await repo.catalog();if(input.catalogDigest!==c.digest)throw m.fail('REGION_VERSION_CONFLICT',409);
   const drafts=await Promise.all(input.drafts.map(async d=>{if(!m.id(d.regionId)||!Number.isSafeInteger(d.version))throw m.fail('REGION_PLAN_INVALID');const row=await repo.get(repo.table,repo.draftKey(actor.employeeId,d.regionId));if(!row||row.version!==d.version||row.status!=='DRAFT'||row.catalogDigest!==c.digest)throw m.fail('REGION_VERSION_CONFLICT',409);return row;}));
-  const changes=drafts.map(d=>m.normalize(m.editable(d.region),c.base.find(r=>r.regionId===d.region.regionId))),report=m.validatePlan(c.base,changes);for(const r of changes)permitted(ctx,actor,'regions.activate',r,report.rows);if(!report.valid)throw m.fail('REGION_GEOMETRY_REVIEW_REQUIRED',409,{errors:report.errors,highlights:report.highlights});
-  for(const row of report.rows)if(changes.some(d=>d.regionId===row.parent_id))permitted(ctx,actor,'regions.activate',row,report.rows);
+  const changes=drafts.map(d=>readDraft(d,c.base)),report=m.validatePlan(c.base,changes);
+  for(const r of changes)authorizeChange(ctx,actor,'regions.activate',r,c.base,report.rows);
+  const errors=await planErrors(ctx,c,changes,report);
+  if(errors.length)throw m.fail(report.valid?'REGION_REFERENCES_EXIST':'REGION_GEOMETRY_REVIEW_REQUIRED',409,{errors,highlights:report.highlights});
+  for(const row of m.changeImpact(report.rows,changes))permitted(ctx,actor,'regions.activate',row,report.rows);
   const at=new Date(ctx.now?.()??Date.now()).toISOString(),job={...repo.jobKey(jobId),jobId,status:'QUEUED',stage:'INDEXING',actorId:actor.employeeId,actorVersion:actor.version,requestDigest,sourceDigest:c.digest,changes,chosenDrafts:input.drafts,reason:reason(input.reason),version:1,createdAt:at,updatedAt:at,regionCursor:0,cellCursor:0,indexedCells:0,indexPlans:[],cleanupPending:false};
   if(Buffer.byteLength(JSON.stringify(job))>300000)throw m.fail('REGION_PLAN_CAPACITY');
   await repo.transaction([ctx.guard(actor),...drafts.map(d=>({Put:{...repo.fence(repo.table,{pk:d.pk,sk:d.sk},d,['version','status']).ConditionCheck,Key:undefined,Item:{...d,status:'QUEUED',jobId}}})),

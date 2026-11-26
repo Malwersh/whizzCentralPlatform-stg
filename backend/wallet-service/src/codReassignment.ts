@@ -1,3 +1,4 @@
+import { financialDispatchTables } from './walletBindings';
 import {readOrderExceptionPolicy} from './orderExceptionPolicy';
 import {readExceptionCasePolicy,casePhase} from './exceptionCasePolicy';
 import {exceptionCaseIndexOperation} from './orderExceptionCaseIndex';
@@ -7,12 +8,12 @@ import { createCodFlowContext, ReturnActor } from './codFlowContext';
 import { prepareCodRelease, setFinancialFields as set } from './financialRelease';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { detach, equal, strongGet, exactCheck, FinancialRow as Row } from './driverFinancialTransaction';
-const T={orders:'WizzOrders',holds:'staging-Holds',jobs:'WizzDispatchJobs_staging',live:'WizzDriverLiveState_staging',audit:'staging-AuditLog',lifecycle:'staging-WalletLifecycle'};
 const fail=(code='COD_ASSIGNMENT_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
 /** No automatic cancellation fee or return earning. Both remain subject to an explicit policy review.
  * Unassignment preserves order funds and frozen customer price, cancels only this driver assignment.
  */
 export function createStagingCodReassignment(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;reassignmentWindowSeconds:number;maximumWaves?:number;operatingCondition?:Row|null;operatingVersion?:number;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;cancelActorKind?:'MERCHANT_OWNER'|'STAFF';unassignActorKind?:'DRIVER'|'STAFF';assignmentDecision?:Row;authorizeStaff?:(actor:ReturnActor,order:Row,branch:Row)=>Promise<Row[]>;cancellationDecision?:Row;administrativeCancellation?:boolean;merchantCancellation?:Row}){
+ const T=financialDispatchTables();
  const {db,authenticate,reassignmentWindowSeconds}=options,now=options.now??Date.now;
  if(!Number.isSafeInteger(reassignmentWindowSeconds)||reassignmentWindowSeconds<30||reassignmentWindowSeconds>900)return fail('COD_REASSIGNMENT_NOT_CONFIGURED');
  const maximumWaves=options.maximumWaves??4;if(!Number.isSafeInteger(maximumWaves)||maximumWaves<1||maximumWaves>10)return fail('COD_REASSIGNMENT_NOT_CONFIGURED');
@@ -62,7 +63,10 @@ export function createStagingCodReassignment(options:{db:Pick<DynamoDBDocumentCl
   const operationId='CA:'+quoteHash({orderId:v.orderId,attempt:v.attempt,offerId:v.offerId,mode:cancel?'CANCEL':'UNASSIGN'}).slice(0,48);
   const release=await prepareCodRelease(db,o,c.offer,c.timestamp,operationId,cancel,options.enableDeliveryFunding===true,undefined,options.enableFullCash===true);
   const receipt={success:true,kind:cancel?'COD_CANCELLED':'COD_UNASSIGNED',orderId:v.orderId,offerId:v.offerId,attempt:v.attempt,operationId,holdReleased:release.H>0,replayed:false,...(decisionCase?{caseId:decisionCase.caseId,cancellationStatus:'CANCELLED',caseVersion:decisionCase.version}:{}),compensationStatus:'PENDING_POLICY_REVIEW'};
-  const fieldsToFence=[...new Set([...Object.keys(o),'financialOutcome','returnStatus','returnCaseId','cancellationStatus','cancellationRequestId','pickedUpAt','cashCollected','cashCollectedAmount','financialRelease','merchantHandover'])];
+  const staffUnassignFences=kind==='STAFF'&&!cancel
+   ? ['pickupAt','openPaymentClaimId','cashReviewVerifiedCollection','cashReturnClearance','exceptionCancellation','deletionStatus']
+   : [];
+  const fieldsToFence=[...new Set([...Object.keys(o),...staffUnassignFences,'financialOutcome','returnStatus','returnCaseId','cancellationStatus','cancellationRequestId','pickedUpAt','cashCollected','cashCollectedAmount','financialRelease','merchantHandover'])];
   const ops:Row[]=[...c.guards,...release.operations,...extraCaseOperations,...(decisionOperation?[decisionOperation]:[]),...(decisionJournal?[decisionJournal]:[]),...(caseIndexOperation?[caseIndexOperation]:[]),...(casePolicyCondition?[casePolicyCondition]:[]),
    {Put:{TableName:T.holds,Item:{...archiveKey,kind:'COD_ASSIGNMENT_RELEASE',offerStorageKey:c.offerKey.SK,...(o.financialAcceptance.schemaVersion===3?{schemaVersion:3,settlementModel:'FULL_CASH_AT_DELIVERY_V1',deliveryFunding:o.financialAcceptance.deliveryFunding}:o.financialAcceptance.schemaVersion===2?{schemaVersion:2,deliveryFunding:o.financialAcceptance.deliveryFunding}:{}),outcome:cancel?'CANCELLED':'UNASSIGNED',operationId,requestDigest:digest,actorId:actor.subjectId,actorKind:kind,...(!cancel&&kind==='DRIVER'?{driverReportedReason:v.reason,reasonSchemaVersion:1}:{}),...(!cancel&&kind==='STAFF'?{staffDecision:options.assignmentDecision}:{}),
     orderId:v.orderId,offerId:v.offerId,attempt:v.attempt,branchId:c.offer.branchId,driverId:o.driverId,subjectId:c.subject,offerDigest:c.offer.digest,snapshotDigest:quoteHash(o.financialSnapshot),

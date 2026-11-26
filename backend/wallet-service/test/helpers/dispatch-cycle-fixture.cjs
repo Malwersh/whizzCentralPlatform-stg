@@ -10,8 +10,8 @@ function policy(){
  const financial=structuredClone(legacy);Object.assign(financial,{offerTtlSeconds:60,waveDurationSeconds:60,reassignmentWindowSeconds:300,positionMaxAgeSeconds:120});financial.normalWaves[3].recipients=5;financial.recovery.legacyReference=null;
  return {quoteMaxPerCustomerPerMinute:5,driverOfferTtlSeconds:60,driverPositionMaxAgeSeconds:120,reassignmentWindowSeconds:300,maximumWaves:4,dispatch:{schemaVersion:2,performanceMode:'LEGACY_METRICS',profiles:{LEGACY:legacy,FINANCIAL:financial}}};
 }
-function fixture(engine='FINANCIAL'){
- const f=setup(),candidate=structuredClone(f.get('WizzDispatchJobs_staging',{orderId:'order1',SK:'METADATA'}));
+function fixture(engine='FINANCIAL',flowOptions={}){
+ const f=setup('3000',()=>{},'order1',flowOptions),candidate=structuredClone(f.get('WizzDispatchJobs_staging',{orderId:'order1',SK:'METADATA'}));
  for(const [key,row]of f.rows)if(key.startsWith('WizzDispatchJobs_staging|')&&row.SK==='METADATA')f.rows.delete(key);
  if(engine==='LEGACY')delete f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).financialSnapshot;
  f.put('staging-PlatformStaff',{pk:'OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS',sk:'CURRENT',version:2,values:policy()});

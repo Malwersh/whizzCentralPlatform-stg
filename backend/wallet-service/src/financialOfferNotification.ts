@@ -1,3 +1,4 @@
+import {isFinancialOrderProduction} from './walletBindings';
 import {DynamoDBDocumentClient} from '@aws-sdk/lib-dynamodb';
 import {LambdaClient,InvokeCommand} from '@aws-sdk/client-lambda';
 import {readFinancialPushReference} from './financialPushReference';
@@ -17,7 +18,13 @@ export function createFinancialPushValidatorClient(client:Pick<LambdaClient,'sen
 export function createStagingFinancialPushHandler(options:{db:Pick<DynamoDBDocumentClient,'send'>;getMessaging:()=>Promise<any>;now?:()=>number;env?:Row;verifyReference?:(reference:Row)=>Promise<void>}){
  const {db}=options,now=options.now??Date.now,env=options.env??process.env;
  return async(body:Row)=>{
-  if(env.STAGE!=='staging'||env.AWS_REGION!=='us-east-1'||env.PINNED_DISPATCH_ACCOUNT_ID!=='699561669180'||env.PINNED_FINANCIAL_PUSH_MODE!=='REQUIRED'||env.PUSH_TOKENS_TABLE!=='WizzCentral_PushDeviceTokens_staging')return fail();
+  const production=isFinancialOrderProduction(env);
+  const binding=production
+    ? {stage:'production',account:'746727375268',table:'wizz-production-PushDeviceTokens'}
+    : {stage:'staging',account:'699561669180',table:'WizzCentral_PushDeviceTokens_staging'};
+  if(env.STAGE!==binding.stage||env.AWS_REGION!=='us-east-1'||env.PINNED_DISPATCH_ACCOUNT_ID!==binding.account||
+      env.PINNED_FINANCIAL_PUSH_MODE!=='REQUIRED'||env.PUSH_TOKENS_TABLE!==binding.table||
+      (production&&!options.verifyReference))return fail();
   const reference=readFinancialPushReference(body),verify=options.verifyReference??createFinancialPushValidatorClient();
   async function allowed(){if(Date.parse(reference.expiresAt)<=now())return fail();await verify(reference);}
   const data=Object.fromEntries(Object.entries({...reference,type:'financial_wave_offer_available',eventId:reference.offerId}).map(([k,v])=>[k,String(v)]));

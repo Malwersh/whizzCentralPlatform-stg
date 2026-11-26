@@ -8,7 +8,7 @@ const BRANCHES='WhizzMerchants_Businesses';
 const LIFECYCLE='staging-AccountDeletion';
 const fail=code=>{throw Object.assign(new Error(code),{status:409});};
 
-function createLock({Get=GetCommand,Write=TransactWriteCommand,clock=Date.now,leaseId=randomUUID}={}){
+function createLock({Get=GetCommand,Write=TransactWriteCommand,clock=Date.now,leaseId=randomUUID, tables={platform:PLATFORM,businesses:BRANCHES,deletion:LIFECYCLE}}={}){
  async function write(db,items){
   await db.send(new Write({TransactItems:items}));
  }
@@ -32,24 +32,24 @@ function createLock({Get=GetCommand,Write=TransactWriteCommand,clock=Date.now,le
    ExpressionAttributeValues:{':lease':token,':request':request.requestId},
   }});
   const read=async(TableName,Key)=>(await ctx.db.send(new Get({TableName,Key,ConsistentRead:true}))).Item;
-  const prior=await read(PLATFORM,fenceKey);
+  const prior=await read(tables.platform,fenceKey);
   if(prior?.leaseId&&prior.expiresAt>now)fail('TRANSFER_APPROVAL_IN_PROGRESS');
   // Expired transfer leases are replaced only if their exact state is still present.
   if(prior&&!prior.leaseId)fail('TRANSFER_MUTATION_FENCE_REQUIRED');
   const expiryFence=prior
    ? {ConditionExpression:'leaseId=:previous AND expiresAt<=:now',ExpressionAttributeValues:{':previous':prior.leaseId,':now':now}}
    : {ConditionExpression:'attribute_not_exists(pk)'};
-  const locks=await Promise.all(markers.map(key=>read(LIFECYCLE,key)));
+  const locks=await Promise.all(markers.map(key=>read(tables.deletion,key)));
   const items=[
    ctx.guard(actor),
    {ConditionCheck:{
-    TableName:PLATFORM,Key:{pk:organization,sk:'OWNERSHIP_TRANSFER'},
+    TableName:tables.platform,Key:{pk:organization,sk:'OWNERSHIP_TRANSFER'},
     ConditionExpression:'requestId=:request AND digest=:digest AND #v=:version AND #s=:pending AND expiresAt>:now',
     ExpressionAttributeNames:{'#v':'version','#s':'status'},
     ExpressionAttributeValues:{':request':request.requestId,':digest':request.digest,':version':request.version,':pending':'AWAITING_REVIEW',':now':now},
    }},
    {Put:{
-    TableName:PLATFORM,
+    TableName:tables.platform,
     Item:{...fenceKey,kind:'OWNERSHIP_TRANSFER_FENCE',status:'FROZEN',leaseId:token,requestId:request.requestId,
      organizationId:request.organizationId,scopeDigest:request.digest,version:(prior?.version??0)+1,expiresAt},
     ...expiryFence,
@@ -61,12 +61,12 @@ function createLock({Get=GetCommand,Write=TransactWriteCommand,clock=Date.now,le
       previous.leaseId!==prior?.leaseId||previous.expiresAt>Math.floor(now/1000)))fail('TRANSFER_BRANCH_ALREADY_LOCKED');
    items.push(
     {ConditionCheck:{
-     TableName:BRANCHES,Key:{businessId:id},
+     TableName:tables.businesses,Key:{businessId:id},
      ConditionExpression:'ownerId=:owner AND cognitoUserId=:owner AND organizationId=:org AND orderIntakeTransferRequestId=:request AND orderIntakeTransferExpiresAt>:now AND attribute_not_exists(deletionRequestId) AND attribute_not_exists(orderIntakeDeletionRequestId)',
      ExpressionAttributeValues:{':owner':request.ownerId,':org':request.organizationId,':request':request.requestId,':now':now},
     }},
     {Put:{
-     TableName:LIFECYCLE,Item:{...markers[index],kind:'OWNERSHIP_TRANSFER_APPROVAL_LOCK',
+     TableName:tables.deletion,Item:{...markers[index],kind:'OWNERSHIP_TRANSFER_APPROVAL_LOCK',
       leaseId:token,requestId:request.requestId,businessId:id,expiresAt:cleanupAt},
      ConditionExpression:previous?'leaseId=:previous AND requestId=:request':'attribute_not_exists(pk)',
      ...(previous?{ExpressionAttributeValues:{':previous':previous.leaseId,':request':previous.requestId}}:{}),
@@ -78,11 +78,14 @@ function createLock({Get=GetCommand,Write=TransactWriteCommand,clock=Date.now,le
   try{
    return await execute({...ctx,ownershipLeaseId:token,ownershipClock:clock},actor,request,reason,clock());
   }finally{
-   const owned=[];
-   for(const [TableName,Key] of [[PLATFORM,fenceKey],...markers.map(key=>[LIFECYCLE,key])]){
-    if((await read(TableName,Key))?.leaseId===token)owned.push(clear(TableName,Key));
+   try{
+    const keys=[[tables.platform,fenceKey],...markers.map(key=>[tables.deletion,key])];
+    const owned=(await Promise.all(keys.map(async ([TableName,Key])=>
+     (await read(TableName,Key))?.leaseId===token?clear(TableName,Key):null))).filter(Boolean);
+    if(owned.length)await write(ctx.db,owned);
+   }catch(error){
+    console.warn('OWNERSHIP_APPROVAL_LOCK_CLEANUP', {name:error.name});
    }
-   if(owned.length)await write(ctx.db,owned);
   }
  };
 }

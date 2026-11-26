@@ -220,3 +220,25 @@ test('historical schedule selection is pinned with old version, successor and cl
   else {const saved=await service.create(req);assert.equal(saved.header.period.scheduleVersion,1);}
  }
 });
+
+test('a verified payable proof preserves preview and statement creation after order redaction',async()=>{
+ const x=await fixture();
+ const {preserveMerchantSettlementEvidence,readMerchantAccrualEvidence}=require('../dist/merchantSettlementPreview');
+ const before=await x.request();
+ const source=await readMerchantAccrualEvidence(x.db,'branch1','order1');
+ await preserveMerchantSettlementEvidence(x.db,'branch1','order1');
+ await preserveMerchantSettlementEvidence(x.db,'branch1','order1');
+ const order=x.f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ const payable=x.f.get('staging-Holds',{orderId:'order1',sk:'MERCHANT_PAYABLE'});
+ assert.doesNotMatch(JSON.stringify(payable.settlementEvidence),/customerPoint|latitude|longitude|deliveryAddress/);
+ delete order.financialSnapshot;
+ delete order.financialAcceptance;
+ const after=await x.request();
+ assert.equal(after.previewId,before.previewId);
+ payable.amount++;
+ await assert.rejects(readMerchantAccrualEvidence(x.db,'branch1','order1'),/MERCHANT_SETTLEMENT_PREVIEW_UNAVAILABLE/);
+ payable.amount--;
+ const result=await x.service.create(before);
+ assert.deepEqual(result.lines[0].accrual,source.accrual);
+ assert.equal((await x.service.read({branchId:'branch1',batchId:result.header.batchId})).header.batchId,result.header.batchId);
+});

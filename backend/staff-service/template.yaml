@@ -27,7 +27,20 @@ Parameters:
     Type: String
     Default: 'false'
     AllowedValues: ['true', 'false']
+  MerchantOwnershipExecutionRequestId:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^[a-fA-F0-9]{8}(-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$'
 Resources:
+  MerchantOwnershipCompletionNotificationPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: lambda:InvokeFunction
+            Resource: arn:aws:lambda:us-east-1:699561669180:function:wizzcentral-notifications-staging-pushSendMerchantOrder
   StaffTable:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Retain
@@ -70,6 +83,7 @@ Resources:
         Variables:
           PLATFORM_ENVIRONMENT: staging
           MERCHANT_OWNERSHIP_EXECUTION_ENABLED: !Ref MerchantOwnershipExecutionEnabled
+          MERCHANT_OWNERSHIP_EXECUTION_REQUEST_ID: !Ref MerchantOwnershipExecutionRequestId
           PLATFORM_SESSION_POLICY: !Ref PlatformSessionPolicy
           PLATFORM_WRITE_MODE: !Ref PlatformWriteMode
           PLATFORM_DIRECT_OPERATOR_IDS: !Ref PlatformDirectOperatorIds
@@ -87,6 +101,7 @@ Resources:
           CLIENT_ID: 17mu2qlqis0qcs1n1n980q7e3j
           FRONTEND_ORIGIN: https://staging.d2vmebm1e1n95m.amplifyapp.com
       Policies:
+        - !Ref MerchantOwnershipCompletionNotificationPolicy
         - arn:aws:iam::699561669180:policy/StagingMerchantOwnershipPreflightReadOnly
         - arn:aws:iam::699561669180:policy/StagingMerchantOwnershipApprovalOnly
         - arn:aws:iam::699561669180:policy/CustomerInterfaceCatalogRead362

@@ -2,7 +2,7 @@
 const {GetCommand,ScanCommand,QueryCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {digest,fence}=require('./campaign-version');
 const fail=(code,status=409)=>{throw Object.assign(Error(code),{status});};
-const O='WizzOrders',S='staging-PlatformStaff',H='staging-Holds';
+const stagingTables={orders:'WizzOrders',staff:'staging-PlatformStaff',holds:'staging-Holds'};
 const types=['ItemUnavailable','StoreClosed','LongDelay','WrongOrder','Other'];
 const pre=['assigned','accepted','heading_to_store','arrived_at_store'];
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.:#-]{0,149}$/.test(v);
@@ -14,6 +14,7 @@ const minutes=v=>Number.isSafeInteger(v)&&v>=1&&v<=1440;
 function sameAssignment(o,r){return o.driverId===r.driverId&&(r.assignment?o.financialAcceptance?.offerId===r.assignment.offerId&&o.assignmentAttemptCounter===r.assignment.attempt:!o.financialAcceptance);}
 function view(o,r,w,now){return {orderId:o.orderId,orderNumber:o.orderNumber||o.orderId,branchName:o.storeName||o.restaurantName||'مطعم الطلب',orderStatus:o.status,reportId:r.id,issueType:r.issueType,notes:r.notes||'',reportedAt:r.reportedAt,driverId:r.driverId,reportAssignment:r.assignment||null,currentAssignmentMatches:sameAssignment(o,r),pickedUp:!!(o.pickedUpAt||o.pickupAt||o.merchantHandover),workflow:w||null,version:w?.version||0,status:w?.status||'OPEN',overdue:!!w?.followUpAt&&Date.parse(w.followUpAt)<now&&w.status!=='CLOSED'};}
 async function route(ctx,actor,method,input={}){
+ const {orders:O,staff:S,holds:H}=ctx.tables||stagingTables;
  if(actor.scope?.allRegions!==true||!ctx.allowed(actor,'orders.read'))fail('PERMISSION_REQUIRED',403);
  const now=ctx.now?ctx.now():Date.now(),at=new Date(now).toISOString();
  const get=async(t,k)=>(await ctx.db.send(new GetCommand({TableName:t,Key:k,ConsistentRead:true}))).Item;
@@ -21,6 +22,7 @@ async function route(ctx,actor,method,input={}){
  const canOperate=ctx.allowed(actor,'orders.cancel')||ctx.allowed(actor,'support.reply');
  if(method==='GET'&&input.view==='queue'){
   if(Object.keys(input).some(k=>!['view','cursor'].includes(k)))fail('PICKUP_WORKFLOW_INVALID',400);
+  if(ctx.listOpenReports)return ctx.listOpenReports(input.cursor,{canOperate,currentEmployeeId:actor.employeeId,canTakeover:ctx.allowed(actor,'support.assign'),now});
   let cursor={after:null,carry:null};if(input.cursor){try{if(input.cursor.length>2000)throw Error();cursor=JSON.parse(Buffer.from(input.cursor,'base64url'));if(cursor.actor!==actor.employeeId||cursor.actorVersion!==actor.version)throw Error();for(const k of [cursor.after,cursor.carry?.key].filter(Boolean))if(Object.keys(k).sort().join(',')!=='PK,SK'||typeof k.PK!=='string'||k.PK.length>512||typeof k.SK!=='string'||k.SK.length>512)throw Error();if(cursor.carry&&(!cursor.carry.key.PK.startsWith('ORDER#')||cursor.carry.key.SK!=='META'||!Number.isSafeInteger(cursor.carry.offset)||cursor.carry.offset<0||cursor.carry.offset>50))throw Error();}catch{fail('PICKUP_WORKFLOW_CURSOR_INVALID',400);}}
   const items=[];let processed=0,scanned=0,after=cursor.after,carry=cursor.carry;
   const encode=(after,carry)=>Buffer.from(JSON.stringify({actor:actor.employeeId,actorVersion:actor.version,after,carry})).toString('base64url');
@@ -71,6 +73,7 @@ async function route(ctx,actor,method,input={}){
  }
  const receipt={success:true,version:next.version,status:next.status,financialPosting:false};
  const ops=[ctx.guard(actor),check(O,ok,shortOrder(order)),...guards,{Put:{TableName:S,Item:next,...(old?fence(old):{ConditionExpression:'attribute_not_exists(pk)'})}},{Put:{TableName:S,Item:{...eventKey,kind:'PICKUP_ISSUE_EVENT',orderId:order.orderId,reportId:report.id,action:input.action,reason:input.reason.trim(),actorId:actor.employeeId,createdAt:at,requestDigest:fingerprint,receipt,financialPosting:false},ConditionExpression:'attribute_not_exists(pk)'}},ctx.audit(actor.employeeId,'PICKUP_ISSUE_'+input.action,old||null,next,input.requestId)];
+ if(next.status==='CLOSED'&&ctx.closeReport)ops.push(ctx.closeReport(order.orderId,report));
  try{await ctx.db.send(new TransactWriteCommand({TransactItems:ops}));}catch(e){if(e.name==='TransactionCanceledException')fail('PICKUP_WORKFLOW_CHANGED');throw e;}
  return receipt;
 }

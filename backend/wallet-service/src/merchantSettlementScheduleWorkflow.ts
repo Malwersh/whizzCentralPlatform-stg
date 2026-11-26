@@ -1,12 +1,12 @@
+import {checkoutTables} from './checkoutTables';
 import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import { detach, exactCheck, strongGet } from './driverFinancialTransaction';
-import { readMerchantDeletionFence } from './merchantSettlementAuthority';
+import { allowsValidSettlementSession, readMerchantDeletionFence } from './merchantSettlementAuthority';
 import { createMerchantSettlementScheduleReader } from './merchantSettlementScheduleReader';
 import { merchantSettlementPeriod, MerchantSettlementSchedule } from './merchantSettlementPeriod';
 import { quoteCanonical, quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 const { allowed } = require('../../staff-service/catalog');
 type Row = Record<string, any>;
-const P = 'staging-MerchantPlatform', S = 'staging-PlatformStaff', B = 'WhizzMerchants_Businesses', D = 'staging-AccountDeletion';
 const fail = (code: string): never => { throw Object.assign(Error(code), { code }); };
 const uuid = (v: unknown) => typeof v === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(v);
 const employeeId = (v: unknown) => typeof v === 'string' && /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
@@ -24,6 +24,7 @@ export type SchedulePrincipal = { kind: 'STAFF'; employeeId: string; authTime: n
 export function createMerchantSettlementScheduleWorkflow(options: {
   db: Pick<DynamoDBDocumentClient, 'send'>; principal: SchedulePrincipal; now?: () => number; allowSameStaffApproval?: boolean;
 }) {
+  const {platform:P,policy:S,branches:B,deletion:D}=checkoutTables();
   const { db } = options, principal = detach(options.principal), clock = options.now || Date.now;
   const instant = () => new Date(clock()).toISOString();
   if (!principal || (principal.kind === 'STAFF' ? !employeeId(principal.employeeId) || !Number.isSafeInteger(principal.authTime) ||
@@ -33,7 +34,7 @@ export function createMerchantSettlementScheduleWorkflow(options: {
     const k = { pk: 'EMPLOYEE#' + principal.employeeId, sk: 'PROFILE' }, row = await strongGet(db, S, k);
     const age = Math.floor(clock() / 1000) - principal.authTime;
     // Honor the staff API's verified-session policy; JWT expiry and live revocation remain enforced.
-    if (age > 300 && !(process.env.PLATFORM_ENVIRONMENT === 'staging' && process.env.PLATFORM_SESSION_POLICY === 'VALID_SESSION')) return fail('SCHEDULE_REAUTH_REQUIRED');
+    if (age > 300 && !allowsValidSettlementSession()) return fail('SCHEDULE_REAUTH_REQUIRED');
     if (!row || row.employeeId !== principal.employeeId || row.status !== 'ACTIVE' || !Number.isSafeInteger(row.version) || row.version < 1 ||
         row.scope?.allRegions !== true || row.deletionRequestId != null || row.deletedAt != null || row.isDeleted === true ||
         (row.minimumAuthTime !== undefined && (!Number.isSafeInteger(row.minimumAuthTime) || row.minimumAuthTime < 0)) ||

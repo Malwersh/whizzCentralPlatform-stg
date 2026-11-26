@@ -1,11 +1,16 @@
 'use strict';
 // A post-delivery case in the existing exceptions inbox, linked to the existing
 // authenticated support conversation. No order status, wallet or payout writes.
-const {GetCommand,QueryCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
+const {GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {hash,exact}=require('./dispatch-followup-core');
 const {allowed}=require('./catalog');
 const {complaintNotification}=require('./customer-complaint-notification');
-const KEY='CUSTOMER_POST_DELIVERY',H='staging-Holds',O='WizzOrders',S='chat-sessions-staging';
+const KEY='CUSTOMER_POST_DELIVERY';
+const stagingTables=Object.freeze({
+ cases:'staging-Holds',orders:'WizzOrders',sessions:'chat-sessions-staging',
+ deletion:'staging-AccountDeletion',customers:'WizzUser_users_staging',staff:'staging-PlatformStaff',
+ attachments:'support-attachments-staging',messages:'chat-messages-staging',notifications:'staging-WalletNotifications',
+});
 const TYPES=['MISSING_ITEMS','WRONG_ITEMS','QUALITY','NOT_DELIVERED','SAFETY','OTHER'];
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.:#-]{0,149}$/.test(v);
@@ -17,23 +22,23 @@ function publicView(row,policy,now){
  const d=row&&decision(row);
  return {success:true,caseKey:KEY,caseId:row?.caseId??null,orderId:row?.orderId,version:row?.version??0,status:row?.state??'NOT_OPENED',type:row?.type??null,description:row?.description??null,evidence:(row?.evidence??[]).filter(e=>e.source==='CUSTOMER').map(e=>Object.fromEntries(['id','kind','text','attachmentId','sessionId','at'].filter(k=>e[k]!==undefined).map(k=>[k,e[k]]))),customerRequest:row?.customerRequest??null,supportSessionId:row?.supportSessionId??null,createdAt:row?.createdAt??null,responseDueAt:row?.activePhase?.responseDueAt??null,decision:d?{decisionId:d.decisionId,outcome:d.outcome,reason:d.publicReason,remedyAmountIqd:d.remedyAmountIqd,remedyKind:d.remedyAmountIqd?'FUTURE_GOODS_DISCOUNT':'NONE',decidedAt:d.at,acknowledgedAt:row.decisionAcknowledgements?.[d.decisionId]??null}:null,appeal:row?.appeals?.at(-1)?{status:row.appeals.at(-1).status,reason:row.appeals.at(-1).reason,submittedAt:row.appeals.at(-1).at}:null,appealWindowSeconds:(row?.casePolicySnapshot??policy).values.appealSeconds,canAppeal:!!d&&!!row.decisionAcknowledgements?.[d.decisionId]&&!row.appeals?.some(a=>a.decisionId===d.decisionId)&&(!row.decisionAcknowledgements?.[d.decisionId]||now<=Date.parse(row.decisionAcknowledgements[d.decisionId])+(row.casePolicySnapshot.values.appealSeconds*1000)),cashRefundPerformed:false,financialPosting:false};
 }
-function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,index,phase,now=Date.now,verifyVoucher,retainImage=input=>require('./complaint-image-retention').retain(input)}){
+function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,index,phase,now=Date.now,verifyVoucher,tables=stagingTables,retainImage=input=>require('./complaint-image-retention').retain(input)}){
  async function context(orderId){
   if(!id(orderId))fail('INVALID_COMPLAINT',400);
-  const actor=await authenticate(),ok={PK:'ORDER#'+orderId,SK:'META'},order=await get(db,O,ok);
+  const actor=await authenticate(),ok={PK:'ORDER#'+orderId,SK:'META'},order=await get(db,tables.orders,ok);
   if(!order||order.orderId!==orderId||!['delivered','completed'].includes(order.status)||order.isGuestOrder===true||order.deletedAt!=null||order.deletionRequestId!=null||order.isDeleted===true||!id(order.userSub)||!id(order.storeId))fail('COMPLAINT_UNAVAILABLE',404);
   if(actor.kind!=='STAFF'&&(actor.kind!=='CUSTOMER'||actor.subjectId!==order.userSub))fail('COMPLAINT_FORBIDDEN',403);
-  const guards=[exact(O,ok,order,['orderId','status','userSub','userId','storeId','driverId','deliveredAt','completedAt','updatedAt','isGuestOrder','deletedAt','deletionRequestId','isDeleted'])];
+  const guards=[exact(tables.orders,ok,order,['orderId','status','userSub','userId','storeId','driverId','orderNumber','deliveredAt','completedAt','updatedAt','isGuestOrder','deletedAt','deletionRequestId','isDeleted'])];
   for(const pk of ['ORDER_LIFECYCLE#'+orderId,'ACCOUNT_LIFECYCLE#CUSTOMER#'+order.userSub]){
-   const key={pk,sk:'META'};if(await get(db,'staging-AccountDeletion',key))fail('COMPLAINT_UNAVAILABLE',404);guards.push(exact('staging-AccountDeletion',key,null,['pk']));
+   const key={pk,sk:'META'};if(await get(db,tables.deletion,key))fail('COMPLAINT_UNAVAILABLE',404);guards.push(exact(tables.deletion,key,null,['pk']));
   }
-  const profileKey={userId:order.userId??order.userSub},profile=await get(db,'WizzUser_users_staging',profileKey);
+  const profileKey={userId:order.userId??order.userSub},profile=await get(db,tables.customers,profileKey);
   if(!profile||profile.isActive===false||profile.deletedAt!=null||profile.deletionRequestId!=null||profile.isDeleted===true||(profile.cognitoSub??profile.userId)!==order.userSub)fail('COMPLAINT_UNAVAILABLE',404);
-  guards.push(exact('WizzUser_users_staging',profileKey,profile));
+  guards.push(exact(tables.customers,profileKey,profile));
   const access=actor.kind==='STAFF'?await authorizeStaff(actor,order,'READ'):null;if(access)guards.push(access.guard);
-  const ck={orderId,sk:KEY},row=await get(db,H,ck),caseId='OEX:'+hash({orderId,kind:KEY}).slice(0,48);
+  const ck={orderId,sk:KEY},row=await get(db,tables.cases,ck),caseId='OEX:'+hash({orderId,kind:KEY}).slice(0,48);
   if(row&&(row.kind!=='CUSTOMER_POST_DELIVERY_CASE'||row.caseId!==caseId||row.customerId!==order.userSub||row.branchId!==order.storeId||!Number.isSafeInteger(row.version)))fail('COMPLAINT_UNAVAILABLE',404);
-  if(row){const session=await get(db,S,{sessionId:row.supportSessionId});if(!session||session.userType!=='customer'||session.customerId!==order.userSub||session.orderId!==orderId||session.complaintCaseId!==caseId)fail('COMPLAINT_SUPPORT_CHANGED');}
+  if(row){const session=await get(db,tables.sessions,{sessionId:row.supportSessionId});if(!session||session.userType!=='customer'||session.customerId!==order.userSub||session.orderId!==orderId||session.complaintCaseId!==caseId)fail('COMPLAINT_SUPPORT_CHANGED');}
   const p=row?{snapshot:row.casePolicySnapshot}:await policy();if(row)phase(row.casePolicySnapshot,row.type==='SAFETY'?'SAFETY':'STANDARD',row.createdAt);return {actor,order,guards,access,ck,row,caseId,p};
  }
  async function execute(v){
@@ -43,9 +48,9 @@ function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,in
   if(!(isStaff?staff:customer).includes(v.action))fail('COMPLAINT_FORBIDDEN',403);
   const common=['orderId','action'],extra={READ:[],OPEN:['type','reason'],ADD_MESSAGE:['reason'],ADD_IMAGE:['attachmentId','reason'],ACK_DECISION:['decisionId'],APPEAL:['decisionId','reason'],CLAIM:['reason'],RELEASE:['reason'],ADD_EVIDENCE:['reportedBy','reference','reason'],REQUEST_INFO:['reason'],DECIDE:['outcome','publicReason','reason','evidenceIds','allocations','remedyAmountIqd'],RESOLVE_APPEAL:['reason','publicReason','outcome','evidenceIds','allocations','remedyAmountIqd'],CLOSE:['reason']}[v.action];
   if(!extra||Object.keys(v).sort().join(',')!==[...common,...(v.action==='READ'?[]:['expectedVersion','requestId']),...extra].sort().join(','))fail('INVALID_COMPLAINT',400);
-  if(v.action==='READ')return {...publicView(c.row,c.p.snapshot,now()),orderId:v.orderId,...(!c.row?{claimWindowSeconds:c.p.snapshot.values.postDeliveryClaimSeconds,canOpen:claimTime(c.order,c.p.snapshot,now()),safetyReportAllowed:true}:{}),...(isStaff?{case:c.row}:{} )};
+  if(v.action==='READ')return {...publicView(c.row,c.p.snapshot,now()),orderId:v.orderId,...(!c.row?{claimWindowSeconds:c.p.snapshot.values.postDeliveryClaimSeconds,canOpen:claimTime(c.order,c.p.snapshot,now()),safetyReportAllowed:true}:{}),...(isStaff?{case:c.row,orderNumber:c.order.orderNumber??null}:{} )};
   if(!uuid(v.requestId)||!Number.isSafeInteger(v.expectedVersion)||v.expectedVersion<0||v.action!=='ACK_DECISION'&&!text(v.reason))fail('INVALID_COMPLAINT',400);
-  const eventKey={orderId:v.orderId,sk:'POST_DELIVERY_EVENT#'+v.requestId},digest=hash({input:v,actor:c.actor}),prior=await get(db,H,eventKey);
+  const eventKey={orderId:v.orderId,sk:'POST_DELIVERY_EVENT#'+v.requestId},digest=hash({input:v,actor:c.actor}),prior=await get(db,tables.cases,eventKey);
   if(prior){if(prior.requestDigest!==digest)fail('COMPLAINT_REQUEST_CONFLICT');return {...prior.receipt,replayed:true};}
   if((c.row?.version??0)!==v.expectedVersion)fail();
   if(!c.row&&v.action!=='OPEN')fail('COMPLAINT_UNAVAILABLE',404);
@@ -55,9 +60,9 @@ function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,in
   if(v.action==='OPEN'){
    if(!TYPES.includes(v.type))fail('INVALID_COMPLAINT',400);
    if(v.type!=='SAFETY'&&!claimTime(c.order,c.p.snapshot,now()))fail('COMPLAINT_WINDOW_EXPIRED');
-   const sessionId='complaint_'+hash({caseId:c.caseId,customerId:c.order.userSub}).slice(0,48),session=await get(db,S,{sessionId});
+   const sessionId='complaint_'+hash({caseId:c.caseId,customerId:c.order.userSub}).slice(0,48),session=await get(db,tables.sessions,{sessionId});
    if(session&&(session.userType!=='customer'||session.customerId!==c.order.userSub||session.orderId!==v.orderId||session.complaintCaseId!==c.caseId||session.status==='closed'))fail('COMPLAINT_SUPPORT_CHANGED');
-   if(session)guards.push(exact(S,{sessionId},session));else ops.push({Put:{TableName:S,Item:{sessionId,userId:c.order.userSub,customerId:c.order.userSub,userType:'customer',source:'wizzuser_app',orderId:v.orderId,complaintCaseId:c.caseId,status:'waiting_for_agent',customerName:'زبون الطلب',userDisplayName:'شكوى طلب مسلّم',createdAt:at},ConditionExpression:'attribute_not_exists(sessionId)'}});
+   if(session)guards.push(exact(tables.sessions,{sessionId},session));else ops.push({Put:{TableName:tables.sessions,Item:{sessionId,userId:c.order.userSub,customerId:c.order.userSub,userType:'customer',source:'wizzuser_app',orderId:v.orderId,complaintCaseId:c.caseId,status:'waiting_for_agent',customerName:'زبون الطلب',userDisplayName:'شكوى طلب مسلّم',createdAt:at},ConditionExpression:'attribute_not_exists(sessionId)'}});
    Object.assign(data,{...c.ck,kind:'CUSTOMER_POST_DELIVERY_CASE',schemaVersion:1,caseId:c.caseId,customerId:c.order.userSub,branchId:c.order.storeId,driverId:c.order.driverId??null,state:'OPEN',type:v.type,description:v.reason.trim(),supportSessionId:sessionId,casePolicySnapshot:c.p.snapshot,activePhase:phase(c.p.snapshot,v.type==='SAFETY'?'SAFETY':'STANDARD',at),createdAt:at,evidence:[],decisions:[],appeals:[],ownerId:null,exceptionResolution:{caseId:c.caseId,type:KEY,status:'OPEN',allegedReason:v.reason.trim(),responsibility:'UNDETERMINED'}});guards.push(c.p.condition);
    data.evidence.push({id:v.requestId,source:'CUSTOMER',actorId:c.actor.subjectId,kind:'CUSTOMER_REPORT',text:v.reason.trim(),at});
   }else if(v.action==='ACK_DECISION'){
@@ -71,7 +76,7 @@ function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,in
   }else{
    if(data.state==='CLOSED')fail('COMPLAINT_CLOSED');
    if(v.action==='CLAIM'){
-    if(data.ownerId&&data.ownerId!==c.actor.subjectId){const key={pk:'EMPLOYEE#'+data.ownerId,sk:'PROFILE'},owner=await get(db,'staging-PlatformStaff',key);if(owner?.status==='ACTIVE'&&owner.scope?.allRegions===true&&(allowed(owner,'orders.cancel')||allowed(owner,'finance.approve')))fail('COMPLAINT_OWNED_BY_OTHER');guards.push(exact('staging-PlatformStaff',key,owner,owner?Object.keys(owner):['pk']));}
+    if(data.ownerId&&data.ownerId!==c.actor.subjectId){const key={pk:'EMPLOYEE#'+data.ownerId,sk:'PROFILE'},owner=await get(db,tables.staff,key);if(owner?.status==='ACTIVE'&&owner.scope?.allRegions===true&&(allowed(owner,'orders.cancel')||allowed(owner,'finance.approve')))fail('COMPLAINT_OWNED_BY_OTHER');guards.push(exact(tables.staff,key,owner,owner?Object.keys(owner):['pk']));}
     data.ownerId=c.actor.subjectId;data.ownerName=c.staffAccess?.employee?.displayName??c.staffAccess?.employee?.name??'مسؤول المراجعة';data.state=data.state==='OPEN'?'IN_REVIEW':data.state;
    }else if(v.action==='RELEASE'){data.ownerId=null;data.ownerName=null;
    }else if(['ADD_MESSAGE','ADD_IMAGE','ADD_EVIDENCE'].includes(v.action)){
@@ -83,13 +88,13 @@ function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,in
     }else if(v.action==='ADD_IMAGE'){
      if(!uuid(v.attachmentId))fail('INVALID_COMPLAINT',400);
      if(data.evidence.some(e=>e.attachmentId===v.attachmentId&&e.actorId===c.actor.subjectId))return {success:true,orderId:v.orderId,caseId:c.caseId,version:c.row.version,status:c.row.state,action:v.action,replayed:true,financialPosting:false};
-     const key={attachmentId:v.attachmentId},image=await get(db,'support-attachments-staging',key);
+     const key={attachmentId:v.attachmentId},image=await get(db,tables.attachments,key);
      if(!image||image.subjectId!==c.actor.subjectId||image.userType!=='customer'||image.sessionId!==data.supportSessionId||image.status!=='PUBLISHED'||!Number.isFinite(image.ttl)||image.ttl<=now()/1000||!image.checksum)fail('COMPLAINT_IMAGE_UNAVAILABLE');
-     const mk={sessionId:image.sessionId,messageKey:image.messageKey},message=image.messageKey?await get(db,'chat-messages-staging',mk):null;if(!message||message.attachment?.attachmentId!==image.attachmentId)fail('COMPLAINT_IMAGE_UNAVAILABLE');guards.push(exact('chat-messages-staging',mk,message));
+     const mk={sessionId:image.sessionId,messageKey:image.messageKey},message=image.messageKey?await get(db,tables.messages,mk):null;if(!message||message.attachment?.attachmentId!==image.attachmentId)fail('COMPLAINT_IMAGE_UNAVAILABLE');guards.push(exact(tables.messages,mk,message));
      evidence.attachmentId=image.attachmentId;evidence.sessionId=image.sessionId;evidence.checksum=image.checksum;evidence.contentType=image.contentType;
      const retained=await retainImage({image,caseId:c.caseId,orderId:v.orderId,subjectId:c.actor.subjectId,at,now:now()});
      if(!require('./complaint-image-retention').isRetained(retained)||retained.evidenceRetention.caseId!==c.caseId||retained.evidenceRetention.orderId!==v.orderId||retained.subjectId!==image.subjectId||retained.sessionId!==image.sessionId||retained.checksum!==image.checksum)fail('COMPLAINT_IMAGE_RETENTION_UNAVAILABLE');
-     const {TableName:it,Key:ik,...ic}=exact('support-attachments-staging',key,image).ConditionCheck;
+     const {TableName:it,Key:ik,...ic}=exact(tables.attachments,key,image).ConditionCheck;
      ops.push({Put:{TableName:it,Item:retained,...ic}});
      evidence.retained=true;
     }
@@ -120,11 +125,11 @@ function createCustomerOrderComplaints({db,authenticate,authorizeStaff,policy,in
   if(isStaff&&data.activePhase&&!data.activePhase.respondedAt)data.activePhase={...data.activePhase,respondedAt:at,responseSource:'ADMIN_REVIEW'};
   data.version=(c.row?.version??0)+1;data.updatedAt=at;if(!Number.isSafeInteger(data.version)||Buffer.byteLength(JSON.stringify(data))>300000)fail('COMPLAINT_HISTORY_LIMIT');
   const receipt={success:true,orderId:v.orderId,caseId:c.caseId,version:data.version,status:data.state,action:v.action,financialPosting:false};
-  const {TableName,Key,...condition}=exact(H,c.ck,c.row,c.row?Object.keys(c.row):['orderId']).ConditionCheck;
-  ops.push(...guards,{Put:{TableName:H,Item:data,...condition}},{Put:{TableName:H,Item:{...eventKey,kind:'POST_DELIVERY_COMPLAINT_EVENT',caseId:c.caseId,requestDigest:digest,actorId:c.actor.subjectId,actorKind:c.actor.kind,action:v.action,at,receipt},ConditionExpression:'attribute_not_exists(orderId)'}},await index({caseId:c.caseId,orderId:v.orderId,caseKey:KEY,caseType:'CUSTOMER_POST_DELIVERY_CASE',state:data.state,open:data.state!=='CLOSED',at,branchId:c.order.storeId,dueAt:data.activePhase?.responseDueAt??at}));
-  const notice=complaintNotification({action:v.action,actor:c.actor,order:c.order,row:data,requestId:v.requestId,at});if(notice)ops.push(notice);
+  const {TableName,Key,...condition}=exact(tables.cases,c.ck,c.row,c.row?Object.keys(c.row):['orderId']).ConditionCheck;
+  ops.push(...guards,{Put:{TableName:tables.cases,Item:data,...condition}},{Put:{TableName:tables.cases,Item:{...eventKey,kind:'POST_DELIVERY_COMPLAINT_EVENT',caseId:c.caseId,requestDigest:digest,actorId:c.actor.subjectId,actorKind:c.actor.kind,action:v.action,at,receipt},ConditionExpression:'attribute_not_exists(orderId)'}},await index({caseId:c.caseId,orderId:v.orderId,caseKey:KEY,caseType:'CUSTOMER_POST_DELIVERY_CASE',state:data.state,open:data.state!=='CLOSED',at,branchId:c.order.storeId,dueAt:data.activePhase?.responseDueAt??at},c.order));
+  const notice=complaintNotification({action:v.action,actor:c.actor,order:c.order,row:data,requestId:v.requestId,at,table:tables.notifications});if(notice)ops.push(notice);
   if(JSON.stringify(await authenticate())!==JSON.stringify(c.actor))fail('UNAUTHORIZED',401);
-  try{await db.send(new TransactWriteCommand({TransactItems:dedup(ops)}));}catch(e){const replay=await get(db,H,eventKey);if(replay?.requestDigest===digest)return {...replay.receipt,replayed:true};if(e.name==='TransactionCanceledException')fail();throw e;}
+  try{await db.send(new TransactWriteCommand({TransactItems:dedup(ops)}));}catch(e){const replay=await get(db,tables.cases,eventKey);if(replay?.requestDigest===digest)return {...replay.receipt,replayed:true};if(e.name==='TransactionCanceledException')fail();throw e;}
   return receipt;
  }
  return {execute};

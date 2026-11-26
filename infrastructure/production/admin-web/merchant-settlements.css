@@ -1,0 +1,139 @@
+#merchant-finance .merchant-finance-header {
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-block-end: 18px;
+}
+
+#merchant-finance .merchant-finance-link {
+  padding: 8px 13px;
+  border: 1px solid #cbd8e9;
+  border-radius: 9px;
+  background: white;
+  text-decoration: none;
+}
+
+#merchant-finance .finance-content {
+  padding: 0;
+  max-width: 1120px;
+  margin: 0;
+}
+
+.merchant-finance-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block-end: 20px;
+}
+
+.merchant-finance-nav a {
+  padding: 9px 15px;
+  border: 1px solid #cbd8e9;
+  border-radius: 9px;
+  background: #fff;
+  color: #25466d;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.merchant-finance-nav a[aria-current="location"] {
+  background: #082c63;
+  border-color: #082c63;
+  color: #fff;
+}
+
+#merchant-finance .merchant-finance-nav a:focus-visible,
+#merchant-finance .merchant-finance-link:focus-visible {
+  outline: 2px solid #1665b8;
+  outline-offset: 3px;
+}
+
+#merchant-finance .settlement-report {
+  margin-block: 0;
+  padding: clamp(16px, 3vw, 26px);
+}
+
+#merchant-finance .cashbook-standalone {
+  margin: 0;
+  padding: clamp(16px, 3vw, 26px);
+}
+
+#merchant-finance .cashbook-standalone header,
+.cashbox-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#merchant-finance .cashbook-standalone h2,
+#merchant-finance .cashbox-card-title h3 {
+  margin: 0;
+}
+
+.cashbook-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#merchant-finance .cashbook-secondary {
+  background: #fff;
+  color: #25466d;
+  border-color: #cbd8e9;
+}
+
+#merchant-finance .cashbook-feedback:not(:empty) {
+  padding: 10px 14px;
+  margin-block: 0 16px;
+  border-inline-start: 3px solid #2c5282;
+  border-radius: 8px;
+  background: #eaf1fa;
+}
+
+#merchant-finance .cashbook-feedback:empty {
+  display: none;
+}
+
+#merchant-finance .cashbook-standalone .cashbook-catalog {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+
+#merchant-finance .cashbox-state {
+  border-radius: 6px;
+  padding: 2px 8px;
+  background: #edf1f6;
+  color: #394b63;
+  font-size: 0.85rem;
+}
+
+#merchant-finance .cashbox-state[data-status="ACTIVE"] {
+  background: #e6f3ed;
+  color: #22593d;
+}
+
+#merchant-finance .cashbook-standalone section {
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  border: 0;
+}
+
+#merchant-finance .cashbook-standalone details {
+  margin-block: 12px;
+}
+
+#merchant-finance .cashbook-summary {
+  padding: 16px;
+  margin-block: 0 16px;
+}
+
+#merchant-finance .cashbook-operation-form {
+  max-width: 680px;
+}
+
+#merchant-finance .cashbook-history {
+  margin-block-start: 18px;
+  border-top: 1px solid #dbe4ef;
+}

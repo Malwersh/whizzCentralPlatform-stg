@@ -1,5 +1,6 @@
 'use strict';
 const POLICY='DRIVER_PERFORMANCE_PROJECTION_V1',TABLE='DriverPerformanceSnapshots_staging';
+const PRODUCTION_SNAPSHOT_TABLE='wizz-production-DriverPerformanceSnapshots';
 const validId=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,149}$/.test(v);
 const validDate=v=>typeof v==='string'&&Number.isFinite(Date.parse(v));
 function stateOf(row,health,now=Date.now()){
@@ -10,7 +11,7 @@ function stateOf(row,health,now=Date.now()){
  return 'CURRENT';
 }
 async function readSnapshot({db,GetCommand,driverId,table=TABLE,now=()=>Date.now(),includeDetails=true}){
- if(!validId(driverId)||table!==TABLE)throw Error('PERFORMANCE_PROJECTION_UNAVAILABLE');
+ if(!validId(driverId)||![TABLE,PRODUCTION_SNAPSHOT_TABLE].includes(table))throw Error('PERFORMANCE_PROJECTION_UNAVAILABLE');
  const get=async key=>(await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;
  const [row,health]=await Promise.all([get({pk:'DRIVER#'+driverId,sk:'STATE'}),get({pk:'CONTROL',sk:'HEALTH'})]);
  if(row&&(row.driverId!==driverId||row.pk!=='DRIVER#'+driverId||row.sk!=='STATE'))throw Error('PERFORMANCE_PROJECTION_UNAVAILABLE');
@@ -41,4 +42,4 @@ function viewForRules(snapshot,version=4){
  if(version<3)for(const key of ['onTimeRate','onTimeRateStatus','punctuality','activity','details','ratingWindow','ratingReview'])delete result[key];
  return result;
 }
-module.exports={POLICY,TABLE,validId,validDate,stateOf,readSnapshot,dispatchMetrics,viewForRules};
+module.exports={POLICY,TABLE,PRODUCTION_SNAPSHOT_TABLE,validId,validDate,stateOf,readSnapshot,dispatchMetrics,viewForRules};

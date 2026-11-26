@@ -23,7 +23,7 @@ function propose({business,subjectId,kind,proposed,requestId,reason,now}){
  }
  return {pk:'BUSINESS#'+business.businessId,sk:'CHANGE#'+requestId,requestId,businessId:business.businessId,subjectId,kind,proposed:value,base:structuredClone(base(business,kind)),baseFingerprint:fingerprint(business,kind),status:'PENDING',version:1,reason:clean(reason,1000),createdAt:clean(now,40)};
 }
-function decide({business,request,decision,actorId,reason,now,validatedLocation}){
+function decide({business,request,decision,actorId,reason,now,validatedLocation,tables={platform:TABLE,businesses:BUSINESSES}}){
  active(business);if(!request||request.status!=='PENDING'||request.businessId!==business.businessId)fail('REQUEST_NOT_PENDING');
  if(!['APPROVE','REJECT'].includes(decision))fail('INVALID_DECISION');
  if(request.subjectId!==business.ownerId||business.cognitoUserId!==request.subjectId)fail('OWNERSHIP_CHANGED');
@@ -41,10 +41,10 @@ function decide({business,request,decision,actorId,reason,now,validatedLocation}
   }else fail('INVALID_CHANGE_KIND');
   const names={'#status':'status'},attrs={':approved':'approved',':owner':request.subjectId,...(business.updatedAt===undefined?{}:{':baseUpdatedAt':business.updatedAt})};
   const set=Object.entries({...values,updatedAt:now}).map(([key,value],i)=>{if(value===undefined)fail('INVALID_VALIDATED_LOCATION');names['#n'+i]=key;attrs[':v'+i]=value;return '#n'+i+'=:v'+i});
-  items.push({Update:{TableName:BUSINESSES,Key:{businessId:business.businessId},UpdateExpression:'SET '+set.join(', '),ConditionExpression:'#status=:approved AND ownerId=:owner AND cognitoUserId=:owner AND '+(business.updatedAt===undefined?'attribute_not_exists(updatedAt)':'updatedAt=:baseUpdatedAt')+' AND attribute_not_exists(deletionRequestId)',ExpressionAttributeNames:names,ExpressionAttributeValues:attrs}});
+  items.push({Update:{TableName:tables.businesses,Key:{businessId:business.businessId},UpdateExpression:'SET '+set.join(', '),ConditionExpression:'#status=:approved AND ownerId=:owner AND cognitoUserId=:owner AND '+(business.updatedAt===undefined?'attribute_not_exists(updatedAt)':'updatedAt=:baseUpdatedAt')+' AND attribute_not_exists(deletionRequestId)',ExpressionAttributeNames:names,ExpressionAttributeValues:attrs}});
  }
  const next={...request,...audit,status:decision==='APPROVE'?'APPROVED':'REJECTED',version:request.version+1};
- items.push({Put:{TableName:TABLE,Item:next,ConditionExpression:'#s=:pending AND #v=:version',ExpressionAttributeNames:{'#s':'status','#v':'version'},ExpressionAttributeValues:{':pending':'PENDING',':version':request.version}}});
+ items.push({Put:{TableName:tables.platform,Item:next,ConditionExpression:'#s=:pending AND #v=:version',ExpressionAttributeNames:{'#s':'status','#v':'version'},ExpressionAttributeValues:{':pending':'PENDING',':version':request.version}}});
  return {request:next,TransactItems:items};
 }
 module.exports={propose,decide,fingerprint};

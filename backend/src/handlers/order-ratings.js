@@ -14,7 +14,7 @@ function nextAggregate(previous,pk,stars){
  if(previous&&!['underReviewCount','excludedCount'].every(k=>previous[k]===undefined||Number.isSafeInteger(previous[k])&&previous[k]>=0))throw fail('RATINGS_UNAVAILABLE',503);
  return {pk,...Object.fromEntries(['underReviewCount','excludedCount'].filter(k=>previous?.[k]!==undefined).map(k=>[k,previous[k]])),count,sum,average:Math.round(sum/count*100)/100,version:(previous?.version||0)+1};
 }
-function createHandler({db,verify,env=process.env,now=()=>new Date().toISOString()}){
+function createHandler({db,verify,env=process.env,now=()=>new Date().toISOString(),lifecycleTable}){
  const get=async(table,key)=>(await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;
  async function context(subject,orderId){
   const order=await get(env.ORDERS_TABLE,{PK:'ORDER#'+orderId,SK:'META'});
@@ -22,13 +22,24 @@ function createHandler({db,verify,env=process.env,now=()=>new Date().toISOString
    (order.userSub!=null?order.userSub!==subject:!(order.userId===subject||order.customerId===subject)))throw fail('ORDER_FORBIDDEN',403);
   if(!id(order.userId))throw fail('ORDER_FORBIDDEN',403);
   const customer=await get(env.CUSTOMERS_TABLE,{userId:order.userId});
-  if(!customer||customer.isActive===false||customer.deletionRequestId||customer.deletedAt||(customer.cognitoSub!=null&&customer.cognitoSub!==subject))throw fail('ORDER_FORBIDDEN',403);
+  if(!customer||customer.isActive===false||customer.isDeleted===true||customer.deletionRequestId||customer.deletedAt||(customer.cognitoSub!=null&&customer.cognitoSub!==subject))throw fail('ORDER_FORBIDDEN',403);
   if(!['delivered','completed'].includes(order.status))throw fail('ORDER_NOT_DELIVERED',409);
   if(!id(order.storeId)|| (order.driverId!=null&&order.driverId!==''&&!id(order.driverId)))throw fail('RATINGS_UNAVAILABLE',503);
   const merchant=await get(env.MERCHANTS_TABLE,{businessId:order.storeId});
   const driver=order.driverId?await get(env.DRIVERS_TABLE,{driverId:order.driverId}):null;
-  if(!merchant||merchant.deletionRequestId||merchant.deletedAt||(order.driverId&&(!driver||driver.deletionRequestId||driver.deletedAt)))throw fail('RATINGS_UNAVAILABLE',503);
-  return {order,customer,merchant,driver};
+  if(!merchant||merchant.isDeleted===true||merchant.deletionRequestId||merchant.deletedAt||
+     (order.driverId&&(!driver||driver.isDeleted===true||driver.deletionRequestId||driver.deletedAt)))throw fail('RATINGS_UNAVAILABLE',503);
+  const lifecycleKeys=[];
+  if(lifecycleTable){
+   const customerKey={pk:'ACCOUNT_LIFECYCLE#CUSTOMER#'+subject,sk:'META'};
+   const targetKeys=[{pk:'BUSINESS_LIFECYCLE#MERCHANT#'+order.storeId,sk:'META'}];
+   if(driver)targetKeys.push({pk:'ACCOUNT_LIFECYCLE#DRIVER#'+(driver.cognitoSub||order.driverId),sk:'META'});
+   const locks=await Promise.all([customerKey,...targetKeys].map(key=>get(lifecycleTable,key)));
+   if(locks[0])throw fail('ORDER_FORBIDDEN',403);
+   if(locks.slice(1).some(Boolean))throw fail('RATINGS_UNAVAILABLE',503);
+   lifecycleKeys.push(customerKey,...targetKeys);
+  }
+  return {order,merchant,driver,lifecycleKeys};
  }
  return async event=>{
   const reply=(statusCode,value)=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store'},body:JSON.stringify(value)});
@@ -45,7 +56,7 @@ function createHandler({db,verify,env=process.env,now=()=>new Date().toISOString
     body={merchantStars:body.merchantStars,driverStars:body.driverStars??null,comment:(body.comment||'').trim()};
    }
    for(let attempt=0;attempt<4;attempt++){
-    const {order,merchant,driver}=await context(claims.sub,orderId);
+    const {order,merchant,driver,lifecycleKeys}=await context(claims.sub,orderId);
     const existing=await get(env.RATINGS_TABLE,{pk:'ORDER#'+orderId});
     if(existing&&existing.subjectId!==claims.sub)throw fail('ORDER_FORBIDDEN',403);
     if(method==='GET')return reply(200,{success:true,orderId,merchantName:merchant.businessName||merchant.name||'المطعم',driverName:driver?.name||driver?.fullName||'السائق',driverEligible:!!driver,review:publicReview(existing)});
@@ -61,13 +72,15 @@ function createHandler({db,verify,env=process.env,now=()=>new Date().toISOString
     const names={'#status':'status'};const values={':status':order.status,':uid':order.userId,':mid':order.storeId,':no':false,':null':null};
     let condition='#status=:status AND userId=:uid AND storeId=:mid AND (attribute_not_exists(isGuestOrder) OR isGuestOrder=:no) AND (attribute_not_exists(isDeleted) OR isDeleted=:no) AND (attribute_not_exists(deletedAt) OR deletedAt=:null) AND (attribute_not_exists(deletionRequestId) OR deletionRequestId=:null)';
     for(const field of ['userSub','customerId','driverId']){if(Object.hasOwn(order,field)){values[':'+field]=order[field];condition+=' AND '+field+'=:'+field;}else condition+=' AND attribute_not_exists('+field+')';}
-    const tx=[{ConditionCheck:{TableName:env.ORDERS_TABLE,Key:{PK:'ORDER#'+orderId,SK:'META'},ConditionExpression:condition,ExpressionAttributeNames:names,ExpressionAttributeValues:values}},
-     {ConditionCheck:{TableName:env.CUSTOMERS_TABLE,Key:{userId:order.userId},ConditionExpression:'attribute_exists(userId) AND (attribute_not_exists(isActive) OR isActive=:yes) AND (attribute_not_exists(deletionRequestId) OR deletionRequestId=:null) AND (attribute_not_exists(deletedAt) OR deletedAt=:null) AND (attribute_not_exists(cognitoSub) OR cognitoSub=:sub OR cognitoSub=:null)',ExpressionAttributeValues:{':yes':true,':sub':claims.sub,':null':null}}},
+    const tx=[
+     ...lifecycleKeys.map(Key=>({ConditionCheck:{TableName:lifecycleTable,Key,ConditionExpression:'attribute_not_exists(pk)'}})),
+     {ConditionCheck:{TableName:env.ORDERS_TABLE,Key:{PK:'ORDER#'+orderId,SK:'META'},ConditionExpression:condition,ExpressionAttributeNames:names,ExpressionAttributeValues:values}},
+     {ConditionCheck:{TableName:env.CUSTOMERS_TABLE,Key:{userId:order.userId},ConditionExpression:'attribute_exists(userId) AND (attribute_not_exists(isActive) OR isActive=:yes) AND (attribute_not_exists(isDeleted) OR isDeleted=:no) AND (attribute_not_exists(deletionRequestId) OR deletionRequestId=:null) AND (attribute_not_exists(deletedAt) OR deletedAt=:null) AND (attribute_not_exists(cognitoSub) OR cognitoSub=:sub OR cognitoSub=:null)',ExpressionAttributeValues:{':yes':true,':no':false,':sub':claims.sub,':null':null}}},
      {Put:{TableName:env.RATINGS_TABLE,Item:record,ConditionExpression:'attribute_not_exists(pk)'}}];
     for(const target of [{prefix:'MERCHANT#',targetId:order.storeId,table:env.MERCHANTS_TABLE,key:'businessId',stars:body.merchantStars},...(driver?[{prefix:'DRIVER#',targetId:order.driverId,table:env.DRIVERS_TABLE,key:'driverId',stars:body.driverStars}]:[])]){
      const pk=target.prefix+target.targetId,previous=await get(env.RATINGS_TABLE,{pk}),aggregate=nextAggregate(previous,pk,target.stars);
      tx.push({Put:{TableName:env.RATINGS_TABLE,Item:aggregate,ConditionExpression:previous?'#version=:previous':'attribute_not_exists(pk)',...(previous?{ExpressionAttributeNames:{'#version':'version'},ExpressionAttributeValues:{':previous':previous.version}}:{})}});
-     tx.push({Update:{TableName:target.table,Key:{[target.key]:target.targetId},UpdateExpression:'SET customerRating=:avg, customerRatingCount=:count, customerRatingSum=:sum, customerRatingUpdatedAt=:at',ConditionExpression:'attribute_exists('+target.key+') AND (attribute_not_exists(deletionRequestId) OR deletionRequestId=:null) AND (attribute_not_exists(deletedAt) OR deletedAt=:null)',ExpressionAttributeValues:{':avg':aggregate.average,':count':aggregate.count,':sum':aggregate.sum,':at':createdAt,':null':null}}});
+     tx.push({Update:{TableName:target.table,Key:{[target.key]:target.targetId},UpdateExpression:'SET customerRating=:avg, customerRatingCount=:count, customerRatingSum=:sum, customerRatingUpdatedAt=:at',ConditionExpression:'attribute_exists('+target.key+') AND (attribute_not_exists(isDeleted) OR isDeleted=:no) AND (attribute_not_exists(deletionRequestId) OR deletionRequestId=:null) AND (attribute_not_exists(deletedAt) OR deletedAt=:null)',ExpressionAttributeValues:{':no':false,':avg':aggregate.average,':count':aggregate.count,':sum':aggregate.sum,':at':createdAt,':null':null}}});
     }
     try{await db.send(new TransactWriteCommand({TransactItems:tx}));return reply(200,{success:true,orderId,review:publicReview(record)});}catch(error){if(error.name!=='TransactionCanceledException'&&error.name!=='TransactionConflictException')throw error;}
    }

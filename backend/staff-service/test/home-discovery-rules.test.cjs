@@ -9,3 +9,23 @@ test('incomplete scans never publish partial popular-order snapshots',async()=>{
 test('worker writes one bounded version-fenced snapshot after complete scan',async()=>{let tx;const ctx={table:'staff',db:{send:async c=>{if(c.constructor.name==='GetCommand')return {Item:{...STATS,version:4}};if(c.constructor.name==='ScanCommand'){assert(c.input.ProjectionExpression.includes('SK'));assert(!c.input.ProjectionExpression.includes('phone'));return {Items:[]};}tx=c.input;return {};}}};await rebuild(ctx);const put=tx.TransactItems[0].Put;assert.equal(put.Item.version,5);assert.equal(put.ExpressionAttributeValues[':v'],4);assert.deepEqual(put.Item.counts,{});});
 
 test('catalog supports expansion beyond 100 with bounded capacity and references',()=>{const rows=Array.from({length:500},(_,i)=>({id:'c'+i,label:'تصنيف '+i}));assert.equal(validateCatalog({cuisines:rows,brands:[],profiles:{b:{cuisineIds:['c499']}}}).cuisines.length,500);assert.throws(()=>validateCatalog({cuisines:[...rows,{id:'extra',label:'إضافي'}],brands:[],profiles:{}}),/Classification entry limit exceeded/);});
+
+test('production ranking publishes completed checkout item quantities by branch',async()=>{
+ const now=Date.parse('2026-11-26T12:00:00Z'),writes=[];
+ const row={PK:'ORDER#a',SK:'META',status:'DELIVERED',storeId:'branch',createdAt:now-1000,
+  items:[{itemId:'product',quantity:2,notes:'private'}]};
+ const ctx={table:'wizz-production-PlatformStaff',db:{send:async command=>{
+  if(command.constructor.name==='GetCommand')return {};
+  if(command.constructor.name==='ScanCommand'){
+   assert.equal(command.input.TableName,'wizz-production-Orders');
+   return {Items:[row,{...row,PK:'ORDER#b',isTest:true},{...row,PK:'ORDER#c',status:'CANCELLED'}]};
+  }
+  writes.push(command.input.TransactItems[0].Put.Item);
+  return {};
+ }}};
+ const result=await rebuild(ctx,{now,ordersTable:'wizz-production-Orders'});
+ assert.equal(result.productBranches,1);
+ assert.deepEqual(writes.map(x=>x.sk),['PRODUCTS#branch','COMPLETED_ORDERS']);
+ assert.deepEqual(writes[0].counts,{product:2});
+ assert.equal(writes[0].asOf,writes[1].asOf);
+});

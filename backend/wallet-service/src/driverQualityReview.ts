@@ -1,3 +1,4 @@
+import {financialDispatchTables} from './walletBindings';
 import {financialOfferSK,historicalFinancialOfferSK} from './financialOfferKey';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal} from './driverFinancialTransaction';
@@ -8,7 +9,8 @@ type Row=Record<string,any>;
 export const DRIVER_QUALITY_ACTIONS=['READ_DRIVER_QUALITY_REVIEW','OPEN_DRIVER_QUALITY_REVIEW','ADD_DRIVER_QUALITY_EVIDENCE','DECIDE_DRIVER_QUALITY_REVIEW','OPEN_DRIVER_QUALITY_APPEAL','CLOSE_DRIVER_QUALITY_APPEAL'];
 const fail=(code='DRIVER_QUALITY_REVIEW_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
 const uuid=(v:any)=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
-export function createDriverQualityReview(options:{db:Pick<DynamoDBDocumentClient,'send'>;authority:ReturnType<typeof createExceptionStaffAuthority>;now?:()=>number}){
+export function createDriverQualityReview(options:{db:Pick<DynamoDBDocumentClient,'send'>;authority:Pick<ReturnType<typeof createExceptionStaffAuthority>,'authenticate'|'read'|'operate'>;expectedDriverId?:string;driverGuard?:Row;now?:()=>number}){
+ const tables=financialDispatchTables();
  const {db,authority}=options,now=options.now??Date.now;
  return async(v:Row)=>{
   const read=v?.action==='READ_DRIVER_QUALITY_REVIEW',open=v?.action==='OPEN_DRIVER_QUALITY_REVIEW',evidence=v?.action==='ADD_DRIVER_QUALITY_EVIDENCE',decide=v?.action==='DECIDE_DRIVER_QUALITY_REVIEW',appeal=v?.action==='OPEN_DRIVER_QUALITY_APPEAL',close=v?.action==='CLOSE_DRIVER_QUALITY_APPEAL';
@@ -22,25 +24,26 @@ export function createDriverQualityReview(options:{db:Pick<DynamoDBDocumentClien
   const actor=await authority.authenticate();if(actor.kind!=='STAFF')return fail('UNAUTHORIZED');
   const access=read?await authority.read(actor):await authority.operate(actor);
   const ok={PK:'ORDER#'+v.orderId,SK:'META'},ck={orderId:v.orderId,sk:'DRIVER_QUALITY#'+v.incidentId};
-  const order=await strongGet(db,'WizzOrders',ok),row=await strongGet(db,'staging-Holds',ck);
+  const order=await strongGet(db,tables.orders,ok),row=await strongGet(db,tables.holds,ck);
   if(!order||order.orderId!==v.orderId||order.deletedAt!=null||order.deletionRequestId!=null||order.isDeleted===true)return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
   const current=order.assignmentAttemptCounter===v.attempt&&quoteEntityIdValid(order.driverId)&&quoteEntityIdValid(order.financialAcceptance?.offerId)&&Number.isSafeInteger(order.assignmentWaveNumber);
   const archiveKey={orderId:v.orderId,sk:'ASSIGNMENT_RELEASE#'+v.attempt};let archive:Row|null=null,historical:Row|null=null;
   if(!row&&!current){
-    archive=await strongGet(db,'staging-Holds',archiveKey);
+    archive=await strongGet(db,tables.holds,archiveKey);
     if(!archive||archive.kind!=='COD_ASSIGNMENT_RELEASE'||archive.orderId!==v.orderId||archive.attempt!==v.attempt||!quoteEntityIdValid(archive.driverId)||!quoteEntityIdValid(archive.offerId)||archive.acceptedTerms?.offerId!==archive.offerId||archive.receipt?.success!==true||archive.receipt.orderId!==v.orderId||archive.receipt.offerId!==archive.offerId||archive.receipt.attempt!==v.attempt)return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
-    const archivedEvent=await strongGet(db,'staging-WalletLifecycle',{operationId:archive.operationId+':EVENT'});
+    const archivedEvent=await strongGet(db,tables.lifecycle,{operationId:archive.operationId+':EVENT'});
     if(!archivedEvent||archivedEvent.integrationSchemaVersion!==1||!['COD_UNASSIGN_OUTBOX','COD_CANCEL_OUTBOX'].includes(archivedEvent.kind)||archivedEvent.financialOperationId!==archive.operationId||archivedEvent.orderId!==v.orderId||archivedEvent.driverId!==archive.driverId||archivedEvent.offerId!==archive.offerId||archivedEvent.attempt!==v.attempt||!Number.isSafeInteger(archivedEvent.waveNumber)||archivedEvent.waveNumber<1)return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
     historical={driverId:archive.driverId,offerId:archive.offerId,wave:archivedEvent.waveNumber,offerStorageKey:archive.offerStorageKey,event:archivedEvent};
   }
   const driverId=row?.driverId??historical?.driverId??order.driverId,wave=row?.wave??historical?.wave??order.assignmentWaveNumber,offerId=row?.offerId??historical?.offerId??order.financialAcceptance?.offerId;
+  if(options.expectedDriverId && driverId!==options.expectedDriverId)return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
   if(!quoteEntityIdValid(driverId)||!quoteEntityIdValid(offerId)||!Number.isSafeInteger(wave))return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
-  const fk={orderId:v.orderId,SK:row||historical?await historicalFinancialOfferSK(db,v.orderId,driverId,wave,offerId,row?.offerStorageKey??historical?.offerStorageKey):await financialOfferSK(db,v.orderId,driverId,wave)},offer=await strongGet(db,'WaveOffers_staging',fk);
+  const fk={orderId:v.orderId,SK:row||historical?await historicalFinancialOfferSK(db,v.orderId,driverId,wave,offerId,row?.offerStorageKey??historical?.offerStorageKey):await financialOfferSK(db,v.orderId,driverId,wave)},offer=await strongGet(db,tables.offers,fk);
   if(!offer||offer.kind!=='FINANCIAL_DRIVER_OFFER'||offer.schemaVersion!==2||offer.orderId!==v.orderId||offer.driverId!==driverId||offer.offerId!==offerId||offer.responseStatus!=='financial_accepted'||offer.isWinner!==true||offer.financialReceipt?.success!==true||typeof offer.financialReceipt.acceptedAt!=='string'||!Number.isFinite(Date.parse(offer.financialReceipt.acceptedAt))||offer.financialReceipt.assignmentAttempt!==v.attempt||offer.financialReceipt.offerId!==offer.offerId||offer.financialReceipt.driverId!==offer.driverId||offer.financialReceipt.orderId!==offer.orderId)return fail('DRIVER_QUALITY_ATTEMPT_UNAVAILABLE');
   const at=new Date(now()).toISOString(),fingerprint=quoteHash({orderId:v.orderId,driverId,offerId,attempt:v.attempt,wave,acceptedAt:offer.financialReceipt.acceptedAt});
   if(row&&(row.kind!=='DRIVER_QUALITY_REVIEW'||row.schemaVersion!==1||row.dimension!=='QUALITY_SAFETY'||row.orderId!==v.orderId||row.driverId!==driverId||row.offerId!==offer.offerId||row.attempt!==v.attempt||row.caseId!==v.incidentId||!uuid(row.caseId)))return fail();
   if(read)return {success:true,item:{orderId:v.orderId,orderNumber:order.orderNumber||v.orderId,branchName:order.storeName||order.restaurantName||'المطعم',driverName:row?.driverName||(row&&row.driverId!==order.driverId?'سائق المحاولة الموثقة':order.driverName||'السائق'),attempt:v.attempt,incidentId:v.incidentId,reviewable:true,sourceChanged:!!row&&row.sourceFingerprint!==fingerprint,review:row,financialPosting:false,eligibilityEffect:'NONE',ratingEffect:'NONE'}};
-  const ek={orderId:v.orderId,sk:'QUALITY_REVIEW_EVENT#'+v.idempotencyKey},digest=quoteHash({...v,actorId:actor.subjectId}),prior=await strongGet(db,'staging-Holds',ek);
+  const ek={orderId:v.orderId,sk:'QUALITY_REVIEW_EVENT#'+v.idempotencyKey},digest=quoteHash({...v,actorId:actor.subjectId}),prior=await strongGet(db,tables.holds,ek);
   if(prior){if(prior.requestDigest!==digest)return fail();return {...prior.receipt,replayed:true};}
   if(row&&row.sourceFingerprint!==fingerprint)return fail('DRIVER_QUALITY_SOURCE_NOT_REVIEWABLE');
   if(open?(!!row||v.expectedVersion!==0):(!row||row.version!==v.expectedVersion||row.caseId!==v.caseId))return fail();
@@ -69,11 +72,11 @@ export function createDriverQualityReview(options:{db:Pick<DynamoDBDocumentClien
   if(Buffer.byteLength(JSON.stringify(next))>280000)return fail('DRIVER_QUALITY_REVIEW_LIMIT');
   const receipt={success:true,caseId:next.caseId,caseKey:ck.sk,version:next.version,action:v.action,financialPosting:false,eligibilityEffect:'NONE',ratingEffect:'NONE'};
   const event={...ek,kind:'DRIVER_QUALITY_REVIEW_EVENT',schemaVersion:1,recordId:v.idempotencyKey,caseId:next.caseId,orderId:v.orderId,driverId:next.driverId,offerId:next.offerId,attempt:next.attempt,sourceFingerprint:fingerprint,action:v.action,actorKind:'STAFF',actorId:actor.subjectId,requestDigest:digest,createdAt:at,reason:v.reason.trim(),...(decide?{decision:next.decision}:{}),receipt,financialPosting:false,eligibilityEffect:'NONE',ratingEffect:'NONE'};
-  const fence=row?exactCheck('staging-Holds',ck,row).ConditionCheck:{TableName:'staging-Holds',Key:ck,ConditionExpression:'attribute_not_exists(orderId)'};const {Key:_key,...putFence}=fence;
-  const index=await exceptionCaseIndexOperation(db,{caseId:next.caseId,orderId:v.orderId,caseKey:ck.sk,caseType:'DRIVER_QUALITY_REVIEW',state:next.state,open:next.state!=='RESOLVED',at,branchId:order.storeId});
-  const ops=[access.guard,...(archive?[exactCheck('staging-Holds',archiveKey,archive),exactCheck('staging-WalletLifecycle',{operationId:archive.operationId+':EVENT'},historical!.event)]:[]),exactCheck('WizzOrders',ok,order),exactCheck('WaveOffers_staging',fk,offer),{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+driverId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},index,{Put:{...putFence,Item:next}},{Put:{TableName:'staging-Holds',Item:event,ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.idempotencyKey,logId:v.idempotencyKey,action:v.action,caseId:next.caseId,orderId:v.orderId,actorKind:'STAFF',actorId:actor.subjectId,createdAt:at,financialPosting:false,eligibilityEffect:'NONE',ratingEffect:'NONE'},ConditionExpression:'attribute_not_exists(sk)'}}];
+  const fence=row?exactCheck(tables.holds,ck,row).ConditionCheck:{TableName:tables.holds,Key:ck,ConditionExpression:'attribute_not_exists(orderId)'};const {Key:_key,...putFence}=fence;
+  const index=await exceptionCaseIndexOperation(db,{caseId:next.caseId,orderId:v.orderId,caseKey:ck.sk,caseType:'DRIVER_QUALITY_REVIEW',state:next.state,open:next.state!=='RESOLVED',at,branchId:next.branchId??order.storeId??order.businessId,orderNumber:order.orderNumber});
+  const ops=[access.guard,...(options.driverGuard?[options.driverGuard]:[]),...(archive?[exactCheck(tables.holds,archiveKey,archive),exactCheck(tables.lifecycle,{operationId:archive.operationId+':EVENT'},historical!.event)]:[]),exactCheck(tables.orders,ok,order),exactCheck(tables.offers,fk,offer),{ConditionCheck:{TableName:tables.deletion,Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+driverId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},index,{Put:{...putFence,Item:next}},{Put:{TableName:tables.holds,Item:event,ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:tables.audit,Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.idempotencyKey,logId:v.idempotencyKey,action:v.action,caseId:next.caseId,orderId:v.orderId,actorKind:'STAFF',actorId:actor.subjectId,createdAt:at,financialPosting:false,eligibilityEffect:'NONE',ratingEffect:'NONE'},ConditionExpression:'attribute_not_exists(sk)'}}];
   if(!equal(actor,await authority.authenticate()))return fail('UNAUTHORIZED');
-  try{await db.send(new TransactWriteCommand({TransactItems:ops as any}));}catch(error){const saved=await strongGet(db,'staging-Holds',ek);if(saved?.requestDigest===digest)return {...saved.receipt,replayed:true};throw error;}
+  try{await db.send(new TransactWriteCommand({TransactItems:ops as any}));}catch(error){const saved=await strongGet(db,tables.holds,ek);if(saved?.requestDigest===digest)return {...saved.receipt,replayed:true};throw error;}
   return receipt;
  };
 }

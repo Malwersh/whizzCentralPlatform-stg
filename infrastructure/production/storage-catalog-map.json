@@ -1,0 +1,97 @@
+{
+  "accountId": "746727375268",
+  "tables": [
+    {
+      "role": "Merchants",
+      "productionTable": "wizz-production-Merchants",
+      "schemaReference": "WhizzMerchants_Businesses",
+      "dataCopied": false
+    },
+    {
+      "role": "Products",
+      "productionTable": "wizz-production-Products",
+      "schemaReference": "WhizzMerchants_Products",
+      "dataCopied": false
+    },
+    {
+      "role": "MenuCategories",
+      "productionTable": "wizz-production-MenuCategories",
+      "schemaReference": "WhizzMerchants_Categories",
+      "dataCopied": false
+    },
+    {
+      "role": "BusinessSubcategories",
+      "productionTable": "wizz-production-BusinessSubcategories",
+      "schemaReference": "WhizzMerchants_BusinessSubcategories",
+      "dataCopied": false
+    },
+    {
+      "role": "WorkingHours",
+      "productionTable": "wizz-production-WorkingHours",
+      "schemaReference": "WhizzMerchants_BusinessWorkingHours",
+      "dataCopied": false
+    },
+    {
+      "role": "MerchantDiscounts",
+      "productionTable": "wizz-production-MerchantDiscounts",
+      "schemaReference": "WhizzMerchants_Discounts",
+      "dataCopied": false
+    },
+    {
+      "role": "GlobalProducts",
+      "productionTable": "wizz-production-GlobalProducts",
+      "schemaReference": "WhizzMerchants_GlobalProducts",
+      "dataCopied": false
+    },
+    {
+      "role": "RegionListings",
+      "productionTable": "wizz-production-RegionListings",
+      "schemaReference": "WhizzMerchants_RegionListings",
+      "dataCopied": false
+    },
+    {
+      "role": "Customers",
+      "productionTable": "wizz-production-Customers",
+      "schemaReference": "WizzUser_users_staging",
+      "dataCopied": false
+    },
+    {
+      "role": "Addresses",
+      "productionTable": "wizz-production-Addresses",
+      "schemaReference": "WizzUser_addresses_staging",
+      "dataCopied": false
+    },
+    {
+      "role": "Favorites",
+      "productionTable": "wizz-production-Favorites",
+      "schemaReference": "WizzUser_favorites_staging",
+      "dataCopied": false
+    },
+    {
+      "role": "Regions",
+      "productionTable": "wizz-production-Regions",
+      "schemaReference": "WizzCentral_Regions",
+      "dataCopied": false
+    },
+    {
+      "role": "RegionIndex",
+      "productionTable": "wizz-production-RegionIndex",
+      "schemaReference": "WizzCentral_RegionIndex_staging",
+      "dataCopied": false
+    },
+    {
+      "role": "RegionNeighbors",
+      "productionTable": "wizz-production-RegionNeighbors",
+      "schemaReference": "WizzCentral_RegionNeighbors_staging",
+      "dataCopied": false
+    },
+    {
+      "role": "RegionsDerived",
+      "productionTable": "wizz-production-RegionsDerived",
+      "schemaReference": "WizzCentral_RegionsDerived_staging",
+      "dataCopied": false
+    }
+  ],
+  "recordsCopied": 0,
+  "referenceConfigurationSeeded": false
+}

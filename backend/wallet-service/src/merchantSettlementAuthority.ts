@@ -1,3 +1,4 @@
+import {checkoutTables} from './checkoutTables';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { detach, exactCheck, strongGet } from './driverFinancialTransaction';
 import { quoteEntityIdValid } from './deliveryQuoteRecord';
@@ -5,9 +6,17 @@ import type { SettlementBatchAuthority } from './merchantSettlementBatch';
 const { allowed } = require('../../staff-service/catalog');
 const fail = (code: string): never => { throw Object.assign(Error(code), { code }); };
 
+export function allowsValidSettlementSession(env: NodeJS.ProcessEnv = process.env) {
+  return env.PLATFORM_SESSION_POLICY === 'VALID_SESSION' && (
+    env.PLATFORM_ENVIRONMENT === 'staging' && (!env.ENVIRONMENT || env.ENVIRONMENT === 'staging') ||
+    env.ENVIRONMENT === 'production' && env.AWS_REGION === 'us-east-1' &&
+      (!env.PLATFORM_ENVIRONMENT || env.PLATFORM_ENVIRONMENT === 'production')
+  );
+}
+
 /** Existence-only lifecycle read; matches the deployed role's attribute scope. */
 export async function readMerchantDeletionFence(db: Pick<DynamoDBDocumentClient, 'send'>, key: { pk: string; sk: string }) {
-  return (await db.send(new GetCommand({ TableName: 'staging-AccountDeletion', Key: key, ConsistentRead: true,
+  return (await db.send(new GetCommand({ TableName: checkoutTables().deletion, Key: key, ConsistentRead: true,
     ProjectionExpression: '#pk,#sk', ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' } }))).Item || null;
 }
 
@@ -19,13 +28,14 @@ export function createMerchantSettlementAuthority(options: {
   now?: () => number;
   companyCashbook?: boolean;
 }) {
+  const {policy, branches}=checkoutTables();
   const principal = detach(options.principal), now = options.now || Date.now;
   if (!principal || !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(principal.employeeId) ||
       !Number.isSafeInteger(principal.authTime) || principal.authTime < 0 || typeof principal.mfaEnrolled !== 'boolean') return fail('SETTLEMENT_VERIFIED_PRINCIPAL_REQUIRED');
   return async (branchId: string, action: 'READ' | 'CREATE'): Promise<SettlementBatchAuthority> => {
     if (!quoteEntityIdValid(branchId) || !['READ', 'CREATE'].includes(action)) return fail('INVALID_SETTLEMENT_AUTHORIZATION');
     const key = { pk: 'EMPLOYEE#' + principal.employeeId, sk: 'PROFILE' };
-    const employee = await strongGet(options.db, 'staging-PlatformStaff', key);
+    const employee = await strongGet(options.db, policy, key);
     const age = Math.floor(now() / 1000) - principal.authTime;
     if (!employee || employee.employeeId !== principal.employeeId || employee.status !== 'ACTIVE' ||
         !Number.isSafeInteger(employee.version) || employee.version < 1 || employee.deletionRequestId != null ||
@@ -34,11 +44,11 @@ export function createMerchantSettlementAuthority(options: {
         (employee.minimumAuthTime || 0) > principal.authTime || age < -30 ||
         (employee.mfaRequired === true && !principal.mfaEnrolled)) return fail('SETTLEMENT_EMPLOYEE_UNAVAILABLE');
     // Honor the staff API's verified-session policy; JWT expiry and live revocation remain enforced.
-    if (action === 'CREATE' && age > 300 && !(process.env.PLATFORM_ENVIRONMENT === 'staging' && process.env.PLATFORM_SESSION_POLICY === 'VALID_SESSION')) return fail('SETTLEMENT_REAUTH_REQUIRED');
+    if (action === 'CREATE' && age > 300 && !allowsValidSettlementSession()) return fail('SETTLEMENT_REAUTH_REQUIRED');
     if (employee.scope?.allRegions !== true || !allowed(employee, 'finance.read') ||
         (action === 'CREATE' && !allowed(employee, 'finance.request'))) return fail('SETTLEMENT_PERMISSION_REQUIRED');
-    if(options.companyCashbook===true&&branchId==='COMPANY_CASHBOOK')return {branchId,actorId:principal.employeeId,guards:[exactCheck('staging-PlatformStaff',key,employee,[...Object.keys(employee),'roles','scope','mfaRequired','minimumAuthTime','deletionRequestId','deletedAt','isDeleted'])]};
-    const branch = await strongGet(options.db, 'WhizzMerchants_Businesses', { businessId: branchId });
+    if(options.companyCashbook===true&&branchId==='COMPANY_CASHBOOK')return {branchId,actorId:principal.employeeId,guards:[exactCheck(policy,key,employee,[...Object.keys(employee),'roles','scope','mfaRequired','minimumAuthTime','deletionRequestId','deletedAt','isDeleted'])]};
+    const branch = await strongGet(options.db, branches, { businessId: branchId });
     if (!branch || branch.businessId !== branchId || branch.status !== 'approved' ||
         !quoteEntityIdValid(branch.ownerId) || branch.ownerId !== branch.cognitoUserId ||
         branch.deletionRequestId != null || branch.deletedAt != null || branch.isDeleted === true) return fail('SETTLEMENT_BRANCH_UNAVAILABLE');
@@ -48,7 +58,7 @@ export function createMerchantSettlementAuthority(options: {
     // Branch/deletion guards belong to the batch writer, avoiding duplicate
     // DynamoDB targets. Pin all profile authority fields, including absent ones.
     return { branchId, actorId: principal.employeeId,
-      guards: [exactCheck('staging-PlatformStaff', key, employee, [...Object.keys(employee),
+      guards: [exactCheck(policy, key, employee, [...Object.keys(employee),
         'roles', 'scope', 'mfaRequired', 'minimumAuthTime', 'deletionRequestId', 'deletedAt', 'isDeleted'])] };
   };
 }

@@ -1,5 +1,9 @@
 'use strict';
 const fail=code=>{throw Object.assign(Error(code),{status:409});};
+function assertGoodsCampaign(campaign){
+ const type=String(campaign.type??campaign.discountType??'').toLowerCase();
+ if(campaign.benefit||!['percentage','fixedamount','fixed_amount','fixed'].includes(type))fail('FUNDING_GOODS_CAMPAIGN_REQUIRED');
+}
 function validate(campaign,source){
  if(campaign.benefit)return; // Benefits are bounded by the existing per-recipient entitlement contract.
  const total=source==='MERCHANT'?campaign.usage_limit??campaign.usageLimit:campaign.usageLimit??campaign.limit;
@@ -11,4 +15,4 @@ function validate(campaign,source){
  if(!Number.isSafeInteger(cap)||cap<1)fail('FUNDING_DISCOUNT_CAP_REQUIRED');
  return {totalUseLimit:total,perCustomerLimit:customer??null,maximumDiscountIqd:cap};
 }
-module.exports={validate};
+module.exports={validate,assertGoodsCampaign};

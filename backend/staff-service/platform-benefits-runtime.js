@@ -80,6 +80,103 @@ function multiplyMoney(value, numerator, denominator, rounding) {
   return moneyFromMinor(bounded(quotient));
 }
 
+// backend/wallet-service/src/walletBindings.ts
+var defaults = {
+  WALLETS: ["WALLETS_TABLE", "dev-Wallets"],
+  LEDGER: ["LEDGER_TABLE", "dev-LedgerEntries"],
+  HOLDS: ["HOLDS_TABLE", "dev-Holds"],
+  TOPUP_REQUESTS: ["TOPUP_REQUESTS_TABLE", "dev-TopupRequests"],
+  AUDIT_LOG: ["AUDIT_LOG_TABLE", "dev-AuditLog"],
+  IDEMPOTENCY_KEYS: ["IDEMPOTENCY_KEYS_TABLE", "dev-IdempotencyKeys"]
+};
+function walletBindings(env = process.env) {
+  const stages = [env.ENVIRONMENT, env.PLATFORM_ENVIRONMENT].filter(Boolean);
+  const production = stages.some((stage) => stage === "production" || stage === "prod");
+  const invalid = (field) => {
+    throw new Error("WALLET_BINDING_NOT_CONFIGURED: " + field);
+  };
+  if (production && stages.some((stage) => stage !== "production" && stage !== "prod")) {
+    invalid("ENVIRONMENT_CONFLICT");
+  }
+  if (production && env.AWS_REGION !== "us-east-1") invalid("AWS_REGION");
+  const tables = {};
+  for (const key of Object.keys(defaults)) {
+    const [variable, fallback] = defaults[key];
+    const value = env[variable] || fallback;
+    if (production && !/^wizz-production-[A-Za-z0-9_-]+$/.test(value)) invalid(variable);
+    tables[key] = value;
+  }
+  if (production && new Set(Object.values(tables)).size !== Object.keys(tables).length) {
+    invalid("DISTINCT_FINANCIAL_TABLES");
+  }
+  return { tables, region: env.AWS_REGION || "me-south-1" };
+}
+function walletOrderTable(env = process.env) {
+  const bindings = walletBindings(env);
+  const production = [env.ENVIRONMENT, env.PLATFORM_ENVIRONMENT].some((v) => v === "production" || v === "prod");
+  const table = env.ORDERS_TABLE || "WizzOrders";
+  if (production && (!/^wizz-production-[A-Za-z0-9_-]+$/.test(table) || Object.values(bindings.tables).includes(table))) {
+    throw new Error("WALLET_BINDING_NOT_CONFIGURED: ORDERS_TABLE");
+  }
+  return table;
+}
+function walletLifecycleTable(env = process.env) {
+  const bindings = walletBindings(env);
+  const production = [env.ENVIRONMENT, env.PLATFORM_ENVIRONMENT].some((v) => v === "production" || v === "prod");
+  const table = env.WALLET_LIFECYCLE_TABLE;
+  if (production && (!table || !/^wizz-production-[A-Za-z0-9_-]+$/.test(table) || Object.values(bindings.tables).includes(table) || table === env.ORDERS_TABLE)) {
+    throw new Error("WALLET_BINDING_NOT_CONFIGURED: WALLET_LIFECYCLE_TABLE");
+  }
+  return table;
+}
+function isFinancialOrderProduction(env) {
+  const stages = [env.ENVIRONMENT, env.PLATFORM_ENVIRONMENT, env.STAGE].filter(Boolean);
+  const production = stages.some((stage) => stage === "production" || stage === "prod");
+  if (production && stages.some((stage) => stage !== "production" && stage !== "prod")) {
+    throw new Error("WALLET_BINDING_NOT_CONFIGURED: ENVIRONMENT_CONFLICT");
+  }
+  return production;
+}
+function financialOrderTables(env = process.env) {
+  if (!isFinancialOrderProduction(env)) {
+    return {
+      orders: "WizzOrders",
+      wallets: "staging-Wallets",
+      holds: "staging-Holds",
+      ledger: "staging-LedgerEntries",
+      audit: "staging-AuditLog",
+      lifecycle: "staging-WalletLifecycle",
+      staff: "staging-PlatformStaff",
+      offerJourney: "staging-WizzOfferJourney"
+    };
+  }
+  const production = { ...env, ENVIRONMENT: "production" };
+  const { tables } = walletBindings(production);
+  const orders = walletOrderTable(production);
+  const lifecycle = walletLifecycleTable(production);
+  const staff = env.STAFF_TABLE ?? "";
+  const offerJourney = env.OFFER_JOURNEY_TABLE ?? "";
+  for (const [field, table] of [["STAFF_TABLE", staff], ["OFFER_JOURNEY_TABLE", offerJourney]]) {
+    if (!/^wizz-production-[A-Za-z0-9_-]+$/.test(table)) {
+      throw new Error("WALLET_BINDING_NOT_CONFIGURED: " + field);
+    }
+  }
+  const names = [...Object.values(tables), orders, lifecycle, staff, offerJourney];
+  if (new Set(names).size !== names.length) {
+    throw new Error("WALLET_BINDING_NOT_CONFIGURED: DISTINCT_ORDER_FINANCIAL_TABLES");
+  }
+  return {
+    orders,
+    lifecycle,
+    staff,
+    offerJourney,
+    wallets: tables.WALLETS,
+    holds: tables.HOLDS,
+    ledger: tables.LEDGER,
+    audit: tables.AUDIT_LOG
+  };
+}
+
 // backend/wallet-service/src/deliveryQuoteRecord.ts
 var quoteEntityIdValid = (v) => typeof v === "string" && /^[A-Za-z0-9_.:-]{1,150}$/.test(v);
 function quoteCanonical(v) {
@@ -197,9 +294,9 @@ function readPlatformBenefit(value) {
 }
 var benefitGrantKey = (campaignId, sub) => ({ pk: "USER#" + id(sub), sk: "BENEFIT#" + id(campaignId) });
 var holdKey = (orderId, target) => ({ pk: "BENEFIT_ORDER#" + id(orderId), sk: target });
-var get = async (db, key) => (await db.send(new import_lib_dynamodb.GetCommand({ TableName: BENEFIT_TABLE, Key: key, ConsistentRead: true }))).Item;
-function write(next, before) {
-  return { Put: { TableName: BENEFIT_TABLE, Item: next, ...before ? { ConditionExpression: "#v=:v", ExpressionAttributeNames: { "#v": "version" }, ExpressionAttributeValues: { ":v": before.version } } : { ConditionExpression: "attribute_not_exists(pk)" } } };
+var get = async (db, table, key) => (await db.send(new import_lib_dynamodb.GetCommand({ TableName: table, Key: key, ConsistentRead: true }))).Item;
+function write(table, next, before) {
+  return { Put: { TableName: table, Item: next, ...before ? { ConditionExpression: "#v=:v", ExpressionAttributeNames: { "#v": "version" }, ExpressionAttributeValues: { ":v": before.version } } : { ConditionExpression: "attribute_not_exists(pk)" } } };
 }
 function grantValid(g) {
   integer3(g.version, 1);
@@ -224,12 +321,14 @@ function platformBenefitEligibility(campaign, facts, at = Date.now()) {
   return null;
 }
 async function platformBenefitBalance(db, campaign, sub) {
-  const b = readPlatformBenefit(campaign.benefit), grant = await get(db, benefitGrantKey(campaign.discountId, sub));
+  const table = financialOrderTables().offerJourney;
+  const b = readPlatformBenefit(campaign.benefit), grant = await get(db, table, benefitGrantKey(campaign.discountId, sub));
   if (grant) grantValid(grant);
   const granted = grant?.grantedUses ?? (b.grantMode === "AUTO" ? b.usesPerCustomer : 0), reserved = grant?.reservedUses ?? 0, used = grant?.usedUses ?? 0;
   return { grant, granted, reserved, used, remaining: grant?.revoked ? 0 : Math.max(0, granted - reserved - used), revoked: grant?.revoked === true };
 }
 async function preparePlatformBenefit(db, input) {
+  const table = financialOrderTables().offerJourney;
   const { campaign, facts } = input, b = readPlatformBenefit(campaign.benefit), at = input.now ?? Date.now();
   const reason = platformBenefitEligibility(campaign, facts, at);
   if (reason) fail2(reason);
@@ -253,14 +352,15 @@ async function preparePlatformBenefit(db, input) {
   const termsHash = quoteHash({ campaignId: campaign.discountId, benefit: b, startDate: campaign.startDate, endDate: campaign.endDate });
   const deliveryFunding = target === "DELIVERY" ? { policyPin: { policyId: BENEFIT_POLICY_PREFIX + campaign.discountId, version: campaign.version, termsHash }, allocation: allocateDeliveryFunding({ schemaVersion: 1, referenceFee: moneyFromMinor(reference), customerFee: moneyFromMinor(reference - amount2), funding: { kind: "PLATFORM" } }) } : null;
   if (!input.preview) {
-    const orderId = id(input.orderId), key = holdKey(orderId, target), previous = await get(db, key);
+    const orderId = id(input.orderId), key = holdKey(orderId, target), previous = await get(db, table, key);
     if (previous) fail2("BENEFIT_ORDER_RECOVERY_REQUIRED");
-    operations.push(write({ ...grant, version: integer3(grant.version + 1, 1), reservedUses: grant.reservedUses + 1 }, balance.grant), write({ ...key, version: 1, campaignId: campaign.discountId, sub: facts.sub, orderId, target, amountMinor: amount2, status: "RESERVED", deliveryFunding, createdAt: new Date(at).toISOString() }));
+    operations.push(write(table, { ...grant, version: integer3(grant.version + 1, 1), reservedUses: grant.reservedUses + 1 }, balance.grant), write(table, { ...key, version: 1, campaignId: campaign.discountId, sub: facts.sub, orderId, target, amountMinor: amount2, status: "RESERVED", deliveryFunding, createdAt: new Date(at).toISOString() }));
   }
   return { amountMinor: amount2, target, deliveryFunding, customerFee: moneyFromMinor(reference - (target === "DELIVERY" ? amount2 : 0)), operations, receipt: { schemaVersion: 1, campaignId: campaign.discountId, target, termsHash }, validUntil: campaign.endDate };
 }
 async function settlePlatformBenefit(db, input) {
-  const key = holdKey(input.orderId, input.target), h = await get(db, key);
+  const table = financialOrderTables().offerJourney;
+  const key = holdKey(input.orderId, input.target), h = await get(db, table, key);
   if (!h) fail2("BENEFIT_RESERVATION_MISSING");
   if (h.orderId !== input.orderId || h.target !== input.target || !["GOODS", "DELIVERY"].includes(h.target)) fail2("BENEFIT_RESERVATION_INVALID");
   integer3(h.version, 1);
@@ -271,11 +371,11 @@ async function settlePlatformBenefit(db, input) {
   const keep = input.outcome === "CAPTURED" || input.keepUse === true, status = input.outcome + (keep ? "_USED" : "");
   if (h.status === status) return { replayed: true, operations: [] };
   if (h.status !== "RESERVED") fail2("BENEFIT_RESERVATION_CONFLICT");
-  const grant = await get(db, benefitGrantKey(h.campaignId, h.sub));
+  const grant = await get(db, table, benefitGrantKey(h.campaignId, h.sub));
   if (!grant) fail2("BENEFIT_RESERVATION_INVALID");
   grantValid(grant);
   if (grant.reservedUses < 1) fail2("BENEFIT_RESERVATION_INVALID");
-  return { replayed: false, operations: [write({ ...grant, version: integer3(grant.version + 1, 1), reservedUses: grant.reservedUses - 1, usedUses: grant.usedUses + (keep ? 1 : 0) }, grant), write({ ...h, version: integer3(h.version + 1, 1), status }, h)] };
+  return { replayed: false, operations: [write(table, { ...grant, version: integer3(grant.version + 1, 1), reservedUses: grant.reservedUses - 1, usedUses: grant.usedUses + (keep ? 1 : 0) }, grant), write(table, { ...h, version: integer3(h.version + 1, 1), status }, h)] };
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

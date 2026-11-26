@@ -1,0 +1,59 @@
+{
+  "accountId": "746727375268",
+  "region": "us-east-1",
+  "status": "PREPARED_NOT_DEPLOYED",
+  "environment": {
+    "ENVIRONMENT": "production",
+    "PLATFORM_ENVIRONMENT": "production",
+    "REGION": "us-east-1",
+    "DRIVER_USER_POOL_ID": "us-east-1_5sUT54eCB",
+    "ADMIN_USER_POOL_ID": "us-east-1_njh6vaNWj",
+    "CUSTOMER_USER_POOL_ID": "us-east-1_rNtNKVsVf",
+    "MERCHANT_USER_POOL_ID": "us-east-1_2sKZ4fGbZ",
+    "DRIVER_CLIENT_ID": "59to4hbat3lv2fvosa49afu0gi",
+    "ADMIN_CLIENT_ID": "7924qedsr5m1j1bvc3c7va8egk",
+    "CUSTOMER_CLIENT_ID": "3e8p0ouglrprpd0a3pc91du0hg",
+    "MERCHANT_CLIENT_ID": "5l8ng11uudg146crop63926svq",
+    "WALLETS_TABLE": "wizz-production-Wallets",
+    "LEDGER_TABLE": "wizz-production-LedgerEntries",
+    "HOLDS_TABLE": "wizz-production-Holds",
+    "TOPUP_REQUESTS_TABLE": "wizz-production-TopupRequests",
+    "AUDIT_LOG_TABLE": "wizz-production-AuditLog",
+    "IDEMPOTENCY_KEYS_TABLE": "wizz-production-IdempotencyKeys",
+    "ACCOUNT_DELETION_TABLE": "wizz-production-AccountDeletion",
+    "WALLET_LIFECYCLE_TABLE": "wizz-production-WalletLifecycle",
+    "WALLET_NOTIFICATIONS_TABLE": "wizz-production-WalletNotifications",
+    "ORDERS_TABLE": "wizz-production-Orders",
+    "STAFF_TABLE": "wizz-production-PlatformStaff",
+    "MERCHANT_PLATFORM_TABLE": "wizz-production-MerchantPlatform",
+    "CUSTOMERS_TABLE": "wizz-production-Customers",
+    "MERCHANTS_TABLE": "wizz-production-Merchants",
+    "DRIVERS_TABLE": "wizz-production-Drivers",
+    "FUNDING_RECEIPTS_BUCKET": "wizz-production-funding-receipts-746727375268-us-east-1"
+  },
+  "receiptObjectPolicy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "s3:PutObject",
+          "s3:GetObject"
+        ],
+        "Resource": "arn:aws:s3:::wizz-production-funding-receipts-746727375268-us-east-1/receipts/*",
+        "Condition": {
+          "StringEquals": {
+            "s3:ResourceAccount": "746727375268"
+          }
+        }
+      }
+    ]
+  },
+  "deploymentRequirements": [
+    "Verify target AWS account and all referenced tables before deployment",
+    "Attach receipt policy only to the production wallet runtime role",
+    "Preserve authenticated receipt ownership and finance authorization",
+    "Keep manual funding disabled until production recipient is configured and verified",
+    "Do not enable direct payment gateways without production credentials and validation"
+  ]
+}

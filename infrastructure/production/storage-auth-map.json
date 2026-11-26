@@ -1,0 +1,60 @@
+{
+  "accountId": "746727375268",
+  "recordsCopied": 0,
+  "tables": [
+    {
+      "role": "MerchantFinancialSessions",
+      "schemaReference": null,
+      "productionTable": "wizz-production-MerchantFinancialSessions",
+      "dataCopied": false
+    },
+    {
+      "role": "CustomerPhoneAuth",
+      "schemaReference": "WizzUser_phone_auth_staging",
+      "productionTable": "wizz-production-CustomerPhoneAuth",
+      "dataCopied": false
+    },
+    {
+      "role": "CustomerPhoneLink",
+      "schemaReference": "WizzUser_phone_link_staging",
+      "productionTable": "wizz-production-CustomerPhoneLink",
+      "dataCopied": false
+    },
+    {
+      "role": "DriverOtpSessions",
+      "schemaReference": "WhizzDrivers_otp_sessions_staging",
+      "productionTable": "wizz-production-DriverOtpSessions",
+      "dataCopied": false
+    },
+    {
+      "role": "Drivers",
+      "schemaReference": "WhizzDrivers_staging",
+      "productionTable": "wizz-production-Drivers",
+      "dataCopied": false
+    },
+    {
+      "role": "PlatformStaff",
+      "schemaReference": "staging-PlatformStaff",
+      "productionTable": "wizz-production-PlatformStaff",
+      "dataCopied": false
+    },
+    {
+      "role": "MerchantPlatform",
+      "schemaReference": "staging-MerchantPlatform",
+      "productionTable": "wizz-production-MerchantPlatform",
+      "dataCopied": false
+    },
+    {
+      "role": "AccountDeletion",
+      "schemaReference": "staging-AccountDeletion",
+      "productionTable": "wizz-production-AccountDeletion",
+      "dataCopied": false
+    },
+    {
+      "role": "AccountDeletionFinancialArchive",
+      "schemaReference": "staging-AccountDeletionFinancialArchive",
+      "productionTable": "wizz-production-AccountDeletionFinancialArchive",
+      "dataCopied": false
+    }
+  ]
+}

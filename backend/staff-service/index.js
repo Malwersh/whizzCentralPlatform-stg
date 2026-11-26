@@ -52,7 +52,7 @@ async function handler(event){
   if(method==='GET'&&path==='/staff/me')return response(200,{employee:actor,permissions:effective(actor),directWrite:direct()});
   if(path==='/staff/regions/manage'||path.startsWith('/staff/regions/manage/')){
    let regionInput={};if(method==='POST'){try{regionInput=JSON.parse(event.body||'{}');if(!regionInput||typeof regionInput!=='object'||Array.isArray(regionInput))throw Error();}catch{throw fail('INVALID_BODY',400);}}
-   try{return response(200,await require('../region-management/api-entry').route({db,table,sdk:require('@aws-sdk/lib-dynamodb'),allowed,guard,audit,recent,claims},actor,method,path,regionInput));}
+   try{return response(200,await require('../region-management/api-entry').route({db,table,sdk:require('@aws-sdk/lib-dynamodb'),allowed,guard,audit},actor,method,path,regionInput));}
    catch(error){return response(error.status||503,{error:error.code||'REGION_MANAGEMENT_UNAVAILABLE',...(error.details?{details:error.details}:{})});}
   }
 

@@ -1,5 +1,7 @@
 import {prepareCashAdjudication,cashAdjudicationAdjustment} from './cashAdjudication';
 import {createFullCashCompletion} from './fullCashCompletion';
+import {financialDispatchTables,isFinancialOrderProduction} from './walletBindings';
+import {checkoutTables} from './checkoutTables';
 import {DynamoDBDocumentClient, TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {detach,equal,exactCheck,strongGet,updateChecked} from './driverFinancialTransaction';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
@@ -12,7 +14,6 @@ import {cashboxCode,cashboxKey} from './merchantCashbox';
 import {assessReportedCash,createCustomerCashReview,approveCustomerRefund,executeCustomerRefund,
  acknowledgeCustomerRefund,reconcileCustomerRefund,cancelCustomerRefund,CashReviewActor,CashReviewFacts} from './customerCashReview';
 type Row=Record<string,any>;
-const T={orders:'WizzOrders',holds:'staging-Holds',audit:'staging-AuditLog',platform:'staging-MerchantPlatform'};
 const KEY='CUSTOMER_CASH_REVIEW';
 const fail=(code='CASH_REVIEW_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
 const uuid=(v:any)=>typeof v==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(v);
@@ -21,6 +22,7 @@ const fields:Record<string,string[]>={OPEN_CASH_REVIEW:[],RECORD_CASH_CONTACT:['
  VERIFY_CASH_COLLECTION:['customerReportId','driverReportId'],APPROVE_CUSTOMER_REFUND:['refundId','amountIqd','sourceKind','cashboxCode'],
  EXECUTE_CUSTOMER_REFUND:['refundId','confirmPhysicalExecution','reference'],ACKNOWLEDGE_CUSTOMER_REFUND:['refundId','confirmFullReceipt'],
  RECONCILE_CUSTOMER_REFUND:['refundId','reference'],CANCEL_CUSTOMER_REFUND:['refundId'],
+ AUTHORIZE_RETURN_AFTER_REFUND:['confirmUndelivered'],
  RECORD_CASH_SHORTFALL_DECISION:['outcome','evidenceReferences'],RESOLVE_CASH_COLLECTION_REVIEW:['confirmNoFinancialAdjustment'],CLOSE_CUSTOMER_CASH_REVIEW:['confirmCompletedReview']};
 function put(table:string,row:Row,key:Row,old:Row|null){
  if(!old)return {Put:{TableName:table,Item:row,ConditionExpression:'attribute_not_exists(#p)',ExpressionAttributeNames:{'#p':Object.keys(key)[0]}}};
@@ -37,25 +39,40 @@ export function createCustomerCashCase(options:{db:Pick<DynamoDBDocumentClient,'
  authenticate:()=>Promise<CashReviewActor>;authorizeStaff:(actor:CashReviewActor,mode:'READ'|'OPERATE'|'FINANCIAL'|'EXECUTE',amount?:number)=>Promise<Row[]>;
  now?:()=>number}){
  const {db,authenticate}=options,now=options.now??Date.now;
+ const production=isFinancialOrderProduction(process.env);
+ const T={...financialDispatchTables(),platform:checkoutTables().platform};
  async function context(orderId:string){
   if(!quoteEntityIdValid(orderId))return fail('INVALID_CASH_REVIEW');
   const actor=detach(await authenticate()),key={PK:'ORDER#'+orderId,SK:'META'},order=await strongGet(db,T.orders,key);
   if(!actor||!quoteEntityIdValid(actor.subjectId)||!['CUSTOMER','DRIVER','STAFF'].includes(actor.kind))return fail('UNAUTHORIZED');
   if(!order||order.orderId!==orderId||!readOrderExceptionPolicy(order)||order.isGuestOrder===true||order.deletedAt!=null||order.deletionRequestId!=null||order.isDeleted===true||
    order.financialSnapshot?.schemaVersion!==3||!quoteEntityIdValid(order.userSub)||!quoteEntityIdValid(order.driverId))return fail('CASH_REVIEW_UNAVAILABLE');
-  if(actor.kind==='CUSTOMER'&&actor.subjectId!==order.userSub||actor.kind==='DRIVER'&&actor.subjectId!==order.driverId)return fail('CASH_REVIEW_FORBIDDEN');
+  if(actor.kind==='CUSTOMER'&&actor.subjectId!==order.userSub||!production&&actor.kind==='DRIVER'&&actor.subjectId!==order.driverId)return fail('CASH_REVIEW_FORBIDDEN');
   const guards:Row[]=actor.kind==='STAFF'?await options.authorizeStaff(actor,'READ'):[];
   if(actor.kind==='DRIVER'){
-   const dk={driverId:actor.subjectId},driver=await strongGet(db,'WhizzDrivers_staging',dk);
+   const dk={driverId:order.driverId},driver=await strongGet(db,T.driver,dk);
    if(!driver||(driver.cognitoSub??driver.driverId)!==actor.subjectId||!['APPROVED','VERIFIED'].includes(driver.status)||driver.isSuspended===true||driver.isBanned===true||driver.isDeleted===true||driver.deletionRequestId!=null||driver.deletedAt!=null)return fail('CASH_REVIEW_FORBIDDEN');
-   guards.push(exactCheck('WhizzDrivers_staging',dk,driver,[...new Set([...Object.keys(driver),'isSuspended','isBanned','isDeleted','deletionRequestId','deletedAt'])]));
+   guards.push(exactCheck(T.driver,dk,driver,[...new Set([...Object.keys(driver),'cognitoSub','isSuspended','isBanned','isDeleted','deletionRequestId','deletedAt'])]));
   }
-  for(const pk of ['ACCOUNT_LIFECYCLE#CUSTOMER#'+order.userSub,'ACCOUNT_LIFECYCLE#DRIVER#'+order.driverId])guards.push({ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}});
+  for(const pk of new Set(['ACCOUNT_LIFECYCLE#CUSTOMER#'+order.userSub,'ACCOUNT_LIFECYCLE#DRIVER#'+order.driverId,
+    ...(production&&actor.kind==='DRIVER'?['ACCOUNT_LIFECYCLE#DRIVER#'+actor.subjectId]:[])])){
+   const key={pk,sk:'META'};
+   if(production&&await strongGet(db,T.deletion,key))return fail('CASH_REVIEW_FORBIDDEN');
+   guards.push({ConditionCheck:{TableName:T.deletion,Key:key,ConditionExpression:'attribute_not_exists(pk)'}});
+  }
   const expectedIqd=toWholeIqdExact(order.financialAcceptance?.allocation?.customerTotal);
   if(!Number.isSafeInteger(expectedIqd)||expectedIqd<0)return fail('CASH_REVIEW_PROOF_REQUIRED');
   const ck={orderId,sk:KEY},row=await strongGet(db,T.holds,ck);
   if(row&&(row.kind!=='CUSTOMER_CASH_REVIEW_CASE'||row.orderId!==orderId||row.customerId!==order.userSub||row.driverId!==order.driverId||row.branchId!==order.storeId||row.acceptedTermsDigest!==quoteHash(order.financialAcceptance)||!Number.isSafeInteger(row.version)||row.version<1))return fail();
   return {actor,key,order,guards,expectedIqd,ck,row,at:new Date(now()).toISOString()};
+ }
+ function sourceJournalKey(saved:Row,refund:Row,orderId:string){
+  if(!saved||!saved.key)return fail('REFUND_RECONCILIATION_REQUIRED');
+  if(refund.source.kind==='DRIVER_UNSETTLED'?
+     saved.table!==T.holds||saved.key.orderId!==orderId||saved.key.sk!=='DRIVER_CASH_REFUND#'+refund.refundId:
+     saved.table!==T.platform||saved.key.pk!=='MERCHANT_CASHBOX#'+refund.source.code||
+     typeof saved.key.sk!=='string'||!saved.key.sk.startsWith('LEDGER#'))return fail('REFUND_RECONCILIATION_REQUIRED');
+  return saved.key;
  }
  async function financialFacts(c:Awaited<ReturnType<typeof context>>,row:Row){
   if(row.collectionVerification){
@@ -93,7 +110,7 @@ export function createCustomerCashCase(options:{db:Pick<DynamoDBDocumentClient,'
    shortfallDecision:c.actor.kind==='STAFF'?row?.shortfallDecision??null:null,
    adjudication:row?.adjudication?(c.actor.kind==='STAFF'?row.adjudication:{status:row.adjudication.status,outcome:row.adjudication.outcome,collectedIqd:row.adjudication.collectedIqd,shortfallIqd:row.adjudication.shortfallIqd}):null,contactAttempts:c.actor.kind==='STAFF'?row?.contactAttempts??[]:[],
    refunds:(row?.refunds?.refunds??[]).filter((r:Row)=>c.actor.kind!=='DRIVER'||r.source.kind==='DRIVER_UNSETTLED').map((r:Row)=>({refundId:r.refundId,voucherNumber:r.voucherNumber,amountIqd:r.amountIqd,status:r.status,source:c.actor.kind==='STAFF'?r.source:{kind:r.source.kind},executionReference:r.execution?.reference??null})),
-   liability:'NOT_AUTOMATIC',sourceExecutionRecorded:(row?.refunds?.refunds??[]).some((r:Row)=>!!r.execution)};
+   returnAuthorized:row?.returnClearance!=null,liability:'NOT_AUTOMATIC',sourceExecutionRecorded:(row?.refunds?.refunds??[]).some((r:Row)=>!!r.execution)};
  }
  async function execute(v:Row){
   if(v?.action==='READ_CUSTOMER_CASH_CASE'){
@@ -105,6 +122,7 @@ export function createCustomerCashCase(options:{db:Pick<DynamoDBDocumentClient,'
   if(prior){if(prior.requestDigest!==digest)return fail();return {...prior.receipt,replayed:true};}
   if((c.row?.version??0)!==v.expectedVersion)return fail();
   if(!c.row&&!['REPORT_CASH_PAYMENT','OPEN_CASH_REVIEW'].includes(v.action))return fail('CASH_REVIEW_UNAVAILABLE');
+  if(c.order.cashReturnClearance!=null)return fail('CASH_REVIEW_CLOSED');
   if(c.row?.state==='CLOSED'&&v.action!=='REPORT_CASH_PAYMENT')return fail('CASH_REVIEW_CLOSED');
   let row:Row=c.row?detach(c.row):{...c.ck,kind:'CUSTOMER_CASH_REVIEW_CASE',financialSchemaVersion:4,caseId:'OEX:'+quoteHash({orderId:v.orderId,kind:KEY}).slice(0,48),customerId:c.order.userSub,driverId:c.order.driverId,branchId:c.order.storeId,acceptedTermsDigest:quoteHash(c.order.financialAcceptance),version:0,createdAt:c.at,reports:[],refunds:createCustomerCashReview(v.orderId),state:'REVIEW_REQUIRED'};
   const ops:Row[]=[],guards=[...c.guards];let sourceProof:Row|null=null;
@@ -143,7 +161,7 @@ export function createCustomerCashCase(options:{db:Pick<DynamoDBDocumentClient,'
    if(!['CUSTOMER','DRIVER'].includes(c.actor.kind)||v.confirmActualPayment!==true)return fail('CASH_REVIEW_FORBIDDEN');
    const assessment=assessReportedCash(c.expectedIqd,v.reportedPaidIqd);
    if(row.reports.length>=50)return fail('CASH_REVIEW_LIMIT');
-   row.reports.push({reportId:v.idempotencyKey,actorKind:c.actor.kind,actorId:c.actor.subjectId,reportedPaidIqd:v.reportedPaidIqd,reason:v.reason.trim(),assessment,createdAt:c.at});
+   row.reports.push({reportId:v.idempotencyKey,actorKind:c.actor.kind,actorId:c.actor.subjectId,...(production&&c.actor.kind==='DRIVER'?{driverId:c.order.driverId}:{}),reportedPaidIqd:v.reportedPaidIqd,reason:v.reason.trim(),assessment,createdAt:c.at});
    if(row.state==='CLOSED'){row.state='REVIEW_REQUIRED';row.activePhase=casePhase(row.casePolicySnapshot,'COD',c.at);}
    // Freeze an ACTIVE collection dispute, not an already settled delivery.
    if(c.order.financialOutcome==null){
@@ -152,7 +170,7 @@ export function createCustomerCashCase(options:{db:Pick<DynamoDBDocumentClient,'
    }
   }else if(v.action==='VERIFY_CASH_COLLECTION'){
    if(c.actor.kind!=='STAFF')return fail('CASH_REVIEW_FORBIDDEN');guards.push(...await options.authorizeStaff(c.actor,'OPERATE'));
-   const reports=row.reports as Row[],customer=reports.find(r=>r.reportId===v.customerReportId&&r.actorKind==='CUSTOMER'&&r.actorId===c.order.userSub),driver=reports.find(r=>r.reportId===v.driverReportId&&r.actorKind==='DRIVER'&&r.actorId===c.order.driverId);
+   const reports=row.reports as Row[],customer=reports.find(r=>r.reportId===v.customerReportId&&r.actorKind==='CUSTOMER'&&r.actorId===c.order.userSub),driver=reports.find(r=>r.reportId===v.driverReportId&&r.actorKind==='DRIVER'&&(production?r.driverId===c.order.driverId:r.actorId===c.order.driverId));
    if(!customer||!driver||customer.reportedPaidIqd!==driver.reportedPaidIqd||[...reports].reverse().find(r=>r.actorKind==='CUSTOMER'&&r.actorId===customer.actorId)?.reportId!==customer.reportId||[...reports].reverse().find(r=>r.actorKind==='DRIVER'&&r.actorId===driver.actorId)?.reportId!==driver.reportId)return fail('CASH_REVIEW_MATCHING_REPORTS_REQUIRED');
    if(row.refunds.refunds.some((r:Row)=>r.status!=='CANCELLED'))return fail('CASH_REVIEW_REFUNDS_ALREADY_RESERVED');
    row.collectionVerification={verificationId:v.idempotencyKey,collectedIqd:customer.reportedPaidIqd,customerReportId:customer.reportId,driverReportId:driver.reportId,verifiedBy:c.actor.subjectId,verifiedAt:c.at,reason:v.reason.trim()};
@@ -176,15 +194,29 @@ export function createCustomerCashCase(options:{db:Pick<DynamoDBDocumentClient,'
   }else if(v.action==='CANCEL_CUSTOMER_REFUND'){
    if(c.actor.kind!=='STAFF')return fail('CASH_REVIEW_FORBIDDEN');const r=row.refunds.refunds.find((r:Row)=>r.refundId===v.refundId);if(!r)return fail('REFUND_STATE_CONFLICT');guards.push(...await options.authorizeStaff(c.actor,'FINANCIAL',r.amountIqd));
    row.refunds=cancelCustomerRefund(row.refunds,c.actor,{refundId:v.refundId,reason:v.reason},c.at);
-  }else if(v.action==='CLOSE_CUSTOMER_CASH_REVIEW'){
-   if(c.actor.kind!=='STAFF'||v.confirmCompletedReview!==true)return fail('CASH_REVIEW_FORBIDDEN');
+  }else if(v.action==='CLOSE_CUSTOMER_CASH_REVIEW'||v.action==='AUTHORIZE_RETURN_AFTER_REFUND'){
+   const allowReturn=v.action==='AUTHORIZE_RETURN_AFTER_REFUND';
+   if(c.actor.kind!=='STAFF'||(allowReturn?v.confirmUndelivered!==true:v.confirmCompletedReview!==true))return fail('CASH_REVIEW_FORBIDDEN');
    const proof=await financialFacts(c,row),f=proof.facts;
-   if(c.order.openPaymentClaimId!=null||f.settledIqd!==c.expectedIqd||row.refunds.refunds.some((r:Row)=>!['CANCELLED','RECONCILED'].includes(r.status))||
+   const reconciled=row.refunds.refunds.filter((r:Row)=>r.status==='RECONCILED');
+   if(row.refunds.refunds.some((r:Row)=>!['CANCELLED','RECONCILED'].includes(r.status))||
     (row.reports??[]).some((r:Row,i:number,all:Row[])=>!all.slice(i+1).some(l=>l.actorKind===r.actorKind)&&r.reportedPaidIqd!==f.collectedIqd))return fail('CASH_REVIEW_FINANCIAL_ADJUSTMENT_REQUIRED');
+   if(allowReturn){
+    const returnedIqd=reconciled.reduce((total:bigint,r:Row)=>total+BigInt(r.amountIqd),0n);
+    if(f.settledIqd!==0||f.collectedIqd<=0||returnedIqd!==BigInt(f.collectedIqd)||c.order.openPaymentClaimId!==row.caseId||
+      c.order.financialOutcome!=null||c.order.returnCaseId!=null||!['picked_up','heading_to_customer','arrived_at_customer'].includes(c.order.status))
+      return fail('CASH_RETURN_REQUIRES_FULL_REFUND');
+    const clearance={schemaVersion:1,caseId:row.caseId,collectionProofId:f.collectionProofId,
+      refundedIqd:f.collectedIqd,approvedAt:c.at,approvedBy:c.actor.subjectId};
+    row.returnClearance=clearance;
+    if(row.adjudication?.status==='APPROVED')row.adjudication={...row.adjudication,status:'SUPERSEDED_BY_FULL_REFUND',resolvedAt:c.at};
+    ops.push(setFields(exactCheck(T.orders,c.key,c.order,[...new Set([...Object.keys(c.order),'cashReturnClearance','cashReviewVerifiedCollection','financialOutcome','returnCaseId'])]),
+      {openPaymentClaimId:null,cashReviewVerifiedCollection:null,cashReturnClearance:clearance,updatedAt:c.at}));
+   }else if(c.order.openPaymentClaimId!=null||f.settledIqd!==c.expectedIqd)return fail('CASH_REVIEW_FINANCIAL_ADJUSTMENT_REQUIRED');
    guards.push(...proof.guards,...await options.authorizeStaff(c.actor,'FINANCIAL',f.collectedIqd));
-   for(const r of row.refunds.refunds.filter((r:Row)=>r.status==='RECONCILED')){
+   for(const r of reconciled){
     const saved=row.refundSourceProofs?.[r.refundId];if(!saved)return fail('REFUND_RECONCILIATION_REQUIRED');
-    const journal=await strongGet(db,saved.table,saved.key);if(!journal)return fail('REFUND_RECONCILIATION_REQUIRED');const {digest,...body}=journal;
+    const journal=await strongGet(db,saved.table,sourceJournalKey(saved,r,v.orderId));if(!journal)return fail('REFUND_RECONCILIATION_REQUIRED');const {digest,...body}=journal;
     if(quoteHash(body)!==digest||digest!==saved.digest||journal.refundId!==r.refundId||journal.orderId!==v.orderId||journal.journalId!==r.execution.sourceJournalId)return fail('REFUND_RECONCILIATION_REQUIRED');
     guards.push(exactCheck(saved.table,saved.key,journal));
    }
@@ -203,7 +235,7 @@ export function createCustomerCashCase(options:{db:Pick<DynamoDBDocumentClient,'
     row.refundApprovalGuards={...(row.refundApprovalGuards??{}),[v.refundId]:detach(approvalGuards)};
    }else if(v.action==='EXECUTE_CUSTOMER_REFUND'){
     const r=row.refunds.refunds.find((r:Row)=>r.refundId===v.refundId);if(!r)return fail('REFUND_STATE_CONFLICT');
-    const approvalGuards=row.refundApprovalGuards?.[v.refundId];if(!Array.isArray(approvalGuards)||!approvalGuards.length||approvalGuards.some(g=>!g.ConditionCheck||g.ConditionCheck.TableName!=='staging-PlatformStaff'))return fail('CASH_REVIEW_PROOF_REQUIRED');
+    const approvalGuards=row.refundApprovalGuards?.[v.refundId];if(!Array.isArray(approvalGuards)||!approvalGuards.length||approvalGuards.some(g=>!g.ConditionCheck||g.ConditionCheck.TableName!==T.staff))return fail('CASH_REVIEW_PROOF_REQUIRED');
     guards.push(...approvalGuards);
     let journalId:string;
     if(r.source.kind==='COMPANY_CASHBOX'){
@@ -215,14 +247,15 @@ export function createCustomerCashCase(options:{db:Pick<DynamoDBDocumentClient,'
      sourceProof={orderId:v.orderId,sk:'DRIVER_CASH_REFUND#'+r.refundId,kind:'DRIVER_UNSETTLED_CASH_REFUND',financialSchemaVersion:4,branchId:c.order.storeId,journalId,refundId:r.refundId,driverId:c.order.driverId,amountIqd:r.amountIqd,voucherNumber:r.voucherNumber,at:c.at,collectionProofDigest:f.collectionProofDigest,settlementProofDigest:f.settlementProofDigest,accountingEffect:'REDUCE_UNSETTLED_CUSTOMER_CASH_CUSTODY',walletPosting:false};sourceProof={...sourceProof,digest:quoteHash(sourceProof)};
      ops.push(put(T.holds,sourceProof,{orderId:v.orderId,sk:sourceProof.sk},null));
     }
-    row.refunds=executeCustomerRefund(row.refunds,f,c.actor,{refundId:v.refundId,confirmPhysicalExecution:v.confirmPhysicalExecution,sourceJournalId:journalId,reference:v.reference},c.at);
+    const executor=production&&c.actor.kind==='DRIVER'?{...c.actor,subjectId:c.order.driverId}:c.actor;
+   row.refunds=executeCustomerRefund(row.refunds,f,executor,{refundId:v.refundId,confirmPhysicalExecution:v.confirmPhysicalExecution,sourceJournalId:journalId,reference:v.reference},c.at);
     row.refundSourceProofs={...(row.refundSourceProofs??{}),[r.refundId]:{table:r.source.kind==='COMPANY_CASHBOX'?T.platform:T.holds,key:r.source.kind==='COMPANY_CASHBOX'?{pk:sourceProof!.pk,sk:sourceProof!.sk}:{orderId:v.orderId,sk:sourceProof!.sk},digest:sourceProof!.digest,journalId}};
    }else if(v.action==='ACKNOWLEDGE_CUSTOMER_REFUND'){
     row.refunds=acknowledgeCustomerRefund(row.refunds,f,c.actor,{refundId:v.refundId,confirmFullReceipt:v.confirmFullReceipt},c.at);
    }else if(v.action==='RECONCILE_CUSTOMER_REFUND'){
     if(c.actor.kind!=='STAFF')return fail('CASH_REVIEW_FORBIDDEN');const r=row.refunds.refunds.find((r:Row)=>r.refundId===v.refundId),saved=row.refundSourceProofs?.[v.refundId];
     if(!r||!saved)return fail('REFUND_RECONCILIATION_REQUIRED');guards.push(...await options.authorizeStaff(c.actor,'FINANCIAL',r.amountIqd));
-    const journal=await strongGet(db,saved.table,saved.key);if(!journal)return fail('REFUND_RECONCILIATION_REQUIRED');const {digest,...body}=journal;
+    const journal=await strongGet(db,saved.table,sourceJournalKey(saved,r,v.orderId));if(!journal)return fail('REFUND_RECONCILIATION_REQUIRED');const {digest,...body}=journal;
     if(digest!==saved.digest||quoteHash(body)!==digest||journal.refundId!==v.refundId||journal.orderId!==v.orderId||journal.journalId!==saved.journalId)return fail('REFUND_RECONCILIATION_REQUIRED');
     guards.push(exactCheck(saved.table,saved.key,journal));row.refunds=reconcileCustomerRefund(row.refunds,c.actor,{refundId:v.refundId,verifiedSourceJournalId:saved.journalId,reference:v.reference},c.at);
    }

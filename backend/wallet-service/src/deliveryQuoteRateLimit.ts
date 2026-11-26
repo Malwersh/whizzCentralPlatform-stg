@@ -1,8 +1,8 @@
 import { GetCommand, TransactWriteCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import type { QuoteCustomer } from './deliveryQuote';
 import { quoteHash } from './deliveryQuoteRecord';
+import { checkoutTables } from './checkoutTables';
 
-const TABLE = 'staging-DeliveryQuotes';
 const SK = 'RATE#DELIVERY_QUOTE';
 const WINDOW_MS = 60000;
 type Row = Record<string, any>;
@@ -22,13 +22,14 @@ const digest = (row: Row) => quoteHash({ pk: row.pk, sk: row.sk, schemaVersion: 
 export function createStagingDeliveryQuoteRateLimiter(options: {
   db: Pick<DynamoDBDocumentClient, 'send'>; maxPerMinute: number; policyCondition?: Row|null; now?: () => number; preview?: boolean;
 }) {
+  const tables = checkoutTables();
   if (!Number.isSafeInteger(options.maxPerMinute) || options.maxPerMinute < 1 || options.maxPerMinute > 120) return unavailable();
-  if(options.policyCondition&&(options.policyCondition.ConditionCheck?.TableName!=='staging-PlatformStaff'||options.policyCondition.ConditionCheck?.Key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS'||options.policyCondition.ConditionCheck?.Key?.sk!=='CURRENT'))return unavailable();
+  if(options.policyCondition&&(options.policyCondition.ConditionCheck?.TableName!==tables.policy||options.policyCondition.ConditionCheck?.Key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS'||options.policyCondition.ConditionCheck?.Key?.sk!=='CURRENT'))return unavailable();
   const now = options.now ?? Date.now;
   return Object.freeze({ async reserve(customer: QuoteCustomer): Promise<void> {
     const condition = customer?.condition?.ConditionCheck;
     if (!customer || !/^[A-Za-z0-9_.:-]{1,150}$/.test(customer.userId) || customer.userId === 'guest' ||
-        !/^[A-Za-z0-9_.:-]{1,150}$/.test(customer.subjectId) || condition?.TableName !== 'WizzUser_users_staging' ||
+        !/^[A-Za-z0-9_.:-]{1,150}$/.test(customer.subjectId) || condition?.TableName !== tables.customers ||
         Object.keys(condition.Key ?? {}).join(',') !== 'userId' || condition.Key?.userId !== customer.userId ||
         !condition.ConditionExpression) return unavailable();
     const key = { pk: 'CUSTOMER#' + customer.userId, sk: options.preview ? 'RATE#STOREFRONT_PREVIEW' : SK };
@@ -37,7 +38,7 @@ export function createStagingDeliveryQuoteRateLimiter(options: {
       if (!Number.isSafeInteger(ms) || ms < 0) return unavailable();
       const windowStart = Math.floor(ms / WINDOW_MS) * WINDOW_MS;
       let old: Row | undefined;
-      try { old = (await options.db.send(new GetCommand({ TableName: TABLE, Key: key, ConsistentRead: true }))).Item; }
+      try { old = (await options.db.send(new GetCommand({ TableName: tables.quotes, Key: key, ConsistentRead: true }))).Item; }
       catch { return unavailable(); }
       if (old && (old.pk !== key.pk || old.sk !== key.sk || old.subjectId !== customer.subjectId || old.schemaVersion !== 1 ||
           !Number.isSafeInteger(old.windowStart) || old.windowStart < 0 || old.windowStart % WINDOW_MS !== 0 || old.windowStart > windowStart ||
@@ -49,7 +50,7 @@ export function createStagingDeliveryQuoteRateLimiter(options: {
       row.digest = digest(row);
       try {
         await options.db.send(new TransactWriteCommand({ TransactItems: [customer.condition, ...(options.policyCondition?[options.policyCondition]:[]), { Put: {
-          TableName: TABLE, Item: row,
+          TableName: tables.quotes, Item: row,
           ConditionExpression: old
             ? '#digest=:digest AND #version=:version AND subjectId=:sub AND (attribute_not_exists(legalHold) OR legalHold=:no) AND (attribute_not_exists(retentionHold) OR retentionHold=:no)'
             : 'attribute_not_exists(pk)',

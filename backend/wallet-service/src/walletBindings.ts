@@ -109,3 +109,75 @@ export function fundingReceiptBindings(env: NodeJS.ProcessEnv = process.env) {
   }
   return { deletion, bucket };
 }
+
+export function isFinancialOrderProduction(env: NodeJS.ProcessEnv) {
+  const stages = [env.ENVIRONMENT, env.PLATFORM_ENVIRONMENT, env.STAGE].filter(Boolean);
+  const production = stages.some(stage => stage === 'production' || stage === 'prod');
+  if (production && stages.some(stage => stage !== 'production' && stage !== 'prod')) {
+    throw new Error('WALLET_BINDING_NOT_CONFIGURED: ENVIRONMENT_CONFLICT');
+  }
+  return production;
+}
+
+/** Store bindings for an order's atomic release, including promotional funding. */
+export function financialOrderTables(env: NodeJS.ProcessEnv = process.env) {
+  if (!isFinancialOrderProduction(env)) {
+    return {
+      orders: 'WizzOrders',
+      wallets: 'staging-Wallets',
+      holds: 'staging-Holds',
+      ledger: 'staging-LedgerEntries',
+      audit: 'staging-AuditLog',
+      lifecycle: 'staging-WalletLifecycle',
+      staff: 'staging-PlatformStaff',
+      offerJourney: 'staging-WizzOfferJourney',
+    };
+  }
+  const production = { ...env, ENVIRONMENT: 'production' };
+  const { tables } = walletBindings(production);
+  const orders = walletOrderTable(production);
+  const lifecycle = walletLifecycleTable(production)!;
+  const staff = env.STAFF_TABLE ?? '';
+  const offerJourney = env.OFFER_JOURNEY_TABLE ?? '';
+  for (const [field, table] of [['STAFF_TABLE', staff], ['OFFER_JOURNEY_TABLE', offerJourney]]) {
+    if (!/^wizz-production-[A-Za-z0-9_-]+$/.test(table)) {
+      throw new Error('WALLET_BINDING_NOT_CONFIGURED: ' + field);
+    }
+  }
+  const names = [...Object.values(tables), orders, lifecycle, staff, offerJourney];
+  if (new Set(names).size !== names.length) {
+    throw new Error('WALLET_BINDING_NOT_CONFIGURED: DISTINCT_ORDER_FINANCIAL_TABLES');
+  }
+  return {
+    orders, lifecycle, staff, offerJourney,
+    wallets: tables.WALLETS, holds: tables.HOLDS, ledger: tables.LEDGER, audit: tables.AUDIT_LOG,
+  };
+}
+
+export function financialDispatchTables(env: NodeJS.ProcessEnv = process.env) {
+  const tables = financialOrderTables(env);
+  const defaults = {
+    jobs: ['DISPATCH_JOBS_TABLE', 'WizzDispatchJobs_staging'],
+    live: ['DRIVER_LIVE_STATE_TABLE', 'WizzDriverLiveState_staging'],
+    offers: ['WAVE_OFFERS_TABLE', 'WaveOffers_staging'],
+    quotes: ['DELIVERY_QUOTES_TABLE', 'staging-DeliveryQuotes'],
+    driver: ['DRIVERS_TABLE', 'WhizzDrivers_staging'],
+    branch: ['MERCHANTS_TABLE', 'WhizzMerchants_Businesses'],
+    deletion: ['ACCOUNT_DELETION_TABLE', 'staging-AccountDeletion'],
+  } as const;
+  const production = isFinancialOrderProduction(env);
+  const dispatch = {} as Record<keyof typeof defaults, string>;
+  for (const key of Object.keys(defaults) as (keyof typeof defaults)[]) {
+    const [variable, fallback] = defaults[key];
+    const value = production ? env[variable] || '' : fallback;
+    if (production && !/^wizz-production-[A-Za-z0-9_-]+$/.test(value)) {
+      throw new Error('WALLET_BINDING_NOT_CONFIGURED: ' + variable);
+    }
+    dispatch[key] = value;
+  }
+  const names = [...Object.values(tables), ...Object.values(dispatch), env.TOPUP_REQUESTS_TABLE, env.IDEMPOTENCY_KEYS_TABLE];
+  if (production && new Set(names).size !== names.length) {
+    throw new Error('WALLET_BINDING_NOT_CONFIGURED: DISTINCT_DISPATCH_TABLES');
+  }
+  return { ...tables, ...dispatch };
+}

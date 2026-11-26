@@ -1,3 +1,6 @@
+import {returnTaskNotice} from './returnTaskNotice';
+import {checkoutTables} from './checkoutTables';
+import {financialDispatchTables,isFinancialOrderProduction} from './walletBindings';
 import {createReturnItemManifest,verifyReturnItemReceipt} from './returnItems';
 import {verifyMerchantPayoutJournal} from './merchantPayout';
 import {planReturnedTask} from './returnCustody';
@@ -17,9 +20,6 @@ import { prepareCodRelease } from './financialRelease';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { readMoney, toWholeIqdExact } from './money';
 import { detach, equal, strongGet, exactCheck, updateChecked, FinancialRow as Row } from './driverFinancialTransaction';
-const T={orders:'WizzOrders',offers:'WaveOffers_staging',holds:'staging-Holds',wallets:'staging-Wallets',ledger:'staging-LedgerEntries',
- audit:'staging-AuditLog',lifecycle:'staging-WalletLifecycle',driver:'WhizzDrivers_staging',branch:'WhizzMerchants_Businesses',
- deletion:'staging-AccountDeletion',jobs:'WizzDispatchJobs_staging',live:'WizzDriverLiveState_staging'};
 export type { ReturnActor } from './codFlowContext';
 const fail=(code='COD_RETURN_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
 const whole=(v:unknown)=>toWholeIqdExact(readMoney(v));
@@ -35,9 +35,10 @@ function input(value:unknown,fields:string[]){
  * The injected authenticator MUST validate original credentials, never a caller's role/subject fields.
  */
 export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;returnRouter?:any}){
+ const T=financialDispatchTables(),merchantPlatform=checkoutTables().platform;
  const {db,authenticate}=options,now=options.now??Date.now;
  const context=createCodFlowContext({db,authenticate,now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash});
- const orderFence=(c:Awaited<ReturnType<typeof context>>)=>exactCheck(T.orders,c.key,c.order,[...new Set([...Object.keys(c.order),'cashReviewVerifiedCollection','openPaymentClaimId','financialOutcome','returnStatus','returnCaseId','cancellationStatus','cancellationRequestId','deletionRequestId','deletedAt','deletionStatus','isDeleted','cashCollected','cashCollectedAmount'])]);
+ const orderFence=(c:Awaited<ReturnType<typeof context>>)=>exactCheck(T.orders,c.key,c.order,[...new Set([...Object.keys(c.order),'cashReviewVerifiedCollection','cashReturnClearance','openPaymentClaimId','financialOutcome','returnStatus','returnCaseId','cancellationStatus','cancellationRequestId','deletionRequestId','deletedAt','deletionStatus','isDeleted','cashCollected','cashCollectedAmount'])]);
  function audit(c:Awaited<ReturnType<typeof context>>,action:string,eventId:string){return {Put:{TableName:T.audit,Item:{datePartition:'date#'+c.timestamp.slice(0,10).replace(/-/g,''),sk:c.timestamp+'#'+eventId,
   logId:eventId,action,orderId:c.order.orderId,branchId:c.offer.branchId,returnId:c.returnId,actorId:c.actor.subjectId,actorKind:c.actor.kind,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(sk)'}};}
  async function commit(c:Awaited<ReturnType<typeof context>>,ops:Row[],recover:()=>Promise<Row|null>){
@@ -63,6 +64,7 @@ export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'
   if(v.cashCollected!==false)return fail('COD_CASH_REVIEW_REQUIRED');
   if(!['CUSTOMER_UNREACHABLE','CUSTOMER_REFUSED','DELIVERY_BLOCKED','OTHER'].includes(v.reason))return fail('INVALID_COD_RETURN');
   const c=await context(v,'DRIVER');noCash(c.order);
+  if(isFinancialOrderProduction(process.env)&&!readOrderExceptionPolicy(c.order))return fail('ORDER_EXCEPTION_POLICY_REQUIRED');
   if(c.record){if(c.record.reason!==v.reason||c.record.cashCollected!==false)return fail();return {...receipt(v,c,c.record.status),replayed:true};}
   if(!['picked_up','heading_to_customer','arrived_at_customer'].includes(c.order.status)||c.order.financialOutcome!=null||c.order.returnCaseId!=null||c.order.returnStatus!=null||c.order.cancellationStatus!=null||c.order.cancellationRequestId!=null)return fail();
   const attemptEvidence=readOrderExceptionPolicy(c.order)&&v.reason==='CUSTOMER_UNREACHABLE'?await requireNoResponseAttempt(db,c):null;
@@ -91,7 +93,7 @@ export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'
   if(v.returnId!==c.returnId||!c.record)return fail();
   if(c.record.status==='ARRIVED_AT_BRANCH'||c.record.status==='CONFIRMED'||c.record.status==='REVIEW_REQUIRED')return {...receipt(v,c,c.record.status),replayed:true};
   if(c.record.status!=='RETURNING'||c.order.status!=='returning'||c.order.returnStatus!=='RETURNING'||c.order.returnCaseId!==c.returnId||c.order.financialOutcome!=null)return fail();
-  noCash(c.order);const returnOpsPolicy=readOrderExceptionPolicy(c.order)?await strongGet(db,'staging-PlatformStaff',{pk:'OPERATIONAL_SETTINGS#RETURN_OPERATIONS',sk:'CURRENT'}):null;const arrivalSettings=returnOpsPolicy?await readExceptionSettings(db):null;const arrivalProof=arrivalSettings?assertPosition(v.position,c.offer.source.order.branchPoint,arrivalSettings.snapshot.values,now()):null;const h=await holdGuard(c),result=receipt(v,c,'ARRIVED_AT_BRANCH');
+  noCash(c.order);const returnOpsPolicy=readOrderExceptionPolicy(c.order)?await strongGet(db,T.staff,{pk:'OPERATIONAL_SETTINGS#RETURN_OPERATIONS',sk:'CURRENT'}):null;const arrivalSettings=returnOpsPolicy||isFinancialOrderProduction(process.env)?await readExceptionSettings(db):null;const arrivalProof=arrivalSettings?assertPosition(v.position,c.offer.source.order.branchPoint,arrivalSettings.snapshot.values,now()):null;const h=await holdGuard(c),result=receipt(v,c,'ARRIVED_AT_BRANCH');
   const recovered=await commit(c,[...c.guards,h.guard,...(arrivalSettings?[arrivalSettings.condition]:[]),set(orderFence(c),{status:'return_arrived',orderStatus:'return_arrived',returnStatus:'ARRIVED_AT_BRANCH',updatedAt:c.timestamp}),
    set(exactCheck(T.holds,c.returnKey,c.record),{status:'ARRIVED_AT_BRANCH',version:c.record.version+1,arrivedAt:c.timestamp,updatedAt:c.timestamp,...(arrivalProof?{arrivalProof}:{}),...(c.record.exceptionResolution?{exceptionResolution:returnResolution(c.order,c.offer,c.record,'ARRIVED_AT_BRANCH',c.timestamp)}:{})}),
    audit(c,'COD_RETURN_ARRIVED',c.returnId+':ARRIVED')],async()=>{
@@ -102,8 +104,8 @@ export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'
   const v=input(value,['branchId','orderId','offerId','attempt']),c=await context(v,'MERCHANT_OWNER');
   if(!quoteEntityIdValid(v.branchId)||!c.record)return fail();
   await db.send(new TransactWriteCommand({TransactItems:[...c.guards,orderFence(c),exactCheck(T.holds,c.returnKey,c.record),audit(c,'COD_RETURN_READ',randomUUID())] as any}));
-  let r=c.record;const acceptance=await strongGet(db,'staging-MerchantPlatform',acceptanceKey(c.offer.branchId));
-  if(r.entitlementsPosted?.merchantCompensationIqd){const p=await strongGet(db,T.holds,{orderId:v.orderId,sk:'MERCHANT_PAYABLE'});if(p?.status==='PAID'){const journal=await strongGet(db,'staging-MerchantPlatform',{pk:'MERCHANT_PAYOUT_PAID#'+p.paidPayoutId,sk:'META'});verifyMerchantPayoutJournal(journal!,c.offer.branchId,p);r={...r,exceptionResolution:{...r.exceptionResolution,merchantCompensation:{...r.exceptionResolution.merchantCompensation,paymentStatus:'PAID',paidAt:p.paidAt}}};}}
+  let r=c.record;const acceptance=await strongGet(db,merchantPlatform,acceptanceKey(c.offer.branchId));
+  if(r.entitlementsPosted?.merchantCompensationIqd){const p=await strongGet(db,T.holds,{orderId:v.orderId,sk:'MERCHANT_PAYABLE'});if(p?.status==='PAID'){const journal=await strongGet(db,merchantPlatform,{pk:'MERCHANT_PAYOUT_PAID#'+p.paidPayoutId,sk:'META'});verifyMerchantPayoutJournal(journal!,c.offer.branchId,p);r={...r,exceptionResolution:{...r.exceptionResolution,merchantCompensation:{...r.exceptionResolution.merchantCompensation,paymentStatus:'PAID',paidAt:p.paidAt}}};}}
   return {success:true,kind:'COD_RETURN_CASE',orderId:v.orderId,offerId:v.offerId,attempt:v.attempt,branchId:c.offer.branchId,returnId:c.returnId,
    itemManifest:r.itemManifest??null,itemReceipt:r.itemReceipt??null,status:r.status,version:r.version,taskCompleted:c.order.status==='returned',holdStatus:c.order.holdStatus,automaticReturnAcceptance:{enabled:acceptance?.enabled===true&&acceptance?.ownerId===c.branch.ownerId&&acceptance?.termsVersion==='RETURN_ACCEPTANCE_V1'},handoverIssue:r.handoverIssue??null,branchReadiness:r.branchReadiness??null,disposition:r.disposition??null,reason:r.reason,cashCollected:r.cashCollected,createdAt:r.createdAt,arrivedAt:r.arrivedAt??null,
    ...(r.exceptionResolution?{resolution:merchantReturnResolution(r)}:{}),
@@ -147,7 +149,9 @@ export function createStagingCodReturn(options:{db:Pick<DynamoDBDocumentClient,'
     set(exactCheck(T.jobs,jobKey,job),{status:'returned',completedAt:c.timestamp}),
     {Put:{TableName:T.holds,Item:{orderId:v.orderId,sk:'FINANCIAL_OUTCOME',kind:'COD_RETURN_JOURNAL',...(c.order.financialAcceptance.schemaVersion===3?{schemaVersion:3,settlementModel:'FULL_CASH_AT_DELIVERY_V1',deliveryFunding:c.order.financialAcceptance.deliveryFunding}:c.order.financialAcceptance.schemaVersion===2?{schemaVersion:2,deliveryFunding:c.order.financialAcceptance.deliveryFunding}:{}),operationId,outcome:'RETURNED',returnId:c.returnId,driverId:c.order.driverId,subjectId:c.subject,branchId:c.offer.branchId,
      offerId:v.offerId,attempt:v.attempt,journalLines:journal,receipt:result,createdAt:c.timestamp},ConditionExpression:'attribute_not_exists(orderId)'}},
-    codIntegrationEvent({kind:'COD_RETURN_OUTBOX',financialOperationId:operationId,orderId:v.orderId,driverId:c.order.driverId,subjectId:c.subject,branchId:c.offer.branchId,offerId:v.offerId,attempt:v.attempt,waveNumber:c.order.assignmentWaveNumber,createdAt:c.timestamp}));
+    ...(isFinancialOrderProduction(process.env) ? returnTaskNotice(c.order,c.offer,c.timestamp) : [
+      codIntegrationEvent({kind:'COD_RETURN_OUTBOX',financialOperationId:operationId,orderId:v.orderId,driverId:c.order.driverId,subjectId:c.subject,branchId:c.offer.branchId,offerId:v.offerId,attempt:v.attempt,waveNumber:c.order.assignmentWaveNumber,createdAt:c.timestamp}),
+    ]));
   }
   if(savedCase.exceptionResolution){const active=(result.status==='CONFIRMED'||physicalReceipt)&&savedCase.casePolicySnapshot?casePhase(savedCase.casePolicySnapshot,'FINANCIAL',c.timestamp):savedCase.activePhase;ops.push(await exceptionCaseIndexOperation(db,{caseId:savedCase.exceptionResolution.caseId,orderId:v.orderId,caseKey:c.returnKey.sk,caseType:'COD_DELIVERY_EXCEPTION',state:result.status==='CONFIRMED'?'SETTLEMENT_PENDING':'MANUAL_REVIEW',open:true,at:c.timestamp,branchId:c.offer.branchId,dueAt:active?.responseDueAt??c.timestamp}));}
   ops.push(set(exactCheck(T.holds,c.returnKey,savedCase),{status:result.status,version:savedCase.version+1,...(taskCompletion?{taskCompletion}:{}),...(itemResult?{itemReceipt:itemResult.receipt}:{}),confirmationDigest:fingerprint,confirmedBy:c.actor.subjectId,confirmedAt:c.timestamp,

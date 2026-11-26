@@ -1,0 +1,91 @@
+{
+  "accountId": "746727375268",
+  "environment": "production",
+  "stages": [
+    {
+      "name": "foundation",
+      "status": "DEPLOYED_VERIFIED",
+      "dependsOn": []
+    },
+    {
+      "name": "identity-and-service-auth",
+      "status": "PARTIALLY_DEPLOYED",
+      "dependsOn": [
+        "foundation"
+      ],
+      "completed": [
+        "admin-user-pool-and-web-client",
+        "three-application-phone-pools-and-clients-login-inactive",
+        "three-scoped-challenge-functions-attached-OTP-disabled",
+        "production-admin-owner-active-software-MFA-and-hosted-session"
+      ],
+      "remaining": [
+        "service-authentication",
+        "production-OTP-provider-and-registration-integration"
+      ]
+    },
+    {
+      "name": "application-storage-and-event-buses",
+      "status": "PARTIALLY_DEPLOYED",
+      "dependsOn": [
+        "foundation"
+      ],
+      "completed": [
+        "ten-core-empty-tables",
+        "fifteen-empty-catalog-customer-region-tables",
+        "eight-empty-authentication-and-lifecycle-tables",
+        "one-empty-merchant-OTP-table"
+      ],
+      "remaining": [
+        "application-specific-storage",
+        "event-buses-and-queues",
+        "service-permissions-and-bindings"
+      ]
+    },
+    {
+      "name": "wallet-order-and-commercial-core",
+      "status": "NOT_PREPARED",
+      "dependsOn": [
+        "identity-and-service-auth",
+        "application-storage-and-event-buses"
+      ]
+    },
+    {
+      "name": "merchant-customer-driver-apis",
+      "status": "NOT_PREPARED",
+      "dependsOn": [
+        "wallet-order-and-commercial-core"
+      ]
+    },
+    {
+      "name": "dispatch-performance-and-demand",
+      "status": "NOT_PREPARED",
+      "dependsOn": [
+        "merchant-customer-driver-apis"
+      ]
+    },
+    {
+      "name": "realtime-notifications-support-and-kitchen",
+      "status": "NOT_PREPARED",
+      "dependsOn": [
+        "merchant-customer-driver-apis"
+      ]
+    },
+    {
+      "name": "admin-policies-and-reference-config",
+      "status": "NOT_PREPARED",
+      "dependsOn": [
+        "dispatch-performance-and-demand",
+        "realtime-notifications-support-and-kitchen"
+      ]
+    },
+    {
+      "name": "production-mobile-builds-and-acceptance",
+      "status": "NOT_PREPARED",
+      "dependsOn": [
+        "admin-policies-and-reference-config"
+      ]
+    }
+  ],
+  "note": "Dependency groups only. Per-stack dependency cycles and outputs must be resolved during template preparation; this file is not an executable deployment script."
+}

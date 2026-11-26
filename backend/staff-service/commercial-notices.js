@@ -2,6 +2,10 @@
 // Durable delivery intent is committed with the sharing draft. No credentials or financial values in push payloads.
 const {GetCommand,ScanCommand,UpdateCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {LambdaClient,InvokeCommand}=require('@aws-sdk/client-lambda');
+const {createHash}=require('node:crypto');
+const outboxPrefix='COMMERCIAL_SHARING_NOTICE#';
+const pendingStatus='COMMERCIAL_PENDING';
+const outboxId=(pk,sk)=>outboxPrefix+createHash('sha256').update(JSON.stringify([pk,sk])).digest('hex');
 const S='staging-PlatformStaff',TARGET='wizzcentral-notifications-staging-pushSendMerchantOrder';
 function notice(draft){return {pk:draft.pk,sk:'NOTICE#'+draft.version,ownerId:draft.ownerId,businessId:draft.businessIds[0],draftVersion:draft.version,draftHash:draft.hash,eventId:(draft.kind==='DELIVERY'?'delivery:':'sharing:')+draft.id+':'+draft.version,status:'PENDING',createdAt:draft.createdAt,expiresAt:draft.values.effectiveTo,attempts:0,nextAttemptAt:0,leaseUntil:0,sentTokenHashes:[]};}
 async function tick({db,invoke,now=Date.now}){
@@ -22,4 +26,11 @@ async function tick({db,invoke,now=Date.now}){
  }
  await db.send(new UpdateCommand({TableName:S,Key:cursorKey,UpdateExpression:'SET #c=:c',ExpressionAttributeNames:{'#c':'cursor'},ExpressionAttributeValues:{':c':cursor||null}}));return {scanned,sent,more:!!cursor,providerCodes:[...new Set(providerCodes)]};
 }
-module.exports={notice,tick};
+function outboxNotice(draft,table){
+ const {pk,sk,createdAt,expiresAt}=notice(draft);
+ return {Put:{TableName:table,Item:{eventId:outboxId(pk,sk),type:'commercial_sharing_requested',
+  recipientApp:'merchant',noticePk:pk,noticeSk:sk,createdAt,expiresAt,
+  deliveryStatus:pendingStatus,nextAttemptAt:Math.floor(Date.parse(createdAt)/1000),attempts:0},
+  ConditionExpression:'attribute_not_exists(eventId)'}};
+}
+module.exports={notice,tick,outboxNotice,outboxId,outboxPrefix,pendingStatus};

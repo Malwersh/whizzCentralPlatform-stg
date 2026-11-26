@@ -2,6 +2,7 @@ const {createStagingDeliveryQuotes}=require('../../dist/deliveryQuote');
 const {TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {createStagingDeliveryRouting}=require('../../dist/regionCoverage');
 const {parseIqd:m}=require('../../dist/money');
+const {checkoutTables}=require('../../dist/checkoutTables');
 const at=Date.parse('2026-10-15T12:00:00.000Z');
 const point={latitude:31.925,longitude:44.457};
 const rule=(scope={type:'GLOBAL',id:'GLOBAL'},base='1000')=>({id:'r-'+scope.type,version:1,scope,priority:1,status:'PUBLISHED',
@@ -9,6 +10,7 @@ const rule=(scope={type:'GLOBAL',id:'GLOBAL'},base='1000')=>({id:'r-'+scope.type
  base:m(base),perKm:m('1000'),tiers:[],longDistance:{afterMeters:5000,flat:m('0'),perKm:m('0')},peaks:[],
  minimum:m('0'),maximum:m('10000'),coverage:{enabled:true,maxRoadMeters:10000,maxDurationSeconds:3600,supportedZoneIds:['zone']},fallbackPolicyId:null});
 function fixture(){
+ const tables=checkoutTables();
  const levels=['country','governorate','district','zone'];
  const regions=new Map(levels.map((regionId,level)=>[regionId,{regionId,level,parent_id:level?levels[level-1]:'ROOT',is_active:1,
   ...(level===3?{geometry:{type:'Polygon',coordinates:[[[44.4,31.9],[44.5,31.9],[44.5,32],[44.4,32],[44.4,31.9]]]}}:{})}]));
@@ -21,7 +23,7 @@ function fixture(){
   authenticate:async()=>({userId:'u1',subjectId:'sub1'}),afterProvider:()=>{},failTable:null,deleted:false};
  state.saved=new Map();state.orders=new Map();state.time=at;state.beforeTransaction=()=>{};state.transactions=[];state.loseResponse=false;
  const profile={userId:'u1',cognitoSub:'sub1',isActive:true};state.profile=profile;
- const auth=async()=>{const c=await state.authenticate();return {...c,condition:{ConditionCheck:{TableName:'WizzUser_users_staging',Key:{userId:c.userId},
+ const auth=async()=>{const c=await state.authenticate();return {...c,condition:{ConditionCheck:{TableName:tables.customers,Key:{userId:c.userId},
   ConditionExpression:'attribute_exists(userId) AND cognitoSub = :sub AND isActive = :yes AND attribute_not_exists(deletionRequestId)',ExpressionAttributeValues:{':sub':c.subjectId,':yes':true}}}};};
  function value(row,path,names={}){for(const p of path.split('.')){if(row==null)return undefined;row=row[names[p]??p];}return row;}
  function matches(check,row){
@@ -39,16 +41,17 @@ function fixture(){
   return evaluate(check.ConditionExpression);
  }
  function lookup(table,key){const extra=state.extraLookup?.(table,key);if(extra!==undefined)return extra;switch(table){
-  case 'WizzOrders':return state.orders.get(key.PK+'|'+key.SK);
-  case 'staging-DeliveryQuotes':return state.saved.get(key.pk+'|'+key.sk);
-  case 'WizzUser_users_staging':return state.profile?.userId===key.userId?state.profile:undefined;
-  case 'WizzCentral_Regions':return regions.get(key.regionId);
-  case 'WizzCentral_RegionsDerived_staging':return {regionId:key.regionId,effective_is_active:state.derivedActive??1};
-  case 'WhizzMerchants_Businesses':return state.branch;
-  case 'WizzUser_addresses_staging':return state.address;
-  case 'staging-PlatformStaff':return state.policy;
-  case 'staging-MerchantPlatform':return state.organization;
-  case 'staging-AccountDeletion':return state.deleted?{pk:key.pk}:undefined;
+  case tables.orders:return state.orders.get(key.PK+'|'+key.SK);
+  case tables.quotes:return state.saved.get(key.pk+'|'+key.sk);
+  case tables.customers:return state.profile?.userId===key.userId?state.profile:undefined;
+  case tables.regions:return regions.get(key.regionId);
+  case tables.derived:return {regionId:key.regionId,effective_is_active:state.derivedActive??1};
+  case tables.neighbors:return key.neighbor_pair_id==='zone#neighbor'?state.neighbor:undefined;
+  case tables.branches:return state.branch;
+  case tables.addresses:return state.address;
+  case tables.policy:return state.policy;
+  case tables.platform:return state.organization;
+  case tables.deletion:return state.deleted?{pk:key.pk}:undefined;
   default:if(state.extraLookup)return state.extraLookup(table,key);throw Error('unexpected table '+table);
  }}
  state.lookup=lookup;
@@ -56,13 +59,13 @@ function fixture(){
   state.beforeTransaction(cmd.input);state.transactions.push(cmd.input);
   for(const action of cmd.input.TransactItems){
    const op=action.ConditionCheck??action.Put??action.Update;
-   if(op&&!matches(op,lookup(op.TableName,op.Key??(op.Item.PK?{PK:op.Item.PK,SK:op.Item.SK}:{pk:op.Item.pk,sk:op.Item.sk}))))throw Object.assign(Error('conditional'),{name:'TransactionCanceledException'});
+   if(op&&!matches(op,lookup(op.TableName,op.Key??(op.Item.PK?{PK:op.Item.PK,SK:op.Item.SK}:op.Item.operationId?{operationId:op.Item.operationId}:{pk:op.Item.pk,sk:op.Item.sk}))))throw Object.assign(Error('conditional'),{name:'TransactionCanceledException'});
   }
   for(const a of cmd.input.TransactItems){
    if(a.Put&&state.extraPut?.(a.Put))continue;
-   if(a.Put){const store=a.Put.TableName==='WizzOrders'?state.orders:state.saved;const r=a.Put.Item;store.set((r.PK??r.pk)+'|'+(r.SK??r.sk),structuredClone(r));}
-   if(a.Update && state.extraUpdate && a.Update.TableName!=='staging-DeliveryQuotes'){state.extraUpdate(a.Update);continue;}
-   if(a.Update){if(a.Update.TableName!=='staging-DeliveryQuotes'||a.Update.UpdateExpression!=='SET consumption=:used')throw Error('unexpected update');lookup(a.Update.TableName,a.Update.Key).consumption=structuredClone(a.Update.ExpressionAttributeValues[':used']);}
+   if(a.Put){const store=a.Put.TableName===tables.orders?state.orders:state.saved;const r=a.Put.Item;store.set((r.PK??r.pk)+'|'+(r.SK??r.sk),structuredClone(r));}
+   if(a.Update && state.extraUpdate && a.Update.TableName!==tables.quotes){state.extraUpdate(a.Update);continue;}
+   if(a.Update){if(a.Update.TableName!==tables.quotes||a.Update.UpdateExpression!=='SET consumption=:used')throw Error('unexpected update');lookup(a.Update.TableName,a.Update.Key).consumption=structuredClone(a.Update.ExpressionAttributeValues[':used']);}
    if(a.Delete)state.saved.delete(a.Delete.Key.pk+'|'+a.Delete.Key.sk);
   }
   if(state.loseResponse&&cmd.input.TransactItems.some(a=>a.Put)){state.loseResponse=false;throw Error('lost acknowledgement');}
@@ -70,14 +73,15 @@ function fixture(){
  }
   const q=cmd.input;state.calls.push(q);
   if(q.TableName===state.failTable)throw Error('sensitive SDK data');
-  if(q.TableName==='WizzCentral_RegionIndex_staging')return {Items:[{h3_cell:q.ExpressionAttributeValues[':cell'],regionId:'zone'}]};
-  if(q.TableName==='staging-DeliveryQuotes'&&!q.Key){const all=[...state.saved.values()].filter(r=>r.pk===q.ExpressionAttributeValues[':pk']);return {Items:all.slice(0,20),...(all.length>20?{LastEvaluatedKey:{pk:all[19].pk,sk:all[19].sk}}:{})};}
+  if(q.TableName===tables.index)return {Items:[...regions.values()].filter(row=>row.level===3)
+   .map(row=>({h3_cell:q.ExpressionAttributeValues[':cell'],regionId:row.regionId}))};
+  if(q.TableName===tables.quotes&&!q.Key){const all=[...state.saved.values()].filter(r=>r.pk===q.ExpressionAttributeValues[':pk']);return {Items:all.slice(0,20),...(all.length>20?{LastEvaluatedKey:{pk:all[19].pk,sk:all[19].sk}}:{})};}
   const item=lookup(q.TableName,q.Key);
   return {Item:item&&structuredClone(item)};
  }};
  const createRouter=db=>createStagingDeliveryRouting({db,getAccessToken:async()=>'test',profile:'driving',ttlSeconds:state.routeTTL??120,timeoutMs:1000,now:()=>state.time,
   fetchImpl:async()=>{state.providerCalls++;state.afterProvider();return new Response(JSON.stringify({code:'Ok',routes:[{distance:2100,duration:300}]}));}});
- state.db=db;state.auth=auth;
+ state.db=db;state.auth=auth;state.createRouter=createRouter;
  state.service=createStagingDeliveryQuotes({db,createRouter,authenticateCustomer:auth,now:()=>state.time});
  state.create=(patch={})=>state.service.create({branchId:'b1',addressId:'a1',requestId:'12345678-1234-4123-8123-123456789abc',...patch});
  return state;

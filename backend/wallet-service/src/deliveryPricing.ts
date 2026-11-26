@@ -47,6 +47,8 @@ function timestamp(value: unknown): number {
 }
 const zero = moneyFromMinor(0);
 const scopeTypes = ['GLOBAL', 'GOVERNORATE', 'CITY', 'ZONE', 'MERCHANT', 'BRANCH'] as const;
+const crossRegionModes = ['SAME_REGION', 'SAME_DISTRICT', 'SAME_GOVERNORATE', 'ADJACENT_REGIONS'] as const;
+type CrossRegionMode = typeof crossRegionModes[number];
 type ScopeType = typeof scopeTypes[number];
 function scope(value: unknown) {
   const s = row(value, ['type', 'id']);
@@ -102,13 +104,17 @@ function deliveryRule(value: unknown) {
   const minimum = amount(r.minimum), maximum = amount(r.maximum);
   if (maximum.minorAmount < minimum.minorAmount) return fail();
   roundingLimits(c.finalRounding, minimum, maximum);
-  const cov = row(r.coverage, ['enabled', 'maxRoadMeters', 'maxDurationSeconds', 'supportedZoneIds']);
+  const hasCrossRegionMode = !!r.coverage && Object.prototype.hasOwnProperty.call(r.coverage, 'crossRegionMode');
+  const cov = row(r.coverage, ['enabled', 'maxRoadMeters', 'maxDurationSeconds', 'supportedZoneIds',
+    ...(hasCrossRegionMode ? ['crossRegionMode'] : [])]);
+  const crossRegionMode = hasCrossRegionMode ? cov.crossRegionMode as CrossRegionMode : undefined;
+  if (hasCrossRegionMode && !crossRegionModes.includes(crossRegionMode as CrossRegionMode)) return fail();
   if (!Array.isArray(cov.supportedZoneIds) || !cov.supportedZoneIds.length || cov.supportedZoneIds.length > 1000) return fail();
   const zones = cov.supportedZoneIds.map(text);
   if (new Set(zones).size !== zones.length) return fail();
   if (r.fallbackPolicyId !== null) text(r.fallbackPolicyId);
   return { ...c, base, perKm, tiers, longDistance: surcharge(r.longDistance), peaks: peaks(r.peaks), minimum, maximum,
-    coverage: { enabled: bool(cov.enabled), maxRoadMeters: integer(cov.maxRoadMeters, 1), maxDurationSeconds: integer(cov.maxDurationSeconds, 1), zones }, fallbackPolicyId: r.fallbackPolicyId };
+    coverage: { enabled: bool(cov.enabled), maxRoadMeters: integer(cov.maxRoadMeters, 1), maxDurationSeconds: integer(cov.maxDurationSeconds, 1), zones, crossRegionMode }, fallbackPolicyId: r.fallbackPolicyId };
 }
 function compensationRule(value: unknown) {
   const r = ruleRow(value, [...commonKeys, 'base', 'pickupPerKm', 'pickupIncludedMeters', 'deliveryPerKm', 'perMinute', 'longDistance', 'peaks', 'minimum', 'maximum', 'fallbackPolicyId']);
@@ -135,6 +141,26 @@ function readRules<T>(values: unknown, parse: (v: unknown) => T): T[] {
   if (new Set(identities).size !== identities.length) return fail();
   return rules;
 }
+
+export function resolveDeliveryCoveragePolicy(input: { at: string; context: unknown; rules: unknown }) {
+  const rule = select(readRules(input.rules, deliveryRule), context(input.context), timestamp(input.at));
+  return rule.coverage;
+}
+
+export function allowsDeliveryRegionPair(mode: CrossRegionMode, origin: RegionHierarchy, destination: RegionHierarchy, adjacent: boolean) {
+  if (origin.regionId === destination.regionId) return true;
+  if (!adjacent || origin.countryId !== destination.countryId) return false;
+  if (mode === 'SAME_DISTRICT') return origin.districtId === destination.districtId;
+  if (mode === 'SAME_GOVERNORATE') return origin.governorateId === destination.governorateId;
+  return mode === 'ADJACENT_REGIONS';
+}
+
+type RegionHierarchy = {
+  regionId: string;
+  districtId: string;
+  governorateId: string;
+  countryId: string;
+};
 function route(value: unknown, at: number, fallbackPolicyId: unknown) {
   const r = row(value, ['id', 'source', 'quality', 'fallbackPolicyId', 'distanceMeters', 'durationSeconds', 'measuredAt', 'expiresAt']);
   const measuredAt = timestamp(r.measuredAt), expiresAt = timestamp(r.expiresAt);

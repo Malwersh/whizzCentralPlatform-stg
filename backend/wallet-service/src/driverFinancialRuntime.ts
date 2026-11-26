@@ -35,8 +35,31 @@ import { createStagingCodReturn } from './codReturn';
 import { authenticateFinancialIdentity } from './financialIdentity';
 import { createStagingCodCompletion } from './codCompletion';
 import { FinancialRow as Row } from './driverFinancialTransaction';
-function configuration() {
- if(process.env.FINANCIAL_DISPATCH_MODE!=='REQUIRED'||(process.env.STAGE??process.env.ENVIRONMENT)!=='staging'||process.env.AWS_REGION!=='us-east-1')throw Error('FINANCIAL_DISPATCH_DISABLED');
+import { financialDispatchTables, isFinancialOrderProduction } from './walletBindings';
+
+const productionOrderActions = new Set([
+ 'staff_order_management',
+ 'merchant_cancel_before_pickup',
+ 'read_customer_cancellation',
+ 'request_customer_cancellation',
+ 'confirm_customer_cancellation',
+ 'read_merchant_cancellation',
+ 'record_merchant_cancellation_retention',
+ 'unassign_financial',
+ 'cancel_before_pickup',
+]);
+
+function configuration(allowProductionOrderAction = false) {
+ const production = isFinancialOrderProduction(process.env);
+ const hostMode = process.env.FINANCIAL_ORDER_HOST_MODE;
+ const releaseMode = process.env.FINANCE_GENERAL_RELEASE_MODE ?? 'OFF';
+ const enabled = production
+  ? allowProductionOrderAction &&
+    ((hostMode === 'SCOPED' && releaseMode === 'OFF') ||
+     (hostMode === 'GENERAL' && releaseMode === 'REQUIRED')) &&
+    process.env.FINANCIAL_SETTLEMENT_MODEL === 'FULL_CASH_AT_DELIVERY_V1'
+  : (process.env.STAGE ?? process.env.ENVIRONMENT) === 'staging';
+ if(!enabled||process.env.FINANCIAL_DISPATCH_MODE!=='REQUIRED'||process.env.AWS_REGION!=='us-east-1')throw Error('FINANCIAL_DISPATCH_DISABLED');
  const ttl=Number(process.env.FINANCIAL_OFFER_TTL_SECONDS),age=Number(process.env.FINANCIAL_POSITION_MAX_AGE_SECONDS);
  if(![ttl,age].every(n=>Number.isSafeInteger(n)&&n>=1&&n<=900))throw Error('FINANCIAL_DISPATCH_NOT_CONFIGURED');
  const deliveryFundingMode=process.env.FINANCIAL_DELIVERY_FUNDING_MODE??'OFF';
@@ -135,17 +158,17 @@ export async function financialExceptionCaseAdmin(body:Row,accessToken:string){
 }
 
 export async function financialMerchantCancellation(body:Row,accessToken:string){
- const config=configuration(),{db,cognito,rollout}=clients();
+ const config=configuration(true),{db,cognito,rollout}=clients();
  const authenticate=async()=>{const actor=await authenticateFinancialIdentity(cognito,accessToken,'MERCHANT_OWNER');await rollout.order(body?.orderId,'DRAIN');return actor;};
  await authenticate();
  if(!body||Object.keys(body).sort().join(',')!=='branchId,cashCollected,goodsRetainedByBranch,idempotencyKey,orderId,preparationState,reason')throw Error('INVALID_CANCELLATION');
- const order=await strongGet(db,'WizzOrders',{PK:'ORDER#'+body.orderId,SK:'META'});if(!order)throw Error('CANCELLATION_UNAVAILABLE');
+ const order=await strongGet(db,financialDispatchTables().orders,{PK:'ORDER#'+body.orderId,SK:'META'});if(!order)throw Error('CANCELLATION_UNAVAILABLE');
  if(order.financialAcceptance){return createStagingCodReassignment({db,authenticate,enableFullCash:config.enableFullCash,enableDeliveryFunding:config.enableDeliveryFunding,reassignmentWindowSeconds:120,merchantCancellation:{reason:body.reason,preparationState:body.preparationState,idempotencyKey:body.idempotencyKey}}).cancelBeforePickup({orderId:body.orderId,branchId:body.branchId,offerId:order.financialAcceptance.offerId,attempt:order.assignmentAttemptCounter,goodsRetainedByBranch:body.goodsRetainedByBranch,cashCollected:body.cashCollected});}
  return createCustomerCancellation({db,authenticate,enableFullCash:config.enableFullCash,enableDeliveryFunding:config.enableDeliveryFunding}).merchantCancelUnassigned(body);
 }
 
 export async function financialCustomerCancellation(action:string,body:Row,accessToken:string){
- const config=configuration(),{db,cognito,rollout}=clients();
+ const config=configuration(true),{db,cognito,rollout}=clients();
  const authenticate=async()=>{const actor=await authenticateFinancialIdentity(cognito,accessToken,['confirm_customer_cancellation','read_merchant_cancellation','record_merchant_cancellation_retention'].includes(action)?'MERCHANT_OWNER':'CUSTOMER');await rollout.order(body.orderId,'DRAIN');return actor;};
  const service=createCustomerCancellation({db,authenticate,enableFullCash:config.enableFullCash,enableDeliveryFunding:config.enableDeliveryFunding});
  if(action==='record_merchant_cancellation_retention')return service.recordMerchantRetention(body);
@@ -166,7 +189,7 @@ export async function financialDeliveryAttempt(action:string,body:Row,accessToke
 }
 
 export async function financialAssignmentTransition(action:string,body:Row,accessToken:string){
- const config=configuration();
+ const config=configuration(true);
  if(process.env.FINANCIAL_COD_ASSIGNMENTS_MODE!=='REQUIRED')throw Error('COD_ASSIGNMENTS_DISABLED');
  const {db,cognito,rollout}=clients(),owner=action==='cancel_before_pickup';
  const operating=await readDeliveryOperations(db,owner?{...process.env,DELIVERY_OPERATIONS_MODE:'ENV'}:process.env);
@@ -200,6 +223,13 @@ export async function readFinancialOffer(body:Row,accessToken:string){
  * a caller-supplied subject/hold/amount is never accepted. Never log event or credentials.
  */
 export async function financialAcceptanceHandler(event:Row) {
+ let production: boolean;
+ try {
+  production = isFinancialOrderProduction(process.env);
+ } catch {
+  return {statusCode:503,code:'FINANCE_ROLLOUT_NOT_CONFIGURED'};
+ }
+ if(production && !productionOrderActions.has(event?.action))return {statusCode:503,code:'FINANCIAL_DISPATCH_DISABLED'};
  if(['driver_cash_payout','staff_driver_cash_payout'].includes(event?.action))return driverCashPayoutHandler(event);
  if(['customer_order_complaint','staff_order_complaint'].includes(event?.action))return customerOrderComplaintHandler(event);
  if(event?.action==='driver_quality_case')return driverQualityHandler(event);
@@ -216,6 +246,7 @@ export async function financialAcceptanceHandler(event:Row) {
  } catch(error:any) {
   if(event?.action==='exception_case_admin')require('../../shared/case-evidence-diagnostics-20261025').report(error,event.body?.action);
   const candidate=error?.code??error?.message;
+  if(production && ['FINANCIAL_IDENTITY_NOT_CONFIGURED','FINANCIAL_DISPATCH_DISABLED'].includes(candidate))return {statusCode:503,code:candidate};
   const allowed=['DRIVER_QUALITY_REVIEW_CONFLICT','INVALID_DRIVER_QUALITY_REVIEW','DRIVER_QUALITY_ATTEMPT_UNAVAILABLE','DRIVER_QUALITY_SOURCE_NOT_REVIEWABLE','DRIVER_QUALITY_REVIEW_LIMIT','DRIVER_QUALITY_APPEAL_OPEN','DRIVER_QUALITY_APPEAL_CONFLICT','DRIVER_RATING_REVIEW_CONFLICT','INVALID_DRIVER_RATING_REVIEW','DRIVER_RATING_SOURCE_UNAVAILABLE','DRIVER_RATING_REVIEW_LIMIT','DRIVER_RATING_AGGREGATE_UNVERIFIED','DRIVER_RATING_APPEAL_CONFLICT','DRIVER_TIMING_REVIEW_CONFLICT','INVALID_DRIVER_TIMING_REVIEW','DRIVER_TIMING_ATTEMPT_UNAVAILABLE','DRIVER_TIMING_SOURCE_NOT_REVIEWABLE','DRIVER_TIMING_REVIEW_LIMIT','DRIVER_TIMING_APPEAL_OPEN','DRIVER_TIMING_APPEAL_CONFLICT',"INVALID_CASH_REVIEW","CASH_REVIEW_CONFLICT","CASH_REVIEW_FORBIDDEN","CASH_REVIEW_PROOF_REQUIRED","CASH_REVIEW_UNAVAILABLE","CASH_REVIEW_CLOSED","CASH_REVIEW_LIMIT","CASH_REVIEW_MATCHING_REPORTS_REQUIRED","CASH_REVIEW_REFUNDS_ALREADY_RESERVED","CASH_REVIEW_NO_SHORTFALL","CASH_REVIEW_FINANCIAL_ADJUSTMENT_REQUIRED","REFUND_SOURCE_INVALID","REFUND_ALREADY_EXISTS","REFUND_EXCEEDS_COLLECTED","REFUND_SOURCE_NOT_ELIGIBLE","REFUND_STATE_CONFLICT","REFUND_EXECUTION_PROOF_REQUIRED","REFUND_CUSTODIAN_REQUIRED","REFUND_SOURCE_PROOF_CHANGED","REFUND_CUSTOMER_ACK_REQUIRED","REFUND_RECONCILIATION_REQUIRED","REFUND_COLLECTION_PROOF_CHANGED","PAYOUT_CASHBOX_UNAVAILABLE","PAYOUT_CASH_CUSTODIAN_REQUIRED","PAYOUT_CASH_OPENING_REQUIRED","PAYOUT_CASH_INSUFFICIENT","PAYOUT_CASH_COUNT_UNRESOLVED","PAYOUT_CASH_BALANCE_PROOF_INVALID","RETURN_CONTINUATION_CONFLICT","INVALID_RETURN_CONTINUATION","RETURN_ITEM_PLAN_REQUIRED","RETURN_ITEM_PLAN_LOCKED","RETURN_RECIPIENT_UNAVAILABLE","RETURN_RECIPIENT_REQUIRED","RETURN_HANDOVER_REQUIRED","RETURN_LOSS_FINDING_REQUIRED","RETURN_DISPOSAL_AUTHORIZATION_REQUIRED","RETURN_CUSTODY_WORK_REMAINS","CASE_APPEAL_ALREADY_OPEN","CASE_APPEAL_WINDOW_EXPIRED","EXCEPTION_APPEAL_PENDING","INVALID_RETURN_ITEM_PLAN","RETURN_ITEM_PLAN_CONFLICT","RETURN_ITEMS_INVALID","EXCEPTION_FINANCIAL_CONFLICT","INVALID_EXCEPTION_FINANCIAL_ACTION","EXCEPTION_FINANCIAL_CUSTODY_REQUIRED","EXCEPTION_FINANCIAL_FINDING_REQUIRED","EXCEPTION_FINANCIAL_APPROVAL_REQUIRED","EXCEPTION_ENTITLEMENTS_ALREADY_POSTED","EXCEPTION_GUARANTEE_ALLOCATION_INVALID","EXCEPTION_GUARANTEE_CHANGED","EXCEPTION_RETAINED_DEADLINE_REQUIRED","EXCEPTION_GUARANTEE_ALREADY_RESOLVED","EXCEPTION_WALLET_UNAVAILABLE","EXCEPTION_INSUFFICIENT_AVAILABLE_BALANCE","EXCEPTION_ENTITLEMENT_POLICY_CONFLICT","EXCEPTION_VERIFIED_ATTEMPT_REQUIRED","EXCEPTION_COMPENSATION_AGREEMENT_REQUIRED","EXCEPTION_FINANCIAL_WORK_REMAINS","EXCEPTION_MERCHANT_PAYOUT_PENDING","EXCEPTION_CLOSURE_CONFLICT",'INVALID_RETURN_GUARANTEE_REVIEW','RETURN_GUARANTEE_REVIEW_CONFLICT','RETURN_GUARANTEE_FINDING_REQUIRED','RETURN_CUSTODY_CONFLICT','RETURN_OPERATIONS_CONFLICT','INVALID_RETURN_OPERATIONS','RETURN_OBSTACLE_ALREADY_RECORDED','RETURN_OPERATIONS_UNAVAILABLE','INDEPENDENT_EVIDENCE_REQUIRED','EXCEPTION_FINDING_CONFLICT','INVALID_EXCEPTION_FINDING','EXCEPTION_EVIDENCE_REQUIRED','CANCELLATION_REASON_REQUIRED','INVALID_RETURN_DISPOSITION','RETURN_DISPOSITION_CONFLICT','RETURN_DISPOSITION_UNAVAILABLE','RETURN_BRANCH_READINESS_REQUIRED','INVALID_EXCEPTION_CASE_ACTION','EXCEPTION_CASE_CONFLICT','EXCEPTION_CASE_UNAVAILABLE','EXCEPTION_CASE_ACTION_NOT_ALLOWED','EXCEPTION_CASE_EVIDENCE_LIMIT','EXCEPTION_EMPLOYEE_UNAVAILABLE','EXCEPTION_PERMISSION_REQUIRED','EXCEPTION_APPROVAL_LIMIT','CANCELLATION_RETAINED_PROOF_REQUIRED','EXCEPTION_CASE_POLICY_UNAVAILABLE','INVALID_EXCEPTION_CASE_POLICY','INVALID_CANCELLATION','CANCELLATION_CONFLICT','CANCELLATION_UNAVAILABLE','CANCELLATION_POLICY_REQUIRED','CANCELLATION_AFTER_PICKUP_OR_TERMINAL','CANCELLATION_ASSIGNED_REVIEW_REQUIRED','CANCELLATION_FINANCIAL_REVIEW_REQUIRED','CANCELLATION_PREPARATION_REVIEW_REQUIRED','INVALID_DELIVERY_ATTEMPT','DELIVERY_ATTEMPT_CONFLICT','ORDER_EXCEPTION_POLICY_REQUIRED','ARRIVAL_LOCATION_REQUIRED','ARRIVAL_LOCATION_STALE','ARRIVAL_OUTSIDE_RADIUS','CONTACT_ATTEMPT_TOO_SOON','NO_RESPONSE_REQUIREMENTS_NOT_MET','EXCEPTION_SETTINGS_UNAVAILABLE','INVALID_EXCEPTION_SETTINGS','FINANCIAL_SETTLEMENT_NOT_CONFIGURED','FULL_CASH_COMPLETION_DISABLED','INVALID_FULL_CASH_COMPLETION','FULL_CASH_COMPLETION_CONFLICT','FULL_CASH_WALLET_UNAVAILABLE','FULL_CASH_PARTY_UNAVAILABLE','FULL_CASH_BUDGET_COMMITMENT_REQUIRED','FULL_CASH_LEGACY_FUNDING_CONFLICT','FULL_CASH_AGREEMENT_REQUIRED','FULL_CASH_PRECISION_UNSUPPORTED','DELIVERY_FUNDING_NOT_CONFIGURED','FINANCE_ROLLOUT_OUT_OF_SCOPE','FINANCE_ROLLOUT_ADMISSION_CLOSED','FINANCE_ROLLOUT_NOT_CONFIGURED','COD_ASSIGNMENTS_DISABLED','COD_ASSIGNMENT_CONFLICT','COD_ASSIGNMENT_UNAVAILABLE','INVALID_COD_ASSIGNMENT','FORBIDDEN','COD_RETURNS_DISABLED','INVALID_COD_RETURN','COD_RETURN_CONFLICT','COD_CASH_REVIEW_REQUIRED','COD_RETURN_FUNDING_UNAVAILABLE','COD_RETURN_WALLET_UNAVAILABLE','COD_RETURN_UNAVAILABLE','COD_COMPLETION_DISABLED','INVALID_COD_COMPLETION','COD_COMPLETION_CONFLICT','COD_FUNDING_UNAVAILABLE','COD_WALLET_UNAVAILABLE','COD_AGREEMENT_REQUIRED','UNAUTHORIZED','FINANCIAL_DISPATCH_DISABLED','INVALID_FINANCIAL_ACCEPTANCE','FINANCIAL_ACCEPTANCE_CONFLICT','INSUFFICIENT_BALANCE','DRIVER_WALLET_UNAVAILABLE'];
   return {statusCode:candidate==='UNAUTHORIZED'?401:candidate==='FINANCE_ROLLOUT_NOT_CONFIGURED'?503:candidate?.startsWith('FINANCE_ROLLOUT_')?403:409,code:allowed.includes(candidate)?candidate:'FINANCIAL_ACCEPTANCE_UNAVAILABLE'};
  }

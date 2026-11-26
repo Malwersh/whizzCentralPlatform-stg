@@ -1,0 +1,34 @@
+.campaign-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px }
+.campaign-list { display:grid; gap:12px; margin-block:16px }
+.campaign-card { padding:16px; border:1px solid #d8e1ee; border-radius:14px; background:#fff; min-width:0 }
+.campaign-card header { min-height:0; align-items:start; flex-wrap:wrap }
+.campaign-card h2,.campaign-card p { margin:0 0 7px; overflow-wrap:anywhere }
+.campaign-card dl { display:flex; flex-wrap:wrap; gap:12px 24px; margin-block:12px }
+.campaign-card dt { font-size:.85rem; color:#546983 }
+.campaign-card dd { margin:0; overflow-wrap:anywhere }
+.campaign-status { font-size:.9rem; background:#eaf0fa; color:#163b76; padding:4px 10px; border-radius:14px }
+.platform-main .campaign-secondary { background:#fff; color:#12376c; border:1px solid #c6d4e6 }
+#campaign-editor { width:min(760px,calc(100% - 24px)); max-height:calc(100dvh - 24px); padding:20px;
+  border:1px solid #d8e1ee; border-radius:16px; color:#092c63 }
+#campaign-editor::backdrop { background:#06255085 }
+#campaign-editor fieldset { border:1px solid #d8e1ee; border-radius:12px; margin:8px 0; min-width:0 }
+#campaign-editor legend { font-weight:700 }
+.campaign-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:8px 16px }
+#campaign-editor label { margin:4px 0; display:grid; gap:4px; min-width:0 }
+#campaign-editor input,#campaign-editor select,#campaign-editor textarea { width:100%; min-width:0; font:inherit }
+#campaign-editor select { background:#fff; border:1px solid #c9d2e0; border-radius:10px; padding:8px; color:inherit }
+#campaign-editor .campaign-check { display:flex; align-items:center; gap:8px }
+#campaign-editor .campaign-check input { width:auto }
+#campaign-status:empty,#campaign-editor-status:empty { display:none }
+
+.campaign-image {
+  display: block;
+  width: min(100%, 28rem);
+  max-height: 12rem;
+  object-fit: contain;
+  background: #f2f5fa;
+  border-radius: 0.75rem;
+}
+.campaign-image[hidden] { display: none; }
+.campaign-media { align-items: start; }
+.campaign-card .campaign-image { margin-block-start: .75rem; }

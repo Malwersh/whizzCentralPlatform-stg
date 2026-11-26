@@ -9,7 +9,7 @@ import {createMerchantOpeningScheduleReader} from './merchantOpeningScheduleRead
 import {merchantSettlementPeriod} from './merchantSettlementPeriod';
 import {merchantOpeningPeriod} from './merchantOpeningPeriod';
 import {readMerchantAccrualEvidence,assembleMerchantSettlementPreview} from './merchantSettlementPreview';
-import {deriveMerchantCodAccrual,summarizeMerchantAccruals} from './merchantSettlementAccrual';
+import {summarizeMerchantAccruals} from './merchantSettlementAccrual';
 import {createMerchantSettlementBatchService} from './merchantSettlementBatch';
 import {readMerchantAccrualRange,merchantAccrualRangeGuards,readMerchantAccrualIndexPage} from './merchantAccrualIndex';
 type Row=Record<string,any>;
@@ -30,7 +30,15 @@ function childRequestId(r:Row){const h=quoteHash([r.branchId,r.collectionId,r.fr
 export function createMerchantPeriodCollection(options:{db:Pick<DynamoDBDocumentClient,'send'>;principal:{employeeId:string;authTime:number;mfaEnrolled:boolean};now?:()=>number}){
  const {db}=options,now=options.now??Date.now,authorize=createMerchantSettlementAuthority(options),history=createMerchantSettlementScheduleHistoryReader(db),opening=createMerchantOpeningScheduleReader(db);
  const stamp=()=>new Date(now()).toISOString();
- async function evidence(branchId:string,orderId:string){const p=await readMerchantAccrualEvidence(db,branchId,orderId);const {settlementBatchId:_batch,settlementLineDigest:_line,settlementClaimedAt:_claimed,paidAt:_paid,paidPayoutId:_payout,...original}=p.payable;return {...p,accrual:deriveMerchantCodAccrual({branchId,order:p.order,outcome:p.outcome,acceptedOffer:p.acceptedOffer,payable:{...original,status:'LOCKED_PENDING_SETTLEMENT'},accountingJournal:p.accountingJournal,cashAdjudicationJournal:p.cashAdjudicationJournal})};}
+ async function evidence(branchId:string,orderId:string){
+  const p=await readMerchantAccrualEvidence(db,branchId,orderId);
+  // The shared reader verifies the current evidence, including any paid journal.
+  // The collection pins the original payable, independent of subsequent claiming or payment.
+  const {settlementBatchId:_batch,settlementLineDigest:_line,settlementClaimedAt:_claimed,paidAt:_paid,paidPayoutId:_payout,settlementEvidence:_evidence,...original}=p.payable;
+  const {digest:_digest,...verified}=p.accrual;
+  const content={...verified,sourceDigests:{...verified.sourceDigests,payable:quoteHash({...original,status:'LOCKED_PENDING_SETTLEMENT'})}};
+  return {...p,accrual:{...content,digest:quoteHash(content)}};
+ }
  async function coverage(){const c=await strongGet(db,T,MERCHANT_ACCRUAL_COVERAGE_KEY);if(!c||c.kind!=='MERCHANT_ACCRUAL_INDEX_COVERAGE'||c.schemaVersion!==1||c.status!=='COMPLETE'||!validSeal(c))return fail('SETTLEMENT_ACCRUAL_INDEX_NOT_READY');return c;}
  function validate(r:Row|null,branchId:string,collectionId:string){if(!r||!validSeal(r)||r.pk!==pk(branchId)||r.sk!=='COLLECTION#'+collectionId||r.branchId!==branchId||r.collectionId!==collectionId||r.kind!=='MERCHANT_PERIOD_COLLECTION'||r.schemaVersion!==1||!Number.isSafeInteger(r.version)||r.version<1||!['DISCOVERING','READY','FREEZING','FROZEN'].includes(r.status)||!Number.isSafeInteger(r.pageCount)||r.pageCount<0||!Number.isSafeInteger(r.freezePage)||r.freezePage<0||r.freezePage>r.pageCount||!Array.isArray(r.rangePins)||r.rangePins.length>54)return fail('SETTLEMENT_COLLECTION_PROOF_INVALID');return r;}
  async function sourceChanged(r:Row){return !equal(await readMerchantAccrualRange(db,r.branchId,r.period.fromUtc,r.period.untilExclusiveUtc),r.rangePins);}
@@ -74,6 +82,7 @@ export function createMerchantPeriodCollection(options:{db:Pick<DynamoDBDocument
    const part=(h?:Row)=>seal({...pageKey(r,r.freezePage,'PART'),kind:'MERCHANT_COLLECTION_PART',schemaVersion:1,branchId:r.branchId,collectionId:r.collectionId,index:r.freezePage,createdBy:actor.actorId,createdAt:stamp(),pageDigest:p.digest,createdBatchId:h?.batchId??null,createdBatchDigest:h?.batchDigest??null,createdBatchNet:h?.summary.amounts.merchantNet??null,existingBatchIds:[...existing].sort(),retentionClass:'FINANCIAL_SETTLEMENT'});
    const added=available.reduce((n,a)=>n+BigInt(a.amounts.merchantNet.minorAmount),0n)+BigInt(r.newBatchNetMinor);if(added>BigInt(Number.MAX_SAFE_INTEGER))return fail('SETTLEMENT_COLLECTION_PRECISION_UNSUPPORTED');const n=next(r,{lastActorId:actor.actorId,freezePage:r.freezePage+1,createdBatchCount:r.createdBatchCount+(available.length?1:0),includedNewCount:r.includedNewCount+available.length,includedExistingCount:r.includedExistingCount+p.lines.length-available.length,newBatchNetMinor:Number(added),updatedAt:stamp()});
    if(!available.length){await commit(r,actor,[put(part()),put(n,r)]);return {collection:publicRoot(n)};}
+   available.sort((left, right) => left.orderId < right.orderId ? -1 : left.orderId > right.orderId ? 1 : 0);
    const preview=assembleMerchantSettlementPreview(r.branchId,r.period,available),batches=createMerchantSettlementBatchService({db,now,authorizeBranch:authorize,readSchedule:history,readOpeningSchedule:opening,onPrepare:async saved=>{if(!equal(saved.header.period,r.period))return fail('SETTLEMENT_COLLECTION_SOURCE_INVALID');return [put(part(saved.header)),put(n,r)];}});
    const result=await batches.create({branchId:r.branchId,at:r.selection.kind==='OPENING'?r.period.untilExclusiveUtc:r.selection.at,orderIds:available.map(a=>a.orderId),previewId:preview.previewId,requestId:childRequestId(r),...(['OPENING','OFF_CYCLE'].includes(r.selection.kind)?r.selection:{})});const saved=await load({branchId:r.branchId,collectionId:r.collectionId},'READ');return {collection:publicRoot(saved.r),batchId:result.header.batchId,replayed:result.replayed};
   },

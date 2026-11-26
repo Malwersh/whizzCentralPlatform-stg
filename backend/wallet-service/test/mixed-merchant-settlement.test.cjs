@@ -42,3 +42,18 @@ test('existing batch writer freezes, reads and replays mixed evidence without re
  assert.deepEqual((await x.service.read({branchId:'branch1',batchId:r.header.batchId})).header,r.header);
  assert.equal((await x.service.create(req)).replayed,true);assert.equal(money(),before);
 });
+
+test('delivery-funded settlements survive removal of direct customer fields',async()=>{
+ const {input}=await sources();
+ const {ORDER_PII,financialRecord}=require('../../account-deletion/customer-cleanup');
+ for(const field of ORDER_PII)input.order[field]='PRIVATE_CUSTOMER';
+ const before=derive(input);
+ const archive=financialRecord(input.order,'order',{requestId:'deletion-request',financialYears:7,policyVersion:1},'2026-10-15T12:00:00.000Z');
+ for(const field of ORDER_PII)delete input.order[field];
+ assert.deepEqual(derive(input),before);
+ assert.doesNotMatch(JSON.stringify(archive.data),/PRIVATE_CUSTOMER|customerPoint|latitude|longitude/);
+ delete input.order.financialSnapshot;
+ delete input.order.financialAcceptance;
+ input.order.codFinancialEvidence=archive.data.codFinancialEvidence;
+ assert.throws(()=>derive(input),/MERCHANT_ACCRUAL_PROOF_REQUIRED/);
+});

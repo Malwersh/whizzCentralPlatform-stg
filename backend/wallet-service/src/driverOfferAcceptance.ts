@@ -1,3 +1,4 @@
+import {financialDispatchTables} from './walletBindings';
 const vehicleRegistry=require('../../shared/driver-vehicles-308');
 import {financialOfferSK} from './financialOfferKey';
 const {buildTimingPlan}=require('../../shared/driver-performance-timing-273');
@@ -13,8 +14,6 @@ import { createStagingDriverOfferContext } from './driverOfferContext';
 import { resolveFinancialOffer,versionedFinancialOfferView,versionedFinancialOfferAcceptance } from './financialOfferVersion';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { detach, equal, strongGet, exactCheck, updateChecked, FinancialRow as Row } from './driverFinancialTransaction';
-const tables={offers:'WaveOffers_staging',jobs:'WizzDispatchJobs_staging',wallets:'staging-Wallets',holds:'staging-Holds',
-  ledger:'staging-LedgerEntries',audit:'staging-AuditLog',lifecycle:'staging-WalletLifecycle'};
 export class DriverAcceptanceError extends Error {
   constructor(public readonly code:'INVALID_FINANCIAL_ACCEPTANCE'|'FINANCIAL_ACCEPTANCE_UNAVAILABLE'|'FINANCIAL_ACCEPTANCE_CONFLICT'|'DRIVER_WALLET_UNAVAILABLE'|'INSUFFICIENT_BALANCE') {
     super(code);this.name='DriverAcceptanceError';
@@ -30,6 +29,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
   contextForOffer?:(offer:Row)=>ReturnType<typeof createStagingDriverOfferContext>;
   authenticateDriver:()=>Promise<{driverId:string;subjectId:string}>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean}) {
   const {db,context,authenticateDriver}=options,now=options.now??Date.now;
+  const tables=financialDispatchTables();
   async function afterDecline(saved:Row){
     try{const assignment=await strongGet(db,tables.jobs,{orderId:saved.orderId,SK:'METADATA'});
     if(!assignment||!Object.prototype.hasOwnProperty.call(assignment,'dispatchCycle'))return {success:true,declined:true,offerId:saved.offerId};
@@ -86,7 +86,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
       assignmentAttempt:references.order.nextAssignmentAttempt,holdId,holdStatus:amount?'ACTIVE':'NOT_REQUIRED',holdAmount:amount,replayed:false};
     // Older deployed context readers omit preparation metadata. Hydrate it here
     // and fence it in the same assignment transaction without repricing money.
-    const arrivalSource=await strongGet(db,'WizzOrders',{PK:'ORDER#'+orderId,SK:'META'});
+    const arrivalSource=await strongGet(db,tables.orders,{PK:'ORDER#'+orderId,SK:'META'});
     if(!arrivalSource||arrivalSource.orderId!==orderId)return fail('FINANCIAL_ACCEPTANCE_CONFLICT');
     const readyAt=arrivalSource.estimatedReadyAt,arrivalGuard=detach(references.order.condition);
     const arrivalCheck=arrivalGuard.ConditionCheck;
@@ -114,7 +114,7 @@ export function createStagingDriverOfferAcceptance(options:{db:Pick<DynamoDBDocu
     else if(references.order.deliveryFunding)ops.push(...await prepareDeliveryFundingRetention(db,{orderId,at:timestamp,operationId:codAcceptanceOperation(orderId,offerId,references.order.nextAssignmentAttempt),deliveryFunding:references.order.deliveryFunding,goodsAmount:references.order.snapshot.allocation.platformGoodsDiscount,commercialPricing:references.order.commercialPricing}));
     const arrival=assignedArrivalEstimate(timestamp,offer.calculation.pickupRoute.durationSeconds,
       offer.calculation.deliveryRoute.durationSeconds,readyAt);
-    const orderUpdate=ops.find(op=>op.Update?.TableName==='WizzOrders')?.Update;
+    const orderUpdate=ops.find(op=>op.Update?.TableName===tables.orders)?.Update;
     if(!orderUpdate)return fail('FINANCIAL_ACCEPTANCE_UNAVAILABLE');
     if(vehicleEvidence){
       orderUpdate.UpdateExpression+=', #vehicleSnapshot=:vehicleSnapshot, #vehicleType=:vehicleType, #vehiclePlate=:vehiclePlate';

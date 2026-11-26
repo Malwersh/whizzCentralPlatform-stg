@@ -1,3 +1,4 @@
+import {financialOrderTables} from './walletBindings';
 import {DynamoDBDocumentClient,GetCommand} from '@aws-sdk/lib-dynamodb';
 import {quoteHash} from './deliveryQuoteRecord';
 export const EXCEPTION_SETTINGS_PK='OPERATIONAL_SETTINGS#ORDER_EXCEPTIONS';
@@ -11,8 +12,9 @@ export function validateExceptionSettings(v:any){
  return {...v} as typeof EXCEPTION_SETTINGS_DEFAULTS;
 }
 export async function readExceptionSettings(db:Pick<DynamoDBDocumentClient,'send'>){
- const key={pk:EXCEPTION_SETTINGS_PK,sk:'CURRENT'},row=(await db.send(new GetCommand({TableName:'staging-PlatformStaff',Key:key,ConsistentRead:true}))).Item;
+ const table=financialOrderTables().staff;
+ const key={pk:EXCEPTION_SETTINGS_PK,sk:'CURRENT'},row=(await db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;
  if(!row||!Number.isSafeInteger(row.version)||row.version<1||typeof row.policyVersion!=='string'||!row.policyVersion.length)throw Object.assign(Error('EXCEPTION_SETTINGS_UNAVAILABLE'),{code:'EXCEPTION_SETTINGS_UNAVAILABLE'});
  const values=validateExceptionSettings(row.values),body={schemaVersion:1,version:row.version,policyVersion:row.policyVersion,values};
- return {snapshot:{...body,digest:quoteHash(body)},condition:{ConditionCheck:{TableName:'staging-PlatformStaff',Key:key,ConditionExpression:'#v=:v AND #p=:p AND #values=:values',ExpressionAttributeNames:{'#v':'version','#p':'policyVersion','#values':'values'},ExpressionAttributeValues:{':v':row.version,':p':row.policyVersion,':values':values}}}};
+ return {snapshot:{...body,digest:quoteHash(body)},condition:{ConditionCheck:{TableName:table,Key:key,ConditionExpression:'#v=:v AND #p=:p AND #values=:values',ExpressionAttributeNames:{'#v':'version','#p':'policyVersion','#values':'values'},ExpressionAttributeValues:{':v':row.version,':p':row.policyVersion,':values':values}}}};
 }

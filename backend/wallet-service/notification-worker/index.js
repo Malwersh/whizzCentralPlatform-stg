@@ -15,13 +15,22 @@ async function getMessaging(){
  return messagingPromise;
 }
 const digest=token=>createHash('sha256').update(token).digest('hex');
-async function codNoticeAllowed(client,item,at){
+const merchantPayoutPrefix='MERCHANT_PAYOUT_NOTICE#';
+const merchantPayoutEvent=/^MERCHANT_PAYOUT_NOTICE#[a-f0-9]{64}$/;
+const returnNoticeEvent=/^(?:RETURN_TASK_NOTICE|EXCEPTION_FINANCIAL_NOTICE)#[a-f0-9]{64}$/;
+const {returnNoticeAllowed,returnNoticeDeviceAllowed}=require('./return-notice-device');
+const supportReplyPrefix='CN:';
+const supportReplyEvent=/^CN:[a-f0-9]{64}$/;
+const {supportReplyAllowed,supportReplyDeviceAllowed}=require('./support-reply-device');
+async function codNoticeAllowed(client,item,at,supportReplyTables){
  if(item.type==='order_complaint_updated'){
   const valid=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.:#-]{0,149}$/.test(v);
   if(item.recipientApp!=='user'||item.target!=='complaint'||![item.driverId,item.orderId,item.caseId,item.sessionId].every(valid))return false;
-  const {Item:row}=await client.send(new GetCommand({TableName:'staging-Holds',Key:{orderId:item.orderId,sk:'CUSTOMER_POST_DELIVERY'},ConsistentRead:true,ProjectionExpression:'customerId,caseId,supportSessionId'}));
-  if(!row||row.customerId!==item.driverId||row.caseId!==item.caseId||row.supportSessionId!==item.sessionId)return false;
-  return !(await client.send(new GetCommand({TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#CUSTOMER#'+item.driverId,sk:'META'},ConsistentRead:true,ProjectionExpression:'pk,sk'}))).Item;
+  const {Item:row}=await client.send(new GetCommand({TableName:supportReplyTables?.cases??'staging-Holds',Key:{orderId:item.orderId,sk:'CUSTOMER_POST_DELIVERY'},ConsistentRead:true,ProjectionExpression:'customerId,caseId,supportSessionId,kind,version'}));
+  if(!row||row.customerId!==item.driverId||row.caseId!==item.caseId||row.supportSessionId!==item.sessionId ||
+     supportReplyTables && (row.kind!=='CUSTOMER_POST_DELIVERY_CASE' || !Number.isSafeInteger(item.caseVersion) ||
+      item.caseVersion<1 || !Number.isSafeInteger(row.version) || row.version<item.caseVersion))return false;
+  return !(await client.send(new GetCommand({TableName:supportReplyTables?.deletion??'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#CUSTOMER#'+item.driverId,sk:'META'},ConsistentRead:true,ProjectionExpression:'pk,sk'}))).Item;
  }
 
  if(item.type==='wallet_cash_payout'){
@@ -53,12 +62,40 @@ async function codNoticeAllowed(client,item,at){
  return true;
 }
 
-function createWorker(client,messaging,clock=()=>Date.now()){
+function createWorker(client,messaging,clock=()=>Date.now(),{merchantPayoutTables,supportReplyTables,returnNoticeTables,canRetry=()=>true}={}){
+ if([merchantPayoutTables,supportReplyTables,returnNoticeTables].filter(Boolean).length>1)throw Error('AMBIGUOUS_NOTICE_SCOPE');
+ const binding=merchantPayoutTables??supportReplyTables??returnNoticeTables;
+ const table=binding?.outbox??process.env.WALLET_NOTIFICATIONS_TABLE;
+ const pushTokens=binding?.pushTokens??process.env.PUSH_TOKENS_TABLE;
+ const scopedNotice=merchantPayoutTables
+  ? {prefix:merchantPayoutPrefix,event:merchantPayoutEvent,type:'merchant_payout_updated',app:'merchant'}
+  : supportReplyTables
+   ? {prefix:supportReplyPrefix,event:supportReplyEvent,type:'support_reply',app:'user'}
+   : returnNoticeTables?{event:returnNoticeEvent}:null;
+ const scope=merchantPayoutTables?{
+  expression:' AND #type = :payout AND recipientApp = :merchant',
+  names:{'#type':'type'},
+  values:{':payout':'merchant_payout_updated',':merchant':'merchant'},
+ }:returnNoticeTables?{
+  expression:' AND ((#type IN (:task, :driverFinance) AND recipientApp = :driver) OR (#type = :merchantFinance AND recipientApp = :merchant))',
+  names:{'#type':'type'},
+  values:{':task':'driver_return_task_updated',':driverFinance':'driver_exception_financial_updated',
+   ':merchantFinance':'merchant_exception_financial_updated',':driver':'driver',':merchant':'merchant'},
+ }:supportReplyTables?{
+  expression:' AND #type IN (:noticeType, :complaintType) AND recipientApp = :noticeApp',
+  names:{'#type':'type'},
+  values:{':noticeType':scopedNotice.type,':complaintType':'order_complaint_updated',':noticeApp':scopedNotice.app},
+ }:{expression:'',values:{}};
+ async function noticeAllowed(item) {
+  return returnNoticeTables?returnNoticeAllowed(client,item,returnNoticeTables):
+   await codNoticeAllowed(client,item,clock(),supportReplyTables)&&(!supportReplyTables||await supportReplyAllowed(client,item,supportReplyTables));
+ }
  async function processEvent(eventId){
-  const now=Math.floor(clock()/1000),owner=randomUUID(),table=process.env.WALLET_NOTIFICATIONS_TABLE;
+  if(scopedNotice&&!scopedNotice.event.test(eventId))return;
+  const now=Math.floor(clock()/1000),owner=randomUUID();
   let item;
   // Scope discovery precedes taking a lease on a new financial/dispatch notice.
-  if(process.env.FINANCIAL_COD_NOTIFICATIONS_MODE==='REQUIRED'||process.env.DISPATCH_RESPONSE_NOTIFICATIONS_MODE==='REQUIRED'){
+  if(!returnNoticeTables&&(process.env.FINANCIAL_COD_NOTIFICATIONS_MODE==='REQUIRED'||process.env.DISPATCH_RESPONSE_NOTIFICATIONS_MODE==='REQUIRED')){
    const selected=(await client.send(new GetCommand({TableName:table,Key:{eventId},ConsistentRead:true}))).Item;
    if(selected&&['wallet_cod_lifecycle','dispatch_offer_closed','driver_return_task_updated','driver_exception_financial_updated'].includes(selected.type)){
     const rollout=require('./finance-rollout').createFinanceRollout({db:client,now:clock});
@@ -67,33 +104,36 @@ function createWorker(client,messaging,clock=()=>Date.now()){
    }
   }
   try{
-   const result=await client.send(new UpdateCommand({TableName:table,Key:{eventId},UpdateExpression:'SET leaseOwner = :owner, leaseUntil = :lease ADD attempts :one',ConditionExpression:'deliveryStatus = :pending AND nextAttemptAt <= :now AND (attribute_not_exists(leaseUntil) OR leaseUntil < :now)',ExpressionAttributeValues:{':owner':owner,':lease':now+120,':one':1,':pending':'PENDING',':now':now},ReturnValues:'ALL_NEW'}));
+   const result=await client.send(new UpdateCommand({TableName:table,Key:{eventId},UpdateExpression:'SET leaseOwner = :owner, leaseUntil = :lease ADD attempts :one',ConditionExpression:'deliveryStatus = :pending AND nextAttemptAt <= :now AND (attribute_not_exists(leaseUntil) OR leaseUntil < :now)'+scope.expression,ExpressionAttributeValues:{':owner':owner,':lease':now+120,':one':1,':pending':'PENDING',':now':now,...scope.values},ExpressionAttributeNames:scope.names,ReturnValues:'ALL_NEW'}));
    item=result.Attributes;
   }catch(error){if(error.name==='ConditionalCheckFailedException')return;throw error;}
   const delivered=new Set(item.deliveredTokenHashes || []);
   let retry=false,hadToken=false,suppressed=false;
   try{
-   if(!await codNoticeAllowed(client,item,clock()))suppressed=true;
+   if(!await noticeAllowed(item))suppressed=true;
    let cursor;
    do{
     if(suppressed)break;
-    const result=await client.send(new QueryCommand({TableName:process.env.PUSH_TOKENS_TABLE,IndexName:'SubjectIdIndex',KeyConditionExpression:'subjectId = :driver',ExpressionAttributeValues:{':driver':item.driverId},ExclusiveStartKey:cursor}));
+    const result=await client.send(new QueryCommand({TableName:pushTokens,IndexName:'SubjectIdIndex',KeyConditionExpression:'subjectId = :driver',ExpressionAttributeValues:{':driver':item.driverId},ExclusiveStartKey:cursor}));
     for(const record of result.Items || []){
      if(record.app!==(item.recipientApp || 'driver') || !record.token)continue;
+     if(returnNoticeTables&&!await returnNoticeDeviceAllowed(client,item,record,returnNoticeTables,clock()))continue;
+     if(supportReplyTables&&!await supportReplyDeviceAllowed(client,item,record,supportReplyTables,clock()))continue;
      hadToken=true;
      const hash=digest(record.token);
      if(delivered.has(hash))continue;
      try{
-      if(!await codNoticeAllowed(client,item,clock())){suppressed=true;break;}
-      if(['merchant_payout_updated','merchant_exception_financial_updated'].includes(item.type)&&process.env.MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED!=='true')continue;
-      if(process.env.MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED==='true'&&!await require('./merchant-financial-device').merchantFinancialDeviceAllowed(client,item,record,clock()))continue;
+      if(!await noticeAllowed(item)){suppressed=true;break;}
+      const financialDevicePolicy=merchantPayoutTables||returnNoticeTables||process.env.MERCHANT_FINANCIAL_DEVICE_POLICY_ENABLED==='true';
+      if(['merchant_payout_updated','merchant_exception_financial_updated'].includes(item.type)&&!financialDevicePolicy)continue;
+      if(financialDevicePolicy&&!await require('./merchant-financial-device').merchantFinancialDeviceAllowed(client,item,record,clock(),merchantPayoutTables??returnNoticeTables))continue;
       const sender=await messaging();
-      await sender.send({token:record.token,notification:item.recipientApp==='merchant'?{title:'تحديث على حساب المتجر',body:'افتح التطبيق للاطلاع على التفاصيل بعد التحقق.'}:{title:item.title,body:item.body},data:item.recipientApp==='merchant'?{type:item.type,eventId:item.eventId,driverId:item.driverId,...(item.type==='merchant_payout_updated'?{branchId:item.branchId,payoutId:item.payoutId}:{}),action:'open_wallet'}:item.type==='dispatch_offer_closed'?{type:'offer_taken',action:'remove_offer',eventId:item.eventId,driverId:item.driverId,offerId:item.offerId,orderId:item.orderId,cycleId:item.cycleId}:{type:item.type,eventId:item.eventId,driverId:item.driverId,...(item.orderId?{orderId:item.orderId}:{}),...(item.sessionId?{sessionId:item.sessionId}:{}),topupId:item.topupId || '',amount:['wallet_cod_lifecycle','driver_return_task_updated','driver_exception_financial_updated'].includes(item.type)?'':String(item.amount || 0),reviewStatus:item.reviewStatus || '',action:item.type==='driver_return_task_updated'?'open_notifications':item.type==='order_complaint_updated'?'open_complaint':item.type==='support_reply'?'open_support':item.type==='driver_review_changed'?'refresh_profile':'open_wallet'},android:{priority:'high',notification:{tag:item.eventId}},apns:{headers:{'apns-priority':'10','apns-push-type':'alert','apns-collapse-id':digest(item.eventId).slice(0,48)},payload:{aps:{sound:'default','content-available':1}}}});
+      await sender.send({token:record.token,notification:item.recipientApp==='merchant'?{title:'تحديث على حساب المتجر',body:'افتح التطبيق للاطلاع على التفاصيل بعد التحقق.'}:supportReplyTables?(item.type==='support_reply'?{title:'رد جديد من الدعم',body:'وصل رد على محادثتك. افتح التطبيق للاطلاع عليه.'}:{title:'تحديث على شكوى طلبك',body:'افتح تفاصيل الشكوى للاطلاع على التحديث.'}):{title:item.title,body:item.body},data:item.recipientApp==='merchant'?{type:item.type,eventId:item.eventId,driverId:item.driverId,...(item.type==='merchant_payout_updated'?{branchId:item.branchId,payoutId:item.payoutId}:{}),action:'open_wallet'}:item.type==='dispatch_offer_closed'?{type:'offer_taken',action:'remove_offer',eventId:item.eventId,driverId:item.driverId,offerId:item.offerId,orderId:item.orderId,cycleId:item.cycleId}:{type:item.type,eventId:item.eventId,driverId:item.driverId,...(item.orderId?{orderId:item.orderId}:{}),...(item.sessionId?{sessionId:item.sessionId}:{}),topupId:item.topupId || '',amount:['wallet_cod_lifecycle','driver_return_task_updated','driver_exception_financial_updated'].includes(item.type)?'':String(item.amount || 0),reviewStatus:item.reviewStatus || '',action:item.type==='driver_return_task_updated'?'open_notifications':item.type==='order_complaint_updated'?'open_complaint':item.type==='support_reply'?'open_support':item.type==='driver_review_changed'?'refresh_profile':'open_wallet'},android:{priority:'high',notification:{tag:item.eventId}},apns:{headers:{'apns-priority':'10','apns-push-type':'alert','apns-collapse-id':digest(item.eventId).slice(0,48)},payload:{aps:{sound:'default','content-available':1}}}});
       await client.send(new UpdateCommand({TableName:table,Key:{eventId},UpdateExpression:'ADD deliveredTokenHashes :hash',ConditionExpression:'leaseOwner = :owner',ExpressionAttributeValues:{':hash':new Set([hash]),':owner':owner}}));
       delivered.add(hash);
      }catch(error){
       if(['messaging/registration-token-not-registered','messaging/invalid-registration-token'].includes(error.code)){
-       await client.send(new DeleteCommand({TableName:process.env.PUSH_TOKENS_TABLE,Key:{token:record.token}}));
+       if(!binding)await client.send(new DeleteCommand({TableName:pushTokens,Key:{token:record.token}}));
       }else{retry=true;console.warn('Wallet push attempt failed',{eventId,code:error.code || error.name});}
      }
     }
@@ -116,8 +156,22 @@ function createWorker(client,messaging,clock=()=>Date.now()){
     try{await processEvent(unmarshall(record.dynamodb.Keys).eventId);}catch(error){console.warn('Wallet outbox processing failed',{code:error.name});failures.push({itemIdentifier:record.dynamodb.SequenceNumber});}
    }
   }else{
-   const result=await client.send(new QueryCommand({TableName:process.env.WALLET_NOTIFICATIONS_TABLE,IndexName:'PendingDelivery',KeyConditionExpression:'deliveryStatus = :pending AND nextAttemptAt <= :now',ExpressionAttributeValues:{':pending':'PENDING',':now':Math.floor(clock()/1000)},Limit:25}));
-   for(const item of result.Items || [])try{await processEvent(item.eventId);}catch(error){console.warn('Wallet retry failed',{eventId:item.eventId,code:error.name});}
+   let cursor,processed=0;
+   do{
+    const values={':pending':'PENDING',':now':Math.floor(clock()/1000)};
+    const filter=scopedNotice?{
+     FilterExpression:scopedNotice.prefix?'begins_with(eventId, :prefix)'+scope.expression:scope.expression.slice(5),
+     ExpressionAttributeNames:scope.names,
+     ExpressionAttributeValues:{...values,...(scopedNotice.prefix?{':prefix':scopedNotice.prefix}:{}),...scope.values},
+    }:{ExpressionAttributeValues:values};
+    const result=await client.send(new QueryCommand({TableName:table,IndexName:'PendingDelivery',KeyConditionExpression:'deliveryStatus = :pending AND nextAttemptAt <= :now',Limit:25-processed,ExclusiveStartKey:cursor,...filter}));
+    for(const item of result.Items || []){
+     if(!canRetry())break;
+     try{await processEvent(item.eventId);}catch(error){console.warn('Wallet retry failed',{eventId:item.eventId,code:error.name});}
+     processed++;
+    }
+    cursor=result.LastEvaluatedKey;
+   }while(scopedNotice&&cursor&&processed<25&&canRetry());
   }
   return {batchItemFailures:failures};
  }

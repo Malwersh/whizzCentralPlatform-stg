@@ -1,0 +1,565 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Production customer deletion worker with scoped resource bindings and execution disabled.",
+  "Parameters": {
+    "ArtifactKey": {
+      "Type": "String",
+      "AllowedPattern": "customer-deletion/[a-f0-9]{64}[.]zip"
+    },
+    "ArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1
+    },
+    "SupportSocketId": {
+      "Type": "String",
+      "AllowedPattern": "[a-z0-9]{10}"
+    },
+    "ExecutionEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ]
+    }
+  },
+  "Conditions": {
+    "ProductionOnly": {
+      "Fn::And": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::AccountId"
+            },
+            "746727375268"
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-east-1"
+          ]
+        }
+      ]
+    },
+    "ExecutionOn": {
+      "Fn::And": [
+        {
+          "Condition": "ProductionOnly"
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "ExecutionEnabled"
+            },
+            "true"
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "Logs": {
+      "Condition": "ProductionOnly",
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-customer-deletion-worker",
+        "RetentionInDays": 90
+      }
+    },
+    "WorkerRole": {
+      "Condition": "ProductionOnly",
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "WorkerLogs",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-customer-deletion-worker:*"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "CustomerDeletionResources",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                    }
+                  ],
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:LeadingKeys": [
+                        "OPERATIONAL_SETTINGS#ACCOUNT_DELETION"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Scan"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Orders"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-TopupRequests"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-IdempotencyKeys"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WalletLifecycle"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DispatchJobs"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportChatSessions"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportAttachments"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Addresses"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Favorites"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PushDeviceTokens"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-CustomerPhoneAuth"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-CustomerPhoneLink"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportMessageReceipts"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportConnections"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WalletNotifications"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WaveOffers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-OfferJourney"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DeliveryQuotes"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportChatMessages"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Orders"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DispatchJobs"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WaveOffers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MerchantPlatform"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Wallets"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Customers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-CustomerPhoneAuth"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-CustomerPhoneLink"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletionFinancialArchive"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportAttachments"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Orders"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WaveOffers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MerchantPlatform"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Wallets"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Customers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletionFinancialArchive"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportChatSessions"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportAttachments"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportConnections"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletionFinancialArchive"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Orders"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Holds"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WaveOffers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Wallets"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Customers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportConnections"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:DeleteItem"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-AccountDeletion"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Customers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Addresses"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Favorites"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PushDeviceTokens"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-DeliveryQuotes"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-CustomerPhoneAuth"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-CustomerPhoneLink"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportChatSessions"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportChatMessages"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportAttachments"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportMessageReceipts"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-SupportConnections"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WalletNotifications"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cognito-idp:AdminGetUser",
+                    "cognito-idp:AdminDisableUser",
+                    "cognito-idp:AdminUserGlobalSignOut",
+                    "cognito-idp:AdminDeleteUser"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_rNtNKVsVf"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketVersioning",
+                    "s3:ListBucket"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::wizz-production-support-attachments-746727375268-us-east-1"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:DeleteObject",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::wizz-production-support-attachments-746727375268-us-east-1/support-images/*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "execute-api:ManageConnections",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${SupportSocketId}/production/DELETE/@connections/*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "DELIVERY_RESERVATION#*",
+                        "DELIVERY_USAGE#*"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Worker": {
+      "Condition": "ProductionOnly",
+      "Type": "AWS::Lambda::Function",
+      "DependsOn": "Logs",
+      "Properties": {
+        "FunctionName": "wizz-production-customer-deletion-worker",
+        "Runtime": "nodejs22.x",
+        "Handler": "worker.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "WorkerRole",
+            "Arn"
+          ]
+        },
+        "MemorySize": 512,
+        "Timeout": 180,
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "ArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactVersion"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "CUSTOMER_DELETION_ENABLED": {
+              "Ref": "ExecutionEnabled"
+            },
+            "WALLETS_TABLE": "wizz-production-Wallets",
+            "LEDGER_TABLE": "wizz-production-LedgerEntries",
+            "HOLDS_TABLE": "wizz-production-Holds",
+            "TOPUP_REQUESTS_TABLE": "wizz-production-TopupRequests",
+            "AUDIT_LOG_TABLE": "wizz-production-AuditLog",
+            "IDEMPOTENCY_KEYS_TABLE": "wizz-production-IdempotencyKeys",
+            "ACCOUNT_DELETION_TABLE": "wizz-production-AccountDeletion",
+            "WALLET_LIFECYCLE_TABLE": "wizz-production-WalletLifecycle",
+            "ORDERS_TABLE": "wizz-production-Orders",
+            "STAFF_TABLE": "wizz-production-PlatformStaff",
+            "MERCHANTS_TABLE": "wizz-production-Merchants",
+            "DRIVERS_TABLE": "wizz-production-Drivers",
+            "DISPATCH_JOBS_TABLE": "wizz-production-DispatchJobs",
+            "WAVE_OFFERS_TABLE": "wizz-production-WaveOffers",
+            "DRIVER_LIVE_STATE_TABLE": "wizz-production-DriverLiveState",
+            "OFFER_JOURNEY_TABLE": "wizz-production-OfferJourney",
+            "DELIVERY_QUOTES_TABLE": "wizz-production-DeliveryQuotes",
+            "SUPPORT_SOCKET_ENDPOINT": {
+              "Fn::Sub": "https://${SupportSocketId}.execute-api.${AWS::Region}.amazonaws.com/production"
+            },
+            "DELIVERY_FUNDING_ARCHIVE_ENABLED": {
+              "Ref": "ExecutionEnabled"
+            }
+          }
+        }
+      }
+    },
+    "RetrySchedule": {
+      "Type": "AWS::Events::Rule",
+      "Condition": "ExecutionOn",
+      "Properties": {
+        "Name": "wizz-production-customer-deletion-retry",
+        "ScheduleExpression": "rate(1 minute)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "Worker",
+                "Arn"
+              ]
+            },
+            "Id": "CustomerDeletionWorker",
+            "Input": "{\"operation\":\"CUSTOMER_DELETION_SWEEP\"}"
+          }
+        ]
+      }
+    },
+    "RetryInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "ExecutionOn",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "Worker"
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "RetrySchedule",
+            "Arn"
+          ]
+        },
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "WorkerName": {
+      "Condition": "ProductionOnly",
+      "Value": {
+        "Ref": "Worker"
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "accountId": "746727375268",
+  "status": "DEPLOYED_VERIFIED_OTP_DISABLED",
+  "otpEnabled": false,
+  "sourceEvidence": [
+    {
+      "module": "index",
+      "sourceSha256": "2a59c95be249dc21c6d76302dca0026818311e7b5359238ac39aee6a8268c04c",
+      "packagedSha256": "7f8be478092106456a421d9ae7b17807baca169ede33c4df81286e9790dbea83"
+    },
+    {
+      "module": "iraqi-phone",
+      "sourceSha256": "87e4e9c78b83548ab31b2eddd6aa3aac5b2ebb6e14d47e5cbbeacb8dd77c7e94",
+      "packagedSha256": "87e4e9c78b83548ab31b2eddd6aa3aac5b2ebb6e14d47e5cbbeacb8dd77c7e94"
+    },
+    {
+      "module": "challenge-policy",
+      "sourceSha256": "09d44b22c3f4c529d82a0edc1f0d4684eea7abb6f5d5f82e77101660daf5fd56",
+      "packagedSha256": "09d44b22c3f4c529d82a0edc1f0d4684eea7abb6f5d5f82e77101660daf5fd56"
+    },
+    {
+      "module": "login-proof",
+      "sourceSha256": "55f506156c3bc907d8d174c93e1fc0fc8c4d988be53bbdf328cf9b2e889ceba8",
+      "packagedSha256": "55f506156c3bc907d8d174c93e1fc0fc8c4d988be53bbdf328cf9b2e889ceba8"
+    },
+    {
+      "module": "profile-policy",
+      "sourceSha256": "526199082b6ec151b4ff82ce6205f8cb653d3d62c4755e68ba77036deb09b855",
+      "packagedSha256": "526199082b6ec151b4ff82ce6205f8cb653d3d62c4755e68ba77036deb09b855"
+    },
+    {
+      "module": "lifecycle-fence",
+      "sourceSha256": "74079bd9c765c5a8841d36e2c0235452fe5b5d6bd41753e4bf36e9eb5c9fd1af",
+      "packagedSha256": "2bd47fcddfc431355e188ff9a190b94c4ae1c942e28f58b01b6315a233c86c6f"
+    },
+    {
+      "module": "customer-legal-contract-344",
+      "sourceSha256": "164bbf30fa5b5f5f39f1df5f5f9d764e2511163dea73b946d3b8053c21198eab",
+      "packagedSha256": "164bbf30fa5b5f5f39f1df5f5f9d764e2511163dea73b946d3b8053c21198eab"
+    }
+  ],
+  "activationRequirements": [
+    "Published production legal documents",
+    "Scoped enrollment role and API throttling",
+    "Production provider credential",
+    "End-to-end enrollment, lifecycle and zero-wallet retry tests"
+  ],
+  "driverRemaining": [
+    "Replace source wallet-trigger binding with production service",
+    "Verify legal acceptance and lifecycle protection before activation"
+  ],
+  "verificationReport": "docs/production-customer-enrollment-verification-2026-11-16.json"
+}

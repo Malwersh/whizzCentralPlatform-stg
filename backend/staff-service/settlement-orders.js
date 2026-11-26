@@ -5,7 +5,15 @@ const {readMerchantAccrualEvidence}=require('./settlement-runtime');
 const invalid=()=>{throw Object.assign(Error('INVALID_SCHEDULE_REQUEST'),{status:400});};
 const valid=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(v);
 const fields=require('./settlement-evidence-fields.json');
-function projectEvidenceDb(db){return {send(command){const q=command.input,keys=fields[q.TableName];if(command.constructor.name!=='GetCommand'||!keys||q.TableName==='staging-MerchantPlatform'&&!String(q.Key?.pk||'').startsWith('FULL_CASH_JOURNAL#'))return db.send(command);const names=Object.fromEntries(keys.map((field,n)=>['#p'+n,field]));return db.send(new GetCommand({...q,ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names}));}};}
+const productionEvidence = {
+ 'wizz-production-Orders':'WizzOrders',
+ 'wizz-production-Holds':'staging-Holds',
+ 'wizz-production-WaveOffers':'WaveOffers_staging',
+ 'wizz-production-LedgerEntries':'staging-LedgerEntries',
+ 'wizz-production-MerchantPlatform':'staging-MerchantPlatform',
+ 'wizz-production-Wallets':'staging-Wallets',
+};
+function projectEvidenceDb(db){return {send(command){const q=command.input,table=productionEvidence[q.TableName]||q.TableName,keys=fields[table];if(command.constructor.name!=='GetCommand'||!keys||table==='staging-MerchantPlatform'&&!String(q.Key?.pk||'').startsWith('FULL_CASH_JOURNAL#'))return db.send(command);const names=Object.fromEntries(keys.map((field,n)=>['#p'+n,field]));return db.send(new GetCommand({...q,ProjectionExpression:Object.keys(names).join(','),ExpressionAttributeNames:names}));}};}
 async function read(db,input){
  const evidenceDb=projectEvidenceDb(db);
  if(!input||!valid(input.branchId)||input.view!=='orders'||Object.keys(input).some(k=>!['branchId','view','cursor'].includes(k)))invalid();

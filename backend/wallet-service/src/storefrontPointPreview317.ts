@@ -14,11 +14,11 @@ export function pointSelection317(value:unknown){
  return {branchId:r.branchId as string,regionId:r.regionId as string,point:{latitude:p.latitude as number,longitude:p.longitude as number}};
 }
 /** Public informational prices only. No address/profile/order/wallet/budget writes and no quote IDs. */
-export function createStagingPointStorefrontPreview317(options:{db:Pick<DynamoDBDocumentClient,'send'>;createRouter:(db:Pick<DynamoDBDocumentClient,'send'>)=>ReturnType<typeof createCoveredDeliveryRouter>;now?:()=>number}){
+export function createStagingPointStorefrontPreview317(options:{db:Pick<DynamoDBDocumentClient,'send'>;createRouter:(db:Pick<DynamoDBDocumentClient,'send'>)=>ReturnType<typeof createCoveredDeliveryRouter>;now?:()=>number;catalogPreview?:boolean}){
  const db=options.db,now=options.now??Date.now;
  return {async preview(value:unknown){
   const r=pointSelection317(value);
-  const context=createStagingDeliveryPricingContext({db,authenticateCustomer:async()=>{throw Error('PUBLIC_PREVIEW_IS_NOT_CUSTOMER_AUTH');},router:options.createRouter(db),now,pointPreview:{point:r.point,regionId:r.regionId}});
+  const context=createStagingDeliveryPricingContext({db,authenticateCustomer:async()=>{throw Error('PUBLIC_PREVIEW_IS_NOT_CUSTOMER_AUTH');},router:options.createRouter(db),now,pointPreview:{point:r.point,regionId:r.regionId},catalogPreview:options.catalogPreview});
   const priced=await context.calculate({branchId:r.branchId,addressId:'POINT_PREVIEW'});
   let fee=priced.calculation.customerDeliveryFee,minimum=minimumOrderIqd({minimum_order:priced.minimumOrderAmountIqd}),mode='CALCULATED';
   const rule=priced.pricingRequest.rules.find(x=>x.id===priced.calculation.rule.id&&x.version===priced.calculation.rule.version);

@@ -60,6 +60,246 @@ test('production owner verification requires all three isolated stores',()=>{
  assert.throws(()=>merchantFinancialBindings({...env,MERCHANT_PLATFORM_TABLE:env.MERCHANTS_TABLE}));
 });
 const {walletLifecycleTable}=require('../dist/walletBindings');
+const { financialOrderTables, financialDispatchTables } = require('../dist/walletBindings');
+
+function configuredOrderTables() {
+ return {
+  ...configured(), ORDERS_TABLE: 'wizz-production-Orders',
+  WALLETS_TABLE: 'wizz-production-Wallets', HOLDS_TABLE: 'wizz-production-Holds',
+  LEDGER_TABLE: 'wizz-production-LedgerEntries', AUDIT_LOG_TABLE: 'wizz-production-AuditLog',
+  WALLET_LIFECYCLE_TABLE: 'wizz-production-WalletLifecycle',
+  STAFF_TABLE: 'wizz-production-PlatformStaff', OFFER_JOURNEY_TABLE: 'wizz-production-OfferJourney',
+  DISPATCH_JOBS_TABLE: 'wizz-production-DispatchJobs', DRIVER_LIVE_STATE_TABLE: 'wizz-production-DriverLiveState',
+  WAVE_OFFERS_TABLE: 'wizz-production-WaveOffers', DELIVERY_QUOTES_TABLE: 'wizz-production-DeliveryQuotes',
+  DRIVERS_TABLE: 'wizz-production-Drivers',
+  MERCHANTS_TABLE: 'wizz-production-Merchants', ACCOUNT_DELETION_TABLE: 'wizz-production-AccountDeletion'
+ };
+}
+
+test('order settlement requires explicit distinct production tables even with STAGE alone', () => {
+ const env = {...configuredOrderTables(), STAGE: 'production'};
+ delete env.ENVIRONMENT;
+ assert.equal(financialOrderTables(env).orders, env.ORDERS_TABLE);
+ assert.equal(financialOrderTables(env).offerJourney, env.OFFER_JOURNEY_TABLE);
+ assert.throws(() => financialOrderTables({...env, ENVIRONMENT: 'staging'}), /ENVIRONMENT_CONFLICT/);
+ assert.throws(() => financialOrderTables({...env, OFFER_JOURNEY_TABLE: undefined}), /OFFER_JOURNEY_TABLE/);
+ assert.throws(() => financialOrderTables({...env, STAFF_TABLE: 'staging-PlatformStaff'}), /STAFF_TABLE/);
+ assert.throws(() => financialOrderTables({...env, STAFF_TABLE: env.ORDERS_TABLE}), /DISTINCT_ORDER_FINANCIAL_TABLES/);
+ assert.throws(() => financialDispatchTables({...env, WAVE_OFFERS_TABLE: undefined}), /WAVE_OFFERS_TABLE/);
+ assert.throws(() => financialDispatchTables({...env, DRIVERS_TABLE: env.MERCHANTS_TABLE}), /DISTINCT_DISPATCH_TABLES/);
+ assert.throws(() => financialDispatchTables({...env, WAVE_OFFERS_TABLE: env.TOPUP_REQUESTS_TABLE}), /DISTINCT_DISPATCH_TABLES/);
+});
+
+test('full-cash release reads and plans promotional settlement only against production tables', async () => {
+ const { GetCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');
+ const { verifyFullCashAssignment } = require('../dist/fullCashOffer');
+ const { prepareCodRelease } = require('../dist/financialRelease');
+ const fixture = await require('./helpers/full-cash-lifecycle-matrix-fixture.cjs')();
+ const order = fixture.get('WizzOrders', {PK: 'ORDER#order1', SK: 'META'});
+ const savedOffer = fixture.get('WaveOffers_staging', {orderId: 'order1', SK: 'FINANCIAL#driver1#WAVE#1'});
+ const verified = verifyFullCashAssignment(order, savedOffer, 'driver1');
+ const offer = {...verified.baseOffer, digest: verified.digest, allocation: verified.settlement.allocation};
+ const env = configuredOrderTables();
+ const sources = financialOrderTables({ENVIRONMENT: 'staging'});
+ const destinations = financialOrderTables(env);
+ const fixtureTables = new Map(Object.keys(sources).map(role => [destinations[role], sources[role]]));
+ const reads = [];
+ const db = {
+  async send(command) {
+   assert(command instanceof GetCommand, 'planning never writes before the caller commits');
+   const source = fixtureTables.get(command.input.TableName);
+   assert(source, 'every read must use a resolved production binding');
+   reads.push(command.input.TableName);
+   return fixture.db.send(new GetCommand({...command.input, TableName: source}));
+  }
+ };
+ const previous = process.env;
+ try {
+  process.env = {...env};
+  const plan = await prepareCodRelease(db, order, offer, new Date(fixture.time).toISOString(), 'CR:production-test', true, true, undefined, true);
+  assert(reads.includes(destinations.staff), 'campaign reservation is read from production');
+  assert(reads.includes(destinations.lifecycle), 'hold lifecycle is read from production');
+  assert.equal(plan.journalLines.reduce((total, row) => total + row.delta, 0), 0);
+  const operations = plan.operations.map(operation => {
+   const [[action, spec]] = Object.entries(operation);
+   const source = fixtureTables.get(spec.TableName);
+   assert(source, 'every transaction operation must use a resolved production binding');
+   return {[action]: {...spec, TableName: source}};
+  });
+  await fixture.db.send(new TransactWriteCommand({TransactItems: operations}));
+  assert.equal(fixture.get('staging-Holds', {orderId: 'order1', sk: 'HOLD'}).status, 'RELEASED');
+  assert.equal(fixture.get('staging-Wallets', {walletId: 'WALLET#DRIVER#driver1', sk: 'META'}).lockedBalance, 0);
+  await assert.rejects(() => prepareCodRelease(db, order, offer, new Date(fixture.time).toISOString(), 'CR:production-test', true, true, undefined, true), /FULL_CASH_RELEASE_CONFLICT/);
+ } finally {
+  process.env = previous;
+ }
+});
+
+for (const operation of ['unassign', 'cancelBeforePickup']) {
+ test(`full-cash ${operation} commits once using only production tables`, async () => {
+  const { GetCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');
+  const { createStagingCodReassignment } = require('../dist/codReassignment');
+  const fixture = await require('./helpers/full-cash-lifecycle-matrix-fixture.cjs')();
+  const env = configuredOrderTables();
+  const stageTables = financialDispatchTables({ENVIRONMENT: 'staging'});
+  const productionTables = financialDispatchTables(env);
+  const mapped = new Map(Object.keys(stageTables).map(role => [productionTables[role], stageTables[role]]));
+  function fixtureTable(productionName) {
+   assert(mapped.has(productionName), `unexpected table ${productionName}`);
+   return mapped.get(productionName);
+  }
+  let commits = 0;
+  const db = {async send(command) {
+   if (command instanceof GetCommand) {
+    return fixture.db.send(new GetCommand({...command.input, TableName: fixtureTable(command.input.TableName)}));
+   }
+   assert(command instanceof TransactWriteCommand);
+   commits++;
+   const items = command.input.TransactItems.map(item => {
+    const [[action, row]] = Object.entries(item);
+    return {[action]: {...row, TableName: fixtureTable(row.TableName)}};
+   });
+   return fixture.db.send(new TransactWriteCommand({...command.input, TransactItems: items}));
+  }};
+  const orderKey = {PK: 'ORDER#order1', SK: 'META'};
+  const order = fixture.get(stageTables.orders, orderKey);
+  const cancel = operation === 'cancelBeforePickup';
+  const actor = cancel ? {kind: 'MERCHANT_OWNER', subjectId: 'owner1'} : {kind: 'DRIVER', subjectId: 'driver1'};
+  const request = {
+   orderId: 'order1', offerId: order.financialAcceptance.offerId, attempt: 1, cashCollected: false,
+   ...(cancel ? {branchId: 'branch1', goodsRetainedByBranch: true} : {reason: 'VehicleIssue'})
+  };
+  const previous = process.env;
+  try {
+   process.env = {...env};
+   const api = createStagingCodReassignment({
+    db, now: () => fixture.time, enableFullCash: true, enableDeliveryFunding: true,
+    reassignmentWindowSeconds: 60, authenticate: async () => actor
+   });
+   assert.equal((await api[operation](request)).success, true);
+   const first = fixture.get(stageTables.orders, orderKey);
+   assert.equal(first.status, cancel ? 'cancelled' : 'ready_for_pickup');
+   assert.equal(fixture.get(stageTables.jobs, {orderId: 'order1', SK: 'METADATA'}).status, cancel ? 'cancelled' : 'searching');
+   assert.equal(fixture.get(stageTables.wallets, {walletId: 'WALLET#DRIVER#driver1', sk: 'META'}).lockedBalance, 0);
+   assert.equal((await api[operation](request)).replayed, true);
+   assert.equal(commits, 1);
+  } finally {
+   process.env = previous;
+  }
+ });
+}
+
+for (const hostMode of ['SCOPED','GENERAL']) test(`the ${hostMode} production Lambda authenticates a driver and commits unassignment once`, async () => {
+ const { DynamoDBDocumentClient, GetCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');
+ const { CognitoIdentityProviderClient } = require('@aws-sdk/client-cognito-identity-provider');
+ const { financialAcceptanceHandler } = require('../dist/driverFinancialRuntime');
+ const { quoteHash } = require('../dist/deliveryQuoteRecord');
+ const { scopePin } = require('./helpers/finance-rollout-fixture.cjs');
+ const { identities } = require('../../../infrastructure/production/wallet-identity-bindings.json');
+ const fixture = await require('./helpers/full-cash-lifecycle-matrix-fixture.cjs')();
+ const general = hostMode==='GENERAL';
+ const rollout = {schemaVersion:1,accountId:'746727375268',region:'us-east-1',scopes:general?[]:[{
+  id:'production-test',version:1,mode:'SCOPED',admitUntil:'2099-01-01T00:00:00.000Z',
+  orders:[{orderId:'order1',branchId:'branch1',customerSubjectId:'customer'}],drivers:[{driverId:'driver1',subjectId:'driver1'}]
+ }]};
+ const env = {
+  ...configuredOrderTables(), FINANCE_ROLLOUT_CONFIG:JSON.stringify(rollout),
+  FINANCE_ROLLOUT_SHA256:quoteHash(rollout), FINANCIAL_ORDER_HOST_MODE:hostMode,
+  FINANCE_GENERAL_RELEASE_MODE:general?'REQUIRED':'OFF',
+  FINANCIAL_DISPATCH_MODE:'REQUIRED', FINANCIAL_SETTLEMENT_MODEL:'FULL_CASH_AT_DELIVERY_V1',
+  FINANCIAL_DELIVERY_FUNDING_MODE:'REQUIRED', FINANCIAL_COD_ASSIGNMENTS_MODE:'REQUIRED',
+  FINANCIAL_OFFER_TTL_SECONDS:'60', FINANCIAL_POSITION_MAX_AGE_SECONDS:'120',
+  DELIVERY_OPERATIONS_MODE:'CENTRAL'
+ };
+ for (const [role, binding] of Object.entries(identities)) {
+  env[role.toUpperCase()+'_USER_POOL_ID'] = binding.poolId;
+  env[role.toUpperCase()+'_CLIENT_ID'] = binding.clientId;
+ }
+ const sources = financialDispatchTables({});
+ const targets = financialDispatchTables(env);
+ const operationsKey = {pk:'OPERATIONAL_SETTINGS#DELIVERY_OPERATIONS',sk:'CURRENT'};
+ fixture.put(sources.staff,{...operationsKey,version:1,values:{
+  quoteMaxPerCustomerPerMinute:5,driverOfferTtlSeconds:60,driverPositionMaxAgeSeconds:120,
+  reassignmentWindowSeconds:180,maximumWaves:4,
+ }});
+ const orderKey = {PK:'ORDER#order1',SK:'META'};
+ const order = fixture.get(sources.orders,orderKey);
+ const pin = release => ({schemaVersion:2,scopeId:release,version:1,
+  digest:quoteHash({release,version:1,orders:[{orderId:'order1',branchId:'branch1',customerSubjectId:'customer'}]})});
+ const approvedScope = general ? pin('GENERAL_PRODUCTION_FULL_CASH_V1') : scopePin(env,'order1');
+ Object.assign(order,{userSub:'customer',financeRollout:approvedScope});
+ const mapped = new Map(Object.keys(sources).map(role => [targets[role],sources[role]]));
+ function fixtureTable(name) {
+  assert(mapped.has(name), 'unexpected table '+name);
+  return mapped.get(name);
+ }
+ const subject = {Name:'sub',Value:'driver1'};
+ const token = pool => 'x.'+Buffer.from(JSON.stringify({
+  iss:'https://cognito-idp.us-east-1.amazonaws.com/'+pool,
+  token_use:'access',client_id:identities.driver.clientId,sub:'driver1'
+ })).toString('base64url')+'.x';
+ const accessToken = token(identities.driver.poolId);
+ const event = {action:'unassign_financial',accessToken,body:{
+  orderId:'order1',offerId:order.financialAcceptance.offerId,attempt:1,cashCollected:false,reason:'VehicleIssue'
+ }};
+ let commits = 0, identityCalls = 0;
+ const previous = process.env;
+ const dbSend = DynamoDBDocumentClient.prototype.send;
+ const cognitoSend = CognitoIdentityProviderClient.prototype.send;
+ try {
+  process.env = {...env};
+  DynamoDBDocumentClient.prototype.send = async command => {
+   if (command instanceof GetCommand) {
+    return fixture.db.send(new GetCommand({...command.input,TableName:fixtureTable(command.input.TableName)}));
+   }
+   assert(command instanceof TransactWriteCommand);
+   commits++;
+   assert.ok(command.input.TransactItems.some(item =>
+    item.ConditionCheck?.TableName===targets.staff &&
+    item.ConditionCheck.Key.pk===operationsKey.pk &&
+    item.ConditionCheck.ExpressionAttributeValues[':v']===1));
+   const items = command.input.TransactItems.map(item => {
+    const [[action,row]] = Object.entries(item);
+    return {[action]:{...row,TableName:fixtureTable(row.TableName)}};
+   });
+   return fixture.db.send(new TransactWriteCommand({...command.input,TransactItems:items}));
+  };
+  CognitoIdentityProviderClient.prototype.send = async command => {
+   identityCalls++;
+   const Username = '+9647800000000';
+   if (command.input.AccessToken) {
+    assert.equal(command.input.AccessToken, accessToken);
+    return {Username,UserAttributes:[subject]};
+   }
+   assert.equal(command.input.UserPoolId, identities.driver.poolId);
+   assert.equal(command.input.Username, Username);
+   return {Enabled:true,UserStatus:'CONFIRMED',Username,UserAttributes:[subject]};
+  };
+  assert.equal((await financialAcceptanceHandler({...event,accessToken:token('us-east-1_RGTqUXF5C')})).statusCode, 401);
+  assert.equal(identityCalls, 0);
+  if (general) {
+   process.env.FINANCIAL_ORDER_HOST_MODE='SCOPED';
+   assert.equal((await financialAcceptanceHandler(event)).statusCode,503);
+   process.env.FINANCIAL_ORDER_HOST_MODE=hostMode;
+   delete order.financeRollout;
+   assert.equal((await financialAcceptanceHandler(event)).statusCode,403);
+   order.financeRollout=pin('GENERAL_STAGING_FULL_CASH_V1');
+   assert.equal((await financialAcceptanceHandler(event)).statusCode,403);
+   order.financeRollout=approvedScope;
+   assert.equal(commits,0);
+  }
+  const result = await financialAcceptanceHandler(event);
+  assert.equal(result.statusCode, 200, JSON.stringify(result));
+  assert.equal(fixture.get(sources.wallets,{walletId:'WALLET#DRIVER#driver1',sk:'META'}).lockedBalance, 0);
+  assert.equal((await financialAcceptanceHandler(event)).result.replayed, true);
+  assert.equal(commits, 1);
+ } finally {
+  process.env = previous;
+  DynamoDBDocumentClient.prototype.send = dbSend;
+  CognitoIdentityProviderClient.prototype.send = cognitoSend;
+ }
+});
+
 test('non-production lifecycle remains optional and preserves its configured table',()=>{
  assert.equal(walletLifecycleTable({}),undefined);
  assert.equal(walletLifecycleTable({ENVIRONMENT:'staging',WALLET_LIFECYCLE_TABLE:'staging-WalletLifecycle'}),'staging-WalletLifecycle');

@@ -5431,7 +5431,9 @@ function createMerchantPeriodCollection(options) {
   async function evidence(branchId, orderId) {
     const p = await readMerchantAccrualEvidence(db, branchId, orderId);
     const { settlementBatchId: _batch, settlementLineDigest: _line, settlementClaimedAt: _claimed, paidAt: _paid, paidPayoutId: _payout, ...original } = p.payable;
-    return { ...p, accrual: deriveMerchantCodAccrual({ branchId, order: p.order, outcome: p.outcome, acceptedOffer: p.acceptedOffer, payable: { ...original, status: "LOCKED_PENDING_SETTLEMENT" }, accountingJournal: p.accountingJournal, cashAdjudicationJournal: p.cashAdjudicationJournal }) };
+    const { digest: _digest, ...verified } = p.accrual;
+    const content = { ...verified, sourceDigests: { ...verified.sourceDigests, payable: quoteHash({ ...original, status: "LOCKED_PENDING_SETTLEMENT" }) } };
+    return { ...p, accrual: { ...content, digest: quoteHash(content) } };
   }
   async function coverage() {
     const c = await strongGet(db, T4, MERCHANT_ACCRUAL_COVERAGE_KEY);
@@ -5551,6 +5553,7 @@ function createMerchantPeriodCollection(options) {
         await commit(r, actor, [put4(part()), put4(n, r)]);
         return { collection: publicRoot(n) };
       }
+      available.sort((left, right) => left.orderId < right.orderId ? -1 : left.orderId > right.orderId ? 1 : 0);
       const preview = assembleMerchantSettlementPreview(r.branchId, r.period, available), batches = createMerchantSettlementBatchService({ db, now, authorizeBranch: authorize, readSchedule: history, readOpeningSchedule: opening, onPrepare: async (saved2) => {
         if (!equal(saved2.header.period, r.period)) return fail28("SETTLEMENT_COLLECTION_SOURCE_INVALID");
         return [put4(part(saved2.header)), put4(n, r)];

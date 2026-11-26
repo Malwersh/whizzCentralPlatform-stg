@@ -1,0 +1,1510 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Production customer addresses, service coverage and restaurant storefront.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    },
+    "ArtifactKey": {
+      "Type": "String",
+      "AllowedPattern": "customer-storefront/[a-f0-9]{64}[.]zip"
+    },
+    "ArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "Api": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Name": "wizz-production-customer-storefront",
+        "EndpointConfiguration": {
+          "Types": [
+            "REGIONAL"
+          ]
+        }
+      }
+    },
+    "AddressesLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-customer-storefront-addresses",
+        "RetentionInDays": 90
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "AddressesRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "AddressesAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-customer-storefront-addresses:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:Scan"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Regions"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-RegionsDerived"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:Query",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-RegionIndex/index/h3-index"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "geo-places:Suggest",
+                    "geo-places:GetPlace"
+                  ],
+                  "Resource": "*",
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": "us-east-1"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:GetItem",
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Customers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Addresses"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:Scan",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Addresses"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:Query",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Addresses/index/userId-index"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Addresses"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:UpdateItem",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Customers"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "dynamodb:EnclosingOperation": "TransactWriteItems"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:ConditionCheckItem",
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Customers"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Regions"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-RegionsDerived"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "AddressesFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "FunctionName": "wizz-production-customer-storefront-addresses",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.addresses",
+        "Role": {
+          "Fn::GetAtt": [
+            "AddressesRole",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "REGIONS_TABLE": "wizz-production-Regions",
+            "REGIONS_DERIVED_TABLE": "wizz-production-RegionsDerived",
+            "REGION_INDEX_TABLE": "wizz-production-RegionIndex",
+            "ADDRESSES_TABLE": "wizz-production-Addresses",
+            "USERS_TABLE": "wizz-production-Customers",
+            "BUSINESSES_TABLE": "wizz-production-Merchants",
+            "WORKING_HOURS_TABLE": "wizz-production-WorkingHours",
+            "CATEGORIES_TABLE": "wizz-production-MenuCategories",
+            "PRODUCTS_TABLE": "wizz-production-Products",
+            "GLOBAL_PRODUCTS_TABLE": "wizz-production-GlobalProducts",
+            "REGION_LISTINGS_TABLE": "wizz-production-RegionListings",
+            "MERCHANT_PLATFORM_TABLE": "wizz-production-MerchantPlatform",
+            "DISCOVERY_TABLE": "wizz-production-PlatformStaff",
+            "ENVIRONMENT": "production",
+            "USER_POOL_ID": "us-east-1_rNtNKVsVf",
+            "USER_POOL_CLIENT_ID": "3e8p0ouglrprpd0a3pc91du0hg"
+          }
+        },
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "ArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactVersion"
+          }
+        },
+        "MemorySize": 512,
+        "Timeout": 15,
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "AddressesLogs"
+          }
+        }
+      }
+    },
+    "AddressesInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "FunctionName": {
+          "Ref": "AddressesFunction"
+        },
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/*/*"
+        }
+      }
+    },
+    "CatalogLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-customer-storefront-catalog",
+        "RetentionInDays": 90
+      },
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "CatalogRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "CatalogAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-customer-storefront-catalog:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:Scan"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Regions"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-RegionsDerived"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:Query",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-RegionIndex/index/h3-index"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:Scan",
+                    "dynamodb:BatchGetItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Merchants"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:Query",
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WorkingHours"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Products/index/BusinessIdIndex"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:BatchGetItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-RegionListings"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:BatchGetItem",
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Products"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-GlobalProducts"
+                    },
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MenuCategories"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:Scan",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MenuCategories"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:Query"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-MerchantPlatform"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "BRANCH#*"
+                      ]
+                    },
+                    "Null": {
+                      "dynamodb:LeadingKeys": "false"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:GetItem",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-PlatformStaff"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:LeadingKeys": [
+                        "HOME_DISCOVERY"
+                      ]
+                    },
+                    "Null": {
+                      "dynamodb:LeadingKeys": "false"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "CatalogFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "FunctionName": "wizz-production-customer-storefront-catalog",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.catalog",
+        "Role": {
+          "Fn::GetAtt": [
+            "CatalogRole",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "REGIONS_TABLE": "wizz-production-Regions",
+            "REGIONS_DERIVED_TABLE": "wizz-production-RegionsDerived",
+            "REGION_INDEX_TABLE": "wizz-production-RegionIndex",
+            "ADDRESSES_TABLE": "wizz-production-Addresses",
+            "USERS_TABLE": "wizz-production-Customers",
+            "BUSINESSES_TABLE": "wizz-production-Merchants",
+            "WORKING_HOURS_TABLE": "wizz-production-WorkingHours",
+            "CATEGORIES_TABLE": "wizz-production-MenuCategories",
+            "PRODUCTS_TABLE": "wizz-production-Products",
+            "GLOBAL_PRODUCTS_TABLE": "wizz-production-GlobalProducts",
+            "REGION_LISTINGS_TABLE": "wizz-production-RegionListings",
+            "MERCHANT_PLATFORM_TABLE": "wizz-production-MerchantPlatform",
+            "DISCOVERY_TABLE": "wizz-production-PlatformStaff",
+            "ENVIRONMENT": "production",
+            "USER_POOL_ID": "us-east-1_rNtNKVsVf",
+            "USER_POOL_CLIENT_ID": "3e8p0ouglrprpd0a3pc91du0hg"
+          }
+        },
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "ArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactVersion"
+          }
+        },
+        "MemorySize": 512,
+        "Timeout": 15,
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "CatalogLogs"
+          }
+        }
+      }
+    },
+    "CatalogInvoke": {
+      "Type": "AWS::Lambda::Permission",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "FunctionName": {
+          "Ref": "CatalogFunction"
+        },
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/*/*"
+        }
+      }
+    },
+    "Path1": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Fn::GetAtt": [
+            "Api",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "users"
+      }
+    },
+    "Path2": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path1"
+        },
+        "PathPart": "{user_id}"
+      }
+    },
+    "Path3": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path2"
+        },
+        "PathPart": "addresses"
+      }
+    },
+    "Method1": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path3"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method2": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path3"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method3": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path3"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path4": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path3"
+        },
+        "PathPart": "{address_id}"
+      }
+    },
+    "Method4": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path4"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method5": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path4"
+        },
+        "HttpMethod": "PUT",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method6": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path4"
+        },
+        "HttpMethod": "DELETE",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method7": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path4"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path5": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path4"
+        },
+        "PathPart": "set-default"
+      }
+    },
+    "Method8": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path5"
+        },
+        "HttpMethod": "PUT",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method9": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path5"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path6": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Fn::GetAtt": [
+            "Api",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "api"
+      }
+    },
+    "Path7": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path6"
+        },
+        "PathPart": "regions"
+      }
+    },
+    "Path8": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path7"
+        },
+        "PathPart": "find-by-coordinates"
+      }
+    },
+    "Method10": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path8"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method11": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path8"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path9": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path6"
+        },
+        "PathPart": "businesses"
+      }
+    },
+    "Path10": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path9"
+        },
+        "PathPart": "by-region"
+      }
+    },
+    "Method12": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path10"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method13": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path10"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path11": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path9"
+        },
+        "PathPart": "nearby"
+      }
+    },
+    "Method14": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path11"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method15": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path11"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path12": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Fn::GetAtt": [
+            "Api",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "business"
+      }
+    },
+    "Path13": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path12"
+        },
+        "PathPart": "{businessId}"
+      }
+    },
+    "Method16": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path13"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method17": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path13"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path14": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path13"
+        },
+        "PathPart": "categories"
+      }
+    },
+    "Method18": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path14"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method19": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path14"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path15": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path13"
+        },
+        "PathPart": "products"
+      }
+    },
+    "Method20": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path15"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method21": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path15"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path16": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path13"
+        },
+        "PathPart": "working-hours"
+      }
+    },
+    "Method22": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path16"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method23": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path16"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path17": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path6"
+        },
+        "PathPart": "check-menu-version"
+      }
+    },
+    "Method24": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path17"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method25": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path17"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path18": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path6"
+        },
+        "PathPart": "check-listing-version"
+      }
+    },
+    "Method26": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path18"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method27": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path18"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path19": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path6"
+        },
+        "PathPart": "batch-check-versions"
+      }
+    },
+    "Method28": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path19"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method29": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path19"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CatalogFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Path20": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "Path2"
+        },
+        "PathPart": "address-search"
+      }
+    },
+    "Method30": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path20"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Method31": {
+      "Type": "AWS::ApiGateway::Method",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "Path20"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AddressesFunction.Arn}/invocations"
+          }
+        }
+      }
+    },
+    "Deployment8409a02dbdd7": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        }
+      },
+      "DependsOn": [
+        "Method1",
+        "Method2",
+        "Method3",
+        "Method4",
+        "Method5",
+        "Method6",
+        "Method7",
+        "Method8",
+        "Method9",
+        "Method10",
+        "Method11",
+        "Method12",
+        "Method13",
+        "Method14",
+        "Method15",
+        "Method16",
+        "Method17",
+        "Method18",
+        "Method19",
+        "Method20",
+        "Method21",
+        "Method22",
+        "Method23",
+        "Method24",
+        "Method25",
+        "Method26",
+        "Method27",
+        "Method28",
+        "Method29",
+        "Method30",
+        "Method31",
+        "AddressesInvoke",
+        "CatalogInvoke"
+      ]
+    },
+    "Stage": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "DeploymentId": {
+          "Ref": "Deployment8409a02dbdd7"
+        },
+        "StageName": "production",
+        "MethodSettings": [
+          {
+            "ResourcePath": "/*",
+            "HttpMethod": "*",
+            "ThrottlingBurstLimit": 60,
+            "ThrottlingRateLimit": 30,
+            "DataTraceEnabled": false
+          },
+          {
+            "ResourcePath": "/~1users~1{user_id}~1address-search",
+            "HttpMethod": "POST",
+            "ThrottlingBurstLimit": 10,
+            "ThrottlingRateLimit": 5,
+            "DataTraceEnabled": false
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ApiUrl": {
+      "Condition": "IsProductionAccount",
+      "Value": {
+        "Fn::Sub": "https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/production"
+      }
+    }
+  }
+}

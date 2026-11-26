@@ -3,9 +3,7 @@ const {createHash}=require('crypto');
 const geo=require('./geometry');
 const h3=require('h3-js');
 const {feature,featureCollection}=require('@turf/helpers');
-const {lineOverlap}=require('@turf/line-overlap');
-const {polygonToLine}=require('@turf/polygon-to-line');
-const {length}=require('@turf/length');
+const {sharedBoundaryKm}=require('./shared-boundary');
 const INPUT=['regionId','name','name_ar','level','parent_id','is_active','geometry','service_config','delivery_config','archived'];
 const editable=r=>Object.fromEntries(INPUT.filter(k=>r[k]!==undefined).map(k=>[k,r[k]]));
 const FIELDS=['regionId','name','name_ar','level','parent_id','is_active','geometry','version','service_config','delivery_config','self_pricing','self_limits','override_parent_active','archived','publicationId','indexPublicationId','_regionPublication'];
@@ -18,12 +16,12 @@ const enabled=v=>[true,1,'1','true'].includes(v);
 const version=r=>Number.isSafeInteger(r?.version)?r.version:0;
 const reference=r=>Object.fromEntries(FIELDS.filter(k=>r[k]!==undefined).map(k=>[k,r[k]]));
 const catalogDigest=rows=>digest(rows.map(reference).sort((a,b)=>a.regionId.localeCompare(b.regionId)));
-function normalize(raw,old){
+function normalize(raw,old,{reclassify=false}={}){
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||Object.keys(raw).some(k=>!['regionId','name','name_ar','level','parent_id','is_active','geometry','service_config','delivery_config','archived'].includes(k)))throw fail('REGION_INPUT_INVALID');
  if(!id(raw.regionId)||![0,1,2,3].includes(raw.level)||typeof raw.is_active!=='boolean')throw fail('REGION_INPUT_INVALID');
  for(const key of ['name','name_ar'])if(typeof raw[key]!=='string'||!raw[key].trim()||raw[key].length>120)throw fail('REGION_NAME_REQUIRED');
  if(raw.parent_id!==null&&!id(raw.parent_id))throw fail('REGION_PARENT_INVALID');
- if(old&&(Number(old.level)!==raw.level||(old.parent_id||null)!==raw.parent_id))throw fail(Number(old.level)!==raw.level?'LEVEL_IMMUTABLE':'PARENT_MOVE_REVIEW_REQUIRED');
+ if(old&&!reclassify&&(Number(old.level)!==raw.level||(old.parent_id||null)!==raw.parent_id))throw fail(Number(old.level)!==raw.level?'LEVEL_IMMUTABLE':'PARENT_MOVE_REVIEW_REQUIRED');
  const structure=geo.inspect(raw.geometry);if(!structure.valid)throw fail(structure.errors[0].code,400,structure);
  const services=raw.service_config??old?.service_config??{};
  if(!services||typeof services!=='object'||Array.isArray(services)||Object.keys(services).some(k=>!['delivery','pickup','dineIn'].includes(k)||typeof services[k]!=='boolean'))throw fail('REGION_SERVICE_INVALID');
@@ -36,22 +34,63 @@ function normalize(raw,old){
  return next;
 }
 const geometryChanged=(old,next)=>!old||digest(old.geometry)!==digest(next.geometry);
+const boundaryIndexChanged=(old,next)=>next.operation!=='delete'&&Number(next.level)===3&&
+ (geometryChanged(old,next)||Number(old?.level)!==3||(old?.parent_id||null)!==(next.parent_id||null));
+const removeIndexes=(old,next)=>next.operation==='delete'||Number(old?.level)===3&&Number(next.level)!==3;
+const structural=change=>change.operation==='delete'||change.operation==='reclassify';
+function normalizeChange(raw,old,operation){
+ if(operation===undefined)return normalize(raw,old);
+ if(!old||old.regionId!==raw?.regionId)throw fail('REGION_NOT_FOUND',404);
+ if(operation==='delete')return {...reference(old),operation};
+ if(operation!=='reclassify')throw fail('REGION_INPUT_INVALID');
+ const next=normalize(raw,old,{reclassify:true});
+ if(Number(old.level)===next.level&&(old.parent_id||null)===next.parent_id)throw fail('REGION_RECLASSIFY_UNCHANGED');
+ return {...next,operation};
+}
+function changeImpact(base,changes){
+ const ids=new Set(changes.map(r=>r.regionId));
+ const byId=new Map(base.map(r=>[r.regionId,r]));
+ return base.filter(r=>{
+  let row=r;
+  for(let depth=0;row&&depth<=3;depth++){
+   if(ids.has(row.regionId))return true;
+   row=byId.get(row.parent_id);
+  }
+  return false;
+ });
+}
 function validatePlan(base,changes){
- const old=new Map(base.map(r=>[r.regionId,r])),next=new Map(base.map(r=>[r.regionId,r]));for(const r of changes)next.set(r.regionId,r);
+ const old=new Map(base.map(r=>[r.regionId,r])),next=new Map(old);
+ for(const r of changes){
+  if(r.operation==='delete')next.delete(r.regionId);
+  else{const {operation,...data}=r;next.set(r.regionId,data);}
+ }
  const rows=[...next.values()],errors=[],highlights=[];
  for(const r of changes){
-  const previous=old.get(r.regionId),needsGeometry=geometryChanged(previous,r)||(!enabled(previous?.is_active)&&enabled(r.is_active));
+  const previous=old.get(r.regionId);
+  if(r.operation==='delete'){
+   const child=rows.find(row=>row.parent_id===r.regionId);
+   if(child)errors.push({code:'REGION_DELETE_HAS_CHILDREN',editedRegionId:r.regionId,regionId:child.regionId,regionName:child.name_ar||child.name});
+   continue;
+  }
+  const needsGeometry=structural(r)||geometryChanged(previous,r)||(!enabled(previous?.is_active)&&enabled(r.is_active));
   // Existing imperfect boundaries are reported, but stopping a service must not
   // require redrawing geography or silently alter its coordinates.
-  if(needsGeometry){const result=geo.validate(r,rows.filter(x=>x.regionId!==r.regionId).concat(previous?[previous]:[]));for(const e of result.errors)errors.push({...e,editedRegionId:r.regionId});highlights.push(...result.highlights);}
+  if(needsGeometry){const result=geo.validate(r,rows.filter(x=>x.regionId!==r.regionId).concat(previous&&!structural(r)?[previous]:[]));for(const e of result.errors)errors.push({...e,editedRegionId:r.regionId});highlights.push(...result.highlights);}
   const chain=[];let node=r;
   for(let expected=r.level;expected>=0;expected--){if(!node||Number(node.level)!==expected||chain.includes(node.regionId)){errors.push({code:'REGION_HIERARCHY_INVALID',editedRegionId:r.regionId});break;}chain.push(node.regionId);if(expected===0){if(node.parent_id)errors.push({code:'REGION_HIERARCHY_INVALID',editedRegionId:r.regionId});break;}node=next.get(node.parent_id);}
   for(const other of rows){if(other.regionId===r.regionId||other.level!==r.level||(other.parent_id||null)!==(r.parent_id||null))continue;if(other.name?.trim().toLowerCase()===r.name.toLowerCase()||other.name_ar?.trim()===r.name_ar)errors.push({code:'DUPLICATE_NAME',editedRegionId:r.regionId,regionId:other.regionId,message:geo.labels.DUPLICATE_NAME});}
  }
+ for(const row of changeImpact(rows,changes.filter(structural))){
+  try{chainFor(row,next);}catch{
+   if(!errors.some(e=>e.editedRegionId===row.regionId&&e.code==='REGION_HIERARCHY_INVALID'))
+    errors.push({code:'REGION_HIERARCHY_INVALID',editedRegionId:row.regionId,regionName:row.name_ar||row.name});
+  }
+ }
  return {valid:errors.length===0,errors,highlights,rows};
 }
 function chainFor(r,byId){const chain=[];for(let expected=Number(r.level);expected>=0;expected--){if(!r||Number(r.level)!==expected||chain.some(n=>n.regionId===r.regionId))throw fail('REGION_HIERARCHY_INVALID');chain.push(r);r=byId.get(r.parent_id);}return chain;}
-function derive(r,rows,previous={},at,derivedRows=[]){
+function derive(r,rows,previous={},at,derivedRows=[],{refreshInheritance=false}={}){
  const chain=chainFor(r,new Map(rows.map(x=>[x.regionId,x]))),config={};
  for(const n of [...chain].reverse()){
   for(const [key,value]of Object.entries(n.service_config||{}))config[key]=clone(value);
@@ -61,7 +100,8 @@ function derive(r,rows,previous={},at,derivedRows=[]){
  const parentDerived=field=>chain.slice(1).map(n=>derivedRows.find(d=>d.regionId===n.regionId)?.[field]).find(v=>v!==undefined);
  return {...previous,regionId:r.regionId,parent_id:r.parent_id||'ROOT',level:r.level,name:r.name,name_ar:r.name_ar,
   effective_is_active:chain.every(n=>enabled(n.is_active)&&!n.archived)?1:0,effective_config:config,
-  effective_pricing:nearest('self_pricing')??previous.effective_pricing??parentDerived('effective_pricing')??{},effective_limits:nearest('self_limits')??previous.effective_limits??parentDerived('effective_limits')??{},
+  effective_pricing:nearest('self_pricing')??(refreshInheritance?undefined:previous.effective_pricing)??parentDerived('effective_pricing')??{},
+  effective_limits:nearest('self_limits')??(refreshInheritance?undefined:previous.effective_limits)??parentDerived('effective_limits')??{},
   inheritance_chain:chain.map(n=>n.regionId),computed_at:at,version:r.version,publicationId:r.publicationId};
 }
 function indexCells(region){
@@ -75,16 +115,19 @@ function indexCells(region){
  }
  throw fail('REGION_INDEX_TOO_LARGE');
 }
-function lines(geometry){return (geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates).map(coordinates=>polygonToLine(feature({type:'Polygon',coordinates})));}
 function neighbor(a,b,rows){
- let km=0;for(const x of lines(a.geometry))for(const y of lines(b.geometry))for(const segment of lineOverlap(x,y,{tolerance:0}).features)km+=length(segment,{units:'kilometers'});
+ const km=sharedBoundaryKm(a.geometry,b.geometry);
  if(km<0.001)return null;
  const byId=new Map(rows.map(r=>[r.regionId,r])),ac=chainFor(a,byId),bc=chainFor(b,byId),sameDistrict=a.parent_id===b.parent_id,sameGovernorate=ac[2]?.regionId===bc[2]?.regionId;
  const priority=sameDistrict?(km>=5?0:1):sameGovernorate&&km>=8?1:2;
  return {shared_boundary_km:km,expansion_priority:priority,relationship_type:'adjacent'};
 }
 function neighborChanges(base,changes,rows,existing,publicationId,at){
- const affected=new Set(changes.filter(r=>r.level===3&&geometryChanged(base.find(x=>x.regionId===r.regionId),r)).map(r=>r.regionId));
+ const old=new Map(base.map(r=>[r.regionId,r]));
+ const affected=new Set([
+  ...changes.filter(r=>boundaryIndexChanged(old.get(r.regionId),r)||removeIndexes(old.get(r.regionId),r)),
+  ...changeImpact(rows,changes.filter(structural)).filter(r=>Number(r.level)===3),
+ ].map(r=>r.regionId));
  const wanted=new Map();for(const a of rows.filter(r=>r.level===3))for(const b of rows.filter(r=>r.level===3&&r.regionId>a.regionId)){
   if(!affected.has(a.regionId)&&!affected.has(b.regionId))continue;
   const rel=neighbor(a,b,rows);if(!rel)continue;
@@ -92,4 +135,4 @@ function neighborChanges(base,changes,rows,existing,publicationId,at){
  }
  return {puts:[...wanted.values()],deletes:existing.filter(n=>(affected.has(n.source_region_id)||affected.has(n.target_region_id))&&!wanted.has(n.neighbor_pair_id))};
 }
-module.exports={INPUT,editable,FIELDS,id,clone,canonical,digest,reference,version,catalogDigest,normalize,geometryChanged,validatePlan,derive,indexCells,neighborChanges,fail,enabled};
+module.exports={INPUT,editable,FIELDS,id,clone,canonical,digest,reference,version,catalogDigest,normalize,normalizeChange,geometryChanged,boundaryIndexChanged,removeIndexes,structural,changeImpact,validatePlan,derive,indexCells,neighborChanges,fail,enabled};

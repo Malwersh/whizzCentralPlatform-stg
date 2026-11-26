@@ -103,21 +103,54 @@ test('approval stays disabled without the deployment switch even for authorized 
  await assert.rejects(route(ctx,actor,'POST',path+'/approve',{...base,baseVersion:2,reason:'Approve reviewed transfer'}),/TRANSFER_APPROVAL_UNAVAILABLE/);
 });
 
+test('staging execution is restricted to the configured request',async t=>{
+ const keys=['PLATFORM_ENVIRONMENT','MERCHANT_OWNERSHIP_EXECUTION_ENABLED','MERCHANT_OWNERSHIP_EXECUTION_REQUEST_ID'];
+ const previous=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
+ t.after(()=>{
+  for(const key of keys){
+   if(previous[key]===undefined)delete process.env[key];
+   else process.env[key]=previous[key];
+  }
+ });
+ const {ctx}=setup();
+ const route=createReview({Get,Write,clock:()=>now,authorize:()=>true});
+ process.env.PLATFORM_ENVIRONMENT='staging';
+ process.env.MERCHANT_OWNERSHIP_EXECUTION_ENABLED='true';
+ delete process.env.MERCHANT_OWNERSHIP_EXECUTION_REQUEST_ID;
+ assert.equal((await route(ctx,actor,'GET',path)).executionAvailable,false);
+ process.env.MERCHANT_OWNERSHIP_EXECUTION_REQUEST_ID='12345678-1234-1234-1234-123456789abd';
+ assert.equal((await route(ctx,actor,'GET',path)).executionAvailable,false);
+ await assert.rejects(route(ctx,actor,'POST',path+'/approve',{...base,baseVersion:2,reason:'Approve reviewed transfer'}),/TRANSFER_APPROVAL_UNAVAILABLE/);
+ process.env.MERCHANT_OWNERSHIP_EXECUTION_REQUEST_ID=requestId;
+ assert.equal((await route(ctx,actor,'GET',path)).executionAvailable,true);
+ process.env.PLATFORM_ENVIRONMENT='production';
+ assert.equal((await route(ctx,actor,'GET',path)).executionAvailable,false);
+});
+
 test('approval requires a recent financial reviewer and forwards the stored request',async()=>{
  const {ctx,calls}=setup();
  const input={...base,baseVersion:2,reason:'Approve reviewed transfer'};
+ const sequence=[];
  const route=createReview({
   Get,Write,clock:()=>now,authorize:()=>true,approvalEnabled:()=>true,
+  notifyCompletion:async request=>{
+   assert.equal(request.status,'COMPLETED');
+   sequence.push('notify');
+   return true;
+  },
   approve:async(_ctx,staff,row,reason)=>{
    assert.equal(staff.employeeId,actor.employeeId);
    assert.equal(row.requestId,requestId);
    assert.equal(reason,input.reason);
+   sequence.push('commit');
    return {...row,status:'COMPLETED',version:3};
   },
  });
  await assert.rejects(route({...ctx,authenticatedAt:now/1000-301},actor,'POST',path+'/approve',input),/REAUTH_REQUIRED/);
  const result=await route({...ctx,authenticatedAt:now/1000},actor,'POST',path+'/approve',input);
  assert.equal(result.request.status,'COMPLETED');
+ assert.equal(result.notificationsQueued,true);
+ assert.deepEqual(sequence,['commit','notify']);
  assert.ok(calls.every(call=>call instanceof Get));
 });
 
@@ -131,6 +164,41 @@ test('financial reviewer can approve the settlement destination while final owne
  assert.equal(result.settlement.status,'APPROVED');
  assert.equal(result.canApprove,false);
  assert.equal(result.request.status,'AWAITING_REVIEW');
+});
+
+test('approval preflight reports the request-level settlement condition alongside branch checks',async()=>{
+ const {ctx}=setup({digest:'scope'});
+ const original=ctx.db.send;
+ let verified=false,approved=false;
+ ctx.db.send=async command=>{
+  const key=command.input.Key;
+  if(key.sk==='PROFILE')return {Item:{subjectId:'recipient',version:1}};
+  if(key.sk==='OWNERSHIP_TRANSFER_DESTINATION#'+requestId)return verified?{Item:{
+   kind:'OWNERSHIP_TRANSFER_DESTINATION',status:'VERIFIED',requestId,recipientId:'recipient',
+   scopeDigest:'scope',profileVersion:1,version:1,expiresAt:now+30000,
+  }}:{};
+  if(key.sk==='OWNERSHIP_TRANSFER_SETTLEMENT#'+requestId)return approved?{Item:{
+   kind:'OWNERSHIP_TRANSFER_SETTLEMENT',status:'APPROVED',requestId,recipientId:'recipient',
+   scopeDigest:'scope',profileVersion:1,proofVersion:1,version:1,
+  }}:{};
+  return original(command);
+ };
+ const route=createReview({
+  Get,clock:()=>now,authorize:()=>true,approvalEnabled:()=>true,settlementEnabled:()=>true,
+  readPreflight:async()=>({branches:[{name:'مطعم فتوش',blockers:[]}],checkedAt:now}),
+ });
+ const check=()=>route(ctx,actor,'GET',path+'/preflight');
+ let result=await check();
+ assert.deepEqual(result.requestBlockers,[{code:'TRANSFER_DESTINATION_VERIFICATION_REQUIRED'}]);
+ assert.equal(result.canApprove,false);
+ verified=true;
+ result=await check();
+ assert.deepEqual(result.requestBlockers,[{code:'TRANSFER_SETTLEMENT_APPROVAL_REQUIRED'}]);
+ assert.equal(result.canApproveSettlement,true);
+ approved=true;
+ result=await check();
+ assert.deepEqual(result.requestBlockers,[]);
+ assert.equal(result.canApprove,true);
 });
 
 test('staging approval accepts a valid session under the configured policy',async t=>{
@@ -147,6 +215,7 @@ test('staging approval accepts a valid session under the configured policy',asyn
  const {ctx}=setup();
  const route=createReview({
   Get,Write,clock:()=>now,authorize:()=>true,approvalEnabled:()=>true,
+  notifyCompletion:async()=>true,
   approve:async(_ctx,_actor,row)=>({...row,status:'COMPLETED',version:3}),
  });
  const input={...base,baseVersion:2,reason:'Approve reviewed transfer'};

@@ -112,3 +112,33 @@ test('merchant wallet push never exposes financial amounts, reasons or reference
 test('return task notice opens inbox, omits amount and is suppressed for deleted or changed driver',async()=>{const f=await runCod({returnTask:true});assert.ifError(f.error);assert.equal(f.sends.length,1);assert.equal(f.sends[0].data.action,'open_notifications');assert.equal(f.sends[0].data.amount,'');assert.equal(f.sends[0].data.offerId,undefined);for(const opts of [{deleted:true},{changed:true},{tombstone:true},{deleteBeforeSend:true}]){const denied=await runCod({...opts,returnTask:true});assert.equal(denied.sends.length,0);}});
 
 test('financial case update routes driver to wallet without exposing fake zero or reopening offer',async()=>{const f=await runCod({exceptionFinance:true});assert.ifError(f.error);assert.equal(f.sends.length,1);assert.equal(f.sends[0].data.action,'open_wallet');assert.equal(f.sends[0].data.amount,'');assert.equal(f.sends[0].data.offerId,undefined);const blocked=await runCod({exceptionFinance:true,changed:true});assert.equal(blocked.sends.length,0);});
+
+test('production return pushes are sent only to a current driver registration', async () => {
+ const tables={outbox:'production-events',pushTokens:'production-tokens',drivers:'production-drivers',deletion:'production-deletion'};
+ const notice={...item(),eventId:'RETURN_TASK_NOTICE#'+'a'.repeat(64),type:'driver_return_task_updated',
+  recipientApp:'driver',driverId:'subject1',financialSubjectId:'subject1',financialDriverId:'driver1',
+  branchId:'branch1',orderId:'order1',returnId:'return1'};
+ const clock=()=>1700000000000;
+ for (const mode of ['valid','deleted','reassigned-token']) {
+  const sends=[];let status;
+  const client={async send(command) {
+   const {TableName,Key,ReturnValues,ExpressionAttributeValues}=command.input;
+   if(command.constructor.name==='UpdateCommand'){
+    assert.equal(TableName,tables.outbox);
+    if(ReturnValues) return {Attributes:notice};
+    if(ExpressionAttributeValues[':status']) status=ExpressionAttributeValues[':status'];
+    return {};
+   }
+   if(command.constructor.name==='QueryCommand') return {Items:[{token:'registered',app:'driver'},{token:'unrelated',app:'merchant'}]};
+   if(TableName===tables.drivers) return {Item:{driverId:'driver1',cognitoSub:'subject1',isDeleted:mode==='deleted'}};
+   if(TableName===tables.deletion) return {};
+   assert.equal(TableName,tables.pushTokens);
+   return {Item:{token:Key.token,app:'driver',subjectId:mode==='reassigned-token'?'new-subject':'subject1',ttl:1800000000}};
+  }};
+  const worker=createWorker(client,async()=>({send:async message=>sends.push(message)}),clock,{returnNoticeTables:tables});
+  await worker.processEvent(notice.eventId);
+  assert.equal(sends.length,mode==='valid'?1:0);
+  assert.equal(status,{valid:'SENT',deleted:'SUPPRESSED','reassigned-token':'PENDING'}[mode]);
+  if(sends.length) assert.equal(sends[0].data.action,'open_notifications');
+ }
+});

@@ -1,13 +1,12 @@
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { Money, addMoney, moneyFromMinor, multiplyMoney, parseIqd } from './money';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
+import { checkoutTables } from './checkoutTables';
+import { isFinancialOrderProduction } from './walletBindings';
 
 import {readBranchProductOptions,readBranchOptionSelection} from './branchProductOptions';
 
 type Row = Record<string, any>;
-const TABLE = process.env.INVENTORY_PRODUCTS_TABLE || 'WhizzMerchants_Products';
-const PLATFORM = process.env.INVENTORY_PLATFORM_TABLE || 'staging-MerchantPlatform';
-const CATEGORY_TABLE=process.env.INVENTORY_CATEGORIES_TABLE||'WhizzMerchants_Categories';
 // The two existing manual product writers store price in IQD in this table, not order pricing's minor units.
 const knownFields = ['productId', 'businessId', 'globalProductId', 'name', 'description', 'price', 'categoryId',
   'imageUrl', 'barcode', 'isAvailable', 'searchableName', 'createdAt', 'updatedAt',
@@ -32,6 +31,11 @@ function exact(value: unknown, keys: string[]): Row {
  * Call before customer confirmation, never reprice an already-confirmed order at dispatch time.
  */
 export function createStagingOrderGoodsPricing(options: { db: Pick<DynamoDBDocumentClient, 'send'> }) {
+  const stores = checkoutTables();
+  const production = isFinancialOrderProduction(process.env);
+  const TABLE = production ? stores.products : process.env.INVENTORY_PRODUCTS_TABLE || stores.products;
+  const PLATFORM = production ? stores.platform : process.env.INVENTORY_PLATFORM_TABLE || stores.platform;
+  const CATEGORY_TABLE = production ? stores.categories : process.env.INVENTORY_CATEGORIES_TABLE || stores.categories;
   return Object.freeze({ async price(value: unknown) {
     const input = exact(value, ['branchId', 'items']);
     if (!quoteEntityIdValid(input.branchId) || !Array.isArray(input.items) || input.items.length < 1 || input.items.length > 40) return fail('INVALID_GOODS_SELECTION');

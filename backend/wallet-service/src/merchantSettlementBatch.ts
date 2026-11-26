@@ -1,8 +1,10 @@
 import {financialOfferSK} from './financialOfferKey';
+import {checkoutTables} from './checkoutTables';
+import {financialDispatchTables} from './walletBindings';
 import {merchantOffCyclePeriod} from './merchantOffCyclePeriod';
 import {merchantOpeningPeriod} from './merchantOpeningPeriod';
 import { DynamoDBDocumentClient, QueryCommand, TransactWriteCommand, TransactWriteCommandInput } from '@aws-sdk/lib-dynamodb';
-import { assembleMerchantSettlementPreview, readMerchantAccrualEvidence } from './merchantSettlementPreview';
+import { assembleMerchantSettlementPreview, readMerchantAccrualEvidence, settlementOrderBindingFields } from './merchantSettlementPreview';
 import { summarizeMerchantAccruals } from './merchantSettlementAccrual';
 import { merchantSettlementPeriod, MerchantSettlementSchedule } from './merchantSettlementPeriod';
 import { quoteCanonical, quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
@@ -10,16 +12,13 @@ import { detach, exactCheck, strongGet, updateChecked } from './driverFinancialT
 
 type Row = Record<string, any>;
 type Guard = ReturnType<typeof exactCheck>;
-const T = { records: 'staging-MerchantPlatform', holds: 'staging-Holds', orders: 'WizzOrders',
-  offers: 'WaveOffers_staging', branches: 'WhizzMerchants_Businesses', deletion: 'staging-AccountDeletion', audit: 'staging-AuditLog' };
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const BATCH = /^MSB:[a-f0-9]{48}$/;
 const PREVIEW = /^MSV:[a-f0-9]{48}$/;
 const claims = ['settlementBatchId', 'settlementLineDigest', 'settlementClaimedAt'];
-const orderFields = ['PK', 'SK', 'orderId', 'storeId', 'businessId', 'merchantId', 'driverId', 'status', 'orderStatus',
-  'cashCollected', 'cashCollectedAmount', 'deliveredAt', 'financialSnapshot', 'financialAcceptance', 'financialOutcome',
-  'commercialPricing', 'assignmentWaveNumber', 'assignmentAttemptCounter', 'returnStatus', 'returnCaseId',
-  'cancellationStatus', 'cancellationRequestId', 'deletedAt', 'deletionRequestId', 'deletionStatus', 'isDeleted', 'rev', 'revision', 'version'];
+const orderFields = [...settlementOrderBindingFields, 'merchantHandover',
+  'financialSnapshot', 'financialAcceptance', 'commercialPricing', 'assignmentWaveNumber',
+  'assignmentAttemptCounter', 'deletedAt', 'deletionRequestId', 'deletionStatus', 'isDeleted', 'rev', 'revision', 'version'];
 export class MerchantSettlementBatchError extends Error {
   constructor(public readonly code: string) { super(code); this.name = 'MerchantSettlementBatchError'; }
 }
@@ -38,18 +37,18 @@ function markerKey(branchId: string, requestId: string) { return { pk: 'BRANCH#'
 function absent(TableName: string, Key: Row, field: string) {
   return { Put: { TableName, Item: Key, ConditionExpression: `attribute_not_exists(${field})` } };
 }
-function guardValid(guard: Guard) {
+function guardValid(guard: Guard, allowedTables: string[]) {
   const g = guard?.ConditionCheck;
   return g && Object.keys(guard).length === 1 &&
-    [T.records, 'staging-PlatformStaff', T.branches, T.deletion].includes(g.TableName) &&
+    allowedTables.includes(g.TableName) &&
     g.Key && Object.keys(g.Key).length > 0 && typeof g.ConditionExpression === 'string' && g.ConditionExpression.length > 0;
 }
-function uniqueOperations(operations: Row[]) {
+function uniqueOperations(operations: Row[], auditTable: string) {
   const seen = new Set<string>();
   for (const op of operations) {
     const value = op.ConditionCheck || op.Update || op.Put;
     if (!value) return fail('INVALID_SETTLEMENT_TRANSACTION');
-    const key = op.Put ? value.TableName === T.audit ? { datePartition: value.Item.datePartition, sk: value.Item.sk }
+    const key = op.Put ? value.TableName === auditTable ? { datePartition: value.Item.datePartition, sk: value.Item.sk }
       : { pk: value.Item.pk, sk: value.Item.sk } : value.Key;
     const identity = quoteCanonical([value.TableName, key]);
     if (seen.has(identity)) return fail('DUPLICATE_SETTLEMENT_GUARD_TARGET');
@@ -61,7 +60,7 @@ function uniqueOperations(operations: Row[]) {
 type ScheduleEvidence={openingCutoff?:string;schedule:MerchantSettlementSchedule;guard:Guard;guards?:Guard[];agreementBinding?:{id:string;version:number;termsHash:string}};
 export type SettlementBatchAuthority = { branchId: string; actorId: string; guards: Guard[] };
 
-/** Internal Staging writer, deliberately not registered as an HTTP route.
+/** Internal writer invoked by an authenticated host.
  * Trusted dependencies must supply live CREATE/READ authorization and a pinned
  * schedule guard; none of those may originate from request JSON. Saved headers
  * and lines are append-only. No payout, wallet unlock, ledger or cancellation API.
@@ -76,10 +75,13 @@ export function createMerchantSettlementBatchService(options: {
 }) {
   const { db } = options;
   const now = options.now || Date.now;
+  const {platform: records, holds, orders, branches, deletion, audit, policy} = checkoutTables();
+  const T = {records, holds, orders, branches, deletion, audit, offers: financialDispatchTables().offers};
+  const allowedGuards = [records, policy, branches, deletion];
   async function authority(branchId: string, action: 'CREATE' | 'READ') {
     const a = detach(await options.authorizeBranch(branchId, action));
     if (!a || a.branchId !== branchId || !quoteEntityIdValid(a.actorId) || !Array.isArray(a.guards) ||
-        !a.guards.length || a.guards.length > 12 || a.guards.some(g => !guardValid(g))) return fail('SETTLEMENT_AUTHORIZATION_REQUIRED');
+        !a.guards.length || a.guards.length > 12 || a.guards.some(g => !guardValid(g, allowedGuards))) return fail('SETTLEMENT_AUTHORIZATION_REQUIRED');
     return a;
   }
   async function stored(branchId: string, batchId: string) {
@@ -157,9 +159,9 @@ export function createMerchantSettlementBatchService(options: {
       if (prior) return prior;
       const opening=request.kind==='OPENING';
       const schedule = detach(await (opening?options.readOpeningSchedule?.(request.branchId):options.readSchedule(request.branchId, request.at)));
-      if (!schedule || !guardValid(schedule.guard) || schedule.guard.ConditionCheck.TableName !== T.records ||
+      if (!schedule || !guardValid(schedule.guard, allowedGuards) || schedule.guard.ConditionCheck.TableName !== T.records ||
           !same(schedule.guard.ConditionCheck.Key, scheduleKey(request.branchId)) ||
-          schedule.guards !== undefined && (!Array.isArray(schedule.guards) || schedule.guards.length > 4 || schedule.guards.some(g => !guardValid(g)))) return fail('SETTLEMENT_SCHEDULE_GUARD_REQUIRED');
+          schedule.guards !== undefined && (!Array.isArray(schedule.guards) || schedule.guards.length > 4 || schedule.guards.some(g => !guardValid(g, allowedGuards)))) return fail('SETTLEMENT_SCHEDULE_GUARD_REQUIRED');
       const period = request.kind==='OFF_CYCLE'?merchantOffCyclePeriod(schedule.schedule,request.fromLocalDate,request.throughLocalDate,request.at,request.reason):opening?merchantOpeningPeriod(schedule.schedule,request.fromLocalDate,schedule.openingCutoff):merchantSettlementPeriod(schedule.schedule, request.at);
       if(opening&&request.at!==period.untilExclusiveUtc)return fail('INVALID_SETTLEMENT_BATCH_REQUEST');
       const timestamp = instant(new Date(now()).toISOString());
@@ -203,7 +205,7 @@ export function createMerchantSettlementBatchService(options: {
         if(source.cashAdjudicationJournal)operations.push(exactCheck(T.holds,{orderId,sk:'CASH_ADJUDICATION_JOURNAL'},source.cashAdjudicationJournal));
         if(source.accountingJournal)operations.push(exactCheck(T.records,{pk:'FULL_CASH_JOURNAL#'+orderId,sk:'META'},source.accountingJournal));
         operations.push(exactCheck(T.orders, { PK: 'ORDER#' + orderId, SK: 'META' }, source.order, orderFields),
-          ...(source.order.status==='cancelled'&&!source.order.financialAcceptance?[]:[exactCheck(T.offers, { orderId, SK: await financialOfferSK(db,orderId,source.order.driverId,source.order.assignmentWaveNumber) }, source.acceptedOffer)]),
+          ...(source.acceptedOffer ? [exactCheck(T.offers, { orderId, SK: await financialOfferSK(db,orderId,source.order.driverId,source.order.assignmentWaveNumber) }, source.acceptedOffer)] : []),
           exactCheck(T.holds, source.outcomeKey, source.outcome),
           updateChecked(exactCheck(T.holds, { orderId, sk: 'MERCHANT_PAYABLE' }, source.payable, [...Object.keys(source.payable), ...claims]),
             'SET #batch=:batch,#line=:line,#claimed=:claimed',
@@ -229,7 +231,7 @@ export function createMerchantSettlementBatchService(options: {
         if(!Array.isArray(extra)||extra.length>3||extra.some(op=>{const p=op.Put;return Object.keys(op).join(',')!=='Put'||p?.TableName!==T.records||p.Item?.pk!=='MERCHANT_COLLECTION#'+request.branchId||p.Item?.branchId!==request.branchId||!['MERCHANT_PERIOD_COLLECTION','MERCHANT_COLLECTION_PART'].includes(p.Item?.kind);}))return fail('INVALID_SETTLEMENT_COLLECTION_OPERATIONS');
         operations.push(...extra);
       }
-      uniqueOperations(operations);
+      uniqueOperations(operations, audit);
       try {
         await db.send(new TransactWriteCommand({ TransactItems: operations as TransactWriteCommandInput['TransactItems'] }));
       } catch (error) {

@@ -6,6 +6,8 @@ const policy=require('./onboarding-policy');
 const TABLE='staging-MerchantPlatform',BUSINESSES='WhizzMerchants_Businesses',SETTINGS='OPERATIONAL_SETTINGS#MERCHANT_ONBOARDING';
 const fail=(code,status=400)=>Object.assign(Error(code),{status});
 async function route(ctx,actor,method,path,input={}){
+ const platform=ctx.reviewTables?.platform||TABLE,businesses=ctx.reviewTables?.businesses||BUSINESSES;
+ const lifecycle=ctx.reviewTables?.lifecycle||'staging-AccountDeletion';
  const get=async(table,key)=>(await ctx.db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;
  const requirePermission=p=>{if(!allowed(actor,p))throw fail('PERMISSION_REQUIRED',403);};
  const write=async items=>{try{await ctx.db.send(new TransactWriteCommand({TransactItems:items}));}catch(e){if(e.name==='TransactionCanceledException')throw fail('VERSION_OR_STATE_CONFLICT',409);throw e;}};
@@ -35,43 +37,44 @@ async function route(ctx,actor,method,path,input={}){
  if(path==='/staff/merchants/application-asset'&&method==='GET'){
   requirePermission('merchants.documents.read');const q=ctx.query||{};
   if(typeof q.queueKey!=='string'||q.queueKey.length>160||typeof q.assetId!=='string'||!/^[a-f0-9-]{36}$/i.test(q.assetId))throw fail('INVALID_ASSET');
-  const queue=await get(TABLE,{pk:'REVIEW#MERCHANT',sk:q.queueKey});if(!queue||!allowed(actor,'merchants.documents.read',queue.regionId))throw fail('APPLICATION_UNAVAILABLE',404);
-  const asset=await get(TABLE,{pk:'PERSON#'+queue.subjectId,sk:'ASSET#'+q.assetId});if(!asset||asset.subjectId!==queue.subjectId||asset.draftId!==queue.draftId||asset.status!=='READY'||!asset.key.startsWith('persons/'+queue.subjectId+'/drafts/'+queue.draftId+'/'))throw fail('ASSET_UNAVAILABLE',404);
+  const queue=await get(platform,{pk:'REVIEW#MERCHANT',sk:q.queueKey});if(!queue||!allowed(actor,'merchants.documents.read',queue.regionId))throw fail('APPLICATION_UNAVAILABLE',404);
+  const asset=await get(platform,{pk:'PERSON#'+queue.subjectId,sk:'ASSET#'+q.assetId});if(!asset||asset.subjectId!==queue.subjectId||asset.draftId!==queue.draftId||asset.status!=='READY'||!asset.key.startsWith('persons/'+queue.subjectId+'/drafts/'+queue.draftId+'/'))throw fail('ASSET_UNAVAILABLE',404);
   const {S3Client,GetObjectCommand}=require('@aws-sdk/client-s3'),{getSignedUrl}=require('@aws-sdk/s3-request-presigner');
   return {url:await getSignedUrl(new S3Client({}),new GetObjectCommand({Bucket:'staging-merchant-onboarding-699561669180',ExpectedBucketOwner:'699561669180',Key:asset.key,ResponseContentDisposition:asset.contentType==='application/pdf'?'attachment':'inline'}),{expiresIn:60}),expiresIn:60};
  }
  requirePermission('merchants.read');
  if(method==='GET'&&path==='/staff/merchants/applications'){
-  const items=[];let cursor;do{const page=await ctx.db.send(new QueryCommand({TableName:TABLE,KeyConditionExpression:'pk=:pk',ExpressionAttributeValues:{':pk':'REVIEW#MERCHANT'},ConsistentRead:true,ExclusiveStartKey:cursor}));
-   for(const item of page.Items||[]){if(!allowed(actor,'merchants.read',item.regionId)||item.status!=='SUBMITTED')continue;const draft=await get(TABLE,{pk:'PERSON#'+item.subjectId,sk:'DRAFT#'+item.draftId});if(draft?.reviewStatus==='SUBMITTED'&&draft.version===item.draftVersion)items.push({queueKey:item.sk,requestId:item.requestId,draft});}cursor=page.LastEvaluatedKey;
+  const items=[];let cursor;do{const page=await ctx.db.send(new QueryCommand({TableName:platform,KeyConditionExpression:'pk=:pk',ExpressionAttributeValues:{':pk':'REVIEW#MERCHANT'},ConsistentRead:true,ExclusiveStartKey:cursor}));
+   for(const item of page.Items||[]){if(!allowed(actor,'merchants.read',item.regionId)||item.status!=='SUBMITTED')continue;const draft=await get(platform,{pk:'PERSON#'+item.subjectId,sk:'DRAFT#'+item.draftId});if(draft?.reviewStatus==='SUBMITTED'&&draft.version===item.draftVersion)items.push({queueKey:item.sk,requestId:item.requestId,draft});}cursor=page.LastEvaluatedKey;
   }while(cursor);return {items,canReview:allowed(actor,'merchants.review'),canReadDocuments:allowed(actor,'merchants.documents.read')};
  }
  if(method!=='POST'||path!=='/staff/merchants/applications/review')throw fail('NOT_FOUND',404);
  requirePermission('merchants.review');if(typeof input.queueKey!=='string'||input.queueKey.length>160||!['APPROVE','REJECT','NEEDS_INFORMATION'].includes(input.decision)||typeof input.reason!=='string'||input.reason.trim().length<5||input.reason.length>1000)throw fail('INVALID_REVIEW');
- const queue=await get(TABLE,{pk:'REVIEW#MERCHANT',sk:input.queueKey});if(!queue||!allowed(actor,'merchants.review',queue.regionId))throw fail('APPLICATION_UNAVAILABLE',404);
- const draft=await get(TABLE,{pk:'PERSON#'+queue.subjectId,sk:'DRAFT#'+queue.draftId});
+ const queue=await get(platform,{pk:'REVIEW#MERCHANT',sk:input.queueKey});if(!queue||!allowed(actor,'merchants.review',queue.regionId))throw fail('APPLICATION_UNAVAILABLE',404);
+ const draft=await get(platform,{pk:'PERSON#'+queue.subjectId,sk:'DRAFT#'+queue.draftId});
  if(queue.status==='APPROVED'&&input.decision==='APPROVE')return {businessId:queue.businessId,status:'APPROVED'};
  if(queue.status!=='SUBMITTED'||draft?.reviewStatus!=='SUBMITTED'||draft.version!==input.baseVersion||draft.version!==queue.draftVersion||draft.submission?.requestId!==queue.requestId)throw fail('VERSION_OR_STATE_CONFLICT',409);
  const now=new Date().toISOString(),status={APPROVE:'APPROVED',REJECT:'REJECTED',NEEDS_INFORMATION:'NEEDS_INFORMATION'}[input.decision];
  const review={reviewedBy:actor.employeeId,reviewedAt:now,reason:input.reason.trim()},next={...draft,reviewStatus:status,review,version:draft.version+1,updatedAt:now};
- const tx=[ctx.guard(actor),{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#MERCHANT#'+draft.subjectId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}];
+ const tx=[ctx.guard(actor),{ConditionCheck:{TableName:lifecycle,Key:{pk:'ACCOUNT_LIFECYCLE#MERCHANT#'+draft.subjectId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}];
  let business;
  if(status==='APPROVED'){
+  if(ctx.reviewChecks)tx.push(...await ctx.reviewChecks(draft,queue));
   tx.push(
-   {ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'SUBJECT#MERCHANT#'+draft.subjectId,sk:'ACTIVE#ACCOUNT#'+draft.subjectId},ConditionExpression:'attribute_not_exists(pk)'}},
-   {ConditionCheck:{TableName:TABLE,Key:{pk:'ORGANIZATION#'+draft.organizationId,sk:'OWNERSHIP_TRANSFER'},ConditionExpression:'attribute_not_exists(pk) OR expiresAt<=:now OR #status IN (:cancelled,:completed,:rejected)',ExpressionAttributeNames:{'#status':'status'},ExpressionAttributeValues:{':now':Date.parse(now),':cancelled':'CANCELLED',':completed':'COMPLETED',':rejected':'REJECTED'}}},
+   {ConditionCheck:{TableName:lifecycle,Key:{pk:'SUBJECT#MERCHANT#'+draft.subjectId,sk:'ACTIVE#ACCOUNT#'+draft.subjectId},ConditionExpression:'attribute_not_exists(pk)'}},
+   {ConditionCheck:{TableName:platform,Key:{pk:'ORGANIZATION#'+draft.organizationId,sk:'OWNERSHIP_TRANSFER'},ConditionExpression:'attribute_not_exists(pk) OR expiresAt<=:now OR #status IN (:cancelled,:completed,:rejected)',ExpressionAttributeNames:{'#status':'status'},ExpressionAttributeValues:{':now':Date.parse(now),':cancelled':'CANCELLED',':completed':'COMPLETED',':rejected':'REJECTED'}}},
   );
-  const profile=await get(TABLE,{pk:draft.pk,sk:'PROFILE'});if(!profile||!draft.submission?.agreement?.version)throw fail('PROFILE_OR_AGREEMENT_UNAVAILABLE');
+  const profile=await get(platform,{pk:draft.pk,sk:'PROFILE'});if(!profile||!draft.submission?.agreement?.version)throw fail('PROFILE_OR_AGREEMENT_UNAVAILABLE');
   const typePolicy=await get(ctx.table,{pk:SETTINGS,sk:'VERSION#'+draft.configVersion});
   const typeLabel=typePolicy?.values?.types?.find(t=>t.id===draft.businessTypeId);
   const businessId=ctx.newBusinessId?ctx.newBusinessId():'business_'+randomUUID();next.businessId=businessId;
   business={businessId,branchId:businessId,organizationId:draft.organizationId,brandId:draft.brandId,businessName:draft.name,name:draft.name,description:draft.description||'',...(typeLabel?{businessTypeLabelAr:typeLabel.labelAr,businessTypeLabelEn:typeLabel.labelEn}:{}),businessTypeId:draft.businessTypeId,businessType:draft.businessTypeId==='MARKET'?'grocery':draft.model==='FOOD'?'restaurant':'store',businessModel:draft.model,ownerId:draft.subjectId,cognitoUserId:draft.subjectId,ownerName:profile.name,phoneNumber:draft.contactPhone,...(profile.email?{email:profile.email}:{}),address:{fullAddress:draft.address,latitude:draft.latitude,longitude:draft.longitude,country:draft.regionNames?.[0]||'',city:draft.regionNames?.[1]||'',district:draft.regionNames?.[2]||'',region:draft.regionNames?.[3]||''},regionId:draft.regionId,regionPath:draft.regionPath,openingHours:draft.openingHours,status:'approved',reviewStatus:'APPROVED',isActive:false,operatingStatus:'OFFLINE',onboardingDraftId:draft.draftId,onboardingSchemaVersion:2,onboardingComplete:false,onboardingConfigVersion:draft.configVersion,registrationCertificateAssetId:draft.registrationCertificateAssetId||null,businessPhotoAssetId:draft.businessPhotoAssetId||null,createdAt:now,updatedAt:now,version:1};
-  tx.push({Put:{TableName:BUSINESSES,Item:business,ConditionExpression:'attribute_not_exists(businessId)'}});
+  tx.push({Put:{TableName:businesses,Item:business,ConditionExpression:'attribute_not_exists(businessId)'}});
   for(const [kind,id] of [['ORGANIZATION',draft.organizationId],['BRAND',draft.brandId]]){
    const key={pk:draft.pk,sk:kind+'#'+id};
-   const existing=await get(TABLE,key);
+   const existing=await get(platform,key);
    if(!existing){
-    tx.push({Put:{TableName:TABLE,Item:{...key,subjectId:draft.subjectId,organizationId:draft.organizationId,
+    tx.push({Put:{TableName:platform,Item:{...key,subjectId:draft.subjectId,organizationId:draft.organizationId,
      ...(kind==='BRAND'?{brandId:draft.brandId}:{}),name:draft.name,version:1,createdAt:now},
      ConditionExpression:'attribute_not_exists(pk)'}});
     continue;
@@ -79,7 +82,7 @@ async function route(ctx,actor,method,path,input={}){
    if(existing.subjectId!==draft.subjectId||existing.organizationId!==draft.organizationId||
       !Number.isSafeInteger(existing.version)||existing.version<1)throw fail('VERSION_OR_STATE_CONFLICT',409);
    const properties={
-    TableName:TABLE,Key:key,ConditionExpression:'subjectId=:owner AND organizationId=:organization AND #v=:version',
+    TableName:platform,Key:key,ConditionExpression:'subjectId=:owner AND organizationId=:organization AND #v=:version',
     ExpressionAttributeNames:{'#v':'version'},
     ExpressionAttributeValues:{':owner':draft.subjectId,':organization':draft.organizationId,':version':existing.version},
    };
@@ -89,7 +92,7 @@ async function route(ctx,actor,method,path,input={}){
    }else tx.push({ConditionCheck:properties});
   }
  }
- tx.push({Put:{TableName:TABLE,Item:next,ConditionExpression:'#v=:v AND #s=:submitted',ExpressionAttributeNames:{'#v':'version','#s':'reviewStatus'},ExpressionAttributeValues:{':v':draft.version,':submitted':'SUBMITTED'}}},{Put:{TableName:TABLE,Item:{...queue,status,...review,...(business?{businessId:business.businessId}:{})},ConditionExpression:'#s=:submitted',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':submitted':'SUBMITTED'}}},ctx.audit(actor.employeeId,'MERCHANT_APPLICATION_'+status,{requestId:queue.requestId,draftVersion:draft.version},{requestId:queue.requestId,status,reason:review.reason,businessId:business?.businessId||null},randomUUID()));
+ tx.push({Put:{TableName:platform,Item:next,ConditionExpression:'#v=:v AND #s=:submitted',ExpressionAttributeNames:{'#v':'version','#s':'reviewStatus'},ExpressionAttributeValues:{':v':draft.version,':submitted':'SUBMITTED'}}},{Put:{TableName:platform,Item:{...queue,status,...review,...(business?{businessId:business.businessId}:{})},ConditionExpression:'#s=:submitted',ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':submitted':'SUBMITTED'}}},ctx.audit(actor.employeeId,'MERCHANT_APPLICATION_'+status,{requestId:queue.requestId,draftVersion:draft.version},{requestId:queue.requestId,status,reason:review.reason,businessId:business?.businessId||null},randomUUID()));
  await write(tx);return {status,...(business?{businessId:business.businessId}:{})};
 }
 module.exports={route,TABLE};

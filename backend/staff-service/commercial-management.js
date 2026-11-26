@@ -8,6 +8,8 @@ const {deliveryCampaignBudgetInitialization}=require('./pricing-runtime/delivery
 const {readDeliveryFundingPolicy}=require('./pricing-runtime/deliveryFundingPolicy');
 const workflow=require('./write-workflow');const direct=()=>workflow.direct?.()===true;
 const P='staging-MerchantPlatform',S='staging-PlatformStaff',B='WhizzMerchants_Businesses',L='staging-AccountDeletion';
+const originalDiscountTables={MERCHANT:'WhizzMerchants_Discounts',PLATFORM:'WizzCentral_Platform_Discounts'};
+const fundingActions=new Set(['SAVE_FUNDING','ACCEPT_FUNDING','APPROVE_FUNDING']);
 const fail=(code,status=400)=>{throw Object.assign(Error(code),{status});};
 const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
 const hash=v=>createHash('sha256').update(JSON.stringify(stable(v))).digest('hex');
@@ -24,7 +26,7 @@ function pin(table,key,row,fields=Object.keys(row)){
 }
 const check=(table,key,row,fields)=>({ConditionCheck:pin(table,key,row,fields)});
 const condition=row=>row?{ConditionExpression:'#v=:v AND #h=:h',ExpressionAttributeNames:{'#v':'version','#h':'hash'},ExpressionAttributeValues:{':v':row.version,':h':row.hash}}:{ConditionExpression:'attribute_not_exists(pk)'};
-const leaseFences=(owner,ids)=>['ACCOUNT_LIFECYCLE#MERCHANT#'+owner,...ids.map(b=>'BUSINESS_LIFECYCLE#MERCHANT#'+b)].map(pk=>({ConditionCheck:{TableName:L,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}));
+const leaseFences=(owner,ids,deletion=L)=>['ACCOUNT_LIFECYCLE#MERCHANT#'+owner,...ids.map(b=>'BUSINESS_LIFECYCLE#MERCHANT#'+b)].map(pk=>({ConditionCheck:{TableName:deletion,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}));
 function agreementValues(v){
  exact(v,['scope','effectiveFrom','effectiveTo','commission','serviceFee','allowedFundingPolicyIds']);
  if(!['MERCHANT','BRANCH'].includes(v.scope))fail('INVALID_COMMERCIAL_SCOPE');period(v.effectiveFrom,v.effectiveTo);
@@ -35,39 +37,55 @@ function agreementValues(v){
 }
 function fundingValues(v){
  exact(v,['campaignId','campaignVersion','source','effectiveFrom','effectiveTo','merchantNumerator','denominator','merchantShareFinalRounding']);
- id(v.campaignId);if(version(v.campaignVersion)<1||!['MERCHANT','PLATFORM'].includes(v.source))fail('INVALID_FUNDING_POLICY');period(v.effectiveFrom,v.effectiveTo);if(v.effectiveTo===null)fail('FUNDING_END_REQUIRED');
+ id(v.campaignId);version(v.campaignVersion);if(v.campaignVersion<1||!['MERCHANT','PLATFORM'].includes(v.source))fail('INVALID_FUNDING_POLICY');period(v.effectiveFrom,v.effectiveTo);if(v.effectiveTo===null)fail('FUNDING_END_REQUIRED');
  if(!Number.isSafeInteger(v.denominator)||v.denominator<1||!Number.isSafeInteger(v.merchantNumerator)||v.merchantNumerator<=0||v.merchantNumerator>=v.denominator)fail('INVALID_FUNDING_SHARE');
  let f;try{f=readWholeIqdRounding(v.merchantShareFinalRounding);}catch{fail('INVALID_FUNDING_SHARE');}if(f.mode!=='TOWARD_ZERO')fail('INVALID_FUNDING_SHARE');
  return copy(v);
 }
 async function serviceCore(ctx,principal,method,input){
+ const {platform:P,staff:S,businesses:B,deletion:L} = ctx.commercialTables ?? {
+  platform:'staging-MerchantPlatform',staff:'staging-PlatformStaff',businesses:'WhizzMerchants_Businesses',deletion:'staging-AccountDeletion'
+ };
  if(ctx.enabled!==true)fail('COMMERCIAL_MANAGEMENT_DISABLED',503);
  if(!input||typeof input!=='object'||Array.isArray(input)||Buffer.byteLength(JSON.stringify(input))>65536)fail('INVALID_COMMERCIAL_REQUEST');
  if(!['OWNER','STAFF'].includes(principal?.kind))fail('UNAUTHORIZED',401);
  const owner=principal.kind==='OWNER',actor=principal.actor;
  if(!owner&&(!allowed(actor,'commercial.read')||actor.scope?.allRegions!==true))fail('PERMISSION_REQUIRED',403);
+ const viewAllowed=ctx.goodsFundingEnabled===true&&(owner?input.view==='pending-sharing':['funding','funding-options'].includes(input.view));
+ const actionAllowed=ctx.goodsFundingEnabled===true&&fundingActions.has(input.action);
+ if(ctx.agreementsOnly&&((input.view!==undefined&&!viewAllowed)||(method==='POST'&&!actionAllowed&&
+  !['SAVE_AGREEMENT','APPROVE_AGREEMENT','ACCEPT_AGREEMENT'].includes(input.action))))fail('INVALID_COMMERCIAL_ACTION');
+ const discountTables=ctx.discountTables??originalDiscountTables;
  if(method==='GET'&&input.view==='platform-events'){if(owner)fail('PERMISSION_REQUIRED',403);return require('./commercial-events').list(ctx,actor,input);}
  const get=async(t,k)=>(await ctx.db.send(new GetCommand({TableName:t,Key:k,ConsistentRead:true}))).Item;
  const b=await get(B,{businessId:id(input.businessId)});
  if(!b||b.deletionRequestId!=null||b.deletedAt!=null||b.isDeleted===true||b.ownerId!==b.cognitoUserId)fail('BUSINESS_UNAVAILABLE',404);
- const party=owner?await require('./commercial-party').resolve(ctx.db,b,principal.sub):null;
+ if(owner&&ctx.agreementsOnly&&principal.sub!==b.ownerId&&
+  !(ctx.goodsFundingEnabled===true&&(method==='GET'||input.action==='ACCEPT_FUNDING')))fail('BUSINESS_UNAVAILABLE',404);
+ const party=owner?await require('./commercial-party').resolve(ctx.db,b,principal.sub,ctx.commercialTables):null;
  if(party?.role==='MANAGER'&&method==='POST'&&!['ACCEPT_FUNDING','ACCEPT_DELIVERY'].includes(input.action))fail('PERMISSION_REQUIRED',403);
  id(b.organizationId);const org=await get(P,{pk:'PERSON#'+b.ownerId,sk:'ORGANIZATION#'+b.organizationId});
  if(!org||org.organizationId!==b.organizationId||org.subjectId!==b.ownerId||org.deletionRequestId!=null)fail('ORGANIZATION_UNAVAILABLE',409);
  const branchFields=['businessId','ownerId','cognitoUserId','organizationId','regionId','status','deletionRequestId','deletedAt','isDeleted','commercialAgreementId','commercialAgreementVersion','deliveryOfferRevision','storefrontDeliveryAgreements'];
- const baseGuards=[...(party?.guards||[]),...(!owner?[ctx.guard(actor)]:[]),...leaseFences(b.ownerId,[b.businessId]),check(B,{businessId:b.businessId},b,branchFields),check(P,{pk:org.pk,sk:org.sk},org)];
+ const baseGuards=[...(party?.guards||[]),...(!owner?[ctx.guard(actor)]:[]),...leaseFences(b.ownerId,[b.businessId],L),check(B,{businessId:b.businessId},b,branchFields),check(P,{pk:org.pk,sk:org.sk},org)];
  const write=async tx=>{try{await ctx.db.send(new TransactWriteCommand({TransactItems:tx}));}catch(e){if(e.name==='TransactionCanceledException')fail('VERSION_OR_STATE_CONFLICT',409);throw e;}};
  const policies=async(values,ids,merchantId)=>{const resolved=[];for(const policyId of values.allowedFundingPolicyIds){const key={pk:'DISCOUNT_FUNDING#'+policyId,sk:'CURRENT'},policy=await get(S,key);if(!policy||policy.status!=='ACTIVE'||policy.merchantId!==merchantId||!ids.includes(policy.branchId))fail('FUNDING_POLICY_UNAVAILABLE',409);resolved.push(policy);}return resolved;};
  const verifyPolicies=async draft=>{if(['FUNDING','DELIVERY'].includes(draft.kind))return [];const resolved=await policies(draft.values,draft.businessIds,b.organizationId);if(hash(resolved)!==hash(draft.fundingPolicies||[]))fail('FUNDING_TERMS_CHANGED',409);return resolved;};
  const pendingOnly=method==='GET'&&owner&&input.view==='pending-sharing';
- if(method==='GET'&&input.view!==undefined&&!pendingOnly){
+ const fundingOnly=method==='GET'&&!owner&&input.view==='funding'&&ctx.goodsFundingEnabled===true;
+ if(method==='GET'&&input.view!==undefined&&!pendingOnly&&!fundingOnly){
   if(owner)fail('PERMISSION_REQUIRED',403);exact(input,['businessId','view']);if(input.view==='delivery-options'){if(ctx.deliveryFundingEnabled!==true)fail('DELIVERY_FUNDING_MANAGEMENT_DISABLED',503);const regions=await require('./delivery-options').load(ctx.db);await write(baseGuards);return {regions,businessId:b.businessId,merchantId:b.organizationId};}if(input.view!=='funding-options')fail('INVALID_COMMERCIAL_REQUEST');
-  const options=await require('./commercial-options').load(ctx.db,b.businessId);await write(baseGuards);return {options,businessId:b.businessId};
+  const options=await require('./commercial-options').load(ctx.db,b.businessId,ctx.discountTables);await write(baseGuards);return {options,businessId:b.businessId};
  }
  const campaignFor=async values=>{
-  const table=values.source==='MERCHANT'?'WhizzMerchants_Discounts':'WizzCentral_Platform_Discounts',campaign=await get(table,{discountId:values.campaignId});
+  const table=discountTables[values.source],campaign=await get(table,{discountId:values.campaignId});
   if(!campaign||campaign.version!==values.campaignVersion||campaign.isDeleted||campaign.deletedAt||campaign.deletionRequestId||(values.source==='MERCHANT'&&campaign.businessId!==b.businessId))fail('CAMPAIGN_VERSION_REQUIRED',409);
-  require('./funding-campaign-limits').validate(campaign,values.source);
+  const limits=require('./funding-campaign-limits');
+  if(ctx.goodsFundingEnabled===true){
+   limits.assertGoodsCampaign(campaign);
+   if(values.effectiveTo<=(ctx.now?ctx.now():new Date().toISOString()))fail('COMMERCIAL_PERIOD_EXPIRED',409);
+  }
+  limits.validate(campaign,values.source);
   const targets=campaign.targetRestaurants?.length?campaign.targetRestaurants:campaign.allowedBusinessIds?.length?campaign.allowedBusinessIds:campaign.businessIds?.length?campaign.businessIds:campaign.businessId?[campaign.businessId]:[];
   if(!Array.isArray(targets)||values.source==='PLATFORM'&&targets.length&&!targets.includes(b.businessId))fail('COMMERCIAL_SCOPE_MISMATCH',403);
   let from,to;try{from=new Date(campaign.validFrom||campaign.valid_from||campaign.startDate).toISOString();to=new Date(campaign.validTo||campaign.valid_to||campaign.endDate).toISOString();}catch{fail('INVALID_COMMERCIAL_PERIOD');}
@@ -76,19 +94,24 @@ async function serviceCore(ctx,principal,method,input){
  };
  const view=d=>d?{fundingPolicies:d.fundingPolicies||[],id:d.id,kind:d.kind,version:d.version,baseVersion:d.baseVersion,hash:d.hash,values:d.values,businessIds:d.businessIds,publishedVersion:d.publishedVersion||null,requestedBy:owner?undefined:d.requestedBy,createdAt:d.createdAt}:null;
  if(method==='GET'){
-  exact(input,pendingOnly?['businessId','view']:['businessId']);const rows=[];const pk='BRANCH#'+b.businessId;let cursor,pages=0;
-  do{const p=await ctx.db.send(new QueryCommand({TableName:P,KeyConditionExpression:'pk=:pk AND begins_with(sk,:p)',ExpressionAttributeValues:{':pk':pk,':p':'COMMERCIAL#'},ConsistentRead:true,Limit:25,...(cursor?{ExclusiveStartKey:cursor}:{})}));rows.push(...p.Items||[]);cursor=p.LastEvaluatedKey;if(++pages>4||rows.length>100||cursor&&rows.length>=100)fail('COMMERCIAL_LIST_TOO_LARGE',409);}while(cursor);
+  exact(input,pendingOnly||fundingOnly?['businessId','view']:['businessId']);const rows=[];const pk='BRANCH#'+b.businessId;let cursor,pages=0;
+  const prefix=fundingOnly||pendingOnly&&ctx.agreementsOnly?'COMMERCIAL#FUNDING#':
+   ctx.agreementsOnly&&!owner?'COMMERCIAL#AGREEMENT#':'COMMERCIAL#';
+  do{const p=await ctx.db.send(new QueryCommand({TableName:P,KeyConditionExpression:'pk=:pk AND begins_with(sk,:p)',ExpressionAttributeValues:{':pk':pk,':p':prefix},ConsistentRead:true,Limit:25,...(cursor?{ExclusiveStartKey:cursor}:{})}));rows.push(...p.Items||[]);cursor=p.LastEvaluatedKey;if(++pages>4||rows.length>100||cursor&&rows.length>=100)fail('COMMERCIAL_LIST_TOO_LARGE',409);}while(cursor);
   const items=[];
-  for(const index of rows){if(pendingOnly&&!['FUNDING','DELIVERY'].includes(index.kind))continue;if(index.kind==='DELIVERY'&&ctx.deliveryFundingEnabled!==true)continue;if(index.ownerId!==b.ownerId||party?.role==='MANAGER'&&!['FUNDING','DELIVERY'].includes(index.kind))continue;const table=index.kind==='AGREEMENT'?P:S,pk=index.recordPk,d=await get(table,{pk,sk:'DRAFT'});if(!d||d.ownerId!==b.ownerId||!d.businessIds.includes(b.businessId))continue;if(party?.role==='MANAGER'&&d.businessIds.length!==1)continue;
+  for(const index of rows){if(ctx.agreementsOnly&&index.kind!=='AGREEMENT'&&!(ctx.goodsFundingEnabled===true&&(owner||fundingOnly)&&index.kind==='FUNDING'))continue;if(fundingOnly&&index.kind!=='FUNDING')continue;if(pendingOnly&&!['FUNDING','DELIVERY'].includes(index.kind))continue;if(index.kind==='DELIVERY'&&ctx.deliveryFundingEnabled!==true)continue;if(index.ownerId!==b.ownerId||party?.role==='MANAGER'&&!['FUNDING','DELIVERY'].includes(index.kind))continue;const table=index.kind==='AGREEMENT'?P:S,pk=index.recordPk,d=await get(table,{pk,sk:'DRAFT'});if(!d||d.ownerId!==b.ownerId||!d.businessIds.includes(b.businessId))continue;if(party?.role==='MANAGER'&&d.businessIds.length!==1)continue;
 
    const consent=await get(table,{pk,sk:'CONSENT#'+d.version});const current=await get(table,{pk,sk:'CURRENT'});
    if(pendingOnly&&(!['FUNDING','DELIVERY'].includes(d.kind)||d.publishedVersion||consent?.hash===d.hash||Date.parse(d.values.effectiveTo)<=(ctx.now?Date.parse(ctx.now()):Date.now())))continue;
    const active=d.kind==='AGREEMENT'&&current?await get(P,{pk,sk:'VERSION#'+current.version}):null;
    const disclosure=d.kind==='AGREEMENT'&&current?await get(P,{pk,sk:'DISCLOSURE#'+current.version}):null;
-   const supportReference=d.kind==='AGREEMENT'?await require('./commercial-reference').reference(ctx,d,baseGuards):null;
-   const campaign=d.kind==='FUNDING'?await get(d.values.source==='MERCHANT'?'WhizzMerchants_Discounts':'WizzCentral_Platform_Discounts',{discountId:d.values.campaignId}):null;
+   const supportReference=d.kind==='AGREEMENT'?(ctx.agreementsOnly?null:await require('./commercial-reference').reference(ctx,d,baseGuards)):null;
+   const campaign=d.kind==='FUNDING'?await get(discountTables[d.values.source],{discountId:d.values.campaignId}):null;
    if(pendingOnly&&d.kind==='FUNDING'&&(!campaign||campaign.version!==d.values.campaignVersion||campaign.isDeleted||campaign.deletedAt))continue;
-   items.push({campaignLabel:campaign?.title||campaign?.name||campaign?.code||null,supportReference,draft:view(d),ownerAccepted:!!consent&&consent.hash===d.hash,current:current?{version:current.version,terms:active?.terms||null,...(d.kind==='DELIVERY'?{policy:current.policy,termsHash:current.termsHash}:{}),disclosure:disclosure?{values:disclosure.values,businessIds:disclosure.businessIds,fundingPolicies:disclosure.fundingPolicies}:null,status:current.status}:null});
+   const ownerAccepted=!!consent&&consent.hash===d.hash;
+   items.push({campaignLabel:campaign?.title||campaign?.name||campaign?.code||null,supportReference,draft:view(d),ownerAccepted,
+    ...(ctx.goodsFundingEnabled===true&&d.kind==='FUNDING'&&ownerAccepted?{acceptedRole:consent.acceptedRole||'OWNER'}:{}),
+    current:current?{version:current.version,terms:active?.terms||null,...(d.kind==='DELIVERY'?{policy:current.policy,termsHash:current.termsHash}:{}),disclosure:disclosure?{values:disclosure.values,businessIds:disclosure.businessIds,fundingPolicies:disclosure.fundingPolicies}:null,status:current.status}:null});
   }
   await write(baseGuards);
   return {items,can:{deliveryEnabled:ctx.deliveryFundingEnabled===true,deliveryRequest:ctx.deliveryFundingEnabled===true&&!owner&&allowed(actor,'commercial.funding.request'),direct:direct(),request:!owner&&allowed(actor,'commercial.request'),approve:!owner&&allowed(actor,'commercial.approve'),fundingRequest:!owner&&allowed(actor,'commercial.funding.request'),fundingApprove:!owner&&allowed(actor,'commercial.funding.approve'),accept:owner},businessId:b.businessId,merchantId:b.organizationId};
@@ -122,12 +145,14 @@ async function serviceCore(ctx,principal,method,input){
   const values=kind==='AGREEMENT'?agreementValues(input.values):kind==='DELIVERY'?readDeliveryFundingPolicy(input.values).policy:fundingValues(input.values);
   if(kind==='DELIVERY'&&(values.id!==input.id||values.version!==input.baseVersion+1||values.branchId!==b.businessId||values.merchantId!==b.organizationId))fail('DELIVERY_POLICY_SCOPE_OR_VERSION_MISMATCH',409);
   if((kind!=='AGREEMENT'||values.scope==='BRANCH')&&ids.length!==1)fail('SINGLE_BRANCH_REQUIRED');
-  for(const otherId of ids.filter(x=>x!==b.businessId)){const branch=await get(B,{businessId:otherId});if(!branch||branch.ownerId!==b.ownerId||branch.cognitoUserId!==b.ownerId||branch.organizationId!==b.organizationId||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)fail('COMMERCIAL_SCOPE_MISMATCH',403);tx.push(check(B,{businessId:otherId},branch,branchFields),...leaseFences(b.ownerId,[otherId]).slice(1));}
+  for(const otherId of ids.filter(x=>x!==b.businessId)){const branch=await get(B,{businessId:otherId});if(!branch||branch.ownerId!==b.ownerId||branch.cognitoUserId!==b.ownerId||branch.organizationId!==b.organizationId||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)fail('COMMERCIAL_SCOPE_MISMATCH',403);tx.push(check(B,{businessId:otherId},branch,branchFields),...leaseFences(b.ownerId,[otherId],L).slice(1));}
   if(kind==='FUNDING'){const c=await campaignFor(values);tx.push(check(c.table,{discountId:values.campaignId},c.campaign));}
   const fundingPolicies=kind==='AGREEMENT'?await policies(values,ids,b.organizationId):[];
   for(const policy of fundingPolicies)tx.push(check(S,{pk:policy.pk,sk:policy.sk},policy));
   const next={...key,id:input.id,kind,version:input.draftVersion+1,baseVersion:input.baseVersion,ownerId:b.ownerId,organizationId:b.organizationId,businessIds:ids,requestedBy:actor.employeeId,values,fundingPolicies,hash:hash({values,fundingPolicies,businessIds:ids,ownerId:b.ownerId,organizationId:b.organizationId}),createdAt:now,reason:input.reason.trim(),...(kind==='DELIVERY'?{authorizedStaffVersion:actor.version}:direct()?{directPublicationAuthorized:true,authorizedStaffVersion:actor.version}:{})};
   if(['FUNDING','DELIVERY'].includes(kind))tx.push({Put:{TableName:S,Item:require('./commercial-notices').notice(next),ConditionExpression:'attribute_not_exists(pk)'}});
+  if(kind==='FUNDING'&&ctx.fundingNoticesOutbox)tx.push(require('./commercial-notices').outboxNotice(next,ctx.fundingNoticesOutbox));
+  if(kind==='FUNDING'&&ctx.fundingQueueEnabled===true)tx.push(require('./commercial-funding-index').pointer(P,next));
   tx.push({ConditionCheck:{TableName:table,Key:{pk,sk:'CURRENT'},...(current?{ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':current.version}}:{ConditionExpression:'attribute_not_exists(pk)'})}},{Put:{TableName:table,Item:next,...condition(draft)}},{Put:{TableName:table,Item:{...next,sk:'DRAFT_VERSION#'+next.version},ConditionExpression:'attribute_not_exists(pk)'}});
   for(const businessId of ids){
    const indexKey={pk:'BRANCH#'+businessId,sk:'COMMERCIAL#'+kind+'#'+input.id},oldIndex=await get(P,indexKey);
@@ -138,10 +163,11 @@ async function serviceCore(ctx,principal,method,input){
  }else{
   if(!draft||draft.hash!==input.hash||draft.baseVersion!==input.baseVersion||draft.publishedVersion)fail('VERSION_OR_STATE_CONFLICT',409);
   if(owner){
+   if(ctx.agreementsOnly&&draft.values.effectiveTo&&draft.values.effectiveTo<=now)fail('COMMERCIAL_PERIOD_EXPIRED',409);
    if(kind==='DELIVERY'){const p=readDeliveryFundingPolicy(draft.values).policy;if(p.effectiveTo<=now)fail('COMMERCIAL_PERIOD_EXPIRED',409);}
    if(kind==='FUNDING'){const c=await campaignFor(fundingValues(draft.values));if(draft.values.effectiveTo<=now)fail('COMMERCIAL_PERIOD_EXPIRED',409);tx.push(check(c.table,{discountId:draft.values.campaignId},c.campaign));}
    for(const policy of await verifyPolicies(draft))tx.push(check(S,{pk:policy.pk,sk:policy.sk},policy));
-   for(const businessId of draft.businessIds.filter(x=>x!==b.businessId)){const branch=await get(B,{businessId});if(!branch||branch.ownerId!==b.ownerId||branch.cognitoUserId!==b.ownerId||branch.organizationId!==b.organizationId||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)fail('COMMERCIAL_SCOPE_MISMATCH',403);tx.push(check(B,{businessId},branch,branchFields),...leaseFences(b.ownerId,[businessId]).slice(1));}
+   for(const businessId of draft.businessIds.filter(x=>x!==b.businessId)){const branch=await get(B,{businessId});if(!branch||branch.ownerId!==b.ownerId||branch.cognitoUserId!==b.ownerId||branch.organizationId!==b.organizationId||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)fail('COMMERCIAL_SCOPE_MISMATCH',403);tx.push(check(B,{businessId},branch,branchFields),...leaseFences(b.ownerId,[businessId],L).slice(1));}
    const consent={pk,sk:'CONSENT#'+draft.version,...(party.role==='MANAGER'?{acceptedRole:'MANAGER',ownerId:b.ownerId}:{}),subjectId:principal.sub,hash:draft.hash,acceptedAt:now,businessIds:draft.businessIds};
    if(kind==='DELIVERY'){
     const resolved=readDeliveryFundingPolicy(draft.values),values=resolved.policy,nextVersion=input.baseVersion+1;
@@ -171,11 +197,14 @@ async function serviceCore(ctx,principal,method,input){
     tx.push(check(table,key,draft),{Put:{TableName:table,Item:consent,ConditionExpression:'attribute_not_exists(pk)'}});result={accepted:true,id:input.id,draftVersion:draft.version};
    }
   }else if(approving){
-   if((kind==='DELIVERY'||!direct())&&draft.requestedBy===actor.employeeId)fail('SELF_APPROVAL_FORBIDDEN',403);
+   const authorCanApprove=kind==='AGREEMENT'&&ctx.allowAgreementSelfApproval===true||
+    kind==='FUNDING'&&ctx.allowFundingSelfApproval===true;
+   if(!authorCanApprove&&(kind==='DELIVERY'||!direct())&&draft.requestedBy===actor.employeeId)fail('SELF_APPROVAL_FORBIDDEN',403);
    const requester=await ctx.employee(draft.requestedBy),permission=kind!=='AGREEMENT'?'commercial.funding.request':'commercial.request';if(!requester||!allowed(requester,permission)||requester.scope?.allRegions!==true)fail('REQUESTER_PERMISSION_REVOKED',403);if(requester.employeeId!==actor.employeeId)tx.push(ctx.guard(requester));
    const values=kind==='AGREEMENT'?agreementValues(draft.values):kind==='DELIVERY'?readDeliveryFundingPolicy(draft.values).policy:fundingValues(draft.values);if(values.effectiveTo!==null&&values.effectiveTo<=now)fail('COMMERCIAL_PERIOD_EXPIRED',409);
    const nextVersion=input.baseVersion+1;
    if(kind==='AGREEMENT'){
+    if(ctx.agreementsOnly&&values.effectiveFrom>now)fail('AGREEMENT_START_NOT_REACHED',409);
     const consent=await get(P,{pk,sk:'CONSENT#'+draft.version});if(!consent||consent.subjectId!==b.ownerId||consent.hash!==draft.hash)fail('OWNER_ACCEPTANCE_REQUIRED',409);tx.push(check(P,{pk,sk:consent.sk},consent));
     const terms={id:input.id,version:nextVersion,status:'ACTIVE',merchantId:b.organizationId,branchId:values.scope==='BRANCH'?b.businessId:null,effectiveFrom:values.effectiveFrom,effectiveTo:values.effectiveTo,acceptedAt:consent.acceptedAt,approvedAt:now,commission:values.commission,serviceFee:values.serviceFee};
     const payload={terms,otherCharges:{merchant:parseIqd('0'),platform:parseIqd('0'),thirdParty:parseIqd('0')},allowedFundingPolicyIds:values.allowedFundingPolicyIds,fundingPolicySnapshots:(draft.fundingPolicies||[]).map(p=>({id:p.id,version:p.version,digest:hash(p)}))},termsHash=hash(payload);
@@ -184,14 +213,14 @@ async function serviceCore(ctx,principal,method,input){
     // Update ownership/reference guards live in each branch Update, never twice on one item.
     const pos=baseGuards.findIndex(x=>x.ConditionCheck?.TableName===B);baseGuards.splice(pos,1);
     for(const businessId of draft.businessIds){const branch=businessId===b.businessId?b:await get(B,{businessId});if(!branch||branch.ownerId!==b.ownerId||branch.cognitoUserId!==b.ownerId||branch.organizationId!==b.organizationId||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)fail('COMMERCIAL_SCOPE_MISMATCH',403);
-     if(businessId!==b.businessId)tx.push(...leaseFences(b.ownerId,[businessId]).slice(1));
+     if(businessId!==b.businessId)tx.push(...leaseFences(b.ownerId,[businessId],L).slice(1));
      const fenced=pin(B,{businessId},branch,branchFields);tx.push({Update:{...fenced,UpdateExpression:'SET commercialAgreementId=:aid, commercialAgreementVersion=:av, commercialUpdatedAt=:at',ExpressionAttributeValues:{...fenced.ExpressionAttributeValues,':aid':input.id,':av':nextVersion,':at':now}}});}
    }else{
     const {table:campaignTable,campaign}=await campaignFor(values);
     const consent=await get(S,{pk,sk:'CONSENT#'+draft.version});if(!consent||consent.hash!==draft.hash)fail('OWNER_ACCEPTANCE_REQUIRED',409);
-    const signer=await require('./commercial-party').resolve(ctx.db,b,consent.subjectId);if(signer.role==='MANAGER'&&(consent.acceptedRole!=='MANAGER'||consent.ownerId!==b.ownerId))fail('OWNER_ACCEPTANCE_REQUIRED',409);tx.push(...signer.guards);
+    const signer=await require('./commercial-party').resolve(ctx.db,b,consent.subjectId,ctx.commercialTables);if(signer.role==='MANAGER'&&(consent.acceptedRole!=='MANAGER'||consent.ownerId!==b.ownerId))fail('OWNER_ACCEPTANCE_REQUIRED',409);tx.push(...signer.guards);
     tx.push(check(S,{pk,sk:consent.sk},consent),check(campaignTable,{discountId:values.campaignId},campaign));
-    const sharedLock=require('./shared-discount-lock');tx.push({Put:{TableName:sharedLock.TABLE,Item:{...sharedLock.key(values.source,values.campaignId),locked:true,initiallyInactive:campaign.status==='inactive'||campaign.isActive===false}}});
+    const sharedLock=require('./shared-discount-lock');tx.push({Put:{TableName:P,Item:{...sharedLock.key(values.source,values.campaignId),locked:true,initiallyInactive:campaign.status==='inactive'||campaign.isActive===false}}});
     const policy={pk,sk:'CURRENT',schemaVersion:3,id:input.id,version:nextVersion,status:'ACTIVE',campaignId:values.campaignId,campaignVersion:values.campaignVersion,source:values.source,merchantId:b.organizationId,branchId:b.businessId,target:'GOODS',effectiveFrom:values.effectiveFrom,effectiveTo:values.effectiveTo,merchantNumerator:values.merchantNumerator,denominator:values.denominator,rounding:'MERCHANT_TOWARD_ZERO_PLATFORM_REMAINDER',merchantShareFinalRounding:values.merchantShareFinalRounding,acceptedBy:consent.subjectId,acceptedAt:consent.acceptedAt,approvedBy:actor.employeeId,approvedAt:now};
     const bindingKey={pk:'BRANCH#'+b.businessId,sk:'COMMERCIAL_SHARING#'+values.source+'#'+values.campaignId},binding=await get(P,bindingKey);
     if(binding&&binding.policyId!==input.id)fail('SHARING_POLICY_EXISTS',409);

@@ -3,6 +3,7 @@ import { GetCommand, TransactWriteCommand, DynamoDBDocumentClient, GetCommandInp
 import { quoteHash as hash, quoteCanonical as stable, validDeliveryQuoteRecord } from './deliveryQuoteRecord';
 import { createStagingDeliveryPricingContext } from './deliveryPricingContext';
 import { createCoveredDeliveryRouter } from './roadRouting';
+import { checkoutTables, requiredQuoteReferences } from './checkoutTables';
 
 type DB = Pick<DynamoDBDocumentClient, 'send'>;
 type Row = Record<string, any>;
@@ -15,48 +16,44 @@ export class DeliveryQuoteError extends Error {
   }
 }
 const fail = (code: DeliveryQuoteError['code']): never => { throw new DeliveryQuoteError(code); };
-const TABLE = 'staging-DeliveryQuotes';
-const PROFILE = 'WizzUser_users_staging';
 const validId = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9_.:-]{1,150}$/.test(v);
 const uuid = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(v);
 const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 const key = (c: QuoteCustomer, requestId: string) => ({ pk: 'CUSTOMER#' + c.userId, sk: 'QUOTE#' + requestId });
-const allowedTables = new Set(['WhizzMerchants_Businesses', 'WizzUser_addresses_staging', 'staging-PlatformStaff',
-  'staging-MerchantPlatform', 'staging-AccountDeletion', 'WizzCentral_Regions', 'WizzCentral_RegionsDerived_staging']);
 
 /** Capture only strongly read source attributes. GSI queries discover candidates, never authorize them.
  * Compare each projected path, including absence, without requiring legacy writers to increment versions.
  */
-function readFences(db: DB) {
+function readFences(db: DB, tables: ReturnType<typeof checkoutTables>) {
+  const required = requiredQuoteReferences(tables);
+  const allowedTables = new Set([...required, tables.platform, tables.neighbors]);
   const seen = new Map<string, { table: string; key: Row; paths: Map<string, { path: string[]; value?: any; present: boolean }> }>();
   let changed = false;
   const wrapped: DB = { send: (async (command: any) => {
+    if (!(command instanceof GetCommand)) return db.send(command);
+    const q = command.input as GetCommandInput;
+    if (!q.TableName || !allowedTables.has(q.TableName) || !q.Key || !q.ConsistentRead || !q.ProjectionExpression) return fail('QUOTE_REFERENCE_LIMIT');
     const result: any = await db.send(command);
-    if (command instanceof GetCommand) {
-      const q = command.input as GetCommandInput;
-      if (!q.TableName || !allowedTables.has(q.TableName) || !q.Key || !q.ConsistentRead || !q.ProjectionExpression) return fail('QUOTE_REFERENCE_LIMIT');
-      const tag = stable([q.TableName, q.Key]);
-      let entry = seen.get(tag);
-      if (!entry) { entry = { table: q.TableName, key: copy(q.Key), paths: new Map() }; seen.set(tag, entry); }
-      for (const expression of q.ProjectionExpression.split(',')) {
-        const path = expression.trim().split('.').map(p => q.ExpressionAttributeNames?.[p] ?? p);
-        let value = result.Item; let present = true;
-        for (const part of path) {
-          if (!value || !Object.prototype.hasOwnProperty.call(value, part)) { present = false; break; }
-          value = value[part];
-        }
-        const valueAtPath = { path, present, ...(present ? { value: copy(value) } : {}) };
-        const prior = entry.paths.get(path.join('.'));
-        if (prior && stable(prior) !== stable(valueAtPath)) changed = true;
-        entry.paths.set(path.join('.'), valueAtPath);
+    const tag = stable([q.TableName, q.Key]);
+    let entry = seen.get(tag);
+    if (!entry) { entry = { table: q.TableName, key: copy(q.Key), paths: new Map() }; seen.set(tag, entry); }
+    for (const expression of q.ProjectionExpression.split(',')) {
+      const path = expression.trim().split('.').map(p => q.ExpressionAttributeNames?.[p] ?? p);
+      let value = result.Item; let present = true;
+      for (const part of path) {
+        if (!value || !Object.prototype.hasOwnProperty.call(value, part)) { present = false; break; }
+        value = value[part];
       }
+      const valueAtPath = { path, present, ...(present ? { value: copy(value) } : {}) };
+      const prior = entry.paths.get(path.join('.'));
+      if (prior && stable(prior) !== stable(valueAtPath)) changed = true;
+      entry.paths.set(path.join('.'), valueAtPath);
     }
     return result;
   }) as DB['send'] };
   return { db: wrapped, finish(): Check[] {
     if (changed) return fail('QUOTE_INVALIDATED');
-    if (!['WhizzMerchants_Businesses', 'WizzUser_addresses_staging', 'staging-PlatformStaff',
-      'staging-AccountDeletion', 'WizzCentral_Regions', 'WizzCentral_RegionsDerived_staging'].every(t =>
+    if (!required.every(t =>
         [...seen.values()].some(e => e.table === t)) || seen.size > 90) return fail('QUOTE_REFERENCE_LIMIT');
     return [...seen.values()].map(entry => {
       const names: Record<string, string> = {}, values: Row = {};
@@ -84,17 +81,18 @@ export function createStagingDeliveryQuotes(options: {
   createRouter: (db: DB) => ReturnType<typeof createCoveredDeliveryRouter>; now?: () => number;
 }) {
   const { db } = options, now = options.now ?? Date.now;
+  const tables = checkoutTables();
   async function customer(): Promise<QuoteCustomer> {
     try {
       const c = await options.authenticateCustomer(), check = c?.condition?.ConditionCheck;
       if (!c || !validId(c.userId) || c.userId === 'guest' || !validId(c.subjectId) ||
-          check?.TableName !== PROFILE || stable(check.Key) !== stable({ userId: c.userId }) ||
+          check?.TableName !== tables.customers || stable(check.Key) !== stable({ userId: c.userId }) ||
           !check.ConditionExpression) return fail('CUSTOMER_UNAVAILABLE');
       return copy(c);
     } catch { return fail('CUSTOMER_UNAVAILABLE'); }
   }
   async function load(c: QuoteCustomer, requestId: string): Promise<Row | undefined> {
-    try { return (await db.send(new GetCommand({ TableName: TABLE, Key: key(c, requestId), ConsistentRead: true }))).Item; }
+    try { return (await db.send(new GetCommand({ TableName: tables.quotes, Key: key(c, requestId), ConsistentRead: true }))).Item; }
     catch { return fail('QUOTE_UNAVAILABLE'); }
   }
   function publicQuote(row: Row) {
@@ -105,7 +103,7 @@ export function createStagingDeliveryQuotes(options: {
   }
   async function deliver(c: QuoteCustomer, row: Row) {
     if (row.subjectId !== c.subjectId || row.pk !== key(c, row.requestId).pk || row.sk !== key(c, row.requestId).sk) return fail('QUOTE_UNAVAILABLE');
-    if (!validDeliveryQuoteRecord(row)) return fail('QUOTE_UNAVAILABLE');
+    if (!validDeliveryQuoteRecord(row, tables)) return fail('QUOTE_UNAVAILABLE');
     if (row.consumption !== undefined) return fail('QUOTE_CONSUMED');
     const ms = now();
     if (ms < Date.parse(row.createdAt) || ms >= Date.parse(row.expiresAt)) return fail('QUOTE_EXPIRED');
@@ -114,7 +112,7 @@ export function createStagingDeliveryQuotes(options: {
     try {
       await db.send(new TransactWriteCommand({ TransactItems: [fresh.condition,
         ...row.fences.map((ConditionCheck: Check) => ({ ConditionCheck })),
-        { ConditionCheck: { TableName: TABLE, Key: key(c, row.requestId), ConditionExpression: '#digest = :digest AND attribute_not_exists(consumption)',
+        { ConditionCheck: { TableName: tables.quotes, Key: key(c, row.requestId), ConditionExpression: '#digest = :digest AND attribute_not_exists(consumption)',
           ExpressionAttributeNames: { '#digest': 'digest' }, ExpressionAttributeValues: { ':digest': row.digest } } }] }));
     } catch (e: any) {
       if (e.name === 'TransactionCanceledException' || e.name === 'ConditionalCheckFailedException') return fail('QUOTE_INVALIDATED');
@@ -136,7 +134,7 @@ export function createStagingDeliveryQuotes(options: {
         return deliver(c, existing);
       }
       await options.beforeCalculate?.(c,{branchId,addressId,requestId});
-      const capture = readFences(db);
+      const capture = readFences(db, tables);
       const context = createStagingDeliveryPricingContext({ db: capture.db, router: options.createRouter(capture.db), now,
         authenticateCustomer: async () => {
           const fresh = await customer();
@@ -146,7 +144,7 @@ export function createStagingDeliveryQuotes(options: {
       const result = await context.calculate({ branchId, addressId });
       const fences = capture.finish(), created = now(), calculated = Date.parse(result.at);
       // A rule ceasing to apply also ends this initial quote; peaks are fixed at the calculation time.
-      const policy = fences.find(f => f.TableName === 'staging-PlatformStaff');
+      const policy = fences.find(f => f.TableName === tables.policy && f.Key?.pk === 'OPERATIONAL_SETTINGS#DELIVERY_PRICING');
       const bundle = Object.values(policy?.ExpressionAttributeValues ?? {}).find((v: any) => v?.deliveryRules) as Row | undefined;
       const rule = bundle?.deliveryRules.find((v: Row) => v.id === result.calculation.rule.id && v.version === result.calculation.rule.version);
       if (!rule) return fail('QUOTE_INVALIDATED');
@@ -164,7 +162,7 @@ export function createStagingDeliveryQuotes(options: {
       if (fresh.userId !== c.userId || fresh.subjectId !== c.subjectId) return fail('CUSTOMER_UNAVAILABLE');
       try {
         await db.send(new TransactWriteCommand({ TransactItems: [fresh.condition, ...fences.map(ConditionCheck => ({ ConditionCheck })),
-          { Put: { TableName: TABLE, Item: row, ConditionExpression: 'attribute_not_exists(pk)' } }] }));
+          { Put: { TableName: tables.quotes, Item: row, ConditionExpression: 'attribute_not_exists(pk)' } }] }));
       } catch (e: any) {
         // Covers simultaneous creates and a committed write whose acknowledgement was lost.
         const winner = await load(c, requestId);

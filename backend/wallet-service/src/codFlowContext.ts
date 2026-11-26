@@ -1,3 +1,4 @@
+import { financialDispatchTables } from './walletBindings';
 import {financialOfferSK} from './financialOfferKey';
 import {verifyFullCashAssignment} from './fullCashOffer';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
@@ -6,9 +7,9 @@ import { verifyFinancialAssignment } from './financialAssignment';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { detach, strongGet, exactCheck, FinancialRow as Row } from './driverFinancialTransaction';
 export type ReturnActor={kind:'DRIVER'|'MERCHANT_OWNER'|'STAFF';subjectId:string};
-const T={orders:'WizzOrders',offers:'WaveOffers_staging',holds:'staging-Holds',driver:'WhizzDrivers_staging',branch:'WhizzMerchants_Businesses',deletion:'staging-AccountDeletion'};
 const fail=(code='COD_RETURN_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
 export function createCodFlowContext(options:{db:Pick<DynamoDBDocumentClient,'send'>;authenticate:()=>Promise<ReturnActor>;now:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;authorizeStaff?:(actor:ReturnActor,order:Row,branch:Row)=>Promise<Row[]>}){
+ const T=financialDispatchTables();
  const {db,authenticate,now}=options;
  async function context(v:Row,kind:ReturnActor['kind']){
   const actor=detach(await authenticate());if(actor.kind!==kind||!quoteEntityIdValid(actor.subjectId))return fail('UNAUTHORIZED');

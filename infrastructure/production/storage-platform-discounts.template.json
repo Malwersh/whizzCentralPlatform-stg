@@ -1,0 +1,49 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Production platform discounts and checkout promotion codes.",
+  "Conditions": {
+    "IsProduction": {
+      "Fn::And": [
+        {"Fn::Equals": [{"Ref": "AWS::AccountId"}, "746727375268"]},
+        {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-east-1"]}
+      ]
+    }
+  },
+  "Resources": {
+    "PlatformDiscounts": {
+      "Type": "AWS::DynamoDB::Table",
+      "Condition": "IsProduction",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "TableName": "wizz-production-PlatformDiscounts",
+        "BillingMode": "PAY_PER_REQUEST",
+        "AttributeDefinitions": [
+          {"AttributeName": "discountId", "AttributeType": "S"},
+          {"AttributeName": "code", "AttributeType": "S"}
+        ],
+        "KeySchema": [
+          {"AttributeName": "discountId", "KeyType": "HASH"}
+        ],
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "code-index",
+            "KeySchema": [{"AttributeName": "code", "KeyType": "HASH"}],
+            "Projection": {"ProjectionType": "ALL"}
+          }
+        ],
+        "DeletionProtectionEnabled": true,
+        "PointInTimeRecoverySpecification": {"PointInTimeRecoveryEnabled": true},
+        "SSESpecification": {"SSEEnabled": true},
+        "Tags": [
+          {"Key": "Environment", "Value": "production"},
+          {"Key": "Project", "Value": "Wizz"}
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "TableName": {"Condition": "IsProduction", "Value": {"Ref": "PlatformDiscounts"}},
+    "TableArn": {"Condition": "IsProduction", "Value": {"Fn::GetAtt": ["PlatformDiscounts", "Arn"]}}
+  }
+}

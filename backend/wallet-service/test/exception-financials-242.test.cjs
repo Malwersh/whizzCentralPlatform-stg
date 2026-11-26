@@ -18,3 +18,16 @@ test('historic missing arrival requires explicit independently evidenced review,
 
 test('platform wallet is not a funding condition: absent, zero, suspended or locked platform funds cannot block GL accrual or be spent',async()=>{for(const mode of ['absent','zero','suspended','locked']){const x=await ready();const p=wallet(x,'PLATFORM');if(mode==='absent'){for(const[k,r]of x.f.rows)if(r.walletId==='WALLET#PLATFORM'&&r.sk==='META')x.f.rows.delete(k);}else{p.availableBalance=0;if(mode==='suspended')p.status='SUSPENDED';if(mode==='locked')p.lockedBalance=100000;}const before=structuredClone(wallet(x,'PLATFORM'));await x.approveFare();await x.postFare();assert.deepEqual(wallet(x,'PLATFORM'),before);const j=x.f.get('staging-Holds',{orderId:'order1',sk:'EXCEPTION_ENTITLEMENTS'});assert.equal(j.platformNetIqd,-9750);assert.equal(j.debit,j.credit);assert.equal(j.walletLines.some(l=>l.walletId==='WALLET#PLATFORM'),false);assert.equal(j.walletLines.reduce((n,l)=>n+l.delta,0)+j.platformNetIqd,0);const proof=await require('../dist/merchantSettlementPreview').readMerchantAccrualEvidence(x.f.db,'branch1','order1');assert.equal(proof.accrual.amounts.merchantNet.minorAmount,7000000);}});
 test('financial closure cannot bypass a pending post-payout correction review',async()=>{const x=await ready();x.row().correctionReview={status:'PENDING',correctionIds:['test']};const close=require('../dist/exceptionFinancialClosure').createExceptionFinancialClosure({db:x.f.db,authority:x.authority,now:()=>Date.parse('2026-10-23T00:00:00Z')});await assert.rejects(close({...x.common('CLOSE_EXCEPTION_FINANCIALS'),confirmClosure:true}),/CORRECTION_CASE_WORK_REMAINS/);});
+
+test('a returned order keeps its merchant compensation after its original order proof is removed',async()=>{
+ const x=await ready();
+ await x.approveFare();
+ await x.postFare();
+ const {readMerchantAccrualEvidence,preserveMerchantSettlementEvidence}=require('../dist/merchantSettlementPreview');
+ const before=await readMerchantAccrualEvidence(x.f.db,'branch1','order1');
+ await preserveMerchantSettlementEvidence(x.f.db,'branch1','order1');
+ const order=x.f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ delete order.financialSnapshot;
+ delete order.financialAcceptance;
+ assert.deepEqual((await readMerchantAccrualEvidence(x.f.db,'branch1','order1')).accrual,before.accrual);
+});

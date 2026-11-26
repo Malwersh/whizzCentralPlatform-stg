@@ -77,7 +77,10 @@ function bodyForAction({ action, orderNumber, businessName, customerName, totalA
 
 exports.sendMerchantOrder = async (event) => {
   if(event?.action==='commercial_notice'&&!event.httpMethod&&!event.requestContext)return require('../utils/commercial-sharing-push').send(event,{db:dynamodb,getMessaging,tokensTable:TOKENS_TABLE});
-  if(event?.action==='ownership_invitation'&&!event.httpMethod&&!event.requestContext&&process.env.STAGE==='staging'){
+  if(['ownership_invitation','ownership_accepted','ownership_completed'].includes(event?.action)&&!event.httpMethod&&!event.requestContext&&process.env.STAGE==='staging'){
+    if(event.action==='ownership_accepted'&&event.organizationId!==process.env.OWNERSHIP_ACCEPTANCE_ORGANIZATION_ID){
+      return {skipped:true};
+    }
     return require('../utils/ownership-invitation-push').send(event,{db:dynamodb,getMessaging,tokensTable:TOKENS_TABLE});
   }
   if (event.httpMethod === 'OPTIONS') {
@@ -95,7 +98,7 @@ exports.sendMerchantOrder = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
 
-    const subjectId = String(body.subjectId || body.merchantUserId || '').trim();
+    let subjectId = String(body.subjectId || body.merchantUserId || '').trim();
     const businessId = body.businessId ? String(body.businessId).trim() : '';
     const action = String(body.action || body.event || '').trim();
     const orderId = String(body.orderId || '').trim();
@@ -109,19 +112,21 @@ exports.sendMerchantOrder = async (event) => {
     if (!action) return badRequest('Missing action');
     if (!orderId) return badRequest('Missing orderId');
 
-    // Preferred targeting: businessId -> deliver to all merchant devices of that store.
-    // Fallback targeting: subjectId -> deliver to merchant user.
-    const tokensResp = await dynamodb.send(
-      new QueryCommand({
+    const devicePolicy=require('../utils/branch-device-push');
+    let items;
+    if(businessId&&process.env.STAGE==='staging'){
+      const targets=await devicePolicy.merchantOrderTargets(dynamodb,TOKENS_TABLE,businessId);
+      items=targets.items;
+      subjectId=targets.ownerId||'';
+    }else{
+      const tokensResp=await dynamodb.send(new QueryCommand({
         TableName: TOKENS_TABLE,
         IndexName: businessId ? 'BusinessIdIndex' : 'SubjectIdIndex',
         KeyConditionExpression: businessId ? 'businessId = :bid' : 'subjectId = :sid',
         ExpressionAttributeValues: businessId ? { ':bid': businessId } : { ':sid': subjectId }
-      })
-    );
-
-    const items = tokensResp.Items || [];
-    const devicePolicy=require('../utils/branch-device-push');
+      }));
+      items=tokensResp.Items||[];
+    }
     const merchantItems=[];
     for(const item of items.filter(it=>String(it?.app||'').toLowerCase()==='merchant')){
       try{if(await devicePolicy.allowed(dynamodb,item))merchantItems.push(item);}catch(_){/* A device whose live authorization cannot be read receives nothing. */}

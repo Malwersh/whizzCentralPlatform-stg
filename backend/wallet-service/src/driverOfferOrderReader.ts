@@ -6,7 +6,7 @@ import { validateDriverOfferOrderSnapshot } from './driverOffer';
 import { quoteCanonical, quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
 
 type Row = Record<string, any>;
-const TABLE = 'WizzOrders';
+import { checkoutTables } from './checkoutTables';
 const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 const fields = ['PK', 'SK', 'orderId', 'storeId', 'businessId', 'merchantId', 'status', 'orderStatus', 'driverId', 'assignedDriverId',
   'deletionRequestId', 'deletionStatus', 'isDeleted', 'deletedAt', 'financialSnapshot', 'holdId', 'holdStatus', 'holdAmount',
@@ -61,6 +61,7 @@ export function prepareDriverOfferFinancialSnapshot(value: unknown) {
  * read alone does not fence changes, select a winner, check deletion locks, reserve funding or hold money.
  */
 export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDBDocumentClient, 'send'>;enableDeliveryFunding?:boolean;enableFullCash?:boolean }) {
+  const tables = checkoutTables();
   return Object.freeze({ async read(value: unknown) {
     if (!value || typeof value !== 'object' || Array.isArray(value) ||
         Object.keys(value).sort().join(',') !== 'branchId,orderId' ||
@@ -69,7 +70,7 @@ export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDB
     const names = Object.fromEntries(fields.map((f, i) => ['#f' + i, f]));
     let saved: Row | undefined;
     try {
-      saved = (await options.db.send(new GetCommand({ TableName: TABLE, Key: key, ConsistentRead: true,
+      saved = (await options.db.send(new GetCommand({ TableName: tables.orders, Key: key, ConsistentRead: true,
         ProjectionExpression: Object.keys(names).join(', '), ExpressionAttributeNames: names }))).Item;
     } catch { return fail('DRIVER_OFFER_ORDER_UNAVAILABLE'); }
     if (!saved || saved.PK !== key.PK || saved.SK !== key.SK || saved.orderId !== orderId ||
@@ -82,9 +83,9 @@ export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDB
     if(!Number.isSafeInteger(previousAttempt)||previousAttempt<0||previousAttempt>=1000)return fail('DRIVER_OFFER_ORDER_UNAVAILABLE');
     if(previousAttempt){
       const release=saved.financialRelease,releaseKey={orderId,sk:'ASSIGNMENT_RELEASE#'+previousAttempt};
-      priorRelease=(await options.db.send(new GetCommand({TableName:'staging-Holds',Key:releaseKey,ConsistentRead:true}))).Item??null;
+      priorRelease=(await options.db.send(new GetCommand({TableName:tables.holds,Key:releaseKey,ConsistentRead:true}))).Item??null;
       if(!priorRelease||priorRelease.kind!=='COD_ASSIGNMENT_RELEASE'||priorRelease.outcome!=='UNASSIGNED'||priorRelease.orderId!==orderId||priorRelease.attempt!==previousAttempt||priorRelease.branchId!==branchId||priorRelease.snapshotDigest!==quoteHash(saved.financialSnapshot)||release?.attempt!==previousAttempt||release.offerId!==priorRelease.offerId||release.operationId!==priorRelease.operationId||saved.holdAmount!==0||saved.holdStatus!=='NONE')return fail('DRIVER_OFFER_ORDER_UNAVAILABLE');
-      releaseCondition=exactCheck('staging-Holds',releaseKey,priorRelease);
+      releaseCondition=exactCheck(tables.holds,releaseKey,priorRelease);
     }else if(saved.financialRelease!=null)return fail('DRIVER_OFFER_ORDER_UNAVAILABLE');
     // All present operational branch aliases must agree. merchantId is a separate ownership scope.
     if (![saved.storeId, saved.businessId].some(v => v === branchId) ||
@@ -114,7 +115,7 @@ export function createStagingDriverOfferOrderReader(options: { db: Pick<DynamoDB
       else { conditions.push(`#f${i} = :v${i}`); values[':v' + i] = copy(saved[field]); }
     }
     return copy({commercialPricing:saved.commercialPricing??null, estimatedReadyAt:saved.estimatedReadyAt ?? null, display:driverOfferDisplay(saved), priorRelease, releaseCondition, nextAssignmentAttempt:previousAttempt+1, snapshot, snapshotHash: envelope.schemaVersion>=2?envelope.digest:quoteHash(snapshot), ...(envelope.schemaVersion>=2?{deliveryFunding:envelope.deliveryFunding}:{}),...(envelope.schemaVersion===3?{settlementModel:envelope.settlementModel}:{}), condition: { ConditionCheck: {
-      TableName: TABLE, Key: key, ConditionExpression: conditions.join(' AND '),
+      TableName: tables.orders, Key: key, ConditionExpression: conditions.join(' AND '),
       ExpressionAttributeNames: names, ExpressionAttributeValues: values
     } }, requiresAtomicComposition: true, requiresLiveDriverAndDeletionGuards: true, performsWrites: false });
   } });

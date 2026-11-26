@@ -1,0 +1,450 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Internal production wallet runtime; scoped funding configuration and approved topup review IAM.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    },
+    "ArtifactKey": {
+      "Type": "String",
+      "AllowedPattern": "wallet-runtime/[a-f0-9]{64}.zip"
+    },
+    "ArtifactVersion": {
+      "Type": "String",
+      "MinLength": 1
+    },
+    "WalletCreationEnabled": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "false",
+        "true"
+      ]
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/wizz-production-wallet-service",
+        "RetentionInDays": 90
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "WalletRuntimeReadOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/wizz-production-wallet-service:*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Wallets"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "WALLET#DRIVER#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-LedgerEntries"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "WALLET#DRIVER#*",
+                        "WALLET#PLATFORM"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-IdempotencyKeys"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "CONFIG#FUNDING",
+                        "CONFIG#TRANSFERS",
+                        "CONFIG#TRANSFERS_PENDING",
+                        "CONFIG#WALLET_OPERATING_LIMITS",
+                        "CONFIG#WALLET_OPERATING_LIMITS_PENDING"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-TopupRequests/index/byStatus"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "PENDING",
+                        "APPROVED",
+                        "POSTED",
+                        "REJECTED",
+                        "CANCELED"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Scan"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-Wallets"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:Attributes": [
+                        "walletId",
+                        "sk",
+                        "ownerId",
+                        "ownerType",
+                        "currency",
+                        "status",
+                        "availableBalance",
+                        "lockedBalance",
+                        "updatedAt"
+                      ]
+                    },
+                    "StringEquals": {
+                      "dynamodb:Select": "SPECIFIC_ATTRIBUTES"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::wizz-production-funding-receipts-${AWS::AccountId}-${AWS::Region}/receipts/*"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "s3:ResourceAccount": {
+                        "Ref": "AWS::AccountId"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Query"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/wizz-production-WalletNotifications/index/ByDriver"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "????????-????-????-????-????????????"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "FundingConfigurationWriteOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "SaveFundingConfigurationOnly",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-IdempotencyKeys",
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "dynamodb:LeadingKeys": [
+                        "CONFIG#FUNDING"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "AppendFundingConfigurationAudit",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-AuditLog"
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "TopupReviewWrite",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "VerifyFinancialStaff",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-PlatformStaff",
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "EMPLOYEE#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "ReviewPendingTopups",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-TopupRequests"
+                },
+                {
+                  "Sid": "CreditDriverAndPlatformAtomically",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-Wallets",
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "WALLET#DRIVER#*",
+                        "WALLET#PLATFORM"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "RecordTopupLedger",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-LedgerEntries",
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "WALLET#DRIVER#*",
+                        "WALLET#PLATFORM"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "TopupIdempotencyAndDailyLimit",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-IdempotencyKeys",
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "TOPUP_APPROVE#*",
+                        "FINANCE_DAILY#*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "VerifyOperatingLimits",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:ConditionCheckItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-IdempotencyKeys",
+                  "Condition": {
+                    "ForAllValues:StringLike": {
+                      "dynamodb:LeadingKeys": [
+                        "CONFIG#WALLET_OPERATING_LIMITS"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Sid": "QueueTopupDecisionNotification",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-WalletNotifications"
+                },
+                {
+                  "Sid": "RecordTopupAudit",
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:746727375268:table/wizz-production-AuditLog"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Function": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "wizz-production-wallet-service",
+        "Runtime": "nodejs22.x",
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Timeout": 20,
+        "Role": {
+          "Fn::GetAtt": [
+            "Role",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "S3Bucket": "wizz-production-artifacts-746727375268-us-east-1",
+          "S3Key": {
+            "Ref": "ArtifactKey"
+          },
+          "S3ObjectVersion": {
+            "Ref": "ArtifactVersion"
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "ENVIRONMENT": "production",
+            "PLATFORM_ENVIRONMENT": "production",
+            "REGION": "us-east-1",
+            "DRIVER_USER_POOL_ID": "us-east-1_5sUT54eCB",
+            "ADMIN_USER_POOL_ID": "us-east-1_njh6vaNWj",
+            "CUSTOMER_USER_POOL_ID": "us-east-1_rNtNKVsVf",
+            "MERCHANT_USER_POOL_ID": "us-east-1_2sKZ4fGbZ",
+            "DRIVER_CLIENT_ID": "59to4hbat3lv2fvosa49afu0gi",
+            "ADMIN_CLIENT_ID": "7924qedsr5m1j1bvc3c7va8egk",
+            "CUSTOMER_CLIENT_ID": "3e8p0ouglrprpd0a3pc91du0hg",
+            "MERCHANT_CLIENT_ID": "5l8ng11uudg146crop63926svq",
+            "WALLETS_TABLE": "wizz-production-Wallets",
+            "LEDGER_TABLE": "wizz-production-LedgerEntries",
+            "HOLDS_TABLE": "wizz-production-Holds",
+            "TOPUP_REQUESTS_TABLE": "wizz-production-TopupRequests",
+            "AUDIT_LOG_TABLE": "wizz-production-AuditLog",
+            "IDEMPOTENCY_KEYS_TABLE": "wizz-production-IdempotencyKeys",
+            "ACCOUNT_DELETION_TABLE": "wizz-production-AccountDeletion",
+            "WALLET_LIFECYCLE_TABLE": "wizz-production-WalletLifecycle",
+            "WALLET_NOTIFICATIONS_TABLE": "wizz-production-WalletNotifications",
+            "ORDERS_TABLE": "wizz-production-Orders",
+            "STAFF_TABLE": "wizz-production-PlatformStaff",
+            "MERCHANT_PLATFORM_TABLE": "wizz-production-MerchantPlatform",
+            "CUSTOMERS_TABLE": "wizz-production-Customers",
+            "MERCHANTS_TABLE": "wizz-production-Merchants",
+            "DRIVERS_TABLE": "wizz-production-Drivers",
+            "FUNDING_RECEIPTS_BUCKET": "wizz-production-funding-receipts-746727375268-us-east-1",
+            "MERCHANT_OWNER_FINANCIAL_LOCK_ENABLED": "true"
+          }
+        },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "LogGroup"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    }
+  }
+}

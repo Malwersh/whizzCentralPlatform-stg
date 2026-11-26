@@ -13,9 +13,9 @@ function summarize(products,categoryIds=[]){
  prices.sort((a,b)=>a-b);const n=prices.length;
  return {basis:'PUBLISHED_MENU_BASE_PRICE_MEDIAN',sampleCount:n,medianIqd:n?(prices[Math.floor((n-1)/2)]+prices[Math.floor(n/2)])/2:null};
 }
-async function pointer(ctx,b){return (await ctx.db.send(new GetCommand({TableName:PLATFORM,Key:{pk:'BRANCH#'+b,sk:'MENU_VERSION#ACTIVE'},ConsistentRead:true}))).Item;}
+async function pointer(ctx,b){return (await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.merchantPlatform||PLATFORM,Key:{pk:'BRANCH#'+b,sk:'MENU_VERSION#ACTIVE'},ConsistentRead:true}))).Item;}
 async function branch(ctx,b,categoryIds){
- const business=(await ctx.db.send(new GetCommand({TableName:BUSINESSES,Key:{businessId:b},ConsistentRead:true}))).Item;
+ const business=(await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.merchants||BUSINESSES,Key:{businessId:b},ConsistentRead:true}))).Item;
  if(!business||business.isDeleted||business.deletedAt||business.isActive===false||business.platformSuspended===true)return null;
  const menu=await pointer(ctx,b),now=ctx.priceNow?.()??Date.now();
  const source=menu?.publishedVersion||'legacy:'+String(business.menuVersion||business.menuLastUpdated||business.updatedAt||'');
@@ -24,7 +24,7 @@ async function branch(ctx,b,categoryIds){
  if(cached?.source===source&&cached.selectorHash===selectorHash&&Date.parse(cached.expiresAt)>now)return cached;
  const products=[];let cursor,complete=false;
  for(let page=0;page<10;page++){
-  const q=menu?.publishedVersion?{TableName:PLATFORM,KeyConditionExpression:'pk=:p AND begins_with(sk,:s)',ExpressionAttributeValues:{':p':'BRANCH#'+b,':s':'MENU_VERSION#'+menu.publishedVersion+'#PRODUCT#'},ConsistentRead:true}:{TableName:PRODUCTS,IndexName:'BusinessIdIndex',KeyConditionExpression:'businessId=:b',ExpressionAttributeValues:{':b':b}};
+  const q=menu?.publishedVersion?{TableName:ctx.homeTables?.merchantPlatform||PLATFORM,KeyConditionExpression:'pk=:p AND begins_with(sk,:s)',ExpressionAttributeValues:{':p':'BRANCH#'+b,':s':'MENU_VERSION#'+menu.publishedVersion+'#PRODUCT#'},ConsistentRead:true}:{TableName:ctx.homeTables?.products||PRODUCTS,IndexName:'BusinessIdIndex',KeyConditionExpression:'businessId=:b',ExpressionAttributeValues:{':b':b}};
   const result=await ctx.db.send(new QueryCommand({...q,Limit:100,ExclusiveStartKey:cursor}));
   products.push(...(result.Items||[]).map(x=>menu?.publishedVersion?x.product:x).filter(x=>x?.businessId===b));cursor=result.LastEvaluatedKey;
   if(!cursor){complete=true;break;}
@@ -32,7 +32,7 @@ async function branch(ctx,b,categoryIds){
  if(!complete)throw Error('PRICE_MENU_INCOMPLETE');
  if(!menu?.publishedVersion){
   const ids=[...new Set(products.map(p=>p.categoryId).filter(id))],cats=new Map();
-  if(ids.length>100)throw Error('PRICE_CATEGORY_CAPACITY');const queue=[...ids];await Promise.all(Array.from({length:Math.min(3,queue.length)},async()=>{while(queue.length){const categoryId=queue.shift(),r=await ctx.db.send(new GetCommand({TableName:CATEGORIES,Key:{categoryId}})),c=r.Item;if(c&&(!c.businessId||c.businessId===b))cats.set(c.categoryId,c);}}));
+  if(ids.length>100)throw Error('PRICE_CATEGORY_CAPACITY');const queue=[...ids];await Promise.all(Array.from({length:Math.min(3,queue.length)},async()=>{while(queue.length){const categoryId=queue.shift(),r=await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.categories||CATEGORIES,Key:{categoryId}})),c=r.Item;if(c&&(!c.businessId||c.businessId===b))cats.set(c.categoryId,c);}}));
   for(const p of products)p.publishedCategory=cats.get(p.categoryId)||{isActive:false};
  }
  const after=await pointer(ctx,b);if((after?.publishedVersion||null)!==(menu?.publishedVersion||null))throw Error('PRICE_MENU_CHANGED');

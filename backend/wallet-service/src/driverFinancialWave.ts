@@ -1,3 +1,4 @@
+import {financialDispatchTables} from './walletBindings';
 import {financialOfferSK} from './financialOfferKey';
 import {financialWaveSK} from './financialDispatchKeys';
 import {DeliveryOperationsValues} from './deliveryOperationsPolicy';
@@ -7,7 +8,6 @@ import { createStagingDriverOfferStore } from './driverOfferStore';
 import { resolveFinancialOffer,versionedFinancialOfferView } from './financialOfferVersion';
 import { quoteHash, quoteEntityIdValid } from './deliveryQuoteRecord';
 import { detach, equal, strongGet, exactCheck, updateChecked, FinancialRow as Row } from './driverFinancialTransaction';
-const jobs='WizzDispatchJobs_staging',offers='WaveOffers_staging';
 const conflict=():never=>{throw Object.assign(Error('FINANCIAL_WAVE_CONFLICT'),{code:'FINANCIAL_WAVE_CONFLICT'});};
 /** Durable wave plan in the existing dispatch partition. Delivery is at least once with a fixed eventId.
  * A READY wave is required by acceptance. Notifications carry the allowlisted financial view only.
@@ -17,6 +17,7 @@ export function createStagingDriverFinancialWave(options:{db:Pick<DynamoDBDocume
   operating?:{version:number;values:DeliveryOperationsValues;condition:Row|null};
   context:ReturnType<typeof createStagingDriverOfferContext>;sendOffer:(driverId:string,message:Row)=>Promise<void>;now?:()=>number}) {
  const {db,context,sendOffer}=options,now=options.now??Date.now,store=createStagingDriverOfferStore({db,now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash});
+ const {jobs,offers}=financialDispatchTables();
  return Object.freeze({async run(value:unknown){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join(',')!=='branchId,driverIds,orderId,waveNumber')return conflict();
   const r=detach(value as Row),{orderId,branchId,waveNumber}=r;

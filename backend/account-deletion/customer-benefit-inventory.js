@@ -8,20 +8,21 @@ const count = value => Number.isSafeInteger(value) && value >= 0;
 
 // Read-only preflight. No grant, reservation, compensation link or money is erased.
 // Completed evidence remains a retention review until an archive adapter is approved.
-async function inventory({db, subjectIds, orderIds = [], maxPages = 100}) {
-  if (!db || !Array.isArray(subjectIds) || !subjectIds.length || !subjectIds.every(safeId) ||
+async function inventory({db, subjectIds, orderIds = [], maxPages = 100, table = TABLE}) {
+  if (![TABLE,'wizz-production-OfferJourney'].includes(table) || !db || !Array.isArray(subjectIds) || !subjectIds.length || !subjectIds.every(safeId) ||
       !Array.isArray(orderIds) || !orderIds.every(safeId) || !Number.isInteger(maxPages) || maxPages < 1 || maxPages > 100)
     throw error('BENEFIT_INVENTORY_SCOPE_INVALID');
   const owners = new Set(subjectIds), blockers = [];
   let pages = 0, records = 0;
   async function read(pk) {
-    let cursor;
+    let cursor, partitionPages = 0;
     do {
-      if (pages >= maxPages) throw error('BENEFIT_INVENTORY_INCOMPLETE');
-      const result = await db.send(new QueryCommand({TableName: TABLE, ConsistentRead: true,
+      if ((table===TABLE?pages:partitionPages) >= maxPages) throw error('BENEFIT_INVENTORY_INCOMPLETE');
+      const result = await db.send(new QueryCommand({TableName: table, ConsistentRead: true,
         KeyConditionExpression: '#pk=:pk', ExpressionAttributeNames: {'#pk':'pk'},
         ExpressionAttributeValues: {':pk':pk}, Limit:100, ...(cursor ? {ExclusiveStartKey:cursor} : {})}));
       pages++;
+      partitionPages++;
       for (const row of result.Items || []) {
         if (row.pk !== pk || typeof row.sk !== 'string') throw error('BENEFIT_INVENTORY_OWNERSHIP_MISMATCH');
         records++;

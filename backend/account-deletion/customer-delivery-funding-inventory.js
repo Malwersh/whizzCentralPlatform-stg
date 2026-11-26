@@ -6,8 +6,8 @@ const safeId = v => typeof v === 'string' && v.length > 0 && v.length <= 200 && 
 const count = v => Number.isSafeInteger(v) && v >= 0;
 // Read-only. Terminal funding evidence still needs retention review; never erase it
 // or rewrite its customer key/digest as part of personal-data cleanup.
-async function inventory({db, subjectIds, maxPages = 100}) {
-  if (!db || !Array.isArray(subjectIds) || !subjectIds.length || subjectIds.length > 40 ||
+async function inventory({db, subjectIds, maxPages = 100, table = TABLE}) {
+  if (![TABLE,'wizz-production-PlatformStaff'].includes(table) || !db || !Array.isArray(subjectIds) || !subjectIds.length || subjectIds.length > 40 ||
       !subjectIds.every(safeId) || !Number.isInteger(maxPages) || maxPages < 1 || maxPages > 100)
     throw error('DELIVERY_FUNDING_SCOPE_INVALID');
   const owners = new Set(subjectIds), values = {':reservation':'DELIVERY_RESERVATION#', ':usage':'DELIVERY_USAGE#'};
@@ -17,7 +17,7 @@ async function inventory({db, subjectIds, maxPages = 100}) {
   const blockers = new Set(), keys = [];
   do {
     if (pages >= maxPages) throw error('DELIVERY_FUNDING_INVENTORY_INCOMPLETE');
-    const response = await db.send(new ScanCommand({TableName:TABLE, ConsistentRead:true, Select:'SPECIFIC_ATTRIBUTES', Limit:100,
+    const response = await db.send(new ScanCommand({TableName:table, ConsistentRead:true, Select:'SPECIFIC_ATTRIBUTES', Limit:100,
       FilterExpression:'(begins_with(#pk,:reservation) AND #customer IN ('+customerMarkers.join(',')+')) OR (begins_with(#pk,:usage) AND #sk IN ('+keyMarkers.join(',')+'))',
       ProjectionExpression:'#pk,#sk,#customer,#order,#state,#schema,#version,#reserved,#completed,#legal,#retention',
       ExpressionAttributeNames:{'#pk':'pk','#sk':'sk','#customer':'customerId','#order':'orderId','#state':'status',

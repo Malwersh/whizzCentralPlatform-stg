@@ -5,6 +5,7 @@ const { sign } = require('jsonwebtoken');
 const http2 = require('http2');
 
 const { ok, badRequest, serverError, corsHeaders } = require('../utils/http');
+const { apnsBinding } = require('../utils/notification-provider-bindings');
 
 const dynamodb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' })
@@ -12,10 +13,6 @@ const dynamodb = DynamoDBDocumentClient.from(
 const secrets = new SecretsManagerClient({ region: process.env.AWS_REGION || 'us-east-1' });
 
 const TABLE_NAME = process.env.LIVE_ACTIVITIES_TABLE;
-const BUNDLE_ID = process.env.LIVE_ACTIVITY_BUNDLE_ID || 'com.wiz.wizuserapp';
-const APNS_HOST = process.env.APNS_HOST || 'api.push.apple.com';
-const APNS_FALLBACK_HOST = process.env.APNS_FALLBACK_HOST || 'api.sandbox.push.apple.com';
-const APNS_SECRET_ID = process.env.APNS_AUTH_KEY_SECRET_ID;
 
 const { authorize, terminal } = require('./live-activity-order-access');
 const { content } = require('./order-arrival-content');
@@ -32,16 +29,17 @@ function getHeader(event, name) {
   return undefined;
 }
 
-async function getApnsAuth() {
+async function getApnsAuth(binding) {
   if (cachedAuth && Date.now() < cachedAuthExpiresAt) {
     return cachedAuth;
   }
-  if (!APNS_SECRET_ID) {
+  if (!binding.secretId) {
     throw new Error('Missing APNS_AUTH_KEY_SECRET_ID');
   }
-  const secret = await secrets.send(new GetSecretValueCommand({ SecretId: APNS_SECRET_ID }));
+  const secret = await secrets.send(new GetSecretValueCommand({ SecretId: binding.secretId }));
   const data = JSON.parse(secret.SecretString || '{}');
-  if (!data.keyId || !data.teamId || !data.key) {
+  if (!data.keyId || !data.teamId || !data.key ||
+      (binding.teamId && (data.teamId !== binding.teamId || !/^[A-Z0-9]{10}$/.test(data.keyId)))) {
     throw new Error('APNS auth secret must contain keyId, teamId, and key');
   }
   cachedAuth = data;
@@ -61,11 +59,11 @@ function makeApnsJwt(auth) {
   );
 }
 
-function sendApnsPushToHost(host, activityPushToken, payload) {
+function sendApnsPushToHost(binding, host, activityPushToken, payload) {
   return new Promise(async (resolve, reject) => {
     let client;
     try {
-      const auth = await getApnsAuth();
+      const auth = await getApnsAuth(binding);
       const jwt = makeApnsJwt(auth);
 
       client = http2.connect(`https://${host}`);
@@ -75,7 +73,7 @@ function sendApnsPushToHost(host, activityPushToken, payload) {
         ':scheme': 'https',
         ':authority': host,
         'authorization': `bearer ${jwt}`,
-        'apns-topic': `${BUNDLE_ID}.push-type.liveactivity`,
+        'apns-topic': `${binding.bundleId}.push-type.liveactivity`,
         'apns-push-type': 'liveactivity',
         'apns-priority': '10',
         'apns-expiration': '0',
@@ -113,14 +111,15 @@ function sendApnsPushToHost(host, activityPushToken, payload) {
 
 // Send to the primary host; if APNs rejects the token as belonging to the
 // other environment (debug builds get sandbox tokens), retry on the fallback host.
-async function sendApnsPush(activityPushToken, payload, eventType) {
+async function sendApnsPush(activityPushToken, payload) {
+  const binding = apnsBinding();
   try {
-    return await sendApnsPushToHost(APNS_HOST, activityPushToken, payload);
+    return await sendApnsPushToHost(binding, binding.host, activityPushToken, payload);
   } catch (err) {
     const reason = err?.data?.reason;
-    if (err?.status === 400 && (reason === 'BadDeviceToken' || reason === 'BadEnvironment')) {
-      console.log(`APNS token rejected on ${APNS_HOST} (${reason}); retrying on ${APNS_FALLBACK_HOST}`);
-      return await sendApnsPushToHost(APNS_FALLBACK_HOST, activityPushToken, payload);
+    if (binding.fallbackHost && err?.status === 400 && (reason === 'BadDeviceToken' || reason === 'BadEnvironment')) {
+      console.log(`APNS token rejected on ${binding.host} (${reason}); retrying on ${binding.fallbackHost}`);
+      return await sendApnsPushToHost(binding, binding.fallbackHost, activityPushToken, payload);
     }
     throw err;
   }
@@ -181,7 +180,7 @@ async function sendToOrder(orderId, statusData, eventType) {
 
     const payload = buildPayload(orderId, statusData, eventType);
     try {
-      await sendApnsPush(token, payload, eventType);
+      await sendApnsPush(token, payload);
       results.push({ success: true });
     } catch (err) {
       console.warn('Live activity push failed', { code: err.status || 'APNS_FAILED', reason: err.data?.reason || 'TRANSPORT_FAILURE' });

@@ -7,44 +7,57 @@ import {prepareDeliveryFundedFinancialSnapshot} from './deliveryFundedOffer';
 import {prepareDriverOfferFinancialSnapshot} from './driverOfferOrderReader';
 import {fromWholeIqd,readMoney} from './money';
 import {prepareOfferUsageRelease,offerAcceptanceFields} from './offerUsageRelease';
-const T={orders:'WizzOrders',branches:'WhizzMerchants_Businesses',events:'staging-WalletLifecycle',deletion:'staging-AccountDeletion',holds:'staging-Holds',audit:'staging-AuditLog'};
+import { checkoutTables } from './checkoutTables';
+const {acceptanceFields}=require('../merchant-runtime/functions/shared/merchant-response-policy');
 const fail=(code:string):never=>{throw Object.assign(Error(code),{code});};
 export type MerchantResponseActor={kind:'SYSTEM'|'MERCHANT'|'CUSTOMER';subjectId:string;businessId:string;ownerId:string;customerId?:string;guards:Row[]};
 /** Pre-acceptance only. Never touches an assigned driver's hold or earnings. */
-export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;authenticate:()=>Promise<MerchantResponseActor>}){
+export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;env?:NodeJS.ProcessEnv;enableDeliveryFunding?:boolean;enableFullCash?:boolean;authenticate:()=>Promise<MerchantResponseActor>}){
  const {db,authenticate}=options,now=options.now??Date.now;
- async function run(orderId:string,mode:'AUTO_ACCEPT'|'EXPIRE'|'REJECT'|'CUSTOMER_CANCEL',reason?:string){
-  if(!quoteEntityIdValid(orderId)||!['AUTO_ACCEPT','EXPIRE','REJECT','CUSTOMER_CANCEL'].includes(mode))return fail('INVALID_MERCHANT_RESPONSE');
-  const actor=await authenticate();if(!['SYSTEM','MERCHANT','CUSTOMER'].includes(actor.kind)||!quoteEntityIdValid(actor.subjectId)||!quoteEntityIdValid(actor.businessId)||!quoteEntityIdValid(actor.ownerId)||!Array.isArray(actor.guards)||actor.kind==='SYSTEM'&&!['AUTO_ACCEPT','EXPIRE'].includes(mode)||actor.kind==='MERCHANT'&&mode!=='REJECT'||actor.kind==='CUSTOMER'&&mode!=='CUSTOMER_CANCEL')return fail('MERCHANT_RESPONSE_UNAUTHORIZED');
-  const at=new Date(now()).toISOString(),key={PK:'ORDER#'+orderId,SK:'META'},eventKey={operationId:'MERCHANT_RESPONSE#'+orderId};
-  const o=await strongGet(db,T.orders,key),event=await strongGet(db,T.events,eventKey);
+ const tables = checkoutTables(options.env);
+ async function run(orderId:string,mode:'AUTO_ACCEPT'|'MANUAL_ACCEPT'|'EXPIRE'|'REJECT'|'CUSTOMER_CANCEL',reason?:string,preparationMinutes?:number){
+  const manual=mode==='MANUAL_ACCEPT',accepting=manual||mode==='AUTO_ACCEPT';
+  if(!quoteEntityIdValid(orderId)||!['AUTO_ACCEPT','MANUAL_ACCEPT','EXPIRE','REJECT','CUSTOMER_CANCEL'].includes(mode))return fail('INVALID_MERCHANT_RESPONSE');
+  if(manual&&(typeof preparationMinutes!=='number'||!Number.isSafeInteger(preparationMinutes)||preparationMinutes<5||preparationMinutes>120))return fail('INVALID_PREPARATION_TIME');
+  const actor=await authenticate();if(!['SYSTEM','MERCHANT','CUSTOMER'].includes(actor.kind)||!quoteEntityIdValid(actor.subjectId)||!quoteEntityIdValid(actor.businessId)||!quoteEntityIdValid(actor.ownerId)||!Array.isArray(actor.guards)||actor.kind==='SYSTEM'&&!['AUTO_ACCEPT','EXPIRE'].includes(mode)||actor.kind==='MERCHANT'&&!['REJECT','MANUAL_ACCEPT'].includes(mode)||actor.kind==='CUSTOMER'&&mode!=='CUSTOMER_CANCEL')return fail('MERCHANT_RESPONSE_UNAUTHORIZED');
+  const startedAt=now(),at=new Date(startedAt).toISOString(),key={PK:'ORDER#'+orderId,SK:'META'},eventKey={operationId:'MERCHANT_RESPONSE#'+orderId};
+  const o=await strongGet(db,tables.orders,key),event=await strongGet(db,tables.lifecycle,eventKey);
   if(!o||o.orderId!==orderId||o.storeId!==actor.businessId||o.businessId!=null&&o.businessId!==actor.businessId)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
-  if(actor.kind==='CUSTOMER'&&(!quoteEntityIdValid(actor.customerId)||o.userSub!==actor.subjectId||o.userId!==actor.customerId||o.isGuestOrder===true||!actor.guards.some(g=>g.ConditionCheck?.TableName==='WizzUser_users_staging'&&g.ConditionCheck.Key?.userId===actor.customerId&&typeof g.ConditionCheck.ConditionExpression==='string'&&g.ConditionCheck.ConditionExpression.length>0)))return fail('MERCHANT_RESPONSE_UNAUTHORIZED');
+  if(actor.kind==='CUSTOMER'&&(!quoteEntityIdValid(actor.customerId)||o.userSub!==actor.subjectId||o.userId!==actor.customerId||o.isGuestOrder===true||!actor.guards.some(g=>g.ConditionCheck?.TableName===tables.customers&&g.ConditionCheck.Key?.userId===actor.customerId&&typeof g.ConditionCheck.ConditionExpression==='string'&&g.ConditionCheck.ConditionExpression.length>0)))return fail('MERCHANT_RESPONSE_UNAUTHORIZED');
   if(['REJECT','CUSTOMER_CANCEL'].includes(mode)&&reason!==undefined&&(typeof reason!=='string'||!reason.trim()||reason.length>500))return fail('INVALID_MERCHANT_RESPONSE');
   const defaultReason=mode==='CUSTOMER_CANCEL'?'إلغاء من العميل':'رفض المطعم الطلب';
-  const requestDigest=quoteHash({orderId,mode,actorKind:actor.kind,actorId:actor.subjectId,reason:['REJECT','CUSTOMER_CANCEL'].includes(mode)?(reason??defaultReason).trim():null});
+  const requestDigest=quoteHash({orderId,mode,actorKind:actor.kind,actorId:actor.subjectId,reason:['REJECT','CUSTOMER_CANCEL'].includes(mode)?(reason??defaultReason).trim():null,...(manual?{preparationMinutes}:{})});
   if(event?.status==='DONE'){
-   if(actor.kind!=='SYSTEM'&&(event.responseMode!==mode||event.responseDigest!==requestDigest||o.status!=='cancelled'))return fail('ORDER_ALREADY_HANDLED');
+   if(actor.kind!=='SYSTEM'&&(event.responseMode!==mode||event.responseDigest!==requestDigest||(manual?event.result!=='confirmed':o.status!=='cancelled')))return fail('ORDER_ALREADY_HANDLED');
+   if(manual){
+    const [branch,businessLifecycle,ownerLifecycle]=await Promise.all([
+     strongGet(db,tables.branches,{businessId:actor.businessId}),
+     strongGet(db,tables.deletion,{pk:'BUSINESS_LIFECYCLE#MERCHANT#'+actor.businessId,sk:'META'}),
+     strongGet(db,tables.deletion,{pk:'ACCOUNT_LIFECYCLE#MERCHANT#'+actor.ownerId,sk:'META'}),
+    ]);
+    if(!branch||branch.ownerId!==actor.ownerId||branch.cognitoUserId!==actor.ownerId||branch.deletionRequestId||businessLifecycle||ownerLifecycle)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
+   }
    return {status:o.status,replayed:true};
   }
   if(actor.kind==='SYSTEM'&&(!event||event.kind!=='MERCHANT_RESPONSE'||event.orderId!==orderId||event.branchId!==actor.businessId||event.status!=='PENDING'||event.queuePartition!=='MERCHANT_RESPONSE'||!Number.isSafeInteger(event.nextAttemptAt)))return fail('MERCHANT_RESPONSE_UNAVAILABLE');
   if(event&&event.orderId!==orderId)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
   const deadline=Date.parse(o.merchantAcceptanceDeadlineAt??'');
   if(mode!=='CUSTOMER_CANCEL'&&(!Number.isFinite(deadline)||!o.merchantResponsePolicy||o.merchantResponsePolicy.schemaVersion!==1||!Number.isSafeInteger(o.merchantResponsePolicy.acceptanceSeconds)||o.merchantResponsePolicy.acceptanceSeconds<60||o.merchantResponsePolicy.acceptanceSeconds>1800))return fail('MERCHANT_RESPONSE_POLICY_REQUIRED');
-  const eventDone=(result:string)=>event?set(exactCheck(T.events,eventKey,event),{status:'DONE',result,responseMode:result==='ALREADY_HANDLED'?'ALREADY_HANDLED':mode,responseActorId:actor.subjectId,responseDigest:requestDigest,completedAt:at,queuePartition:'MERCHANT_RESPONSE_DONE',nextAttemptAt:0}):{Put:{TableName:T.events,Item:{...eventKey,kind:'MERCHANT_RESPONSE',merchantResponseSchemaVersion:1,orderId,branchId:actor.businessId,status:'DONE',result,responseMode:mode,responseActorId:actor.subjectId,responseDigest:requestDigest,completedAt:at},ConditionExpression:'attribute_not_exists(operationId)'}};
+  const eventDone=(result:string)=>event?set(exactCheck(tables.lifecycle,eventKey,event),{status:'DONE',result,responseMode:result==='ALREADY_HANDLED'?'ALREADY_HANDLED':mode,responseActorId:actor.subjectId,responseDigest:requestDigest,completedAt:at,queuePartition:'MERCHANT_RESPONSE_DONE',nextAttemptAt:0}):{Put:{TableName:tables.lifecycle,Item:{...eventKey,kind:'MERCHANT_RESPONSE',merchantResponseSchemaVersion:1,orderId,branchId:actor.businessId,status:'DONE',result,responseMode:mode,responseActorId:actor.subjectId,responseDigest:requestDigest,completedAt:at},ConditionExpression:'attribute_not_exists(operationId)'}};
   if(o.status!=='pending'){
    if(actor.kind!=='SYSTEM')return fail('ORDER_ALREADY_HANDLED');
-   await db.send(new TransactWriteCommand({TransactItems:[eventDone('ALREADY_HANDLED'),exactCheck(T.orders,key,o),...actor.guards] as any}));return {status:o.status,replayed:true};
+   await db.send(new TransactWriteCommand({TransactItems:[eventDone('ALREADY_HANDLED'),exactCheck(tables.orders,key,o),...actor.guards] as any}));return {status:o.status,replayed:true};
   }
   if(o.deletionRequestId!=null||o.deletedAt!=null||o.isDeleted===true)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
   if(offerAcceptanceFields.some(k=>o[k]!=null))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
-  if(mode==='EXPIRE'&&now()<deadline||mode==='AUTO_ACCEPT'&&now()>=deadline)return fail('MERCHANT_RESPONSE_NOT_DUE');
-  const branchKey={businessId:actor.businessId},b=await strongGet(db,T.branches,branchKey);
+  if(mode==='EXPIRE'&&startedAt<deadline||mode==='AUTO_ACCEPT'&&startedAt>=deadline)return fail('MERCHANT_RESPONSE_NOT_DUE');
+  if(manual&&startedAt>=deadline)return fail('MERCHANT_RESPONSE_EXPIRED');
+  const branchKey={businessId:actor.businessId},b=await strongGet(db,tables.branches,branchKey);
   if(!b||b.ownerId!==b.cognitoUserId||b.ownerId!==actor.ownerId||!b.ownerId||b.deletionRequestId!=null)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
-  const guards:Row[]=[exactCheck(T.branches,branchKey,b,['businessId','ownerId','cognitoUserId','status','isActive','acceptingOrders','ordersPausedUntil','orderPauseId','lastStatusUpdate','onboardingSchemaVersion','onboardingComplete','orderReceptionSettings','deletionRequestId','deletedAt','platformSuspended','ordersBlocked'])];
+  const guards:Row[]=[exactCheck(tables.branches,branchKey,b,['businessId','ownerId','cognitoUserId','status','isActive','acceptingOrders','ordersPausedUntil','orderPauseId','lastStatusUpdate','onboardingSchemaVersion','onboardingComplete','orderReceptionSettings','deletionRequestId','deletedAt','platformSuspended','ordersBlocked'])];
   for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+actor.businessId,'ACCOUNT_LIFECYCLE#MERCHANT#'+b.ownerId]){
-   const k={pk,sk:'META'};if(await strongGet(db,T.deletion,k))return fail('MERCHANT_RESPONSE_UNAVAILABLE');
-   guards.push({ConditionCheck:{TableName:T.deletion,Key:k,ConditionExpression:'attribute_not_exists(pk)'}});
+   const k={pk,sk:'META'};if(await strongGet(db,tables.deletion,k))return fail('MERCHANT_RESPONSE_UNAVAILABLE');
+   guards.push({ConditionCheck:{TableName:tables.deletion,Key:k,ConditionExpression:'attribute_not_exists(pk)'}});
   }
   // Avoid duplicate branch/deletion checks already supplied by the verified device/owner context.
   const guardKeys=new Set(guards.map(x=>quoteHash([x.ConditionCheck.TableName,x.ConditionCheck.Key])));
@@ -53,17 +66,20 @@ export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentC
   if(o.financialSnapshot?.schemaVersion===3&&options.enableFullCash!==true)return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
   if(o.financialSnapshot?.schemaVersion===2&&options.enableDeliveryFunding!==true)return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
   if(o.driverId!=null||o.assignedDriverId!=null||o.financialAcceptance!=null||o.financialOutcome!=null||o.returnCaseId!=null||o.walletPendingHoldId!=null||o.pickedUpAt!=null||o.pickupAt!=null||o.cashCollected===true||o.cashCollectedAmount>0||!['pending','unpaid',null,undefined].includes(o.paymentStatus)||o.holdId!=null||o.holdAmount!=null&&o.holdAmount!==0||['ACTIVE','SETTLED','CAPTURED'].includes(o.holdStatus))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
-  const status=mode==='AUTO_ACCEPT'?'confirmed':mode==='EXPIRE'?'expired':'cancelled';
+  const status=accepting?'confirmed':mode==='EXPIRE'?'expired':'cancelled';
   const operationId='MRC:'+quoteHash({orderId,mode}).slice(0,48),fields:Row={status,orderStatus:status,updatedAt:at,merchantRespondedAt:at,merchantResponseActor:{kind:actor.kind,subjectId:actor.subjectId}};
   const bucket=typeof o.storeStatus==='string'&&o.storeStatus.match(/#b\d+$/)?.[0];if(!bucket)return fail('MERCHANT_RESPONSE_UNAVAILABLE');fields.storeStatus=actor.businessId+'#'+status+bucket;
   const ops:Row[]=[...guards];
-  const jobKey={orderId,SK:'METADATA'},job=await strongGet(db,'WizzDispatchJobs_staging',jobKey);
+  const jobKey={orderId,SK:'METADATA'},job=await strongGet(db,tables.dispatchJobs,jobKey);
   if(job){
    if(job.driverId!=null||job.assignedDriverId!=null||(job.currentWaveNumber??0)!==0||!['pending','created','waiting_for_merchant','searching'].includes(job.status))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
-   ops.push(mode==='AUTO_ACCEPT'?exactCheck('WizzDispatchJobs_staging',jobKey,job):set(exactCheck('WizzDispatchJobs_staging',jobKey,job),{status:'cancelled',completedAt:at,merchantResponseOperationId:operationId}));
-  }else ops.push({ConditionCheck:{TableName:'WizzDispatchJobs_staging',Key:jobKey,ConditionExpression:'attribute_not_exists(orderId)'}});
+   ops.push(accepting?exactCheck(tables.dispatchJobs,jobKey,job):set(exactCheck(tables.dispatchJobs,jobKey,job),{status:'cancelled',completedAt:at,merchantResponseOperationId:operationId}));
+  }else ops.push({ConditionCheck:{TableName:tables.dispatchJobs,Key:jobKey,ConditionExpression:'attribute_not_exists(orderId)'}});
 
-  if(mode==='AUTO_ACCEPT'){
+  if(manual){
+   if(b.isActive!==true||b.platformSuspended===true||b.ordersBlocked===true||!['approved','active'].includes(b.status)||b.onboardingSchemaVersion&&!b.onboardingComplete)return fail('MERCHANT_RESPONSE_UNAVAILABLE');
+   Object.assign(fields,acceptanceFields(o,preparationMinutes,at),{confirmedAt:at});
+  }else if(mode==='AUTO_ACCEPT'){
    const policy=o.merchantResponsePolicy,minutes=policy.defaultPreparationMinutes;
    const serving=b.acceptingOrders===true||b.orderPauseId&&Date.parse(b.ordersPausedUntil)>now()&&Date.parse(o.createdAt)<=Date.parse(b.lastStatusUpdate);
    if(policy.autoAccept!==true||b.orderReceptionSettings?.autoAccept!==true||!serving||b.isActive!==true||b.platformSuspended===true||b.ordersBlocked===true||!['approved','active'].includes(b.status)||b.onboardingSchemaVersion&&!b.onboardingComplete||!Number.isSafeInteger(minutes)||minutes<5||minutes>120)return fail('MERCHANT_AUTO_ACCEPT_UNAVAILABLE');
@@ -91,14 +107,25 @@ export function createMerchantPendingResponse(options:{db:Pick<DynamoDBDocumentC
     // order fields remain fenced by the transaction below.
     const release=await prepareCodRelease(db,{...o,holdId:null,holdAmount:0,holdStatus:'NOT_REQUIRED'},
       {allocation:{driverWalletHold:fromWholeIqd(0),platformGoodsDiscountFunding:funding,...(deliveryFunded?{platformDeliveryPromotionFunding:snapshot.deliveryFunding.allocation.platformShare}:{})}},at,operationId,true,options.enableDeliveryFunding===true,deliveryFunded?snapshot.deliveryFunding:undefined,options.enableFullCash===true);
-    for(const op of release.operations){if(op.Put?.TableName==='staging-LedgerEntries')op.Put.Item.category='MERCHANT_PENDING_PROMOTION_RELEASED';}
-    ops.push(...release.operations,{Put:{TableName:T.holds,Item:{orderId,sk:'FINANCIAL_OUTCOME',kind:'MERCHANT_PENDING_CANCEL_JOURNAL',financialSchemaVersion:fullCash?4:deliveryFunded?3:2,...(fullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),...(deliveryFunded?{deliveryFunding:snapshot.deliveryFunding}:{}),action:'MERCHANT_RESPONSE_'+mode,outcome:'CANCELLED',operationId,branchId:actor.businessId,actorKind:actor.kind,actorId:actor.subjectId,receipt:{success:true,kind:'MERCHANT_PENDING_CANCELLED',orderId,operationId,status},journalLines:release.journalLines,createdAt:at,reason:fields.cancelReason},ConditionExpression:'attribute_not_exists(orderId)'}});
+    for(const op of release.operations){if(op.Put?.TableName===tables.ledger)op.Put.Item.category='MERCHANT_PENDING_PROMOTION_RELEASED';}
+    ops.push(...release.operations,{Put:{TableName:tables.holds,Item:{orderId,sk:'FINANCIAL_OUTCOME',kind:'MERCHANT_PENDING_CANCEL_JOURNAL',financialSchemaVersion:fullCash?4:deliveryFunded?3:2,...(fullCash?{settlementModel:'FULL_CASH_AT_DELIVERY_V1'}:{}),...(deliveryFunded?{deliveryFunding:snapshot.deliveryFunding}:{}),action:'MERCHANT_RESPONSE_'+mode,outcome:'CANCELLED',operationId,branchId:actor.businessId,actorKind:actor.kind,actorId:actor.subjectId,receipt:{success:true,kind:'MERCHANT_PENDING_CANCELLED',orderId,operationId,status},journalLines:release.journalLines,createdAt:at,reason:fields.cancelReason},ConditionExpression:'attribute_not_exists(orderId)'}});
     fields.financialOutcome=operationId;fields.walletFinancialStatus='CANCELLED';
    }else if(!['cash','cod'].includes(String(o.paymentMethod).toLowerCase()))return fail('MERCHANT_RESPONSE_FINANCIAL_REVIEW_REQUIRED');
   }
-  ops.push(set(exactCheck(T.orders,key,o),fields),eventDone(status),{Put:{TableName:T.audit,Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+operationId,logId:operationId,action:'MERCHANT_RESPONSE_'+mode,actorId:actor.subjectId,actorKind:actor.kind,businessId:actor.businessId,orderId,createdAt:at},ConditionExpression:'attribute_not_exists(sk)'}});
   if(!equal(actor,await authenticate()))return fail('MERCHANT_RESPONSE_UNAUTHORIZED');
+  const orderUpdate=set(exactCheck(tables.orders,key,o),fields);
+  if(manual){
+   const commitAt=now();
+   if(commitAt>=deadline)return fail('MERCHANT_RESPONSE_EXPIRED');
+   orderUpdate.Update.ExpressionAttributeNames['#manualDeadline']='merchantAcceptanceDeadlineAt';
+   orderUpdate.Update.ExpressionAttributeValues[':manualDecisionAt']=new Date(commitAt).toISOString();
+   orderUpdate.Update.ConditionExpression+=' AND #manualDeadline>:manualDecisionAt';
+  }
+  ops.push(orderUpdate,eventDone(status),{Put:{TableName:tables.audit,Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+operationId,logId:operationId,action:'MERCHANT_RESPONSE_'+mode,actorId:actor.subjectId,actorKind:actor.kind,businessId:actor.businessId,orderId,createdAt:at},ConditionExpression:'attribute_not_exists(sk)'}});
   await db.send(new TransactWriteCommand({TransactItems:ops as any,ClientRequestToken:quoteHash(ops).slice(0,36)}));return {status,replayed:false};
  }
- return {run};
+ return {
+  run,
+  accept:(orderId:string,preparationMinutes:number)=>run(orderId,'MANUAL_ACCEPT',undefined,preparationMinutes),
+ };
 }

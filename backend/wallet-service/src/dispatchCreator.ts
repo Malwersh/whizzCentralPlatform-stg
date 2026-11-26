@@ -3,14 +3,21 @@ import {unmarshall} from '@aws-sdk/util-dynamodb';
 import {createStagingDispatchCycleStore} from './dispatchCycleStore';
 import {strongGet,FinancialRow as Row} from './driverFinancialTransaction';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
+import {checkoutTables} from './checkoutTables';
+import {isFinancialOrderProduction} from './walletBindings';
 /** Initial search only. Stable stream identity + minimal job input let replay
  * recover an invocation failure without recapturing mutable order/policy fields.
  * The existing cycle store supplies strong authorization/lifecycle write fences.
  */
 export function createStagingDispatchCreator(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;invokeStart:(input:{orderId:string;dispatchJobId:string;cycleId:string})=>Promise<void>}) {
  const store=createStagingDispatchCycleStore(options);
+ const tables=checkoutTables();
+ const account=isFinancialOrderProduction(process.env)?'746727375268':'699561669180';
+ const streamPrefix='arn:aws:dynamodb:us-east-1:'+account+':table/'+tables.orders+'/stream/';
  return {async process(record:Row){
-  if(!record||record.eventSource!=='aws:dynamodb'||typeof record.eventSourceARN!=='string'||!/^arn:aws:dynamodb:us-east-1:699561669180:table\/WizzOrders\/stream\/[A-Za-z0-9_.:-]+$/.test(record.eventSourceARN))throw Error('INVALID_DISPATCH_STREAM_SOURCE');
+  if(!record||record.eventSource!=='aws:dynamodb'||typeof record.eventSourceARN!=='string'||
+      !record.eventSourceARN.startsWith(streamPrefix)||
+      !/^[A-Za-z0-9_.:-]+$/.test(record.eventSourceARN.slice(streamPrefix.length)))throw Error('INVALID_DISPATCH_STREAM_SOURCE');
   if(record.eventName!=='MODIFY')return {skipped:true,reason:'NOT_MODIFY'};
   const d=record.dynamodb;if(!d?.NewImage||!d.OldImage||typeof record.eventID!=='string'||!record.eventID||record.eventID.length>1024||typeof d.SequenceNumber!=='string'||!/^\d{1,100}$/.test(d.SequenceNumber))throw Error('INVALID_DISPATCH_STREAM_RECORD');
   const next=unmarshall(d.NewImage),prior=unmarshall(d.OldImage),keys=unmarshall(d.Keys??{});
@@ -26,7 +33,7 @@ export function createStagingDispatchCreator(options:{db:Pick<DynamoDBDocumentCl
   const token=quoteHash({source:record.eventSourceARN,eventId:record.eventID,sequence:d.SequenceNumber,orderId});
   const requestId='DC:'+token,dispatchJobId='DISPATCH:'+token;
   const receipt=await store.create({requestId,job:{orderId,SK:'METADATA',dispatchJobId,restaurantId:branchId,status:'searching',currentWaveNumber:0}});
-  const job=await strongGet(options.db,'WizzDispatchJobs_staging',{orderId,SK:'METADATA'});
+  const job=await strongGet(options.db,tables.dispatchJobs,{orderId,SK:'METADATA'});
   if(job?.dispatchJobId!==dispatchJobId||job.dispatchCycle?.id!==requestId)throw Error('DISPATCH_CREATION_SUPERSEDED');
   await options.invokeStart({orderId,dispatchJobId,cycleId:requestId});
   return {...receipt,startInvoked:true};

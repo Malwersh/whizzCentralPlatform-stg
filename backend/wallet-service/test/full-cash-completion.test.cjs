@@ -65,3 +65,127 @@ test('photo delivery reaches final database transport through rollout guard with
  assert.equal(transported,1);
  assert.deepEqual([...f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'}).deliveryProofIds],['photo1']);
 });
+
+test('production settlement posts and reads merchant accrual using only isolated tables', async t => {
+  const f = fixture();
+  const { financialDispatchTables } = require('../dist/walletBindings');
+  const { checkoutTables } = require('../dist/checkoutTables');
+  const { quoteHash } = require('../dist/deliveryQuoteRecord');
+  const { createFinanceRollout } = require('../dist/financeRollout');
+  const { readMerchantAccrualEvidence, preserveMerchantSettlementEvidence } = require('../dist/merchantSettlementPreview');
+  const template = require('../../../infrastructure/production/order-financial-runtime.template.json');
+  const config = { schemaVersion: 1, accountId: '746727375268', region: 'us-east-1', scopes: [] };
+  const env = {
+    ...Object.fromEntries(Object.entries(template.Resources.Function.Properties.Environment.Variables)
+      .filter(([, value]) => typeof value === 'string')),
+    ENVIRONMENT: 'production', STAGE: 'production', AWS_REGION: 'us-east-1',
+    FINANCE_GENERAL_RELEASE_MODE: 'REQUIRED',
+    FINANCE_ROLLOUT_CONFIG: JSON.stringify(config), FINANCE_ROLLOUT_SHA256: quoteHash(config),
+  };
+  const original = process.env;
+  process.env = env;
+  t.after(() => { process.env = original; });
+
+  const tables = financialDispatchTables(env);
+  const oldTables = financialDispatchTables({});
+  const bindings = new Map(Object.keys(tables).map(role => [tables[role], oldTables[role]]));
+  const platform = checkoutTables(env).platform;
+  bindings.set(platform, checkoutTables({}).platform);
+
+  const customerSubjectId = 'customer1';
+  const orderId = 'order1';
+  const branchId = 'branch1';
+  const key = { PK: 'ORDER#' + orderId, SK: 'META' };
+  const order = f.get(oldTables.orders, key);
+  order.userSub = customerSubjectId;
+  const release = 'GENERAL_PRODUCTION_FULL_CASH_V1';
+  order.financeRollout = { schemaVersion: 2, scopeId: release, version: 1,
+    digest: quoteHash({ release, version: 1, orders: [{ orderId, branchId, customerSubjectId }] }) };
+
+  const operations = [];
+  const translate = op => {
+    assert.ok(bindings.has(op.TableName), 'unexpected store ' + op.TableName);
+    operations.push(op);
+    return { ...op, TableName: bindings.get(op.TableName) };
+  };
+  const db = { send(command) {
+    const q = command.input;
+    if (!q.TransactItems) return f.db.send(new command.constructor(translate(q)));
+    const TransactItems = q.TransactItems.map(item => {
+      const [[kind, op]] = Object.entries(item);
+      return { [kind]: translate(op) };
+    });
+    return f.db.send(new command.constructor({ ...q, TransactItems }));
+  } };
+
+  const guarded = createFinanceRollout({ db, env, completion: true });
+  await guarded.order(orderId, 'DRAIN');
+  const { GetCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');
+  await assert.rejects(guarded.db.send(new GetCommand({ TableName: platform,
+    Key: { pk: 'MERCHANT_ACCRUAL#other-branch', sk: 'HEAD' } })), /OUT_OF_SCOPE/);
+  await assert.rejects(guarded.db.send(new TransactWriteCommand({ TransactItems: [
+    { Put: { TableName: platform,
+      Item: { pk: 'FULL_CASH_JOURNAL#order1', sk: 'META', kind: 'FULL_CASH_ACCOUNTING_JOURNAL',
+        orderId, branchId: 'other-branch' } } },
+  ] })), /OUT_OF_SCOPE/);
+
+  const { createProductionDriverTrip } = require('../dist/productionDriverTrip');
+  const readOrder = async () => {
+    const row = f.get(oldTables.orders, key);
+    return { status: row.status, financialAssignment: { offerId: row.financialAcceptance.offerId,
+      attempt: row.assignmentAttemptCounter } };
+  };
+  const trip = createProductionDriverTrip({ db, now: () => f.time, readOrder });
+  const driver = { driverId: 'driver1', subjectId: 'driver1' };
+  order.status = order.orderStatus = 'assigned';
+  await assert.rejects(trip('pickup', orderId, {}, driver, async () => driver), /ACTIVE_ASSIGNMENT_CHANGED/);
+  const foreign = { driverId: 'driver2', subjectId: 'driver2' };
+  await assert.rejects(trip('start-heading', orderId, {}, foreign, async () => foreign), /ORDER_NOT_FOUND/);
+  for (const [action,status,timeField] of [
+    ['start-heading','heading_to_store','startHeadingToStoreAt'], ['arrive-store','arrived_at_store','arrivedAtStoreAt'],
+    ['pickup','picked_up','pickedUpAt'], ['start-heading-to-customer','heading_to_customer','startHeadingToCustomerAt'],
+    ['arrive-customer','arrived_at_customer','arrivedAtCustomerAt'],
+  ]) {
+    assert.equal((await trip(action, orderId, {}, driver, async () => driver)).status, status);
+    const timestamp = f.get(oldTables.orders,key)[timeField];
+    assert.equal(timestamp, new Date(f.time).toISOString());
+    f.time += 1000;
+    assert.equal((await trip(action, orderId, {}, driver, async () => driver)).status, status);
+    assert.equal(f.get(oldTables.orders,key)[timeField], timestamp);
+  }
+  await assert.rejects(trip('deliver', orderId, {cashCollected:true,cashAmount:1}, driver, async () => driver),
+    /COD_CASH_CONFIRMATION_MISMATCH/);
+  const receipt = await trip('deliver', orderId, {cashCollected:true,cashAmount:11950}, driver, async () => driver);
+  assert.equal(receipt.success, true);
+  assert.equal(f.get(oldTables.orders, key).status, 'delivered');
+  const evidence = await readMerchantAccrualEvidence(db, branchId, orderId);
+  assert.equal(evidence.payable.amount, 7875);
+  assert.equal(evidence.accountingJournal.status, 'POSTED');
+  assert.equal(evidence.accountingJournal.debit.minorAmount, evidence.accountingJournal.credit.minorAmount);
+  assert.equal(f.get(oldTables.live, { driverId: 'driver1' }).currentOrderId, null);
+  assert.ok(operations.some(op => op.TableName === platform && op.Item?.kind === 'MERCHANT_ACCRUAL_INDEX_ENTRY'));
+  assert.ok(operations.some(op => op.TableName === tables.lifecycle && op.Item?.kind === 'COD_COMPLETION_OUTBOX'));
+  assert.ok(operations.every(op => op.TableName.startsWith('wizz-production-')));
+  assert.equal((await trip('deliver', orderId, {cashCollected:true,cashAmount:11950}, driver, async () => driver)).replayed, true);
+  const delivered = f.get(oldTables.orders, key);
+  const { ORDER_PII, financialRecord } = require('../../account-deletion/customer-cleanup');
+  const archive = financialRecord(delivered, 'order', {
+    requestId: 'deletion-request', financialYears: 7, policyVersion: 1,
+  }, new Date(f.time).toISOString());
+  assert.doesNotMatch(JSON.stringify(archive.data), /customerPoint|latitude|longitude/);
+  for (const field of ORDER_PII) delete delivered[field];
+  assert.deepEqual((await readMerchantAccrualEvidence(db, branchId, orderId)).accrual, evidence.accrual);
+  const { financialSnapshot, financialAcceptance } = delivered;
+  delete delivered.financialSnapshot;
+  delete delivered.financialAcceptance;
+  delivered.codFinancialEvidence = archive.data.codFinancialEvidence;
+  await assert.rejects(readMerchantAccrualEvidence(db, branchId, orderId), /MERCHANT_ACCRUAL_PROOF_REQUIRED/);
+  Object.assign(delivered, { financialSnapshot, financialAcceptance });
+  await preserveMerchantSettlementEvidence(db, branchId, orderId);
+  const redacted = f.get(oldTables.orders, key);
+  delete redacted.financialSnapshot;
+  delete redacted.financialAcceptance;
+  assert.deepEqual((await readMerchantAccrualEvidence(db, branchId, orderId)).accrual, evidence.accrual);
+
+
+});

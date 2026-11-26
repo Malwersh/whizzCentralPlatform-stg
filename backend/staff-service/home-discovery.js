@@ -38,7 +38,7 @@ async function offerFacts(ctx,scope){
  }
  return {...empty,merchantIds:[...ids],allMerchants:all,expiresAt:new Date(expires).toISOString()};
 }
-async function facts(ctx,scope){const [catalog,stats,offers]=await Promise.all([read(ctx,KEY),read(ctx,STATS),offerFacts(ctx,scope)]);return {offers,catalog:catalog?{cuisines:catalog.cuisines,brands:catalog.brands,profiles:catalog.profiles}:{cuisines:[],brands:[],profiles:{}},stats:stats&&Date.parse(stats.expiresAt)>Date.now()?{asOf:stats.asOf,expiresAt:stats.expiresAt,basis:stats.basis,counts:stats.counts}:null};}
+async function facts(ctx,scope){const [catalog,stats,offers]=await Promise.all([read(ctx,KEY),read(ctx,STATS),offerFacts(ctx,scope)]);return {offers,catalog:catalog?{cuisines:catalog.cuisines,brands:catalog.brands,profiles:catalog.profiles}:{cuisines:[],brands:[],profiles:{}},stats:stats&&Date.parse(stats.expiresAt)>(scope?.now??Date.now())?{asOf:stats.asOf,expiresAt:stats.expiresAt,basis:stats.basis,counts:stats.counts}:null};}
 async function route(ctx,actor,method,input){
  if(actor.scope?.allRegions!==true||!allowed(actor,'promotions.read'))throw fail('Global promotions permission required.',403);
  const current=await read(ctx,KEY)||{...KEY,version:0,cuisines:[],brands:[],profiles:{}};
@@ -53,10 +53,10 @@ async function route(ctx,actor,method,input){
  for(const nav of [layout?.draftNavigation,layout?.published?.navigation,...(layout?.history||[]).map(h=>h.navigation)])require('./home-navigation').references(nav,data);
  const interfaces=(await read(ctx,{pk:'CUSTOMER_INTERFACES',sk:'CURRENT'}));
  for(const t of [...(interfaces?.draft||[]),...(interfaces?.published?.templates||[]),...(interfaces?.history||[]).flatMap(h=>h.templates||[])]){if(t.target?.cuisineIds?.some(id=>!data.cuisines.some(x=>x.id===id))||t.target?.brandIds?.some(id=>!data.brands.some(x=>x.id===id)))throw fail('Classification used by interface template.');}
- for(const branch of Object.keys(data.profiles)){const m=(await ctx.db.send(new GetCommand({TableName:'WhizzMerchants_Businesses',Key:{businessId:branch},ConsistentRead:true}))).Item;if(!m||m.isDeleted||m.deletedAt)throw fail('Unknown merchant.');const activityId=require('./business-activity').resolve(m,types);const profile=data.profiles[branch];for(const classification of [...new Set([...profile.cuisineIds,...Object.values(profile.productCuisineIds||{}).flat(),...Object.values(profile.categoryCuisineIds||{}).flat()])]){const row=data.cuisines.find(c=>c.id===classification);if(row.activityIds?.length&&!row.activityIds.includes(activityId))throw fail('Classification does not support this branch activity.');}if(profile.brandId){const brand=data.brands.find(r=>r.id===profile.brandId);if(brand.activityIds?.length&&!brand.activityIds.includes(activityId))throw fail('Brand does not support this branch activity.');}for(const categoryId of data.profiles[branch].priceCategoryIds){const category=(await ctx.db.send(new GetCommand({TableName:'WhizzMerchants_Categories',Key:{categoryId},ConsistentRead:true}))).Item;if(!category||category.businessId&&category.businessId!==branch||category.isActive===false||category.is_active===false)throw fail('Invalid price category ownership.');}}
+ for(const branch of Object.keys(data.profiles)){const m=(await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.merchants??'WhizzMerchants_Businesses',Key:{businessId:branch},ConsistentRead:true}))).Item;if(!m||m.isDeleted||m.deletedAt||(ctx.selectableMerchant&&!ctx.selectableMerchant(m)))throw fail('Unknown merchant.');const activityId=require('./business-activity').resolve(m,types);const profile=data.profiles[branch];for(const classification of [...new Set([...profile.cuisineIds,...Object.values(profile.productCuisineIds||{}).flat(),...Object.values(profile.categoryCuisineIds||{}).flat()])]){const row=data.cuisines.find(c=>c.id===classification);if(row.activityIds?.length&&!row.activityIds.includes(activityId))throw fail('Classification does not support this branch activity.');}if(profile.brandId){const brand=data.brands.find(r=>r.id===profile.brandId);if(brand.activityIds?.length&&!brand.activityIds.includes(activityId))throw fail('Brand does not support this branch activity.');}for(const categoryId of data.profiles[branch].priceCategoryIds){const category=(await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.categories??'WhizzMerchants_Categories',Key:{categoryId},ConsistentRead:true}))).Item;if(!category||category.businessId&&category.businessId!==branch||category.isActive===false||category.is_active===false)throw fail('Invalid price category ownership.');}}
  for(const [branch,p]of Object.entries(data.profiles)){
-  const selected=Object.keys(p.productCuisineIds||{});if(selected.length){const owned=new Set();let cursor;for(let page=0;page<10;page++){const result=await ctx.db.send(new QueryCommand({TableName:'WhizzMerchants_Products',IndexName:'BusinessIdIndex',KeyConditionExpression:'businessId=:b',ExpressionAttributeValues:{':b':branch},Limit:100,ExclusiveStartKey:cursor}));for(const row of result.Items||[])if(row.businessId===branch&&!row.isDeleted&&!row.deletedAt)owned.add(row.productId);cursor=result.LastEvaluatedKey;if(!cursor)break;if(page===9)throw fail('Branch catalog capacity exceeded.',413);}if(selected.some(id=>!owned.has(id)))throw fail('Product does not belong to this branch.');}
-  for(const categoryId of Object.keys(p.categoryCuisineIds||{})){const row=(await ctx.db.send(new GetCommand({TableName:'WhizzMerchants_Categories',Key:{categoryId},ConsistentRead:true}))).Item;if(!row||row.isDeleted||row.deletedAt||(row.businessId||row.business_id)&&(row.businessId||row.business_id)!==branch)throw fail('Menu category does not belong to this branch.');}
+  const selected=Object.keys(p.productCuisineIds||{});if(selected.length){const owned=new Set();let cursor;for(let page=0;page<10;page++){const result=await ctx.db.send(new QueryCommand({TableName:ctx.homeTables?.products??'WhizzMerchants_Products',IndexName:'BusinessIdIndex',KeyConditionExpression:'businessId=:b',ExpressionAttributeValues:{':b':branch},Limit:100,ExclusiveStartKey:cursor}));for(const row of result.Items||[])if(row.businessId===branch&&!row.isDeleted&&!row.deletedAt)owned.add(row.productId);cursor=result.LastEvaluatedKey;if(!cursor)break;if(page===9)throw fail('Branch catalog capacity exceeded.',413);}if(selected.some(id=>!owned.has(id)))throw fail('Product does not belong to this branch.');}
+  for(const categoryId of Object.keys(p.categoryCuisineIds||{})){const row=(await ctx.db.send(new GetCommand({TableName:ctx.homeTables?.categories??'WhizzMerchants_Categories',Key:{categoryId},ConsistentRead:true}))).Item;if(!row||row.isDeleted||row.deletedAt||(row.businessId||row.business_id)&&(row.businessId||row.business_id)!==branch)throw fail('Menu category does not belong to this branch.');}
  }
 
  const layoutGuard={ConditionCheck:{TableName:ctx.table,Key:{pk:'HOME_LAYOUT',sk:'CURRENT'},ConditionExpression:layout?'#v=:v':'attribute_not_exists(pk)',...(layout?{ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':layout.version}}:{})}};
@@ -84,16 +84,30 @@ function aggregateProducts(rows,now){
   }result[branch]=out;
  }return result;
 }
-async function rebuild(ctx,{now=Date.now(),maxPages=200}={}){
+async function rebuild(ctx,{now=Date.now(),maxPages=200,ordersTable='WizzOrders',branchOnly=false}={}){
  const before=await read(ctx,STATS),rows=[];let cursor,complete=false;
  for(let n=0;n<maxPages;n++){
-  const page=await ctx.db.send(new ScanCommand({TableName:'WizzOrders',ConsistentRead:true,Limit:500,ExclusiveStartKey:cursor,ProjectionExpression:'PK,SK,orderId,businessId,branchId,restaurantId,storeId,merchantId,#s,orderStatus,createdAt,isTestOrder,isTest,testMode,#items',ExpressionAttributeNames:{'#s':'status','#items':'items'}}));rows.push(...(page.Items||[]));if(rows.length>100000)throw fail('Metrics rebuild capacity exceeded.',503);cursor=page.LastEvaluatedKey;if(!cursor){complete=true;break;}
+  const page=await ctx.db.send(new ScanCommand({TableName:ordersTable,ConsistentRead:true,Limit:500,ExclusiveStartKey:cursor,ProjectionExpression:'PK,SK,orderId,businessId,branchId,restaurantId,storeId,merchantId,#s,orderStatus,createdAt,isTestOrder,isTest,testMode'+(branchOnly?'':',#items'),ExpressionAttributeNames:{'#s':'status',...(branchOnly?{}:{'#items':'items'})}}));for(const row of page.Items||[]){
+   const items=Array.isArray(row.items)?row.items.filter(Boolean).map(item=>({
+    itemId:item.productId||item.product_id||item.dish_id||item.itemId,quantity:item.quantity,
+   })):undefined;
+   rows.push({...row,items});
+  }
+  if(rows.length>100000)throw fail('Metrics rebuild capacity exceeded.',503);cursor=page.LastEvaluatedKey;if(!cursor){complete=true;break;}
  }
  if(!complete)throw fail('Incomplete metrics rebuild.',503);
  const next={...STATS,version:(before?.version||0)+1,asOf:new Date(now).toISOString(),expiresAt:new Date(now+2*3600000).toISOString(),basis:'COMPLETED_STATUS_BY_ORDER_CREATION_DATE_EXCLUDING_FLAGGED_TESTS',counts:aggregate(rows,now)};
- const productCounts=aggregateProducts(rows,now);
- for(const [branch,counts] of Object.entries(productCounts)){const item={pk:'HOME_DISCOVERY',sk:'PRODUCTS#'+branch,asOf:next.asOf,expiresAt:next.expiresAt,counts};if(Buffer.byteLength(JSON.stringify(item))>350000)throw fail('Branch metrics capacity exceeded.',503);await ctx.db.send(new TransactWriteCommand({TransactItems:[{Put:{TableName:ctx.table,Item:item}}]}));}
+ const productCounts=branchOnly?{}:aggregateProducts(rows,now);
+ const productSnapshots=Object.entries(productCounts).map(([branch,counts])=>({
+  pk:'HOME_DISCOVERY',sk:'PRODUCTS#'+branch,asOf:next.asOf,expiresAt:next.expiresAt,counts,
+ }));
+ if(productSnapshots.some(item=>Buffer.byteLength(JSON.stringify(item))>350000))throw fail('Branch metrics capacity exceeded.',503);
  if(Buffer.byteLength(JSON.stringify(next))>350000)throw fail('Metrics snapshot capacity exceeded.',503);
- await ctx.db.send(new TransactWriteCommand({TransactItems:[{Put:{TableName:ctx.table,Item:next,ConditionExpression:before?'#v=:v':'attribute_not_exists(pk)',...(before?{ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':before.version}}:{})}}]}));return {rebuilt:true,branches:Object.keys(next.counts).length,asOf:next.asOf};
+ for(const item of productSnapshots){
+  await ctx.db.send(new TransactWriteCommand({TransactItems:[{Put:{TableName:ctx.table,Item:item,
+   ConditionExpression:'attribute_not_exists(asOf) OR asOf < :asOf',ExpressionAttributeValues:{':asOf':item.asOf},
+  }}]}));
+ }
+ await ctx.db.send(new TransactWriteCommand({TransactItems:[{Put:{TableName:ctx.table,Item:next,ConditionExpression:before?'#v=:v':'attribute_not_exists(pk)',...(before?{ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':before.version}}:{})}}]}));return {rebuilt:true,branches:Object.keys(next.counts).length,asOf:next.asOf,productBranches:Object.keys(productCounts).length};
 }
 module.exports={KEY,STATS,validateCatalog,route,facts,aggregate,aggregateProducts,rebuild};

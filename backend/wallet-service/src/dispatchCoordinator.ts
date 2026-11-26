@@ -1,3 +1,4 @@
+import {financialDispatchTables} from './walletBindings';
 const {dispatchWaveSK,dispatchOfferSK}=require('../../src/utils/dispatch-cycle-keys');
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {validateDispatchCycle,decideDispatchTransition,DispatchProgress} from './dispatchCycle';
@@ -7,7 +8,6 @@ import {resolveFinancialOffer} from './financialOfferVersion';
 import {createStagingDriverOfferOrderReader,financialSnapshotFromOrderRead} from './driverOfferOrderReader';
 import {unavailableDispatchSearch} from './financialSearch';
 const {isFinancialOrder,isTerminalOrderStatus,FINANCIAL_FIELDS}=require('../../order-service/legacy-order-policy');
-const T={jobs:'WizzDispatchJobs_staging',orders:'WizzOrders',offers:'WaveOffers_staging',branches:'WhizzMerchants_Businesses',deletions:'staging-AccountDeletion'};
 const fail=(code='DISPATCH_TRANSITION_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
 const iso=(ms:number)=>new Date(ms).toISOString();
 const ms=(value:any)=>{
@@ -21,6 +21,7 @@ const ms=(value:any)=>{
  */
 export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean}) {
  const {db}=options,now=options.now??Date.now;
+ const T=financialDispatchTables();
  async function bound(orderId:string,assignmentId:string){
   if(![orderId,assignmentId].every(quoteEntityIdValid))return fail();
   const jobKey={orderId,SK:'METADATA'},orderKey={PK:'ORDER#'+orderId,SK:'META'};
@@ -37,11 +38,11 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
   let releaseGuard:Row|null=null;
   if(cycle.engine==='FINANCIAL'){const verified=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash}).read({orderId,branchId:job.restaurantId});if(!equal(order.financialSnapshot,financialSnapshotFromOrderRead(verified)))return fail();releaseGuard=verified.releaseCondition;}
   else if(![order.status,order.orderStatus].some(s=>s==='ready_for_pickup')||[order.status,order.orderStatus].some(s=>s!==undefined&&s!=='ready_for_pickup'))return fail();
-  const branchKey={businessId:job.restaurantId},branch=await strongGet(db,T.branches,branchKey);
+  const branchKey={businessId:job.restaurantId},branch=await strongGet(db,T.branch,branchKey);
   if(!branch||branch.status!=='approved'||branch.isActive===false||branch.ordersBlocked===true||branch.platformSuspended===true||!quoteEntityIdValid(branch.ownerId)||branch.deletionRequestId!=null||branch.deletedAt!=null||branch.isDeleted===true)return fail();
   const orderFields=[...new Set([...Object.keys(order),...FINANCIAL_FIELDS,'driverId','assignedDriverId','deletionRequestId','deletionStatus','deletedAt','isDeleted','cancellationRequestId','cancellationStatus','returnCaseId','returnStatus'])];
-  const guards:Row[]=[exactCheck(T.orders,orderKey,order,orderFields),exactCheck(T.branches,branchKey,branch,[...new Set([...Object.keys(branch),'ownerId','deletedAt','deletionRequestId','isDeleted','isActive','ordersBlocked','platformSuspended'])]),
-   ...['BUSINESS_LIFECYCLE#MERCHANT#'+job.restaurantId,'ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId].map(pk=>({ConditionCheck:{TableName:T.deletions,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}))];
+  const guards:Row[]=[exactCheck(T.orders,orderKey,order,orderFields),exactCheck(T.branch,branchKey,branch,[...new Set([...Object.keys(branch),'ownerId','deletedAt','deletionRequestId','isDeleted','isActive','ordersBlocked','platformSuspended'])]),
+   ...['BUSINESS_LIFECYCLE#MERCHANT#'+job.restaurantId,'ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId].map(pk=>({ConditionCheck:{TableName:T.deletion,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}))];
   if(releaseGuard)guards.push(releaseGuard);
   return {stop:null,job,cycle,order,jobKey,orderKey,guards};
  }
@@ -75,7 +76,7 @@ export function createStagingDispatchCoordinator(options:{db:Pick<DynamoDBDocume
    const pending=financial?'financial_pending':'pending',declined=financial?'financial_declined':'rejected',expired=financial?'financial_expired':'expired',winner=financial?'financial_accepted':'accepted';
    if(![pending,declined,expired,winner].includes(offer.responseStatus))return fail();
    if(offer.responseStatus===winner){
-    const release=c.order.financialRelease,archive=financial&&release?await strongGet(db,'staging-Holds',{orderId:c.cycle.orderId,sk:'ASSIGNMENT_RELEASE#'+release.attempt}):null;
+    const release=c.order.financialRelease,archive=financial&&release?await strongGet(db,T.holds,{orderId:c.cycle.orderId,sk:'ASSIGNMENT_RELEASE#'+release.attempt}):null;
     if(archive?.kind==='COD_ASSIGNMENT_RELEASE'&&archive.outcome==='UNASSIGNED'&&archive.driverId===driverId&&archive.offerId===resolveFinancialOffer(offer.financialOffer,options.enableDeliveryFunding,options.enableFullCash).offerId&&archive.operationId===release.operationId&&archive.offerId===release.offerId&&archive.attempt===release.attempt){/* bound() already fences this exact release through the verified order reader. */}
     else accepted=true;
    }

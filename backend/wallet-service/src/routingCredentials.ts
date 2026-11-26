@@ -2,6 +2,7 @@ import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-sec
 import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { RoutingError } from './roadRouting';
 import { createStagingDeliveryRouting } from './regionCoverage';
+import { isFinancialOrderProduction } from './walletBindings';
 
 const unavailable = (): never => { throw new RoutingError('ROUTING_NOT_CONFIGURED'); };
 
@@ -45,7 +46,7 @@ export function createMapboxSecretReader(options: {
   };
 }
 
-/** Staging composition; the application frontend is never a runtime credential source. */
+/** The runtime uses the current credential from its own AWS account. */
 export function createStagingSecretDeliveryRouting(options: {
   db: Pick<DynamoDBDocumentClient, 'send'>;
   secrets: Pick<SecretsManagerClient, 'send'>;
@@ -59,7 +60,8 @@ export function createStagingSecretDeliveryRouting(options: {
 }) {
   if (options.credentialTimeoutMs >= options.timeoutMs) return unavailable();
   const getAccessToken = createMapboxSecretReader({ secrets: options.secrets, secretArn: options.secretArn,
-    accountId: '699561669180', region: 'us-east-1', timeoutMs: options.credentialTimeoutMs });
+    accountId: isFinancialOrderProduction(process.env) ? '746727375268' : '699561669180',
+    region: 'us-east-1', timeoutMs: options.credentialTimeoutMs });
   return createStagingDeliveryRouting({ db: options.db, getAccessToken, profile: options.profile,
     ttlSeconds: options.ttlSeconds, timeoutMs: options.timeoutMs, fetchImpl: options.fetchImpl, now: options.now });
 }

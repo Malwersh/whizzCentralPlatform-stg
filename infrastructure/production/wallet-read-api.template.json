@@ -1,0 +1,1412 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Production authenticated wallet API with scoped administrative topup review.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Approved production account only."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "Api": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "wizz-production-wallet-read",
+        "EndpointConfiguration": {
+          "Types": [
+            "REGIONAL"
+          ]
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Authorizer": {
+      "Type": "AWS::ApiGateway::Authorizer",
+      "Properties": {
+        "Name": "ProductionWalletIdentity",
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "Type": "REQUEST",
+        "IdentitySource": "method.request.header.Authorization",
+        "AuthorizerResultTtlInSeconds": 0,
+        "AuthorizerUri": {
+          "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-authorizer/invocations"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AuthorizePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-authorizer",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/authorizers/${Authorizer}"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWallet": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Fn::GetAtt": [
+            "Api",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "wallet"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletTopup": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWallet"
+        },
+        "PathPart": "topup"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletTopupTopupid": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletTopup"
+        },
+        "PathPart": "{topupId}"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletTopupTopupidApprove": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletTopupTopupid"
+        },
+        "PathPart": "approve"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ApproveTopup": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletTopupTopupidApprove"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ApproveTopupOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletTopupTopupidApprove"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ApproveTopupPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/POST/wallet/topup/*/approve"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletTopupTopupidReject": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletTopupTopupid"
+        },
+        "PathPart": "reject"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "RejectTopup": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletTopupTopupidReject"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "RejectTopupOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletTopupTopupidReject"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "RejectTopupPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/POST/wallet/topup/*/reject"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletFunding": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWallet"
+        },
+        "PathPart": "funding"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletFundingAdmin": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletFunding"
+        },
+        "PathPart": "admin"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletFundingAdminConfig": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletFundingAdmin"
+        },
+        "PathPart": "config"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "SaveFundingConfig": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminConfig"
+        },
+        "HttpMethod": "PUT",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "SaveFundingConfigOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminConfig"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'PUT,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "SaveFundingConfigPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/PUT/wallet/funding/admin/config"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletFundingAdminReceipt": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletFundingAdmin"
+        },
+        "PathPart": "receipt"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminReceipt": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminReceipt"
+        },
+        "HttpMethod": "POST",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminReceiptOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminReceipt"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminReceiptPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/POST/wallet/funding/admin/receipt"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletTopupRequests": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletTopup"
+        },
+        "PathPart": "requests"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "TopupRequests": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletTopupRequests"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "TopupRequestsOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletTopupRequests"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "TopupRequestsPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/wallet/topup/requests"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletFundingConfig": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletFunding"
+        },
+        "PathPart": "config"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "FundingConfig": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingConfig"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "FundingConfigOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingConfig"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "FundingConfigPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/wallet/funding/config"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletMe": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWallet"
+        },
+        "PathPart": "me"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletMeTransactions": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletMe"
+        },
+        "PathPart": "transactions"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Transactions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletMeTransactions"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "TransactionsOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletMeTransactions"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "TransactionsPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/wallet/me/transactions"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletFundingAdminWallets": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletFundingAdmin"
+        },
+        "PathPart": "wallets"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminWallets": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminWallets"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminWalletsOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminWallets"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminWalletsPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/wallet/funding/admin/wallets"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletFundingAdminTransactions": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletFundingAdmin"
+        },
+        "PathPart": "transactions"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminTransactions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminTransactions"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminTransactionsOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminTransactions"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "AdminTransactionsPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/wallet/funding/admin/transactions"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletFundingAdminTransferSettings": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletFundingAdmin"
+        },
+        "PathPart": "transfer-settings"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "TransferSettings": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminTransferSettings"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "TransferSettingsOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletFundingAdminTransferSettings"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "TransferSettingsPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/wallet/funding/admin/transfer-settings"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "DriverWallet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletMe"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "DriverWalletOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletMe"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "DriverWalletPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/wallet/me"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "ResourceWalletMeNotifications": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ParentId": {
+          "Ref": "ResourceWalletMe"
+        },
+        "PathPart": "notifications"
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "DriverNotifications": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletMeNotifications"
+        },
+        "HttpMethod": "GET",
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "Authorizer"
+        },
+        "Integration": {
+          "Type": "AWS_PROXY",
+          "IntegrationHttpMethod": "POST",
+          "Uri": {
+            "Fn::Sub": "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:wizz-production-wallet-service/invocations"
+          }
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "DriverNotificationsOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResourceId": {
+          "Ref": "ResourceWalletMeNotifications"
+        },
+        "HttpMethod": "OPTIONS",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{\"statusCode\":200}"
+          },
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+                "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+              }
+            }
+          ]
+        },
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true,
+              "method.response.header.Access-Control-Allow-Headers": true
+            }
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "DriverNotificationsPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "wizz-production-wallet-service",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        },
+        "SourceArn": {
+          "Fn::Sub": "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/production/GET/wallet/me/notifications"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "GatewayClientError": {
+      "Type": "AWS::ApiGateway::GatewayResponse",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResponseType": "DEFAULT_4XX",
+        "ResponseParameters": {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+          "gatewayresponse.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "GatewayServerError": {
+      "Type": "AWS::ApiGateway::GatewayResponse",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResponseType": "DEFAULT_5XX",
+        "ResponseParameters": {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+          "gatewayresponse.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "GatewayUnauthorized": {
+      "Type": "AWS::ApiGateway::GatewayResponse",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResponseType": "UNAUTHORIZED",
+        "ResponseParameters": {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+          "gatewayresponse.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "GatewayDenied": {
+      "Type": "AWS::ApiGateway::GatewayResponse",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "ResponseType": "ACCESS_DENIED",
+        "ResponseParameters": {
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'https://production.dy2cvcjvju3cf.amplifyapp.com'",
+          "gatewayresponse.header.Access-Control-Allow-Headers": "'Authorization,Content-Type,Cache-Control,Pragma'"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "DeploymentTransferSettingsRead": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "DependsOn": [
+        "ApproveTopup",
+        "RejectTopup",
+        "SaveFundingConfig",
+        "AdminReceipt",
+        "TopupRequests",
+        "FundingConfig",
+        "Transactions",
+        "AdminWallets",
+        "AdminTransactions",
+        "TransferSettings",
+        "ApproveTopupOptions",
+        "RejectTopupOptions",
+        "SaveFundingConfigOptions",
+        "AdminReceiptOptions",
+        "TopupRequestsOptions",
+        "FundingConfigOptions",
+        "TransactionsOptions",
+        "AdminWalletsOptions",
+        "AdminTransactionsOptions",
+        "TransferSettingsOptions"
+      ],
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "DeploymentDriverWalletAndNotifications": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "DependsOn": [
+        "ApproveTopup",
+        "RejectTopup",
+        "SaveFundingConfig",
+        "AdminReceipt",
+        "TopupRequests",
+        "FundingConfig",
+        "Transactions",
+        "AdminWallets",
+        "AdminTransactions",
+        "TransferSettings",
+        "DriverWallet",
+        "DriverNotifications",
+        "ApproveTopupOptions",
+        "RejectTopupOptions",
+        "SaveFundingConfigOptions",
+        "AdminReceiptOptions",
+        "TopupRequestsOptions",
+        "FundingConfigOptions",
+        "TransactionsOptions",
+        "AdminWalletsOptions",
+        "AdminTransactionsOptions",
+        "TransferSettingsOptions",
+        "DriverWalletOptions",
+        "DriverNotificationsOptions",
+        "DriverWalletPermission",
+        "DriverNotificationsPermission"
+      ],
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        }
+      },
+      "Condition": "IsProductionAccount"
+    },
+    "Stage": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "Api"
+        },
+        "DeploymentId": {
+          "Ref": "DeploymentDriverWalletAndNotifications"
+        },
+        "StageName": "production",
+        "MethodSettings": [
+          {
+            "ResourcePath": "/*",
+            "HttpMethod": "*",
+            "DataTraceEnabled": false,
+            "ThrottlingBurstLimit": 10,
+            "ThrottlingRateLimit": 5
+          }
+        ]
+      },
+      "Condition": "IsProductionAccount"
+    }
+  },
+  "Outputs": {
+    "ApiUrl": {
+      "Value": {
+        "Fn::Sub": "https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/production"
+      }
+    }
+  }
+}

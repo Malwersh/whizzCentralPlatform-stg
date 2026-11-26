@@ -21,6 +21,16 @@ async function management({db,sub,identity},event,input){
  const common=[...guards(b),...(sub!==b.ownerId?[fence('ACCOUNT_LIFECYCLE#MERCHANT#'+sub)]:[])];
  if(event.httpMethod==='GET'){if(sub!==b.ownerId)sec.fail('OWNER_REQUIRED');return {devices:(await rows(db,pk,'DEVICE#')).map(publicDevice)};}
  if(event.httpMethod!=='POST')sec.fail('INVALID_DEVICE_REQUEST',400);
+ if(['create_pairing','claim_pairing','set_pin'].includes(input.action)){
+  const at=Date.now();
+  if(b.orderIntakeTransferExpiresAt!==undefined&&
+     !(Number.isSafeInteger(b.orderIntakeTransferExpiresAt)&&b.orderIntakeTransferExpiresAt<=at)){
+   sec.fail('OWNERSHIP_TRANSFER_PENDING',409);
+  }
+  const condition=common[2].ConditionCheck;
+  condition.ConditionExpression+=' AND (attribute_not_exists(orderIntakeTransferExpiresAt) OR orderIntakeTransferExpiresAt<=:accessChangeAt)';
+  condition.ExpressionAttributeValues[':accessChangeAt']=at;
+ }
  if(Object.keys(input).some(k=>!['action','businessId','name','deviceId','baseVersion','pairingCode','pin','deviceToken'].includes(k)))sec.fail('INVALID_DEVICE_REQUEST',400);
  const fresh=()=>{const t=identity?.claims?.auth_time;if(!Number.isFinite(t)||t>now()+60||now()-t>300)sec.fail('RECENT_SIGN_IN_REQUIRED',401);};
  if(input.action==='create_pairing'){

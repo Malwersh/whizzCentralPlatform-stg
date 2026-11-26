@@ -19,8 +19,8 @@ function isApproved(request,profile,proof,decision){
   decision.profileVersion===profile.version&&decision.proofVersion===proof.version&&Number.isSafeInteger(decision.version)&&decision.version>0;
 }
 
-async function settlementStatus(db,request,now,Get=GetCommand){
- const get=async Key=>(await db.send(new Get({TableName:PLATFORM,Key,ConsistentRead:true}))).Item;
+async function settlementStatus(db,request,now,Get=GetCommand,table=PLATFORM,includeEvidenceVersion=false){
+ const get=async Key=>(await db.send(new Get({TableName:table,Key,ConsistentRead:true}))).Item;
  const [profile,proof,decision]=await Promise.all([
   get({pk:'PERSON#'+request.recipientId,sk:'PROFILE'}),get(destinationKey(request)),get(decisionKey(request)),
  ]);
@@ -29,16 +29,20 @@ async function settlementStatus(db,request,now,Get=GetCommand){
  return {
   status,
   maskedPhone:typeof profile.phoneNumber==='string'?'••••'+profile.phoneNumber.slice(-4):null,
+  ...(includeEvidenceVersion?{profileVersion:profile.version,proofVersion:proof.version}:{}),
  };
 }
 
-function createSettlementDecision({Get=GetCommand,Write=TransactWriteCommand}={}){
- return async function settlementDecision(ctx,actor,request,reason,now){
-  const get=async Key=>(await ctx.db.send(new Get({TableName:PLATFORM,Key,ConsistentRead:true}))).Item;
+function createSettlementDecision({Get=GetCommand,Write=TransactWriteCommand,table=PLATFORM}={}){
+ return async function settlementDecision(ctx,actor,request,reason,now,expected){
+  const get=async Key=>(await ctx.db.send(new Get({TableName:table,Key,ConsistentRead:true}))).Item;
   const profileKey={pk:'PERSON#'+request.recipientId,sk:'PROFILE'};
   const key=decisionKey(request),proofKey=destinationKey(request);
   const [profile,proof,previous]=await Promise.all([get(profileKey),get(proofKey),get(key)]);
   if(!isVerified(request,profile,proof,now))fail('TRANSFER_DESTINATION_VERIFICATION_REQUIRED');
+  if(expected&&(expected.proofVersion!==proof.version||expected.profileVersion!==profile.version)){
+   fail('VERSION_OR_STATE_CONFLICT');
+  }
   if(isApproved(request,profile,proof,previous))return {status:'APPROVED',decidedAt:previous.decidedAt};
   if(previous&&(!Number.isSafeInteger(previous.version)||previous.version<1||previous.version>=Number.MAX_SAFE_INTEGER)){
    fail('TRANSFER_SETTLEMENT_EVIDENCE_INVALID');
@@ -52,23 +56,23 @@ function createSettlementDecision({Get=GetCommand,Write=TransactWriteCommand}={}
    await ctx.db.send(new Write({TransactItems:[
     ctx.guard(actor),
     {ConditionCheck:{
-     TableName:PLATFORM,Key:{pk:key.pk,sk:'OWNERSHIP_TRANSFER'},
+     TableName:table,Key:{pk:key.pk,sk:'OWNERSHIP_TRANSFER'},
      ConditionExpression:'requestId=:request AND digest=:digest AND recipientId=:recipient AND #v=:version AND #s=:review AND expiresAt>:now',
      ExpressionAttributeNames:{'#v':'version','#s':'status'},
      ExpressionAttributeValues:{':request':request.requestId,':digest':request.digest,':recipient':request.recipientId,':version':request.version,':review':'AWAITING_REVIEW',':now':now},
     }},
     {ConditionCheck:{
-     TableName:PLATFORM,Key:profileKey,ConditionExpression:'subjectId=:recipient AND #v=:version',
+     TableName:table,Key:profileKey,ConditionExpression:'subjectId=:recipient AND #v=:version',
      ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':recipient':request.recipientId,':version':profile.version},
     }},
     {ConditionCheck:{
-     TableName:PLATFORM,Key:proofKey,
+     TableName:table,Key:proofKey,
      ConditionExpression:'recipientId=:recipient AND scopeDigest=:digest AND profileVersion=:profile AND #v=:version AND #s=:verified AND expiresAt>:now',
      ExpressionAttributeNames:{'#v':'version','#s':'status'},
      ExpressionAttributeValues:{':recipient':request.recipientId,':digest':request.digest,':profile':profile.version,':version':proof.version,':verified':'VERIFIED',':now':now},
     }},
     {Put:{
-     TableName:PLATFORM,Item:record,ConditionExpression:previous?'#v=:version':'attribute_not_exists(pk)',
+     TableName:table,Item:record,ConditionExpression:previous?'#v=:version':'attribute_not_exists(pk)',
      ...(previous?{ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':version':previous.version}}:{}),
     }},
     ctx.audit(actor.employeeId,'MERCHANT_OWNERSHIP_SETTLEMENT_APPROVED',null,

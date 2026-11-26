@@ -3,12 +3,13 @@ const {GetCommand,QueryCommand}=require('@aws-sdk/lib-dynamodb');
 const TABLE='staging-MerchantPlatform';
 function image(value){return typeof value==='string'&&/^https:\/\//.test(value)?value:'';}
 async function menu(ctx,id){
+ const table=ctx.promotionMenuTable||TABLE;
  const key={pk:'BRANCH#'+id,sk:'MENU_VERSION#ACTIVE'};
- const pointer=(await ctx.db.send(new GetCommand({TableName:TABLE,Key:key,ConsistentRead:true}))).Item;
+ const pointer=(await ctx.db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;
  if(!pointer?.publishedVersion)return [];
  const products=[];let cursor;
- for(let n=0;n<10;n++){const r=await ctx.db.send(new QueryCommand({TableName:TABLE,KeyConditionExpression:'pk=:p AND begins_with(sk,:s)',ExpressionAttributeValues:{':p':key.pk,':s':'MENU_VERSION#'+pointer.publishedVersion+'#PRODUCT#'},Limit:100,ExclusiveStartKey:cursor,ConsistentRead:true}));products.push(...(r.Items||[]).map(x=>x.product).filter(p=>p?.businessId===id&&!p.isDeleted&&!p.deletedAt&&p.isAvailable!==false&&p.publishedCategory?.isActive!==false&&p.publishedCategory?.is_active!==false));cursor=r.LastEvaluatedKey;if(!cursor)break;if(n===9)return [];}
- const after=(await ctx.db.send(new GetCommand({TableName:TABLE,Key:key,ConsistentRead:true}))).Item;
+ for(let n=0;n<10;n++){const r=await ctx.db.send(new QueryCommand({TableName:table,KeyConditionExpression:'pk=:p AND begins_with(sk,:s)',ExpressionAttributeValues:{':p':key.pk,':s':'MENU_VERSION#'+pointer.publishedVersion+'#PRODUCT#'},Limit:100,ExclusiveStartKey:cursor,ConsistentRead:true}));products.push(...(r.Items||[]).map(x=>x.product).filter(p=>p?.businessId===id&&!p.isDeleted&&!p.deletedAt&&p.isAvailable!==false&&p.publishedCategory?.isActive!==false&&p.publishedCategory?.is_active!==false));cursor=r.LastEvaluatedKey;if(!cursor)break;if(n===9)return [];}
+ const after=(await ctx.db.send(new GetCommand({TableName:table,Key:key,ConsistentRead:true}))).Item;
  return after?.publishedVersion===pointer.publishedVersion?products:[];
 }
 async function enrich(ctx,merchant,offer,settings){

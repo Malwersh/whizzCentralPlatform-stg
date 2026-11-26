@@ -1,3 +1,5 @@
+import {financialDispatchTables,isFinancialOrderProduction} from './walletBindings';
+import {dispatchRegionTables} from './checkoutTables';
 const workRegions=require('../../shared/driver-work-region-311');
 const vehicleRegistry=require('../../shared/driver-vehicles-308');
 import {buildFullCashOffer} from './fullCashOffer';
@@ -12,9 +14,7 @@ import { quoteEntityIdValid } from './deliveryQuoteRecord';
 
 type Row = Record<string, any>;
 const copy = <T>(v: T): T => JSON.parse(JSON.stringify(v));
-const tables = { assignment: 'WizzDispatchJobs_staging', driver: 'WhizzDrivers_staging',
-  position: 'WizzDriverLiveState_staging', policy: 'staging-PlatformStaff', branch: 'WhizzMerchants_Businesses', deletion: 'staging-AccountDeletion' };
-const fields = {
+const offerReferenceFields = {
   assignment: ['orderId','SK','dispatchJobId','restaurantId','status','currentWaveNumber','expiresAt','assignedDriverId','driverId','deletionRequestId','financialExcludedDriverIds','financialRedispatch','dispatchCycle','dispatchTransition'],
   driver: ['isActive','driverId','cognitoSub','status','registrationStatus','vehicleType','deletionRequestId','deletedAt','isDeleted','isSuspended','isBanned','vehicleOperational','personalDocumentReview','vehiclePlate','registrationPaperUrl','drivingLicenseUrl','nationalIdUrl','work_region_id','home_region_id'],
   position: ['driverId','status','isActive','isSearching','lat','lng','locationUpdatedAt','currentOrderId','activeOrdersCount','current_work_region_id'],
@@ -59,6 +59,9 @@ export function createStagingDriverOfferContext(options: {
   now?: () => number;
 }) {
   const { db, cognito, router, positionMaxAgeSeconds, offerTtlSeconds } = options, now = options.now ?? Date.now;
+  const tables=financialDispatchTables(),production=isFinancialOrderProduction(process.env);
+  const fields={...offerReferenceFields,driver:production?[...offerReferenceFields.driver,'phoneNumber','isVerified']:offerReferenceFields.driver};
+  if(production&&process.env.DRIVER_USER_POOL_ID!=='us-east-1_5sUT54eCB')return fail('DRIVER_OFFER_REFERENCE_UNAVAILABLE');
   if (![positionMaxAgeSeconds, offerTtlSeconds].every(n => Number.isSafeInteger(n) && n >= 1 && n <= 900)) return fail('INVALID_DRIVER_OFFER_CONTEXT');
   if(options.offerDeadline!==undefined&&!Number.isFinite(date(options.offerDeadline)))return fail('INVALID_DRIVER_OFFER_CONTEXT');
   const orderReader = createStagingDriverOfferOrderReader({ db,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash });
@@ -68,11 +71,16 @@ export function createStagingDriverOfferContext(options: {
       ProjectionExpression: Object.keys(names).join(','), ExpressionAttributeNames: names }))).Item ?? {}); }
     catch { return fail('DRIVER_OFFER_REFERENCE_UNAVAILABLE'); }
   }
-  async function identity(subjectId: string) {
+  async function identity(subjectId: string, phone?:string) {
     try {
-      const user = await cognito.send(new AdminGetUserCommand({ UserPoolId: 'us-east-1_RGTqUXF5C', Username: subjectId }));
+      if(production&&(typeof phone!=='string'||!/^\+9647[0-9]{9}$/.test(phone)))return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');
+      const user = await cognito.send(new AdminGetUserCommand({
+        UserPoolId:production ? process.env.DRIVER_USER_POOL_ID : 'us-east-1_RGTqUXF5C',
+        Username:production ? phone : subjectId,
+      }));
       const attrs = user.UserAttributes ?? [];
-      if (user.Enabled !== true || user.Username !== subjectId || attrs.filter(v => v.Name === 'sub').length !== 1 ||
+      if (user.Enabled !== true || (!production&&user.Username!==subjectId) ||
+          (production&&(!attrs.some(a=>a.Name==='phone_number'&&a.Value===phone)||!attrs.some(a=>a.Name==='phone_number_verified'&&a.Value==='true'))) || attrs.filter(v => v.Name === 'sub').length !== 1 ||
           attrs.find(v => v.Name === 'sub')?.Value !== subjectId || user.UserStatus !== 'CONFIRMED') return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');
     } catch { return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE'); }
   }
@@ -83,8 +91,8 @@ export function createStagingDriverOfferContext(options: {
     if (![orderId,branchId,driverId,offerId].every(quoteEntityIdValid) || !Number.isSafeInteger(waveNumber) || waveNumber < 1 || waveNumber > 1000) return fail('INVALID_DRIVER_OFFER_CONTEXT');
     const aKey = {orderId,SK:'METADATA'}, dKey = {driverId}, pKey = {pk:'OPERATIONAL_SETTINGS#DELIVERY_PRICING',sk:'CURRENT'}, bKey = {businessId:branchId};
     const [order,assignment,driver,position,policy,branch] = await Promise.all([
-      orderReader.read({orderId,branchId}), get(tables.assignment,aKey,fields.assignment), get(tables.driver,dKey,fields.driver),
-      get(tables.position,dKey,fields.position), get(tables.policy,pKey,fields.policy), get(tables.branch,bKey,fields.branch)
+      orderReader.read({orderId,branchId}), get(tables.jobs,aKey,fields.assignment), get(tables.driver,dKey,fields.driver),
+      get(tables.live,dKey,fields.position), get(tables.staff,pKey,fields.policy), get(tables.branch,bKey,fields.branch)
     ]);
     const time = now();
     if (!Number.isSafeInteger(time)) return fail('DRIVER_OFFER_REFERENCE_UNAVAILABLE');
@@ -96,12 +104,12 @@ export function createStagingDriverOfferContext(options: {
     const blocked = ['BANNED','SUSPENDED','REJECTED','PENDING_REVIEW','PENDING_PROFILE','PENDING_DOCS'];
     const statuses = [driver.status,driver.registrationStatus].filter(v => v !== undefined).map(v => String(v).toUpperCase());
     const subjectId = driver.cognitoSub ?? driverId;
-    if ((driver.isActive !== undefined && driver.isActive !== true) || driver.driverId !== driverId || !quoteEntityIdValid(subjectId) || !quoteEntityIdValid(driver.vehicleType) ||
+    if ((production&&driver.isVerified!==true) || (driver.isActive !== undefined && driver.isActive !== true) || driver.driverId !== driverId || !quoteEntityIdValid(subjectId) || !quoteEntityIdValid(driver.vehicleType) ||
         !statuses.some(v => ['APPROVED','VERIFIED'].includes(v)) || statuses.some(v => blocked.includes(v)) ||
         driver.deletionRequestId != null || driver.deletedAt != null || (driver.isDeleted !== undefined && driver.isDeleted !== false) ||
         (driver.isSuspended !== undefined && driver.isSuspended !== false) || (driver.isBanned !== undefined && driver.isBanned !== false)) return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');
     if(vehicleRegistry.enforce(driver)&&!vehicleRegistry.eligibility(driver,time).eligible)return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');
-    const regionAccess=workRegions.enforced()?await workRegions.create({db,GetCommand}).check(driver,position.current_work_region_id,order.snapshot.zoneId,waveNumber===1?0:1,{lat:position.lat,lng:position.lng}):null;
+    const regionAccess=workRegions.enforced()?await workRegions.create({db,GetCommand,tables:dispatchRegionTables()}).check(driver,position.current_work_region_id,order.snapshot.zoneId,waveNumber===1?0:1,{lat:position.lat,lng:position.lng}):null;
     if(regionAccess&&!regionAccess.allowed)return fail('DRIVER_OFFER_DRIVER_UNAVAILABLE');
     const observed = date(position.locationUpdatedAt);
     if (position.driverId !== driverId || position.status !== 'available' || position.isActive !== true || position.isSearching !== true ||
@@ -123,10 +131,10 @@ export function createStagingDriverOfferContext(options: {
       'BUSINESS_LIFECYCLE#MERCHANT#'+branchId,'ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId])];
     const deleted = await Promise.all(locks.map(pk => get(tables.deletion,{pk,sk:'META'},['pk','sk'])));
     if (deleted.some(v => Object.keys(v).length)) return fail('DRIVER_OFFER_REFERENCE_UNAVAILABLE');
-    await identity(subjectId);
-    return copy({request,order,assignment,driver,position,policy,bundle,subjectId,observed,regionGuards:regionAccess?.guards??[],guards:{assignment:fence(tables.assignment,aKey,assignment,fields.assignment),
-      driver:fence(tables.driver,dKey,driver,fields.driver),position:fence(tables.position,dKey,position,fields.position),
-      policy:fence(tables.policy,pKey,policy,fields.policy),branch:fence(tables.branch,bKey,branch,fields.branch),
+    await identity(subjectId,driver.phoneNumber);
+    return copy({request,order,assignment,driver,position,policy,bundle,subjectId,observed,regionGuards:regionAccess?.guards??[],guards:{assignment:fence(tables.jobs,aKey,assignment,fields.assignment),
+      driver:fence(tables.driver,dKey,driver,fields.driver),position:fence(tables.live,dKey,position,fields.position),
+      policy:fence(tables.staff,pKey,policy,fields.policy),branch:fence(tables.branch,bKey,branch,fields.branch),
       deletions:locks.map(pk => ({ConditionCheck:{TableName:tables.deletion,Key:{pk,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}}))}});
   }
   return Object.freeze({
@@ -138,7 +146,7 @@ export function createStagingDriverOfferContext(options: {
       const [pickupRoute,deliveryRoute] = await Promise.all([
         router.getRoute(point,order.snapshot.branchPoint),router.getRoute(order.snapshot.branchPoint,order.snapshot.customerPoint)
       ]);
-      await identity(subjectId);
+      await identity(subjectId,driver.phoneNumber);
       const offer = buildDriverOffer({schemaVersion:1,offerId:request.offerId,
         assignment:{id:assignment.dispatchJobId,version:request.waveNumber,expiresAt:new Date(Math.min(date(assignment.expiresAt),date(options.offerDeadline??assignment.expiresAt))).toISOString()},
         driver:{id:request.driverId,subjectId,vehicleType:driver.vehicleType,positionVersion:observed,point,

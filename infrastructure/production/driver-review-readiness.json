@@ -1,0 +1,47 @@
+{
+  "accountId": "746727375268",
+  "date": "2026-11-16",
+  "status": "DEPLOYED_VERIFIED_READ_ONLY",
+  "adminUserPoolId": "us-east-1_njh6vaNWj",
+  "adminClientId": "7924qedsr5m1j1bvc3c7va8egk",
+  "sourceEvidence": "driver-review/source-evidence.json",
+  "tests": {
+    "productionAdapter": 15,
+    "existingVehicleRegression": 24,
+    "infrastructure": 3,
+    "total": 42,
+    "packagedDependencySmoke": "PASS_INVALID_TOKEN_401"
+  },
+  "reviewActions": [
+    "INITIALIZE",
+    "REVIEW_DOCUMENT",
+    "REVIEW",
+    "REVIEW_ACCOUNT"
+  ],
+  "controls": [
+    "Verified production admin access token only",
+    "Live enabled confirmed admin and software MFA",
+    "Active staff with regional role permission and session revocation fence",
+    "Private own-driver document existence check before approval",
+    "Atomic driver profile, staff permission, lifecycle, region and audit guards",
+    "No wallet or pricing operations"
+  ],
+  "remaining": [
+    "Owner acceptance of production driver directory",
+    "Production legal/region reference configuration and driver registration",
+    "Review decision UI and authenticated approval lifecycle before write activation"
+  ],
+  "testDataCopied": false,
+  "liveApprovalPerformed": false,
+  "deploymentEvidence": "docs/production-driver-review-deployment-2026-11-16.json",
+  "documentView": {
+    "route": "GET /staff/drivers/{driverId}/documents/view",
+    "expiresInSeconds": 60,
+    "versionPinned": true,
+    "auditBeforeSigning": true,
+    "arbitraryObjectUrlAllowed": false
+  },
+  "directoryRoute": "GET /staff/drivers",
+  "reviewWritesEnabled": false,
+  "directoryEvidence": "docs/production-driver-directory-deployment-2026-11-16.json"
+}

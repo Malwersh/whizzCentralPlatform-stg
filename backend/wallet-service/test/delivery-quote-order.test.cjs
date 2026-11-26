@@ -4,6 +4,82 @@ const {fixture,at,m}=require('./helpers/delivery-quote-fixture.cjs');
 const {createStagingQuoteOrder}=require('../dist/deliveryQuoteOrder');
 const reject=(p,code)=>assert.rejects(p,e=>e.code===code&&e.message===code);
 const requestId='abcdefab-1234-4123-8123-123456789abc';
+
+test('production quotes and full-cash confirmation commit and replay using production stores',async()=>{
+ const {checkoutTables}=require('../dist/checkoutTables');
+ const {createFinanceRollout}=require('../dist/financeRollout');
+ const {quoteHash}=require('../dist/deliveryQuoteRecord');
+ const {createStagingDeliveryQuotes}=require('../dist/deliveryQuote');
+ const {createStagingDeliveryQuoteRateLimiter}=require('../dist/deliveryQuoteRateLimit');
+ const {createStagingCommercialSource}=require('../dist/orderCommercialSource');
+ const {GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
+ const manifest=require('../../../infrastructure/production/order-financial-runtime.template.json');
+ const values=manifest.Resources.Function.Properties.Environment.Variables;
+ const config={schemaVersion:1,accountId:'746727375268',region:'us-east-1',scopes:[]};
+ const previous=process.env;
+ const env={...Object.fromEntries(Object.entries(values).filter(([,v])=>typeof v==='string')),
+  AWS_REGION:'us-east-1',FINANCE_GENERAL_RELEASE_MODE:'REQUIRED',
+  FINANCE_ROLLOUT_CONFIG:JSON.stringify(config),FINANCE_ROLLOUT_SHA256:quoteHash(config)};
+ const staging=checkoutTables({});
+ try {
+  process.env=env;
+  const tables=checkoutTables(), f=fixture();
+  const source=require('./helpers/commercial-source-fixture.cjs').fixture('org1','owner1');
+  const records=new Map(Object.entries(tables).filter(([role])=>!['branches','regions'].includes(role)).flatMap(([role,table])=>
+   [...source.records].filter(([key])=>key.startsWith(staging[role]+'|'))
+    .map(([key,row])=>[table+key.slice(staging[role].length),row])));
+  Object.assign(f.branch,{commercialAgreementId:'a1',commercialAgreementVersion:1});
+  f.extraLookup=(table,key)=>records.get(table+'|'+JSON.stringify(key))??
+   ([tables.policy,tables.holds].includes(table)&&key?.pk!=='OPERATIONAL_SETTINGS#DELIVERY_PRICING'?null:undefined);
+  f.extraPut=put=>{
+   if(put.TableName!==tables.holds)return false;
+   const item=put.Item;
+   records.set(tables.holds+'|'+JSON.stringify({orderId:item.orderId,sk:item.sk}),structuredClone(item));
+   return true;
+  };
+  const rollout=createFinanceRollout({db:f.db,checkout:true,now:()=>f.time});
+  assert.throws(()=>createFinanceRollout({db:f.db,checkout:true,env:{...env,DELIVERY_QUOTES_TABLE:'wizz-production-Other'}}),
+   /FINANCE_ROLLOUT_NOT_CONFIGURED/);
+  await assert.rejects(rollout.db.send(new GetCommand({TableName:staging.addresses,Key:{addressId:'a1'}})),/FINANCE_ROLLOUT_OUT_OF_SCOPE/);
+  await assert.rejects(rollout.db.send(new TransactWriteCommand({TransactItems:[{Put:{TableName:tables.customers,Item:{userId:'u1'}}}]})),/FINANCE_ROLLOUT_OUT_OF_SCOPE/);
+  const service=createStagingDeliveryQuotes({db:rollout.db,createRouter:f.createRouter,authenticateCustomer:f.auth,now:()=>f.time,
+   beforeCalculate:async(c,selection)=>{
+    rollout.admit(selection.branchId,c.subjectId);
+    await createStagingDeliveryQuoteRateLimiter({db:f.db,maxPerMinute:5,now:()=>f.time}).reserve(c);
+   }});
+  const request={branchId:'b1',addressId:'a1',requestId:'12345678-1234-4123-8123-123456789abc'};
+  const quote=await service.create(request);
+  assert.equal(quote.customerDeliveryFee.minorAmount,3100000);
+  const saved=f.saved.get('CUSTOMER#u1|QUOTE#'+quote.quoteId);
+  assert.ok(saved.fences.every(fence=>fence.TableName.startsWith('wizz-production-')));
+  const content={userId:'u1',storeId:'b1',deliveryAddress:{id:'a1',latitude:31.925,longitude:44.457}};
+  const consumer=createStagingQuoteOrder({db:rollout.db,authenticateCustomer:f.auth,enableFullCash:true,now:()=>f.time});
+  const confirmation={quoteId:quote.quoteId,branchId:'b1',addressId:'a1',requestId,requestContent:content};
+  const proposal=await consumer.prepare(confirmation);
+  const pricing=await createStagingCommercialSource({db:rollout.db,enableFullCash:true,now:()=>f.time}).prepare({
+   orderId:proposal.orderId,branchId:'b1',items:[{productId:'p1',quantity:1}],tip:m('0'),discount:null,
+   quote:{createdAt:proposal.createdAt,expiresAt:proposal.expiresAt,deliveryFeeMinor:proposal.deliveryFeeMinor,
+    origin:proposal.origin,destination:proposal.destination,destinationRegionId:proposal.destinationRegionId}
+  });
+  const {allocation}=pricing.financialSnapshot.order;
+  const order={PK:'ORDER#'+proposal.orderId,SK:'META',orderId:proposal.orderId,userId:'u1',userSub:'sub1',storeId:'b1',
+   merchantId:'org1',isGuestOrder:false,currency:'IQD',deliveryType:'delivery',deliveryAddress:{lat:31.925,lng:44.457},
+   restaurantLat:31.925,restaurantLng:44.457,financialSnapshot:pricing.financialSnapshot,
+   pricing:{goodsSubtotal:allocation.goodsGross.minorAmount,serviceFee:allocation.serviceFee.minorAmount,
+    tip:0,discount:0,packagingFee:0,tax:0,rounding:0,deliveryFee:proposal.deliveryFeeMinor,total:pricing.calculation.customerTotal.minorAmount}};
+  await proposal.commit(order,[...pricing.operations,pricing.branchCondition]);
+  const [stored]=f.orders.values();
+  assert.equal(stored.financeRollout.scopeId,'GENERAL_PRODUCTION_FULL_CASH_V1');
+  assert.equal((await consumer.prepare(confirmation)).replayedOrder.orderId,stored.orderId);
+  assert.equal(f.orders.size,1);
+  assert.equal(f.providerCalls,1);
+  const committed=f.transactions.find(tx=>tx.TransactItems.some(op=>op.Put?.TableName===tables.orders));
+  assert.ok(committed.TransactItems.some(op=>op.Update?.TableName===tables.quotes));
+  assert.ok(committed.TransactItems.some(op=>op.Put?.TableName===tables.holds));
+  assert.ok(f.calls.every(call=>call.TableName.startsWith('wizz-production-')));
+ } finally {process.env=previous;}
+});
+
 async function setup({free=false}={}){
  const f=fixture();if(free){const r=f.policy.values.deliveryRules[0];r.base=m('0');r.perKm=m('0');}
  const quote=await f.create();

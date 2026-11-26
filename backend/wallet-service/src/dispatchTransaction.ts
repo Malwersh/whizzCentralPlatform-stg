@@ -26,7 +26,7 @@ function atomIdentity(term:string,check:Row):string|null {
  if(!equality||typeof field(equality[1])!=='string'||!Object.prototype.hasOwnProperty.call(check.ExpressionAttributeValues??{},equality[2]))return null;
  return quoteCanonical(['equal',field(equality[1]),check.ExpressionAttributeValues[equality[2]]]);
 }
-export function composeDispatchTransaction(operations:Row[],guards:Row[]):Row[] {
+export function composeDispatchTransaction(operations:Row[],guards:Row[],dispatchTables=['WizzDispatchJobs_staging','WaveOffers_staging']):Row[] {
  const result:Row[]=detach(operations);
  for(const guard of detach(guards)){
   if(!guard.ConditionCheck)throw Error('INVALID_DISPATCH_FENCE');
@@ -49,7 +49,7 @@ export function composeDispatchTransaction(operations:Row[],guards:Row[]):Row[] 
   if(!Object.keys(q.ExpressionAttributeValues).length)delete q.ExpressionAttributeValues;
   if(Buffer.byteLength(q.ConditionExpression)>3900)throw Error('DISPATCH_FENCE_TOO_LARGE');
  }
- const ids=result.map(op=>{const q=op.Put??op.Update??op.Delete??op.ConditionCheck;const key=q.Key??(['WizzDispatchJobs_staging','WaveOffers_staging'].includes(q.TableName)?{orderId:q.Item.orderId,SK:q.Item.SK}:q.Item);return q.TableName+':'+quoteCanonical(key);});
+ const ids=result.map(op=>{const q=op.Put??op.Update??op.Delete??op.ConditionCheck;const key=q.Key??(dispatchTables.includes(q.TableName)?{orderId:q.Item.orderId,SK:q.Item.SK}:q.Item);return q.TableName+':'+quoteCanonical(key);});
  if(new Set(ids).size!==ids.length||result.length>100||Buffer.byteLength(JSON.stringify(result))>3500000)throw Error('DISPATCH_TRANSACTION_TOO_LARGE');
  return result;
 }

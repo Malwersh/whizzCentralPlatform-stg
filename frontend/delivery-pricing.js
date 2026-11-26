@@ -24,10 +24,18 @@
  el('branch').onchange=()=>{if(busy){el('branch').value=selectedBranch;return;}selectedBranch=el('branch').value;el('rule-editor').hidden=true;editing=null;render();};
  el('branch-retry').onclick=()=>run(loadBranches);
  const scopes=[['GLOBAL','عام معتمد'],['GOVERNORATE','محافظة'],['CITY','مدينة'],['ZONE','منطقة'],['MERCHANT','تاجر'],['BRANCH','فرع']];
+ const crossRegionModes=[
+  ['','السياسة الحالية قبل تفعيل الجوار'],
+  ['SAME_REGION','داخل منطقة التوصيل نفسها'],
+  ['SAME_DISTRICT','المناطق المتجاورة داخل القضاء نفسه'],
+  ['SAME_GOVERNORATE','المناطق المتجاورة داخل المحافظة نفسها'],
+  ['ADJACENT_REGIONS','المناطق المتجاورة حتى عبر المحافظات'],
+ ];
+ const crossRegionLabel=mode=>crossRegionModes.find(option=>option[0]===(mode??''))?.[1];
  function summary(r,kind){
   let text=r.id+' — '+r.scope.type+' / '+(r.scope.type==='BRANCH'?branchLabel(r.scope.id):r.scope.id)+' — إصدار '+r.version+' — أولوية '+r.priority+'\nمن '+r.effectiveFrom+' إلى '+(r.effectiveTo||'دون نهاية')+'\nالأساس: '+display(r.base)+' IQD — الأدنى: '+display(r.minimum)+' — الأعلى: '+display(r.maximum)+' — التقريب: '+r.rounding;
   text+='\nتقريب المبلغ النهائي: '+(r.finalRounding?('كل '+r.finalRounding.incrementIqd+' IQD / '+r.finalRounding.mode):'غير محدد في هذا الإصدار')+'\nالمسافة الطويلة: بعد '+r.longDistance.afterMeters+' متر؛ ثابت '+display(r.longDistance.flat)+' + '+display(r.longDistance.perKm)+' IQD/كم';
-  if(kind==='delivery')text+='\nالكيلومتر: '+display(r.perKm)+' IQD — التوصيل: '+(r.coverage.enabled?'متاح':'متوقف')+' — أقصى طريق '+r.coverage.maxRoadMeters+' متر / '+r.coverage.maxDurationSeconds+' ثانية — المناطق: '+r.coverage.supportedZoneIds.join(', ')+'\nالشرائح: '+(r.tiers.map(t=>(t.upToMeters??'بلا حد')+' متر: '+display(t.fee)+' IQD').join('؛ ')||'لا توجد');
+  if(kind==='delivery')text+='\nالكيلومتر: '+display(r.perKm)+' IQD — التوصيل: '+(r.coverage.enabled?'متاح':'متوقف')+' — أقصى طريق '+r.coverage.maxRoadMeters+' متر / '+r.coverage.maxDurationSeconds+' ثانية — المناطق: '+r.coverage.supportedZoneIds.join(', ')+'\nنطاق التوصيل بين المناطق: '+crossRegionLabel(r.coverage.crossRegionMode)+'\nالشرائح: '+(r.tiers.map(t=>(t.upToMeters??'بلا حد')+' متر: '+display(t.fee)+' IQD').join('؛ ')||'لا توجد');
   else text+='\nالمركبة: '+(r.vehicleType||'جميع المركبات')+' — الاستلام: '+display(r.pickupPerKm)+' IQD/كم بعد '+r.pickupIncludedMeters+' متر — التوصيل: '+display(r.deliveryPerKm)+' IQD/كم — الدقيقة: '+display(r.perMinute)+' IQD';
   return text+'\nالبديل المصرح: '+(r.fallbackPolicyId||'لا يوجد')+'\nالذروة: '+(r.peaks.map(p=>p.id+': '+p.from+' → '+p.to+' / '+display(p.amount)+' IQD').join('؛ ')||'لا توجد');
  }
@@ -51,7 +59,7 @@
    metric('الوصول إلى المطعم',amount(r.pickupPerKm)+' / كم',Number(r.pickupPerKm?.minorAmount)===0?'التعويض معطّل':'يبدأ بعد أول '+distance(r.pickupIncludedMeters));
    metric('من المطعم إلى الزبون',amount(r.deliveryPerKm)+' / كم','حسب مسافة طريق التوصيل');
    metric('تعويض الوقت',Number(r.perMinute?.minorAmount)===0?'معطّل':amount(r.perMinute)+' / دقيقة');
-  }else{metric('كيلومتر التوصيل',amount(r.perKm)+' / كم');metric('التغطية',r.coverage.enabled?'التوصيل متاح':'التوصيل متوقف','أقصى طريق '+distance(r.coverage.maxRoadMeters));metric('شرائح المسافة',r.tiers.length?number(r.tiers.length)+' شرائح':'دون شرائح');}
+  }else{metric('كيلومتر التوصيل',amount(r.perKm)+' / كم');metric('التغطية',r.coverage.enabled?'التوصيل متاح':'التوصيل متوقف','أقصى طريق '+distance(r.coverage.maxRoadMeters)+' · '+number(r.coverage.maxDurationSeconds/60)+' دقيقة قيادة');metric('نطاق التوصيل بين المناطق',crossRegionLabel(r.coverage.crossRegionMode));metric('شرائح المسافة',r.tiers.length?number(r.tiers.length)+' شرائح':'دون شرائح');}
   card.append(metrics);
   const limits=node('div',undefined,'pricing-rule-limits');
   limits.append(node('span','الحد الأدنى: '+amount(r.minimum)),node('span','الحد الأعلى: '+amount(r.maximum)),node('span',r.finalRounding?'التقريب النهائي: كل '+number(r.finalRounding.incrementIqd)+' د.ع — '+roundLabel(r.finalRounding.mode):'التقريب النهائي غير محدد'));
@@ -103,10 +111,18 @@
   branchPicker.onchange=()=>{scopeId.value=branchPicker.value;};scopeNode.onchange=scopeControls;scopeControls();
   field(host,'rule-finalIncrement','تقريب المبلغ النهائي: عدد دنانير صحيح (اختياري للإصدارات السابقة)',r.finalRounding?.incrementIqd??'');
   field(host,'rule-finalMode','طريقة تقريب المبلغ النهائي',r.finalRounding?.mode??'HALF_AWAY_FROM_ZERO',[['HALF_AWAY_FROM_ZERO','الأقرب؛ النصف للأعلى'],['TOWARD_ZERO','حذف الكسر'],['EXACT','يجب أن يطابق الوحدة تمامًا']]);
-  if(kind==='delivery'){field(host,'rule-perKm','سعر كيلومتر التوصيل IQD',display(r.perKm));field(host,'rule-enabled','التوصيل متاح',String(r.coverage?.enabled??true),[['true','نعم'],['false','لا']]);field(host,'rule-maxMeters','أقصى مسافة طريق بالمتر',r.coverage?.maxRoadMeters);field(host,'rule-maxSeconds','أقصى وقت طريق بالثواني',r.coverage?.maxDurationSeconds);const zones=field(host,'rule-zones','مناطق التوصيل',r.coverage?.supportedZoneIds?.join(',')||'');regionPicker=new window.PricingRegionPicker(zones,r.coverage?.supportedZoneIds||[]);}
+  if(kind==='delivery'){
+   field(host,'rule-perKm','سعر كيلومتر التوصيل IQD',display(r.perKm));
+   field(host,'rule-enabled','التوصيل متاح',String(r.coverage?.enabled??true),[['true','نعم'],['false','لا']]);
+   field(host,'rule-maxMeters','أقصى مسافة طريق بالمتر',r.coverage?.maxRoadMeters);
+   field(host,'rule-maxSeconds','أقصى مدة قيادة بالثواني',r.coverage?.maxDurationSeconds);
+   field(host,'rule-crossRegionMode','نطاق التوصيل بين المناطق',r.coverage?.crossRegionMode??'',crossRegionModes);
+   const zones=field(host,'rule-zones','مناطق التوصيل',r.coverage?.supportedZoneIds?.join(',')||'');
+   regionPicker=new window.PricingRegionPicker(zones,r.coverage?.supportedZoneIds||[]);
+  }
   else for(const [id,label,value]of [['vehicle','نوع المركبة (فارغ = جميعها)',r.vehicleType],['pickupPerKm','تعويض كيلومتر الاستلام IQD',display(r.pickupPerKm)],['pickupIncludedMeters','مسافة الاستلام المشمولة بالمتر',r.pickupIncludedMeters],['deliveryPerKm','تعويض كيلومتر التوصيل IQD',display(r.deliveryPerKm)],['perMinute','تعويض الدقيقة IQD',display(r.perMinute)]])field(host,'rule-'+id,label,value);
   el('tiers').hidden=kind!=='delivery';el('tier-rows').replaceChildren();for(const t of r.tiers||[])tierRow(t);el('peak-rows').replaceChildren();for(const p of r.peaks||[])peakRow(p);el('rule-editor').hidden=false;
-  const groups=[['نطاق القاعدة وسريانها',['scope','scopeId','branch','from','to','vehicle']],['مكونات الأجرة',['base','pickupPerKm','pickupIncludedMeters','deliveryPerKm','perMinute','perKm']],['الحدود والتقريب',['minimum','maximum','rounding','finalIncrement','finalMode']],['التغطية',['enabled','maxMeters','maxSeconds','zones']],['زيادة المسافة الطويلة',['longAfter','longFlat','longKm']],['إعدادات متقدمة',['id','version','priority','fallback']]];
+  const groups=[['نطاق القاعدة وسريانها',['scope','scopeId','branch','from','to','vehicle']],['مكونات الأجرة',['base','pickupPerKm','pickupIncludedMeters','deliveryPerKm','perMinute','perKm']],['الحدود والتقريب',['minimum','maximum','rounding','finalIncrement','finalMode']],['التغطية',['enabled','maxMeters','maxSeconds','zones','crossRegionMode']],['زيادة المسافة الطويلة',['longAfter','longFlat','longKm']],['إعدادات متقدمة',['id','version','priority','fallback']]];
   for(const [title,ids]of groups){const labels=ids.map(id=>document.getElementById('rule-'+id)?.parentElement).filter(Boolean);if(!labels.length)continue;const group=node('fieldset',undefined,'pricing-editor-group');group.append(node('legend',title));if(title==='مكونات الأجرة'&&kind==='driver')group.append(node('p','الوصول إلى المطعم هو مسار السائق إلى الفرع. ضع تعويض الكيلومتر صفرًا لتعطيله؛ الإكرامية مستقلة ولا تدخل في هذه القاعدة.','pricing-rule-muted'));const grid=node('div',undefined,'fields');labels.forEach(label=>grid.append(label));group.append(grid);host.append(group);}
   const advanced=node('details',undefined,'pricing-editor-advanced');advanced.append(node('summary','إعدادات إضافية: السريان والنطاق والزيادات والمعرّفات'));
   for(const group of [...host.querySelectorAll(':scope > fieldset')]){if(!['مكونات الأجرة','الحدود والتقريب','التغطية'].includes(group.querySelector('legend').textContent))advanced.append(group);}
@@ -124,6 +140,7 @@
   if(g('finalIncrement')){const incrementIqd=n('finalIncrement');if(incrementIqd<1)throw Error('وحدة تقريب المبلغ النهائي عدد صحيح موجب بالدينار.');rule.finalRounding={incrementIqd,mode:g('finalMode')};}
   if(kind==='delivery'){Object.assign(rule,{perKm:m('perKm'),tiers:[...el('tier-rows').children].map(row=>{const a=[...row.querySelectorAll('input')].map(readField);if(a[0]&&!/^\d+$/.test(a[0]))throw Error('حد الشريحة بالمتر عدد صحيح.');return {upToMeters:a[0]?Number(a[0]):null,fee:money(a[1])};}),coverage:{enabled:g('enabled')==='true',maxRoadMeters:n('maxMeters'),maxDurationSeconds:n('maxSeconds'),supportedZoneIds:g('zones').split(',').map(s=>s.trim()).filter(Boolean)}});}
   else Object.assign(rule,{pickupPerKm:m('pickupPerKm'),pickupIncludedMeters:n('pickupIncludedMeters'),deliveryPerKm:m('deliveryPerKm'),perMinute:m('perMinute')});
+  if(kind==='delivery'&&g('crossRegionMode'))rule.coverage.crossRegionMode=g('crossRegionMode');
   const list=working[kind+'Rules'];if(editing.index===null)list.push(rule);else list[editing.index]=rule;dirty=true;invalidate();render();el('rule-editor').hidden=true;message('التعديل جاهز للمراجعة. اكتب السبب ثم اضغط «'+el('save').textContent+'» أسفل القواعد لتطبيقه.');el('edit-actions').scrollIntoView({behavior:'smooth',block:'center'});
  }catch(error){message(error.message,true);}};
  el('add-delivery').onclick=()=>edit('delivery');el('add-driver').onclick=()=>edit('driver');el('add-tier').onclick=()=>{if(!busy)tierRow();};el('add-peak').onclick=()=>{if(!busy)peakRow();};el('cancel-edit').onclick=()=>el('rule-editor').hidden=true;

@@ -1,0 +1,66 @@
+{
+  "accountId": "746727375268",
+  "tables": [
+    {
+      "role": "Wallets",
+      "productionTable": "wizz-production-Wallets",
+      "schemaReference": "staging-Wallets",
+      "dataCopied": false
+    },
+    {
+      "role": "LedgerEntries",
+      "productionTable": "wizz-production-LedgerEntries",
+      "schemaReference": "staging-LedgerEntries",
+      "dataCopied": false
+    },
+    {
+      "role": "Holds",
+      "productionTable": "wizz-production-Holds",
+      "schemaReference": "staging-Holds",
+      "dataCopied": false
+    },
+    {
+      "role": "TopupRequests",
+      "productionTable": "wizz-production-TopupRequests",
+      "schemaReference": "staging-TopupRequests",
+      "dataCopied": false
+    },
+    {
+      "role": "AuditLog",
+      "productionTable": "wizz-production-AuditLog",
+      "schemaReference": "staging-AuditLog",
+      "dataCopied": false
+    },
+    {
+      "role": "IdempotencyKeys",
+      "productionTable": "wizz-production-IdempotencyKeys",
+      "schemaReference": "staging-IdempotencyKeys",
+      "dataCopied": false
+    },
+    {
+      "role": "WalletLifecycle",
+      "productionTable": "wizz-production-WalletLifecycle",
+      "schemaReference": "staging-WalletLifecycle",
+      "dataCopied": false
+    },
+    {
+      "role": "WalletNotifications",
+      "productionTable": "wizz-production-WalletNotifications",
+      "schemaReference": "staging-WalletNotifications",
+      "dataCopied": false
+    },
+    {
+      "role": "DeliveryQuotes",
+      "productionTable": "wizz-production-DeliveryQuotes",
+      "schemaReference": "staging-DeliveryQuotes",
+      "dataCopied": false
+    },
+    {
+      "role": "Orders",
+      "productionTable": "wizz-production-Orders",
+      "schemaReference": "WizzOrders",
+      "dataCopied": false
+    }
+  ],
+  "recordsCopied": 0
+}

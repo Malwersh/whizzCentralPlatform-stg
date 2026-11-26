@@ -46,6 +46,29 @@ test('holes, multipolygons and conservative boundary handling',async()=>{
  f.base.get('zone').geometry={type:'MultiPolygon',coordinates:[polygon.coordinates]};assert.equal((await f.resolve(p)).regionId,'zone');
  assert.equal(await f.resolve({latitude:31.9,longitude:44.457}),null);
 });
+test('exact shared boundary uses only a covered preference and never assigns a single outer edge',async()=>{
+ const f=fixture(), boundary={latitude:31.925,longitude:44.5};
+ f.base.set('zone2',{...f.base.get('zone'),regionId:'zone2',geometry:{
+  type:'Polygon',coordinates:[[[44.5,31.9],[44.6,31.9],[44.6,32],[44.5,32],[44.5,31.9]]],
+ }});
+ f.derived.set('zone2',{regionId:'zone2',effective_is_active:1,version:1});
+ const boundaryCell=h3.latLngToCell(boundary.latitude,boundary.longitude,9);
+ f.index.set(boundaryCell,[{h3_cell:boundaryCell,regionId:'zone'},{h3_cell:boundaryCell,regionId:'zone2'}]);
+ assert.equal(await f.resolve(boundary),null);
+ for(const preferredRegionId of [undefined,'unrelated']){
+  await assert.rejects(f.resolve(boundary,{preferredRegionId}),e=>{
+   assert.equal(e.code,'BOUNDARY_REGION_SELECTION_REQUIRED');
+   assert.deepEqual(e.regionIds,['zone','zone2']);
+   return true;
+  });
+ }
+ for(const preferredRegionId of ['zone','zone2']){
+  assert.equal((await f.resolve(boundary,{preferredRegionId})).regionId,preferredRegionId);
+ }
+ assert.equal((await f.resolve(p,{preferredRegionId:'zone2'})).regionId,'zone');
+ f.base.get('zone2').is_active=false;
+ assert.equal(await f.resolve(boundary,{preferredRegionId:'zone'}),null);
+});
 test('inactive source or derived ancestor and absent derived reference cannot authorize',async()=>{
  for(const target of ['country','governorate','district','zone']){
   for(const kind of ['source','derived']){
@@ -66,6 +89,7 @@ test('overlapping active service leaves are rejected, duplicate index hits dedup
  const f=fixture();f.index.get(cell).push({h3_cell:cell,regionId:'zone'});assert.equal((await f.resolve(p)).regionId,'zone');
  f.base.set('zone2',{...structuredClone(f.base.get('zone')),regionId:'zone2'});f.derived.set('zone2',{regionId:'zone2',effective_is_active:1});
  f.index.get(cell).push({h3_cell:cell,regionId:'zone2'});await code(f.resolve(p),'AMBIGUOUS_COVERAGE');
+ await code(f.resolve(p,{preferredRegionId:'zone2'}),'AMBIGUOUS_COVERAGE');
 });
 test('fingerprint includes geometry, ancestry and activation; ignores map key order and names',async()=>{
  const f=fixture(),a=(await f.resolve(p)).referenceVersion;
@@ -79,6 +103,13 @@ test('invalid geometry, missing candidates and wrong partition responses are err
  }
  const f=fixture();f.base.delete('zone');await code(f.resolve(p),'REGION_REFERENCE_UNAVAILABLE');
  const g=fixture();g.index.set(cell,[{h3_cell:'foreign',regionId:'zone'}]);await code(g.resolve(p),'REGION_REFERENCE_UNAVAILABLE');
+});
+test('an index hit for a physically deleted region does not hide neighboring live coverage',async()=>{
+ const f=fixture();
+ f.index.get(cell).push({h3_cell:cell,regionId:'removed'});
+ assert.equal((await f.resolve(p)).regionId,'zone');
+ f.base.delete('zone');f.derived.delete('zone');
+ assert.equal(await f.resolve(p),null);
 });
 test('query continues an empty page, and refuses unbounded pagination',async()=>{
  const f=fixture(),send=f.db.send;let first=true;

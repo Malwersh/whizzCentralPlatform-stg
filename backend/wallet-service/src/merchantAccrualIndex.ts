@@ -1,8 +1,9 @@
 import {DynamoDBDocumentClient, QueryCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet, exactCheck, equal} from './driverFinancialTransaction';
 import {quoteEntityIdValid, quoteHash} from './deliveryQuoteRecord';
+import {checkoutTables} from './checkoutTables';
 type Row=Record<string,any>;
-export const MERCHANT_ACCRUAL_INDEX_TABLE='staging-MerchantPlatform';
+
 export const merchantAccrualPartition=(branchId:string)=>'MERCHANT_ACCRUAL#'+branchId;
 const fail=(code='SETTLEMENT_ACCRUAL_INDEX_INVALID'):never=>{throw Object.assign(Error(code),{code});};
 const iso=(v:unknown)=>typeof v==='string'&&Number.isFinite(Date.parse(v))&&new Date(v).toISOString()===v;
@@ -35,27 +36,27 @@ export function merchantAccrualRangeNodes(fromUtc:string,untilExclusiveUtc:strin
  visit(0,0,0,SPAN);if(nodes.length>54)return fail();return nodes;
 }
 export async function readMerchantAccrualRange(db:Pick<DynamoDBDocumentClient,'send'>,branchId:string,fromUtc:string,untilExclusiveUtc:string){
- if(!quoteEntityIdValid(branchId))return fail();return Promise.all(merchantAccrualRangeNodes(fromUtc,untilExclusiveUtc).map(async sk=>{const key={pk:merchantAccrualPartition(branchId),sk},row=validateMerchantAccrualIndexHead(await strongGet(db,MERCHANT_ACCRUAL_INDEX_TABLE,key),branchId,sk);return {key,row};}));
+ if(!quoteEntityIdValid(branchId))return fail();return Promise.all(merchantAccrualRangeNodes(fromUtc,untilExclusiveUtc).map(async sk=>{const key={pk:merchantAccrualPartition(branchId),sk},row=validateMerchantAccrualIndexHead(await strongGet(db,checkoutTables().platform,key),branchId,sk);return {key,row};}));
 }
-export function merchantAccrualRangeGuards(pins:{key:Row;row:Row|null}[]){return pins.map(p=>p.row?exactCheck(MERCHANT_ACCRUAL_INDEX_TABLE,p.key,p.row):{ConditionCheck:{TableName:MERCHANT_ACCRUAL_INDEX_TABLE,Key:p.key,ConditionExpression:'attribute_not_exists(pk)'}});}
+export function merchantAccrualRangeGuards(pins:{key:Row;row:Row|null}[]){return pins.map(p=>p.row?exactCheck(checkoutTables().platform,p.key,p.row):{ConditionCheck:{TableName:checkoutTables().platform,Key:p.key,ConditionExpression:'attribute_not_exists(pk)'}});}
 /** Append alongside the existing completion transaction. No wallet/ledger changes.
  * The source row and all traversal counters commit with the original outcome.
  */
 export async function prepareMerchantAccrualIndex(db:Pick<DynamoDBDocumentClient,'send'>,v:Parameters<typeof merchantAccrualIndexRow>[0],at=v.deliveredAt){
- if(!iso(at))return fail();const row=merchantAccrualIndexRow(v),n=day(v.deliveredAt);
+ if(!iso(at))return fail();const row=merchantAccrualIndexRow(v),n=day(v.deliveredAt),table=checkoutTables().platform;
  const heads=await Promise.all(Array.from({length:DEPTH+1},async(_,level)=>{
-  const key={pk:row.pk,sk:node(level,Math.floor(n/4**(DEPTH-level)))},head=validateMerchantAccrualIndexHead(await strongGet(db,MERCHANT_ACCRUAL_INDEX_TABLE,key),v.branchId,key.sk);
+  const key={pk:row.pk,sk:node(level,Math.floor(n/4**(DEPTH-level)))},head=validateMerchantAccrualIndexHead(await strongGet(db,table,key),v.branchId,key.sk);
   const next={...key,schemaVersion:1,kind:'MERCHANT_ACCRUAL_INDEX_HEAD',branchId:v.branchId,revision:(head?.revision??0)+1,updatedAt:at,retentionClass:'FINANCIAL_SETTLEMENT'};
-  const condition=head?exactCheck(MERCHANT_ACCRUAL_INDEX_TABLE,key,head).ConditionCheck:{TableName:MERCHANT_ACCRUAL_INDEX_TABLE,Key:key,ConditionExpression:'attribute_not_exists(pk)'};
+  const condition=head?exactCheck(table,key,head).ConditionCheck:{TableName:table,Key:key,ConditionExpression:'attribute_not_exists(pk)'};
   const {Key:_key,...guard}=condition;return {Put:{...guard,Item:next}};
  }));
- return [{Put:{TableName:MERCHANT_ACCRUAL_INDEX_TABLE,Item:row,ConditionExpression:'attribute_not_exists(pk)'}},...heads];
+ return [{Put:{TableName:table,Item:row,ConditionExpression:'attribute_not_exists(pk)'}},...heads];
 }
 export async function readMerchantAccrualIndexPage(db:Pick<DynamoDBDocumentClient,'send'>,v:{branchId:string;fromUtc:string;untilExclusiveUtc:string;key?:Row}){
  if(!quoteEntityIdValid(v.branchId)||!iso(v.fromUtc)||!iso(v.untilExclusiveUtc)||v.fromUtc>=v.untilExclusiveUtc)return fail();
  const pk=merchantAccrualPartition(v.branchId),validKey=(k:Row)=>k&&Object.keys(k).sort().join(',')==='pk,sk'&&k.pk===pk&&typeof k.sk==='string'&&k.sk.startsWith('DELIVERED#')&&k.sk>='DELIVERED#'+v.fromUtc&&k.sk<'DELIVERED#'+v.untilExclusiveUtc;
  if(v.key&&!validKey(v.key))return fail('SETTLEMENT_ACCRUAL_INDEX_CURSOR_INVALID');
- const page=await db.send(new QueryCommand({TableName:MERCHANT_ACCRUAL_INDEX_TABLE,ConsistentRead:true,KeyConditionExpression:'pk=:pk AND sk BETWEEN :from AND :until',ExpressionAttributeValues:{':pk':pk,':from':'DELIVERED#'+v.fromUtc,':until':'DELIVERED#'+v.untilExclusiveUtc},Limit:10,ScanIndexForward:true,...(v.key?{ExclusiveStartKey:v.key}:{})}));
+ const page=await db.send(new QueryCommand({TableName:checkoutTables().platform,ConsistentRead:true,KeyConditionExpression:'pk=:pk AND sk BETWEEN :from AND :until',ExpressionAttributeValues:{':pk':pk,':from':'DELIVERED#'+v.fromUtc,':until':'DELIVERED#'+v.untilExclusiveUtc},Limit:10,ScanIndexForward:true,...(v.key?{ExclusiveStartKey:v.key}:{})}));
  const seen=new Set();for(const row of page.Items||[]){validateMerchantAccrualIndexRow(row,v.branchId);if(!validKey({pk:row.pk,sk:row.sk})||seen.has(row.orderId))return fail();seen.add(row.orderId);}
  if(page.LastEvaluatedKey&&!validKey(page.LastEvaluatedKey))return fail();
  return {items:page.Items||[],nextKey:page.LastEvaluatedKey||null};

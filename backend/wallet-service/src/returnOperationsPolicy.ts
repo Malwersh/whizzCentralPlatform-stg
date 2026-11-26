@@ -1,9 +1,11 @@
+import {financialOrderTables} from './walletBindings';
 import {strongGet,exactCheck} from './driverFinancialTransaction';
 import {quoteHash} from './deliveryQuoteRecord';
 export const RETURN_OPERATIONS_PK='OPERATIONAL_SETTINGS#RETURN_OPERATIONS';
 export const RETURN_OPERATIONS_DEFAULTS={enabled:true,closingMarginSeconds:900,branchWaitSeconds:300};
 export function validateReturnOperations(v:any){if(!v||Object.keys(v).sort().join(',')!=='branchWaitSeconds,closingMarginSeconds,enabled'||typeof v.enabled!=='boolean'||!Number.isSafeInteger(v.closingMarginSeconds)||v.closingMarginSeconds<300||v.closingMarginSeconds>3600||!Number.isSafeInteger(v.branchWaitSeconds)||v.branchWaitSeconds<60||v.branchWaitSeconds>1800)throw Object.assign(Error('INVALID_RETURN_OPERATIONS'),{code:'INVALID_RETURN_OPERATIONS',status:400});return {...v};}
-export async function readReturnOperations(db:any){const key={pk:RETURN_OPERATIONS_PK,sk:'CURRENT'},row=await strongGet(db,'staging-PlatformStaff',key);if(!row||!Number.isSafeInteger(row.version)||row.version<1||typeof row.policyVersion!=='string')throw Object.assign(Error('RETURN_OPERATIONS_UNAVAILABLE'),{code:'RETURN_OPERATIONS_UNAVAILABLE'});const body={schemaVersion:1,version:row.version,policyVersion:row.policyVersion,values:validateReturnOperations(row.values)};return {snapshot:{...body,digest:quoteHash(body)},condition:exactCheck('staging-PlatformStaff',key,row)};}
+export async function readReturnOperations(db:any){const table=financialOrderTables().staff;
+ const key={pk:RETURN_OPERATIONS_PK,sk:'CURRENT'},row=await strongGet(db,table,key);if(!row||!Number.isSafeInteger(row.version)||row.version<1||typeof row.policyVersion!=='string')throw Object.assign(Error('RETURN_OPERATIONS_UNAVAILABLE'),{code:'RETURN_OPERATIONS_UNAVAILABLE'});const body={schemaVersion:1,version:row.version,policyVersion:row.policyVersion,values:validateReturnOperations(row.values)};return {snapshot:{...body,digest:quoteHash(body)},condition:exactCheck(table,key,row)};}
 /** Sunday=0, Baghdad local time. Missing/malformed/overlapping schedules never authorize. */
 export function branchClosingAt(hours:any,at:number):number|null{
  if(!Array.isArray(hours)||hours.length!==7||new Set(hours.map(x=>Number(x.day))).size!==7)return null;

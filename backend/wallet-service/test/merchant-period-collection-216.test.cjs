@@ -45,3 +45,18 @@ test('second complete-period collection reuses every verified old membership wit
 test('read flags period-source change for explicit restart without erasing any saved progress',async()=>{
  const x=await fixture(),r=await x.ready();const ops=await prepareMerchantAccrualIndex(x.db,{branchId:'branch1',orderId:'late',operationId:'COD:late',deliveredAt:'2026-10-15T01:00:00.000Z',merchantNetIqd:1,financialSchemaVersion:2});await x.db.send(new TransactWriteCommand({TransactItems:ops}));const d=await x.service.read({branchId:r.branchId,collectionId:r.collectionId});assert.equal(d.collection.sourceChanged,true);assert.equal(d.collection.version,r.version);await assert.rejects(x.service.freeze({branchId:r.branchId,collectionId:r.collectionId,version:r.version}));
 });
+
+test('period discovery and freezing keep the same financial result when an order is redacted',async()=>{
+ const x=await fixture(),ready=await x.ready(),before=accounting(x.f);
+ const {preserveMerchantSettlementEvidence}=require('../dist/merchantSettlementPreview');
+ await preserveMerchantSettlementEvidence(x.db,'branch1','order1');
+ const order=x.f.get('WizzOrders',{PK:'ORDER#order1',SK:'META'});
+ delete order.financialSnapshot;
+ delete order.financialAcceptance;
+ let {collection:r}=await x.service.freeze({branchId:ready.branchId,collectionId:ready.collectionId,version:ready.version});
+ while(r.status==='FREEZING')r=(await x.advance(r)).collection;
+ assert.equal(r.status,'FROZEN');
+ assert.equal(r.createdBatchCount,1);
+ assert.deepEqual(r.amounts,ready.amounts);
+ assert.equal(accounting(x.f),before);
+});

@@ -5,12 +5,16 @@ import {casePhase,CASE_PRIORITIES} from './exceptionCasePolicy';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
 import {CASE_OPEN_PARTITION} from './orderExceptionCaseIndex';
 type Row=Record<string,any>;
-const EVENTS='staging-WalletLifecycle',HOLDS='staging-Holds';
+import {financialOrderTables} from './walletBindings';
 /** SLA monitoring only. No wallet, hold amount, financial outcome or commercial order updates. */
-export function createExceptionCaseSlaWorker(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number}){
+export function createExceptionCaseSlaWorker(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;returnsOnly?:boolean;cashOnly?:boolean}){
  const {db}=options,now=options.now??Date.now;
+ if(options.returnsOnly&&options.cashOnly)throw Error('INVALID_EXCEPTION_MONITOR_SCOPE');
+ const caseType=options.returnsOnly?'COD_DELIVERY_EXCEPTION':options.cashOnly?'CUSTOMER_CASH_REVIEW':null;
+ const {lifecycle:EVENTS,holds:HOLDS,audit:AUDIT}=financialOrderTables();
  async function process(pointer:Row){
   if(pointer.kind!=='ORDER_EXCEPTION_CASE_POINTER'||!quoteEntityIdValid(pointer.caseId)||!quoteEntityIdValid(pointer.orderId)||pointer.operationId!=='EXCEPTION_CASE#'+pointer.caseId||pointer.queuePartition!==CASE_OPEN_PARTITION||!Number.isSafeInteger(pointer.version)||!['CUSTOMER_CANCELLATION','MERCHANT_CANCELLATION','CUSTOMER_CASH_REVIEW'].includes(pointer.caseKey)&&!/^RETURN#[1-9][0-9]{0,2}$/.test(pointer.caseKey||''))return 'ignored';
+  if(caseType&&(pointer.caseType!==caseType||options.returnsOnly&&!/^RETURN#[1-9][0-9]{0,2}$/.test(pointer.caseKey)||options.cashOnly&&pointer.caseKey!==caseType))return 'ignored';
   const key={operationId:pointer.operationId},live=await strongGet(db,EVENTS,key);
   if(!live||live.version!==pointer.version||live.status!=='OPEN'||live.queuePartition!==CASE_OPEN_PARTITION)return 'stale';
   const ck={orderId:pointer.orderId,sk:pointer.caseKey},row=await strongGet(db,HOLDS,ck),t=now(),at=new Date(t).toISOString();
@@ -33,7 +37,7 @@ export function createExceptionCaseSlaWorker(options:{db:Pick<DynamoDBDocumentCl
     for(const [kind,due]of [['RESPONSE',lateResponse],['ESCALATION',lateEscalation]] as const){
      const field=kind==='RESPONSE'?'responseAlertAt':'escalatedAt';if(!due||next[field])continue;next[field]=at;
      const eventId='SLA:'+quoteHash([pointer.caseId,phaseKey,kind]).slice(0,48);
-     operations.push({Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+eventId,logId:eventId,action:'ORDER_EXCEPTION_'+kind+'_OVERDUE',actorId:'ORDER_EXCEPTION_SLA_WORKER',actorKind:'SYSTEM',orderId:pointer.orderId,caseId:pointer.caseId,phase:phase.priority,phaseStartedAt:phase.startedAt,deadlineAt:kind==='RESPONSE'?phase.responseDueAt:phase.escalationDueAt,createdAt:at,noFinancialEffect:true},ConditionExpression:'attribute_not_exists(sk)'}});
+     operations.push({Put:{TableName:AUDIT,Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+eventId,logId:eventId,action:'ORDER_EXCEPTION_'+kind+'_OVERDUE',actorId:'ORDER_EXCEPTION_SLA_WORKER',actorKind:'SYSTEM',orderId:pointer.orderId,caseId:pointer.caseId,phase:phase.priority,phaseStartedAt:phase.startedAt,deadlineAt:kind==='RESPONSE'?phase.responseDueAt:phase.escalationDueAt,createdAt:at,noFinancialEffect:true},ConditionExpression:'attribute_not_exists(sk)'}});
     }
     const responseTime=Date.parse(phase.responseDueAt),escalationTime=Date.parse(phase.escalationDueAt);
     next.nextAttemptAt=Math.floor((!phase.respondedAt&&responseTime>t?responseTime:escalationTime>t?escalationTime:t+3600000)/1000);
@@ -44,7 +48,7 @@ export function createExceptionCaseSlaWorker(options:{db:Pick<DynamoDBDocumentCl
   try{await db.send(new TransactWriteCommand({TransactItems:operations as any}));return 'updated';}catch(e:any){if(e?.name==='TransactionCanceledException'||e?.name==='ConditionalCheckFailedException')return 'stale';throw e;}
  }
  return async function tick(){let cursor;const counts={scanned:0,updated:0,stale:0,ignored:0};for(let page=0;page<4;page++){
-  const result:any=await db.send(new QueryCommand({TableName:EVENTS,IndexName:'ByDue',KeyConditionExpression:'queuePartition=:open AND nextAttemptAt<=:now',ExpressionAttributeValues:{':open':CASE_OPEN_PARTITION,':now':Math.floor(now()/1000)},ExclusiveStartKey:cursor,Limit:25}));
+  const result:any=await db.send(new QueryCommand({TableName:EVENTS,IndexName:'ByDue',KeyConditionExpression:'queuePartition=:open AND nextAttemptAt<=:now',ExpressionAttributeValues:{':open':CASE_OPEN_PARTITION,':now':Math.floor(now()/1000),...(caseType?{':type':caseType}:{})},...(caseType?{FilterExpression:'caseType=:type'}:{}),ExclusiveStartKey:cursor,Limit:25}));
   for(const p of result.Items??[]){counts.scanned++;counts[await process(p) as 'updated'|'stale'|'ignored']++;}cursor=result.LastEvaluatedKey;if(!cursor)break;
  }return counts;};
 }

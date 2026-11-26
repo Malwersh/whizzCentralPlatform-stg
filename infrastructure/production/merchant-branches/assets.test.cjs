@@ -1,0 +1,20 @@
+'use strict';
+const {test}=require('node:test');const assert=require('node:assert/strict');
+const {decode,route,BUCKET}=require('./assets.cjs');
+const input={draftId:'11111111-1111-4111-8111-111111111111',assetId:'22222222-2222-4222-8222-222222222222',kind:'REGISTRATION_CERTIFICATE',contentType:'application/pdf',base64Data:Buffer.from('%PDF-test').toString('base64')};
+test('production asset decoder verifies type and hash',()=>{assert.match(BUCKET,/746727375268/);assert.equal(decode(input).sha256.length,64);assert.throws(()=>decode({...input,contentType:'image/png'}));assert.throws(()=>decode({...input,kind:'BUSINESS_PHOTO'}));assert.throws(()=>decode({...input,base64Data:'A==='}));});
+test('closing account cannot read or upload assets',async()=>{let calls=0;await assert.rejects(route({sub:'owner',db:{send:async()=>{calls++;return {Item:{status:'CLOSING'}}}}},{httpMethod:'POST'},input),/ACCOUNT_CLOSING/);assert.equal(calls,1);});
+test('asset read rejects cross-account object keys',async()=>{let n=0;await assert.rejects(route({sub:'owner',db:{send:async()=>++n===1?{}:{Item:{subjectId:'owner',status:'READY',key:'persons/other/file'}}}},{httpMethod:'GET',queryStringParameters:{assetId:input.assetId}},{}),/ASSET_UNAVAILABLE/);});
+test('upload requires editable owned draft before S3 access',async()=>{let n=0;await assert.rejects(route({sub:'owner',s3:{send:()=>{throw Error('S3 must not run')}},db:{send:async()=>++n===1?{}:{Item:{subjectId:'other',reviewStatus:'DRAFT'}}}},{httpMethod:'POST'},input),/DRAFT_NOT_EDITABLE/);});
+test('successful upload atomically publishes asset and draft and releases only its lease',async()=>{
+ const sent=[];let reads=0;const draft={pk:'PERSON#owner',sk:'DRAFT#'+input.draftId,subjectId:'owner',reviewStatus:'DRAFT',version:2};
+ const db={send:async c=>{sent.push(c);if(c.constructor.name==='GetCommand'){reads++;return reads===2?{Item:draft}:{};}return {};}};
+ const writes=[];const result=await route({sub:'owner',db,s3:{send:async c=>{writes.push(c);return {};}}},{httpMethod:'POST'},input);
+ assert.equal(result.draft.version,3);assert.equal(writes.length,1);assert.equal(writes[0].input.ExpectedBucketOwner,'746727375268');
+ const tx=sent.filter(c=>c.constructor.name==='TransactWriteCommand');assert.equal(tx.length,2);
+ const lease=tx[0].input.TransactItems[3].Put.Item.leaseToken;
+ const release=tx[1].input.TransactItems.find(x=>x.Delete).Delete;
+ assert.equal(release.ExpressionAttributeValues[':token'],lease);
+ assert.match(release.ConditionExpression,/expiresAt/);
+ assert.equal(tx[1].input.TransactItems.find(x=>x.Put?.Item.status==='READY').Put.Item.sha256,decode(input).sha256);
+});

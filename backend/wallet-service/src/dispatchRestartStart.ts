@@ -1,3 +1,4 @@
+import {financialDispatchTables} from './walletBindings';
 import {retainFullCashFundingCommitment} from './fullCashFundingCommitment';
 import {createStagingDriverOfferOrderReader} from './driverOfferOrderReader';
 import {prepareDeliveryFundingRetention} from './deliveryFundingRetention';
@@ -9,7 +10,6 @@ import {validateDispatchCycle} from './dispatchCycle';
 import {createStagingDispatchCoordinator} from './dispatchCoordinator';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
 const {dispatchWaveSK}=require('../../src/utils/dispatch-cycle-keys');
-const JOBS='WizzDispatchJobs_staging',ORDERS='WizzOrders';
 const fail=():never=>{throw Error('DISPATCH_RESTART_START_CONFLICT');};
 /** Trusted durable start consumer. No public handler, own scheduling or financial
  * writer. Callback must use the existing fenced runner for the explicitly selected engine. A callback's return
@@ -17,6 +17,7 @@ const fail=():never=>{throw Error('DISPATCH_RESTART_START_CONFLICT');};
  */
 export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;mode?:string;engine?:'LEGACY'|'FINANCIAL';enableFullCash?:boolean;start:(input:{orderId:string;assignmentId:string;cycleId:string})=>Promise<unknown>}){
  const {db}=options,now=options.now??Date.now,engine=options.engine??'LEGACY';
+ const tables=financialDispatchTables(),{jobs:JOBS,orders:ORDERS}=tables;
  function enabled(){if((options.mode??process.env.DISPATCH_RESTART_START_MODE)!=='REQUIRED')throw Error('DISPATCH_RESTART_START_DISABLED');}
  async function processRestart(orderId:string,restartId:string,owner:string){
   enabled();if(!quoteEntityIdValid(orderId)||!/^DRS:[a-f0-9]{48}$/.test(restartId)||!quoteEntityIdValid(owner))return fail();
@@ -28,7 +29,7 @@ export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocum
   if(!['PENDING','STARTING'].includes(row.state))return fail();
   if(row.state==='STARTING'&&(!Number.isSafeInteger(row.leaseUntil)||row.leaseUntil>now()))return {busy:true};
   if(row.nextAttemptAt>now())return {deferred:true};
-  async function commit(fields:Row,guards:Row[]=[]){const tx=composeDispatchTransaction([set(exactCheck(JOBS,key,row!,[...new Set([...Object.keys(row!),'legalHold','retentionHold','financialArchiveConfirmed'])]),{...fields,version:row!.version+1,updatedAt:new Date(now()).toISOString()})],guards);await db.send(new TransactWriteCommand({TransactItems:tx as any,ClientRequestToken:quoteHash(tx).slice(0,36)}));row=await strongGet(db,JOBS,key);}
+  async function commit(fields:Row,guards:Row[]=[]){const tx=composeDispatchTransaction([set(exactCheck(JOBS,key,row!,[...new Set([...Object.keys(row!),'legalHold','retentionHold','financialArchiveConfirmed'])]),{...fields,version:row!.version+1,updatedAt:new Date(now()).toISOString()})],guards,[tables.jobs,tables.offers]);await db.send(new TransactWriteCommand({TransactItems:tx as any,ClientRequestToken:quoteHash(tx).slice(0,36)}));row=await strongGet(db,JOBS,key);}
   async function context(){
    const jobKey={orderId,SK:'METADATA'},orderKey={PK:'ORDER#'+orderId,SK:'META'},job=await strongGet(db,JOBS,jobKey),order=await strongGet(db,ORDERS,orderKey);
    if(!job||!order)return {stale:true,guards:[] as Row[]};
@@ -36,13 +37,13 @@ export function createStagingDispatchRestartStart(options:{db:Pick<DynamoDBDocum
    if(job.dispatchJobId!==row!.assignmentId||job.dispatchRestart?.restartId!==restartId||order.deliveryJobId!==row!.assignmentId)return {stale:true,guards};
    const cycle=validateDispatchCycle(job.dispatchCycle);
    if(cycle.engine!==engine||(row!.engine??'LEGACY')!==engine||![2,3].includes(cycle.keyVersion??0)||cycle.id!==row!.cycleId||cycle.digest!==row!.cycleDigest||cycle.assignmentId!==row!.assignmentId||cycle.orderId!==orderId||job.restaurantId!==row!.branchId)return fail();
-   const decisionKey={pk:'DISPATCH_REVIEW#'+row!.caseId,sk:'DECISION'},decision=await strongGet(db,'staging-PlatformStaff',decisionKey);
+   const decisionKey={pk:'DISPATCH_REVIEW#'+row!.caseId,sk:'DECISION'},decision=await strongGet(db,tables.staff,decisionKey);
    if(!decision||decision.status!=='EXECUTED'||decision.resultCode!=='SEARCH_RESTART_QUEUED'||decision.requestId!==row!.requestId||decision.receipt?.restartId!==restartId||decision.receipt?.cycleId!==cycle.id||decision.receipt?.assignmentId!==cycle.assignmentId)return fail();
-   guards.push(exactCheck('staging-PlatformStaff',decisionKey,decision));
-   const branchKey={businessId:row!.branchId},branch=await strongGet(db,'WhizzMerchants_Businesses',branchKey);
-   if(!branch)return fail();guards.push(exactCheck('WhizzMerchants_Businesses',branchKey,branch,[...new Set([...Object.keys(branch),'deletedAt','isDeleted','deletionRequestId'])]));
+   guards.push(exactCheck(tables.staff,decisionKey,decision));
+   const branchKey={businessId:row!.branchId},branch=await strongGet(db,tables.branch,branchKey);
+   if(!branch)return fail();guards.push(exactCheck(tables.branch,branchKey,branch,[...new Set([...Object.keys(branch),'deletedAt','isDeleted','deletionRequestId'])]));
    let suppressed=order.isDeleted===true||order.deletionRequestId!=null||order.deletionStatus!=null||order.deletedAt!=null||branch.isDeleted===true||branch.deletionRequestId!=null||branch.deletedAt!=null;
-   for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+row!.branchId,'ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId]){const k={pk,sk:'META'},r=await strongGet(db,'staging-AccountDeletion',k);guards.push(r?exactCheck('staging-AccountDeletion',k,r):{ConditionCheck:{TableName:'staging-AccountDeletion',Key:k,ConditionExpression:'attribute_not_exists(pk)'}});if(r)suppressed=true;}
+   for(const pk of ['BUSINESS_LIFECYCLE#MERCHANT#'+row!.branchId,'ACCOUNT_LIFECYCLE#MERCHANT#'+branch.ownerId]){const k={pk,sk:'META'},r=await strongGet(db,tables.deletion,k);guards.push(r?exactCheck(tables.deletion,k,r):{ConditionCheck:{TableName:tables.deletion,Key:k,ConditionExpression:'attribute_not_exists(pk)'}});if(r)suppressed=true;}
    if(engine==='FINANCIAL'&&!suppressed&&order.status==='ready_for_pickup'){
     const read=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:true,enableFullCash:options.enableFullCash}).read({orderId,branchId:row!.branchId});
     guards.push(read.condition);

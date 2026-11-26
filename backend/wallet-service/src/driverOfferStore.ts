@@ -1,3 +1,5 @@
+import {financialDispatchTables} from './walletBindings';
+import {dispatchRegionTables} from './checkoutTables';
 const workRegions=require('../../shared/driver-work-region-311');
 const vehicleRegistry=require('../../shared/driver-vehicles-308');
 import {financialOfferSK} from './financialOfferKey';
@@ -8,7 +10,6 @@ import { quoteCanonical, quoteHash } from './deliveryQuoteRecord';
 
 type Row = Record<string, any>;
 type Check = { ConditionCheck: Row };
-const TABLE = 'WaveOffers_staging';
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 export class DriverOfferStoreError extends Error {
   constructor(public readonly code: 'INVALID_DRIVER_OFFER_SAVE' | 'DRIVER_OFFER_SAVE_CONFLICT' |
@@ -54,9 +55,10 @@ export function createStagingDriverOfferStore(options: {
   db: Pick<DynamoDBDocumentClient, 'send'>; now?: () => number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;
 }) {
   const { db } = options, now = options.now ?? Date.now;
+  const tables=financialDispatchTables();
   const reader = createStagingDriverOfferOrderReader({ db,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash });
   async function load(k: Row): Promise<Row | undefined> {
-    try { return (await db.send(new GetCommand({ TableName: TABLE, Key: k, ConsistentRead: true }))).Item; }
+    try { return (await db.send(new GetCommand({ TableName: tables.offers, Key: k, ConsistentRead: true }))).Item; }
     catch { return fail('DRIVER_OFFER_SAVE_UNAVAILABLE'); }
   }
   function receipt(saved: Row, proposed: Row, replayed: boolean) {
@@ -71,15 +73,15 @@ export function createStagingDriverOfferStore(options: {
       if (!same(offer.versionedOffer, input.offer)) return fail('INVALID_DRIVER_OFFER_SAVE');
       const waveNumber = wave(input.waveNumber), k = {orderId:offer.orderId,SK:await financialOfferSK(db,offer.orderId,offer.driverId,waveNumber,offer.assignmentId)};
       const g = exact(input.guards, ['assignment', 'driver', 'position', 'policy', 'branch', 'deletions']);
-      const checks = [guard(g.assignment, 'WizzDispatchJobs_staging', ['orderId', 'SK']),
-        guard(g.driver, 'WhizzDrivers_staging', ['driverId']),
-        guard(g.position, 'WizzDriverLiveState_staging', ['driverId']),
-        guard(g.policy, 'staging-PlatformStaff', ['pk', 'sk']),
-        guard(g.branch, 'WhizzMerchants_Businesses', ['businessId'])];
+      const checks = [guard(g.assignment, tables.jobs, ['orderId', 'SK']),
+        guard(g.driver, tables.driver, ['driverId']),
+        guard(g.position, tables.live, ['driverId']),
+        guard(g.policy, tables.staff, ['pk', 'sk']),
+        guard(g.branch, tables.branch, ['businessId'])];
       if (checks[4].ConditionCheck.Key.businessId !== offer.branchId || checks[0].ConditionCheck.Key.orderId !== offer.orderId || checks[0].ConditionCheck.Key.SK !== 'METADATA' ||
           checks[1].ConditionCheck.Key.driverId !== offer.driverId || checks[2].ConditionCheck.Key.driverId !== offer.driverId ||
           !Array.isArray(g.deletions) || !g.deletions.length || g.deletions.length > 20) return fail('INVALID_DRIVER_OFFER_SAVE');
-      checks.push(...g.deletions.map((v: unknown) => guard(v, 'staging-AccountDeletion', ['pk', 'sk'])));
+      checks.push(...g.deletions.map((v: unknown) => guard(v, tables.deletion, ['pk', 'sk'])));
       const guardedDriver:Row={};
       for(const [alias,name]of Object.entries(g.driver.ConditionCheck.ExpressionAttributeNames??{})){
         const key=':v'+alias.replace('#f','');
@@ -100,11 +102,11 @@ export function createStagingDriverOfferStore(options: {
       if(workRegions.enforced()){
         const q=g.position.ConditionCheck,position:Row={};
         for(const [alias,name]of Object.entries(q.ExpressionAttributeNames??{})){const token=':v'+alias.replace('#f','');if(Object.prototype.hasOwnProperty.call(q.ExpressionAttributeValues??{},token))position[name as string]=q.ExpressionAttributeValues[token];}
-        const scope=await workRegions.create({db,GetCommand}).check(guardedDriver,position.current_work_region_id,current.snapshot.zoneId,waveNumber===1?0:1,{lat:position.lat,lng:position.lng});
+        const scope=await workRegions.create({db,GetCommand,tables:dispatchRegionTables()}).check(guardedDriver,position.current_work_region_id,current.snapshot.zoneId,waveNumber===1?0:1,{lat:position.lat,lng:position.lng});
         if(!scope.allowed)return fail('INVALID_DRIVER_OFFER_SAVE');checks.push(...scope.guards);
       }
 
-      const transaction = [...checks, ...(current.releaseCondition?[current.releaseCondition]:[]), current.condition, { Put: { TableName: TABLE, Item: proposed,
+      const transaction = [...checks, ...(current.releaseCondition?[current.releaseCondition]:[]), current.condition, { Put: { TableName: tables.offers, Item: proposed,
         ConditionExpression: 'attribute_not_exists(#pk)', ExpressionAttributeNames: { '#pk': 'orderId' } } }];
       const identities = transaction.map((operation: Row) => {
         const c = operation.ConditionCheck ?? operation.Put;

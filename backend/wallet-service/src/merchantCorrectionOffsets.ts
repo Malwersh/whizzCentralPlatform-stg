@@ -1,15 +1,15 @@
+import {checkoutTables} from './checkoutTables';
 import {DynamoDBDocumentClient,QueryCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal} from './driverFinancialTransaction';
 import {quoteHash} from './deliveryQuoteRecord';
 type Row=Record<string,any>;
-const P='staging-MerchantPlatform';
 export const correctionPolicyKey={pk:'OPERATIONAL_SETTINGS#MERCHANT_CORRECTIONS',sk:'CURRENT'};
 const fail=(code='CORRECTION_RESERVATION_CHANGED'):never=>{throw Object.assign(Error(code),{code});};
 const key=(b:string,s:string)=>({pk:'MERCHANT_CORRECTIONS#'+b,sk:s});
 const integer=(n:any)=>Number.isSafeInteger(n)&&n>=0;
 const seal=(r:Row):Row=>({...r,digest:quoteHash(r)});
 const sealed=(r:Row|null|undefined)=>{const {digest,...body}=r||{};return typeof digest==='string'&&quoteHash(body)===digest;};
-function put(row:Row,old?:Row|null){return {Put:{TableName:P,Item:row,...(old?{ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':old.version}}:{ConditionExpression:'attribute_not_exists(pk)'})}};}
+function put(row:Row,old?:Row|null){return {Put:{TableName:checkoutTables().platform,Item:row,...(old?{ConditionExpression:'#v=:v',ExpressionAttributeNames:{'#v':'version'},ExpressionAttributeValues:{':v':old.version}}:{ConditionExpression:'attribute_not_exists(pk)'})}};}
 export function correctionPosition(r:Row|null|undefined,branchId:string,ownerId:string):Row{
  const p=r??{...key(branchId,'POSITION'),kind:'MERCHANT_CORRECTION_POSITION',branchId,ownerId,creditIqd:0,debtIqd:0,creditPaidIqd:0,debtRecoveredIqd:0,version:0};
  if(p.branchId!==branchId||p.ownerId!==ownerId||p.kind!=='MERCHANT_CORRECTION_POSITION'||!integer(p.version)||['creditIqd','debtIqd','creditPaidIqd','debtRecoveredIqd'].some(k=>!integer(p[k]))||['creditReservedIqd','debtReservedIqd'].some(k=>p[k]!==undefined&&!integer(p[k])))return fail('CORRECTION_POSITION_INVALID');
@@ -23,6 +23,7 @@ export function correctionAmounts(payout:Row){
  return {baseIqd:s.baseIqd,creditIqd:s.creditIqd,debtIqd:s.debtIqd,netIqd:s.netIqd};
 }
 export async function reserveMerchantCorrections(db:Pick<DynamoDBDocumentClient,'send'>,v:{branchId:string;ownerId:string;payoutId:string;baseIqd:number;at:string}){
+ const {platform:P}=checkoutTables();
  const k=key(v.branchId,'POSITION'),raw=await strongGet(db,P,k),p=correctionPosition(raw,v.branchId,v.ownerId),policy=await strongGet(db,P,correctionPolicyKey);
  const ops:Row[]=[policy?exactCheck(P,correctionPolicyKey,policy):{ConditionCheck:{TableName:P,Key:correctionPolicyKey,ConditionExpression:'attribute_not_exists(pk)'}}];
  if(p.creditReservedIqd||p.debtReservedIqd)return fail('CORRECTION_ACTIVE_SETTLEMENT');
@@ -65,6 +66,7 @@ export async function reserveMerchantCorrections(db:Pick<DynamoDBDocumentClient,
 }
 export async function finishMerchantCorrections(db:Pick<DynamoDBDocumentClient,'send'>,row:Row,paid:boolean,at:string){
  if(!row.correctionSettlement)return [];
+ const {platform:P}=checkoutTables();
  const a=correctionAmounts(row),k=key(row.branchId,'RESERVATION#'+row.payoutId),r=await strongGet(db,P,k),pk=key(row.branchId,'POSITION'),raw=await strongGet(db,P,pk),p=correctionPosition(raw,row.branchId,row.ownerId);
  if(!r||!sealed(r)||r.status!=='ACTIVE'||!equal(r.snapshot,row.correctionSettlement)||p.creditReservedIqd<a.creditIqd||p.debtReservedIqd<a.debtIqd)return fail();
  const next={...p,creditReservedIqd:p.creditReservedIqd-a.creditIqd,debtReservedIqd:p.debtReservedIqd-a.debtIqd,creditPaidIqd:p.creditPaidIqd+(paid?a.creditIqd:0),debtRecoveredIqd:p.debtRecoveredIqd+(paid?a.debtIqd:0),version:p.version+1,updatedAt:at};
@@ -77,7 +79,7 @@ export async function finishMerchantCorrections(db:Pick<DynamoDBDocumentClient,'
 }
 export async function verifyMerchantCorrectionSettlement(db:Pick<DynamoDBDocumentClient,'send'>,row:Row){
  if(!row.correctionSettlement)return;
- correctionAmounts(row);const r=await strongGet(db,P,key(row.branchId,'RESERVATION#'+row.payoutId));
+ correctionAmounts(row);const r=await strongGet(db,checkoutTables().platform,key(row.branchId,'RESERVATION#'+row.payoutId));
  if(!r||!sealed(r)||r.status!=='SETTLED'||!equal(r.snapshot,row.correctionSettlement)||r.completedAt!==row.paidAt)return fail('CORRECTION_SETTLED_PROOF_INVALID');
 }
 export function merchantCorrectionPayoutLines(row:Row,fee:number){

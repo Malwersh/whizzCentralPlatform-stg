@@ -1,3 +1,4 @@
+import {checkoutTables} from './checkoutTables';
 import {DynamoDBDocumentClient} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,equal} from './driverFinancialTransaction';
 import {createMerchantSettlementScheduleReader} from './merchantSettlementScheduleReader';
@@ -6,7 +7,7 @@ import {quoteEntityIdValid} from './deliveryQuoteRecord';
 export function createMerchantOpeningScheduleReader(db:Pick<DynamoDBDocumentClient,'send'>){
  return async(branchId:string)=>{
   if(!quoteEntityIdValid(branchId))throw Error('INVALID_SETTLEMENT_SCHEDULE_SELECTION');
-  const table='staging-MerchantPlatform',pk='BRANCH#'+branchId,currentKey={pk,sk:'SETTLEMENT_SCHEDULE#CURRENT'};
+  const table=checkoutTables().platform,pk='BRANCH#'+branchId,currentKey={pk,sk:'SETTLEMENT_SCHEDULE#CURRENT'};
   const current=await strongGet(db,table,currentKey);if(!current)return null;
   if(!await createMerchantSettlementScheduleReader(db)(branchId,current.effectiveFrom))return null;
   const firstKey={pk,sk:'SETTLEMENT_SCHEDULE#VERSION#1'},first=await strongGet(db,table,firstKey);

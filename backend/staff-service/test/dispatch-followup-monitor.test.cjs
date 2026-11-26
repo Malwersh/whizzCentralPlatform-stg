@@ -23,3 +23,141 @@ test('a queued or failed restart keeps its original owner/deadline until a durab
  f.get('WizzDispatchJobs_staging',restartKey).state='NEEDS_REVIEW';await f.monitor.observe('o',f.caseId);assert.equal(f.get('staging-PlatformStaff',key).status,'OPEN');assert.equal(f.get('staging-PlatformStaff',key).restartState,'NEEDS_REVIEW');
  f.get('WizzDispatchJobs_staging',restartKey).state='STARTED';await f.monitor.observe('o',f.caseId);assert.equal(f.get('staging-PlatformStaff',key).status,'RESOLVED');assert.equal(f.get('staging-PlatformStaff',require('../dispatch-followup-core').inboxKey(f.caseId)),undefined);
 });
+
+test('production discovery, scoped inbox, handling and policy use only operational records',async()=>{
+ const {createStaffFollowup,productionOrder}=require('../../wallet-service/dist/productionDispatchFollowup');
+ const rowTables=Object.fromEntries(['staff','jobs','orders','branch','deletion','holds']
+   .map(name=>[name,'wizz-production-'+name]));
+ const memory=new Map(), writes=[];
+ const state={time:Date.parse('2026-11-26T12:00:00Z')};
+ const ids={orders:['PK','SK'],branch:['businessId'],jobs:['orderId','SK'],staff:['pk','sk'],deletion:['pk','sk'],holds:['orderId','sk']};
+ const storageKey=(table,row)=>table+'|'+JSON.stringify(ids[table.slice('wizz-production-'.length)].map(key=>row[key]));
+ const save=(table,row)=>memory.set(storageKey(table,row),structuredClone(row));
+ const read=(table,key)=>memory.get(storageKey(table,key));
+ const matches=(op)=>{
+   if(!op.ConditionExpression)return true;
+   const row=read(op.TableName,op.Key??op.Item);
+   return op.ConditionExpression.split(' AND ').every(clause=>{
+    const [,key]=clause.match(/^attribute_not_exists\(([^)]+)\)$/)||[];
+    if(key)return row?.[op.ExpressionAttributeNames?.[key]??key]===undefined;
+    const [,name,value]=clause.match(/^(#[\w]+)\s*=\s*(:[\w]+)$/)||[];
+    assert(name,clause);
+    return eq(row?.[op.ExpressionAttributeNames[name]],op.ExpressionAttributeValues[value]);
+   });
+ };
+ const db={async send(command){
+   const q=command.input;
+   if(command.constructor.name==='GetCommand'){
+    const item=structuredClone(read(q.TableName,q.Key));
+    if(!item||!q.ProjectionExpression)return {Item:item};
+    const keys=q.ProjectionExpression.split(',').map(key=>q.ExpressionAttributeNames[key.trim()]??key.trim());
+    return {Item:Object.fromEntries(keys.filter(key=>key in item).map(key=>[key,item[key]]))};
+   }
+   if(command.constructor.name==='QueryCommand'){
+    const rows=[...memory].filter(([key])=>key.startsWith(q.TableName+'|')).map(([,value])=>structuredClone(value));
+    if(q.IndexName){
+     assert.equal(q.IndexName,'DispatchReviewStatus340');
+     return {Items:rows.filter(row=>row.status==='no_driver_available'&&row.SK==='METADATA')};
+    }
+    return {Items:rows.filter(row=>q.TableName===rowTables.staff?row.pk===q.ExpressionAttributeValues[':inbox']:
+      row.orderId===q.ExpressionAttributeValues[':id']&&row.SK.startsWith(q.ExpressionAttributeValues[':prefix']))};
+   }
+   assert.equal(command.constructor.name,'TransactWriteCommand');
+   const tx=q.TransactItems;
+   if(!tx.every(row=>matches(row.ConditionCheck??row.Put??row.Delete)))
+    throw Object.assign(Error('conflict'),{name:'TransactionCanceledException'});
+   for(const action of tx){
+    const mutation=action.Put??action.Delete;
+    if(!mutation)continue;
+    assert.equal(mutation.TableName,rowTables.staff);
+    if(action.Put)save(mutation.TableName,mutation.Item);
+    else memory.delete(storageKey(mutation.TableName,mutation.Key));
+    writes.push(mutation);
+   }
+   return {};
+ }};
+ const {quoteHash}=require('../../wallet-service/dist/deliveryQuoteRecord');
+ const release='GENERAL_PRODUCTION_FULL_CASH_V1';
+ const caseId=hash({orderId:'prod-order',source:'SEARCH',cycle:'production-cycle'});
+ const order={PK:'ORDER#prod-order',SK:'META',orderId:'prod-order',orderNumber:'ORD1234567890',
+   status:'ready_for_pickup',storeId:'branch1',userSub:'customer1',
+   financeRollout:{schemaVersion:2,scopeId:release,version:1,digest:quoteHash({release,version:1,
+     orders:[{orderId:'prod-order',branchId:'branch1',customerSubjectId:'customer1'}]})}};
+ const job={orderId:'prod-order',SK:'METADATA',status:'no_driver_available',restaurantId:'branch1',
+   dispatchJobId:'job-before',dispatchCycle:{id:'production-cycle'},financialDispatch:true,
+   dispatchReview:{reviewStatus:'REQUIRED',observedAt:'2026-11-26T12:00:00Z'}};
+ const branch={businessId:'branch1',businessName:'فرع الاختبار',regionId:'r1',ownerId:'owner',cognitoUserId:'owner'};
+ save(rowTables.orders,order);
+ save(rowTables.jobs,job);
+ save(rowTables.branch,branch);
+ const regional={pk:'EMPLOYEE#op',sk:'PROFILE',employeeId:'op',version:1,status:'ACTIVE',displayName:'مسؤول المتابعة',
+   roles:['operations'],scope:{allRegions:false,regionIds:['r1']}};
+ const foreign={...regional,pk:'EMPLOYEE#other',employeeId:'other',scope:{allRegions:false,regionIds:['r2']}};
+ const admin={...regional,pk:'EMPLOYEE#admin',employeeId:'admin',scope:{allRegions:true},roles:['settings_manager']};
+ for(const profile of [regional,foreign,admin])save(rowTables.staff,profile);
+ let employee=regional;
+ const guard=()=>F.exact(rowTables.staff,{pk:employee.pk,sk:employee.sk},employee);
+ const profile=async()=>({employee,guard:guard()});
+ const authority={authenticate:async permission=>{
+  if(permission==='SETTINGS'&&employee!==admin)throw Object.assign(Error('denied'),{status:403});
+  if(permission==='FOLLOWUP'&&employee===admin)throw Object.assign(Error('denied'),{status:403});
+  return {kind:'STAFF',subjectId:employee.employeeId};
+ },followup:profile,settings:profile};
+ const api=createStaffFollowup({db,authority,tables:rowTables,now:()=>state.time});
+ const monitor=createMonitor({db,tables:rowTables,productionOrder,now:()=>state.time});
+ assert.equal((await monitor.tick('production-schedule')).saved,1);
+ let [item]=(await api({action:'LIST',cursor:null})).items;
+ assert.equal(item.orderNumber,order.orderNumber);
+ assert.equal(item.caseId,caseId);
+ assert.equal(item.followup.canClaim,true);
+ assert.equal(item.followup.reviewDueAt,'2026-11-26T12:05:00.000Z');
+ employee=foreign;
+ assert.deepEqual((await api({action:'LIST',cursor:null})).items,[]);
+ await assert.rejects(api({action:'CLAIM',orderId:order.orderId,caseId,baseVersion:item.followup.version,
+  note:'خارج النطاق',requestId:'11111111-1111-4111-8111-111111111111'}),/REVIEW_UNAVAILABLE/);
+ employee=regional;
+ const claim={action:'CLAIM',orderId:order.orderId,caseId,baseVersion:item.followup.version,
+  note:'متابعة الفرع قبل التصعيد',requestId:'11111111-1111-4111-8111-111111111111'};
+ assert.equal((await api(claim)).saved,true);
+ assert.equal((await api(claim)).saved,true);
+ [item]=(await api({action:'LIST',cursor:null})).items;
+ assert.equal(item.followup.ownerName,'مسؤول المتابعة');
+ assert.equal(item.followup.canRelease,true);
+ assert.equal(writes.filter(write=>write.Item?.action==='DISPATCH_FOLLOWUP_CLAIM').length,1);
+ await assert.rejects(api({action:'READ_POLICY'}),/denied/);
+ employee=admin;
+ assert.equal((await api({action:'READ_POLICY'})).policy.version,0);
+ const updated={action:'SAVE_POLICY',baseVersion:0,reason:'ضبط مهلة المتابعة',
+  values:{reviewMinutes:10,escalationMinutes:25},requestId:'22222222-2222-4222-8222-222222222222'};
+ assert.equal((await api(updated)).policy.escalationMinutes,25);
+ assert.equal((await api(updated)).saved,true);
+ employee=regional;
+ state.time+=16*60000;
+ await monitor.tick('production-escalation');
+ [item]=(await api({action:'LIST',cursor:null})).items;
+ assert.equal(item.followup.escalated,true);
+ assert.equal(item.followup.escalationDueAt,'2026-11-26T12:15:00.000Z');
+ assert.deepEqual(read(rowTables.orders,order),order);
+ assert.deepEqual(read(rowTables.jobs,job),job);
+ const restartId='DRS:'+'a'.repeat(48);
+ const replacement={...job,dispatchJobId:'job-after',dispatchCycle:{id:'replacement-cycle'},
+   dispatchRestart:{restartId}};
+ const restart={orderId:order.orderId,SK:'DISPATCH_RESTART#'+restartId,kind:'DISPATCH_RESTART_START',
+   restartId,caseId,branchId:branch.businessId,cycleId:'replacement-cycle',previousCycleId:'production-cycle',
+   assignmentId:replacement.dispatchJobId,state:'NEEDS_REVIEW'};
+ save(rowTables.jobs,replacement);
+ save(rowTables.jobs,restart);
+ await monitor.tick('failed-replacement');
+ const stillOpen=(await api({action:'LIST',cursor:null})).items;
+ assert.equal(stillOpen.length,1);
+ assert.equal(stillOpen[0].caseId,caseId);
+ assert.equal(stillOpen[0].followup.restartState,'NEEDS_REVIEW');
+ assert.equal(stillOpen[0].followup.escalationDueAt,item.followup.escalationDueAt);
+ restart.state='STARTED';
+ replacement.status='searching';
+ save(rowTables.jobs,restart);
+ save(rowTables.jobs,replacement);
+ await monitor.tick('confirmed-replacement');
+ assert.deepEqual((await api({action:'LIST',cursor:null})).items,[]);
+
+});

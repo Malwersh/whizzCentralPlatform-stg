@@ -4,8 +4,12 @@ const {DynamoDBDocumentClient,GetCommand,PutCommand,QueryCommand,UpdateCommand,T
 const {error}=require('./policy');
 const {randomUUID}=require('node:crypto');
 const key=(actor,id)=>({pk:`SUBJECT#${actor.type}#${actor.sub}`,sk:`REQUEST#${id}`});
-function dynamoStore({table=process.env.DELETION_TABLE,db=DynamoDBDocumentClient.from(new DynamoDBClient({})),clock=()=>Math.floor(Date.now()/1000)}={}){
- if(!table||!table.startsWith('staging-'))throw error('INVALID_STAGING_TABLE');
+function dynamoStore({table=process.env.DELETION_TABLE,db=DynamoDBDocumentClient.from(new DynamoDBClient({})),clock=()=>Math.floor(Date.now()/1000),environment='staging'}={}){
+ const production=environment==='production';
+ if(production){
+  if(table!=='wizz-production-AccountDeletion')throw error('INVALID_PRODUCTION_TABLE');
+ }else if(environment!=='staging'||!table?.startsWith('staging-'))throw error('INVALID_STAGING_TABLE');
+ const businessTable=production?'wizz-production-Merchants':'WhizzMerchants_Businesses';
  const actor=r=>({type:r.actorType,sub:r.subjectId});
  async function get(a,id){return (await db.send(new GetCommand({TableName:table,Key:key(a,id),ConsistentRead:true}))).Item;}
  async function createVerified(r,proof,affectedBranches=[]){
@@ -13,19 +17,63 @@ function dynamoStore({table=process.env.DELETION_TABLE,db=DynamoDBDocumentClient
   if(proof.fingerprint!==r.fingerprint)throw error('INVALID_VERIFICATION');
   const time=clock(),a=actor(r),item={...key(a,r.requestId),...r,verification:{method:'PHONE_OTP',challengeId:proof.challengeId,verifiedAt:time}};
   const branchIds=[...new Set(affectedBranches)];
-  if(branchIds.length>97)throw error('DELETION_SCOPE_EXCEEDS_TRANSACTION_LIMIT');
-  const pauseOrders=branchIds.map(businessId=>({Update:{
-   TableName:'WhizzMerchants_Businesses',Key:{businessId},
+  const proofGuard=production?[{ConditionCheck:{
+   TableName:table,Key:{pk:`VERIFY_ACTIVE#${a.type}#${a.sub}`,sk:'META'},
+   ConditionExpression:'challengeId = :id AND expiresAt > :now',
+   ExpressionAttributeValues:{':id':proof.challengeId,':now':time},
+  }}]:[];
+  if(branchIds.length>97-proofGuard.length)throw error('DELETION_SCOPE_EXCEEDS_TRANSACTION_LIMIT');
+  if(production&&branchIds.length&&(a.type!=='MERCHANT'||!['ACCOUNT','BUSINESS'].includes(r.scope.kind)||
+     r.scope.kind==='BUSINESS'&&(branchIds.length!==1||branchIds[0]!==r.scope.id))){
+   throw error('INVALID_SCOPE');
+  }
+  let parentLock;
+  const parentKey={pk:item.pk,sk:`ACTIVE#ACCOUNT#${r.subjectId}`};
+  if(production&&r.scope.kind==='BUSINESS'&&branchIds.length){
+   const parent=(await db.send(new GetCommand({TableName:table,Key:parentKey,ConsistentRead:true}))).Item;
+   if(parent?.requestId)parentLock=parent.requestId;
+  }
+  const parentGuard=parentLock?[{ConditionCheck:{TableName:table,Key:parentKey,
+   ConditionExpression:'requestId=:parent',ExpressionAttributeValues:{':parent':parentLock}}}]:[];
+  const branchUpdates=[];
+  for(const businessId of branchIds){
+   if(production&&r.scope.kind==='ACCOUNT'){
+    const childKey={pk:item.pk,sk:'ACTIVE#BUSINESS#'+businessId};
+    const child=(await db.send(new GetCommand({TableName:table,Key:childKey,ConsistentRead:true}))).Item;
+    if(child?.requestId){
+     const closure=await get(a,child.requestId);
+     if(closure?.subjectId!==r.subjectId||closure.actorType!=='MERCHANT'||
+        closure.scope?.kind!=='BUSINESS'||closure.scope.id!==businessId||
+        ['COMPLETED','CANCELLED'].includes(closure.status))throw error('REQUEST_CONFLICT');
+     branchUpdates.push(
+      {ConditionCheck:{TableName:table,Key:childKey,ConditionExpression:'requestId=:child',
+       ExpressionAttributeValues:{':child':closure.requestId}}},
+      {ConditionCheck:{TableName:businessTable,Key:{businessId},
+       ConditionExpression:'ownerId=:owner AND cognitoUserId=:owner AND attribute_not_exists(deletedAt) AND orderIntakeDeletionRequestId=:child',
+       ExpressionAttributeValues:{':child':closure.requestId,':owner':r.subjectId}}}
+     );
+     continue;
+    }
+   }
+   branchUpdates.push({Update:{
+   TableName:businessTable,Key:{businessId},
    UpdateExpression:'SET orderIntakeDeletionRequestId=:request',
-   ConditionExpression:'(ownerId=:owner OR attribute_not_exists(ownerId)) AND (cognitoUserId=:owner OR attribute_not_exists(cognitoUserId)) AND (ownerId=:owner OR cognitoUserId=:owner) AND (attribute_not_exists(orderIntakeTransferExpiresAt) OR orderIntakeTransferExpiresAt<=:now)'+(r.scope.kind==='ACCOUNT'?' AND attribute_not_exists(orderIntakeDeletionRequestId)':''),
-   ExpressionAttributeValues:{':request':r.requestId,':owner':r.subjectId,':now':time*1000},
-  }}));
+   ConditionExpression:(production?'ownerId=:owner AND cognitoUserId=:owner AND attribute_not_exists(deletedAt) AND attribute_not_exists(deletionRequestId)':
+    '(ownerId=:owner OR attribute_not_exists(ownerId)) AND (cognitoUserId=:owner OR attribute_not_exists(cognitoUserId)) AND (ownerId=:owner OR cognitoUserId=:owner)')+
+    ' AND (attribute_not_exists(orderIntakeTransferExpiresAt) OR orderIntakeTransferExpiresAt<=:now)'+
+    (parentLock?' AND (attribute_not_exists(orderIntakeDeletionRequestId) OR orderIntakeDeletionRequestId=:parent)':
+     production||r.scope.kind==='ACCOUNT'?' AND attribute_not_exists(orderIntakeDeletionRequestId)':''),
+   ExpressionAttributeValues:{':request':r.requestId,':owner':r.subjectId,':now':time*1000,
+    ...(parentLock?{':parent':parentLock}:{})},
+   }});
+  }
+  if(3+proofGuard.length+parentGuard.length+branchUpdates.length>100)throw error('DELETION_SCOPE_EXCEEDS_TRANSACTION_LIMIT');
   // The OTP and request share a transaction. A crash cannot consume a proof without a receipt.
   await db.send(new TransactWriteCommand({TransactItems:[
    {Update:{TableName:table,Key:{pk:`CHALLENGE#${proof.challengeId}`,sk:'META'},UpdateExpression:'SET used = :yes',ConditionExpression:'purpose = :purpose AND subjectId = :subject AND actorType = :type AND fingerprint = :fp AND used = :no AND verifiedAt >= :recent AND expiresAt > :now',ExpressionAttributeValues:{':yes':true,':no':false,':purpose':'account-deletion',':subject':a.sub,':type':a.type,':fp':r.fingerprint,':recent':time-120,':now':time}}},
    {Put:{TableName:table,Item:item,ConditionExpression:'attribute_not_exists(pk)'}},
    {Put:{TableName:table,Item:{pk:item.pk,sk:`ACTIVE#${r.scope.kind}#${r.scope.id}`,requestId:r.requestId},ConditionExpression:'attribute_not_exists(pk)'}},
-   ...pauseOrders
+   ...proofGuard,...parentGuard,...branchUpdates
   ]}));return item;
  }
  async function update(r,patch){

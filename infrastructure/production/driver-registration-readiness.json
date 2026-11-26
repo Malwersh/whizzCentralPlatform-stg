@@ -1,0 +1,37 @@
+{
+  "accountId": "746727375268",
+  "status": "DEPLOYED_VERIFIED_OTP_DISABLED",
+  "otpEnabled": false,
+  "walletServiceReady": false,
+  "sourceEvidence": [
+    {
+      "module": "registration",
+      "sourceSha256": "f5f76a67f7663a2e236580b4b8fb71ac271ce0a6b1e6f44edb30eb77c3dc4218",
+      "packagedSha256": "b27baae4d4bc28937033c560fa20cd012bea078274f8d59103a1165fad939b40"
+    },
+    {
+      "module": "iraqi-phone",
+      "sourceSha256": "87e4e9c78b83548ab31b2eddd6aa3aac5b2ebb6e14d47e5cbbeacb8dd77c7e94",
+      "packagedSha256": "87e4e9c78b83548ab31b2eddd6aa3aac5b2ebb6e14d47e5cbbeacb8dd77c7e94"
+    },
+    {
+      "module": "challenge-policy",
+      "sourceSha256": "09d44b22c3f4c529d82a0edc1f0d4684eea7abb6f5d5f82e77101660daf5fd56",
+      "packagedSha256": "09d44b22c3f4c529d82a0edc1f0d4684eea7abb6f5d5f82e77101660daf5fd56"
+    },
+    {
+      "module": "login-proof",
+      "sourceSha256": "55f506156c3bc907d8d174c93e1fc0fc8c4d988be53bbdf328cf9b2e889ceba8",
+      "packagedSha256": "55f506156c3bc907d8d174c93e1fc0fc8c4d988be53bbdf328cf9b2e889ceba8"
+    }
+  ],
+  "activationRequirements": [
+    "Deploy and verify scoped production wallet creation service",
+    "Complete production driver profile/legal/documents/region APIs",
+    "Verify full registration retries and concurrent lifecycle changes",
+    "Configure provider and load limits"
+  ],
+  "walletCreatorDeployed": true,
+  "apiUrl": "https://w99egtarjj.execute-api.us-east-1.amazonaws.com/production",
+  "packagedVerificationTests": "PASS_MOCKED_AWS"
+}

@@ -1,0 +1,14 @@
+.cancellation-search { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.cancellation-search label { margin: 0; flex: 0 1 280px; }
+.cancellation-search input { margin-top: 4px; }
+.platform-main .cancellation-secondary { color: #062b67; background: white; box-shadow: inset 0 0 0 1px #cad5e5; }
+.cancellation-case { border: 1px solid #e0e6ef; border-radius: 14px; margin: 12px 0; }
+.cancellation-case > summary { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 14px 18px; cursor: pointer; }
+.cancellation-case > summary::before { content: "▸"; }
+.cancellation-case[open] > summary::before { content: "▾"; }
+.cancellation-case strong { margin-inline-end: auto; }
+.cancellation-case > div { border-top: 1px solid #e0e6ef; padding: 14px 18px; }
+.cancellation-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 12px; margin: 0; }
+.cancellation-facts dt { color: #526783; }
+.cancellation-facts dd { margin: 0; overflow-wrap: anywhere; }
+.cancellation-reminder { border-inline-start: 3px solid #f0b300; padding: 8px 12px; background: #fff8e5; }

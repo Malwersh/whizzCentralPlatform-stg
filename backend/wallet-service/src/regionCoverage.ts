@@ -3,13 +3,19 @@ import { createHash } from 'node:crypto';
 import { latLngToCell, cellToParent, gridDisk } from 'h3-js';
 import { booleanPointInPolygon } from '@turf/boolean-point-in-polygon';
 import type { Polygon, MultiPolygon } from 'geojson';
-import { Point, CoverageMatch, RoutingError, createCoveredDeliveryRouter, createMapboxRoadRouter } from './roadRouting';
+import { Point, CoverageMatch, BoundaryPreference, RoutingError, createCoveredDeliveryRouter, createMapboxRoadRouter } from './roadRouting';
+import { checkoutTables } from './checkoutTables';
 
 type Row = Record<string, unknown>;
 export type RegionCoverage = CoverageMatch & Readonly<{
   countryId: string; governorateId: string; districtId: string;
   regionPath: readonly string[]; cellId: string;
 }>;
+export class BoundaryRegionSelectionRequired extends RoutingError {
+  constructor(public readonly regionIds: readonly string[]) {
+    super('BOUNDARY_REGION_SELECTION_REQUIRED');
+  }
+}
 const refError = (): never => { throw new RoutingError('REGION_REFERENCE_UNAVAILABLE'); };
 const id = (v: unknown): string => typeof v === 'string' && /^[A-Za-z0-9_.:-]{1,150}$/.test(v) ? v : refError();
 const enabled = (v: unknown) => v === true || v === 1 || v === '1' || v === 'true';
@@ -55,7 +61,7 @@ export function createDynamoRegionCoverage(options: {
 }) {
   const { db } = options, tables = { ...options.tables };
   for (const table of Object.values(tables)) if (!/^[A-Za-z0-9_.-]{3,255}$/.test(table)) return refError();
-  return async (value: Point): Promise<RegionCoverage | null> => {
+  return async (value: Point, preference?: BoundaryPreference): Promise<RegionCoverage | null> => {
     const p = readPoint(value);
     try {
       const cellId = latLngToCell(p.latitude, p.longitude, 9);
@@ -82,7 +88,7 @@ export function createDynamoRegionCoverage(options: {
         } while (cursor);
       }
       // Per-resolution read cache only: a new resolve always rereads source and derived records strongly.
-      const rows = new Map<string, Promise<{ base: Row; derived: Row }>>();
+      const rows = new Map<string, Promise<{ base: Row; derived: Row } | null>>();
       const get = (regionId: string) => {
         let pending = rows.get(regionId);
         if (!pending) {
@@ -94,6 +100,8 @@ export function createDynamoRegionCoverage(options: {
               db.send(new GetCommand({ TableName: tables.derived, Key: { regionId }, ConsistentRead: true,
                 ProjectionExpression: 'regionId, effective_is_active, #version', ExpressionAttributeNames: { '#version': 'version' } }))
             ]);
+            // A deleted area may still be returned briefly by the eventually consistent index.
+            if (!a.Item && !b.Item) return null;
             if (!a.Item || !b.Item || a.Item.regionId !== regionId || b.Item.regionId !== regionId) return refError();
             return { base: a.Item, derived: b.Item };
           })();
@@ -102,21 +110,25 @@ export function createDynamoRegionCoverage(options: {
         return pending;
       };
       const matches: RegionCoverage[] = [];
+      const boundaryMatches: RegionCoverage[] = [];
       for (const candidate of [...candidates].sort()) {
         const leaf = await get(candidate);
+        if (!leaf) continue;
         const level = Number(leaf.base.level);
         if (!Number.isInteger(level) || level < 0 || level > 3) return refError();
         if (level !== 3) continue; // Country/governorate/district alone cannot prove a service neighborhood.
         if (!enabled(leaf.base.is_active) || !enabled(leaf.derived.effective_is_active)) continue;
         const shape = geometry(leaf.base.geometry);
-        if (!booleanPointInPolygon([p.longitude, p.latitude], shape, { ignoreBoundary: true })) continue;
+        const coordinates: [number, number] = [p.longitude, p.latitude];
+        const inside = booleanPointInPolygon(coordinates, shape, { ignoreBoundary: true });
+        if (!inside && (!preference || !booleanPointInPolygon(coordinates, shape))) continue;
         const chain = [leaf];
         let active = true;
         for (let expected = 2; expected >= 0; expected--) {
           const parentId = id(chain[chain.length - 1].base.parent_id);
           if (chain.some(r => r.base.regionId === parentId)) return refError();
           const parent = await get(parentId);
-          if (Number(parent.base.level) !== expected) return refError();
+          if (!parent || Number(parent.base.level) !== expected) return refError();
           if (!enabled(parent.base.is_active) || !enabled(parent.derived.effective_is_active)) active = false;
           chain.push(parent);
         }
@@ -129,11 +141,15 @@ export function createDynamoRegionCoverage(options: {
           active: r.base.is_active, effectiveActive: r.derived.effective_is_active,
           version: r.base.version ?? null, derivedVersion: r.derived.version ?? null }));
         const referenceVersion = createHash('sha256').update(canonical({ schemaVersion: 1, proof, geometry: shape })).digest('hex');
-        matches.push(Object.freeze({ regionId: candidate, countryId: path[0], governorateId: path[1], districtId: path[2],
+        (inside ? matches : boundaryMatches).push(Object.freeze({ regionId: candidate, countryId: path[0], governorateId: path[1], districtId: path[2],
           regionPath: path, cellId, referenceVersion, active: true, hierarchyActive: true, insidePolygon: true }));
       }
       if (matches.length > 1) throw new RoutingError('AMBIGUOUS_COVERAGE');
-      return matches[0] ?? null;
+      if (matches.length === 1) return matches[0];
+      if (boundaryMatches.length < 2) return null;
+      const preferred = boundaryMatches.find(match => match.regionId === preference?.preferredRegionId);
+      if (preferred) return preferred;
+      throw new BoundaryRegionSelectionRequired(boundaryMatches.map(match => match.regionId));
     } catch (error) {
       if (error instanceof RoutingError) throw error;
       return refError();
@@ -148,8 +164,6 @@ export function createStagingDeliveryRouting(options: {
   profile: 'driving' | 'driving-traffic'; ttlSeconds: number; timeoutMs: number;
   fetchImpl?: typeof fetch; now?: () => number;
 }) {
-  const resolveCoverage = createDynamoRegionCoverage({ db: options.db, tables: {
-    regions: 'WizzCentral_Regions', derived: 'WizzCentral_RegionsDerived_staging', index: 'WizzCentral_RegionIndex_staging'
-  } });
+  const resolveCoverage = createDynamoRegionCoverage({ db: options.db, tables: checkoutTables() });
   return createCoveredDeliveryRouter({ resolveCoverage, router: createMapboxRoadRouter(options) });
 }

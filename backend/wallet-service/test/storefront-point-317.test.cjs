@@ -9,11 +9,36 @@ function setup(){
  const f=fixture(),send=f.db.send;f.db.send=async c=>c.input.TableName==='staging-MerchantPlatform'&&c.constructor.name==='QueryCommand'?{Items:f.indexes??[]}:send(c);
  f.branch.orderReceptionSettings={defaultPreparationMinutes:20};f.branch.minimum_order=10000;
  const router=db=>createStagingDeliveryRouting({db,getAccessToken:async()=>'test',profile:'driving',ttlSeconds:120,timeoutMs:1000,now:()=>f.time,fetchImpl:async()=>{f.providerCalls++;f.afterProvider();return new Response(JSON.stringify({code:'Ok',routes:[{distance:2100,duration:300}]}));}});
- f.preview=(patch={})=>create({db:f.db,createRouter:router,now:()=>f.time}).preview({branchId:'b1',regionId:'zone',point:{...point},...patch});
+ f.preview=(patch={},catalogPreview=false)=>create({db:f.db,createRouter:router,now:()=>f.time,catalogPreview}).preview({branchId:'b1',regionId:'zone',point:{...point},...patch});
  f.context=createStagingDeliveryPricingContext({db:f.db,authenticateCustomer:f.auth,router:router(f.db),now:()=>f.time});return f;
 }
 test('guest point uses actual road and minimum without address/profile/financial writes or quote IDs',async()=>{const f=setup(),r=await f.preview();assert.equal(r.customerDeliveryFee.minorAmount,3100000);assert.equal(r.roadDistanceMeters,2100);assert.equal(r.minimumOrderAmountIqd,10000);assert.equal(r.preparationMinutes,20);assert.deepEqual(r.destination,point);assert.equal(r.informationalOnly,true);assert.equal(r.requiresFinalConfirmation,true);assert.equal(f.transactions.length,0);assert.equal(f.saved.size,0);assert(!f.calls.some(c=>['WizzUser_addresses_staging','WizzUser_users_staging'].includes(c.TableName)));assert(!('quoteId'in r));assert(!('addressId'in r));assert(!JSON.stringify(r).includes('owner1'));});
 test('public preview does not weaken existing owned-address pricing',async()=>{const f=setup();f.address.userId='foreign';await assert.rejects(f.context.calculate({branchId:'b1',addressId:'a1'}),/ADDRESS_UNAVAILABLE/);assert.equal((await f.preview()).informationalOnly,true);});
+test('catalog checks actual road distance and duration even inside the same region',async()=>{
+ const f=setup(), coverage=f.policy.values.deliveryRules[0].coverage;
+ assert.equal((await f.preview({},true)).roadDistanceMeters,2100);
+ coverage.maxRoadMeters=2000;
+ await assert.rejects(f.preview({},true),/OUTSIDE_DELIVERY_RANGE/);
+ coverage.maxRoadMeters=2100;
+ coverage.maxDurationSeconds=299;
+ await assert.rejects(f.preview({},true),/OUTSIDE_DELIVERY_RANGE/);
+ coverage.maxDurationSeconds=300;
+ assert.equal((await f.preview({},true)).regionId,'zone');
+});
+test('neighbor discovery needs an explicit cross-region rule and a valid relationship',async()=>{
+ const f=setup();
+ f.regions.set('neighbor',{regionId:'neighbor',level:3,parent_id:'district',is_active:1,
+  geometry:{type:'Polygon',coordinates:[[[44.5,31.9],[44.6,31.9],[44.6,32],[44.5,32],[44.5,31.9]]]}});
+ const target={regionId:'neighbor',point:{...point,longitude:44.52}};
+ const settings=f.policy.values.deliveryRules[0].coverage;
+ settings.supportedZoneIds.push('neighbor');
+ await assert.rejects(f.preview(target,true),/OUTSIDE_COVERAGE/);
+ assert.equal((await f.preview(target)).regionId,'neighbor');
+ settings.crossRegionMode='SAME_DISTRICT';
+ f.neighbor={source_region_id:'zone',target_region_id:'neighbor',source_level:3,target_level:3,relationship_type:'adjacent'};
+ assert.equal((await f.preview(target,true)).regionId,'neighbor');
+ assert.equal(f.transactions.length,0);
+});
 test('arbitrary fields, invalid coordinates and region spoof fail',async()=>{for(const patch of [{price:1},{addressId:'a1'},{point:{latitude:'31.9',longitude:44.4}},{point:{latitude:NaN,longitude:44.4}},{point:{...point,region:'zone'}}])assert.throws(()=>pointSelection317({branchId:'b1',regionId:'zone',point:{...point},...patch}),/INVALID_STOREFRONT_REQUEST/);await assert.rejects(setup().preview({regionId:'other'}),/OUTSIDE_COVERAGE/);});
 test('uncovered point, suspended branch, revoked organization and policy race fail closed',async()=>{await assert.rejects(setup().preview({point:{latitude:30,longitude:43}}));for(const edit of [f=>f.branch.isActive=false,f=>f.organization.subjectId='foreign',f=>f.policy.values.deliveryRules=[]]){const f=setup();edit(f);await assert.rejects(f.preview());}const f=setup();f.afterProvider=()=>{f.policy.version++;};await assert.rejects(f.preview(),/PRICING_CONTEXT_CHANGED/);});
 function agreement(f){

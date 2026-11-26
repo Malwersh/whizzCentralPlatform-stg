@@ -4,8 +4,8 @@ import {BENEFIT_POLICY_PREFIX,settlePlatformBenefit} from './platformBenefits';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { readDeliveryFundingPolicy, calculatePolicyDeliveryFunding } from './deliveryFundingPolicy';
 import { quoteEntityIdValid, quoteHash } from './deliveryQuoteRecord';
+import { financialOrderTables } from './walletBindings';
 type Row = Record<string, any>;
-const TABLE = 'staging-PlatformStaff';
 export class DeliveryBudgetError extends Error {
   constructor(public readonly code: string) { super(code); this.name = 'DeliveryBudgetError'; }
 }
@@ -19,10 +19,10 @@ function increment(v: unknown): number { const n = num(v); if (n < 1 || n === Nu
 const budgetKey = (id: string, version: number) => ({pk:'DELIVERY_BUDGET#'+id,sk:'VERSION#'+version});
 const usageKey = (id: string, customer: string) => ({pk:'DELIVERY_USAGE#'+id,sk:'CUSTOMER#'+customer});
 const holdKey = (order: string) => ({pk:'DELIVERY_RESERVATION#'+order,sk:'META'});
-function put(next: Row, before?: Row) {
+function budgetPut(table: string, next: Row, before?: Row) {
   const condition = before ? {ConditionExpression:'#v=:v AND #digest=:digest',ExpressionAttributeNames:{'#v':'version','#digest':'digest'},ExpressionAttributeValues:{':v':before.version,':digest':before.digest}} : {ConditionExpression:'attribute_not_exists(pk)'};
   const {digest: _digest,...content} = next;
-  return {Put:{TableName:TABLE,Item:{...content,digest:quoteHash(content)},...condition}};
+  return {Put:{TableName:table,Item:{...content,digest:quoteHash(content)},...condition}};
 }
 function verify(row: Row) {
   const {digest,...content}=row;
@@ -43,7 +43,7 @@ export function validateDeliveryCampaignUsageRecord(row: Row) { if(row.schemaVer
  */
 export function deliveryCampaignBudgetInitialization(value: unknown) {
   const {policy,termsHash}=readDeliveryFundingPolicy(value);
-  return put({...budgetKey(policy.id,policy.version),schemaVersion:1,version:1,
+  return budgetPut(financialOrderTables().staff, {...budgetKey(policy.id,policy.version),schemaVersion:1,version:1,
     policyPin:{policyId:policy.id,version:policy.version,termsHash},merchantTotal:policy.limits.merchantBudget.minorAmount,platformTotal:policy.limits.platformBudget.minorAmount,
     merchantAvailable:policy.limits.merchantBudget.minorAmount,platformAvailable:policy.limits.platformBudget.minorAmount,
     merchantReserved:0,platformReserved:0,merchantSpent:0,platformSpent:0});
@@ -55,9 +55,11 @@ export function deliveryCampaignBudgetInitialization(value: unknown) {
  */
 export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;reservationNamespace?:'PROMOTION'}) {
   const {db}=options,now=options.now??Date.now;
+  const tables=financialOrderTables();
+  const put=(next: Row, before?: Row)=>budgetPut(tables.staff,next,before);
   const reservationKey=(order:string)=>({...holdKey(order),...(options.reservationNamespace?{pk:holdKey(order).pk+'#PROMOTION'}:{})});
   async function get(key: Row):Promise<Row|undefined> {
-    try { return (await db.send(new GetCommand({TableName:TABLE,Key:key,ConsistentRead:true}))).Item; }
+    try { return (await db.send(new GetCommand({TableName:tables.staff,Key:key,ConsistentRead:true}))).Item; }
     catch { return fail('DELIVERY_BUDGET_UNAVAILABLE'); }
   }
   return Object.freeze({async reserve(value: unknown) {
@@ -71,7 +73,7 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
     const requestDigest=quoteHash(request),existing=await get(reservationKey(r.orderId));
     if(existing && readDeliveryFundingReplay(existing,reservationKey(r.orderId),r.orderId)) {
       if(existing.requestDigest!==requestDigest || existing.status!=='CAPTURED')return fail('DELIVERY_RESERVATION_CONFLICT');
-      return {replayed:true,status:existing.status,operations:[deliveryFundingReplayFence(existing)]};
+      return {replayed:true,status:existing.status,operations:[deliveryFundingReplayFence(existing,tables.staff)]};
     }
     if(existing){verify(existing);if(existing.requestDigest!==requestDigest||!['RESERVED','CAPTURED'].includes(existing.status))return fail('DELIVERY_RESERVATION_CONFLICT');return {replayed:true,status:existing.status,operations:[]};}
     if(policy.schemaVersion===2){
@@ -98,7 +100,7 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
       return {replayed:base.replayed,status:r.outcome,operations:[...base.operations,...extra.operations]};
     }
     if(r.expectedFunding?.policyPin?.policyId?.startsWith(BENEFIT_POLICY_PREFIX)){
-      const order=(await db.send(new GetCommand({TableName:'WizzOrders',Key:{PK:'ORDER#'+r.orderId,SK:'META'},ConsistentRead:true}))).Item;
+      const order=(await db.send(new GetCommand({TableName:tables.orders,Key:{PK:'ORDER#'+r.orderId,SK:'META'},ConsistentRead:true}))).Item;
       const receipt=order?.platformDeliveryBenefitReceipt??order?.platformBenefitReceipt;
       if(!order||receipt?.target!=='DELIVERY'||BENEFIT_POLICY_PREFIX+receipt.campaignId!==r.expectedFunding.policyPin.policyId)return fail();
       const keepUse=order.status!=='pending'||['confirmedAt','merchantAcceptedAt','acceptedAt','financialAcceptance'].some(k=>order[k]!=null);
@@ -109,7 +111,7 @@ export function createStagingDeliveryCampaignBudget(options:{db:Pick<DynamoDBDoc
       if(!hasExpected || h.status!==r.outcome)return fail('DELIVERY_RESERVATION_CONFLICT');
       exact(r.expectedFunding,['policyPin','allocation']);
       if(quoteHash(r.expectedFunding)!==h.fundingDigest)return fail('DELIVERY_RESERVATION_CONFLICT');
-      return {replayed:true,status:h.status,operations:[deliveryFundingReplayFence(h)]};
+      return {replayed:true,status:h.status,operations:[deliveryFundingReplayFence(h,tables.staff)]};
     }
     verify(h);
     if(h.orderId!==r.orderId||!quoteEntityIdValid(h.customerId)||!quoteEntityIdValid(h.policyPin?.policyId)||!Number.isSafeInteger(h.policyPin?.version)||h.policyPin.version<1)return fail();

@@ -4,17 +4,17 @@ const {GetCommand,ScanCommand}=require('@aws-sdk/lib-dynamodb');
 const TABLE='staging-MerchantPlatform';
 const key=(source,id)=>({pk:'CAMPAIGN_SHARING_LOCK#'+source+'#'+id,sk:'META'});
 const fail=code=>{throw Object.assign(Error(code),{status:409,statusCode:409});};
-async function read(db,source,row){
- const lockKey=key(source,row.discountId),marker=(await db.send(new GetCommand({TableName:TABLE,Key:lockKey,ConsistentRead:true}))).Item;
+async function read(db,source,row,{platform=TABLE,staff='staging-PlatformStaff',project=false}={}){
+ const lockKey=key(source,row.discountId),marker=(await db.send(new GetCommand({TableName:platform,Key:lockKey,ConsistentRead:true}))).Item;
  let locked=!!marker||!!row.fundingPolicyId;
- const guards=[{ConditionCheck:{TableName:TABLE,Key:lockKey,ConditionExpression:marker?'attribute_exists(pk)':'attribute_not_exists(pk)'}}];
+ const guards=[{ConditionCheck:{TableName:platform,Key:lockKey,ConditionExpression:marker?'attribute_exists(pk)':'attribute_not_exists(pk)'}}];
  if(!locked&&source==='MERCHANT'){
   const bindingKey={pk:'BRANCH#'+row.businessId,sk:'COMMERCIAL_SHARING#MERCHANT#'+row.discountId};
-  const binding=(await db.send(new GetCommand({TableName:TABLE,Key:bindingKey,ConsistentRead:true}))).Item;
-  locked=!!binding;guards.push({ConditionCheck:{TableName:TABLE,Key:bindingKey,ConditionExpression:binding?'attribute_exists(pk)':'attribute_not_exists(pk)'}});
+  const binding=(await db.send(new GetCommand({TableName:platform,Key:bindingKey,ConsistentRead:true}))).Item;
+  locked=!!binding;guards.push({ConditionCheck:{TableName:platform,Key:bindingKey,ConditionExpression:binding?'attribute_exists(pk)':'attribute_not_exists(pk)'}});
  }else if(!locked&&source==='PLATFORM'){
   // Legacy approvals predate the permanent marker. Read every page, never assume absence.
-  let cursor;do{const page=await db.send(new ScanCommand({TableName:'staging-PlatformStaff',ConsistentRead:true,FilterExpression:'campaignId = :campaign AND #source = :source AND sk = :current',ExpressionAttributeNames:{'#source':'source'},ExpressionAttributeValues:{':campaign':row.discountId,':source':'PLATFORM',':current':'CURRENT'},...(cursor?{ExclusiveStartKey:cursor}:{})}));if(page.Items?.some(r=>r.campaignId===row.discountId&&r.source==='PLATFORM'&&r.sk==='CURRENT'&&r.schemaVersion===3)){locked=true;break;}cursor=page.LastEvaluatedKey;}while(cursor);
+  let cursor;do{const page=await db.send(new ScanCommand({TableName:staff,ConsistentRead:true,...(project?{Select:'SPECIFIC_ATTRIBUTES',ProjectionExpression:'campaignId,#source,sk,schemaVersion'}:{}),FilterExpression:'campaignId = :campaign AND #source = :source AND sk = :current',ExpressionAttributeNames:{'#source':'source'},ExpressionAttributeValues:{':campaign':row.discountId,':source':'PLATFORM',':current':'CURRENT'},...(cursor?{ExclusiveStartKey:cursor}:{})}));if(page.Items?.some(r=>r.campaignId===row.discountId&&r.source==='PLATFORM'&&r.sk==='CURRENT'&&r.schemaVersion===3)){locked=true;break;}cursor=page.LastEvaluatedKey;}while(cursor);
  }
  return {locked,guards,initiallyInactive:marker?.initiallyInactive===true};
 }

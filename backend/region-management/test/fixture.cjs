@@ -3,8 +3,8 @@ const {TABLES:T}=require('../repository');
 const classes={};for(const name of ['GetCommand','ScanCommand','QueryCommand','TransactWriteCommand','BatchWriteCommand','DeleteCommand'])classes[name]=({[name]:class{constructor(input){this.input=input;}}})[name];
 const copy=structuredClone;
 function fixture(){
- const rows=new Map(),calls=[],messages=[];let hook,clock=Date.parse('2026-10-26T12:00:00Z'),unprocessed=0,budget=45000,loseCommit;
- const keyOf=(table,row)=>table==='staff'?{pk:row.pk,sk:row.sk}:table===T.index?{index_cell_id:row.index_cell_id}:table===T.neighbors?{neighbor_pair_id:row.neighbor_pair_id}:table===T.audit?{audit_id:row.audit_id}:{regionId:row.regionId};
+ const rows=new Map(),calls=[],messages=[];let hook,clock=Date.parse('2026-10-26T12:00:00Z'),unprocessed=0,budget=45000,loseCommit,referenceErrors=[];
+ const keyOf=(table,row)=>table==='staff'?{pk:row.pk,sk:row.sk}:table===T.index?{index_cell_id:row.index_cell_id}:table===T.neighbors?{neighbor_pair_id:row.neighbor_pair_id}:table===T.audit?{audit_id:row.audit_id}:table===T.listings?{regionId:row.regionId,metadataType:row.metadataType}:{regionId:row.regionId};
  const key=(t,k)=>t+'|'+JSON.stringify(k),get=(t,k)=>rows.get(key(t,k)),put=(t,r)=>rows.set(key(t,keyOf(t,r)),copy(r));
  function check(q,row){if(!q.ConditionExpression)return true;return q.ConditionExpression.split(' AND ').every(term=>{let a=term.match(/^attribute_not_exists\(([^)]+)\)$/);if(a)return row?.[q.ExpressionAttributeNames?.[a[1]]??a[1]]===undefined;const m=term.match(/^([^=]+)=([^=]+)$/);assert(m,'unsupported '+term);const field=q.ExpressionAttributeNames?.[m[1].trim()]??m[1].trim();return JSON.stringify(row?.[field])===JSON.stringify(q.ExpressionAttributeValues[m[2].trim()]);});}
  const db={async send(command){calls.push(command);const q=command.input;
@@ -30,13 +30,14 @@ function fixture(){
  const region=(id,level,parent,geometry)=>({regionId:id,level,parent_id:parent,geometry,name:id,name_ar:'اسم '+id,is_active:true,version:1,service_config:{delivery:true,pickup:false,dineIn:false},delivery_config:{estimated_time_minutes:20}});
  for(const r of [region('country',0,null,square(40,28,10)),region('gov',1,'country',square(41,29,5)),region('district',2,'gov',square(42,30,3)),region('a',3,'district',square(44,31))]){put(T.base,r);put(T.derived,{regionId:r.regionId,parent_id:r.parent_id||'ROOT',level:r.level,version:1,effective_is_active:1,effective_config:{delivery:{estimated_time_minutes:20}},effective_pricing:{base_fee:3000},effective_limits:{max_active_orders_per_driver:1}});}
  const allowed=(a,p)=>a.permissions?.includes(p);
- const ctx={db,sdk:classes,table:'staff',allowed,claims:{},recent:()=>{},now:()=>clock,guard:a=>({ConditionCheck:{TableName:'staff',Key:{pk:'EMPLOYEE#'+a.employeeId,sk:'PROFILE'},ConditionExpression:'#v=:v AND #s=:s',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':a.version,':s':'ACTIVE'}}}),audit:(actor,action,before,after,id)=>({Put:{TableName:'staff',Item:{pk:'AUDIT',sk:id,actor,action,before,after},ConditionExpression:'attribute_not_exists(pk)'}}),enqueue:async id=>messages.push(id)};
+ const ctx={db,sdk:classes,table:'staff',allowed,now:()=>clock,guard:a=>({ConditionCheck:{TableName:'staff',Key:{pk:'EMPLOYEE#'+a.employeeId,sk:'PROFILE'},ConditionExpression:'#v=:v AND #s=:s',ExpressionAttributeNames:{'#v':'version','#s':'status'},ExpressionAttributeValues:{':v':a.version,':s':'ACTIVE'}}}),audit:(actor,action,before,after,id)=>({Put:{TableName:'staff',Item:{pk:'AUDIT',sk:id,actor,action,before,after},ConditionExpression:'attribute_not_exists(pk)'}}),enqueue:async id=>messages.push(id)};
+ ctx.checkReferences=async()=>referenceErrors;
  const worker=require('../worker').make({...ctx,deadline:()=>clock+budget,sleep:async()=>{}});
  const route=(action,body,who=actor)=>require('../service').route(ctx,who,action==='get'?'GET':'POST','/staff/regions/manage'+(action==='get'?'':'/'+action),body);
- const saveDraft=async r=>{const c=await route('get'),prior=c.drafts.find(d=>d.region.regionId===r.regionId);return route('draft',{region:r,catalogDigest:c.digest,expectedDraftVersion:prior?.version??0,reason:'حدود تمت مراجعتها للاختبار'});};
+ const saveDraft=async(r,operation)=>{const c=await route('get'),prior=c.drafts.find(d=>d.region.regionId===r.regionId);return route('draft',{region:r,operation,catalogDigest:c.digest,expectedDraftVersion:prior?.version??0,reason:'حدود تمت مراجعتها للاختبار'});};
  const publish=async(ids,requestId='request_1')=>{const c=await route('get');return route('publish',{catalogDigest:c.digest,drafts:c.drafts.filter(d=>ids.includes(d.region.regionId)).map(d=>({regionId:d.region.regionId,version:d.version})),requestId,reason:'نشر الحدود المراجعة للاختبار'});};
  const job=id=>get('staff',{pk:'REGION_JOB#'+id,sk:'META'});
  async function drain(id,max=30){for(let i=0;i<max;i++){clock+=71000;await worker.run(id);const j=job(id);if(['FAILED','CANCELLED'].includes(j.status)||j.status==='PUBLISHED'&&!j.cleanupPending)return j;}throw Error('not finished '+JSON.stringify(job(id)));}
- return {ctx,actor,route,saveDraft,publish,drain,worker,job,rows,calls,messages,get,put,square,region,hook:fn=>hook=fn,advance:ms=>clock+=ms,unprocessed:n=>unprocessed=n,setBudget:n=>budget=n,loseCommit:fn=>loseCommit=fn};
+ return {ctx,actor,route,saveDraft,publish,drain,worker,job,rows,calls,messages,get,put,square,region,hook:fn=>hook=fn,advance:ms=>clock+=ms,unprocessed:n=>unprocessed=n,setBudget:n=>budget=n,loseCommit:fn=>loseCommit=fn,setReferenceErrors:errors=>referenceErrors=errors};
 }
 module.exports={fixture};

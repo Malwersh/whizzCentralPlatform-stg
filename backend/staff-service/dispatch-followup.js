@@ -6,11 +6,11 @@ async function ownerState(ctx,row,regionId){
  if(!row.ownerId)return {unavailable:false,guards:[]};
  const owner=await ctx.employee(row.ownerId);
  if(owner&&owner.employeeId!==row.ownerId)throw fail('FOLLOWUP_OWNER_UNAVAILABLE',503);
- return {unavailable:!owner||owner.status!=='ACTIVE'||!allowed(owner,'orders.assign',regionId),guards:[exact(ctx.table,{pk:'EMPLOYEE#'+row.ownerId,sk:'PROFILE'},owner,owner?['employeeId','version','status','roles','scope']:['pk'])]};
+ return {unavailable:!owner||owner.status!=='ACTIVE'||owner.deletedAt!=null||owner.deletionRequestId!=null||owner.isDeleted===true||!allowed(owner,'orders.assign',regionId),guards:[exact(ctx.table,{pk:'EMPLOYEE#'+row.ownerId,sk:'PROFILE'},owner,owner?['employeeId','version','status','roles','scope','deletedAt','deletionRequestId','isDeleted']:['pk'])]};
 }
 async function tracking(ctx,c){
- const restart=c.item.source==='SEARCH'?await restartProgress(ctx.db,c.job):null;
- const waiting=!!restart?.waiting&&['pending','confirmed','preparing','ready_for_pickup'].includes(c.order.status)&&!c.order.driverId&&!c.order.assignedDriverId&&!c.order.pickedUpAt&&!c.order.deliveredAt&&!c.order.completedAt;
+ const restart=c.item.source==='SEARCH'?await restartProgress(ctx.db,c.job,false,ctx.orderTables?.jobs,ctx.followupFields===true):null;
+ const waiting=!!restart?.waiting&&['pending','confirmed','preparing','ready_for_pickup'].includes(c.order.status)&&!c.order.driverId&&!c.order.assignedDriverId&&!c.order.pickedUpAt&&!c.order.pickupAt&&c.order.merchantHandover?.state!=='HANDED_TO_DRIVER'&&!c.order.deliveredAt&&!c.order.completedAt;
  return {caseId:waiting?restart.caseId:c.item.caseId,active:live(c.item)||waiting,restart:waiting?restart:null};
 }
 async function decorate(ctx,c,actor){
@@ -22,6 +22,7 @@ async function mutate(ctx,actor,input,reader){
  if(Object.keys(input).sort().join(',')!=='action,baseVersion,note,requestId,selector'||!['CLAIM','RELEASE','NOTE'].includes(input.action)||!Number.isSafeInteger(input.baseVersion)||input.baseVersion<0||typeof input.note!=='string'||input.note.trim().length<5||input.note.length>1000||!/^[-a-f0-9]{36}$/.test(input.requestId??''))throw fail('INVALID_FOLLOWUP',400);
  if(!ctx.enrolled)throw fail('ENROLLMENT_REQUIRED',403);ctx.recent(ctx.claims);
  const c=await reader.load(input.selector),track=await tracking(ctx,c);
+ if(ctx.requireCaseId&&ctx.requireCaseId!==track.caseId)throw fail('FOLLOWUP_CHANGED');
  if(!track.active||!allowed(actor,'orders.assign',c.item.regionId))throw fail('REVIEW_ACTION_NOT_ALLOWED',403);
  const old=await get(ctx.db,ctx.table,key(track.caseId)),now=ctx.now?.()??Date.now(),p=await policy(ctx.db,ctx.table),base=old??initial({...c.item,caseId:track.caseId},c.source,p,now);
  if(old&&(old.orderId!==c.item.orderId||old.branchId!==c.item.branchId))throw fail('REVIEW_CHANGED');
@@ -36,15 +37,36 @@ async function mutate(ctx,actor,input,reader){
  if(input.action!=='CLAIM'&&base.ownerId!==actor.employeeId)throw fail('FOLLOWUP_CLAIM_REQUIRED');
  const next={...base,version:(old?.version??0)+1,ownerId:input.action==='RELEASE'?null:actor.employeeId,ownerName:input.action==='RELEASE'?null:(actor.displayName??actor.name??'موظف التشغيل'),lastNote:input.note.trim(),updatedAt:new Date(now).toISOString(),updatedBy:actor.employeeId};
  const {TableName,Key,...condition}=exact(ctx.table,key(track.caseId),old).ConditionCheck;
- const tx=[ctx.guard(actor),...c.guards,...(track.restart?[track.restart.guard]:[]),...(base.ownerId&&base.ownerId!==actor.employeeId?owner.guards:[]),exact(ctx.table,{pk:PK,sk:'CURRENT'},p.row),{Put:{TableName:ctx.table,Item:next,...condition}},{Put:{TableName:ctx.table,Item:inboxRow(next)}},{Put:{TableName:ctx.table,Item:{...markerKey,digest,createdAt:next.updatedAt},ConditionExpression:'attribute_not_exists(pk)'}},ctx.audit(actor.employeeId,'DISPATCH_FOLLOWUP_'+input.action,old??null,next,input.requestId)];
+ const authGuard=ctx.freshGuard?await ctx.freshGuard():ctx.guard(actor);
+ const tx=[authGuard,...c.guards,...(track.restart?[track.restart.guard]:[]),...(base.ownerId&&base.ownerId!==actor.employeeId?owner.guards:[]),exact(ctx.table,{pk:PK,sk:'CURRENT'},p.row),{Put:{TableName:ctx.table,Item:next,...condition}},{Put:{TableName:ctx.table,Item:inboxRow(next)}},{Put:{TableName:ctx.table,Item:{...markerKey,digest,createdAt:next.updatedAt},ConditionExpression:'attribute_not_exists(pk)'}},ctx.audit(actor.employeeId,'DISPATCH_FOLLOWUP_'+input.action,old??null,next,input.requestId)];
  try{await ctx.db.send(new TransactWriteCommand({TransactItems:tx}));}catch(e){const saved=await get(ctx.db,ctx.table,markerKey);if(saved?.digest===digest)return {saved:true,replayed:true,followup:await decorate(ctx,c,actor)};if(e.name==='TransactionCanceledException')throw fail('FOLLOWUP_CHANGED');throw e;}
  return {saved:true,followup:view(next,now)};
 }
 async function alerts(ctx,actor,reader){
  let cursor;
- if(ctx.query?.cursor){try{const raw=JSON.parse(Buffer.from(ctx.query.cursor,'base64url').toString());if(raw.actorId!==actor.employeeId||raw.version!==actor.version||typeof raw.key?.pk!=='string'||typeof raw.key?.sk!=='string'||ctx.query.cursor.length>2048)throw Error();cursor=raw.key;}catch{throw fail('INVALID_CURSOR',400);}}
- const page=await ctx.db.send(new QueryCommand({TableName:ctx.table,ConsistentRead:true,Limit:50,ExclusiveStartKey:cursor,KeyConditionExpression:'pk=:inbox',ExpressionAttributeValues:{':inbox':'DISPATCH_FOLLOWUP_INBOX#OPEN'}})),items=[];
- for(const row of page.Items??[]){try{const c=await reader.load(row.selector),track=await tracking(ctx,c);if(track.active&&track.caseId===row.caseId){await reader.readFence(c);const stored=await get(ctx.db,ctx.table,key(track.caseId));if(stored?.status==='OPEN'&&stored.orderId===c.item.orderId&&stored.branchId===c.item.branchId)items.push({orderId:c.item.orderId,branchName:c.item.branchName,caseId:track.caseId,followup:{...view(stored,ctx.now?.()??Date.now()),restartState:track.restart?.state??null}});}}catch(e){if(e.message!=='REVIEW_UNAVAILABLE')throw e;}}
+ if(ctx.query?.cursor){try{const raw=JSON.parse(Buffer.from(ctx.query.cursor,'base64url').toString());if(raw.actorId!==actor.employeeId||raw.version!==actor.version||raw.key?.pk!=='DISPATCH_FOLLOWUP_INBOX#OPEN'||!(/^[a-f0-9]{64}$/).test(raw.key?.sk??'')||Object.keys(raw.key).sort().join(',')!=='pk,sk'||ctx.query.cursor.length>2048)throw Error();cursor=raw.key;}catch{throw fail('INVALID_CURSOR',400);}}
+ const page=await ctx.db.send(new QueryCommand({TableName:ctx.table,ConsistentRead:true,Limit:ctx.pageLimit??50,ExclusiveStartKey:cursor,KeyConditionExpression:'pk=:inbox',ExpressionAttributeValues:{':inbox':'DISPATCH_FOLLOWUP_INBOX#OPEN'}})),items=[];
+ for(const row of page.Items??[]){
+  try {
+   const c=await reader.load(row.selector),track=await tracking(ctx,c);
+   if(!track.active||track.caseId!==row.caseId)continue;
+   const stored=await get(ctx.db,ctx.table,key(track.caseId));
+   if(stored?.status!=='OPEN'||stored.orderId!==c.item.orderId||stored.branchId!==c.item.branchId)continue;
+   await reader.readFence(c,track.restart?[track.restart.guard]:[]);
+   let actions={};
+   if(ctx.includeOrderNumber){
+    const owner=await ownerState(ctx,stored,c.item.regionId);
+    const canAssign=allowed(actor,'orders.assign',c.item.regionId??null);
+    actions={
+     canClaim:canAssign&&(!stored.ownerId||owner.unavailable),
+     canRelease:canAssign&&stored.ownerId===actor.employeeId,
+    };
+   }
+   items.push({orderId:c.item.orderId,...(ctx.includeOrderNumber?{orderNumber:c.order.orderNumber??c.item.orderId}:{}),
+    branchName:c.item.branchName,caseId:track.caseId,followup:{...view(stored,ctx.now?.()??Date.now()),
+     restartState:track.restart?.state??null,...actions}});
+  }catch(e){if(e.message!=='REVIEW_UNAVAILABLE'&&!(ctx.ignoreChanged&&e.message==='REVIEW_CHANGED'))throw e;}
+ }
  await reader.fresh();return {items,nextCursor:page.LastEvaluatedKey?Buffer.from(JSON.stringify({actorId:actor.employeeId,version:actor.version,key:page.LastEvaluatedKey})).toString('base64url'):null};
 }
 async function decisionFollowup(ctx,actor,c){

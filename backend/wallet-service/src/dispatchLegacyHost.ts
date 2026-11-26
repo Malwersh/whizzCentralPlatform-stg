@@ -1,3 +1,4 @@
+import {financialDispatchTables} from './walletBindings';
 import {DynamoDBDocumentClient,QueryCommand,ScanCommand,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {strongGet,exactCheck,FinancialRow as Row} from './driverFinancialTransaction';
 import {setFinancialFields as set} from './financialRelease';
@@ -6,12 +7,12 @@ import {validateDispatchCycle} from './dispatchCycle';
 import {createStagingDispatchCoordinator} from './dispatchCoordinator';
 import {createStagingDispatchRestartStart} from './dispatchRestartStart';
 const {dispatchWaveSK}=require('../../src/utils/dispatch-cycle-keys');
-const JOBS='WizzDispatchJobs_staging';
 /** Bounded host over existing Jobs and periodic timeout. A persisted cursor resumes
  * empty pages too; no timer per offer, new queue/table or financial engine.
  */
 function createDispatchHost(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;mode?:string;engine?:'LEGACY'|'FINANCIAL';enableDeliveryFunding?:boolean;enableFullCash?:boolean;remainingMs?:()=>number;start:(input:{orderId:string;assignmentId:string;cycleId:string})=>Promise<unknown>}){
  const {db}=options,now=options.now??Date.now,engine=options.engine??'LEGACY',financial=engine==='FINANCIAL',checkpoint={orderId:'SYSTEM#DISPATCH_HOST',SK:'CURSOR#'+engine},coordinator=createStagingDispatchCoordinator({db,now,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash});
+ const {jobs:JOBS}=financialDispatchTables();
  const enabled=()=>{if((options.mode??process.env[financial?'DISPATCH_FINANCIAL_HOST_MODE':'DISPATCH_LEGACY_HOST_MODE'])!=='REQUIRED')throw Error(financial?'DISPATCH_FINANCIAL_HOST_DISABLED':'DISPATCH_LEGACY_HOST_DISABLED');};
  const consumer=createStagingDispatchRestartStart({db,now,mode:'REQUIRED',engine,enableFullCash:options.enableFullCash,start:options.start});
  async function processOrder(orderId:string,expectedAssignment?:string){

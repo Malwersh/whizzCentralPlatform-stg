@@ -1,17 +1,22 @@
+import {financialDispatchTables,isFinancialOrderProduction} from './walletBindings';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
-import {strongGet,exactCheck,equal} from './driverFinancialTransaction';
+import {strongGet,exactCheck,equal,updateChecked} from './driverFinancialTransaction';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
 import {createExceptionStaffAuthority} from './exceptionStaffAuthority';
 import {exceptionCaseIndexOperation} from './orderExceptionCaseIndex';
 type Row=Record<string,any>;
-const RATINGS='whizz-order-ratings-staging',DRIVERS='WhizzDrivers_staging';
 export const DRIVER_RATING_ACTIONS=['READ_DRIVER_RATING_REVIEW','OPEN_DRIVER_RATING_REVIEW','ADD_DRIVER_RATING_EVIDENCE','DECIDE_DRIVER_RATING_REVIEW','OPEN_DRIVER_RATING_APPEAL','CLOSE_DRIVER_RATING_APPEAL'];
 const uuid=(v:any)=>typeof v==='string'&&/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(v);
 const fail=(code='DRIVER_RATING_REVIEW_CONFLICT'):never=>{throw Object.assign(Error(code),{code});};
-const fingerprint=(r:Row)=>quoteHash(Object.fromEntries(['pk','orderId','subjectId','merchantId','driverId','merchantStars','driverStars','comment','createdAt'].map(k=>[k,r[k]??null])));
+const ratingFields=['pk','orderId','subjectId','merchantId','driverId','merchantStars','driverStars','comment','createdAt'];
+const aggregateFields=['pk','count','sum','average','underReviewCount','excludedCount','version'];
+const fingerprint=(r:Row)=>quoteHash(Object.fromEntries(ratingFields.map(k=>[k,r[k]??null])));
 const aggregateValid=(a:Row)=>['underReviewCount','excludedCount'].every(k=>a?.[k]===undefined||Number.isSafeInteger(a[k])&&a[k]>=0)&&a&&Number.isSafeInteger(a.count)&&a.count>=0&&Number.isSafeInteger(a.sum)&&a.sum>=a.count&&a.sum<=a.count*5&&Number.isSafeInteger(a.version)&&a.version>0&&(a.count===0?a.average===null:a.average===Math.round(a.sum/a.count*100)/100);
-export function createDriverRatingReview(options:{db:Pick<DynamoDBDocumentClient,'send'>;authority:ReturnType<typeof createExceptionStaffAuthority>;now?:()=>number}){
+export function createDriverRatingReview(options:{db:Pick<DynamoDBDocumentClient,'send'>;authority:Pick<ReturnType<typeof createExceptionStaffAuthority>,'authenticate'|'read'|'operate'>;expectedDriverId?:string;expectedRegion?:{id:string|undefined};now?:()=>number}){
  const {db,authority}=options,now=options.now??Date.now;
+ const tables=financialDispatchTables();
+ const ratings=isFinancialOrderProduction(process.env)?process.env.RATINGS_TABLE:'whizz-order-ratings-staging';
+ if(!ratings||isFinancialOrderProduction(process.env)&&ratings!=='wizz-production-OrderRatings')throw Error('RATING_BINDING_NOT_CONFIGURED');
  return async(v:Row)=>{
   const read=v?.action==='READ_DRIVER_RATING_REVIEW',open=v?.action==='OPEN_DRIVER_RATING_REVIEW',evidence=v?.action==='ADD_DRIVER_RATING_EVIDENCE',decide=v?.action==='DECIDE_DRIVER_RATING_REVIEW',appeal=v?.action==='OPEN_DRIVER_RATING_APPEAL',close=v?.action==='CLOSE_DRIVER_RATING_APPEAL';
   const fields=['action','orderId',...(!read?['reason','idempotencyKey','expectedVersion']:[]),...(!read&&!open?['caseId']:[]),...(evidence?['reportedByParty','reference']:[]),...(decide?['decision','evidenceIds','supersedesDecisionId']:[]),...(appeal?['reference','reportedByParty']:[]),...(close?['appealId','resolution','evidenceIds']:[])];
@@ -22,15 +27,15 @@ export function createDriverRatingReview(options:{db:Pick<DynamoDBDocumentClient
   if(close&&(!uuid(v.appealId)||!['UPHELD','REVISED'].includes(v.resolution)))return fail('INVALID_DRIVER_RATING_REVIEW');
   const actor=await authority.authenticate();if(actor.kind!=='STAFF')return fail('UNAUTHORIZED');const access=read?await authority.read(actor):await authority.operate(actor);
   const ok={PK:'ORDER#'+v.orderId,SK:'META'},rk={pk:'ORDER#'+v.orderId},ck={orderId:v.orderId,sk:'DRIVER_RATING_REVIEW'};
-  const order=await strongGet(db,'WizzOrders',ok),rating=await strongGet(db,RATINGS,rk),row=await strongGet(db,'staging-Holds',ck);
-  if(!order||order.orderId!==v.orderId||!['delivered','completed'].includes(order.status)||order.isGuestOrder===true||order.isDeleted===true||order.deletedAt!=null||order.deletionRequestId!=null)return fail('DRIVER_RATING_SOURCE_UNAVAILABLE');
+  const order=await strongGet(db,tables.orders,ok),rating=await strongGet(db,ratings,rk),row=await strongGet(db,tables.holds,ck);
+  if(!order||order.orderId!==v.orderId||options.expectedDriverId!==undefined&&order.driverId!==options.expectedDriverId||!['delivered','completed'].includes(order.status)||order.isGuestOrder===true||order.isDeleted===true||order.deletedAt!=null||order.deletionRequestId!=null)return fail('DRIVER_RATING_SOURCE_UNAVAILABLE');
   if(!rating){if(read&&!row)return {success:true,item:{orderId:v.orderId,orderNumber:order.orderNumber||v.orderId,branchName:order.storeName||order.restaurantName||'المطعم',reviewable:false,rating:null,review:null,financialPosting:false}};return fail('DRIVER_RATING_SOURCE_UNAVAILABLE');}
   if(rating.orderId!==order.orderId||rating.pk!==rk.pk||rating.merchantId!==order.storeId||rating.driverId!==order.driverId||!quoteEntityIdValid(rating.driverId)||!quoteEntityIdValid(rating.subjectId)||!(order.userSub!=null?rating.subjectId===order.userSub:rating.subjectId===order.userId||rating.subjectId===order.customerId)||!Number.isInteger(rating.driverStars)||rating.driverStars<1||rating.driverStars>5||!Number.isFinite(Date.parse(rating.createdAt)))return fail('DRIVER_RATING_SOURCE_UNAVAILABLE');
-  const source=fingerprint(rating),dk={driverId:rating.driverId},driver=await strongGet(db,DRIVERS,dk);
-  if(!driver||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null)return fail('DRIVER_RATING_SOURCE_UNAVAILABLE');
+  const source=fingerprint(rating),dk={driverId:rating.driverId},driver=await strongGet(db,tables.driver,dk);
+  if(!driver||options.expectedRegion&&driver.work_region_id!==options.expectedRegion.id||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null)return fail('DRIVER_RATING_SOURCE_UNAVAILABLE');
   if(row&&(row.kind!=='DRIVER_RATING_REVIEW'||row.schemaVersion!==1||row.actorKind!=='STAFF'||row.orderId!==v.orderId||row.driverId!==rating.driverId||row.ratingSource!==source||!uuid(row.caseId)))return fail();
   if(read)return {success:true,item:{orderId:v.orderId,orderNumber:order.orderNumber||v.orderId,branchName:order.storeName||order.restaurantName||'المطعم',driverName:driver.name||driver.fullName||'السائق',rating:{stars:rating.driverStars,comment:rating.comment,createdAt:rating.createdAt,included:rating.driverModeration?.included??true},review:row,reviewable:true,financialPosting:false}};
-  const ek={orderId:v.orderId,sk:'RATING_REVIEW_EVENT#'+v.idempotencyKey},digest=quoteHash({...v,actorId:actor.subjectId}),previous=await strongGet(db,'staging-Holds',ek);
+  const ek={orderId:v.orderId,sk:'RATING_REVIEW_EVENT#'+v.idempotencyKey},digest=quoteHash({...v,actorId:actor.subjectId}),previous=await strongGet(db,tables.holds,ek);
   if(previous){if(previous.requestDigest!==digest)return fail();return {...previous.receipt,replayed:true};}
   if(open?(!!row||v.expectedVersion!==0):(!row||row.caseId!==v.caseId||row.version!==v.expectedVersion))return fail();
   if((row?.history||[]).length>=100||evidence&&(row?.evidence||[]).length>=30)return fail('DRIVER_RATING_REVIEW_LIMIT');
@@ -46,22 +51,36 @@ export function createDriverRatingReview(options:{db:Pick<DynamoDBDocumentClient
   const wasIncluded=rating.driverModeration?.included??true,included=next.state==='RESOLVED'&&next.decision.value==='KEEP';
   if(typeof wasIncluded!=='boolean'||rating.driverModeration&&(rating.driverModeration.schemaVersion!==1||rating.driverModeration.caseId!==next.caseId||rating.driverModeration.version!==row?.version||rating.driverModeration.source!==source))return fail();
   if(!open&&row&&!rating.driverModeration)return fail();
-  const ak={pk:'DRIVER#'+rating.driverId},aggregate=await strongGet(db,RATINGS,ak);
+  const ak={pk:'DRIVER#'+rating.driverId},aggregate=await strongGet(db,ratings,ak);
   if(!aggregate||!aggregateValid(aggregate)||driver.customerRatingCount!==aggregate.count||driver.customerRatingSum!==aggregate.sum||driver.customerRating!==aggregate.average||(driver.customerRatingUnderReviewCount??0)!==(aggregate.underReviewCount??0)||(driver.customerRatingExcludedCount??0)!==(aggregate.excludedCount??0))return fail('DRIVER_RATING_AGGREGATE_UNVERIFIED');
   const delta=Number(included)-Number(wasIncluded),count=aggregate.count+delta,sum=aggregate.sum+delta*rating.driverStars,average=count?Math.round(sum/count*100)/100:null;
   const wasReview=rating.driverModeration?.state==='OPEN'||rating.driverModeration?.state==='APPEAL_OPEN',wasExcluded=rating.driverModeration?.state==='RESOLVED'&&rating.driverModeration?.decision==='EXCLUDE';
   const underReviewCount=(aggregate.underReviewCount??0)+Number(next.state!=='RESOLVED')-Number(wasReview),excludedCount=(aggregate.excludedCount??0)+Number(next.state==='RESOLVED'&&next.decision.value==='EXCLUDE')-Number(wasExcluded);
   const changed=!!delta||underReviewCount!==(aggregate.underReviewCount??0)||excludedCount!==(aggregate.excludedCount??0);
   const updatedAggregate={...aggregate,count,sum,average,underReviewCount,excludedCount,version:aggregate.version+1};if(!aggregateValid(updatedAggregate))return fail('DRIVER_RATING_AGGREGATE_UNVERIFIED');
-  const updatedRating={...rating,driverModeration:{schemaVersion:1,caseId:next.caseId,version:next.version,source,included,state:next.state,decision:next.decision?.value??'PENDING_REVIEW',updatedAt:at}};
-  const fence=row?exactCheck('staging-Holds',ck,row).ConditionCheck:{TableName:'staging-Holds',Key:ck,ConditionExpression:'attribute_not_exists(orderId)'};const {Key:_key,...caseFence}=fence;
-  function guardedPut(table:string,key:Row,old:Row,item:Row){const {Key:_k,...condition}=exactCheck(table,key,old).ConditionCheck;return {Put:{...condition,Item:item}};}
+  const moderation={schemaVersion:1,caseId:next.caseId,version:next.version,source,included,state:next.state,decision:next.decision?.value??'PENDING_REVIEW',updatedAt:at};
+  const fence=row?exactCheck(tables.holds,ck,row).ConditionCheck:{TableName:tables.holds,Key:ck,ConditionExpression:'attribute_not_exists(orderId)'};const {Key:_key,...caseFence}=fence;
   const receipt={success:true,caseId:next.caseId,caseKey:ck.sk,version:next.version,action:v.action,ratingIncluded:included,financialPosting:false};
   const event={...ek,kind:'DRIVER_RATING_REVIEW_EVENT',schemaVersion:1,caseId:next.caseId,orderId:v.orderId,driverId:rating.driverId,recordId:v.idempotencyKey,actorId:actor.subjectId,actorKind:'STAFF',action:v.action,reason:v.reason.trim(),ratingSource:source,createdAt:at,requestDigest:digest,receipt,aggregateDelta:delta,...(decide?{decision:next.decision}:{}),financialPosting:false};
-  const index=await exceptionCaseIndexOperation(db,{caseId:next.caseId,orderId:v.orderId,caseKey:ck.sk,caseType:'DRIVER_RATING_REVIEW',state:next.state,open:next.state!=='RESOLVED',at,branchId:order.storeId});
-  const ops:any[]=[access.guard,exactCheck('WizzOrders',ok,order),{ConditionCheck:{TableName:'staging-AccountDeletion',Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+rating.driverId,sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},index,{Put:{...caseFence,Item:next}},guardedPut(RATINGS,rk,rating,updatedRating),{Put:{TableName:'staging-Holds',Item:event,ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:'staging-AuditLog',Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.idempotencyKey,action:v.action,caseId:next.caseId,orderId:v.orderId,actorId:actor.subjectId,actorKind:'STAFF',createdAt:at,financialPosting:false},ConditionExpression:'attribute_not_exists(sk)'}}];
-  if(changed){ops.push(guardedPut(RATINGS,ak,aggregate,updatedAggregate));const {Key:_dk,...guard}=exactCheck(DRIVERS,dk,driver).ConditionCheck;ops.push({Update:{...guard,Key:dk,UpdateExpression:'SET #ratingAverage=:ratingAverage, #ratingCount=:ratingCount, #ratingSum=:ratingSum, #ratingAt=:ratingAt, #ratingReview=:ratingReview, #ratingExcluded=:ratingExcluded',ExpressionAttributeNames:{...guard.ExpressionAttributeNames,'#ratingAverage':'customerRating','#ratingCount':'customerRatingCount','#ratingSum':'customerRatingSum','#ratingAt':'customerRatingUpdatedAt','#ratingReview':'customerRatingUnderReviewCount','#ratingExcluded':'customerRatingExcludedCount'},ExpressionAttributeValues:{...guard.ExpressionAttributeValues,':ratingAverage':average,':ratingCount':count,':ratingSum':sum,':ratingAt':at,':ratingReview':underReviewCount,':ratingExcluded':excludedCount}}});}else ops.push(exactCheck(DRIVERS,dk,driver),exactCheck(RATINGS,ak,aggregate));
+  const index=await exceptionCaseIndexOperation(db,{caseId:next.caseId,orderId:v.orderId,caseKey:ck.sk,caseType:'DRIVER_RATING_REVIEW',state:next.state,open:next.state!=='RESOLVED',at,branchId:order.storeId,orderNumber:order.orderNumber},tables.lifecycle);
+  const ratingCheck=exactCheck(ratings,rk,rating,[...ratingFields,'driverModeration']);
+  const aggregateCheck=exactCheck(ratings,ak,aggregate,aggregateFields);
+  const driverCheck=exactCheck(tables.driver,dk,driver,[
+   'driverId','customerRating','customerRatingCount','customerRatingSum','customerRatingUnderReviewCount',
+   'customerRatingExcludedCount','work_region_id','cognitoSub','isDeleted','deletedAt','deletionRequestId',
+  ]);
+  const ops:any[]=[access.guard,exactCheck(tables.orders,ok,order),{ConditionCheck:{TableName:tables.deletion,Key:{pk:'ACCOUNT_LIFECYCLE#DRIVER#'+(driver.cognitoSub||rating.driverId),sk:'META'},ConditionExpression:'attribute_not_exists(pk)'}},index,{Put:{...caseFence,Item:next}},updateChecked(ratingCheck,'SET #moderation=:moderation',{'#moderation':'driverModeration'},{':moderation':moderation}),{Put:{TableName:tables.holds,Item:event,ConditionExpression:'attribute_not_exists(orderId)'}},{Put:{TableName:tables.audit,Item:{datePartition:'date#'+at.slice(0,10).replace(/-/g,''),sk:at+'#'+v.idempotencyKey,action:v.action,caseId:next.caseId,orderId:v.orderId,actorId:actor.subjectId,actorKind:'STAFF',createdAt:at,financialPosting:false},ConditionExpression:'attribute_not_exists(sk)'}}];
+  if(changed){
+   ops.push(updateChecked(aggregateCheck,
+    'SET #count=:count, #sum=:sum, #average=:average, #review=:review, #excluded=:excluded, #version=:version',
+    {'#count':'count','#sum':'sum','#average':'average','#review':'underReviewCount','#excluded':'excludedCount','#version':'version'},
+    {':count':count,':sum':sum,':average':average,':review':underReviewCount,':excluded':excludedCount,':version':updatedAggregate.version}));
+   ops.push(updateChecked(driverCheck,
+    'SET #ratingAverage=:ratingAverage, #ratingCount=:ratingCount, #ratingSum=:ratingSum, #ratingAt=:ratingAt, #ratingReview=:ratingReview, #ratingExcluded=:ratingExcluded',
+    {'#ratingAverage':'customerRating','#ratingCount':'customerRatingCount','#ratingSum':'customerRatingSum','#ratingAt':'customerRatingUpdatedAt','#ratingReview':'customerRatingUnderReviewCount','#ratingExcluded':'customerRatingExcludedCount'},
+    {':ratingAverage':average,':ratingCount':count,':ratingSum':sum,':ratingAt':at,':ratingReview':underReviewCount,':ratingExcluded':excludedCount}));
+  }else ops.push(driverCheck,aggregateCheck);
   if(!equal(actor,await authority.authenticate()))return fail('UNAUTHORIZED');
-  try{await db.send(new TransactWriteCommand({TransactItems:ops}));}catch(error){const saved=await strongGet(db,'staging-Holds',ek);if(saved?.requestDigest===digest)return {...saved.receipt,replayed:true};throw error;}return receipt;
+  try{await db.send(new TransactWriteCommand({TransactItems:ops}));}catch(error){const saved=await strongGet(db,tables.holds,ek);if(saved?.requestDigest===digest)return {...saved.receipt,replayed:true};throw error;}return receipt;
  };
 }

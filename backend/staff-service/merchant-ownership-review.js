@@ -13,6 +13,20 @@ const BRANCHES='WhizzMerchants_Businesses';
 const fail=(code,status)=>{throw Object.assign(new Error(code),{status});};
 const activeStatuses=new Set(['AWAITING_RECIPIENT','AWAITING_REVIEW']);
 const organizationPattern=/^[A-Za-z0-9_-]{1,128}$/;
+const completionPushFunction='arn:aws:lambda:us-east-1:699561669180:function:wizzcentral-notifications-staging-pushSendMerchantOrder';
+
+async function queueCompletionNotices(request,completionSdk){
+ if(process.env.PLATFORM_ENVIRONMENT!=='staging'||request.status!=='COMPLETED')return false;
+ const {LambdaClient,InvokeCommand}=completionSdk??require('@aws-sdk/client-lambda');
+ const client=new LambdaClient({});
+ const outcomes=await Promise.allSettled(['previous','new'].map(audience=>client.send(new InvokeCommand({
+  FunctionName:completionPushFunction,InvocationType:'Event',
+  Payload:Buffer.from(JSON.stringify({
+   action:'ownership_completed',audience,organizationId:request.organizationId,requestId:request.requestId,
+  })),
+ }))));
+ return outcomes.every(outcome=>outcome.status==='fulfilled'&&outcome.value.StatusCode===202);
+}
 
 function summary(row,now){
  return {
@@ -70,7 +84,11 @@ async function activeRequests(db,Get,Scan,now,encodedCursor){
  return {requests,nextCursor:cursor?Buffer.from(JSON.stringify(cursor)).toString('base64url'):null};
 }
 
-function createReview({Get=GetCommand,Scan=ScanCommand,Write=TransactWriteCommand,clock=Date.now,authorize=allowed,approve=executeWithLock,approveSettlement=settlementDecision,readPreflight=preflight,settlementEnabled=()=>process.env.PLATFORM_ENVIRONMENT==='staging',approvalEnabled=()=>process.env.PLATFORM_ENVIRONMENT==='staging'&&process.env.MERCHANT_OWNERSHIP_EXECUTION_ENABLED==='true'}={}){
+const stagingApprovalEnabled=request=>process.env.PLATFORM_ENVIRONMENT==='staging'&&
+ process.env.MERCHANT_OWNERSHIP_EXECUTION_ENABLED==='true'&&
+ request.requestId===process.env.MERCHANT_OWNERSHIP_EXECUTION_REQUEST_ID;
+
+function createReview({Get=GetCommand,Scan=ScanCommand,Write=TransactWriteCommand,clock=Date.now,authorize=allowed,approve=executeWithLock,approveSettlement=settlementDecision,readPreflight=preflight,notifyCompletion=queueCompletionNotices,completionSdk,settlementEnabled=()=>process.env.PLATFORM_ENVIRONMENT==='staging',approvalEnabled=stagingApprovalEnabled}={}){
  return async function review(ctx,actor,method,path,input={}){
   if(!authorize(actor,'merchants.review')||actor.scope?.allRegions!==true)fail('PERMISSION_REQUIRED',403);
   const query=method==='GET'?ctx.query||{}:input;
@@ -87,7 +105,7 @@ function createReview({Get=GetCommand,Scan=ScanCommand,Write=TransactWriteComman
   if(!row||row.requestId!==requestId||row.organizationId!==organizationId)fail('TRANSFER_NOT_FOUND',404);
   const now=clock();
   const reviewable=row.status==='AWAITING_REVIEW'&&row.expiresAt>now;
-  const executionAvailable=approvalEnabled();
+  const executionAvailable=approvalEnabled(row);
   const authorized=executionAvailable&&authorize(actor,'finance.approve');
   const approving=path==='/staff/merchants/ownership-transfer/approve';
   const settling=path==='/staff/merchants/ownership-transfer/approve-settlement';
@@ -103,7 +121,24 @@ function createReview({Get=GetCommand,Scan=ScanCommand,Write=TransactWriteComman
   }
   if(method==='GET'&&path==='/staff/merchants/ownership-transfer/preflight'){
    if(!authorize(actor,'finance.approve'))fail('PERMISSION_REQUIRED',403);
-   return readPreflight(ctx.db,row,now);
+   try{
+    const [result,settlement]=await Promise.all([
+     readPreflight(ctx.db,row,now),settlementStatus(ctx.db,row,now,Get),
+    ]);
+    const code={
+     VERIFICATION_REQUIRED:'TRANSFER_DESTINATION_VERIFICATION_REQUIRED',
+     REVIEW_REQUIRED:'TRANSFER_SETTLEMENT_APPROVAL_REQUIRED',
+    }[settlement.status];
+    return {...result,settlement,requestBlockers:code?[{code}]:[],
+     canApprove:reviewable&&authorized&&settlement.status==='APPROVED'&&
+      result.branches.every(branch=>branch.blockers.length===0),
+     canApproveSettlement:reviewable&&canSettle&&settlement.status==='REVIEW_REQUIRED'};
+   }
+   catch(error){
+    if(error.status)throw error;
+    console.warn('OWNERSHIP_PREFLIGHT_READ_FAILED',{name:error.name,requestId:row.requestId});
+    fail('TRANSFER_CHECK_UNAVAILABLE',503);
+   }
   }
   if(method!=='POST'||(!approving&&!settling&&path!=='/staff/merchants/ownership-transfer/reject'))fail('NOT_FOUND',404);
   const reason=typeof input.reason==='string'?input.reason.trim():'';
@@ -125,7 +160,13 @@ function createReview({Get=GetCommand,Scan=ScanCommand,Write=TransactWriteComman
     return {request:summary(row,now),settlement,canReject:true,canApprove:authorized,canPreflight:true,canApproveSettlement:false};
    }
    const completed=await approve(ctx,actor,row,reason,now);
-   return {request:summary(completed,now),canApprove:false,canReject:false};
+   let notificationsQueued=false;
+   if(completed.status==='COMPLETED'){
+    try{notificationsQueued=await notifyCompletion(completed,completionSdk);}
+    catch(_){ /* The transfer is already committed. */ }
+    if(!notificationsQueued)console.warn('OWNERSHIP_COMPLETION_PUSH_NOT_QUEUED',{requestId:completed.requestId});
+   }
+   return {request:summary(completed,now),notificationsQueued,canApprove:false,canReject:false};
   }
   const branches=row.branchIds;
   if(!Array.isArray(branches)||!branches.length||branches.length>97||

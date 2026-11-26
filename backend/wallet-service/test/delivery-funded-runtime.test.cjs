@@ -17,6 +17,7 @@ function runtime(mode,model){
  './customerCancellation':{createCustomerCancellation:factory('cancellation',{read:async()=>({}),request:async()=>({}),confirmNoPreparation:async()=>({})})},
  './deliveryAttempt':{createDeliveryAttempt:factory('attempt',{start:async()=>({}),read:async()=>({}),contact:async()=>({})})},
  './financialDispatchKeys':require('../dist/financialDispatchKeys'),
+ './walletBindings':require('../dist/walletBindings'),
  './financialPushValidation':{createStagingFinancialPushValidation:()=>async()=>({success:true})},
  './financialOfferHydration':{createStagingFinancialOfferHydration:factory('hydrate',async()=>({success:true}))},
  './financeRollout':{createFinanceRollout:()=>({db,order:async(id,intent)=>{trace.push({id,intent});},driver:noop,subject:noop})},

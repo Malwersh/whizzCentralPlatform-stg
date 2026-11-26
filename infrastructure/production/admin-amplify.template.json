@@ -1,0 +1,315 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Independent production Amplify administration hosting; reviewed manual bundles only.",
+  "Parameters": {
+    "ExpectedAccountId": {
+      "Type": "String",
+      "Default": "746727375268",
+      "AllowedValues": [
+        "746727375268"
+      ]
+    },
+    "LogRetentionDays": {
+      "Type": "Number",
+      "Default": 90,
+      "AllowedValues": [
+        30,
+        60,
+        90,
+        180,
+        365
+      ]
+    }
+  },
+  "Rules": {
+    "ProductionAccountOnly": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Equals": [
+              {
+                "Ref": "ExpectedAccountId"
+              },
+              "746727375268"
+            ]
+          },
+          "AssertDescription": "Only the approved production account is permitted."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "IsProductionAccount": {
+      "Fn::Equals": [
+        {
+          "Ref": "AWS::AccountId"
+        },
+        {
+          "Ref": "ExpectedAccountId"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "AdminApp": {
+      "Type": "AWS::Amplify::App",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "Name": "wizz-centralplatform-production",
+        "Description": "Production administration bootstrap; no imported content or credentials.",
+        "Platform": "WEB",
+        "EnableBranchAutoDeletion": false,
+        "CustomHeaders": "{\"customHeaders\": [{\"pattern\": \"**\", \"headers\": [{\"key\": \"Content-Security-Policy\", \"value\": \"default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://cognito-idp.us-east-1.amazonaws.com https://44rmfvjxp8.execute-api.us-east-1.amazonaws.com wss://x7o502lmzk.execute-api.us-east-1.amazonaws.com/production; font-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://wizz-production-home-slides-746727375268.s3.us-east-1.amazonaws.com https://wizz-production-funding-receipts-746727375268-us-east-1.s3.us-east-1.amazonaws.com; worker-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'\"}, {\"key\": \"X-Content-Type-Options\", \"value\": \"nosniff\"}, {\"key\": \"X-Frame-Options\", \"value\": \"DENY\"}, {\"key\": \"Referrer-Policy\", \"value\": \"no-referrer\"}, {\"key\": \"Strict-Transport-Security\", \"value\": \"max-age=31536000\"}, {\"key\": \"Cache-Control\", \"value\": \"no-store, max-age=0\"}]}]}",
+        "CustomRules": [
+          {
+            "Source": "/staff/pickup-issues",
+            "Status": "200",
+            "Target": "https://6d55f5nc5h.execute-api.us-east-1.amazonaws.com/production/staff/pickup-issues"
+          },
+          {
+            "Source": "/staff/merchants/staff-policy",
+            "Status": "200",
+            "Target": "https://irr5v59ww1.execute-api.us-east-1.amazonaws.com/production/staff/merchants/staff-policy"
+          },
+          {
+            "Source": "/staff/merchants/staff-policy/history",
+            "Status": "200",
+            "Target": "https://irr5v59ww1.execute-api.us-east-1.amazonaws.com/production/staff/merchants/staff-policy/history"
+          },
+          {
+            "Source": "/staff/merchants/staff-policy/save",
+            "Status": "200",
+            "Target": "https://irr5v59ww1.execute-api.us-east-1.amazonaws.com/production/staff/merchants/staff-policy/save"
+          },
+          {
+            "Source": "/staff/settlement-schedules",
+            "Status": "200",
+            "Target": "https://qa7qftdttc.execute-api.us-east-1.amazonaws.com/production/staff/settlement-schedules"
+          },
+          {
+            "Source": "/staff/settlement-schedules/branches",
+            "Status": "200",
+            "Target": "https://qa7qftdttc.execute-api.us-east-1.amazonaws.com/production/staff/settlement-schedules/branches"
+          },
+          {
+            "Source": "/staff/order-cancellation",
+            "Status": "200",
+            "Target": "https://wsnrap4pl5.execute-api.us-east-1.amazonaws.com/production/staff/order-cancellation"
+          },
+          {
+            "Source": "/staff/merchants/agreements",
+            "Status": "200",
+            "Target": "https://te5d6a852m.execute-api.us-east-1.amazonaws.com/production/staff/merchants/agreements"
+          },
+          {
+            "Source": "/staff/merchants/directory",
+            "Status": "200",
+            "Target": "https://vxd59g8n0e.execute-api.us-east-1.amazonaws.com/production/staff/merchants/directory"
+          },
+          {
+            "Source": "/staff/merchants/branch",
+            "Status": "200",
+            "Target": "https://vxd59g8n0e.execute-api.us-east-1.amazonaws.com/production/staff/merchants/branch"
+          },
+          {
+            "Source": "/staff/merchants/applications",
+            "Status": "200",
+            "Target": "https://vxd59g8n0e.execute-api.us-east-1.amazonaws.com/production/staff/merchants/applications"
+          },
+          {
+            "Source": "/staff/merchants/applications/review",
+            "Status": "200",
+            "Target": "https://vxd59g8n0e.execute-api.us-east-1.amazonaws.com/production/staff/merchants/applications/review"
+          },
+          {
+            "Source": "/staff/merchants/application-asset",
+            "Status": "200",
+            "Target": "https://vxd59g8n0e.execute-api.us-east-1.amazonaws.com/production/staff/merchants/application-asset"
+          },
+          {
+            "Source": "/staff/home-layout/slides",
+            "Status": "200",
+            "Target": "https://96kw5cw8e8.execute-api.us-east-1.amazonaws.com/production/staff/home-layout/slides"
+          },
+          {
+            "Source": "/staff/home-layout",
+            "Status": "200",
+            "Target": "https://96kw5cw8e8.execute-api.us-east-1.amazonaws.com/production/staff/home-layout"
+          },
+          {
+            "Source": "/staff/home-layout/options",
+            "Status": "200",
+            "Target": "https://96kw5cw8e8.execute-api.us-east-1.amazonaws.com/production/staff/home-layout/options"
+          },
+          {
+            "Source": "/staff/home-layout/draft",
+            "Status": "200",
+            "Target": "https://96kw5cw8e8.execute-api.us-east-1.amazonaws.com/production/staff/home-layout/draft"
+          },
+          {
+            "Source": "/staff/home-layout/publish",
+            "Status": "200",
+            "Target": "https://96kw5cw8e8.execute-api.us-east-1.amazonaws.com/production/staff/home-layout/publish"
+          },
+          {
+            "Source": "/staff/home-layout/rollback",
+            "Status": "200",
+            "Target": "https://96kw5cw8e8.execute-api.us-east-1.amazonaws.com/production/staff/home-layout/rollback"
+          },
+          {
+            "Source": "/staff/drivers/<driverId>/performance",
+            "Target": "https://q8do9c7wba.execute-api.us-east-1.amazonaws.com/production/staff/drivers/<driverId>/performance",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/drivers/<driverId>/quality",
+            "Target": "https://q8do9c7wba.execute-api.us-east-1.amazonaws.com/production/staff/drivers/<driverId>/quality",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/merchants/onboarding",
+            "Target": "https://3qcrtaq3b1.execute-api.us-east-1.amazonaws.com/production/staff/merchants/onboarding",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/merchants/onboarding/<action>",
+            "Target": "https://3qcrtaq3b1.execute-api.us-east-1.amazonaws.com/production/staff/merchants/onboarding/<action>",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/settings/legal-documents/<audience>",
+            "Target": "https://2mmmcqr0m7.execute-api.us-east-1.amazonaws.com/production/staff/settings/legal-documents/<audience>",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/settings/legal-documents/<audience>/<action>",
+            "Target": "https://2mmmcqr0m7.execute-api.us-east-1.amazonaws.com/production/staff/settings/legal-documents/<audience>/<action>",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/settings/legal-documents/<audience>/version/<revision>",
+            "Target": "https://2mmmcqr0m7.execute-api.us-east-1.amazonaws.com/production/staff/settings/legal-documents/<audience>/version/<revision>",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage/history/<regionId>",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage/history/<regionId>",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage/jobs/<jobId>",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage/jobs/<jobId>",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage/validate",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage/validate",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage/validate-plan",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage/validate-plan",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage/draft",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage/draft",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage/discard",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage/discard",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage/cancel",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage/cancel",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/regions/manage/publish",
+            "Target": "https://dkih4prjga.execute-api.us-east-1.amazonaws.com/production/staff/regions/manage/publish",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/me",
+            "Target": "https://y6vmu5snh3.execute-api.us-east-1.amazonaws.com/production/staff/me",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/enrollment/finish",
+            "Target": "https://y6vmu5snh3.execute-api.us-east-1.amazonaws.com/production/staff/enrollment/finish",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/drivers",
+            "Target": "https://q8do9c7wba.execute-api.us-east-1.amazonaws.com/production/staff/drivers",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/drivers/<driverId>/vehicles",
+            "Target": "https://q8do9c7wba.execute-api.us-east-1.amazonaws.com/production/staff/drivers/<driverId>/vehicles",
+            "Status": "200"
+          },
+          {
+            "Source": "/staff/drivers/<driverId>/documents/view",
+            "Target": "https://q8do9c7wba.execute-api.us-east-1.amazonaws.com/production/staff/drivers/<driverId>/documents/view",
+            "Status": "200"
+          },
+          {
+            "Source": "/",
+            "Target": "/index.html",
+            "Status": "200"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "production"
+          },
+          {
+            "Key": "Purpose",
+            "Value": "admin-bootstrap"
+          }
+        ]
+      }
+    },
+    "ProductionBranch": {
+      "Type": "AWS::Amplify::Branch",
+      "Condition": "IsProductionAccount",
+      "Properties": {
+        "AppId": {
+          "Fn::GetAtt": [
+            "AdminApp",
+            "AppId"
+          ]
+        },
+        "BranchName": "production",
+        "Stage": "PRODUCTION",
+        "EnableAutoBuild": false,
+        "EnablePullRequestPreview": false,
+        "EnablePerformanceMode": false
+      }
+    }
+  },
+  "Outputs": {
+    "AppId": {
+      "Value": {
+        "Fn::GetAtt": [
+          "AdminApp",
+          "AppId"
+        ]
+      }
+    },
+    "WebsiteUrl": {
+      "Value": {
+        "Fn::Sub": "https://production.${AdminApp.DefaultDomain}"
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "module": "driver-vehicles-308.js",
+    "source": "backend/shared/driver-vehicles-308.js",
+    "sha256": "e76756ac28af1191c33c728907c99db8ab78e53d68837fc63afd6c86fb59502e",
+    "adaptation": "UNCHANGED"
+  },
+  {
+    "module": "catalog.js",
+    "source": "backend/staff-service/catalog.js",
+    "sha256": "8d829be1a685cbb5ce613941fd9826bb48597edefd8b51568f2fd8c475a97aa1",
+    "adaptation": "UNCHANGED"
+  },
+  {
+    "module": "write-workflow.js",
+    "source": "backend/staff-service/write-workflow.js",
+    "sha256": "74669322ea0a419978fb46a35b51ec3f07b1d6c087ab9235289c4dbae470635a",
+    "adaptation": "UNCHANGED"
+  },
+  {
+    "module": "audit-trail.js",
+    "source": "backend/staff-service/audit-trail.js",
+    "sha256": "e496d7db421abc1013930d8d21f9aa8d4f141818fa3b63f1f9f239f50d48aeeb",
+    "adaptation": "UNCHANGED"
+  },
+  {
+    "module": "registration-regions.js",
+    "source": "infrastructure/production/driver-profile/registration-regions.js",
+    "sha256": "aa8a918dc3c009e379a5b3d868fbc56fa9f4d2a4eb34c09c02f133545e8c4b02",
+    "adaptation": "UNCHANGED"
+  }
+]

@@ -1,9 +1,15 @@
 import {GetCommand,QueryCommand,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
 import {randomUUID,createHash} from 'node:crypto';
+import { checkoutTables } from './checkoutTables';
+import { isFinancialOrderProduction } from './walletBindings';
 type Row=Record<string,any>;
-const products=()=>process.env.INVENTORY_PRODUCTS_TABLE||'WhizzMerchants_Products';
-const platform=()=>process.env.INVENTORY_PLATFORM_TABLE||'staging-MerchantPlatform';
-const orders=()=>process.env.INVENTORY_ORDERS_TABLE||'WizzOrders';
+function inventoryTable(key: 'products' | 'platform' | 'orders', variable: string) {
+ const table = checkoutTables()[key];
+ return isFinancialOrderProduction(process.env) ? table : process.env[variable] || table;
+}
+const products=()=>inventoryTable('products','INVENTORY_PRODUCTS_TABLE');
+const platform=()=>inventoryTable('platform','INVENTORY_PLATFORM_TABLE');
+const orders=()=>inventoryTable('orders','INVENTORY_ORDERS_TABLE');
 const fail=(code:string,status=409):never=>{throw Object.assign(Error(code),{status,statusCode:status,code});};
 const id=(v:any)=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,150}$/.test(v);
 const quantity=(v:any)=>Number.isSafeInteger(v)&&v>=0&&v<=1000000;

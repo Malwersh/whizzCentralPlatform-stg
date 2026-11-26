@@ -1,7 +1,7 @@
 'use strict';
 const {GetCommand,QueryCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {randomUUID}=require('node:crypto');
-const workflow=require('./write-workflow');const direct=()=>workflow.direct?.()===true;
+const workflow=require('./write-workflow');
 const PK='OPERATIONAL_SETTINGS#ACCOUNT_DELETION';
 const DEFAULTS={financialRetentionYears:7,locationRetentionDays:0,documentRetentionDays:0,supportRetentionDays:0};
 const limits={financialRetentionYears:[1,30],locationRetentionDays:[0,365],documentRetentionDays:[0,365],supportRetentionDays:[0,365]};
@@ -15,6 +15,7 @@ async function route(ctx,actor,method,path,input){
  if(path==='/staff/settings/order-exception-cases'||path.startsWith('/staff/settings/order-exception-cases/'))return require('./order-exception-case-settings').route(ctx,actor,method,path,input);
  if(path==='/staff/settings/order-exceptions'||path.startsWith('/staff/settings/order-exceptions/'))return require('./order-exception-settings').route(ctx,actor,method,path,input);
  const {db,table,employee,guard,audit,requirePermission,recent,claims}=ctx;
+ const direct=()=>ctx.directWrite===true||workflow.direct?.()===true;
  const settingsSpec=ctx.settingsSpec,settingsPk=settingsSpec?.pk||PK,validateValues=settingsSpec?.validate||validate,actionPrefix=settingsSpec?.actionPrefix||'DELETION';
  if(method==='POST'&&!ctx.enrolled)throw fail('ENROLLMENT_REQUIRED',403);
  const can=(person,action)=>ctx.allowed(person,action==='read'?'settings.read':'settings.change.'+action)||(!settingsSpec&&ctx.allowed(person,action==='read'?'finance.read':'finance.settings.'+action));

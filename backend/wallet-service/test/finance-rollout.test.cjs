@@ -3,6 +3,85 @@ const {GetCommand,UpdateCommand,TransactWriteCommand}=require('@aws-sdk/lib-dyna
 const {createFinanceRollout,readFinanceRollout}=require('../dist/financeRollout');
 const {scopeEnv,scopePin}=require('./helpers/finance-rollout-fixture.cjs');
 const {quoteHash}=require('../dist/deliveryQuoteRecord');
+function productionScope(options) {
+ const env = scopeEnv(options);
+ const config = {...JSON.parse(env.FINANCE_ROLLOUT_CONFIG), accountId:'746727375268'};
+ return {
+  ...env, STAGE:'production', ENVIRONMENT:'production',
+  FINANCE_ROLLOUT_CONFIG:JSON.stringify(config), FINANCE_ROLLOUT_SHA256:quoteHash(config),
+  FINANCIAL_SETTLEMENT_MODEL:'FULL_CASH_AT_DELIVERY_V1',
+  ORDERS_TABLE:'wizz-production-Orders', DELIVERY_QUOTES_TABLE:'wizz-production-DeliveryQuotes',
+  HOLDS_TABLE:'wizz-production-Holds', WALLETS_TABLE:'wizz-production-Wallets',
+  AUDIT_LOG_TABLE:'wizz-production-AuditLog', LEDGER_TABLE:'wizz-production-LedgerEntries',
+  TOPUP_REQUESTS_TABLE:'wizz-production-TopupRequests', IDEMPOTENCY_KEYS_TABLE:'wizz-production-IdempotencyKeys',
+  WALLET_LIFECYCLE_TABLE:'wizz-production-WalletLifecycle', STAFF_TABLE:'wizz-production-PlatformStaff',
+  OFFER_JOURNEY_TABLE:'wizz-production-OfferJourney', WAVE_OFFERS_TABLE:'wizz-production-WaveOffers',
+  DISPATCH_JOBS_TABLE:'wizz-production-DispatchJobs', DRIVER_LIVE_STATE_TABLE:'wizz-production-DriverLiveState',
+  DRIVERS_TABLE:'wizz-production-Drivers', MERCHANTS_TABLE:'wizz-production-Merchants',
+  ACCOUNT_DELETION_TABLE:'wizz-production-AccountDeletion'
+ };
+}
+
+test('production requires its own hashed rollout config and complete bindings before I/O', () => {
+ const env = productionScope();
+ const db = {send: () => assert.fail('invalid settings must fail before I/O')};
+ assert.equal(readFinanceRollout(env).scopes.length, 1);
+ for (const overrides of [
+  {ENVIRONMENT:'staging'},
+  {FINANCE_ROLLOUT_CONFIG:scopeEnv().FINANCE_ROLLOUT_CONFIG, FINANCE_ROLLOUT_SHA256:scopeEnv().FINANCE_ROLLOUT_SHA256},
+  {DELIVERY_QUOTES_TABLE:'staging-DeliveryQuotes'},
+  {ORDERS_TABLE:undefined},
+ ]) assert.throws(() => createFinanceRollout({db, env:{...env,...overrides}}), /NOT_CONFIGURED/);
+});
+
+test('production pins the configured order and refuses foreign tables before touching DynamoDB', async () => {
+ const env = productionScope(), requests = [];
+ const row = {
+  PK:'ORDER#order',SK:'META',orderId:'order',storeId:'branch',userSub:'customer',
+  driverId:'driver',financeRollout:scopePin(env,'order')
+ };
+ const rollout = createFinanceRollout({env, db:{async send(command) {
+  requests.push(command.input);
+  return command instanceof GetCommand ? {Item:structuredClone(row)} : {};
+ }}});
+ const update = table => new TransactWriteCommand({TransactItems:[{Update:{
+  TableName:table,Key:{PK:'ORDER#order',SK:'META'},UpdateExpression:'SET #s=:s',
+  ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':s':'cancelled'}
+ }}]});
+ await assert.rejects(rollout.db.send(new GetCommand({TableName:'WizzOrders',Key:{PK:'ORDER#order',SK:'META'}})), /OUT_OF_SCOPE/);
+ await assert.rejects(rollout.db.send(update('WizzOrders')), /OUT_OF_SCOPE/);
+ await assert.rejects(rollout.order('another-order'), /OUT_OF_SCOPE/);
+ assert.equal(requests.length, 0);
+ await rollout.order('order');
+ assert.throws(() => rollout.driver('order','driver','foreign-subject'), /OUT_OF_SCOPE/);
+ await rollout.db.send(update(env.ORDERS_TABLE));
+ assert.equal(requests[0].TableName, env.ORDERS_TABLE);
+ const [op] = requests[1].TransactItems;
+ assert.equal(op.Update.TableName, env.ORDERS_TABLE);
+ assert.equal(op.Update.ExpressionAttributeValues[':roll1'], 'customer');
+ assert.equal(op.Update.ExpressionAttributeValues[':roll5'], 'driver');
+});
+
+test('production keeps the driver scope when admitting a V3 wave offer', async () => {
+ const env = productionScope();
+ const row = {PK:'ORDER#order',SK:'META',orderId:'order',storeId:'branch',userSub:'customer',financeRollout:scopePin(env,'order')};
+ const writes = [];
+ const rollout = createFinanceRollout({env,db:{async send(command) {
+  if (command instanceof GetCommand) return {Item:structuredClone(row)};
+  writes.push(command.input);
+  return {};
+ }}});
+ const offer = driverSubjectId => new TransactWriteCommand({TransactItems:[{Put:{
+  TableName:env.WAVE_OFFERS_TABLE,Item:{orderId:'order',SK:'FINANCIAL#driver#WAVE#1',driverId:'driver',
+   financialOffer:{schemaVersion:3,baseOffer:{schemaVersion:1,orderId:'order',branchId:'branch',driverId:'driver',driverSubjectId}}}
+ }}]});
+ await assert.rejects(rollout.db.send(offer('other')), /OUT_OF_SCOPE/);
+ assert.equal(writes.length, 0);
+ await rollout.db.send(offer('subject'));
+ assert.equal(writes.length, 1);
+ assert(writes[0].TransactItems.some(item => item.ConditionCheck?.TableName === env.ORDERS_TABLE));
+});
+
 function fixture({env=scopeEnv(),missing=false}={}){
  const row={PK:'ORDER#order',SK:'META',orderId:'order',storeId:'branch',userSub:'customer',status:'assigned',financeRollout:scopePin(env,'order')},calls=[],transactions=[];
  const raw={async send(c){calls.push(c.input);if(c instanceof GetCommand){if(c.input.TableName==='WizzOrders')return {Item:missing?undefined:structuredClone(row)};return {Item:{operationId:'event',orderId:'order',driverId:'driver'}};}transactions.push(c.input);return {};}};

@@ -1,6 +1,9 @@
+import {financialDispatchTables,isFinancialOrderProduction} from './walletBindings';
+import {dispatchRegionTables} from './checkoutTables';
 const workRegions=require('../../shared/driver-work-region-311');
 const vehicleRegistry=require('../../shared/driver-vehicles-308');
 const {TABLE:PERFORMANCE_TABLE,dispatchMetrics}=require('../../shared/driver-performance-snapshot');
+const {PRODUCTION_SNAPSHOT_TABLE}=require('../../driver-performance-projection/bindings');
 const {dispatchWaveSK}=require('../../src/utils/dispatch-cycle-keys');
 import {DynamoDBDocumentClient,ScanCommand,GetCommand} from '@aws-sdk/lib-dynamodb';
 import {validateDispatchCycle} from './dispatchCycle';
@@ -9,7 +12,6 @@ import {strongGet,equal,FinancialRow as Row} from './driverFinancialTransaction'
 import {quoteEntityIdValid,quoteCanonical} from './deliveryQuoteRecord';
 const {createDriverSelection}=require('../../../lambda/WaveSystem_StartWave/driver-selection');
 const {isDriverApproved}=require('../../../lambda/WaveSystem_StartWave/driver_eligibility');
-const LIVE='WizzDriverLiveState_staging';
 const fail=():never=>{throw Error('DISPATCH_CANDIDATES_UNAVAILABLE');};
 /** Read adapter around the SAME Legacy filter/ranking, not v1.6 Score/Tiers.
  * New-cycle readers finish all bounded pages, fail closed, then strongly hydrate
@@ -17,12 +19,13 @@ const fail=():never=>{throw Error('DISPATCH_CANDIDATES_UNAVAILABLE');};
  */
 export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean;performanceMode?:'OFF'|'SHADOW'|'ENFORCE'}) {
  const {db}=options,now=options.now??Date.now;
+ const tables=financialDispatchTables(),production=isFinancialOrderProduction(process.env);
  return async(input:{job:Row;intent:Row})=>{
   const {job,intent}=input,c=validateDispatchCycle(job.dispatchCycle),profile=c.policy.values.dispatch!.profiles[c.engine],rule=profile.normalWaves[intent.waveNumber-1];
   if(job.dispatchJobId!==c.assignmentId||job.orderId!==c.orderId||job.status!=='searching'||intent.cycleDigest!==c.digest||intent.cycleId!==c.id||job.dispatchTransition?.id!==intent.intentId||!equal(intent.rule,rule)||!rule||Date.parse(intent.waveDeadline)<=now()||!['LEASED','APPLIED'].includes(intent.state))return fail();
   let point:Row,regionId:string;
   if(c.engine==='FINANCIAL'){const order=await createStagingDriverOfferOrderReader({db,enableDeliveryFunding:options.enableDeliveryFunding,enableFullCash:options.enableFullCash}).read({orderId:c.orderId,branchId:job.restaurantId});point=order.snapshot.branchPoint;regionId=order.snapshot.zoneId;}
-  else{const branch=await strongGet(db,'WhizzMerchants_Businesses',{businessId:job.restaurantId});if(!branch||branch.status!=='approved')return fail();point={latitude:job.restaurantLat??branch.latitude,longitude:job.restaurantLng??branch.longitude};regionId=job.restaurantRegionId??branch.regionId;}
+  else{const branch=await strongGet(db,tables.branch,{businessId:job.restaurantId});if(!branch||branch.status!=='approved')return fail();point={latitude:job.restaurantLat??branch.latitude,longitude:job.restaurantLng??branch.longitude};regionId=job.restaurantRegionId??branch.regionId;}
   if(!quoteEntityIdValid(regionId)||!Number.isFinite(point.latitude)||Math.abs(point.latitude)>90||!Number.isFinite(point.longitude)||Math.abs(point.longitude)>180)return fail();
   const excluded=new Set<string>();for(const list of [job.excludedDrivers??[],job.financialExcludedDriverIds??[]]){if(!Array.isArray(list)||!list.every(quoteEntityIdValid))return fail();for(const id of list)excluded.add(id);}
   const configuredPerformanceMode=options.performanceMode??process.env.DISPATCH_DRIVER_PERFORMANCE_MODE??'OFF';
@@ -30,17 +33,19 @@ export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumen
   if(capturedPerformance==='VERIFIED_SNAPSHOT_V1'&&configuredPerformanceMode!=='ENFORCE')return fail();
   // Explicit deployment cutover replaces the obsolete source, retaining all captured thresholds.
   const performanceMode=configuredPerformanceMode;
+  const performanceTable=production ? process.env.DRIVER_PERFORMANCE_TABLE : PERFORMANCE_TABLE;
+  if (production && performanceMode!=='OFF' && performanceTable!==PRODUCTION_SNAPSHOT_TABLE) return fail();
   const shadow={checked:0,current:0,different:0,pending:0},pendingPerformance=new Set<string>();
   if(!['OFF','SHADOW','ENFORCE'].includes(performanceMode))return fail();
-  const performanceHealth=performanceMode==='OFF'?null:await strongGet(db,PERFORMANCE_TABLE,{pk:'CONTROL',sk:'HEALTH'});
-  const regionAccess=workRegions.create({db,GetCommand});
+  const performanceHealth=performanceMode==='OFF'?null:await strongGet(db,performanceTable,{pk:'CONTROL',sk:'HEALTH'});
+  const regionAccess=workRegions.create({db,GetCommand,tables:dispatchRegionTables()});
   const previouslyOffered=new Set<string>();
-  for(let n=1;n<intent.waveNumber;n++){const wave=await strongGet(db,'WizzDispatchJobs_staging',{orderId:c.orderId,SK:dispatchWaveSK(c,n)});if(!wave||wave.assignmentId!==c.assignmentId||!Array.isArray(wave.driverIds)||wave.driverIds.length>25||!wave.driverIds.every(quoteEntityIdValid))return fail();for(const id of wave.driverIds)previouslyOffered.add(id);}
+  for(let n=1;n<intent.waveNumber;n++){const wave=await strongGet(db,tables.jobs,{orderId:c.orderId,SK:dispatchWaveSK(c,n)});if(!wave||wave.assignmentId!==c.assignmentId||!Array.isArray(wave.driverIds)||wave.driverIds.length>25||!wave.driverIds.every(quoteEntityIdValid))return fail();for(const id of wave.driverIds)previouslyOffered.add(id);}
   async function read(all:boolean):Promise<Row[]>{
    let cursor:any,rows:Row[]=[],pages=0;const seen=new Set<string>();
    do{
     if(++pages>8)return fail();
-    const q={TableName:LIVE,Limit:250,ExclusiveStartKey:cursor,ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':available':'available',...(!all?{':region':regionId}:{})}};
+    const q={TableName:tables.live,Limit:250,ExclusiveStartKey:cursor,ExpressionAttributeNames:{'#s':'status'},ExpressionAttributeValues:{':available':'available',...(!all?{':region':regionId}:{})}};
     // Live-state staging has no region GSI. Use its existing bounded scan access,
     // retaining the region predicate and strongly hydrating every result below.
     const result:any=await db.send(new ScanCommand({...q,FilterExpression:all?'#s=:available':'current_work_region_id=:region AND #s=:available'}));
@@ -49,7 +54,7 @@ export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumen
    }while(cursor);
    const ids=[...new Set(rows.map(r=>r.driverId))];if(!ids.every(quoteEntityIdValid))return fail();
    const live:Row[]=[];
-   for(const driverId of ids){const [state,driver]=await Promise.all([strongGet(db,LIVE,{driverId}),(async()=>{const fields=['driverId','cognitoSub','status','registrationStatus','isActive','isVerified','is_verified','documentsVerified','isDeleted','deletedAt','deletionRequestId','isSuspended','isBanned','vehicleType','vehiclePlate','vehicleOperational','personalDocumentReview','registrationPaperUrl','drivingLicenseUrl','nationalIdUrl','work_region_id','home_region_id'];return (await db.send(new GetCommand({TableName:'WhizzDrivers_staging',Key:{driverId},ConsistentRead:true,ProjectionExpression:fields.map((_,i)=>'#v'+i).join(','),ExpressionAttributeNames:Object.fromEntries(fields.map((f,i)=>['#v'+i,f]))}))).Item;})()]);
+   for(const driverId of ids){const [state,driver]=await Promise.all([strongGet(db,tables.live,{driverId}),(async()=>{const fields=['driverId','cognitoSub','status','registrationStatus','isActive','isVerified','is_verified','documentsVerified','isDeleted','deletedAt','deletionRequestId','isSuspended','isBanned','vehicleType','vehiclePlate','vehicleOperational','personalDocumentReview','registrationPaperUrl','drivingLicenseUrl','nationalIdUrl','work_region_id','home_region_id'];return (await db.send(new GetCommand({TableName:tables.driver,Key:{driverId},ConsistentRead:true,ProjectionExpression:fields.map((_,i)=>'#v'+i).join(','),ExpressionAttributeNames:Object.fromEntries(fields.map((f,i)=>['#v'+i,f]))}))).Item;})()]);
     if(!state||!driver||(driver.isActive!==undefined&&driver.isActive!==true)||!isDriverApproved(driver)||driver.isDeleted===true||driver.deletedAt!=null||driver.deletionRequestId!=null||driver.isSuspended===true||driver.isBanned===true)continue;
     if(c.engine==='FINANCIAL'&&(![driver.status,driver.registrationStatus].some(s=>['APPROVED','VERIFIED'].includes(String(s).toUpperCase()))||state.isActive!==true||state.currentOrderId!=null||(state.activeOrdersCount??0)!==0))continue;
     if(vehicleRegistry.enforce(driver)&&!vehicleRegistry.eligibility(driver,now()).eligible)continue;
@@ -63,7 +68,7 @@ export function createStagingDispatchCandidates(options:{db:Pick<DynamoDBDocumen
     }
     const observed=Date.parse(state.locationUpdatedAt);if(profile.positionMaxAgeSeconds!==null&&(!Number.isFinite(observed)||observed>now()||observed+profile.positionMaxAgeSeconds*1000<=now()))continue;
     if(performanceMode!=='OFF'){
-     const summary=await strongGet(db,PERFORMANCE_TABLE,{pk:'DRIVER#'+driverId,sk:'STATE'}),metrics=dispatchMetrics(summary,performanceHealth,now(),profile.newDriverExemption.belowCompletedTrips);
+     const summary=await strongGet(db,performanceTable,{pk:'DRIVER#'+driverId,sk:'STATE'}),metrics=dispatchMetrics(summary,performanceHealth,now(),profile.newDriverExemption.belowCompletedTrips);
      shadow.checked++;if(metrics){shadow.current++;if(['metricsSnapshot_acceptanceRate','metricsSnapshot_completionRate','metricsSnapshot_consecutiveRejections','metricsSnapshot_totalTrips'].some(k=>state[k]!==metrics[k]))shadow.different++;}else shadow.pending++;
      if(performanceMode==='ENFORCE'){
       // A pending snapshot is infrastructure/data freshness, never an attributed driver rejection.

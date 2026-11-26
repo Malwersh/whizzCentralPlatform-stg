@@ -1,5 +1,5 @@
 (function(){'use strict';const el=id=>document.getElementById(id);let agreement,busy=false;const message=(id,text)=>el(id).textContent=text;
-async function api(path,body){await window.Auth.ensureSession();const response=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/merchants/'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json();if(!response.ok)throw Error(({PERMISSION_REQUIRED:'ليست لديك صلاحية هذا الإجراء.',GLOBAL_SCOPE_REQUIRED:'تعديل الاتفاقية يحتاج نطاق المنصة الكامل.',NEW_AGREEMENT_VERSION_REQUIRED:'غيّر رقم الإصدار عند تغيير نص الاتفاقية.',VERSION_OR_STATE_CONFLICT:'تغير الطلب أو الإعداد. أعد تحميله.',INVALID_REVIEW:'أدخل سببًا واضحًا من خمسة أحرف على الأقل.',TRANSFER_NOT_FOUND:'لم يُعثر على طلب نقل بهذا المرجع.',INVALID_TRANSFER_REFERENCE:'تحقق من معرّف المؤسسة ومرجع الطلب.',REAUTH_REQUIRED:'أعد تسجيل الدخول لاعتماد نقل الملكية.',TRANSFER_MUTATION_FENCE_REQUIRED:'لم يكتمل التحقق من إيقاف تغييرات الفروع والصلاحيات والتسويات.',TRANSFER_EXECUTION_EVIDENCE_REQUIRED:'لم تكتمل أدلة التسويات والصلاحيات.',TRANSFER_FINANCIAL_BLOCKERS:'توجد موانع مالية تمنع النقل.',TRANSFER_SETTLEMENT_APPROVAL_REQUIRED:'على المراجع المالي مراجعة وجهة التسويات ثم الضغط على «اعتماد وجهة التسويات».',TRANSFER_DESTINATION_VERIFICATION_REQUIRED:'اطلب من المالك الجديد فتح الطلب في تطبيق المطاعم وتأكيد هاتف التسويات، ثم أعد الفحص.',TRANSFER_ACTIVE_ACCESS:'توجد صلاحيات أو دعوات أو أجهزة نشطة. أعد فحص الموانع بعد معالجتها.',TRANSFER_ACCESS_INVENTORY_INCOMPLETE:'تعذّر إكمال فحص صلاحيات الفروع. أحِل الطلب إلى فريق تشغيل المنصة.'})[data.error]||'تعذر تنفيذ العملية. أعد المحاولة.');return data;}
+async function api(path,body){await window.Auth.ensureSession();const response=await fetch(window.WIZZCENTRAL_CONFIG.STAFF_API_BASE_URL+'/staff/merchants/'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+window.Auth.getToken('accessToken'),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json();if(!response.ok)throw Error(({PERMISSION_REQUIRED:'ليست لديك صلاحية هذا الإجراء.',GLOBAL_SCOPE_REQUIRED:'تعديل الاتفاقية يحتاج نطاق المنصة الكامل.',NEW_AGREEMENT_VERSION_REQUIRED:'غيّر رقم الإصدار عند تغيير نص الاتفاقية.',VERSION_OR_STATE_CONFLICT:'تغير الطلب أو الإعداد. أعد تحميله.',INVALID_REVIEW:'أدخل سببًا واضحًا من خمسة أحرف على الأقل.',TRANSFER_NOT_FOUND:'لم يُعثر على طلب نقل بهذا المرجع.',INVALID_TRANSFER_REFERENCE:'تحقق من معرّف المؤسسة ومرجع الطلب.',REAUTH_REQUIRED:'أعد تسجيل الدخول لاعتماد نقل الملكية.',TRANSFER_MUTATION_FENCE_REQUIRED:'لم يكتمل التحقق من إيقاف تغييرات الفروع والصلاحيات والتسويات.',TRANSFER_EXECUTION_EVIDENCE_REQUIRED:'لم تكتمل أدلة التسويات والصلاحيات.',TRANSFER_FINANCIAL_BLOCKERS:'توجد موانع مالية تمنع النقل.',TRANSFER_INVENTORY_INCOMPLETE:'لم تكتمل قراءة بيانات الطلبات والمحفظة. أحِل الطلب إلى فريق تشغيل المنصة.',TRANSFER_CHECK_UNAVAILABLE:'خدمة فحص بيانات الفروع غير متاحة حاليًا.',TRANSFER_SETTLEMENT_APPROVAL_REQUIRED:'على المراجع المالي مراجعة وجهة التسويات ثم الضغط على «اعتماد وجهة التسويات».',TRANSFER_DESTINATION_VERIFICATION_REQUIRED:'اطلب من المالك الجديد فتح الطلب في تطبيق المطاعم وتأكيد هاتف التسويات، ثم أعد الفحص.',TRANSFER_ACTIVE_ACCESS:'توجد صلاحيات أو دعوات أو أجهزة نشطة. أعد فحص الموانع بعد معالجتها.',TRANSFER_ACCESS_INVENTORY_INCOMPLETE:'تعذّر إكمال فحص صلاحيات الفروع. أحِل الطلب إلى فريق تشغيل المنصة.'})[data.error]||'تعذر تنفيذ العملية. أعد المحاولة.');return data;}
 async function loadAgreement(){try{agreement=await api('agreement');el('merchant-agreement-version').value=agreement.version;el('merchant-agreement-text').value=agreement.textAr;el('merchant-agreement-ready').checked=agreement.ready;el('merchant-agreement-form').hidden=!agreement.canEdit;message('merchant-agreement-message',agreement.ready?'الاتفاقية متاحة لقبول المتقدمين.':'الاتفاقية غير جاهزة للتقديم؛ يمكن حفظ المسودات.');}catch(e){message('merchant-agreement-message',e.message);}}
 function paragraph(parent,label,value){const p=document.createElement('p');p.textContent=label+': '+(value||'—');parent.append(p);}
 async function applications(){try{const data=await api('applications');el('merchant-applications-list').replaceChildren();for(const application of data.items){const d=application.draft,card=document.createElement('article');card.style.cssText='border:1px solid #ddd;border-radius:12px;padding:16px;margin:12px 0';const title=document.createElement('h3');title.textContent=d.name;card.append(title);paragraph(card,'نوع النشاط',d.businessTypeId);paragraph(card,'المناطق',(d.regionNames||[]).join(' ← '));paragraph(card,'العنوان',d.address);paragraph(card,'هاتف الفرع',d.contactPhone);paragraph(card,'الموقع',d.latitude+', '+d.longitude);paragraph(card,'الوصف',d.description);paragraph(card,'شهادة التسجيل',d.registrationCertificateAssetId?'مرفقة':'لم تُرفق — اختيارية');paragraph(card,'نسخة الاتفاقية',d.submission?.agreement?.version);if(data.canReadDocuments){for(const [field,label] of [['registrationCertificateAssetId','شهادة التسجيل'],['businessPhotoAssetId','صورة النشاط']]){if(!d[field])continue;const b=document.createElement('button');b.textContent='عرض '+label;b.onclick=async()=>{b.disabled=true;try{const file=await api('application-asset?queueKey='+encodeURIComponent(application.queueKey)+'&assetId='+encodeURIComponent(d[field]));const link=document.createElement('a');link.href=file.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='فتح '+label+' — الرابط صالح دقيقة';b.replaceWith(link);}catch(e){b.disabled=false;message('merchant-applications-message',e.message);}};card.append(b);}}if(data.canReview){const reason=document.createElement('textarea');reason.placeholder='سبب القرار أو البيانات المطلوب استكمالها';reason.maxLength=1000;reason.style.width='100%';card.append(reason);for(const [label,decision]of [['اعتماد الفرع','APPROVE'],['يحتاج استكمالًا','NEEDS_INFORMATION'],['رفض الطلب','REJECT']]){const button=document.createElement('button');button.textContent=label;button.onclick=async()=>{if(busy)return;if(reason.value.trim().length<5){message('merchant-applications-message','اكتب سبب القرار من خمسة أحرف على الأقل.');return;}busy=true;try{await api('applications/review',{queueKey:application.queueKey,baseVersion:d.version,decision,reason:reason.value.trim()});await applications();message('merchant-applications-message','تم حفظ القرار. الفرع المعتمد يحتاج إكمال تجهيزاته قبل التشغيل.');}catch(e){message('merchant-applications-message',e.message);}finally{busy=false;}};card.append(button);}}el('merchant-applications-list').append(card);}message('merchant-applications-message',data.items.length?'عدد الطلبات: '+data.items.length:'لا توجد طلبات تنتظر المراجعة ضمن نطاقك.');}catch(e){message('merchant-applications-message',e.message);}}
@@ -8,7 +8,19 @@ if(transferLookup){
  const labels={AWAITING_RECIPIENT:'بانتظار قبول المالك الجديد',AWAITING_REVIEW:'بانتظار مراجعة الإدارة',REJECTED:'مرفوض',CANCELLED:'ملغى',COMPLETED:'مكتمل',EXPIRED:'منتهي الصلاحية'};
  const output=el('merchant-transfer-result'),rejectForm=el('merchant-transfer-reject'),reason=el('merchant-transfer-reason');
  const preflightButton=el('merchant-transfer-preflight'),blockers=el('merchant-transfer-blockers');
- let current=null,transferBusy=false,executionAvailable=false;
+ let current=null,transferBusy=false,executionAvailable=false,settlementInfo=null;
+ function displaySettlement(settlement){
+  if(!settlementInfo)return;
+  settlementInfo.replaceChildren();
+  if(!settlement)return;
+  const labels={
+   VERIFICATION_REQUIRED:'بانتظار تأكيد هاتف التسويات من المالك الجديد',
+   REVIEW_REQUIRED:'الهاتف مؤكّد وبانتظار اعتماد المراجع المالي',
+   APPROVED:'اعتمد المراجع المالي وجهة التسويات',
+  };
+  paragraph(settlementInfo,'وجهة التسويات',labels[settlement.status]||settlement.status);
+  if(settlement.maskedPhone)paragraph(settlementInfo,'هاتف التسويات',settlement.maskedPhone);
+ }
  function display(data){
   const previous=current?.requestId===data.request.requestId?current:null;
   current={...data.request,branchNames:data.request.branchNames??previous?.branchNames};
@@ -24,6 +36,9 @@ if(transferLookup){
   if(names.length)paragraph(card,'الفروع المشمولة',names.join('، '));
   if(names.length<total)paragraph(card,'عدد الفروع المشمولة',String(total));
   if(current.agreementVersion)paragraph(card,'إصدار الاتفاقية المقبولة',current.agreementVersion);
+  settlementInfo=document.createElement('div');
+  card.append(settlementInfo);
+  displaySettlement(data.settlement);
   output.append(card);
   if(['AWAITING_RECIPIENT','AWAITING_REVIEW'].includes(current.status)){
    const process=document.createElement('section');
@@ -58,17 +73,6 @@ if(transferLookup){
    }
    output.append(process);
   }
-  const settlement=data.settlement;
-  if(settlement){
-   const labels={
-    VERIFICATION_REQUIRED:'بانتظار تأكيد هاتف التسويات من المالك الجديد',
-    REVIEW_REQUIRED:'الهاتف مؤكّد وبانتظار اعتماد المراجع المالي',
-    APPROVED:'اعتمد المراجع المالي وجهة التسويات',
-   };
-   paragraph(card,'وجهة التسويات',labels[settlement.status]||settlement.status);
-   if(settlement.maskedPhone)paragraph(card,'هاتف التسويات',settlement.maskedPhone);
-  }
-
   blockers.replaceChildren();
   preflightButton.hidden=!data.canPreflight;
   rejectForm.hidden=!data.canReject&&!data.canApprove&&!data.canApproveSettlement;
@@ -85,6 +89,7 @@ if(transferLookup){
    message('merchant-transfer-message','');
   }catch(error){message('merchant-transfer-message',error.message);}
   finally{transferBusy=false;}
+  if(current&&!preflightButton.hidden)await runPreflight();
  }
  transferLookup.onsubmit=event=>{
   event.preventDefault();
@@ -136,11 +141,25 @@ if(transferLookup){
   if(window.location.hash==='#merchant-ownership-transfer-section')section.open=true;
   if(section.open)loadQueue(true);
  }
- const finance={label:'فتح المحافظ والتسويات',href:'finance.html'};
- const orders={label:'فتح إدارة الطلبات',href:'orders-management.html'};
+ const financeLink=(label,anchor,withBranch=false)=>({label,page:'finance.html',anchor,withBranch});
+ const finance=financeLink('فتح تسويات الفرع','completed-order-settlements',true);
+ const holds=financeLink('فتح متابعة الحجوزات والتسويات','lifecycle-section');
+ const topups=financeLink('فتح طلبات شحن المحافظ','requests');
+ const transfers=financeLink('فتح التحويلات','transfer-requests');
+ const merchants={label:'فتح دليل المتاجر لمراجعة الفرع',page:'merchants.html',anchor:'merchantBranchesTable'};
+ const orders={label:'فتح قائمة الطلبات',page:'orders-management.html',anchor:'ordersTableBody'};
  const blockerGuidance={
+  TRANSFER_DESTINATION_VERIFICATION_REQUIRED:{
+   title:'بانتظار تأكيد هاتف التسويات',owner:'مستلم دعوة نقل الملكية',
+   steps:'في تطبيق وز للتاجر، يفتح مستلم الدعوة «طلبات نقل الملكية»، ثم تفاصيل الدعوة ويضغط «تأكيد هاتف التسويات». بعد التأكيد يعيد المراجع الفحص.',
+  },
+  TRANSFER_SETTLEMENT_APPROVAL_REQUIRED:{
+   title:'بانتظار اعتماد وجهة التسويات',owner:'المراجع المالي',
+   steps:'راجع هاتف التسويات المؤكّد، واكتب سبب القرار، ثم اضغط «اعتماد وجهة التسويات» في هذا الطلب.',
+   control:'merchant-transfer-settlement',
+  },
   BRANCH_SCOPE_CHANGED:{
-   title:'تغيّرت بيانات الفرع أو نطاق الطلب',owner:'مراجع التجّار والمالك الحالي',
+   title:'تغيّرت بيانات الفرع أو نطاق الطلب',owner:'مراجع التجّار والمالك الحالي',link:merchants,
    steps:'قارن قائمة الفروع في الطلب مع الأنشطة المملوكة حاليًا. إذا تغيّر النطاق أو المالك، ارفض الطلب المتقادم لتقديم طلب جديد يقبله الطرفان.',
   },
   ACTIVE_ORDERS:{
@@ -148,15 +167,15 @@ if(transferLookup){
    steps:'ابحث عن طلبات الفرع المفتوحة وأكملها أو عالج الإلغاء عبر مسار الطلب المعتمد. أعد الفحص بعد انتقال الطلبات إلى حالات نهائية.',
   },
   ACTIVE_HOLDS:{
-   title:'حجوزات نشطة',owner:'المراجع المالي',link:finance,
+   title:'حجوزات نشطة',owner:'المراجع المالي',link:holds,
    steps:'طابق الحجز مع الطلب أو العملية المالية التي أنشأته. أكمل العملية أو حرّر الحجز من مسارها المعتمد بعد مراجعة سبب الحجز.',
   },
   PENDING_TOPUPS:{
-   title:'طلبات شحن معلّقة',owner:'مراجع الشحن',link:finance,
+   title:'طلبات شحن معلّقة',owner:'مراجع الشحن',link:topups,
    steps:'راجع طلبات شحن محفظة الفرع وطابق وصول التحويل مع الوصل. اعتمد الطلب المستحق أو ارفضه بسبب موثّق، ثم عالج أي رصيد متبقٍ.',
   },
   PENDING_TRANSFERS:{
-   title:'تحويلات معلّقة',owner:'المراجع المالي',link:finance,
+   title:'تحويلات معلّقة',owner:'المراجع المالي',link:transfers,
    steps:'تحقق من التحويلات الصادرة والواردة لهذه المحفظة. أكمل المعاملة المستحقة أو ألغها وفق حالتها وصلاحيتك، ثم تحقق من الأثر على الرصيد.',
   },
   PENDING_PAYOUTS:{
@@ -168,19 +187,19 @@ if(transferLookup){
    steps:'راجع التصحيح المرتبط بالفرع وأكمل اعتماده أو رفضه. سوِّ أي حجز تابع له من مسار التصحيح قبل إعادة الفحص.',
   },
   ACTIVE_DEVICES:{
-   title:'أجهزة مرتبطة',owner:'المالك الحالي',
+   title:'أجهزة مرتبطة',owner:'المالك الحالي',link:merchants,
    steps:'اطلب من المالك الحالي فتح إدارة أجهزة الفرع في تطبيق المطاعم وإلغاء ربط أجهزة الاستقبال المرتبطة به. يربط المالك الجديد أجهزته بعد اكتمال النقل.',
   },
   ACTIVE_MEMBERSHIPS:{
-   title:'عضويات نشطة',owner:'المالك الحالي',
+   title:'عضويات نشطة',owner:'المالك الحالي',link:merchants,
    steps:'اطلب من المالك الحالي مراجعة موظفي الفرع وإلغاء العضويات النشطة. بعد اكتمال النقل، يدعو المالك الجديد من يحتاج إلى منحه صلاحيات.',
   },
   PENDING_STAFF_INVITATIONS:{
-   title:'دعوات موظفين معلّقة',owner:'المالك الحالي',
+   title:'دعوات موظفين معلّقة',owner:'المالك الحالي',link:merchants,
    steps:'اطلب من المالك إلغاء الدعوات غير المقبولة من صفحة موظفي الفرع، أو انتظر انتهاء صلاحيتها ثم أعد الفحص.',
   },
   PENDING_DEVICE_PAIRING:{
-   title:'رمز ربط جهاز سارٍ',owner:'المالك الحالي',
+   title:'رمز ربط جهاز سارٍ',owner:'المالك الحالي',link:merchants,
    steps:'أوقف إجراءات ربط الأجهزة وانتظر انتهاء صلاحية رمز الربط الحالي، ثم أعد الفحص.',
   },
   ACTIVE_FINANCIAL_GRANTS:{
@@ -196,48 +215,83 @@ if(transferLookup){
    steps:'طابق الرصيد مع سجل المحفظة ووافق على معالجة الرصيد الموجب أو تحصيل المبلغ المستحق عبر مسار التسوية. تحقق من وصول الرصيد المتاح إلى صفر.',
   },
   WALLET_LOCKED:{
-   title:'رصيد محجوز',owner:'المراجع المالي',link:finance,
+   title:'رصيد محجوز',owner:'المراجع المالي',link:holds,
    steps:'حدّد الطلب أو التحويل الذي حجز المبلغ. أكمل العملية أو حرّر الحجز عبر مسارها المعتمد، ثم تحقق من وصول الرصيد المحجوز إلى صفر.',
   },
  };
- preflightButton.onclick=async()=>{
+ const unknownBlocker=code=>({
+  title:'مانع يحتاج مراجعة ('+code+')',owner:'فريق تشغيل المنصة',
+  steps:'أرسل مرجع الطلب ورمز المانع إلى فريق تشغيل المنصة للتحقق من السجل وإعادة الفحص.',
+ });
+ async function runPreflight(){
   if(!current||transferBusy)return;
   transferBusy=true;preflightButton.disabled=true;blockers.replaceChildren();
   message('merchant-transfer-message','جارٍ فحص البيانات الحالية…');
   try{
    const query=new URLSearchParams({organizationId:current.organizationId,requestId:current.requestId});
    const data=await api('ownership-transfer/preflight?'+query);
+   if(data.settlement)displaySettlement(data.settlement);
+   for(const [flag,id] of [['canApproveSettlement','merchant-transfer-settlement'],['canApprove','merchant-transfer-approve']]){
+    if(typeof data[flag]==='boolean')el(id).hidden=!data[flag];
+   }
+   const requestBlockers=data.requestBlockers||[];
+   if(requestBlockers.length){
+    const card=document.createElement('article'),title=document.createElement('h3');
+    card.className='merchant-transfer-card';
+    title.textContent='موانع اعتماد الطلب';
+    card.append(title);
+    for(const item of requestBlockers){
+     const guide=blockerGuidance[item.code]||unknownBlocker(item.code);
+     const detail=document.createElement('section'),heading=document.createElement('h4');
+     heading.textContent=guide.title;
+     detail.append(heading);
+     paragraph(detail,'المسؤول عن الحل',guide.owner);
+     paragraph(detail,'خطوة الحل',guide.steps);
+     if(guide.control&&!el(guide.control).hidden){
+      const go=document.createElement('button');
+      go.type='button';
+      go.className='btn-secondary';
+      go.textContent='الانتقال إلى اعتماد وجهة التسويات';
+      go.onclick=()=>el(guide.control).focus();
+      detail.append(go);
+     }
+     card.append(detail);
+    }
+    blockers.append(card);
+   }
    for(const branch of data.branches){
     const card=document.createElement('article'),title=document.createElement('h3');
     card.className='merchant-transfer-card';
     title.textContent=branch.name;card.append(title);
     for(const item of branch.blockers){
      const value=item.amount!==undefined?new Intl.NumberFormat('ar-IQ').format(item.amount)+' د.ع':String(item.count);
-     const guide=blockerGuidance[item.code]||{
-      title:'مانع يحتاج مراجعة ('+item.code+')',owner:'فريق تشغيل المنصة',
-      steps:'أرسل مرجع الطلب والفرع ورمز المانع إلى فريق تشغيل المنصة للتحقق من السجل وإعادة الفحص.',
-     };
+     const guide=blockerGuidance[item.code]||{...unknownBlocker(item.code),link:merchants};
      const detail=document.createElement('section');
      paragraph(detail,guide.title,value);
      paragraph(detail,'المسؤول عن الحل',guide.owner);
      paragraph(detail,'خطوة الحل',guide.steps);
      if(guide.link){
-      const link=document.createElement('a');link.href=guide.link.href;link.textContent=guide.link.label;
+      const link=document.createElement('a');
+      const url=new URL(guide.link.page,window.location.href);
+      if(guide.link.withBranch)url.searchParams.set('branchId',branch.businessId);
+      url.hash=guide.link.anchor;
+      link.href=url.href;link.textContent=guide.link.label;
       link.target='_blank';link.rel='noopener';detail.append(link);
      }
      card.append(detail);
     }
     if(!branch.blockers.length){
-     const note=document.createElement('p');note.textContent='لم يرصد الفحص الحالي موانع في البيانات التي راجعها.';card.append(note);
+     const note=document.createElement('p');note.textContent='لا توجد موانع خاصة بهذا الفرع.';card.append(note);
     }
     blockers.append(card);
    }
-   message('merchant-transfer-message',data.branches.some(branch=>branch.blockers.length)
+   message('merchant-transfer-message',requestBlockers.length||data.branches.some(branch=>branch.blockers.length)
     ?'بعد معالجة الموانع، اضغط «فحص موانع الاعتماد» مجددًا.'
-    :'لم يرصد الفحص الحالي موانع. راجع حالة وجهة التسويات قبل اتخاذ القرار.');
-  }catch(error){message('merchant-transfer-message',error.message);}
+    :'لم يرصد الفحص الحالي موانع للاعتماد.');
+  }catch(error){message('merchant-transfer-message','تعذّر فحص الموانع. '+error.message);}
   finally{transferBusy=false;preflightButton.disabled=false;}
- };
+ }
+ preflightButton.onclick=runPreflight;
  rejectForm.onsubmit=async event=>{
   event.preventDefault();
   if(transferBusy||!current||reason.value.trim().length<5)return;
@@ -251,13 +305,16 @@ if(transferLookup){
   if(!window.confirm(prompts[action]))return;
   transferBusy=true;
   try{
-   display(await api('ownership-transfer/'+action,{
+   const resultData=await api('ownership-transfer/'+action,{
     organizationId:current.organizationId,requestId:current.requestId,
     baseVersion:current.version,reason:reason.value.trim(),
-   }));
+   });
+   display(resultData);
    reason.value='';
    const result={
-    approve:'اعتُمد نقل الملكية.',
+    approve:resultData.notificationsQueued
+     ?'اعتُمد نقل الملكية وأُدرج إشعار لكل من المالكين للإرسال.'
+     :'اعتُمد نقل الملكية. تعذّر تأكيد جدولة إشعاري الاكتمال.',
     'approve-settlement':'اعتمدت الإدارة وجهة التسويات. يمكن متابعة مراجعة طلب النقل.',
     reject:'رُفض طلب النقل ورُفع الإيقاف المرتبط به.',
    };

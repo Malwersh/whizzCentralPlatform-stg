@@ -1,3 +1,4 @@
+import {financialDispatchTables,isFinancialOrderProduction} from './walletBindings';
 import {financialOfferSK} from './financialOfferKey';
 import {financialWaveSK} from './financialDispatchKeys';
 import {DynamoDBDocumentClient,TransactWriteCommand} from '@aws-sdk/lib-dynamodb';
@@ -6,7 +7,6 @@ import {resolveFinancialOffer,versionedFinancialOfferView} from './financialOffe
 import {createStagingDriverOfferOrderReader,financialSnapshotFromOrderRead} from './driverOfferOrderReader';
 import {quoteHash,quoteEntityIdValid} from './deliveryQuoteRecord';
 import {validateDispatchCycle} from './dispatchCycle';
-const JOBS='WizzDispatchJobs_staging',OFFERS='WaveOffers_staging';
 const fail=(code='FINANCIAL_DELIVERY_PROOF_REQUIRED'):never=>{throw Error(code);};
 /** Separate channel acknowledgements on the original offer, never a financial
  * mutation. A provider ACK is not proof of receipt on the driver's device.
@@ -17,6 +17,8 @@ export function createStagingFinancialOfferDelivery(options:{db:Pick<DynamoDBDoc
  postSocket:(connectionId:string,message:Row)=>Promise<unknown>;
  postPush:(reference:Row)=>Promise<{statusCode:number;body:string}>}){
  const {db}=options,now=options.now??Date.now;
+ const {offers:OFFERS}=financialDispatchTables();
+ const connections=isFinancialOrderProduction(process.env)?'wizz-production-OrderConnections':'WizzUser_websocket_connections_staging';
  return async(driverId:string,message:Row)=>{
   if(!quoteEntityIdValid(driverId)||message?.type!=='financial_wave_offer'||!message.offer||message.eventId!==message.offer.offerId||message.waveNumber!==message.offer.waveNumber)return fail();
   const {orderId,offerId,waveNumber}=message.offer;
@@ -44,7 +46,7 @@ export function createStagingFinancialOfferDelivery(options:{db:Pick<DynamoDBDoc
     // Old/unverified sockets receive no private offer; canonical FCM remains independent.
     let trusted=false,lookupFailed=false;
     try {
-     const connection=await strongGet(db,'WizzUser_websocket_connections_staging',{connectionId:f.state.connectionId}),scope=connection?.identityScope346;
+     const connection=await strongGet(db,connections,{connectionId:f.state.connectionId}),scope=connection?.identityScope346;
      trusted=scope?.version===1&&scope.role==='DRIVER'&&scope.subjectId===f.reference.driverId&&scope.driverId===driverId&&scope.expiresAt>Math.floor(now()/1000)&&connection?.isActive!==false&&connection?.status!=='disconnected';
     }catch(_){lookupFailed=true;}
     if(!trusted&&!lookupFailed)await mark('websocketUnavailable');
@@ -67,6 +69,7 @@ export function createStagingFinancialOfferDelivery(options:{db:Pick<DynamoDBDoc
 /** Read-only original-offer proof shared by sending, push receiving and driver hydration. */
 export async function readStagingFinancialOfferDelivery(options:{db:Pick<DynamoDBDocumentClient,'send'>;now?:()=>number;enableDeliveryFunding?:boolean;enableFullCash?:boolean},selector:{orderId:string;offerId:string;waveNumber:number;dispatchDriverId:string}){
  const {db}=options,now=options.now??Date.now,{orderId,offerId,waveNumber,dispatchDriverId:driverId}=selector;
+ const {jobs:JOBS,offers:OFFERS,live}=financialDispatchTables();
  if(Object.keys(selector).sort().join(',')!=='dispatchDriverId,offerId,orderId,waveNumber'||![orderId,offerId,driverId].every(quoteEntityIdValid)||!Number.isSafeInteger(waveNumber)||waveNumber<1||waveNumber>1000)return fail();
  const key={orderId,SK:await financialOfferSK(db,orderId,driverId,waveNumber)};
    const saved=await strongGet(db,OFFERS,key),job=await strongGet(db,JOBS,{orderId,SK:'METADATA'}),waveKey={orderId,SK:financialWaveSK(job,waveNumber)},wave=await strongGet(db,JOBS,waveKey);
@@ -81,7 +84,7 @@ export async function readStagingFinancialOfferDelivery(options:{db:Pick<DynamoD
    const view=versionedFinancialOfferView(offer,driverId,offer.driverSubjectId,new Date(now()).toISOString(),options.enableDeliveryFunding,options.enableFullCash);
    const expected={type:'financial_wave_offer',eventId:offerId,waveNumber,offer:{...view,...(read.display?{display:read.display}:{})}};
    if(saved.expiresAt!==view.expiresAt||Date.parse(view.expiresAt)>Date.parse(intent.waveDeadline))return fail();
-   const state=await strongGet(db,'WizzDriverLiveState_staging',{driverId});
+   const state=await strongGet(db,live,{driverId});
    const reference={financialPushVersion:1,orderId,offerId,waveNumber,dispatchDriverId:driverId,driverId:offer.driverSubjectId,cycleId:cycle.id,expiresAt:view.expiresAt,offerDigest:view.offerDigest};
    const guards=[exactCheck(OFFERS,key,saved),exactCheck(JOBS,{orderId,SK:'METADATA'},job),exactCheck(JOBS,waveKey,wave),exactCheck(JOBS,{orderId,SK:intent.SK},intent),read.condition,...(read.releaseCondition?[read.releaseCondition]:[])];
    return {saved,state,reference,guards,message:expected};

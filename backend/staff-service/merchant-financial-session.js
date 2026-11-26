@@ -1,7 +1,6 @@
 "use strict";
 const {GetCommand,TransactWriteCommand}=require('@aws-sdk/lib-dynamodb');
 const {randomBytes,randomInt,createHash,createHmac,timingSafeEqual}=require('node:crypto');
-const TABLE='staging-MerchantPlatform';
 const fail=code=>{throw Object.assign(Error(code),{code});};
 const hash=v=>createHash('sha256').update(v).digest('hex');
 const same=(a,b)=>typeof a==='string'&&typeof b==='string'&&a.length===b.length&&timingSafeEqual(Buffer.from(a),Buffer.from(b));
@@ -11,7 +10,13 @@ const valid=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_:#.-]{0,149}$/.test(
  * Its versioned fingerprint and transactional guards fence ownership changes.
  * Never accept an owner identity or verified phone supplied by the caller.
  */
-function createMerchantFinancialSession({db,authorize,otp,now=Date.now}){
+function createMerchantFinancialSession({db,authorize,otp,now=Date.now,tableName}){
+ const production=['production','prod'].includes(process.env.ENVIRONMENT)||
+  ['production','prod'].includes(process.env.PLATFORM_ENVIRONMENT);
+ const TABLE=tableName??(production?undefined:'staging-MerchantPlatform');
+ if(TABLE!==(production?'wizz-production-MerchantFinancialSessions':'staging-MerchantPlatform')){
+  fail('FINANCIAL_VERIFICATION_UNAVAILABLE');
+ }
  const epoch=()=>Math.floor(now()/1000);
  async function identity(input){
   if(!valid(input?.branchId)||typeof input?.deviceId!=='string'||!/^[A-Za-z0-9_-]{24,128}$/.test(input.deviceId))fail('FINANCIAL_INVALID_REQUEST');

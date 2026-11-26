@@ -18,8 +18,8 @@ export function readDeliveryFundingReplay(row: Row, key: Row, orderId: string): 
   if (quoteHash(body) !== digest) invalid();
   return row;
 }
-export function deliveryFundingReplayFence(row: Row) {
-  return {ConditionCheck:{TableName:'staging-PlatformStaff',Key:{pk:row.pk,sk:row.sk},
+export function deliveryFundingReplayFence(row: Row, table: string) {
+  return {ConditionCheck:{TableName:table,Key:{pk:row.pk,sk:row.sk},
     ConditionExpression:'#kind=:kind AND #version=:version AND #digest=:digest',
     ExpressionAttributeNames:{'#kind':'kind','#version':'version','#digest':'digest'},
     ExpressionAttributeValues:{':kind':row.kind,':version':row.version,':digest':row.digest}}};

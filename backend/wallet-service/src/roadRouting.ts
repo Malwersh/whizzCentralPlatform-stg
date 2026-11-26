@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { calculateDeliveryFee } from './deliveryPricing';
 
 export class RoutingError extends Error {
-  constructor(public readonly code: 'INVALID_ROUTE_INPUT' | 'ROUTING_NOT_CONFIGURED' | 'ROUTE_UNAVAILABLE' | 'OUTSIDE_COVERAGE' | 'REGION_REFERENCE_UNAVAILABLE' | 'AMBIGUOUS_COVERAGE') {
+  constructor(public readonly code: 'INVALID_ROUTE_INPUT' | 'ROUTING_NOT_CONFIGURED' | 'ROUTE_UNAVAILABLE' | 'OUTSIDE_COVERAGE' | 'REGION_REFERENCE_UNAVAILABLE' | 'AMBIGUOUS_COVERAGE' | 'BOUNDARY_REGION_SELECTION_REQUIRED') {
     super(code); this.name = 'RoutingError';
   }
 }
@@ -107,15 +107,17 @@ export type CoverageMatch = Readonly<{
   regionId: string; active: boolean; hierarchyActive: boolean; insidePolygon: boolean;
   referenceVersion: string;
 }>;
+export type BoundaryPreference = Readonly<{ preferredRegionId?: string }>;
 export function createCoveredDeliveryRouter(options: {
-  resolveCoverage: (point: Point) => Promise<CoverageMatch | null>;
+  resolveCoverage: (point: Point, preference?: BoundaryPreference) => Promise<CoverageMatch | null>;
   router: ReturnType<typeof createMapboxRoadRouter>;
 }) {
   const resolveCoverage = options.resolveCoverage, router = options.router;
   return Object.freeze({
-    async getDeliveryRoute(branchLocation: unknown, customerLocation: unknown) {
+    async getDeliveryRoute(branchLocation: unknown, customerLocation: unknown, destinationPreference?: BoundaryPreference) {
       const origin = point(branchLocation), destination = point(customerLocation);
-      const matches = await Promise.all([resolveCoverage(origin), resolveCoverage(destination)]);
+      const resolveEndpoints = () => Promise.all([resolveCoverage(origin), resolveCoverage(destination, destinationPreference)]);
+      const matches = await resolveEndpoints();
       const coverage = matches.map(m => {
         if (!m || m.active !== true || m.hierarchyActive !== true || m.insidePolygon !== true ||
             typeof m.regionId !== 'string' || !/^[A-Za-z0-9_.:-]{1,150}$/.test(m.regionId) ||
@@ -124,7 +126,7 @@ export function createCoveredDeliveryRouter(options: {
       });
       const bound = await router.getRoute(origin, destination);
       // Revalidate after provider I/O; a deactivated or changed reference cannot be silently accepted.
-      const latest = await Promise.all([resolveCoverage(origin), resolveCoverage(destination)]);
+      const latest = await resolveEndpoints();
       if (latest.some((m, i) => !m || m.active !== true || m.hierarchyActive !== true || m.insidePolygon !== true ||
           m.regionId !== coverage[i].regionId || m.referenceVersion !== coverage[i].referenceVersion)) {
         throw new RoutingError('OUTSIDE_COVERAGE');
